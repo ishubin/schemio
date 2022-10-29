@@ -41,7 +41,7 @@ export default {
                 EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
                 resultCallback();
             }
-        }));
+        }), 'screen', 'screen-transform');
     }
 };
 

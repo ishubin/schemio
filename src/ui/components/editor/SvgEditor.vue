@@ -653,7 +653,7 @@ export default {
                 } else {
                     frameAnimation.setStopFrame(-1);
                 }
-                AnimationRegistry.play(frameAnimation, itemId);
+                AnimationRegistry.play(frameAnimation, itemId, 'frame-player');
 
             } else if (args.operation === 'setFrame') {
                 frameAnimation.toggleFrame(args.frame);
@@ -772,7 +772,7 @@ export default {
                     destroy: () => {
                         this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
                     }
-                }));
+                }), 'screen', 'screen-tansform');
             } else {
                 this.schemeContainer.screenTransform.scale = newZoom;
                 this.schemeContainer.screenTransform.x = destX;
@@ -791,7 +791,7 @@ export default {
                         link.y = link.startY * (1.0 - t) + link.destinationY * t;
                     });
                 }
-            }));
+            }), 'screen', 'links-animation');
         },
 
         generateItemLinks(item) {

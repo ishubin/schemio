@@ -110,7 +110,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new MoveAlongPathAnimation(item, args, schemeContainer, resultCallback), item.id);
+            AnimationRegistry.play(new MoveAlongPathAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
             if (args.inBackground) {
                 resultCallback();
             }

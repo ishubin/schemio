@@ -70,6 +70,7 @@ import ColorPicker from '../../../editor/ColorPicker.vue';
 import AdvancedColorEditor from '../../../editor/AdvancedColorEditor.vue';
 import StrokePattern from '../../items/StrokePattern.js';
 import Modal from '../../../Modal.vue';
+import { supportsAnimationForSetFunction } from '../../../../userevents/functions/SetFunction';
 
 export default {
     props: ['argumentValue', 'argumentDescription', 'args'],
@@ -101,9 +102,7 @@ export default {
 
     computed: {
         supportsAnimation() {
-            return this.argumentDescription.type === 'number'
-                || this.argumentDescription.type === 'color'
-                || this.argumentDescription.type === 'advanced-color';
+            return supportsAnimationForSetFunction(this.argumentDescription.type);
         }
     },
 

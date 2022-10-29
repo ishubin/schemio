@@ -76,7 +76,7 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animate) {
-                AnimationRegistry.play(new RotateAnimation(item, args, schemeContainer, resultCallback), item.id);
+                AnimationRegistry.play(new RotateAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
                 if (args.inBackground) {
                     resultCallback();
                 }

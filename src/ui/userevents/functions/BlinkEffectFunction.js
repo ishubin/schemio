@@ -150,7 +150,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new BlinkEffectAnimation(item, args, resultCallback), item.id);
+            AnimationRegistry.play(new BlinkEffectAnimation(item, args, resultCallback), item.id, this.name);
 
             if (args.inBackground) {
                 resultCallback();

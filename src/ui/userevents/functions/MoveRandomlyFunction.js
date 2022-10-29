@@ -105,7 +105,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new MoveRandomlyAnimation(item, args, schemeContainer, resultCallback), item.id);
+            AnimationRegistry.play(new MoveRandomlyAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
             if (args.inBackground) {
                 resultCallback();
             }

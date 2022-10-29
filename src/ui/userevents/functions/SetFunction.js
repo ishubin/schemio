@@ -18,7 +18,12 @@ function playAnimation(item, args, resultCallback, updateCallback) {
         destroy() {
             resultCallback();
         }
-    }), item.id);
+    }), item.id, `set-func-${args.field}`);
+}
+
+
+export function supportsAnimationForSetFunction(argType) {
+    return argType === 'number' || argType === 'color' || argType === 'advanced-color';
 }
 
 function animateGradientColor(item, args, resultCallback, startGradient, endGradient) {
@@ -90,14 +95,8 @@ function animateAdvancedColor(item, args, resultCallback, startValue) {
     return false;
 }
 
-function animateValue(item, args, resultCallback) {
-    const property = getItemPropertyDescriptionForShape(Shape.find(item.shape), args.field);
-    if (!property) {
-        resultCallback();
-        return;
-    }
+function animateValue(property, item, args, resultCallback) {
     const startValue = utils.getObjectProperty(item, args.field);
-
     if (property.type === 'number') {
         playAnimation(item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, startValue * (1 - t) + args.value * t);
@@ -141,12 +140,14 @@ export default {
             resultCallback();
             return;
         }
-        
-        if (args.animated) {
+
+        const property = getItemPropertyDescriptionForShape(Shape.find(item.shape), args.field);
+
+        if (args.animated && property && supportsAnimationForSetFunction(property.type)) {
             if (args.inBackground) {
                 resultCallback();
             }
-            animateValue(item, args, () =>{
+            animateValue(property, item, args, () =>{
                 if (!args.inBackground) {
                     resultCallback();
                 }

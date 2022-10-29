@@ -6,7 +6,7 @@ import AnimationRegistry from "../../animations/AnimationRegistry";
 
 export default {
     name: 'Play Frames',
-    
+
     description: 'Triggers animations in specified frame player',
 
     supportedShapes: ['frame_player'],
@@ -39,7 +39,7 @@ export default {
         } else {
             frameAnimation.setStopFrame(-1);
         }
-        AnimationRegistry.play(frameAnimation, item.id);
+        AnimationRegistry.play(frameAnimation, item.id, 'frame-player');
         resultCallback();
     }
 }

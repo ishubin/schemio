@@ -89,7 +89,7 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animate) {
-                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer, resultCallback), item.id);
+                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
                 if (args.inBackground) {
                     resultCallback();
                 }

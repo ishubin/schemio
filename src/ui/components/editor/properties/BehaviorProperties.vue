@@ -143,6 +143,7 @@ import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
 import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
+import {supportsAnimationForSetFunction} from '../../../userevents/functions/SetFunction';
 import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
@@ -513,13 +514,17 @@ export default {
                     field: methodOption.fieldPath,
                     value: '',
                     animated: false,
-                    animationDuration: 0.5,
+                    animationDuration: 0.2,
                     transition: 'ease-in-out',
-                    inBackground: false
+                    inBackground: true
                 };
 
                 const element = this.findElement(action.element);
                 if (element) {
+                    const property = getItemPropertyDescriptionForShape(Shape.find(element.shape), methodOption.fieldPath);
+                    if (property && supportsAnimationForSetFunction(property.type)) {
+                        args.animated = true;
+                    }
                     args.value = utils.getObjectProperty(element, methodOption.fieldPath);
                 }
                 action.args = args;

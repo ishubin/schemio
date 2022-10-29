@@ -192,7 +192,7 @@ export default {
                         resultCallback();
                     }
                 }
-            }));
+            }), 'screen', 'screen-transform');
             if (args.inBackground) {
                 resultCallback();
             }

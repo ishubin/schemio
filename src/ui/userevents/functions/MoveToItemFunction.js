@@ -83,7 +83,7 @@ class MoveToItemAnimation extends Animation {
             const t = Math.min(1.0, this.elapsedTime / (this.args.duration * 1000));
 
             let shouldProceedAnimating = true;
-            
+
             let convertedT = convertTime(t, this.args.movement);
 
             if (t >= 1.0){
@@ -132,7 +132,7 @@ export default {
 
     args: {
         destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item to which this item should be moved'},
-        matchPoint      : {name: 'Match point',       type: 'choice', value: 'center', description: 'Match items points', 
+        matchPoint      : {name: 'Match point',       type: 'choice', value: 'center', description: 'Match items points',
             options: ['center', 'pivot', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
         },
         animate         : {name: 'Animate',           type: 'boolean',value: false},
@@ -155,10 +155,10 @@ export default {
 
             if (destinationItem && destinationItem.id !== item.id) {
                 destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, args.matchPoint);
-                
+
                 const v1 = worldVectorOnItem(item.area.w, 0, item);
                 const v2 = worldVectorOnItem(destinationItem.area.w, 0, destinationItem);
-                
+
                 const a1 = myMath.fullAngleForVector(v1.x, v1.y);
                 const a2 = myMath.fullAngleForVector(v2.x, v2.y);
 
@@ -168,10 +168,14 @@ export default {
                 destinationHeight = destinationItem.area.h;
             }
 
-            
+
             if (destinationPosition) {
                 if (args.animate) {
-                    AnimationRegistry.play(new MoveToItemAnimation(item, args, destinationPosition, destinationAngle, destinationWidth, destinationHeight, schemeContainer, resultCallback), item.id);
+                    AnimationRegistry.play(
+                        new MoveToItemAnimation(item, args, destinationPosition, destinationAngle, destinationWidth, destinationHeight, schemeContainer, resultCallback),
+                        item.id,
+                        this.name
+                    );
                     if (args.inBackground) {
                         resultCallback();
                     }

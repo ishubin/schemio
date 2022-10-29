@@ -44,7 +44,7 @@ export default {
                         resultCallback();
                     }
                 }
-            }), item.id);
+            }), item.id, this.name);
 
             if (args.inBackground) {
                 resultCallback();

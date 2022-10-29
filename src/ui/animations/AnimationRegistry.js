@@ -62,13 +62,22 @@ function startAnimationLoop() {
 }
 
 
+function stopSimilarAnimationForItem(entityId, animationId) {
+    forEach(animations, animation => {
+        if (animation.entityId === entityId && animation.animationId === animationId) {
+            animation.enabled = false;
+        }
+    });
+}
+
 export default {
     /**
-     * 
+     *
      * @param {Animation} animation
      * @param {String} entityId Id of an item. It is needed in order to be able to stop all animations for a specific item
+     * @param {String} animationId Id of animation. It is used to avoid race conditions when same animations are played in parallel for the same item
      */
-    play(animation, entityId) {
+    play(animation, entityId, animationId) {
         // checking whether such animation already exists
         // this can be a case for frame player
         // instead of linear search this could be optimized by using a map of animation ids
@@ -83,6 +92,12 @@ export default {
         }
 
         animation.entityId = entityId;
+        animation.animationId = animationId;
+
+        if (animationId) {
+            stopSimilarAnimationForItem(entityId, animationId);
+        }
+
         let success = false;
         try {
             animation.enabled = true;
@@ -121,5 +136,5 @@ export default {
                 animation.enabled = false;
             }
         });
-    }
+    },
 };
