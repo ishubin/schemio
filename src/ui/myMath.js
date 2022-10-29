@@ -14,11 +14,11 @@ function tooSmall(value) {
 }
 
 /**
- * 
- * @param {*} x1 
- * @param {*} y1 
- * @param {*} x2 
- * @param {*} y2 
+ *
+ * @param {*} x1
+ * @param {*} y1
+ * @param {*} x2
+ * @param {*} y2
  * @returns angle in radians
  */
 function angleBetweenVectors(x1, y1, x2, y2) {
@@ -67,10 +67,10 @@ function fullAngleForNormalizedVector(x, y) {
 /**
  * Generates line equation in form of ax + by + c = 0 which intersects given two points
  * returns an object with a, b, c parameters
- * @param {*} x1 
- * @param {*} y1 
- * @param {*} x2 
- * @param {*} y2 
+ * @param {*} x1
+ * @param {*} y1
+ * @param {*} x2
+ * @param {*} y2
  */
 function createLineEquation(x1, y1, x2, y2) {
     return {
@@ -81,7 +81,7 @@ function createLineEquation(x1, y1, x2, y2) {
 }
 
 /**
- * Calculates distance from given point to a line 
+ * Calculates distance from given point to a line
  * @param {Number} x
  * @param {Number} y
  * @param {*} line line equation in form of {a, b, c}
@@ -101,7 +101,7 @@ function _simplifyPathPointsUsingRDP(points, epsilon, idxStart, idxEnd) {
     }
 
     const line = createLineEquation(points[idxStart].x, points[idxStart].y, points[idxEnd].x, points[idxEnd].y);
-    
+
     let furtherstPointIdx = idxStart + 1;
     let furtherstDistance = 0;
 
@@ -133,11 +133,11 @@ function _simplifyPathPointsUsingRDP(points, epsilon, idxStart, idxEnd) {
 
 
 export default {
-    
+
     /**
      * Checks whether two float values are considered to be the same within specified precision
-     * @param {Number} a 
-     * @param {Number} b 
+     * @param {Number} a
+     * @param {Number} b
      * @param {Number} precision Precision to which it should defined two values as "same". If not specified a default of 0.0001 will be used
      * @returns {Boolean} true if a is the same as b
      */
@@ -152,8 +152,8 @@ export default {
 
     /**
      * Rounds floating value and converts it to another floating value leaving only the specified significant digits after point
-     * @param {*} value 
-     * @param {*} precision 
+     * @param {*} value
+     * @param {*} precision
      */
     roundPrecise(value, precision) {
         if (precision > 0) {
@@ -216,7 +216,7 @@ export default {
             y: y/d,
         };
     },
-    
+
     angleBetweenVectors,
     cosineAngleBetweenVectors,
     fullAngleForNormalizedVector,
@@ -229,7 +229,7 @@ export default {
      * Calculates instersection point of two lines
      * @param {Line} line1 line equation in form of {a, b, c}
      * @param {Line} line2 line equation in form of {a, b, c}
-     * @returns 
+     * @returns
      */
     linesIntersection(line1, line2) {
 
@@ -255,8 +255,8 @@ export default {
 
     /**
      * Returns either -1 or 1 depending on which plane the point is lying agaist specified line
-     * @param {*} x 
-     * @param {*} y 
+     * @param {*} x
+     * @param {*} y
      * @param {Line} line Line equation in form of {a, b, c} object
      */
     identifyPointSideAgainstLine(x, y, {a, b, c}) {
@@ -280,8 +280,8 @@ export default {
 
     /**
      * calculates overlapping area, returns null if there is no overlap
-     * @param {Area} area1 
-     * @param {Area} area2 
+     * @param {Area} area1
+     * @param {Area} area2
      * @returns {Area} overlapping area of two given areas
      */
     overlappingArea(area1, area2) {
@@ -332,7 +332,7 @@ export default {
     },
 
     /**
-    Checks if the point within line segment. It doesn't really check if it is placed exacly on the line segment 
+    Checks if the point within line segment. It doesn't really check if it is placed exacly on the line segment
     */
     isPointWithinLineSegment(point, segmentPointA, segmentPointB) {
         var Ax = segmentPointA.x - point.x;
@@ -358,7 +358,7 @@ export default {
         if (!area) {
             return {x: 0, y: 0};
         }
-        
+
         if (!transformMatrix) {
             transformMatrix = this.identityMatrix();
         }
@@ -368,11 +368,11 @@ export default {
     },
 
     /**
-     * 
-     * @param {Number} x 
-     * @param {Number} y 
-     * @param {Area} area 
-     * @param {Array} transformMatrix 
+     *
+     * @param {Number} x
+     * @param {Number} y
+     * @param {Area} area
+     * @param {Array} transformMatrix
      * @returns {Point}
      */
     localPointInArea(x, y, area, transformMatrix) {
@@ -395,7 +395,7 @@ export default {
         if (!area) {
             return {x: 0, y: 0};
         }
-        
+
         if (!transformMatrix) {
             transformMatrix = this.identityMatrix();
         }
@@ -409,11 +409,11 @@ export default {
     },
 
     /**
-     * Calculates {x,y,distance} that is the closest to a specified point on the specified path 
-     * @param {Number} x 
-     * @param {Number} y 
-     * @param {SVGPathElement} svgPath 
-     * @param {Object} settings 
+     * Calculates {x,y,distance} that is the closest to a specified point on the specified path
+     * @param {Number} x
+     * @param {Number} y
+     * @param {SVGPathElement} svgPath
+     * @param {Object} settings
      * @returns {SVGPathPoint}
      */
     closestPointOnPath(x, y, svgPath, settings) {
@@ -449,7 +449,7 @@ export default {
 
             let closestSegmentIdx = 0;
             let closestDistance = 0;
-            
+
             for (let i = 0; i < numberOfDivisions; i++) {
                 // taking a point at the mid of the segment
                 const point = svgPath.getPointAtLength(i*divisionLength + divisionLength/2);
@@ -474,7 +474,7 @@ export default {
         }
 
         const closestSegmentMid = (closestSegmentLeft + closestSegmentRight) / 2;
-        
+
         // now doing a binary search on selected segment
         const leftSegment = [closestSegmentLeft, closestSegmentMid];
         const rightSegment = [closestSegmentMid, closestSegmentRight]
@@ -540,7 +540,7 @@ export default {
     _snapScales: [ 500, 100, 20, 5, 1, 0.2, 0.04, 0.008 ],
 
     /**
-     * 
+     *
      * @param {Number} scale The scale value on screen transform
      * @returns {Number} size of grid snapping in world coords
      */
@@ -555,13 +555,13 @@ export default {
         }
         return this._snapScales[0];
     },
-    
+
 
     /**
      * Simplifies specified points using Ramer-Douglas-Peucker algorithm
      * @param {Array} points array of points
      * @param {Number} epsilon minimum distance to the line in the RDP algorithm
-     * @returns 
+     * @returns
      */
     simplifyPathPointsUsingRDP(points, epsilon) {
         return _simplifyPathPointsUsingRDP(points, epsilon, 0, points.length - 1);
@@ -578,7 +578,7 @@ export default {
         }
 
         const smoothPoints = [points[0]];
-        
+
         for (let i = 1; i < points.length - 1; i++) {
             let prevPoint = points[i - 1];
             let point = points[i];
@@ -587,7 +587,7 @@ export default {
 
             const aSquared = (point.x - prevPoint.x) * (point.x - prevPoint.x) + (point.y - prevPoint.y) * (point.y - prevPoint.y);
             const bSquared = (point.x - nextPoint.x) * (point.x - nextPoint.x) + (point.y - nextPoint.y) * (point.y - nextPoint.y);
-            
+
             const angle = angleBetweenVectors(
                 prevPoint.x - point.x,
                 prevPoint.y - point.y,
@@ -691,9 +691,9 @@ export default {
     },
 
     /**
-     * 
-     * @param {Array} parentTransform 
-     * @param {Area} area 
+     *
+     * @param {Array} parentTransform
+     * @param {Area} area
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {
@@ -701,7 +701,7 @@ export default {
         const yr = area.h * area.py;
         const cosa = Math.cos(area.r * Math.PI / 180);
         const sina = Math.sin(area.r * Math.PI / 180);
-        
+
         /*
         Originally the code below was used for calculation of standard transformation for area.
         But it turned out to be inefficient on large scale due to all the calculations and generation of intermediary array objects
@@ -737,7 +737,7 @@ export default {
 
     /**
      * Trasforms specified point
-     * @param {Array} transformMatrix 
+     * @param {Array} transformMatrix
      * @param {Number} x
      * @param {Number} y
      * @returns {Point}
@@ -760,7 +760,7 @@ export default {
     },
 
     /**
-     * 
+     *
      * @param {Array} m - matrix of 3x3
      * @returns {Array} - inversed matrix or null in case matrix cannot be inversed
      */
@@ -799,13 +799,13 @@ export default {
      * Calculates local translation for specified area so that its point in local transform
      * would match world point after transformation. Basically this function tells you how to move the item
      * so that its given local point matches world point after transformation.
-     * 
+     *
      * @param {Number} x - x part of world point
      * @param {Number} y - y part of world point
      * @param {Number} x0 - x part of local point
      * @param {Number} y0 - y part of local point
-     * @param {Area} area 
-     * @param {Array} parentTransform 
+     * @param {Area} area
+     * @param {Array} parentTransform
      * @returns {Point} - can be null. Point in the local transform of area with which it would match specified world point
      */
     findTranslationMatchingWorldPoint(x, y, x0, y0, area, parentTransform) {
@@ -823,7 +823,7 @@ export default {
         //      Pw  - world point
         //      Ap  - parent item transform matrix
         //      At  - translation matrix. This is unknown in the equation
-        //      Ac1 - translation matrix for items pivot point. It moves item by (rpx, rpy). 
+        //      Ac1 - translation matrix for items pivot point. It moves item by (rpx, rpy).
         //            This matrix is needed so that item is rotated around pivot point
         //      Ar  - rotation matrix. Rotates item by its area.r value
         //      As  - scale matrix
@@ -834,11 +834,11 @@ export default {
         // on the right between At and P0 and call it just matrix A
         //
         //      Ap-1 * Pw = At * A * P0
-        // 
+        //
         // where
         //      Ap-1 = is inverse of Ap matrix
         //      A = Ac1 * Ar * As * Ac2
-        // 
+        //
         // lets call matrix Ap-1 as B to make it easier to distinguish between the two matrices:
         //
         //      B * Pw = At * A * P0
@@ -889,14 +889,14 @@ export default {
                 };
             }
         }
-        
+
         return null;
     },
 
 
     /**
      * Converts value to 0 in case it is null or undefined
-     * @param {Number} value 
+     * @param {Number} value
      * @returns {Number}
      */
     nonNullNumber(value) {
