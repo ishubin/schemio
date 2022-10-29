@@ -51,7 +51,7 @@ import utils from "../utils";
 // - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
 // - a7:  old_prev = a6,   new_prev = a8,   old_pos = 6, new_pos = 7
 //
-// STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition 
+// STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition
 // when old_pos[i] == new_pos[i-1] and new_pos[i] = old_pos[i] + 1
 // - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
 // - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
@@ -89,7 +89,7 @@ import utils from "../utils";
 // a7: old_prev = a6,   new_prev = a2,   old_pos = 6, new_pos = 2
 // a3: old_prev = a2,   new_prev = a7,   old_pos = 2, new_pos = 3
 //
-// STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition 
+// STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition
 //         when old_pos[i] == new_pos[i-1] and new_pos[i] = old_pos[i] + 1
 // - a7: old_prev = a6,   new_prev = a2,   old_pos = 6, new_pos = 2
 //
@@ -202,7 +202,7 @@ class SchemaIndexNode {
                 })
             } else {
                 this.indexFieldEntry(fieldEntry.name, fieldEntry);
-            } 
+            }
         });
     }
 
@@ -278,8 +278,8 @@ function generateSetPatchOperations(originArr, modArr) {
 
 
 /**
- * 
- * @param {Array} items 
+ *
+ * @param {Array} items
  * @param {String} childrenField name of the field that is used to store nested objects of the same structure
  * @returns {Map}
  */
@@ -305,9 +305,9 @@ function indexIdArray(items, childrenField) {
 }
 
 /**
- * 
- * @param {Array} originItems 
- * @param {Array} modifiedItems 
+ *
+ * @param {Array} originItems
+ * @param {Array} modifiedItems
  * @param {Object} patchSchemaEntry
  */
 function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
@@ -392,7 +392,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
 
                 if (modEntry.parentId === itemEntry.parentId) {
                     entries.push(itemEntry);
-                    
+
                     // also checking for field changes for items that were not removed
                     const fieldChanges = _generatePatch(item, modEntry.item, patchSchemaEntry.fields, []);
                     if (fieldChanges.length > 0) {
@@ -450,11 +450,11 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
                 filteredEntries.push(entry);
             }
         }
-        
+
         // STEP 7: sorting by new_pos ascending
         filteredEntries.sort((a, b) => a.newSortOrder - b.newSortOrder);
 
-        // STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition 
+        // STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition
         //         when old_pos[i] == new_pos[i-1] and new_pos[i] = old_pos[i] + 1 and the parentId did not change
 
         for (let i = filteredEntries.length - 1; i > 0; i--) {
@@ -465,7 +465,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
         // done, now we have our pure sort order changes
         // - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
         // - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
-        
+
         forEach(filteredEntries, entry => {
             registerScopedOperation(entry.parentId, {
                 id       : entry.id,
@@ -477,7 +477,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
     };
 
     scanThroughArrayOfItems(originItems, null);
-    
+
     let operations = [];
 
     scopedOperations.forEach(ops => {
@@ -519,7 +519,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
     const fieldNames = new Set();
     forEach(originObject, (value, name) => fieldNames.add(name));
     forEach(modifiedObject, (value, name) => fieldNames.add(name));
-    
+
     const fieldEntries = new Map();
     let defaultFieldEntry = null;
     forEach(patchSchema, schemaFieldEntry => {
@@ -595,8 +595,8 @@ export function applySchemePatch(origin, patch) {
 
 /**
  * Applies a patch to an object
- * @param {Object} origin 
- * @param {Patch} patch 
+ * @param {Object} origin
+ * @param {Patch} patch
  * @param {SchemaIndex} schemaIndex
  */
 export function applyPatch(origin, patch, schemaIndex) {
@@ -648,11 +648,11 @@ function applySetPatch(obj, setPatchChange) {
 
 
 /**
- * 
- * @param {*} obj 
- * @param {*} arrChange 
- * @param {*} rootPath 
- * @param {SchemaIndexNode} schemaIndex 
+ *
+ * @param {*} obj
+ * @param {*} arrChange
+ * @param {*} rootPath
+ * @param {SchemaIndexNode} schemaIndex
  */
 function applyIdArrayPatch(obj, arrChange, rootPath, schemaIndex) {
     const arr = utils.getObjectProperty(obj, arrChange.path);
@@ -712,7 +712,7 @@ const idArrayPatch = {
         if (!Array.isArray(parrentArray)) {
             return;
         }
-        
+
         const foundIdx = idArrayPatch.findItemIndexInParrent(parrentArray, change.id);
         if (foundIdx >= 0) {
             const item = parrentArray[foundIdx];
@@ -732,7 +732,7 @@ const idArrayPatch = {
         if (!Array.isArray(parrentArray)) {
             return;
         }
-        
+
         const foundIdx = idArrayPatch.findItemIndexInParrent(parrentArray, change.id);
         if (foundIdx >= 0) {
             parrentArray.splice(foundIdx, 1);
@@ -775,7 +775,7 @@ const idArrayPatch = {
                 return parent[fieldEntry.childrenField];
             }
             return null;
-        } 
+        }
         return array;
     },
 
@@ -852,7 +852,7 @@ export function generatePatchStatistic(patch) {
                     stats.items[op].count += 1;
                 }
             }
-            
+
             modifiedItems.get(id);
         } else {
             stats.items[op].count += 1;
@@ -908,12 +908,12 @@ export function generatePatchIndex(patchStats) {
 
 
 /**
- * 
- * @param {String} s1 
- * @param {String} s2 
- * @param {Number} n 
- * @param {Number} m 
- * @param {Map} cache 
+ *
+ * @param {String} s1
+ * @param {String} s2
+ * @param {Number} n
+ * @param {Number} m
+ * @param {Map} cache
  * @returns {String}
  */
 function _lcs(s1, s2, i, j, cache) {
@@ -941,8 +941,8 @@ function _lcs(s1, s2, i, j, cache) {
 
 /**
  * Finds longest common subsequence in two strings
- * @param {String} s1 
- * @param {String} s2 
+ * @param {String} s1
+ * @param {String} s2
  * @returns {String} Longest common subsequence in two strings
  */
 export function stringLCS(s1, s2) {
@@ -1003,9 +1003,9 @@ export function generateStringPatch(origin, modified) {
 }
 
 /**
- * 
- * @param {String} origin 
- * @param {StringPatch} patch 
+ *
+ * @param {String} origin
+ * @param {StringPatch} patch
  * @returns {String} modified string that is a result of applying specified string patch to the origin string
  */
 export function applyStringPatch(origin, patch) {

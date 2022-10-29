@@ -576,6 +576,10 @@ export default {
 
         duplicateBehavior(eventIndex) {
             const newEvent = utils.clone(this.item.behavior.events[eventIndex]);
+            newEvent.id = shortid.generate();
+            forEach(newEvent.actions, action => {
+                action.id = shortid.generate();
+            });
             this.item.behavior.events.push(newEvent);
             this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
             this.emitChangeCommited();

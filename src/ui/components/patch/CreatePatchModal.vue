@@ -39,7 +39,7 @@ export default {
     props: ['scheme', 'originScheme'],
 
     components: {Modal, SchemeSearchModal, PatchDetails},
-    
+
     data() {
         return {
             schemeSearchModalShown : false,
@@ -76,7 +76,7 @@ export default {
             this.$store.state.apiClient.getScheme(id)
             .then(originScheme => {
                 this.isLoading = false;
-                // we need to wrap it into SchemeContainer so that it enriches all missing fields 
+                // we need to wrap it into SchemeContainer so that it enriches all missing fields
                 // of all items with their defaults
                 this.originSchemeContainer = new SchemeContainer(originScheme.scheme);
                 this.patch = generateSchemePatch(this.originSchemeContainer.scheme, this.scheme);
