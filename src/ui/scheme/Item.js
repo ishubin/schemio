@@ -107,7 +107,7 @@ export const defaultItemDefinition = {
         '*': defaultTextSlotProps
     },
     description: '',
-    interactionMode: ItemInteractionMode.SIDE_PANEL,
+    interactionMode: ItemInteractionMode.TOOLTIP,
     behavior: {
         events: []
     },
