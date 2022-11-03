@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
-import { defaultifyItem, traverseItems } from './Item';
+import { defaultifyItem } from './Item';
 import map from 'lodash/map';
 import utils from '../utils';
 
@@ -34,7 +34,7 @@ export function enrichSchemeWithDefaults(scheme) {
 
 export function defaultifyScheme(scheme) {
     const resultedScheme = defaultifyObject(scheme, defaultScheme);
-    
+
     resultedScheme.items = map(resultedScheme.items, item => defaultifyItem(item));
     return resultedScheme;
 }

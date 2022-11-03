@@ -468,7 +468,6 @@ import { mergeAllItemPaths } from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
-import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
@@ -481,23 +480,9 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     resized: false
 };
 
-const userEventBus = new UserEventBus();
-
-const states = {
-    interact: new StateInteract(EventBus, store, userEventBus),
-    createItem: new StateCreateItem(EventBus, store),
-    editPath: new StateEditPath(EventBus, store),
-    connecting: new StateConnecting(EventBus, store),
-    dragItem: new StateDragItem(EventBus, store),
-    pickElement: new StatePickElement(EventBus, store),
-    cropImage: new StateCropImage(EventBus, store),
-    draw: new StateDraw(EventBus, store),
-};
-
 
 
 const defaultHistorySize = 30;
-let history = new History({size: defaultHistorySize});
 
 
 function imgPreload(imageUrl) {
@@ -591,7 +576,22 @@ export default {
         }},
     },
 
+    created() {
+        this.history = new History({size: defaultHistorySize});
+        this.states = {
+            interact: new StateInteract(EventBus, this.$store, this.userEventBus),
+            createItem: new StateCreateItem(EventBus, this.$store),
+            editPath: new StateEditPath(EventBus, this.$store),
+            connecting: new StateConnecting(EventBus, this.$store),
+            dragItem: new StateDragItem(EventBus, this.$store),
+            pickElement: new StatePickElement(EventBus, this.$store),
+            cropImage: new StateCropImage(EventBus, this.$store),
+            draw: new StateDraw(EventBus, this.$store),
+        };
+    },
+
     beforeMount() {
+        //TODO handle closing of window in electron differently
         window.onbeforeunload = this.onBrowseClose;
         this.markSchemeAsUnmodified();
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
@@ -670,7 +670,7 @@ export default {
             editorRevision: 0,
 
             state: 'interact',
-            userEventBus,
+            userEventBus: new UserEventBus(),
 
             hasher: createHasher(this.$router ? this.$router.mode : 'history'),
 
@@ -871,14 +871,14 @@ export default {
                 this.isLoading = false;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
-                forEach(states, state => {
+                forEach(this.states, state => {
                     state.setSchemeContainer(this.schemeContainer);
                     state.reset();
                 });
 
-                history = new History({size: defaultHistorySize});
-                history.commit(scheme);
-                document._history = history;
+                this.history = new History({size: defaultHistorySize});
+                this.history.commit(scheme);
+                document._history = this.history;
 
                 if (this.mode === 'view') {
                     this.switchToViewMode();
@@ -944,33 +944,33 @@ export default {
             } else {
                 this.state = 'interact';
             }
-            states[this.state].reset();
+            this.states[this.state].reset();
             this.updateHistoryState();
         },
 
         switchStateDragItem() {
             EventBus.emitItemsHighlighted([]);
-            states.dragItem.schemeContainer = this.schemeContainer;
-            states[this.state].cancel();
+            this.states.dragItem.schemeContainer = this.schemeContainer;
+            this.states[this.state].cancel();
             this.state = 'dragItem';
-            states.dragItem.reset();
+            this.states.dragItem.reset();
         },
 
 
         switchStateInteract() {
             EventBus.emitItemsHighlighted([]);
-            states.interact.schemeContainer = this.interactiveSchemeContainer;
-            states[this.state].cancel();
+            this.states.interact.schemeContainer = this.interactiveSchemeContainer;
+            this.states[this.state].cancel();
             this.state = 'interact';
-            states[this.state].reset();
+            this.states[this.state].reset();
             this.updateFloatingHelperPanel();
         },
 
         switchStatePickElement(elementPickCallback) {
             EventBus.emitItemsHighlighted([]);
-            states.pickElement.reset();
-            states.pickElement.schemeContainer = this.schemeContainer;
-            states.pickElement.setElementPickCallback(elementPickCallback);
+            this.states.pickElement.reset();
+            this.states.pickElement.schemeContainer = this.schemeContainer;
+            this.states.pickElement.setElementPickCallback(elementPickCallback);
             this.state = 'pickElement';
             this.updateFloatingHelperPanel();
         },
@@ -978,7 +978,7 @@ export default {
 
         switchStateCreateItem(item) {
             EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.states[this.state].cancel();
             if (item.shape === 'path') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
@@ -987,13 +987,13 @@ export default {
             } else if (item.shape === 'connector') {
                 item.shapeProps.points = [];
                 this.state = 'connecting';
-                states['connecting'].setItem(item);
+                this.states['connecting'].setItem(item);
             } else {
                 this.state = 'createItem';
             }
-            states[this.state].schemeContainer = this.schemeContainer;
-            states[this.state].reset();
-            states[this.state].setItem(item);
+            this.states[this.state].schemeContainer = this.schemeContainer;
+            this.states[this.state].reset();
+            this.states[this.state].setItem(item);
             this.updateFloatingHelperPanel();
         },
 
@@ -1003,7 +1003,7 @@ export default {
 
         onStartCurveEditing(item) {
             EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.states[this.state].cancel();
 
             item.shapeProps.points = [];
             this.setCurveEditItem(item);
@@ -1014,39 +1014,39 @@ export default {
             this.state = 'editPath';
             EventBus.emitCurveEdited(item);
 
-            states[this.state].schemeContainer = this.schemeContainer;
-            states[this.state].reset();
-            states[this.state].setItem(item);
+            this.states[this.state].schemeContainer = this.schemeContainer;
+            this.states[this.state].reset();
+            this.states[this.state].setItem(item);
             this.updateFloatingHelperPanel();
         },
 
         switchStateDrawing() {
             EventBus.emitItemsHighlighted([]);
 
-            states[this.state].cancel();
+            this.states[this.state].cancel();
             this.state = 'draw';
-            states.draw.schemeContainer = this.schemeContainer;
-            states.draw.reset();
+            this.states.draw.schemeContainer = this.schemeContainer;
+            this.states.draw.reset();
             this.updateFloatingHelperPanel();
         },
 
         onStopDrawing() {
             if (this.state === 'draw') {
-                states.draw.cancel();
+                this.states.draw.cancel();
             }
             this.updateFloatingHelperPanel();
         },
 
         onStartConnecting(sourceItem, worldPoint) {
             EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.states[this.state].cancel();
             let localPoint = null;
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
-            states.connecting.schemeContainer = this.schemeContainer;
-            states.connecting.reset();
-            const connector = states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
+            this.states.connecting.schemeContainer = this.schemeContainer;
+            this.states.connecting.reset();
+            const connector = this.states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
             this.state = 'connecting';
             this.updateFloatingHelperPanel();
@@ -1054,43 +1054,43 @@ export default {
 
         onDrawColorPicked(color) {
             if (this.state === 'draw') {
-                states.draw.pickColor(color);
+                this.states.draw.pickColor(color);
             }
         },
 
         onCurveEditRequested(item) {
             EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.states[this.state].cancel();
             this.state = 'editPath';
-            states.editPath.reset();
-            states.editPath.setItem(item);
+            this.states.editPath.reset();
+            this.states.editPath.setItem(item);
             this.setCurveEditItem(item);
             this.updateFloatingHelperPanel();
         },
 
         onCurveEditStopped() {
             if (this.state === 'editPath') {
-                states.editPath.cancel();
+                this.states.editPath.cancel();
             }
         },
 
         startCroppingImage(item) {
             EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.states[this.state].cancel();
             this.state = 'cropImage';
 
-            states[this.state].schemeContainer = this.schemeContainer;
-            states.cropImage.reset();
+            this.states[this.state].schemeContainer = this.schemeContainer;
+            this.states.cropImage.reset();
             this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
             this.cropImage.item = item;
-            states.cropImage.setImageEditBox(this.cropImage.editBox);
-            states.cropImage.setImageItem(item);
+            this.states.cropImage.setImageEditBox(this.cropImage.editBox);
+            this.states.cropImage.setImageItem(item);
             this.updateFloatingHelperPanel();
         },
 
         onElementPickCanceled() {
             if (this.state === 'pickElement') {
-                states.pickElement.cancel();
+                this.states.pickElement.cancel();
             }
         },
 
@@ -1429,16 +1429,16 @@ export default {
                     EventBus.$emit(EventBus.ANY_ITEM_SELECTED);
                 } else if (Keys.DELETE === key) {
                     if (this.state === 'editPath') {
-                        states.editPath.deleteSelectedPoints();
+                        this.states.editPath.deleteSelectedPoints();
                     } else if (this.state === 'dragItem') {
                         this.deleteSelectedItems();
                     }
                 }
             }
             if (key === Keys.ESCAPE) {
-                states[this.state].cancel();
+                this.states[this.state].cancel();
             } else {
-                states[this.state].keyPressed(key, keyOptions);
+                this.states[this.state].keyPressed(key, keyOptions);
             }
         },
 
@@ -1535,7 +1535,7 @@ export default {
         },
 
         commitHistory(affinityId) {
-            history.commit(this.schemeContainer.scheme, affinityId);
+            this.history.commit(this.schemeContainer.scheme, affinityId);
             this.markSchemeAsModified();
             this.updateHistoryState();
         },
@@ -1546,9 +1546,9 @@ export default {
 
         historyUndo() {
             if (this.state === 'editPath') {
-                states.editPath.undo();
-            } else if (history.undoable() && this.historyEditAllowed()) {
-                const scheme = history.undo();
+                this.states.editPath.undo();
+            } else if (this.history.undoable() && this.historyEditAllowed()) {
+                const scheme = this.history.undo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
@@ -1564,9 +1564,9 @@ export default {
 
         historyRedo() {
             if (this.state === 'editPath') {
-                states.editPath.redo();
-            } else if (history.redoable() && this.historyEditAllowed()) {
-                const scheme = history.redo();
+                this.states.editPath.redo();
+            } else if (this.history.redoable() && this.historyEditAllowed()) {
+                const scheme = this.history.redo();
                 if (scheme) {
                     this.schemeContainer.scheme = scheme;
                     this.schemeContainer.reindexItems();
@@ -1614,8 +1614,8 @@ export default {
         },
 
         updateHistoryState() {
-            this.$store.dispatch('setHistoryUndoable', history.undoable());
-            this.$store.dispatch('setHistoryRedoable', history.redoable());
+            this.$store.dispatch('setHistoryUndoable', this.history.undoable());
+            this.$store.dispatch('setHistoryRedoable', this.history.redoable());
         },
 
         updateRevision() {
@@ -1932,13 +1932,13 @@ export default {
 
         convertCurvePointToSimple() {
             if (this.state === 'editPath') {
-                states[this.state].convertSelectedPointsToSimple();
+                this.states[this.state].convertSelectedPointsToSimple();
             }
         },
 
         convertCurvePointToBezier() {
             if (this.state === 'editPath') {
-                states[this.state].convertSelectedPointsToBezier();
+                this.states[this.state].convertSelectedPointsToBezier();
             }
         },
 
@@ -1951,7 +1951,7 @@ export default {
          */
         onConnectorDestinationItemSelected(item) {
             if (this.state === 'connecting') {
-                states[this.state].submitConnectorDestinationItem(item);
+                this.states[this.state].submitConnectorDestinationItem(item);
             }
         },
 
@@ -1996,7 +1996,7 @@ export default {
 
         onDrawColorPicked(color) {
             if (this.state === 'draw') {
-                states.draw.pickColor(color);
+                this.states.draw.pickColor(color);
             }
         },
 
@@ -2513,25 +2513,25 @@ export default {
 
         onKeyUp(key, keyOptions) {
             if (key !== Keys.ESCAPE && key != Keys.DELETE) {
-                states[this.state].keyUp(key, keyOptions);
+                this.states[this.state].keyUp(key, keyOptions);
             }
         },
 
         mouseWheel(x, y, mx, my, event) {
-            states[this.state].mouseWheel(x, y, mx, my, event);
+            this.states[this.state].mouseWheel(x, y, mx, my, event);
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+            this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
         },
         mouseUp(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
+            this.states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
         },
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+            this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
         },
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            this.states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
@@ -2585,7 +2585,7 @@ export default {
                 return;
             }
             if (this.state !== 'dragItem'
-                || !states.dragItem.shouldAllowFloatingHelperPanel()
+                || !this.states.dragItem.shouldAllowFloatingHelperPanel()
                 || this.schemeContainer.selectedItems.length !== 1
                 || this.inPlaceTextEditor.shown) {
                 this.resetFloatingHelperPanel();

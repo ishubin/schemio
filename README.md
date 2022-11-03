@@ -69,6 +69,19 @@ docker run -v "$(pwd):/opt/schemio" \
 
 Don't forget to pull latest changes as Schemio is frequently updated.
 
+
+
+Desktop version
+------------------------
+
+
+TODO:
+
+- [ ] handle prevention of closing the window in Electron
+- [ ] refactor the apiClient in such a way that each distribution of Schemio has its own version of client (Initiate client in the main and pass it to all components)
+- [ ] Introduce a concept of projects
+- [ ] Open multiple documents in separate tabs
+
 License
 ---------
 

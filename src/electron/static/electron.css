@@ -1,0 +1,68 @@
+.app-container {
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+}
+.elec-navigator {
+    width: 250px;
+}
+.elec-main-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.elec-tab-container {
+    height: 30px;
+    overflow: auto;
+    white-space: nowrap;
+}
+.elec-file-container {
+    flex: 1;
+}
+
+.elec-tab-container .file-tab {
+    position: relative;
+    display: inline-block;
+    padding: 5px 10px;
+    border-left: 1px solid #aaa;
+    background: #cfcfcf;
+    cursor: pointer;
+    max-width: 160px;
+    overflow: hidden;
+}
+.elec-tab-container .file-tab.selected {
+    background: #bbb;
+}
+.elec-tab-container .file-tab .close {
+    position: absolute;
+    display: none;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: none;
+}
+.elec-tab-container .file-tab:hover .close {
+    display: block;
+}
+.elec-tab-container .file-tab .close:hover {
+    background: #aaa;
+}
+
+
+.elec-navigator {
+    overflow: auto;
+}
+.navigator-spacing {
+    display: inline-block;
+}
+.navigator-entry {
+    white-space: nowrap;
+}
+
+
+.elec-file-container > div {
+    height: 100%;
+    width: 100%;
+}

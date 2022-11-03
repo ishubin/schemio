@@ -5,7 +5,7 @@
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-        <path :d="shapePath" 
+        <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :fill="svgFill"></path>
@@ -60,7 +60,7 @@ function highlightItemTextSlot($store, item, foreignObject) {
     if (assetsPath === '/') {
         assetsPath = '';
     }
-    const worker = new Worker(`${assetsPath}/syntax-highlight-worker.js`);
+    const worker = new Worker(`${assetsPath}/js/syntax-highlight-worker.js`);
     worker.onmessage = (event) => {
         const itemTextElement = foreignObject.querySelector('.item-text-element');
         if (itemTextElement) {

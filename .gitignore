@@ -16,3 +16,4 @@ assets/schemio.js
 assets/schemio-standalone.js
 assets/index-static.html
 .release-notes
+.webpack
