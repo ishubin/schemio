@@ -336,16 +336,6 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
-        <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
-            <p>
-                Duplicate current diagram in a new file
-            </p>
-            <input type="text" class="textfield" placeholder="Name" v-model="duplicateDiagramModal.name"/>
-            <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-danger">
-                {{duplicateDiagramModal.errorMessage}}
-            </div>
-        </modal>
-
         <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
             Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
         </modal>
@@ -732,12 +722,6 @@ export default {
                 shown: false,
                 exportedItems: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
-            },
-
-            duplicateDiagramModal: {
-                shown: false,
-                name: '',
-                errorMessage: null
             },
 
             deleteSchemeWarningShown: false,
@@ -2256,30 +2240,6 @@ export default {
                 } else {
                     window.location = '/';
                 }
-            });
-        },
-
-        showDuplicateDiagramModal() {
-            this.duplicateDiagramModal.name = this.schemeContainer.scheme.name + ' Copy';
-            this.duplicateDiagramModal.errorMessage = null;
-            this.duplicateDiagramModal.shown = true;
-        },
-
-        duplicateDiagram() {
-            const name = this.duplicateDiagramModal.name.trim();
-            if (!name) {
-                this.duplicateDiagramModal.errorMessage = 'Name should not be empty';
-                return;
-            }
-
-            const scheme = utils.clone(this.schemeContainer.scheme);
-            scheme.id = null;
-            scheme.name = name;
-            this.submitNewSchemeForCreation(scheme).then(() => {
-                this.duplicateDiagramModal.shown = false;
-            })
-            .catch(err => {
-                this.duplicateDiagramModal.errorMessage = 'Oops, something went wrong.';
             });
         },
 

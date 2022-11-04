@@ -77,7 +77,7 @@
             :description="newSchemePopup.description"
             :apiClient="apiClient"
             @close="newSchemePopup.show = false"
-            @scheme-submitted="onNewSchemeSubmitted"
+            @scheme-submitted="submitNewScheme"
         />
 
         <div v-if="importSchemeFileShown" style="display: none">
@@ -87,6 +87,17 @@
         <ImportSchemeModal v-if="importSchemeModal.shown" :scheme="importSchemeModal.scheme"
             @close="importSchemeModal.shown = false"
             @import-scheme-submitted="importScheme"/>
+
+        <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
+            <p>
+                Duplicate current diagram in a new file
+            </p>
+            <input type="text" class="textfield" placeholder="Name" v-model="duplicateDiagramModal.name"/>
+            <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-danger">
+                {{duplicateDiagramModal.errorMessage}}
+            </div>
+        </modal>
+
     </div>
 </template>
 <script>
@@ -100,6 +111,7 @@ import utils from '../../utils';
 import {prepareSchemeForSaving, enrichSchemeWithDefaults } from '../../scheme/Scheme';
 import shortid from 'shortid';
 import { createHasher } from '../../url/hasher';
+import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import ImportSchemeModal from '../../components/editor/ImportSchemeModal.vue';
 import History from '../../history/History.js';
@@ -118,7 +130,7 @@ function loadOfflineScheme() {
 }
 
 export default {
-    components: {SchemioEditorApp, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal},
+    components: {SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal},
 
     props: {
         apiClientType    : {type: String, default: 'fs'},
@@ -224,9 +236,16 @@ export default {
                 isExternalComponent: false
             },
 
+            duplicateDiagramModal: {
+                shown: false,
+                name: '',
+                errorMessage: null
+            },
+
             menuOptions: [
                 {name: 'New diagram',  callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.apiClientType === 'static'},
                 {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
+                {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
             ],
 
             importSchemeFileShown: false,
@@ -278,8 +297,8 @@ export default {
             this.mode = mode;
         },
 
-        onNewSchemeSubmitted(scheme) {
-            this.apiClient.createNewScheme(this.path, scheme)
+        submitNewScheme(scheme) {
+            return this.apiClient.createNewScheme(this.path, scheme)
             .then(createdScheme => {
                 const isHistoryMode = this.$router && this.$router.mode === 'history';
                 const publicLink = isHistoryMode ?  `/docs/${createdScheme.id}#m=edit` : `#/docs/${createdScheme.id}?m=edit`
@@ -449,7 +468,31 @@ export default {
             if (state !== 'editPath') {
                 this.updateHistoryState();
             }
-        }
+        },
+
+        showDuplicateDiagramModal() {
+            this.duplicateDiagramModal.name = this.scheme.name + ' Copy';
+            this.duplicateDiagramModal.errorMessage = null;
+            this.duplicateDiagramModal.shown = true;
+        },
+
+        duplicateDiagram() {
+            const name = this.duplicateDiagramModal.name.trim();
+            if (!name) {
+                this.duplicateDiagramModal.errorMessage = 'Name should not be empty';
+                return;
+            }
+
+            const scheme = utils.clone(this.scheme);
+            scheme.id = null;
+            scheme.name = name;
+            this.submitNewScheme(scheme).then(() => {
+                this.duplicateDiagramModal.shown = false;
+            })
+            .catch(err => {
+                this.duplicateDiagramModal.errorMessage = 'Oops, something went wrong.';
+            });
+        },
     },
     computed: {
         originSchemeForPatch() {
