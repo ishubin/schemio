@@ -85,9 +85,9 @@ const store = new Vuex.Store({
 
         apiClient: null,
 
+        //TODO get rid of it to be able to support multiple scheme editors
         schemeModified: false,
 
-        editorStateName: 'interact',
         editorSubStateName: null,
 
         itemMenu: {
@@ -304,9 +304,6 @@ const store = new Vuex.Store({
         SET_ITEM_SNAP(state, enabled) {
             state.snap.items = enabled;
             myStorage.save('snap.items', enabled);
-        },
-        SET_EDITOR_STATE_NAME(state, stateName) {
-            state.editorStateName = stateName;
         },
         SET_EDITOR_SUB_STATE_NAME(state, stateName) {
             state.editorSubStateName = stateName;
@@ -590,10 +587,6 @@ const store = new Vuex.Store({
             commit('SET_ITEM_SNAP', enabled);
         },
 
-        setEditorStateName({commit}, stateName) {
-            commit('SET_EDITOR_STATE_NAME', stateName);
-        },
-
         setEditorSubStateName({commit}, stateName) {
             commit('SET_EDITOR_SUB_STATE_NAME', stateName);
         },
@@ -750,7 +743,6 @@ const store = new Vuex.Store({
 
         drawEpsilon: state => state.draw.epsilon,
 
-        editorStateName: state => state.editorStateName,
         editorSubStateName: state => state.editorSubStateName,
 
         animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,

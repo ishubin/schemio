@@ -10,7 +10,7 @@ import App from './app/App.vue';
 import FolderView from './app/view/FolderView.vue';
 import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
-import SchemeEditorView from './app/view/SchemeEditorView.vue';
+import SchemeEditorWebView from './app/view/SchemeEditorWebView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
 import Header from './app/components/Header.vue';
@@ -39,8 +39,8 @@ window.createSchemioStaticApp = function (options) {
 
 
     const routes = [
-        route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'static', editAllowed}),
-        route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
+        route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {apiClientType: 'static', editAllowed}),
+        route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {apiClientType: 'offline', isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
         route('AboutView',              '/about',            AboutView),
         route('NotFoundView',           '/not-found',        NotFoundView),
         route('HomeView',               '/',                 FolderView, {apiClientType: 'static'}),

@@ -24,7 +24,6 @@ const EventBus = new Vue({
 
             PLACE_ITEM: 'place-item',
             CANCEL_CURRENT_STATE: 'cancel-current-state',
-            EDITOR_STATE_CHANGED: 'editor-state-changed',
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
@@ -101,8 +100,6 @@ const EventBus = new Vue({
             HISTORY_UNDONE: 'history-undone',
 
             IMAGE_CROP_TRIGGERED: 'image-crop-triggered',
-
-            SCHEME_PATCH_REQUESTED: 'scheme-patch-requested',
 
             FLOATING_HELPER_PANEL_UPDATED: 'floating-helper-panel-updated',
 
@@ -233,14 +230,6 @@ const EventBus = new Vue({
 
         emitComponentSchemeMounted(item) {
             this.$emit(EventBus.COMPONENT_SCHEME_MOUNTED, item);
-        },
-
-        emitEditorStateChanged(stateName) {
-            this.$emit(EventBus.EDITOR_STATE_CHANGED, stateName);
-        },
-
-        emitSchemePatchRequested(scheme) {
-            this.$emit(EventBus.SCHEME_PATCH_REQUESTED, scheme);
         },
 
         emitFloatingHelperPanelUpdated() {

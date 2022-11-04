@@ -206,7 +206,6 @@ const lastMousePosition = {
 
 export default {
     props: {
-        offline             : { type: Boolean, default: false},
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
         stateLayerShown     : { type: Boolean, default: false},
@@ -273,7 +272,7 @@ export default {
         EventBus.$off(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
 
         if (this.useMouseWheel) {
-            var svgElement = this.$refs.svgDomElement;
+            const svgElement = this.$refs.svgDomElement;
             if (svgElement) {
                 svgElement.removeEventListener('wheel', this.mouseWheel);
             }
@@ -303,6 +302,9 @@ export default {
     },
     methods: {
         updateSvgSize() {
+            if (!this.$refs.svgDomElement) {
+                return;
+            }
             const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
             this.width = svgRect.width;
             this.height = svgRect.height;

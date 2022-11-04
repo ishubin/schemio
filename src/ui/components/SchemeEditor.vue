@@ -3,17 +3,17 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="scheme-editor-view">
+    <div class="scheme-editor-component">
         <quick-helper-panel
             :key="`quick-helper-panel-${mode}`"
             v-if="currentSchemeContainer"
             :scheme-container="currentSchemeContainer"
             :mode="mode"
+            :state="state"
             :textSelectionEnabled="textSelectionEnabled"
             :zoom="zoom"
             :edit-allowed="offlineMode || editAllowed"
             :is-static-editor="isStaticEditor"
-            :is-offline-editor="isOfflineEditor"
             :menuOptions="menuOptions"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
@@ -24,7 +24,6 @@
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
             @convert-path-points-to-bezier="convertCurvePointToBezier()"
-            @import-json-requested="onImportSchemeJSONClicked"
             @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
@@ -35,14 +34,12 @@
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
-            @new-scheme-requested="onNewSchemeRequested"
-            @mode-changed="toggleMode"
+            @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             >
             <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
                 <li v-if="schemeModified">
-                    <span v-if="isSaving" class="btn btn-secondary" @click="onSaveSchemeClick()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else class="btn btn-primary" @click="onSaveSchemeClick()">Save</span>
+                    <span class="btn btn-primary" @click="saveScheme()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -66,7 +63,6 @@
                     :schemeContainer="schemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
-                    :offline="offlineMode"
                     :zoom="zoom"
                     :stateLayerShown="state === 'draw' || state === 'createItem'"
                     @mouse-wheel="mouseWheel"
@@ -122,7 +118,6 @@
                     :patchIndex="patchIndex"
                     :mode="mode"
                     :textSelectionEnabled="textSelectionEnabled"
-                    :offline="offlineMode"
                     :zoom="zoom"
                     :userEventBus="userEventBus"
                     @mouse-wheel="mouseWheel"
@@ -315,19 +310,6 @@
         <export-json-modal v-if="exportJSONModalShown" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
         <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="schemeContainer.scheme" @close="exportAsLinkModalShown = false"/>
 
-        <import-scheme-modal v-if="importSchemeModal.shown" :scheme="importSchemeModal.scheme"
-            @close="importSchemeModal.shown = false"
-            @import-scheme-submitted="importScheme"/>
-
-        <create-new-scheme-modal v-if="newSchemePopup.show"
-            :name="newSchemePopup.name"
-            :description="newSchemePopup.description"
-            :apiClient="apiClient"
-            @close="newSchemePopup.show = false"
-            @scheme-submitted="submitNewSchemeForCreation"
-            ></create-new-scheme-modal>
-
-
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
             @submit-link="onItemLinkSubmit"
@@ -343,10 +325,6 @@
             @item-selected="onConnectorDestinationItemSelected"
             @close="closeConnectorProposedDestination()"
         />
-
-        <div v-if="importSchemeFileShown" style="display: none">
-            <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
-        </div>
 
         <div v-if="loadPatchFileShown" style="display: none">
             <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
@@ -411,7 +389,6 @@ import { Keys } from '../events';
 
 import {applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
 import {enrichItemWithDefaults} from '../scheme/ItemFixer';
-import {enrichSchemeWithDefaults, prepareSchemeForSaving } from '../scheme/Scheme';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
@@ -427,14 +404,11 @@ import ItemDetails from './editor/ItemDetails.vue';
 import SchemeProperties from './editor/SchemeProperties.vue';
 import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
-import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
-import { createHasher } from '../url/hasher.js';
-import History from '../history/History.js';
 import Shape from './editor/items/shapes/Shape.js';
 import AnimationRegistry from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
@@ -444,7 +418,6 @@ import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import ExportJSONModal from './editor/ExportJSONModal.vue';
 import ExportAsLinkModal from './editor/ExportAsLinkModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
-import ImportSchemeModal from './editor/ImportSchemeModal.vue';
 import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
@@ -480,9 +453,6 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     resized: false
 };
 
-
-
-const defaultHistorySize = 30;
 
 
 function imgPreload(imageUrl) {
@@ -547,26 +517,28 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
-        CreateNewSchemeModal, LinkEditPopup, InPlaceTextEditBox,
+        LinkEditPopup, InPlaceTextEditBox,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
         'export-json-modal': ExportJSONModal,
-        'import-scheme-modal': ImportSchemeModal,
         'export-as-link-modal': ExportAsLinkModal
     },
 
     props: {
-        scheme           : {type: Object, default: null},
+        mode             : {type: String, default: 'view'},
+        scheme           : {type: Object, required: true},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
         isStaticEditor   : { type: Boolean, default: false},
-        isOfflineEditor  : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
+
+        //Used to signify that SchemeContainer needs to be recreted and item selection needs to be restored
+        schemeReloadKey : {type: String, default: null},
         comments         : {type: Object, default: {
             enabled: false,
             isAdmin: false,
@@ -577,7 +549,6 @@ export default {
     },
 
     created() {
-        this.history = new History({size: defaultHistorySize});
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus),
             createItem: new StateCreateItem(EventBus, this.$store),
@@ -591,9 +562,6 @@ export default {
     },
 
     beforeMount() {
-        //TODO handle closing of window in electron differently
-        window.onbeforeunload = this.onBrowseClose;
-        this.markSchemeAsUnmodified();
         EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
         EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
         EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
@@ -672,18 +640,11 @@ export default {
             state: 'interact',
             userEventBus: new UserEventBus(),
 
-            hasher: createHasher(this.$router ? this.$router.mode : 'history'),
-
-            offlineMode: false,
-            schemeId: null,
-
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
-            originalUrlEncoded: encodeURIComponent(window.location),
 
             isLoading: false,
             loadingStep: 'load', // can be "load", "img-preload"
-            isSaving: false,
             schemeLoadErrorMessage: null,
 
             cropImage: {
@@ -730,14 +691,6 @@ export default {
                 shown: false
             },
 
-            newSchemePopup: {
-                name: '',
-                description: '',
-                show: false,
-                parentSchemeItem: null,
-                isExternalComponent: false
-            },
-
             currentTab: 'Doc',
             tabs: [ 'Doc', 'Item'],
 
@@ -760,20 +713,10 @@ export default {
                 shown: false,
                 scheme: null
             },
-            importSchemeFileShown: false,
-            importSchemeModal: {
-                sheme: null,
-                shown: false
-            },
-
             loadPatchFileShown: false,
 
             advancedBehaviorProperties: {
                 shown: false
-            },
-
-            schemeTitleEdit: {
-                shown: false,
             },
 
             drawColorPallete,
@@ -811,57 +754,13 @@ export default {
     },
     methods: {
         init() {
-            if (!this.scheme) {
-                this.initOfflineMode();
-                return;
-            }
-
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
-                this.mode = 'edit';
-            } else {
-                this.mode = 'view';
-            }
-
-            this.loadingStep = 'load';
-            this.isLoading = true;
-            this.schemeLoadErrorMessage = null;
-
-            this.schemeId = this.scheme.id;
-
-
             this.initSchemeContainer(this.scheme);
         },
 
-        initOfflineMode() {
-            // here the edit mode is default since user chose to edit offline
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            if (pageParams.m && pageParams.m === 'view') {
-                this.mode = 'view';
-            } else {
-                this.mode = 'edit';
-            }
-
-            let scheme = {};
-
-            const offlineSchemeEncoded = window.localStorage.getItem('offlineScheme');
-            if (offlineSchemeEncoded) {
-                try {
-                    scheme = JSON.parse(offlineSchemeEncoded);
-                } catch (err) {
-                    scheme = {}
-                }
-            }
-
-
-            enrichSchemeWithDefaults(scheme);
-            this.offlineMode = true;
-            this.initSchemeContainer(scheme);
-        },
-
         initSchemeContainer(scheme) {
-            this.isLoading = true;
+            this.schemeLoadErrorMessage = null;
             this.loadingStep = 'load-shapes';
+            this.isLoading = true;
             return collectAndLoadAllMissingShapes(scheme.items, this.$store)
             .catch(err => {
                 console.error(err);
@@ -871,14 +770,16 @@ export default {
                 this.isLoading = false;
                 this.schemeContainer = new SchemeContainer(scheme, EventBus);
 
+                if (this.mode === 'view') {
+                    this.switchToViewMode();
+                } else {
+                    this.switchToEditMode();
+                }
+
                 forEach(this.states, state => {
                     state.setSchemeContainer(this.schemeContainer);
                     state.reset();
                 });
-
-                this.history = new History({size: defaultHistorySize});
-                this.history.commit(scheme);
-                document._history = this.history;
 
                 if (this.mode === 'view') {
                     this.switchToViewMode();
@@ -903,7 +804,6 @@ export default {
                         }
                     }
                 }
-
                 return this.schemeContainer;
             })
             .then(schemeContainer => {
@@ -919,21 +819,6 @@ export default {
             });
         },
 
-        toggleMode(mode) {
-            if (mode === 'edit' && !this.editAllowed) {
-                return;
-            }
-
-            this.mode = mode;
-            if (mode === 'view') {
-                this.hideSidePanelRight();
-                this.switchStateInteract();
-            } else if (mode === 'edit') {
-                this.showSidePanelRight();
-                this.switchStateDragItem();
-            }
-        },
-
         onTextSelectionForViewChanged(textSelectionEnabled) {
             this.textSelectionEnabled = textSelectionEnabled;
         },
@@ -945,7 +830,6 @@ export default {
                 this.state = 'interact';
             }
             this.states[this.state].reset();
-            this.updateHistoryState();
         },
 
         switchStateDragItem() {
@@ -1185,71 +1069,18 @@ export default {
             }
         },
 
-        onNewSchemeRequested() {
-            if (this.offlineMode) {
-                if (confirm('Area you sure you want to reset all your changes?')) {
-                    this.initOfflineMode();
-                }
-            } else if (this.schemeId) {
-                this.openNewSchemePopup();
-            }
-        },
-
-        openNewSchemePopup() {
-            this.newSchemePopup.show = true;
-        },
-
-        onSaveSchemeClick() {
-            if (!this.offlineMode && this.$store.state.apiClient) {
-                this.saveScheme();
-            } else {
-                this.saveToLocalStorage();
-            }
+        emitModeChangeRequested(mode) {
+            this.$emit('mode-change-requested', mode);
         },
 
         saveScheme() {
-            if (this.offlineMode) {
-                return;
-            }
-
-            if (this.isStaticEditor) {
-                EventBus.emitSchemePatchRequested(this.schemeContainer.scheme);
-                return;
-            }
-
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
-                return;
-            }
-
-            this.createSchemePreview();
-
-            this.isSaving = true;
-            this.$store.dispatch('clearStatusMessage');
-            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(this.schemeContainer.scheme))
-            .then(() => {
-                this.markSchemeAsUnmodified();
-                this.isSaving = false;
+            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+            snapshotSvg('#svg_plot [data-type="scene-transform"]', area).then(svgPreview => {
+                this.$emit('scheme-save-requested', this.schemeContainer.scheme, svgPreview);
             })
             .catch(err => {
-                this.isSaving = false;
-                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
-                this.markSchemeAsModified();
+                this.$emit('scheme-save-requested', this.schemeContainer.scheme);
             });
-        },
-
-        saveToLocalStorage() {
-            window.localStorage.setItem('offlineScheme', JSON.stringify(this.schemeContainer.scheme));
-            StoreUtils.addInfoSystemMessage(this.$store, 'Saved scheme to local storage', 'offline-save');
-            this.markSchemeAsUnmodified();
-        },
-
-        createSchemePreview() {
-            if (this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
-                var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-                snapshotSvg('#svg_plot [data-type="scene-transform"]', area).then(svgCode => {
-                    return this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, svgCode);
-                });
-            }
         },
 
         // Zooms to selected items in edit mode
@@ -1324,41 +1155,7 @@ export default {
         },
 
         startCreatingChildSchemeForItem(item, isExternalComponent) {
-            this.newSchemePopup.name = item.name;
-            this.newSchemePopup.parentSchemeItem = item;
-            this.newSchemePopup.show = true;
-            this.newSchemePopup.isExternalComponent = isExternalComponent;
-        },
-
-        submitNewSchemeForCreation(scheme) {
-            //TODO in case item is a component - it should set scheme id in the shape props instead
-            const that = this;
-            return new Promise((resolve, reject) => {
-                that.$emit('new-scheme-submitted', scheme, (createdScheme, publicLink) => {
-                    if (publicLink) {
-                        const item = this.newSchemePopup.parentSchemeItem;
-                        if (item) {
-                            if (this.newSchemePopup.isExternalComponent && item.shape === 'component') {
-                                item.shapeProps.schemeId = createdScheme.id;
-                            } else {
-                                if (!item.links) {
-                                    item.links = [];
-                                }
-                                item.links.push({
-                                    title: `${createdScheme.name}`,
-                                    url: publicLink,
-                                    type: 'scheme'
-                                });
-                                EventBus.emitItemChanged(item.id, 'links');
-                            }
-                        }
-                        window.open(publicLink, '_blank');
-                    }
-
-                    resolve();
-                    this.newSchemePopup.show = false;
-                }, reject);
-            });
+            throw new Error('not implemented');
         },
 
         onUpdateOffset(x, y) {
@@ -1512,13 +1309,6 @@ export default {
             })
         },
 
-        onBrowseClose() {
-            if (this.$store.getters.schemeModified) {
-                return 'The changes were not saved';
-            }
-            return null;
-        },
-
         onItemTooltipTriggered(item, mouseX, mouseY) {
             this.itemTooltip.item = item;
             this.itemTooltip.x = mouseX;
@@ -1535,9 +1325,8 @@ export default {
         },
 
         commitHistory(affinityId) {
-            this.history.commit(this.schemeContainer.scheme, affinityId);
+            this.$emit('history-committed', this.schemeContainer.scheme, affinityId);
             this.markSchemeAsModified();
-            this.updateHistoryState();
         },
 
         historyEditAllowed() {
@@ -1547,37 +1336,26 @@ export default {
         historyUndo() {
             if (this.state === 'editPath') {
                 this.states.editPath.undo();
-            } else if (this.history.undoable() && this.historyEditAllowed()) {
-                const scheme = this.history.undo();
-                if (scheme) {
-                    this.schemeContainer.scheme = scheme;
-                    this.schemeContainer.reindexItems();
-                    this.updateRevision();
-                    this.editorRevision++;
-                    this.restoreItemSelection();
-                    this.restoreCurveEditing();
-                    EventBus.$emit(EventBus.HISTORY_UNDONE);
-                }
-                this.updateHistoryState();
+            } else if (this.historyEditAllowed()) {
+                this.$emit('undo-history-requested');
             }
         },
 
         historyRedo() {
             if (this.state === 'editPath') {
                 this.states.editPath.redo();
-            } else if (this.history.redoable() && this.historyEditAllowed()) {
-                const scheme = this.history.redo();
-                if (scheme) {
-                    this.schemeContainer.scheme = scheme;
-                    this.schemeContainer.reindexItems();
-                    this.editorRevision++;
-                    this.updateRevision();
-                    this.restoreItemSelection();
-                    this.restoreCurveEditing();
-                    EventBus.$emit(EventBus.HISTORY_UNDONE);
-                }
-                this.updateHistoryState();
+            } else if (this.historyEditAllowed()) {
+                this.$emit('redo-history-requested');
             }
+        },
+
+        reloadSchemeContainer() {
+            this.schemeContainer.scheme = this.scheme;
+            this.schemeContainer.reindexItems();
+            this.editorRevision++;
+            this.updateRevision();
+            this.restoreItemSelection();
+            this.restoreCurveEditing();
         },
 
         restoreCurveEditing() {
@@ -1613,11 +1391,6 @@ export default {
             });
         },
 
-        updateHistoryState() {
-            this.$store.dispatch('setHistoryUndoable', this.history.undoable());
-            this.$store.dispatch('setHistoryRedoable', this.history.redoable());
-        },
-
         updateRevision() {
             this.schemeRevision = new Date().getTime();
         },
@@ -1642,10 +1415,6 @@ export default {
             this.$store.dispatch('markSchemeAsModified');
         },
 
-        markSchemeAsUnmodified() {
-            this.$store.dispatch('markSchemeAsUnmodified');
-        },
-
         onScreenTransformUpdated(screenTransform) {
             if (screenTransform) {
                 this.zoom = Math.round(screenTransform.scale * 10000) / 100;
@@ -1655,54 +1424,6 @@ export default {
                 this.updateFloatingHelperPanel();
             }
         },
-
-        importScheme(scheme) {
-            const newScheme = utils.clone(scheme);
-            newScheme.id = this.schemeContainer.scheme.id;
-            const oldRevision = this.schemeContainer.revision;
-
-            this.initSchemeContainer(scheme)
-            .then(() => {
-                this.schemeContainer.revision = oldRevision + 1;
-                this.updateRevision();
-                this.commitHistory();
-                this.editorRevision++;
-
-                if (this.mode === 'view') {
-                    this.switchToViewMode();
-                }
-            });
-        },
-
-        onImportSchemeJSONClicked() {
-            this.importSchemeFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.importSchemeFileInput.click();
-            });
-        },
-
-        onImportSchemeFileInputChanged(event) {
-            this.loadSchemeFile(event.target.files[0]);
-        },
-
-        loadSchemeFile(file) {
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                this.importSchemeFileShown = false;
-                try {
-                    const scheme = JSON.parse(event.target.result);
-                    //TODO verify if it is correct scheme file
-                    this.importSchemeModal.scheme = scheme;
-                    this.importSchemeModal.shown = true;
-                } catch(err) {
-                    alert('Not able to import scheme. Malformed json');
-                }
-            };
-
-            reader.readAsText(file);
-        },
-
 
         triggerApplyPatchUpload() {
             this.loadPatchFileShown = true;
@@ -1953,24 +1674,6 @@ export default {
             if (this.state === 'connecting') {
                 this.states[this.state].submitConnectorDestinationItem(item);
             }
-        },
-
-        triggerSchemeTitleEdit() {
-            this.schemeTitleEdit.shown = true;
-            this.$nextTick(() => {
-                if (this.$refs.schemeTitle) {
-                    this.$refs.schemeTitle.focus();
-                }
-            });
-        },
-
-        submitTitleEdit() {
-            if (this.$refs.schemeTitle) {
-                this.schemeContainer.scheme.name = this.$refs.schemeTitle.innerHTML;
-                this.updateRevision();
-                this.commitHistory();
-            }
-            this.schemeTitleEdit.shown = false;
         },
 
         clearStatusMessage() {
@@ -2745,10 +2448,6 @@ export default {
 
     watch: {
         mode(value) {
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            pageParams.m = value;
-            this.hasher.changeURLHash(pageParams);
-
             if (value === 'view') {
                 this.switchToViewMode();
             } else {
@@ -2761,9 +2460,12 @@ export default {
         },
 
         state(newState) {
-            this.$store.dispatch('setEditorStateName', newState);
-            EventBus.emitEditorStateChanged(this.state);
+            this.$emit('editor-state-changed', newState);
         },
+
+        schemeReloadKey(newValue) {
+            this.reloadSchemeContainer();
+        }
     },
 
     computed: {

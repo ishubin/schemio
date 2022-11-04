@@ -250,11 +250,11 @@ export default {
         /** @type {SchemeContainer} */
         schemeContainer     : { type: Object, required: true },
         mode                : { type: String, required: true },    // "edit" or "view"
+        state               : { type: String, required: true},
         textSelectionEnabled: {type: Boolean, default: false},
         zoom                : { type: Number, required: true },
         editAllowed         : { type: Boolean, default: false },
         isStaticEditor      : { type: Boolean, default: false},
-        isOfflineEditor     : { type: Boolean, default: false},
         menuOptions         : { type: Array, default: []},
     },
 
@@ -268,25 +268,22 @@ export default {
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
-        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
-        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
     },
 
     data() {
         const eventCallback = (event) => {return () => {this.$emit(event)}};
 
+        //TODO move it all the way to the top vue component. Electron has to implement it differently
         const defaultMenuDropDownOptions = [
-            {name: 'New diagram',       callback: eventCallback('new-scheme-requested'),  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Import diagram',    callback: eventCallback('import-json-requested'), iconClass: 'fas fa-file-import'},
-            {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Create patch',      callback: () => EventBus.emitSchemePatchRequested(this.schemeContainer.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
+            {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
+            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
+            {name: 'Create patch',      callback: () => EventBus.emitSchemePatchRequested(this.schemeContainer.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
             {name: 'Apply patch',       callback: eventCallback('apply-patch-requested'), iconClass: 'fas fa-file-import'},
             {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
             {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
@@ -390,13 +387,7 @@ export default {
         },
 
         isCreatingConnector() {
-            return this.$store.state.editorStateName === 'connecting' && this.$store.state.connecting.connectorItem;
-        },
-
-        onEditorStateChanged() {
-            if (this.isCreatingConnector()) {
-                this.currentConnectorSmoothing = this.$store.state.connecting.connectorItem.shapeProps.smoothing;
-            }
+            return this.state === 'connecting' && this.$store.state.connecting.connectorItem;
         },
 
         stopEditCurve() {
@@ -620,6 +611,13 @@ export default {
                 EventBus.emitItemsHighlighted([]);
             }
         },
+
+        state(state) {
+            if (this.isCreatingConnector()) {
+                this.currentConnectorSmoothing = this.$store.state.connecting.connectorItem.shapeProps.smoothing;
+            }
+        },
+
     },
 
     computed: {
@@ -639,20 +637,16 @@ export default {
             return this.$store.getters.shouldSnapToItems;
         },
 
-        currentState() {
-            return this.$store.state.editorStateName;
-        },
-
         shouldShowPathHelpers() {
-            return this.$store.state.editorStateName === 'editPath';
+            return this.state === 'editPath';
         },
 
         shouldShowDrawHelpers() {
-            return this.$store.state.editorStateName === 'draw';
+            return this.state === 'draw';
         },
 
         shouldShowPathCaps() {
-            if (this.$store.state.editorStateName === 'editPath') {
+            if (this.state === 'editPath') {
                 return true;
             }
             if (this.selectedItemsCount > 0 && (this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'path')) {
@@ -662,7 +656,7 @@ export default {
         },
 
         shouldShowConnectorControls() {
-            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') || this.$store.state.editorStateName === 'connecting';
+            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') || this.state === 'connecting';
         },
 
         autoRemount() {

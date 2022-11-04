@@ -14,13 +14,6 @@ import '../static/electron.css';
 
 applyVueFilters(Vue);
 
-
-// const routes = [
-//     route('OfflineSchemeEditorView', '/',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
-//     { path: '*', redirect: '/not-found'}
-// ];
-
-
 new Vue(Vue.util.extend({
     store,
 }, ElectronApp)).$mount('#app');

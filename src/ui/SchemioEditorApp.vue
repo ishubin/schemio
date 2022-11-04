@@ -7,6 +7,8 @@
         <SchemeEditor v-if="patch.patchedScheme && patch.isToggled"
             key="patched-scheme"
             :scheme="patch.patchedScheme"
+            :mode="mode"
+            :schemeReloadKey="schemeReloadKey"
             :patchIndex="patch.index"
             :editAllowed="editAllowed"
             :isStaticEditor="isStaticEditor"
@@ -16,11 +18,19 @@
             :menuOptions="menuOptions"
             :comments="comments"
             @new-scheme-submitted="onNewSchemeSubmitted"
-            @preview-patch-requested="onPreviewPatchRequested"/>
+            @mode-change-requested="onModeChangeRequested"
+            @preview-patch-requested="onPreviewPatchRequested"
+            @history-committed="$emit('history-committed', arguments[0], arguments[1])"
+            @undo-history-requested="$emit('undo-history-requested')"
+            @redo-history-requested="$emit('redo-history-requested')"
+            @editor-state-changed="$emit('editor-state-changed', arguments[0])"
+            />
 
         <SchemeEditor v-else
             :key="`origin-scheme`"
             :scheme="scheme"
+            :mode="mode"
+            :schemeReloadKey="schemeReloadKey"
             :editAllowed="editAllowed"
             :isStaticEditor="isStaticEditor"
             :isOfflineEditor="isOfflineEditor"
@@ -30,7 +40,14 @@
             :menuOptions="menuOptions"
             :comments="comments"
             @new-scheme-submitted="onNewSchemeSubmitted"
-            @preview-patch-requested="onPreviewPatchRequested"/>
+            @mode-change-requested="onModeChangeRequested"
+            @preview-patch-requested="onPreviewPatchRequested"
+            @scheme-save-requested="onSchemeSaveRequested"
+            @history-committed="$emit('history-committed', arguments[0], arguments[1])"
+            @undo-history-requested="$emit('undo-history-requested')"
+            @redo-history-requested="$emit('redo-history-requested')"
+            @editor-state-changed="$emit('editor-state-changed', arguments[0])"
+            />
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
@@ -82,6 +99,7 @@ export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor, ColorPicker, Modal, PatchDetails},
 
     props: {
+        mode             : {type: String, default: 'view'},
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
         isStaticEditor   : { type: Boolean, default: false},
@@ -89,6 +107,7 @@ export default{
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
+        schemeReloadKey : {type: String, default: null},
         comments         : {type: Object, default: () => null},
     },
 
@@ -117,6 +136,10 @@ export default{
     methods: {
         onNewSchemeSubmitted(scheme, callback, errorCallback) {
             this.$emit('new-scheme-submitted', scheme, callback, errorCallback);
+        },
+
+        onModeChangeRequested(mode) {
+            this.$emit('mode-change-requested', mode);
         },
 
         onPreviewPatchRequested(patch) {
@@ -154,7 +177,11 @@ export default{
         applyPatch() {
             this.$emit('patch-applied', this.patch.patchedScheme);
             this.cancelPatch();
-        }
+        },
+
+        onSchemeSaveRequested(scheme, preview) {
+            this.$emit('scheme-save-requested', scheme, preview);
+        },
     },
 
     computed: {

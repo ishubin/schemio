@@ -540,7 +540,7 @@ ul.pagination li a.current {
 
 
 
-.scheme-editor-view {
+.scheme-editor-component {
     position: relative;
     width: 100%;
     height: 100%;
@@ -1120,25 +1120,25 @@ ul.button-group > li.disabled > .icon-button:hover,
 /***************************/
 /*   Side Panel            */
 /***************************/
-.scheme-editor-view .side-panel {
+.scheme-editor-component .side-panel {
     height: 100%;
     position: absolute;
     top: 0;
     background: var(--faint-weak-up);
     box-shadow: 0 0 10px var(--shadow-color);
 }
-.scheme-editor-view .side-panel.side-panel-right {
+.scheme-editor-component .side-panel.side-panel-right {
     right: 0;
 }
-.scheme-editor-view .side-panel.side-panel-left {
+.scheme-editor-component .side-panel.side-panel-left {
     left: 0;
 }
-.scheme-editor-view .side-panel .side-panel-overflow {
+.scheme-editor-component .side-panel .side-panel-overflow {
     height: 100%;
     width: 100%;
     overflow: auto;
 }
-.scheme-editor-view .side-panel .side-panel-expander {
+.scheme-editor-component .side-panel .side-panel-expander {
     display: inline-block;
     position: absolute;
     margin: auto;
@@ -1153,24 +1153,24 @@ ul.button-group > li.disabled > .icon-button:hover,
     width: 12px;
     user-select: none;
 }
-.scheme-editor-view .side-panel-right .side-panel-expander {
+.scheme-editor-component .side-panel-right .side-panel-expander {
     border-left: 1px solid var(--faint-strong);
     left: -12px;
 }
-.scheme-editor-view .side-panel-left .side-panel-expander {
+.scheme-editor-component .side-panel-left .side-panel-expander {
     border-right: 1px solid var(--faint-strong);
     right: -12px;
 }
-.scheme-editor-view .side-panel .side-panel-expander:hover {
+.scheme-editor-component .side-panel .side-panel-expander:hover {
     color: var(--faint-strong-down);
 }
-.scheme-editor-view .side-panel .side-panel-expander i {
+.scheme-editor-component .side-panel .side-panel-expander i {
     margin-top: 10px;
     margin-left: 1px;
 }
 
 /**************** Bottom Panel ***********************/
-.scheme-editor-view .bottom-panel {
+.scheme-editor-component .bottom-panel {
     position: absolute;
     bottom: 0;
     min-height: 30px;
@@ -1180,25 +1180,25 @@ ul.button-group > li.disabled > .icon-button:hover,
     display: flex;
     flex-direction: column;
 }
-.scheme-editor-view .bottom-panel .bottom-panel-dragger {
+.scheme-editor-component .bottom-panel .bottom-panel-dragger {
     cursor: pointer;
     height: 7px;
     background: var(--faint-weak-down);
     border-bottom: 1px solid var(--faint-weak);
     user-select: none;
 }
-.scheme-editor-view .bottom-panel .bottom-panel-dragger:hover {
+.scheme-editor-component .bottom-panel .bottom-panel-dragger:hover {
     background: var(--faint-weak-down-down);
 }
-.scheme-editor-view .bottom-panel .bottom-panel-body {
+.scheme-editor-component .bottom-panel .bottom-panel-body {
     display: flex;
     flex: 1;
     width: 100%;
 }
-.scheme-editor-view .bottom-panel .side-panel-filler-left {
+.scheme-editor-component .bottom-panel .side-panel-filler-left {
     width: 220px;
 }
-.scheme-editor-view .bottom-panel .bottom-panel-content {
+.scheme-editor-component .bottom-panel .bottom-panel-content {
     flex: 1;
 }
 

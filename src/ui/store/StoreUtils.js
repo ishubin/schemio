@@ -22,7 +22,7 @@ export default {
                 controlPoint.x = controlPoint.x * scalingVector.x;
                 controlPoint.y = controlPoint.y * scalingVector.y;
             });
-            
+
             store.dispatch('setItemControlPoints', controlPoints);
         } else {
             this.clearItemControlPoints(store);
@@ -62,9 +62,9 @@ export default {
     },
 
     /**
-     * 
-     * @param {*} store 
-     * @param {ItemSnapper} snapper 
+     *
+     * @param {*} store
+     * @param {ItemSnapper} snapper
      */
     setItemSnapper(store, snapper) {
         store.dispatch('setItemSnapper', snapper);

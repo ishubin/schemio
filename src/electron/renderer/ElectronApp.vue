@@ -17,7 +17,7 @@
                     <span class="btn btn-primary" @click="openProject">Open Project...</span>
                 </div>
                 <div v-else-if="currentOpenFileIdx >= 0 && files[currentOpenFileIdx].kind === 'schemio-doc'">
-                    <SchemeEditor
+                    <SchemioEditorApp
                         :key="`schemio-editor-${files[currentOpenFileIdx].path}`"
                         :scheme="files[currentOpenFileIdx].document"
                         :editAllowed="true"
@@ -32,11 +32,11 @@
 
 <script>
 import { enrichSchemeWithDefaults } from '../../ui/scheme/Scheme';
-import SchemeEditor from '../../ui/components/SchemeEditor.vue';
+import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 
 export default {
-    components: {Navigator, SchemeEditor},
+    components: {Navigator, SchemioEditorApp},
     data () {
         return {
             projectPath: null,
