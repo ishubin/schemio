@@ -24,6 +24,7 @@
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"
             @delete-diagram-requested="$emit('delete-diagram-requested')"
+            @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
             />
 
         <SchemeEditor v-else
@@ -47,6 +48,7 @@
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"
             @delete-diagram-requested="$emit('delete-diagram-requested')"
+            @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
             />
 
         <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>

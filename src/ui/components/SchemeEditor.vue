@@ -24,8 +24,6 @@
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
             @convert-path-points-to-bezier="convertCurvePointToBezier()"
-            @export-svg-requested="exportAsSVG"
-            @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
             @export-link-requested="exportAsLink"
             @zoom-changed="onZoomChanged"
@@ -345,14 +343,6 @@
             </div>
         </modal>
 
-        <export-picture-modal v-if="exportPictureModal.shown"
-            :exported-items="exportPictureModal.exportedItems"
-            :kind="exportPictureModal.kind"
-            :width="exportPictureModal.width"
-            :height="exportPictureModal.height"
-            :background-color="exportPictureModal.backgroundColor"
-            @close="exportPictureModal.shown = false"/>
-
     </div>
 
 </template>
@@ -406,8 +396,6 @@ import FloatingHelperPanel from './editor/FloatingHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
 import ContextMenu from './editor/ContextMenu.vue';
 import StrokePattern from './editor/items/StrokePattern';
-import { filterOutPreviewSvgElements } from '../svgPreview';
-import ExportPictureModal from './editor/ExportPictureModal.vue';
 import StateCreateItem from './editor/states/StateCreateItem.js';
 import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
@@ -497,7 +485,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
+        Comments, ContextMenu, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
         'export-as-link-modal': ExportAsLinkModal
     },
@@ -696,15 +684,6 @@ export default {
 
             animatorPanel: {
                 framePlayer: null,
-            },
-
-            exportPictureModal: {
-                kind: 'svg',
-                width: 100,
-                height: 100,
-                shown: false,
-                exportedItems: [],
-                backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
             floatingHelperPanel: {
@@ -1386,14 +1365,6 @@ export default {
             }
         },
 
-        exportAsSVG() {
-            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'svg');
-        },
-
-        exportAsPNG() {
-            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
-        },
-
         exportAsLink() {
             this.exportAsLinkModalShown = true;
         },
@@ -2006,103 +1977,9 @@ export default {
                 }
             });
 
-            this.openExportPictureModal(this.schemeContainer, items, kind);
+            this.$emit('export-picture-requested', items, kind)
         },
 
-        openExportPictureModal(schemeContainer, items, kind) {
-            if (!items || items.length === 0) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
-                return;
-            }
-            const exportedItems = [];
-            let minP = null;
-            let maxP = null;
-
-            const collectedItems = [];
-
-            forEach(items, item => {
-                if (item.visible && item.opacity > 0.0001) {
-                    const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
-                    if (domElement) {
-                        const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
-                        if (minP) {
-                            minP.x = Math.min(minP.x, itemBoundingBox.x);
-                            minP.y = Math.min(minP.y, itemBoundingBox.y);
-                        } else {
-                            minP = {
-                                x: itemBoundingBox.x,
-                                y: itemBoundingBox.y
-                            };
-                        }
-                        if (maxP) {
-                            maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
-                            maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
-                        } else {
-                            maxP = {
-                                x: itemBoundingBox.x + itemBoundingBox.w,
-                                y: itemBoundingBox.y + itemBoundingBox.h
-                            };
-                        }
-                        const itemDom = domElement.cloneNode(true);
-                        filterOutPreviewSvgElements(itemDom);
-                        collectedItems.push({
-                            item, itemDom
-                        });
-                    }
-                }
-            });
-
-            forEach(collectedItems, collectedItem => {
-                const item = collectedItem.item;
-                const itemDom = collectedItem.itemDom;
-                const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
-                const angle = worldAngleOfItem(item);
-                const x = worldPoint.x - minP.x;
-                const y = worldPoint.y - minP.y;
-
-                itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
-                const html = itemDom.outerHTML;
-                exportedItems.push({item, html})
-            });
-
-            this.exportPictureModal.exportedItems = exportedItems;
-            this.exportPictureModal.width = maxP.x - minP.x;
-            this.exportPictureModal.height = maxP.y - minP.y;
-            if (this.exportPictureModal.width > 5) {
-                this.exportPictureModal.width = Math.round(this.exportPictureModal.width);
-            }
-            if (this.exportPictureModal.height > 5) {
-                this.exportPictureModal.height = Math.round(this.exportPictureModal.height);
-            }
-
-            // this check is needed when export straight vertical or horizontal curve lines
-            // in such case area is defined with zero width or height and it makes SVG export confused
-            if (this.exportPictureModal.width < 0.001) {
-                this.exportPictureModal.width = 20;
-            }
-            if (this.exportPictureModal.height < 0.001) {
-                this.exportPictureModal.height = 20;
-            }
-            this.exportPictureModal.backgroundColor = schemeContainer.scheme.style.backgroundColor;
-            this.exportPictureModal.kind = kind;
-            this.exportPictureModal.shown = true;
-        },
-
-        /**
-         * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
-         */
-        calculateBoundingBoxOfAllSubItems(schemeContainer, parentItem) {
-            const items = [];
-            traverseItems(parentItem, item => {
-                if (item.visible && item.opacity > 0.0001) {
-                    // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
-                    if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
-                        items.push(item);
-                    }
-                }
-            });
-            return schemeContainer.getBoundingBoxOfItems(items)
-        },
 
         deleteSelectedItems() {
             this.schemeContainer.deleteSelectedItems();

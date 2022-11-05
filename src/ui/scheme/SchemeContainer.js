@@ -83,6 +83,57 @@ export function worldVectorOnItem(x, y, item) {
     };
 }
 
+export function getBoundingBoxOfItems(items) {
+    if (!items || items.length === 0) {
+        return {x: 0, y: 0, w: 0, h: 0};
+    }
+
+    let range = null;
+
+    forEach(items, item => {
+        const points = [
+            worldPointOnItem(0, 0, item),
+            worldPointOnItem(item.area.w, 0, item),
+            worldPointOnItem(item.area.w, item.area.h, item),
+            worldPointOnItem(0, item.area.h, item),
+        ];
+
+        forEach(points, point => {
+            if (!range) {
+                range = {
+                    x1: point.x,
+                    x2: point.x,
+                    y1: point.y,
+                    y2: point.y,
+                }
+            } else {
+                if (range.x1 > point.x) {
+                    range.x1 = point.x;
+                }
+                if (range.x2 < point.x) {
+                    range.x2 = point.x;
+                }
+                if (range.y1 > point.y) {
+                    range.y1 = point.y;
+                }
+                if (range.y2 < point.y) {
+                    range.y2 = point.y;
+                }
+            }
+        });
+    });
+
+    const schemeBoundaryBox = {
+        x: range.x1,
+        y: range.y1,
+        w: range.x2 - range.x1,
+        h: range.y2 - range.y1,
+    };
+
+    return schemeBoundaryBox;
+}
+
+
 /**
  * converts worlds coords to local point in the transform of the parent of the item
  * In case item has no parents - it returns the world coords
@@ -1047,53 +1098,7 @@ class SchemeContainer {
     }
 
     getBoundingBoxOfItems(items) {
-        if (!items || items.length === 0) {
-            return {x: 0, y: 0, w: 0, h: 0};
-        }
-
-        let range = null;
-
-        forEach(items, item => {
-            const points = [
-                this.worldPointOnItem(0, 0, item),
-                this.worldPointOnItem(item.area.w, 0, item),
-                this.worldPointOnItem(item.area.w, item.area.h, item),
-                this.worldPointOnItem(0, item.area.h, item),
-            ];
-
-            forEach(points, point => {
-                if (!range) {
-                    range = {
-                        x1: point.x,
-                        x2: point.x,
-                        y1: point.y,
-                        y2: point.y,
-                    }
-                } else {
-                    if (range.x1 > point.x) {
-                        range.x1 = point.x;
-                    }
-                    if (range.x2 < point.x) {
-                        range.x2 = point.x;
-                    }
-                    if (range.y1 > point.y) {
-                        range.y1 = point.y;
-                    }
-                    if (range.y2 < point.y) {
-                        range.y2 = point.y;
-                    }
-                }
-            });
-        });
-
-        const schemeBoundaryBox = {
-            x: range.x1,
-            y: range.y1,
-            w: range.x2 - range.x1,
-            h: range.y2 - range.y1,
-        };
-
-        return schemeBoundaryBox;
+        return getBoundingBoxOfItems(items);
     }
 
     /**

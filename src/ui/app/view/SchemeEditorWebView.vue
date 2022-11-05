@@ -51,6 +51,7 @@
             @undo-history-requested="undoHistory"
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
+            @export-picture-requested="openExportPictureModal"
         />
         <SchemioEditorApp v-else-if="scheme"
             :key="`scheme-${appReloadKey}`"
@@ -71,6 +72,7 @@
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
+            @export-picture-requested="openExportPictureModal"
         />
 
         <CreatePatchModal v-if="createPatchModalShown" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
@@ -110,6 +112,14 @@
         </div>
 
         <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
+
+        <export-picture-modal v-if="exportPictureModal.shown"
+            :exported-items="exportPictureModal.exportedItems"
+            :kind="exportPictureModal.kind"
+            :width="exportPictureModal.width"
+            :height="exportPictureModal.height"
+            :background-color="exportPictureModal.backgroundColor"
+            @close="exportPictureModal.shown = false"/>
     </div>
 </template>
 <script>
@@ -127,7 +137,11 @@ import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import ImportSchemeModal from '../../components/editor/ImportSchemeModal.vue';
 import ExportJSONModal from '../../components/editor/ExportJSONModal.vue';
+import ExportPictureModal from '../../components/editor/ExportPictureModal.vue';
 import History from '../../history/History.js';
+import { traverseItems } from '../../scheme/Item';
+import { worldPointOnItem, worldAngleOfItem, getBoundingBoxOfItems } from '../../scheme/SchemeContainer';
+import { filterOutPreviewSvgElements } from '../../svgPreview';
 
 const defaultHistorySize = 30;
 
@@ -145,6 +159,7 @@ function loadOfflineScheme() {
 export default {
     components: {
         SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal,
+        ExportPictureModal,
         'export-json-modal': ExportJSONModal,
     },
 
@@ -266,6 +281,8 @@ export default {
                 {name: 'Create patch',      callback: () => this.openSchemePatchModal(this.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Apply patch',       callback: () => this.triggerApplyPatchUpload(), iconClass: 'fas fa-file-import'},
                 {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
+                {name: 'Export as SVG',     callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'},
+                {name: 'Export as PNG',     callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'},
             ],
 
             exportJSONModalShown: false,
@@ -282,6 +299,15 @@ export default {
             loadPatchFileShown: false,
 
             schemePatch: null,
+
+            exportPictureModal: {
+                kind: 'svg',
+                width: 100,
+                height: 100,
+                shown: false,
+                exportedItems: [],
+                backgroundColor: 'rgba(255,255,255,1.0)'
+            },
 
             // used to trigger update of SchemeContainer inside of SchemeEditor component
             schemeReloadKey: shortid.generate()
@@ -559,6 +585,111 @@ export default {
 
             reader.readAsText(file);
         },
+
+
+        exportAsSVG() {
+            this.openExportPictureModal(this.scheme.items, 'svg');
+        },
+
+        exportAsPNG() {
+            this.openExportPictureModal(this.scheme.items, 'png');
+        },
+
+        openExportPictureModal(items, kind) {
+            if (!items || items.length === 0) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
+                return;
+            }
+            const exportedItems = [];
+            let minP = null;
+            let maxP = null;
+
+            const collectedItems = [];
+
+            forEach(items, item => {
+                if (item.visible && item.opacity > 0.0001) {
+                    const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
+                    if (domElement) {
+                        const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(item);
+                        if (minP) {
+                            minP.x = Math.min(minP.x, itemBoundingBox.x);
+                            minP.y = Math.min(minP.y, itemBoundingBox.y);
+                        } else {
+                            minP = {
+                                x: itemBoundingBox.x,
+                                y: itemBoundingBox.y
+                            };
+                        }
+                        if (maxP) {
+                            maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
+                            maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
+                        } else {
+                            maxP = {
+                                x: itemBoundingBox.x + itemBoundingBox.w,
+                                y: itemBoundingBox.y + itemBoundingBox.h
+                            };
+                        }
+                        const itemDom = domElement.cloneNode(true);
+                        filterOutPreviewSvgElements(itemDom);
+                        collectedItems.push({
+                            item, itemDom
+                        });
+                    }
+                }
+            });
+
+            forEach(collectedItems, collectedItem => {
+                const item = collectedItem.item;
+                const itemDom = collectedItem.itemDom;
+                const worldPoint = worldPointOnItem(0, 0, item);
+                const angle = worldAngleOfItem(item);
+                const x = worldPoint.x - minP.x;
+                const y = worldPoint.y - minP.y;
+
+                itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
+                const html = itemDom.outerHTML;
+                exportedItems.push({item, html})
+            });
+
+            this.exportPictureModal.exportedItems = exportedItems;
+            this.exportPictureModal.width = maxP.x - minP.x;
+            this.exportPictureModal.height = maxP.y - minP.y;
+            if (this.exportPictureModal.width > 5) {
+                this.exportPictureModal.width = Math.round(this.exportPictureModal.width);
+            }
+            if (this.exportPictureModal.height > 5) {
+                this.exportPictureModal.height = Math.round(this.exportPictureModal.height);
+            }
+
+            // this check is needed when export straight vertical or horizontal curve lines
+            // in such case area is defined with zero width or height and it makes SVG export confused
+            if (this.exportPictureModal.width < 0.001) {
+                this.exportPictureModal.width = 20;
+            }
+            if (this.exportPictureModal.height < 0.001) {
+                this.exportPictureModal.height = 20;
+            }
+            this.exportPictureModal.backgroundColor = this.scheme.style.backgroundColor;
+            this.exportPictureModal.kind = kind;
+            this.exportPictureModal.shown = true;
+        },
+
+        /**
+         * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
+         */
+        calculateBoundingBoxOfAllSubItems(parentItem) {
+            const items = [];
+            traverseItems(parentItem, item => {
+                if (item.visible && item.opacity > 0.0001) {
+                    // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
+                    if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
+                        items.push(item);
+                    }
+                }
+            });
+            return getBoundingBoxOfItems(items);
+        },
+
     },
     computed: {
         originSchemeForPatch() {
