@@ -79,8 +79,6 @@ const EventBus = new Vue({
             ELEMENT_PICK_REQUESTED: 'element-pick-requested',
             ELEMENT_PICK_CANCELED: 'element-pick-canceled',
 
-            ELEMENT_PICKED: 'element-picked',
-
             CURVE_EDITED: 'curve-edited',
             CURVE_EDIT_STOPPED: 'curve-edit-stopped',
             CURVE_EDIT_POINTS_UPDATED: 'curve-edit-points-updated',
@@ -170,9 +168,9 @@ const EventBus = new Vue({
         },
 
         /**
-         * 
-         * @param {Item} item 
-         * @param {string} slotName 
+         *
+         * @param {Item} item
+         * @param {string} slotName
          * @param {Area} area - Area of a text slot and not of an item
          * @param {Boolean} markupDisabled - true if HTML markup is disabled. This means that a simple textarea is going to be used for text editing
          * @param {Boolean} creatingNewItem - true if it is triggered for a new item (e.g. double clicking void)

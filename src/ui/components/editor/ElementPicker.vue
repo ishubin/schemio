@@ -47,12 +47,10 @@ export default {
     components: {Dropdown},
 
     mounted() {
-        EventBus.$on(EventBus.ELEMENT_PICKED, this.onElementPickedFromState);
     },
 
     beforeDestroy() {
         EventBus.emitElementPickCanceled();
-        EventBus.$off(EventBus.ELEMENT_PICKED, this.onElementPickedFromState);
     },
 
     data() {
