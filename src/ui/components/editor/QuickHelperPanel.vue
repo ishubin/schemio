@@ -281,7 +281,6 @@ export default {
 
         //TODO move it all the way to the top vue component. Electron has to implement it differently
         const defaultMenuDropDownOptions = [
-            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
             {name: 'Create patch',      callback: () => EventBus.emitSchemePatchRequested(this.schemeContainer.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
             {name: 'Apply patch',       callback: eventCallback('apply-patch-requested'), iconClass: 'fas fa-file-import'},
             {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},

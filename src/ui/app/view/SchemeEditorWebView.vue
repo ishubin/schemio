@@ -68,6 +68,7 @@
             @undo-history-requested="undoHistory"
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
+            @delete-diagram-requested="deleteSchemeWarningShown = true"
         />
 
         <CreatePatchModal v-if="createPatchModalShown" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
@@ -96,6 +97,10 @@
             <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-danger">
                 {{duplicateDiagramModal.errorMessage}}
             </div>
+        </modal>
+
+        <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
+            Are you sure you want to delete <b>{{scheme.name}}</b> scheme?
         </modal>
 
     </div>
@@ -246,6 +251,7 @@ export default {
                 {name: 'New diagram',  callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.apiClientType === 'static'},
                 {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
                 {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
+                {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
             ],
 
             importSchemeFileShown: false,
@@ -254,6 +260,8 @@ export default {
                 sheme: null,
                 shown: false
             },
+
+            deleteSchemeWarningShown: false,
 
             // used to trigger update of SchemeContainer inside of SchemeEditor component
             schemeReloadKey: shortid.generate()
@@ -493,6 +501,18 @@ export default {
                 this.duplicateDiagramModal.errorMessage = 'Oops, something went wrong.';
             });
         },
+
+        deleteScheme() {
+            const projectLink = this.scheme.projectLink;
+            this.$store.state.apiClient.deleteScheme(this.scheme.id).then(() => {
+                if (projectLink) {
+                    window.location = projectLink;
+                } else {
+                    window.location = '/';
+                }
+            });
+        },
+
     },
     computed: {
         originSchemeForPatch() {

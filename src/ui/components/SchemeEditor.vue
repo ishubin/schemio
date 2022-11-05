@@ -30,8 +30,6 @@
             @export-html-requested="exportHTMLModalShown = true"
             @export-link-requested="exportAsLink"
             @apply-patch-requested="triggerApplyPatchUpload"
-            @duplicate-diagram-requested="showDuplicateDiagramModal()"
-            @delete-diagram-requested="deleteSchemeWarningShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
@@ -243,7 +241,7 @@
                                 :scheme-container="schemeContainer"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 @export-all-shapes="openExportAllShapesModal"
-                                @delete-diagram-requested="deleteSchemeWarningShown = true"/>
+                                @delete-diagram-requested="$emit('delete-diagram-requested')"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
@@ -335,10 +333,6 @@
         />
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
-
-        <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
-            Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
-        </modal>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -723,8 +717,6 @@ export default {
                 exportedItems: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
-
-            deleteSchemeWarningShown: false,
 
             floatingHelperPanel: {
                 shown: false,
@@ -2230,17 +2222,6 @@ export default {
                 x: Math.round(offsetX),
                 y: Math.round(offsetY)
             }
-        },
-
-        deleteScheme() {
-            const projectLink = this.schemeContainer.scheme.projectLink;
-            this.$store.state.apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
-                if (projectLink) {
-                    window.location = projectLink;
-                } else {
-                    window.location = '/';
-                }
-            });
         },
 
         updateFloatingHelperPanel() {
