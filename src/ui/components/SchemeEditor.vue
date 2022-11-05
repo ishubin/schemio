@@ -30,8 +30,8 @@
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             >
-            <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
-                <li v-if="schemeModified">
+            <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
+                <li v-if="modified">
                     <span class="btn btn-primary" @click="saveScheme()">Save</span>
                 </li>
                 <li v-if="statusMessage.message">
@@ -487,6 +487,10 @@ export default {
         scheme           : {type: Object, required: true},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
+
+        // means that it should handle all keyboard and mouse events as it is focused and not hidden
+        active           : {type: Boolean, default: true},
+        modified         : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
@@ -521,69 +525,10 @@ export default {
     },
 
     beforeMount() {
-        EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-        EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
-        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
-        EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-        EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
-        EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
-        EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-        EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
-        EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
-        EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
-        EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-        EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
-        EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-        EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
-        EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
-        EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
+        this.registerEventBusHandlers();
     },
-    beforeDestroy(){
-        window.onbeforeunload = null;
-        EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-        EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
-        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
-        EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-        EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
-        EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
-        EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-        EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
-        EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
-        EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
-        EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-        EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
-        EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-        EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
-        EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
-        EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
+    beforeDestroy() {
+        this.deregisterEventBusHandlers();
     },
 
     mounted() {
@@ -691,10 +636,84 @@ export default {
                 y: 0
             },
 
-            bottomPanelHeight: 300
+            bottomPanelHeight: 300,
+
+            eventsRegistered: false
         }
     },
     methods: {
+        registerEventBusHandlers() {
+            if (!this.eventsRegistered) {
+                this.eventsRegistered = true;
+                EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+                EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
+                EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
+                EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
+                EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
+                EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+                EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
+                EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
+                EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+                EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+                EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
+                EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+                EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
+                EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+                EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
+                EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
+                EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
+                EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
+                EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
+                EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
+                EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
+                EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
+                EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
+                EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+                EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
+                EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
+                EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
+                EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
+                EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
+                EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
+            }
+        },
+
+        deregisterEventBusHandlers() {
+            if (this.eventsRegistered) {
+                this.eventsRegistered = false;
+                EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+                EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
+                EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
+                EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
+                EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
+                EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
+                EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
+                EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
+                EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+                EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
+                EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
+                EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
+                EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
+                EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
+                EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
+                EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
+                EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
+                EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
+                EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
+                EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
+                EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
+                EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
+                EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
+                EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
+                EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
+                EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
+                EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
+                EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
+                EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
+                EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
+            }
+        },
+
         init() {
             this.initSchemeContainer(this.scheme);
         },
@@ -703,7 +722,7 @@ export default {
             this.schemeLoadErrorMessage = null;
             this.loadingStep = 'load-shapes';
             this.isLoading = true;
-            return collectAndLoadAllMissingShapes(scheme.items, this.$store)
+            collectAndLoadAllMissingShapes(scheme.items, this.$store)
             .catch(err => {
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
@@ -1148,6 +1167,9 @@ export default {
         },
 
         onKeyPress(key, keyOptions) {
+            if (!this.active) {
+                return;
+            }
             if (this.mode === 'edit') {
                 if (key === Keys.CTRL_C) {
                     this.copySelectedItems();
@@ -1264,7 +1286,6 @@ export default {
 
         commitHistory(affinityId) {
             this.$emit('history-committed', this.schemeContainer.scheme, affinityId);
-            this.markSchemeAsModified();
         },
 
         historyEditAllowed() {
@@ -1337,7 +1358,6 @@ export default {
             this.schemeContainer.bringSelectedItemsToFront();
             this.schemeContainer.reindexItems();
             this.commitHistory();
-            this.markSchemeAsModified();
             this.updateRevision();
         },
 
@@ -1345,12 +1365,7 @@ export default {
             this.schemeContainer.bringSelectedItemsToBack();
             this.schemeContainer.reindexItems();
             this.commitHistory();
-            this.markSchemeAsModified();
             this.updateRevision();
-        },
-
-        markSchemeAsModified() {
-            this.$store.dispatch('markSchemeAsModified');
         },
 
         onScreenTransformUpdated(screenTransform) {
@@ -2020,26 +2035,36 @@ export default {
         },
 
         onKeyUp(key, keyOptions) {
-            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
+            if (this.active && key !== Keys.ESCAPE && key != Keys.DELETE) {
                 this.states[this.state].keyUp(key, keyOptions);
             }
         },
 
         mouseWheel(x, y, mx, my, event) {
-            this.states[this.state].mouseWheel(x, y, mx, my, event);
+            if (this.active) {
+                this.states[this.state].mouseWheel(x, y, mx, my, event);
+            }
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
-            this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+            }
         },
         mouseUp(worldX, worldY, screenX, screenY, object, event) {
-            this.states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
+            }
         },
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+            }
         },
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            this.states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            }
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
@@ -2225,6 +2250,14 @@ export default {
             }
         },
 
+        active(active) {
+            if (this.active) {
+                this.registerEventBusHandlers();
+            } else {
+                this.deregisterEventBusHandlers();
+            }
+        },
+
         currentTab(newValue) {
             this.saveSchemeSettings();
         },
@@ -2253,10 +2286,6 @@ export default {
             } else {
                 return this.schemeContainer;
             }
-        },
-
-        schemeModified() {
-            return this.$store.getters.schemeModified;
         },
 
         connectorProposedDestination() {

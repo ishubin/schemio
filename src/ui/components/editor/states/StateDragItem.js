@@ -41,7 +41,7 @@ function isEventRightClick(event) {
 
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event
  */
 function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
@@ -80,7 +80,7 @@ class EditBoxState extends SubState {
         if (this.lastModifiedItem) {
             items.push(this.lastModifiedItem);
         }
-        
+
         let shouldUpdateMultiItemEditBox = false;
         forEach(items, item => {
             // Now doing hard readjustment (this is needed for curve items so that they can update their area)
@@ -209,7 +209,7 @@ class DragControlPointState extends SubState {
                 } else {
                     shape.controlPoints.handleDrag(this.item, this.pointId, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy, dx, dy, this, this.schemeContainer);
                 }
-                
+
                 this.eventBus.emitItemChanged(this.item.id);
                 this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
@@ -257,7 +257,7 @@ class DragControlPointState extends SubState {
         if (!curvePoint) {
             return;
         }
-        
+
         let excludedIds = null
         if (this.multiItemEditBox) {
             excludedIds = this.multiItemEditBox.itemIds;
@@ -307,7 +307,7 @@ class DragControlPointState extends SubState {
 
         const shape = Shape.find(this.item.shape);
         StoreUtils.setItemControlPoints(this.store, this.item);
-        
+
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.reindexNeeded = true;
@@ -405,7 +405,7 @@ class RotateEditBoxState extends EditBoxState {
     constructor(parentState, multiItemEditBox, x, y, mx, my) {
         super(parentState, 'rotate-edit-box', multiItemEditBox, x, y, mx, my);
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         if (event.buttons === 0) {
             this.mouseUp(x, y, mx, my, object, event);
@@ -451,18 +451,18 @@ class RotateEditBoxState extends EditBoxState {
         const v2y = y - centerY;
         const v1SquareLength = v1x * v1x + v1y * v1y;
         const v2SquareLength = v2x * v2x + v2y * v2y;
-        
+
         if (v1SquareLength < 0.0001 || v2SquareLength < 0.0001) {
             return;
         }
 
         // cross production of two vectors to figure out the direction (clock-wise or counter clock-wise) of rotation
-        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1; 
+        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1;
 
         const cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
         let angle = direction * Math.acos(cosa);
         let angleDegrees = angle * 180 / Math.PI;
-        
+
         if (isNaN(angleDegrees)) {
             return 0;
         }
@@ -480,7 +480,7 @@ class DragEditBoxState extends EditBoxState {
         this.proposedItemForMounting = null;
         this.proposedToRemountToRoot = false;
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
 
@@ -559,7 +559,7 @@ class DragEditBoxState extends EditBoxState {
                 // remount it to root only in case it has a parent
                 if (item.meta && item.meta.parentId && item.meta.ancestorIds) {
                     const rootParent = this.schemeContainer.findItemById(item.meta.ancestorIds[0]);
-                    
+
                     if (rootParent) {
                         this.schemeContainer.remountItemAfterOtherItem(item.id, rootParent.id);
                     } else {
@@ -607,7 +607,7 @@ class IdleState extends SubState {
             this.zoomInByKey();
         }
     }
-    
+
     mouseDown(x, y, mx, my, object, event) {
         if (isEventMiddleClick(event)) {
             this.migrate(new DragScreenState(this.parentState, {x, y, mx, my}));
@@ -650,7 +650,7 @@ class IdleState extends SubState {
             }
         } else if (object.controlPoint && object.controlPoint.item.shape === 'connector') {
             this.handleDoubleClickOnConnectorControlPoint(object.controlPoint.item, object.controlPoint.pointId);
-        } else if (object.itemTextElement) { 
+        } else if (object.itemTextElement) {
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
         } else if (object.type === 'void') {
             this.eventBus.$emit(EventBus.VOID_DOUBLE_CLICKED, x, y, mx, my);
@@ -659,9 +659,9 @@ class IdleState extends SubState {
             this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
         }
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
-        if (this.clickedObject) { 
+        if (this.clickedObject) {
             if (this.clickedObject.type === 'item' && this.schemeContainer.multiItemEditBox) {
                 this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
                 this.reset();
@@ -816,8 +816,8 @@ class IdleState extends SubState {
         const selectedItems = [];
 
         forEach(this.schemeContainer.getItems(), item => {
-            const points = [ 
-                {x: 0, y: 0}, 
+            const points = [
+                {x: 0, y: 0},
                 {x: item.area.w, y: 0},
                 {x: item.area.w, y: item.area.h},
                 {x: 0, y: item.area.h},
@@ -841,7 +841,7 @@ class IdleState extends SubState {
 
 export default class StateDragItem extends State {
     /**
-     * @param {EventBus} eventBus 
+     * @param {EventBus} eventBus
      */
     constructor(eventBus, store) {
         super(eventBus, store);
@@ -870,7 +870,7 @@ export default class StateDragItem extends State {
             StoreUtils.clearItemSnappers(this.store);
         }
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         super.mouseUp(x, y, mx, my, object, event);
         StoreUtils.clearItemSnappers(this.store);

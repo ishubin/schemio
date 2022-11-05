@@ -85,9 +85,6 @@ const store = new Vuex.Store({
 
         apiClient: null,
 
-        //TODO get rid of it to be able to support multiple scheme editors
-        schemeModified: false,
-
         editorSubStateName: null,
 
         itemMenu: {
@@ -194,10 +191,6 @@ const store = new Vuex.Store({
 
         SET_API_CLIENT(state, apiClient) {
             state.apiClient = apiClient
-        },
-
-        SET_SCHEME_MODIFIED(state, isModified) {
-            state.schemeModified = isModified;
         },
 
         SET_AUTO_REMOUNT(state, autoRemount) {
@@ -515,13 +508,6 @@ const store = new Vuex.Store({
             commit('SET_API_CLIENT', apiClient);
         },
 
-        markSchemeAsModified({commit}) {
-            commit('SET_SCHEME_MODIFIED', true);
-        },
-        markSchemeAsUnmodified({commit}) {
-            commit('SET_SCHEME_MODIFIED', false);
-        },
-
         setCurveEditItem({commit}, item) {
             const paths = [];
             if (item) {
@@ -688,8 +674,6 @@ const store = new Vuex.Store({
 
     getters: {
         apiClient: state => state.apiClient,
-
-        schemeModified: state => state.schemeModified,
 
         itemControlPointsList: state => state.itemControlPoints,
 

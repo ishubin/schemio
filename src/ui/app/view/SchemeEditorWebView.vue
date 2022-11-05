@@ -40,6 +40,7 @@
             :mode="mode"
             :schemeReloadKey="schemeReloadKey"
             :editAllowed="true"
+            :modified="modified"
             :userStylesEnabled="false"
             :projectArtEnabled="false"
             :menuOptions="menuOptions"
@@ -60,6 +61,7 @@
             :mode="mode"
             :schemeReloadKey="schemeReloadKey"
             :editAllowed="shouldAllowEdit"
+            :modified="modified"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
@@ -218,6 +220,7 @@ export default {
 
                 this.history = new History({size: defaultHistorySize});
                 this.history.commit(this.scheme);
+                this.modified = false;
 
                 this.originScheme = utils.clone(schemeDetails.scheme);
                 enrichSchemeWithDefaults(this.originScheme);
@@ -257,6 +260,7 @@ export default {
             shouldAllowEdit: this.editAllowed,
             isStaticEditor: false,
             scheme: this.isOfflineEditor ? loadOfflineScheme() : null,
+            modified: false,
             mode: 'view',
             apiClient: null,
             is404: false,
@@ -413,6 +417,7 @@ export default {
                     this.scheme = JSON.parse(text);
                     this.history = new History({size: defaultHistorySize});
                     this.history.commit(this.scheme);
+                    this.modified = false;
                     this.appReloadKey = shortid.generate();
                 })
                 .catch(err => {
@@ -435,7 +440,7 @@ export default {
             this.$store.dispatch('clearStatusMessage');
             this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
             .then(() => {
-                this.markSchemeAsUnmodified();
+                this.modified = false;
 
                 // it is not a big deal if it fails to save preview
                 if (this.schemeId && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
@@ -444,22 +449,14 @@ export default {
             })
             .catch(err => {
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
-                this.markSchemeAsModified();
+                this.modified = true;
             });
         },
 
         saveOfflineScheme(scheme) {
             window.localStorage.setItem('offlineScheme', JSON.stringify(scheme));
             StoreUtils.addInfoSystemMessage(this.$store, 'Saved diagram to local storage', 'offline-save');
-            this.markSchemeAsUnmodified();
-        },
-
-        markSchemeAsModified() {
-            this.$store.dispatch('markSchemeAsModified');
-        },
-
-        markSchemeAsUnmodified() {
-            this.$store.dispatch('markSchemeAsUnmodified');
+            this.modified = false;
         },
 
         onBrowseClose() {
@@ -503,6 +500,7 @@ export default {
             enrichSchemeWithDefaults(scheme);
             this.scheme = scheme;
             this.history.commit(this.scheme);
+            this.modified = true;
             this.updateHistoryState();
             this.schemeReloadKey = shortid.generate();
         },
@@ -514,6 +512,7 @@ export default {
 
         onHistoryCommitted(scheme, affinityId) {
             this.history.commit(scheme, affinityId);
+            this.modified = true;
             this.updateHistoryState();
         },
 
@@ -523,6 +522,7 @@ export default {
                 this.scheme = scheme;
                 this.schemeReloadKey = shortid.generate();
             }
+            this.modified = true;
             this.updateHistoryState();
         },
 
@@ -532,6 +532,7 @@ export default {
                 this.scheme = scheme;
                 this.schemeReloadKey = shortid.generate();
             }
+            this.modified = true;
             this.updateHistoryState();
         },
 

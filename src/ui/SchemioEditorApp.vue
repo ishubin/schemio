@@ -8,6 +8,7 @@
             key="patched-scheme"
             :scheme="patch.patchedScheme"
             :mode="mode"
+            :active="active"
             :schemeReloadKey="schemeReloadKey"
             :patchIndex="patch.index"
             :editAllowed="editAllowed"
@@ -31,6 +32,8 @@
             :key="`origin-scheme`"
             :scheme="scheme"
             :mode="mode"
+            :modified="modified"
+            :active="active"
             :schemeReloadKey="schemeReloadKey"
             :editAllowed="editAllowed"
             :patchIndex="patch.index"
@@ -104,6 +107,8 @@ export default{
         mode             : {type: String, default: 'view'},
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
+        modified         : {type: Boolean, default: false},
+        active           : {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},

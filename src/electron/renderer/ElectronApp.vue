@@ -17,13 +17,15 @@
                     <span class="btn btn-primary" @click="openProject">Open Project...</span>
                 </div>
                 <div v-else style="height: 100%">
-                    <div v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
+                    <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
                             :key="`schemio-editor-${file.path}`"
                             :scheme="file.document"
                             :schemeReloadKey="file.schemeReloadKey"
                             :mode="file.schemeMode"
+                            :active="fileIdx === currentOpenFileIdx"
                             :editAllowed="true"
+                            :modified="file.modified"
                             :historyUndoable="file.historyUndoable"
                             :historyRedoable="file.historyRedoable"
                             @scheme-save-requested="saveFile(file, arguments[0], arguments[1])"
@@ -54,6 +56,7 @@ function initSchemioDiagramFile(originalFile) {
         ...originalFile,
         document: {},
         error: null,
+        modified: false,
         schemeMode: 'view',
         schemeReloadKey: shortid.generate(),
         // Take it out of here so that it does not become reactive
@@ -143,6 +146,7 @@ export default {
         onHistoryCommitted(file, scheme, affinityId) {
             fileHistories.get(file.historyId).commit(scheme, affinityId);
             this.updateHistoryState(file);
+            file.modified = true;
         },
 
         undoHistory(file) {
@@ -153,6 +157,7 @@ export default {
                     file.document = scheme;
                     file.schemeReloadKey = shortid.generate();
                 }
+                file.modified = true;
                 this.updateHistoryState(file);
             }
         },
@@ -165,6 +170,7 @@ export default {
                     file.document = scheme;
                     file.schemeReloadKey = shortid.generate();
                 }
+                file.modified = true;
                 this.updateHistoryState(file);
             }
         },
@@ -183,22 +189,13 @@ export default {
             this.$store.dispatch('clearStatusMessage');
             window.electronAPI.writeFile(this.projectPath, file.path, content)
             .then(() => {
-                this.markSchemeAsUnmodified();
+                file.modified = false;
             })
             .catch(err => {
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
-                this.markSchemeAsModified();
+                file.modified = true;
             });
         },
-
-        markSchemeAsModified() {
-            this.$store.dispatch('markSchemeAsModified');
-        },
-
-        markSchemeAsUnmodified() {
-            this.$store.dispatch('markSchemeAsUnmodified');
-        },
-
     }
 }
 </script>
