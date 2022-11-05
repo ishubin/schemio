@@ -783,11 +783,12 @@ class IdleState extends SubState {
 }
 
 export default class StateEditPath extends State {
-    constructor(eventBus, store) {
+    constructor(eventBus, store, historyStateListener) {
         super(eventBus, store);
         this.name = 'editPath';
         this.item = null;
         this.history = new History();
+        this.historyStateListener = historyStateListener;
     }
 
     reset() {
@@ -805,8 +806,7 @@ export default class StateEditPath extends State {
     }
 
     updateHistoryState() {
-        this.store.dispatch('setHistoryUndoable', this.history.undoable());
-        this.store.dispatch('setHistoryRedoable', this.history.redoable());
+        this.historyStateListener(this.history.undoable(), this.history.redoable());
     }
 
     undo() {

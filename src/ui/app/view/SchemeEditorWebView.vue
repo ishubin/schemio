@@ -43,6 +43,8 @@
             :userStylesEnabled="false"
             :projectArtEnabled="false"
             :menuOptions="menuOptions"
+            :historyUndoable="historyUndoable"
+            :historyRedoable="historyRedoable"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveOfflineScheme"
             @history-committed="onHistoryCommitted"
@@ -61,6 +63,8 @@
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
+            :historyUndoable="historyUndoable"
+            :historyRedoable="historyRedoable"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
@@ -318,7 +322,10 @@ export default {
             exportHTMLModalShown: false,
 
             // used to trigger update of SchemeContainer inside of SchemeEditor component
-            schemeReloadKey: shortid.generate()
+            schemeReloadKey: shortid.generate(),
+
+            historyUndoable: false,
+            historyRedoable: false,
         };
     },
 
@@ -501,8 +508,8 @@ export default {
         },
 
         updateHistoryState() {
-            this.$store.dispatch('setHistoryUndoable', this.history.undoable());
-            this.$store.dispatch('setHistoryRedoable', this.history.redoable());
+            this.historyUndoable = this.history.undoable();
+            this.historyRedoable = this.history.redoable();
         },
 
         onHistoryCommitted(scheme, affinityId) {

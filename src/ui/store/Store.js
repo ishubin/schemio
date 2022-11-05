@@ -127,12 +127,6 @@ const store = new Vuex.Store({
         // what they can click on the diagram and which elements are interactive
         showClickableMarkers: false,
 
-        // stores the state of the history in scheme editing
-        history: {
-            undoable: false,
-            redoable: false
-        },
-
         // item which style should be copied to other items
         copiedStyleItem: null,
 
@@ -283,14 +277,6 @@ const store = new Vuex.Store({
             }
         },
 
-
-        /* History */
-        SET_HISTORY_UNDOABLE(state, isUndoable) {
-            state.history.undoable = isUndoable;
-        },
-        SET_HISTORY_REDOABLE(state, isRedoable) {
-            state.history.redoable = isRedoable;
-        },
 
         SET_DEFAULT_CONNECTOR_SMOOTHING(state, smoothing) {
             state.defaultConnectorSmoothing = smoothing;
@@ -564,15 +550,6 @@ const store = new Vuex.Store({
         },
         selectCurveEditPoint({ commit }, { pathId, pointId, inclusive }) {
             commit('SELECT_CURVE_EDIT_POINT', { pathId, pointId, inclusive });
-        },
-
-
-        setHistoryUndoable({commit}, isUndoable) {
-            commit('SET_HISTORY_UNDOABLE', isUndoable);
-        },
-
-        setHistoryRedoable({commit}, isRedoable) {
-            commit('SET_HISTORY_REDOABLE', isRedoable);
         },
 
         setDefaultConnectorSmoothing({commit}, smoothing) {

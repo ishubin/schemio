@@ -14,6 +14,8 @@
             :zoom="zoom"
             :edit-allowed="editAllowed"
             :menuOptions="menuOptions"
+            :historyUndoable="historyState.undoable"
+            :historyRedoable="historyState.redoable"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
@@ -488,6 +490,8 @@ export default {
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
+        historyUndoable  : { type: Boolean, required: true},
+        historyRedoable  : { type: Boolean, required: true},
 
         //Used to signify that SchemeContainer needs to be recreted and item selection needs to be restored
         schemeReloadKey : {type: String, default: null},
@@ -504,7 +508,10 @@ export default {
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus),
             createItem: new StateCreateItem(EventBus, this.$store),
-            editPath: new StateEditPath(EventBus, this.$store),
+            editPath: new StateEditPath(EventBus, this.$store, (undoable, redoable) => {
+                this.historyState.undoable = undoable;
+                this.historyState.redoable = redoable;
+            }),
             connecting: new StateConnecting(EventBus, this.$store),
             dragItem: new StateDragItem(EventBus, this.$store),
             pickElement: new StatePickElement(EventBus, this.$store),
@@ -602,6 +609,11 @@ export default {
             cropImage: {
                 editBox: null,
                 item: null
+            },
+
+            historyState: {
+                undoable: this.historyUndoable,
+                redoable: this.historyRedoable,
             },
 
             inPlaceTextEditor: {
@@ -2223,7 +2235,15 @@ export default {
 
         schemeReloadKey(newValue) {
             this.reloadSchemeContainer();
-        }
+        },
+
+        historyUndoable(undoable) {
+            this.historyState.undoable = undoable;
+        },
+
+        historyRedoable(redoable) {
+            this.historyState.redoable = redoable;
+        },
     },
 
     computed: {

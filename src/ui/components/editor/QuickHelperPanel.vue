@@ -249,6 +249,8 @@ export default {
         zoom                : { type: Number, required: true },
         editAllowed         : { type: Boolean, default: false },
         menuOptions         : { type: Array, default: []},
+        historyUndoable     : { type: Boolean, required: true},
+        historyRedoable     : { type: Boolean, required: true},
     },
 
     components: {
@@ -596,14 +598,6 @@ export default {
     },
 
     computed: {
-        historyRedoable() {
-            return this.$store.state.history.redoable;
-        },
-
-        historyUndoable() {
-            return this.$store.state.history.undoable;
-        },
-
         shouldSnapToGrid() {
             return this.$store.getters.shouldSnapToGrid;
         },

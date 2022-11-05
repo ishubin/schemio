@@ -21,9 +21,15 @@
                         <SchemioEditorApp
                             :key="`schemio-editor-${file.path}`"
                             :scheme="file.document"
+                            :schemeReloadKey="file.schemeReloadKey"
                             :mode="file.schemeMode"
-                            @mode-change-requested="onModeChangeRequested(file, arguments[0])"
                             :editAllowed="true"
+                            :historyUndoable="file.historyUndoable"
+                            :historyRedoable="file.historyRedoable"
+                            @mode-change-requested="onModeChangeRequested(file, arguments[0])"
+                            @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
+                            @undo-history-requested="undoHistory(file)"
+                            @redo-history-requested="redoHistory(file)"
                         />
                     </div>
                 </div>
@@ -33,9 +39,42 @@
 </template>
 
 <script>
+import shortid from 'shortid';
 import { enrichSchemeWithDefaults } from '../../ui/scheme/Scheme';
 import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
+import History from '../../ui/history/History';
+
+
+const fileHistories = new Map();
+
+function initSchemioDiagramFile(originalFile) {
+    const file = {
+        ...originalFile,
+        document: {},
+        error: null,
+        schemeMode: 'view',
+        schemeReloadKey: shortid.generate(),
+        // Take it out of here so that it does not become reactive
+        historyId: originalFile.path + shortid.generate(),
+        historyUndoable: false,
+        historyRedoable: false,
+    };
+
+    const history = new History({size: 30});
+    fileHistories.set(file.historyId, history);
+
+    try {
+        file.document = JSON.parse(file.content);
+    }
+    catch (err) {
+        file.error = 'Failed to read schemio diagram';
+    }
+
+    enrichSchemeWithDefaults(file.document);
+    history.commit(file.document);
+    return file;
+}
 
 export default {
     components: {Navigator, SchemioEditorApp},
@@ -76,14 +115,7 @@ export default {
         appendFile(file) {
             const newIdx = Math.min(this.files.length, this.currentOpenFileIdx + 1);
             if (file.kind === 'schemio-doc')  {
-                file.schemeMode = 'view';
-                try {
-                    file.document = JSON.parse(file.content);
-                    enrichSchemeWithDefaults(file.document);
-                }
-                catch (err) {
-                    file.error = 'Failed to read schemio diagram';
-                }
+                file = initSchemioDiagramFile(file);
             }
             this.files.splice(newIdx, 0, file);
             this.$forceUpdate();
@@ -105,7 +137,42 @@ export default {
 
         onModeChangeRequested(file, mode) {
             file.schemeMode = mode;
-        }
+        },
+
+        onHistoryCommitted(file, scheme, affinityId) {
+            fileHistories.get(file.historyId).commit(scheme, affinityId);
+            this.updateHistoryState(file);
+        },
+
+        undoHistory(file) {
+            const history = fileHistories.get(file.historyId);
+            if (history.undoable()) {
+                const scheme = history.undo();
+                if (scheme) {
+                    file.document = scheme;
+                    file.schemeReloadKey = shortid.generate();
+                }
+                this.updateHistoryState(file);
+            }
+        },
+
+        redoHistory(file) {
+            const history = fileHistories.get(file.historyId);
+            if (history.redoable()) {
+                const scheme = history.redo();
+                if (scheme) {
+                    file.document = scheme;
+                    file.schemeReloadKey = shortid.generate();
+                }
+                this.updateHistoryState(file);
+            }
+        },
+
+        updateHistoryState(file) {
+            const history = fileHistories.get(file.historyId);
+            file.historyUndoable = history.undoable();
+            file.historyRedoable = history.redoable();
+        },
     }
 }
 </script>
