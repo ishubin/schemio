@@ -7,13 +7,7 @@
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <menu-dropdown
-                            name=""
-                            icon-class="fas fa-bars"
-                            :options="menuDropdownOptions"
-                            @export-embedded-requested="$emit('export-embedded-requested')"
-                            @export-html-requested="$emit('export-html-requested')"
-                            />
+                        <menu-dropdown name="" icon-class="fas fa-bars" :options="menuOptions" />
                     </li>
                 </ul>
             </div>
@@ -277,13 +271,6 @@ export default {
     },
 
     data() {
-        const eventCallback = (event) => {return () => {this.$emit(event)}};
-
-        //TODO move it all the way to the top vue component. Electron has to implement it differently
-        const defaultMenuDropDownOptions = [
-            {name: 'Export as HTML',    callback: eventCallback('export-html-requested'), iconClass: 'fas fa-file-export'}
-        ];
-
         return {
             knownModes: ['view', 'edit'],
             searchKeyword: '',
@@ -326,9 +313,6 @@ export default {
                 item: null,
                 childItemOriginalPositions: {}
             },
-
-            menuDropdownOptions: defaultMenuDropDownOptions.concat(this.menuOptions),
-
         };
     },
 

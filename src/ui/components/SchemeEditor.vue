@@ -24,7 +24,6 @@
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
             @convert-path-points-to-bezier="convertCurvePointToBezier()"
-            @export-html-requested="exportHTMLModalShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
@@ -299,8 +298,6 @@
         />
 
 
-        <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
-
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
             @submit-link="onItemLinkSubmit"
@@ -379,7 +376,6 @@ import AnimationRegistry from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
-import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
@@ -483,7 +479,6 @@ export default {
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         Comments, ContextMenu, MultiItemEditBox,
-        'export-html-modal': ExportHTMLModal,
     },
 
     props: {
@@ -665,7 +660,6 @@ export default {
             // When an item is selected - we want to display additional tabs for it
             itemTextSlotsAvailable: [],
 
-            exportHTMLModalShown: false,
             exportShapeModal: {
                 shown: false,
                 scheme: null
