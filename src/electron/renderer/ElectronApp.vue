@@ -26,6 +26,7 @@
                             :editAllowed="true"
                             :historyUndoable="file.historyUndoable"
                             :historyRedoable="file.historyRedoable"
+                            @scheme-save-requested="saveFile(file, arguments[0], arguments[1])"
                             @mode-change-requested="onModeChangeRequested(file, arguments[0])"
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
                             @undo-history-requested="undoHistory(file)"
@@ -173,6 +174,31 @@ export default {
             file.historyUndoable = history.undoable();
             file.historyRedoable = history.redoable();
         },
+
+        saveFile(file, document, preview) {
+            let content = document;
+            if (file.kind === 'schemio-doc') {
+                content = JSON.stringify(document);
+            }
+            this.$store.dispatch('clearStatusMessage');
+            window.electronAPI.writeFile(this.projectPath, file.path, content)
+            .then(() => {
+                this.markSchemeAsUnmodified();
+            })
+            .catch(err => {
+                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
+                this.markSchemeAsModified();
+            });
+        },
+
+        markSchemeAsModified() {
+            this.$store.dispatch('markSchemeAsModified');
+        },
+
+        markSchemeAsUnmodified() {
+            this.$store.dispatch('markSchemeAsUnmodified');
+        },
+
     }
 }
 </script>

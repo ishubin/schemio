@@ -88,3 +88,7 @@ export function readProjectFile(event, projectPath, filePath) {
         };
     });
 }
+
+export function writeProjectFile(event, projectPath, filePath, content) {
+    return fs.writeFile(path.join(projectPath, filePath), content, {encoding: 'utf-8'});
+}

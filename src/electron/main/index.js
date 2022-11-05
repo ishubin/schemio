@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { openProject, scanProject, readProjectFile } = require('./project');
+const { openProject, scanProject, readProjectFile, writeProjectFile } = require('./project');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -31,6 +31,7 @@ app.whenReady().then(() => {
     ipcMain.handle('project:open', openProject);
     ipcMain.handle('project:scan', scanProject);
     ipcMain.handle('project:readFile', readProjectFile);
+    ipcMain.handle('project:writeFile', writeProjectFile);
 
 
     app.on('activate', () => {
