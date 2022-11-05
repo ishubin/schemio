@@ -476,7 +476,6 @@ const store = new Vuex.Store({
         },
 
         UPDATE_PATCH_DIFF_COLOR(state, {changeType, color}) {
-            console.log('UPDATE_PATCH_DIFF_COLOR', changeType, color);
             if (changeType === 'additions') {
                 state.patch.settings.additionsColor = color;
             } else if (changeType === 'deletions') {

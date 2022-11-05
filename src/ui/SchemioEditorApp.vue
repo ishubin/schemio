@@ -19,7 +19,6 @@
             :comments="comments"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @preview-patch-requested="onPreviewPatchRequested"
             @history-committed="$emit('history-committed', arguments[0], arguments[1])"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
@@ -42,7 +41,6 @@
             :comments="comments"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @preview-patch-requested="onPreviewPatchRequested"
             @scheme-save-requested="onSchemeSaveRequested"
             @history-committed="$emit('history-committed', arguments[0], arguments[1])"
             @undo-history-requested="$emit('undo-history-requested')"
@@ -111,6 +109,13 @@ export default{
         menuOptions      : {type: Array, default: () => []},
         schemeReloadKey : {type: String, default: null},
         comments         : {type: Object, default: () => null},
+        schemePatch      : {type: Object, default: null}
+    },
+
+    beforeMount() {
+        if (this.schemePatch) {
+            this.generatePatchData(this.schemePatch);
+        }
     },
 
     mounted() {
@@ -144,7 +149,7 @@ export default{
             this.$emit('mode-change-requested', mode);
         },
 
-        onPreviewPatchRequested(patch) {
+        generatePatchData(patch) {
             if (this.scheme && patch) {
                 this.patch.patch = patch;
                 this.patch.stats = generatePatchStatistic(patch);

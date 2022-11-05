@@ -29,7 +29,6 @@
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
             @export-link-requested="exportAsLink"
-            @apply-patch-requested="triggerApplyPatchUpload"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
@@ -323,10 +322,6 @@
             @item-selected="onConnectorDestinationItemSelected"
             @close="closeConnectorProposedDestination()"
         />
-
-        <div v-if="loadPatchFileShown" style="display: none">
-            <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
-        </div>
 
         <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
             :scheme-container="schemeContainer"
@@ -697,7 +692,6 @@ export default {
                 shown: false,
                 scheme: null
             },
-            loadPatchFileShown: false,
 
             advancedBehaviorProperties: {
                 shown: false
@@ -1399,31 +1393,6 @@ export default {
             if (this.mode === 'edit') {
                 this.updateFloatingHelperPanel();
             }
-        },
-
-        triggerApplyPatchUpload() {
-            this.loadPatchFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.loadPatchFileInput.click();
-            });
-        },
-
-        onLoadPatchFileInputChanged(fileEvent) {
-            const file = fileEvent.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                this.loadPatchFileShown = false;
-                try {
-                    const patch = JSON.parse(event.target.result);
-                    //TODO verify that it is correct patch file
-                    this.$emit('preview-patch-requested', patch);
-                } catch(err) {
-                    alert('Not able to load patch. Malformed json');
-                }
-            };
-
-            reader.readAsText(file);
         },
 
         exportAsJSON() {

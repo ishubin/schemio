@@ -34,8 +34,9 @@
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
         <SchemioEditorApp v-else-if="apiClientType === 'offline'"
-            :key="'offline-scheme'"
+            :key="`offline-scheme-${appReloadKey}`"
             :scheme="scheme"
+            :schemePatch="schemePatch"
             :mode="mode"
             :schemeReloadKey="schemeReloadKey"
             :editAllowed="true"
@@ -52,8 +53,9 @@
             @editor-state-changed="onEditorStateChanged"
         />
         <SchemioEditorApp v-else-if="scheme"
-            :key="`scheme-${originKeyReloadHash}`"
+            :key="`scheme-${appReloadKey}`"
             :scheme="scheme"
+            :schemePatch="schemePatch"
             :mode="mode"
             :schemeReloadKey="schemeReloadKey"
             :editAllowed="shouldAllowEdit"
@@ -102,6 +104,10 @@
         <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
             Are you sure you want to delete <b>{{scheme.name}}</b> scheme?
         </modal>
+
+        <div v-if="loadPatchFileShown" style="display: none">
+            <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
+        </div>
 
     </div>
 </template>
@@ -232,7 +238,7 @@ export default {
             modifiedScheme: null,
             createPatchModalShown: false,
 
-            originKeyReloadHash: shortid.generate(),
+            appReloadKey: shortid.generate(),
 
             newSchemePopup: {
                 name: '',
@@ -248,11 +254,12 @@ export default {
             },
 
             menuOptions: [
-                {name: 'New diagram',  callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.apiClientType === 'static'},
+                {name: 'New diagram',       callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.apiClientType === 'static'},
                 {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
                 {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Create patch',      callback: () => this.openSchemePatchModal(this.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
+                {name: 'Apply patch',       callback: () => this.triggerApplyPatchUpload(), iconClass: 'fas fa-file-import'},
             ],
 
             importSchemeFileShown: false,
@@ -263,6 +270,10 @@ export default {
             },
 
             deleteSchemeWarningShown: false,
+
+            loadPatchFileShown: false,
+
+            schemePatch: null,
 
             // used to trigger update of SchemeContainer inside of SchemeEditor component
             schemeReloadKey: shortid.generate()
@@ -329,7 +340,8 @@ export default {
 
         onPatchApplied(patchedScheme) {
             this.scheme = patchedScheme;
-            this.originKeyReloadHash = shortid.generate();
+            this.schemePatch = null;
+            this.appReloadKey = shortid.generate();
         },
 
         loadSchemeFromLink() {
@@ -514,6 +526,31 @@ export default {
             });
         },
 
+        triggerApplyPatchUpload() {
+            this.loadPatchFileShown = true;
+            this.$nextTick(() => {
+                this.$refs.loadPatchFileInput.click();
+            });
+        },
+
+        onLoadPatchFileInputChanged(fileEvent) {
+            const file = fileEvent.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                this.loadPatchFileShown = false;
+                try {
+                    const patch = JSON.parse(event.target.result);
+                    //TODO verify that it is correct patch file
+                    this.schemePatch = patch;
+                    this.appReloadKey = shortid.generate();
+                } catch(err) {
+                    alert('Not able to load patch. Malformed json');
+                }
+            };
+
+            reader.readAsText(file);
+        },
     },
     computed: {
         originSchemeForPatch() {
