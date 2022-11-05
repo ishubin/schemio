@@ -25,7 +25,6 @@
             @convert-path-points-to-simple="convertCurvePointToSimple()"
             @convert-path-points-to-bezier="convertCurvePointToBezier()"
             @export-html-requested="exportHTMLModalShown = true"
-            @export-link-requested="exportAsLink"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
@@ -301,7 +300,6 @@
 
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
-        <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="schemeContainer.scheme" @close="exportAsLinkModalShown = false"/>
 
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
@@ -382,7 +380,6 @@ import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
-import ExportAsLinkModal from './editor/ExportAsLinkModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
@@ -487,7 +484,6 @@ export default {
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         Comments, ContextMenu, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
-        'export-as-link-modal': ExportAsLinkModal
     },
 
     props: {
@@ -670,7 +666,6 @@ export default {
             itemTextSlotsAvailable: [],
 
             exportHTMLModalShown: false,
-            exportAsLinkModalShown: false,
             exportShapeModal: {
                 shown: false,
                 scheme: null
@@ -1365,9 +1360,7 @@ export default {
             }
         },
 
-        exportAsLink() {
-            this.exportAsLinkModalShown = true;
-        },
+
 
         /**
          * Triggered when any item got selected or deselected

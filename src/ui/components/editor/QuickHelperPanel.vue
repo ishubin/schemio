@@ -281,7 +281,6 @@ export default {
 
         //TODO move it all the way to the top vue component. Electron has to implement it differently
         const defaultMenuDropDownOptions = [
-            {name: 'Export as link',    callback: eventCallback('export-link-requested'), iconClass: 'fas fa-file-export'},
             {name: 'Export as HTML',    callback: eventCallback('export-html-requested'), iconClass: 'fas fa-file-export'}
         ];
 

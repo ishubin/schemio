@@ -120,6 +120,8 @@
             :height="exportPictureModal.height"
             :background-color="exportPictureModal.backgroundColor"
             @close="exportPictureModal.shown = false"/>
+
+        <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="scheme" @close="exportAsLinkModalShown = false"/>
     </div>
 </template>
 <script>
@@ -138,6 +140,7 @@ import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import ImportSchemeModal from '../../components/editor/ImportSchemeModal.vue';
 import ExportJSONModal from '../../components/editor/ExportJSONModal.vue';
 import ExportPictureModal from '../../components/editor/ExportPictureModal.vue';
+import ExportAsLinkModal from '../../components/editor/ExportAsLinkModal.vue';
 import History from '../../history/History.js';
 import { traverseItems } from '../../scheme/Item';
 import { worldPointOnItem, worldAngleOfItem, getBoundingBoxOfItems } from '../../scheme/SchemeContainer';
@@ -161,6 +164,7 @@ export default {
         SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal,
         ExportPictureModal,
         'export-json-modal': ExportJSONModal,
+        'export-as-link-modal': ExportAsLinkModal
     },
 
     props: {
@@ -283,10 +287,11 @@ export default {
                 {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
                 {name: 'Export as SVG',     callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'},
                 {name: 'Export as PNG',     callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'},
+                {name: 'Export as link',    callback: () => {this.exportAsLinkModalShown = true}, iconClass: 'fas fa-file-export'},
             ],
 
+            exportAsLinkModalShown: false,
             exportJSONModalShown: false,
-
             importSchemeFileShown: false,
 
             importSchemeModal: {
@@ -295,7 +300,6 @@ export default {
             },
 
             deleteSchemeWarningShown: false,
-
             loadPatchFileShown: false,
 
             schemePatch: null,
@@ -397,7 +401,8 @@ export default {
                 .then(text => {
                     this.scheme = JSON.parse(text);
                     this.history = new History({size: defaultHistorySize});
-                    this.history.commit(scheme);
+                    this.history.commit(this.scheme);
+                    this.appReloadKey = shortid.generate();
                 })
                 .catch(err => {
                     console.log(err);
