@@ -11,8 +11,6 @@
             :schemeReloadKey="schemeReloadKey"
             :patchIndex="patch.index"
             :editAllowed="editAllowed"
-            :isStaticEditor="isStaticEditor"
-            :isOfflineEditor="isOfflineEditor"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
             :menuOptions="menuOptions"
@@ -33,8 +31,6 @@
             :mode="mode"
             :schemeReloadKey="schemeReloadKey"
             :editAllowed="editAllowed"
-            :isStaticEditor="isStaticEditor"
-            :isOfflineEditor="isOfflineEditor"
             :patchIndex="patch.index"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
@@ -42,7 +38,7 @@
             :comments="comments"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @scheme-save-requested="onSchemeSaveRequested"
+            @scheme-save-requested="$emit('scheme-save-requested', arguments[0], arguments[1])"
             @history-committed="$emit('history-committed', arguments[0], arguments[1])"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
@@ -104,8 +100,6 @@ export default{
         mode             : {type: String, default: 'view'},
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},
-        isStaticEditor   : { type: Boolean, default: false},
-        isOfflineEditor  : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
@@ -186,10 +180,6 @@ export default{
         applyPatch() {
             this.$emit('patch-applied', this.patch.patchedScheme);
             this.cancelPatch();
-        },
-
-        onSchemeSaveRequested(scheme, preview) {
-            this.$emit('scheme-save-requested', scheme, preview);
         },
     },
 

@@ -4,7 +4,7 @@
 <template>
     <div class="quick-helper-panel-wrapper text-nonselectable">
         <div class="quick-helper-panel">
-            <div class="quick-helper-panel-section">
+            <div v-if="menuOptions && menuOptions.length > 0" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <menu-dropdown name="" icon-class="fas fa-bars" :options="menuOptions" />
@@ -248,7 +248,6 @@ export default {
         textSelectionEnabled: {type: Boolean, default: false},
         zoom                : { type: Number, required: true },
         editAllowed         : { type: Boolean, default: false },
-        isStaticEditor      : { type: Boolean, default: false},
         menuOptions         : { type: Array, default: []},
     },
 

@@ -12,8 +12,7 @@
             :state="state"
             :textSelectionEnabled="textSelectionEnabled"
             :zoom="zoom"
-            :edit-allowed="offlineMode || editAllowed"
-            :is-static-editor="isStaticEditor"
+            :edit-allowed="editAllowed"
             :menuOptions="menuOptions"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
@@ -358,7 +357,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -486,7 +485,6 @@ export default {
         scheme           : {type: Object, required: true},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
-        isStaticEditor   : { type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
@@ -637,7 +635,6 @@ export default {
             },
 
             zoom: 100,
-            mode: 'view',
             textSelectionEnabled: false,
 
             addLinkPopup: {

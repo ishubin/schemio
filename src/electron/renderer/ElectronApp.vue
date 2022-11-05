@@ -16,14 +16,16 @@
                 <div v-if="files.length === 0">
                     <span class="btn btn-primary" @click="openProject">Open Project...</span>
                 </div>
-                <div v-else-if="currentOpenFileIdx >= 0 && files[currentOpenFileIdx].kind === 'schemio-doc'">
-                    <SchemioEditorApp
-                        :key="`schemio-editor-${files[currentOpenFileIdx].path}`"
-                        :scheme="files[currentOpenFileIdx].document"
-                        :editAllowed="true"
-                        :isStaticEditor="false"
-                        :isOfflineEditor="true"
-                    />
+                <div v-else style="height: 100%">
+                    <div v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
+                        <SchemioEditorApp
+                            :key="`schemio-editor-${file.path}`"
+                            :scheme="file.document"
+                            :mode="file.schemeMode"
+                            @mode-change-requested="onModeChangeRequested(file, arguments[0])"
+                            :editAllowed="true"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
@@ -74,6 +76,7 @@ export default {
         appendFile(file) {
             const newIdx = Math.min(this.files.length, this.currentOpenFileIdx + 1);
             if (file.kind === 'schemio-doc')  {
+                file.schemeMode = 'view';
                 try {
                     file.document = JSON.parse(file.content);
                     enrichSchemeWithDefaults(file.document);
@@ -98,6 +101,10 @@ export default {
 
         focusFile(idx) {
             this.currentOpenFileIdx = idx;
+        },
+
+        onModeChangeRequested(file, mode) {
+            file.schemeMode = mode;
         }
     }
 }
