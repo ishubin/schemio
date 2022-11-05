@@ -24,7 +24,6 @@
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
             @convert-path-points-to-bezier="convertCurvePointToBezier()"
-            @export-json-requested="exportAsJSON"
             @export-svg-requested="exportAsSVG"
             @export-png-requested="exportAsPNG"
             @export-html-requested="exportHTMLModalShown = true"
@@ -304,7 +303,6 @@
 
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
-        <export-json-modal v-if="exportJSONModalShown" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
         <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="schemeContainer.scheme" @close="exportAsLinkModalShown = false"/>
 
         <link-edit-popup v-if="addLinkPopup.shown"
@@ -394,7 +392,6 @@ import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
-import ExportJSONModal from './editor/ExportJSONModal.vue';
 import ExportAsLinkModal from './editor/ExportAsLinkModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import Modal from './Modal.vue';
@@ -502,7 +499,6 @@ export default {
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
         'export-html-modal': ExportHTMLModal,
-        'export-json-modal': ExportJSONModal,
         'export-as-link-modal': ExportAsLinkModal
     },
 
@@ -686,7 +682,6 @@ export default {
             itemTextSlotsAvailable: [],
 
             exportHTMLModalShown: false,
-            exportJSONModalShown: false,
             exportAsLinkModalShown: false,
             exportShapeModal: {
                 shown: false,
@@ -1182,11 +1177,7 @@ export default {
                 } else if (key === Keys.CTRL_V) {
                     this.pasteItemsFromClipboard();
                 } else if (Keys.CTRL_S === key) {
-                    if (this.offlineMode || !this.editAllowed) {
-                        this.exportAsJSON();
-                    } else {
-                        this.saveScheme();
-                    }
+                    this.saveScheme();
                 } else if (Keys.CTRL_Z === key) {
                     this.historyUndo();
                 } else if (Keys.CTRL_SHIFT_Z === key) {
@@ -1393,10 +1384,6 @@ export default {
             if (this.mode === 'edit') {
                 this.updateFloatingHelperPanel();
             }
-        },
-
-        exportAsJSON() {
-            this.exportJSONModalShown = true;
         },
 
         exportAsSVG() {

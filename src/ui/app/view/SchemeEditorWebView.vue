@@ -109,6 +109,7 @@
             <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
         </div>
 
+        <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
     </div>
 </template>
 <script>
@@ -125,6 +126,7 @@ import { createHasher } from '../../url/hasher';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import ImportSchemeModal from '../../components/editor/ImportSchemeModal.vue';
+import ExportJSONModal from '../../components/editor/ExportJSONModal.vue';
 import History from '../../history/History.js';
 
 const defaultHistorySize = 30;
@@ -141,7 +143,10 @@ function loadOfflineScheme() {
 }
 
 export default {
-    components: {SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal},
+    components: {
+        SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal,
+        'export-json-modal': ExportJSONModal,
+    },
 
     props: {
         apiClientType    : {type: String, default: 'fs'},
@@ -260,7 +265,10 @@ export default {
                 {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Create patch',      callback: () => this.openSchemePatchModal(this.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Apply patch',       callback: () => this.triggerApplyPatchUpload(), iconClass: 'fas fa-file-import'},
+                {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
             ],
+
+            exportJSONModalShown: false,
 
             importSchemeFileShown: false,
 
@@ -400,7 +408,7 @@ export default {
 
         saveOfflineScheme(scheme) {
             window.localStorage.setItem('offlineScheme', JSON.stringify(scheme));
-            StoreUtils.addInfoSystemMessage(this.$store, 'Saved scheme to local storage', 'offline-save');
+            StoreUtils.addInfoSystemMessage(this.$store, 'Saved diagram to local storage', 'offline-save');
             this.markSchemeAsUnmodified();
         },
 
