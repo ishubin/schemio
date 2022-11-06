@@ -1,5 +1,5 @@
 <template>
-    <div class="elec-navigator">
+    <div class="elec-navigator" ref="navigatorBody" :style="{width: `${navigatorWidth}px`, 'min-width': `${navigatorWidth}px`}">
         <div class="navigator-header">
             <div class="project-name">{{projectName}}</div>
         </div>
@@ -11,11 +11,14 @@
             <i v-else class="fa-regular fa-file"></i>
             <span>{{entry.name}}</span>
         </div>
+        <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
     </div>
 </template>
 
-
 <script>
+import { dragAndDropBuilder } from '../../ui/dragndrop';
+import myMath from '../../ui/myMath';
+
 /**
  *
  * @param {Array} entries
@@ -106,6 +109,7 @@ export default {
         const {flatTree, lookup} = flattenTreeAndCreateLookup(tree);
         console.log({tree, flatTree});
         return {
+            navigatorWidth: 250,
             tree,
             flatTree,
             treeLookup: lookup
@@ -125,6 +129,18 @@ export default {
             if (entry.children) {
                 _updateTreeCollapseBitMaskAndLevel(entry.children, entry.level + 1, entry.collapseBitMask, entry.collapsed);
             }
+        },
+
+        navigatorExpanderMouseDown(event) {
+            const minWidth = 20;
+            dragAndDropBuilder(event)
+            .onDrag(event => {
+                const rect = this.$refs.navigatorBody.getBoundingClientRect();
+                const overflow = event.pageX - rect.right;
+                const newWidth = myMath.clamp(this.navigatorWidth + overflow, minWidth, window.innerWidth - 200);
+                this.navigatorWidth = newWidth;
+            })
+            .build();
         }
     }
 }

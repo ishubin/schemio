@@ -4,7 +4,6 @@
             :projectName="projectName"
             :fileTree="fileTree"
             :focusedFile="currentFocusedFilePath"
-            :style="{width: `${navigatorWidth}px`, 'min-width': `${navigatorWidth}px`}"
             @schemio-doc-selected="onSchemioDocSelected"
             />
         <div class="elec-main-body">
@@ -219,7 +218,7 @@ export default {
                 }
             }
             this.files.splice(fileIdx, 1);
-        }
+        },
     }
 }
 </script>

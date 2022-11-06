@@ -29,6 +29,7 @@
     flex: 1;
 }
 
+
 .elec-tab-container .file-tab {
     position: relative;
     display: inline-block;
@@ -78,9 +79,26 @@
 
 
 .elec-navigator {
+    position: relative;
     overflow: auto;
     background: #f0f0f0;
 }
+.elec-navigator-expander {
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 1px;
+    background: #999;
+    cursor: ew-resize;
+    border: none;
+    user-select: none;
+    z-index: 100;
+}
+.elec-navigator-expander:hover {
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+}
+
 .elec-navigator .navigator-header {
     height: 30px;
     font-size: 13px;
