@@ -1,6 +1,8 @@
 <template>
     <div class="elec-navigator">
-        <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0" @click="onEntryClick(entry)">
+        <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0" @click="onEntryClick(entry)"
+            :class="{focused: entry.path === focusedFile}"
+        >
             <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
             <i v-if="entry.kind === 'dir'" class="folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
             <i v-else class="fa-regular fa-file"></i>
@@ -90,7 +92,8 @@ function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMas
 
 export default {
     props: {
-        fileTree: {type: Array, required: true}
+        fileTree   : {type: Array, required: true},
+        focusedFile: {type: String, required: false},
     },
 
     data() {

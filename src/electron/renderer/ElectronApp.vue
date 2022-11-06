@@ -1,15 +1,14 @@
 <template>
     <div class="app-container">
-        <Navigator v-if="fileTree" :fileTree="fileTree" @schemio-doc-selected="onSchemioDocSelected"/>
+        <Navigator v-if="fileTree" :fileTree="fileTree" :focusedFile="currentFocusedFilePath" @schemio-doc-selected="onSchemioDocSelected"/>
         <div class="elec-main-body">
             <div class="elec-tab-container">
                 <div class="file-tab" v-for="(file, fileIdx) in files"
                     :class="{selected: fileIdx === currentOpenFileIdx}"
                     :key="`tab-${file.path}`"
-                    @click="focusFile(fileIdx)"
                 >
-                    <span>{{file.name}}</span>
-                    <span class="close"><i class="fas fa-times"></i></span>
+                    <span class="title" @click="focusFile(fileIdx)">{{file.name}}</span>
+                    <span class="close" @click="closeFile(fileIdx)"><i class="fas fa-times"></i></span>
                 </div>
             </div>
             <div class="elec-file-container">
@@ -87,7 +86,8 @@ export default {
             projectPath: null,
             fileTree: null,
             files: [],
-            currentOpenFileIdx: -1
+            currentOpenFileIdx: -1,
+            currentFocusedFilePath: null
         };
     },
 
@@ -104,7 +104,6 @@ export default {
         },
 
         onSchemioDocSelected(docPath) {
-            //TODO check if the tab is already open and just focus it
             window.electronAPI.readFile(this.projectPath, docPath).then(file => {
                 const idx = this.findFileIdxByPath(file.path);
                 if (idx >= 0) {
@@ -137,6 +136,7 @@ export default {
 
         focusFile(idx) {
             this.currentOpenFileIdx = idx;
+            this.currentFocusedFilePath = this.files[idx].path;
         },
 
         onModeChangeRequested(file, mode) {
@@ -196,6 +196,19 @@ export default {
                 file.modified = true;
             });
         },
+
+        closeFile(fileIdx) {
+            if (this.currentOpenFileIdx >= fileIdx) {
+                let newFocusedIdx = this.currentOpenFileIdx - 1;
+                if (newFocusedIdx < 0 && this.files.length > 1) {
+                    newFocusedIdx = 0;
+                }
+                if (newFocusedIdx >= 0) {
+                    this.focusFile(newFocusedIdx);
+                }
+            }
+            this.files.splice(fileIdx, 1);
+        }
     }
 }
 </script>
