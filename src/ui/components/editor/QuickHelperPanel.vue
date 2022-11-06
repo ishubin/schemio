@@ -372,7 +372,7 @@ export default {
         },
 
         stopDrawing() {
-            EventBus.$emit(EventBus.STOP_DRAWING);
+            this.$emit('stop-drawing-requested');
         },
 
         removeSelectedItems() {

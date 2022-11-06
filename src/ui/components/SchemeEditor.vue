@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="scheme-editor-component">
-        <quick-helper-panel
+        <QuickHelperPanel
             :key="`quick-helper-panel-${mode}`"
             v-if="currentSchemeContainer"
             :scheme-container="currentSchemeContainer"
@@ -29,6 +29,7 @@
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
+            @stop-drawing-requested="stopDrawing"
             >
             <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
                 <li v-if="modified">
@@ -41,7 +42,7 @@
                     </div>
                 </li>
             </ul>
-            </quick-helper-panel>
+            </QuickHelperPanel>
 
         <div class="scheme-editor-middle-section" ref="middleSection">
             <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
@@ -190,7 +191,8 @@
                     <div class="wrapper">
                         <CreateItemMenu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
                             @item-picked-for-creation="switchStateCreateItem"
-                            @path-edited="startPathEditing"/>
+                            @path-edited="startPathEditing"
+                            @drawing-requested="switchStateDrawing"/>
                     </div>
                 </div>
             </div>
@@ -667,8 +669,6 @@ export default {
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
-                EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
                 EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
                 EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
                 EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
@@ -700,8 +700,6 @@ export default {
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
-                EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
                 EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
                 EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
                 EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
@@ -873,7 +871,7 @@ export default {
             this.updateFloatingHelperPanel();
         },
 
-        onStopDrawing() {
+        stopDrawing() {
             if (this.state === 'draw') {
                 this.states.draw.cancel();
             }

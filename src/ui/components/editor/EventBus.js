@@ -17,9 +17,6 @@ this just does not work well and we have to come up with tricks like activating/
 const EventBus = new Vue({
     data() {
         return {
-            START_DRAWING: 'start-drawing',
-            STOP_DRAWING: 'stop-drawing',
-
             COMPONENT_LOAD_REQUESTED: 'component-load-requested',
             COMPONENT_LOAD_FAILED: 'component-load-failed',
             COMPONENT_SCHEME_MOUNTED: 'component-scheme-mounted',

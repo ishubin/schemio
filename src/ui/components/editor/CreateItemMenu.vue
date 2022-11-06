@@ -501,7 +501,7 @@ export default {
         },
 
         initiateDrawing(name) {
-            EventBus.$emit(EventBus.START_DRAWING);
+            this.$emit('drawing-requested');
         },
 
         preventEvent(event) {
