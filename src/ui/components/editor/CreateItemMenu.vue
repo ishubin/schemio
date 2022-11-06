@@ -484,7 +484,7 @@ export default {
         },
 
         initiateSelectAndDrag() {
-            EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+            this.$emit('state-drag-item-requested');
         },
 
         initiatePathCreation() {

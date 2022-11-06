@@ -32,7 +32,7 @@ class State {
      * @param {EventBus} EventBus 
      * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(eventBus, store, name) {
+    constructor(eventBus, store, name, listener) {
         this.schemeContainer = null;
         this.eventBus = eventBus;
         this.name = name || '';
@@ -40,6 +40,7 @@ class State {
 
         this.subState = null;
         this.previousSubStates = [];
+        this.listener = listener;
     }
 
     migrateSubState(newSubState) {
@@ -73,7 +74,7 @@ class State {
     // invoked when user cancels the state (e.g. press Esc key)
     cancel() {
         this.reset();
-        this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE, this.name);
+        this.listener.onCancel(this.name);
     }
 
     keyPressed(key, keyOptions) {

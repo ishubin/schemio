@@ -20,9 +20,8 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
 };
 
 export default class StateDraw extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'draw';
+    constructor(eventBus, store, listener) {
+        super(eventBus, store, 'draw', listener);
         this.item = null;
         this.isDrawing = false;
         this.strokeColor = null;

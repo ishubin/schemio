@@ -21,7 +21,6 @@ const EventBus = new Vue({
             COMPONENT_LOAD_FAILED: 'component-load-failed',
             COMPONENT_SCHEME_MOUNTED: 'component-scheme-mounted',
 
-            CANCEL_CURRENT_STATE: 'cancel-current-state',
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',

@@ -10,11 +10,10 @@ const IS_NOT_SOFT = false;
 
 export default class StateCropImage extends State {
     /**
-     * @param {EventBus} eventBus 
+     * @param {EventBus} eventBus
      */
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'crop-image';
+    constructor(eventBus, store, listener) {
+        super(eventBus, store, 'crop-image', listener);
         this.item = null;
         this.editBox = null;
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};

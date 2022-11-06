@@ -8,9 +8,8 @@ import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 
 export default class StateCreateItem extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'create-item';
+    constructor(eventBus, store, listener) {
+        super(eventBus, store, 'create-item', listener);
         this.item = null;
         this.addedToScheme = false;
         this.originalPoint = null;
@@ -78,7 +77,7 @@ export default class StateCreateItem extends State {
 
     submitItemAndFinishCreating() {
         this.schemeContainer.setActiveBoundaryBox(null);
-        
+
         if (this.store.state.autoRemount && this.item.shape !== 'hud') {
             const parentItem = this.schemeContainer.findItemSuitableForParent(this.item, candidateItem => candidateItem.id !== this.item.id);
             this.schemeContainer.deselectAllItems();
@@ -89,9 +88,8 @@ export default class StateCreateItem extends State {
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.eventBus.emitItemChanged(this.item.id);
-        this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
         this.eventBus.emitSchemeChangeCommited();
-        this.reset();
+        this.cancel();
     }
 
 

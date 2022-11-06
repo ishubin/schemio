@@ -192,7 +192,9 @@
                         <CreateItemMenu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
-                            @drawing-requested="switchStateDrawing"/>
+                            @drawing-requested="switchStateDrawing"
+                            @state-drag-item-requested="cancelCurrentState"
+                        />
                     </div>
                 </div>
             </div>
@@ -513,20 +515,27 @@ export default {
     },
 
     created() {
+        const defaultListener = {
+            onCancel: () => this.cancelCurrentState()
+        };
         this.states = {
-            interact: new StateInteract(EventBus, this.$store, this.userEventBus),
-            createItem: new StateCreateItem(EventBus, this.$store),
-            editPath: new StateEditPath(EventBus, this.$store, (undoable, redoable) => {
-                this.historyState.undoable = undoable;
-                this.historyState.redoable = redoable;
+            interact: new StateInteract(EventBus, this.$store, this.userEventBus, defaultListener),
+            createItem: new StateCreateItem(EventBus, this.$store, defaultListener),
+            editPath: new StateEditPath(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
+                onHistoryStateChange: (undoable, redoable) => {
+                    this.historyState.undoable = undoable;
+                    this.historyState.redoable = redoable;
+                }
             }),
-            connecting: new StateConnecting(EventBus, this.$store),
+            connecting: new StateConnecting(EventBus, this.$store, defaultListener),
             dragItem: new StateDragItem(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
                 onStartConnecting: (item, point) => this.startConnecting(item, point)
             }),
-            pickElement: new StatePickElement(EventBus, this.$store),
-            cropImage: new StateCropImage(EventBus, this.$store),
-            draw: new StateDraw(EventBus, this.$store),
+            pickElement: new StatePickElement(EventBus, this.$store, defaultListener),
+            cropImage: new StateCropImage(EventBus, this.$store, defaultListener),
+            draw: new StateDraw(EventBus, this.$store, defaultListener),
         };
     },
 
@@ -666,7 +675,6 @@ export default {
                 EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-                EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
                 EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
                 EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
@@ -696,7 +704,6 @@ export default {
                 EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-                EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
                 EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
                 EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
@@ -778,7 +785,7 @@ export default {
             this.textSelectionEnabled = textSelectionEnabled;
         },
 
-        onCancelCurrentState() {
+        cancelCurrentState() {
             if (this.mode === 'edit') {
                 this.state = 'dragItem';
             } else {

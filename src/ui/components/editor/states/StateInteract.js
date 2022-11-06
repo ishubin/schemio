@@ -18,18 +18,17 @@ This state works as dragging the screen, zooming, selecting elements
 */
 class StateInteract extends State {
     /**
-     * 
-     * @param {EventBus} EventBus 
-     * @param {UserEventBus} userEventBus 
+     *
+     * @param {EventBus} EventBus
+     * @param {UserEventBus} userEventBus
      */
-    constructor(eventBus, store, userEventBus) {
-        super(eventBus, store);
-        this.name = 'interact';
+    constructor(eventBus, store, userEventBus, listener) {
+        super(eventBus, store,  'interact', listener);
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
         this.originalZoom = 1.0;
-        
+
         // used in order to track whether mousein or mouseout event can be produced
         this.currentHoveredItem = null;
         this.hoveredItemIds = new Set();
@@ -145,7 +144,7 @@ class StateInteract extends State {
                         this.sendItemEventById(itemId, MOUSE_OUT);
                     }
                 });
-                
+
                 allNewIds.forEach(itemId => {
                     if (!this.hoveredItemIds.has(itemId)) {
                         this.hoveredItemIds.add(itemId);

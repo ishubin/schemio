@@ -845,8 +845,7 @@ export default class StateDragItem extends State {
      * @param {EventBus} eventBus
      */
     constructor(eventBus, store, listener) {
-        super(eventBus, store);
-        this.name = 'drag-item';
+        super(eventBus, store,  'drag-item', listener);
         this.subState = null;
         this.listener = listener;
     }

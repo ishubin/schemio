@@ -29,9 +29,8 @@ function isEventRightClick(event) {
 }
 
 export default class StateConnecting extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'connecting';
+    constructor(eventBus, store, listener) {
+        super(eventBus, store, 'connecting', listener);
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;
@@ -310,8 +309,7 @@ export default class StateConnecting extends State {
                         this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
                     }
                     this.submitItem();
-                    this.reset();
-                    this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+                    this.cancel();
                     return;
                 }
 
