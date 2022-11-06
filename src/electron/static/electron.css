@@ -4,17 +4,26 @@
     flex-direction: row;
 }
 .elec-navigator {
-    width: 250px;
+    border-right: 2px solid #999;
 }
 .elec-main-body {
     flex: 1;
     display: flex;
     flex-direction: column;
 }
+
 .elec-tab-container {
     height: 30px;
-    overflow: auto;
+    width: 100%;
     white-space: nowrap;
+    background: #bbb;
+}
+.elec-tab-wrapper {
+    width: 100%;
+    position: fixed;
+    height: 30px;
+    display: flex;
+    overflow: hidden;
 }
 .elec-file-container {
     flex: 1;
@@ -28,7 +37,14 @@
     cursor: pointer;
     max-width: 180px;
     min-width: 110px;
+    height: 100%;
     overflow: hidden;
+}
+.elec-tab-container .file-tab:first-child {
+    border-left: none;
+}
+.elec-tab-container .file-tab:last-child {
+    border-right: 1px solid #bbb;
 }
 .elec-tab-container .file-tab > span.title{
     display: inline-block;
@@ -38,7 +54,7 @@
     font-size: 13px;
 }
 .elec-tab-container .file-tab.selected {
-    background: #bbb;
+    background: #eeeeee;
 }
 .elec-tab-container .file-tab .close {
     position: absolute;
@@ -64,6 +80,14 @@
 .elec-navigator {
     overflow: auto;
     background: #f0f0f0;
+}
+.elec-navigator .navigator-header {
+    height: 30px;
+    font-size: 13px;
+    overflow: hidden;
+    padding: 7px 13px;
+    background: #ccc;
+    border-bottom: #999 solid 1px;
 }
 .elec-navigator .navigator-spacing {
     display: inline-block;

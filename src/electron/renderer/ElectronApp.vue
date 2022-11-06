@@ -1,14 +1,22 @@
 <template>
     <div class="app-container">
-        <Navigator v-if="fileTree" :fileTree="fileTree" :focusedFile="currentFocusedFilePath" @schemio-doc-selected="onSchemioDocSelected"/>
+        <Navigator v-if="fileTree"
+            :projectName="projectName"
+            :fileTree="fileTree"
+            :focusedFile="currentFocusedFilePath"
+            :style="{width: `${navigatorWidth}px`, 'min-width': `${navigatorWidth}px`}"
+            @schemio-doc-selected="onSchemioDocSelected"
+            />
         <div class="elec-main-body">
             <div class="elec-tab-container">
-                <div class="file-tab" v-for="(file, fileIdx) in files"
-                    :class="{selected: fileIdx === currentOpenFileIdx}"
-                    :key="`tab-${file.path}`"
-                >
-                    <span class="title" @click="focusFile(fileIdx)">{{file.name}}</span>
-                    <span class="close" @click="closeFile(fileIdx)"><i class="fas fa-times"></i></span>
+                <div class="elec-tab-wrapper">
+                    <div class="file-tab" v-for="(file, fileIdx) in files"
+                        :class="{selected: fileIdx === currentOpenFileIdx}"
+                        :key="`tab-${file.path}`"
+                    >
+                        <span class="title" @click="focusFile(fileIdx)">{{file.name}}</span>
+                        <span class="close" @click="closeFile(fileIdx)"><i class="fas fa-times"></i></span>
+                    </div>
                 </div>
             </div>
             <div class="elec-file-container">
@@ -84,17 +92,20 @@ export default {
     data () {
         return {
             projectPath: null,
+            projectName: null,
             fileTree: null,
             files: [],
             currentOpenFileIdx: -1,
-            currentFocusedFilePath: null
+            currentFocusedFilePath: null,
+            navigatorWidth: 250
         };
     },
 
     methods: {
         openProject() {
-            window.electronAPI.openProject().then(filePath => {
-                this.projectPath = filePath;
+            window.electronAPI.openProject().then(project => {
+                this.projectPath = project.path;
+                this.projectName = project.name;
 
                 window.electronAPI.scanProject(this.projectPath)
                 .then(fileTree => {

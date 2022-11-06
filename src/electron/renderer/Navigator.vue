@@ -1,5 +1,8 @@
 <template>
     <div class="elec-navigator">
+        <div class="navigator-header">
+            <div class="project-name">{{projectName}}</div>
+        </div>
         <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0" @click="onEntryClick(entry)"
             :class="{focused: entry.path === focusedFile}"
         >
@@ -92,6 +95,7 @@ function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMas
 
 export default {
     props: {
+        projectName: {type: String, required: false, default: null},
         fileTree   : {type: Array, required: true},
         focusedFile: {type: String, required: false},
     },

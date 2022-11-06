@@ -14,7 +14,10 @@ export async function openProject() {
     if (canceled) {
         return;
     } else {
-        return filePaths[0];
+        return {
+            path: filePaths[0],
+            name: path.basename(filePaths[0])
+        };
     }
 }
 
