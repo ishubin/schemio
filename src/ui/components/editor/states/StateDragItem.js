@@ -573,9 +573,10 @@ class DragEditBoxState extends EditBoxState {
 
 
 class IdleState extends SubState {
-    constructor(parentState) {
+    constructor(parentState, listener) {
         super(parentState, 'idle');
         this.clickedObject = null;
+        this.listener = listener;
     }
 
     reset() {
@@ -627,7 +628,7 @@ class IdleState extends SubState {
                     this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
                 }
             } else if (object.connectorStarter) {
-                EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
+                this.listener.onStartConnecting(object.connectorStarter.item, object.connectorStarter.point)
                 return;
             }
         } else {
@@ -843,10 +844,11 @@ export default class StateDragItem extends State {
     /**
      * @param {EventBus} eventBus
      */
-    constructor(eventBus, store) {
+    constructor(eventBus, store, listener) {
         super(eventBus, store);
         this.name = 'drag-item';
         this.subState = null;
+        this.listener = listener;
     }
 
     migrateSubState(subState) {
@@ -860,7 +862,7 @@ export default class StateDragItem extends State {
     }
 
     reset() {
-        this.migrateSubState(new IdleState(this));
+        this.migrateSubState(new IdleState(this, this.listener));
     }
 
     mouseMove(x, y, mx, my, object, event) {

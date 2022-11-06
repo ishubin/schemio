@@ -17,7 +17,6 @@ this just does not work well and we have to come up with tricks like activating/
 const EventBus = new Vue({
     data() {
         return {
-            START_CONNECTING_ITEM: 'start-connecting-item',
             START_CURVE_EDITING: 'start-curve-editing',
             START_DRAWING: 'start-drawing',
             STOP_DRAWING: 'stop-drawing',

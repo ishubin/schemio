@@ -518,7 +518,9 @@ export default {
                 this.historyState.redoable = redoable;
             }),
             connecting: new StateConnecting(EventBus, this.$store),
-            dragItem: new StateDragItem(EventBus, this.$store),
+            dragItem: new StateDragItem(EventBus, this.$store, {
+                onStartConnecting: (item, point) => this.startConnecting(item, point)
+            }),
             pickElement: new StatePickElement(EventBus, this.$store),
             cropImage: new StateCropImage(EventBus, this.$store),
             draw: new StateDraw(EventBus, this.$store),
@@ -666,7 +668,6 @@ export default {
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
                 EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
                 EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
-                EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
                 EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
                 EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
                 EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
@@ -701,7 +702,6 @@ export default {
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
                 EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
                 EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
-                EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
                 EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
                 EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
                 EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
@@ -881,7 +881,7 @@ export default {
             this.updateFloatingHelperPanel();
         },
 
-        onStartConnecting(sourceItem, worldPoint) {
+        startConnecting(sourceItem, worldPoint) {
             EventBus.emitItemsHighlighted([]);
             this.states[this.state].cancel();
             let localPoint = null;
@@ -1097,7 +1097,7 @@ export default {
             const point = { x: 0, y: 0 };
             point.x = x;
             point.y = y;
-            EventBus.$emit(EventBus.START_CONNECTING_ITEM, sourceItem, point);
+            this.startConnecting(sourceItem, point);
         },
 
         onItemLinkSubmit(link) {
