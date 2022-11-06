@@ -188,7 +188,8 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
-                        <create-item-menu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"/>
+                        <CreateItemMenu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
+                            @item-picked-for-creation="switchStateCreateItem"/>
                     </div>
                 </div>
             </div>
@@ -663,7 +664,6 @@ export default {
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
                 EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
                 EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
                 EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
@@ -699,7 +699,6 @@ export default {
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
                 EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
                 EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
                 EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);

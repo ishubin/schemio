@@ -12,12 +12,11 @@ const log = new Logger('EventBus');
 /*
 This whole event bus is pretty much an anti-pattern and a very bad idea that I wished I have never picked up on.
 It only works in case there is a single scheme editor component. In situations when there are multiple editors open at the same time,
-this just does not work well.
+this just does not work well and we have to come up with tricks like activating/deactivating scheme editors.
  */
 const EventBus = new Vue({
     data() {
         return {
-            START_CREATING_ITEM: 'start-creating-item',
             START_CONNECTING_ITEM: 'start-connecting-item',
             START_CURVE_EDITING: 'start-curve-editing',
             START_DRAWING: 'start-drawing',

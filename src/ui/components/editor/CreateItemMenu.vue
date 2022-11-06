@@ -177,6 +177,8 @@ const _gifDescriptions = {
 
 const mouseOffset = 2;
 
+const ITEM_PICKED_FOR_CREATION = 'item-picked-for-creation';
+
 export default {
     props: {
         schemeContainer  : {type: Object},
@@ -430,7 +432,7 @@ export default {
                 this.imageCreation.popupShown = true;
                 return;
             } else {
-                EventBus.$emit(EventBus.START_CREATING_ITEM, clonedItem);
+                this.$emit(ITEM_PICKED_FOR_CREATION, clonedItem);
             }
         },
 
@@ -443,7 +445,7 @@ export default {
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item);
             if (this.linkCreation.withMouse) {
-                EventBus.$emit(EventBus.START_CREATING_ITEM, item);
+                this.$emit(ITEM_PICKED_FOR_CREATION, item);
             } else {
                 EventBus.emitItemCreationDraggedToSvgEditor(item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
             }
@@ -461,7 +463,7 @@ export default {
             utils.setObjectProperty(newItem, that.itemCreationDragged.imageProperty, imageUrl);
 
             if (this.imageCreation.withMouse) {
-                EventBus.$emit(EventBus.START_CREATING_ITEM, newItem);
+                this.$emit(ITEM_PICKED_FOR_CREATION, newItem);
             } else {
                 img.onload = function () {
                     if (this.width > 1 && this.height > 1) {
