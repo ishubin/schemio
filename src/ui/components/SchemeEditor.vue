@@ -189,7 +189,8 @@
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
                         <CreateItemMenu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
-                            @item-picked-for-creation="switchStateCreateItem"/>
+                            @item-picked-for-creation="switchStateCreateItem"
+                            @path-edited="startPathEditing"/>
                     </div>
                 </div>
             </div>
@@ -666,7 +667,6 @@ export default {
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
                 EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
                 EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
                 EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -700,7 +700,6 @@ export default {
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
                 EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
                 EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
                 EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -845,7 +844,7 @@ export default {
             this.$store.dispatch('setCurveEditItem', item);
         },
 
-        onStartCurveEditing(item) {
+        startPathEditing(item) {
             EventBus.emitItemsHighlighted([]);
             this.states[this.state].cancel();
 

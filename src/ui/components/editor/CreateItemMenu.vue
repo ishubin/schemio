@@ -11,7 +11,7 @@
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
                     <img :src="`${assetsPath}/images/icons/select.svg`" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateCurveCreation()" title="Create Path"
+                <div class="item-container" @click="initiatePathCreation()" title="Create Path"
                     @mouseover="showPreviewGif('create-curve')"
                     @mouseleave="stopPreviewGif('create-curve')"
                     >
@@ -178,6 +178,7 @@ const _gifDescriptions = {
 const mouseOffset = 2;
 
 const ITEM_PICKED_FOR_CREATION = 'item-picked-for-creation';
+const PATH_EDITED = 'path-edited';
 
 export default {
     props: {
@@ -486,7 +487,7 @@ export default {
             EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
         },
 
-        initiateCurveCreation() {
+        initiatePathCreation() {
             const item = {
                 name: this.makeUniqueName('Path'),
                 area: {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5},
@@ -496,7 +497,7 @@ export default {
                 }
             };
             enrichItemWithDefaults(item);
-            EventBus.$emit(EventBus.START_CURVE_EDITING, item);
+            this.$emit(PATH_EDITED, item);
         },
 
         initiateDrawing(name) {
