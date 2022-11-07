@@ -115,7 +115,7 @@ export default {
             tree,
             flatTree,
             treeLookup: lookup,
-            collapses: false
+            collapsed: false
         };
     },
     methods: {

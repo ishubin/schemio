@@ -7,19 +7,9 @@
             @schemio-doc-selected="onSchemioDocSelected"
             />
         <div class="elec-main-body">
-            <div class="elec-tab-container">
-                <div class="elec-tab-wrapper">
-                    <div class="file-tab" v-for="(file, fileIdx) in files"
-                        :class="{selected: fileIdx === currentOpenFileIdx}"
-                        :key="`tab-${file.path}`"
-                    >
-                        <span class="title" @click="focusFile(fileIdx)">{{file.name}}</span>
-                        <span class="close" @click="closeFile(fileIdx)"><i class="fas fa-times"></i></span>
-                    </div>
-                </div>
-            </div>
+            <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
             <div class="elec-file-container">
-                <div v-if="files.length === 0">
+                <div v-if="!projectPath">
                     <span class="btn btn-primary" @click="openProject">Open Project...</span>
                 </div>
                 <div v-else style="height: 100%">
@@ -53,7 +43,7 @@ import { enrichSchemeWithDefaults } from '../../ui/scheme/Scheme';
 import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
-
+import FileTabPanel from './FileTabPanel.vue';
 
 const fileHistories = new Map();
 
@@ -87,7 +77,7 @@ function initSchemioDiagramFile(originalFile) {
 }
 
 export default {
-    components: {Navigator, SchemioEditorApp},
+    components: {Navigator, SchemioEditorApp, FileTabPanel},
     data () {
         return {
             projectPath: null,
