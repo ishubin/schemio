@@ -17,6 +17,7 @@
     width: 100%;
     white-space: nowrap;
     background: #bbb;
+    user-select: none;
 }
 .elec-tab-wrapper {
     width: 100%;
@@ -80,8 +81,11 @@
 
 .elec-navigator {
     position: relative;
+    display: flex;
+    flex-direction: column;
     overflow: auto;
     background: #f0f0f0;
+    user-select: none;
 }
 .elec-navigator-expander {
     position: fixed;
@@ -98,14 +102,25 @@
     border-left: 1px solid #999;
     border-right: 1px solid #999;
 }
-
 .elec-navigator .navigator-header {
     height: 30px;
     font-size: 13px;
     overflow: hidden;
+    white-space: nowrap;
     padding: 7px 13px;
     background: #ccc;
     border-bottom: #999 solid 1px;
+}
+.elec-navigator.collapsed .navigator-header {
+    padding: 2px;
+}
+.elec-navigator.collapsed .navigator-header .toggle-button {
+    padding: 4px;
+}
+.elec-navigator .navigator-body {
+    height: 100%;
+    flex: 1;
+    overflow: auto;
 }
 .elec-navigator .navigator-spacing {
     display: inline-block;

@@ -1,15 +1,18 @@
 <template>
-    <div class="elec-navigator" ref="navigatorBody" :style="{width: `${navigatorWidth}px`, 'min-width': `${navigatorWidth}px`}">
+    <div class="elec-navigator" ref="navigatorBody" :style="{width: `${navigatorWidth}px`, 'min-width': `${navigatorWidth}px`}" :class="{collapsed: collapsed}">
         <div class="navigator-header">
-            <div class="project-name">{{projectName}}</div>
+            <span v-if="collapsed" class="toggle-button" @click="showNavigator"><i class="fa-solid fa-bars"></i></span>
+            <div v-else class="project-name">{{projectName}}</div>
         </div>
-        <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0" @click="onEntryClick(entry)"
-            :class="{focused: entry.path === focusedFile}"
-        >
-            <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
-            <i v-if="entry.kind === 'dir'" class="folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
-            <i v-else class="fa-regular fa-file"></i>
-            <span>{{entry.name}}</span>
+        <div v-if="!collapsed" class="navigator-body">
+            <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0" @click="onEntryClick(entry)"
+                :class="{focused: entry.path === focusedFile}"
+            >
+                <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
+                <i v-if="entry.kind === 'dir'" class="folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
+                <i v-else class="fa-regular fa-file"></i>
+                <span>{{entry.name}}</span>
+            </div>
         </div>
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
     </div>
@@ -17,7 +20,6 @@
 
 <script>
 import { dragAndDropBuilder } from '../../ui/dragndrop';
-import myMath from '../../ui/myMath';
 
 /**
  *
@@ -112,7 +114,8 @@ export default {
             navigatorWidth: 250,
             tree,
             flatTree,
-            treeLookup: lookup
+            treeLookup: lookup,
+            collapses: false
         };
     },
     methods: {
@@ -132,15 +135,26 @@ export default {
         },
 
         navigatorExpanderMouseDown(event) {
-            const minWidth = 20;
             dragAndDropBuilder(event)
             .onDrag(event => {
                 const rect = this.$refs.navigatorBody.getBoundingClientRect();
                 const overflow = event.pageX - rect.right;
-                const newWidth = myMath.clamp(this.navigatorWidth + overflow, minWidth, window.innerWidth - 200);
-                this.navigatorWidth = newWidth;
+                const newWidth = Math.min(this.navigatorWidth + overflow, window.innerWidth - 200);
+
+                if (newWidth > 80) {
+                    this.navigatorWidth = newWidth;
+                    this.collapsed = false;
+                } else {
+                    this.navigatorWidth = 30;
+                    this.collapsed = true;
+                }
             })
             .build();
+        },
+
+        showNavigator() {
+            this.navigatorWidth = 250;
+            this.collapsed = false;
         }
     }
 }
