@@ -42,6 +42,13 @@
     height: 100%;
     overflow: hidden;
 }
+.elec-tab-container .file-tab .icon-file-modified {
+    position: absolute;
+    opacity: 0.3;
+    left: 5px;
+    top: 8px;
+    font-size: 10px;
+}
 .elec-tab-container .file-tab:first-child {
     border-left: none;
 }
@@ -50,7 +57,7 @@
 }
 .elec-tab-container .file-tab > span.title{
     display: inline-block;
-    padding: 5px 30px 5px 10px;
+    padding: 5px 30px 5px 20px;
     width: 100%;
     height: 100%;
     font-size: 13px;

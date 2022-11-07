@@ -34,6 +34,17 @@
                 </div>
             </div>
         </div>
+
+        <Modal v-if="warnModifiedFileCloseModal.shown" title="Unsaved changes"
+            closeName="Cancel"
+            primaryButton="Close"
+            :width="300"
+            @primary-submit="submitWarnCloseModal"
+            @close="warnModifiedFileCloseModal.shown = false"
+            >
+            Unsaved changes in <b>{{warnModifiedFileCloseModal.name}}</b>.
+            <br/> Close anyway?
+        </Modal>
     </div>
 </template>
 
@@ -44,6 +55,7 @@ import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
+import Modal from '../../ui/components/Modal.vue';
 
 const fileHistories = new Map();
 
@@ -77,7 +89,7 @@ function initSchemioDiagramFile(originalFile) {
 }
 
 export default {
-    components: {Navigator, SchemioEditorApp, FileTabPanel},
+    components: {Navigator, SchemioEditorApp, FileTabPanel, Modal},
     data () {
         return {
             projectPath: null,
@@ -86,7 +98,12 @@ export default {
             files: [],
             currentOpenFileIdx: -1,
             currentFocusedFilePath: null,
-            navigatorWidth: 250
+            navigatorWidth: 250,
+            warnModifiedFileCloseModal: {
+                name: null,
+                fileIdx: null,
+                shown: false
+            }
         };
     },
 
@@ -198,6 +215,16 @@ export default {
         },
 
         closeFile(fileIdx) {
+            if (this.files[fileIdx].modified) {
+                this.warnModifiedFileCloseModal.name = this.files[fileIdx].name;
+                this.warnModifiedFileCloseModal.fileIdx = fileIdx;
+                this.warnModifiedFileCloseModal.shown = true;
+            } else {
+                this.submitCloseFile(fileIdx);
+            }
+        },
+
+        submitCloseFile(fileIdx) {
             if (this.currentOpenFileIdx >= fileIdx) {
                 let newFocusedIdx = this.currentOpenFileIdx - 1;
                 if (newFocusedIdx < 0 && this.files.length > 1) {
@@ -209,6 +236,11 @@ export default {
             }
             this.files.splice(fileIdx, 1);
         },
+
+        submitWarnCloseModal() {
+            this.warnModifiedFileCloseModal.shown = false;
+            this.submitCloseFile(this.warnModifiedFileCloseModal.fileIdx);
+        }
     }
 }
 </script>

@@ -1,10 +1,11 @@
 <template>
     <div ref="tabContainer" class="elec-tab-container">
-        <div ref="tabWrapper" class="elec-tab-wrapper">
+        <div ref="tabWrapper" class="elec-tab-wrapper" @wheel.prevent="scrollByWheel">
             <div class="file-tab" v-for="(file, fileIdx) in files"
                 :class="{selected: fileIdx === currentOpenFileIndex}"
                 :key="`tab-${file.path}`"
             >
+                <i v-if="file.modified" class="icon-file-modified fa-solid fa-circle"></i>
                 <span class="title" @click="$emit('selected-file', fileIdx)">{{file.name}}</span>
                 <span class="close" @click="$emit('closed-file', fileIdx)"><i class="fas fa-times"></i></span>
             </div>
@@ -16,6 +17,10 @@
 <script>
 import { dragAndDropBuilder } from '../../ui/dragndrop';
 import myMath from '../../ui/myMath';
+
+const scrollerPadding = 2;
+
+
 export default {
     props: {
         files               : {type: Array, required: true},
@@ -37,9 +42,24 @@ export default {
         scrollTabs() {
             const width = this.$refs.tabContainer.getBoundingClientRect().width;
             const scrollerWidth = this.$refs.scroller.getBoundingClientRect().width;
-            const ratio = this.scrollPos / (width - scrollerWidth - 2);
+            const ratio = this.scrollPos / (width - scrollerWidth - scrollerPadding);
             const scrollLeft = (this.$refs.tabWrapper.scrollWidth - width) * ratio;
             this.$refs.tabWrapper.scrollLeft = scrollLeft;
+        },
+
+        scrollByWheel(event) {
+            if (!this.scrollerDisabled) {
+                const width = this.$refs.tabContainer.getBoundingClientRect().width;
+                const scrollerWidth = this.$refs.scroller.getBoundingClientRect().width;
+                let delta = event.deltaX;
+                if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+                    delta = event.deltaY;
+                }
+                const limit = 50;
+                delta = myMath.clamp(delta, -limit, limit);
+                this.scrollPos = myMath.clamp(this.scrollPos + delta, 0, width - scrollerWidth - scrollerPadding);
+                this.scrollTabs();
+            }
         },
 
         onScrollerMouseDown(event) {
@@ -50,7 +70,7 @@ export default {
                 const width = this.$refs.tabContainer.getBoundingClientRect().width;
                 const scrollerWidth = this.$refs.scroller.getBoundingClientRect().width;
                 const dx = event.pageX - originalX;
-                this.scrollPos = myMath.clamp(originalScroll + dx, 0, width - scrollerWidth - 2);
+                this.scrollPos = myMath.clamp(originalScroll + dx, 0, width - scrollerWidth - scrollerPadding);
                 this.scrollTabs();
             })
             .build();
@@ -68,8 +88,8 @@ export default {
             if (this.scrollerDisabled) {
                 this.scrollerDisabled = false;
             }
-            const scrollPos = this.$refs.tabWrapper.scrollLeft * (width - scrollerWidth - 2) / (scrollWidth - width)
-            this.scrollPos = myMath.clamp(scrollPos, 0, width - scrollerWidth - 2);
+            const scrollPos = this.$refs.tabWrapper.scrollLeft * (width - scrollerWidth - scrollerPadding) / (scrollWidth - width)
+            this.scrollPos = myMath.clamp(scrollPos, 0, width - scrollerWidth - scrollerPadding);
         }
 
     },
