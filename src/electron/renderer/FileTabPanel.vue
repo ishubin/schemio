@@ -76,7 +76,9 @@ export default {
 
     watch: {
         files() {
-            this.updateScrollerPosition();
+            this.$nextTick(() => {
+                this.updateScrollerPosition();
+            });
         }
     }
 }

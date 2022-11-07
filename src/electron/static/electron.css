@@ -27,7 +27,7 @@
 
 .elec-tab-container .elec-tab-wrapper {
     width: 100%;
-    position: fixed;
+    position: absolute;
     height: 30px;
     overflow: hidden;
 }
