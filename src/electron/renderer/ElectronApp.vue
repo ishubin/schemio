@@ -82,6 +82,9 @@ function initSchemioDiagramFile(originalFile) {
     try {
         file.document = JSON.parse(file.content);
         file.name = file.document.name || 'Unnamed';
+        if (!file.document.items || file.document.items.length === 0) {
+            file.schemeMode = 'edit';
+        }
     }
     catch (err) {
         file.error = 'Failed to read schemio diagram';

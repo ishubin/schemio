@@ -19,7 +19,7 @@
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
 
         <Modal v-if="newFolderModal.shown" @close="newFolderModal.shown = false" :title="newFolderModalTitle" primaryButton="Create" @primary-submit="newFolderSubmitted">
-            <input type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
+            <input ref="newFolderName" type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
         </Modal>
 
         <CreateNewSchemeModal v-if="newDiagramModal.shown" :uploadEnabled="false" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
@@ -188,9 +188,9 @@ export default {
             const entry = this.treeLookup.get(dirPath);
             if (entry) {
                 entry.collapsed = false;
-            }
-            if (entry.children) {
-                _updateTreeCollapseBitMaskAndLevel(entry.children, entry.level + 1, entry.collapseBitMask, entry.collapsed);
+                if (entry.children) {
+                    _updateTreeCollapseBitMaskAndLevel(entry.children, entry.level + 1, entry.collapseBitMask, entry.collapsed);
+                }
             }
         },
 
@@ -235,6 +235,12 @@ export default {
             this.newFolderModal.parentPath = parentPath;
             this.newFolderModal.name = '';
             this.newFolderModal.shown = true;
+            this.$nextTick(() => {
+                const input = this.$refs.newFolderName;
+                if (input) {
+                    input.focus();
+                }
+            });
         },
 
         newFolderSubmitted() {
