@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
-import { fileNameFromPath, folderPathFromPath, mediaFolder, removePrefix, schemioExtension } from './fsUtils';
+import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
 /**
@@ -15,6 +15,14 @@ import { walk } from './walk';
  * @property {String} name - name of entity
  * @property {String} lowerName - name of entity but lower cased
  *
+ */
+
+/**
+ * @typedef {Object} FileEntry
+ * @property {String} kind
+ * @property {String} name
+ * @property {String} path
+ * @property {Array<FileEntry>} children
  */
 
 
@@ -78,12 +86,17 @@ export class FileIndex {
         return this.index.getFoldersByParent(parentFolder);
     }
 
-    //TODO implement a better version of indexing and do only partial reindex of changed items (e.g. when renaming directories or moving schemes)
+    /**
+     *
+     * @param {String} rootPath
+     * @returns {Promise}
+     */
     reindex(rootPath) {
         console.log('Starting reindex in ', rootPath);
         return createIndexFromScratch(new DocumentIndex(), rootPath)
-        .then(index => {
+        .then(({index, fileTree}) => {
             this.index = index;
+            this.fileTree = fileTree;
             console.log('Finished indexing');
         });
     }
@@ -150,14 +163,36 @@ function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
  * @returns
  */
 function createIndexFromScratch(index, rootPath) {
+    const fileTree = [];
+    const allDirs = new Map();
+
+    const findParentList = (filePath) => {
+        const parentDir = allDirs.get(path.dirname(filePath));
+        if (parentDir) {
+            return parentDir.children;
+        }
+        return fileTree;
+    };
+
+
     return walk(rootPath, (filePath, isDirectory) => {
-        let relativeFilePath = removePrefix(filePath, rootPath);
+        let relativeFilePath = path.relative(rootPath, filePath);
         if (relativeFilePath.charAt(0) === '/') {
             relativeFilePath = relativeFilePath.substring(1);
         }
 
         if (isDirectory) {
             index.indexFolder(relativeFilePath, fileNameFromPath(relativeFilePath), folderPathFromPath(relativeFilePath));
+
+            const dirEntry = {
+                kind: 'dir',
+                path: relativeFilePath,
+                name: path.basename(filePath),
+                children: []
+            };
+            findParentList(filePath).push(dirEntry);
+            allDirs.set(filePath, dirEntry);
+
         } else if (filePath.endsWith(schemioExtension)) {
             return fs.readFile(filePath).then(content => {
                 const scheme = JSON.parse(content);
@@ -173,6 +208,12 @@ function createIndexFromScratch(index, rootPath) {
                         schemeId = schemeId.substring(1);
                     }
                 }
+
+                findParentList(filePath).push({
+                    kind: 'schemio-doc',
+                    path: path.relative(rootPath, filePath),
+                    name: scheme.name
+                });
 
                 if (!index.hasDocument(schemeId)) {
                     let previewURL = null;
@@ -191,6 +232,9 @@ function createIndexFromScratch(index, rootPath) {
             });
         }
     }).then(() => {
-        return index;
+        return {
+            index,
+            fileTree
+        };
     });
 }

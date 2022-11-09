@@ -81,6 +81,7 @@ function initSchemioDiagramFile(originalFile) {
 
     try {
         file.document = JSON.parse(file.content);
+        file.name = file.document.name || 'Unnamed';
     }
     catch (err) {
         file.error = 'Failed to read schemio diagram';
@@ -117,7 +118,7 @@ function addEntryToFileTree(fileTree, parent, entry) {
     } else {
         const dirEntry = findDirInFileTree(fileTree, parent);
         if (dirEntry) {
-            if (dirEntry.children) {
+            if (!dirEntry.children) {
                 dirEntry.children = [];
             }
             dirEntry.children.push(entry);
@@ -147,15 +148,14 @@ export default {
 
     methods: {
         openProject() {
-            window.electronAPI.openProject().then(project => {
-                this.projectPath = project.path;
-                this.projectName = project.name;
-
-                window.electronAPI.scanProject(this.projectPath)
-                .then(fileTree => {
-                    this.fileTree = fileTree;
-                });
-            });
+            window.electronAPI.openProject()
+            .then(project => {
+                if (project) {
+                    this.projectPath = project.path;
+                    this.projectName = project.name;
+                    this.fileTree = project.fileTree
+                }
+           });
         },
 
         onSchemioDocSelected(docPath) {

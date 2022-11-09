@@ -111,7 +111,7 @@ function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMas
         }
 
         if (entry.children) {
-            _updateTreeCollapseBitMaskAndLevel(entry.children, level + 1, entry.collapseBitMask, entry.collapsed);
+            _updateTreeCollapseBitMaskAndLevel(entry.children, level + 1, entry.collapseBitMask, entry.collapsed, oldTreeLookup);
         }
     });
 }
@@ -184,6 +184,16 @@ export default {
             }
         },
 
+        expandDirByPath(dirPath) {
+            const entry = this.treeLookup.get(dirPath);
+            if (entry) {
+                entry.collapsed = false;
+            }
+            if (entry.children) {
+                _updateTreeCollapseBitMaskAndLevel(entry.children, entry.level + 1, entry.collapseBitMask, entry.collapsed);
+            }
+        },
+
         navigatorExpanderMouseDown(event) {
             dragAndDropBuilder(event)
             .onDrag(event => {
@@ -229,12 +239,13 @@ export default {
 
         newFolderSubmitted() {
             const parentPath = this.newFolderModal.parentPath;
-            window.electronAPI.createNewFolder(
-                this.projectPath,
-                parentPath,
-                this.newFolderModal.name
-            ).then(entry => {
+            window.electronAPI.createNewFolder(this.projectPath, parentPath, this.newFolderModal.name)
+            .then(entry => {
                 this.$emit('entry-added', parentPath, entry);
+                this.newFolderModal.shown = false;
+                this.$nextTick(() => {
+                    this.expandDirByPath(parentPath);
+                });
             });
         },
 
@@ -244,16 +255,18 @@ export default {
         },
 
         newDiagramSubmitted(diagram) {
-            window.electronAPI.createNewDiagram(
-                this.projectPath,
-                this.newDiagramModal.folderPath,
-                diagram
-            ).then(entry => {
+            const folderPath = this.newDiagramModal.folderPath;
+
+            window.electronAPI.createNewDiagram(this.projectPath, folderPath, diagram)
+            .then(entry => {
                 const parent = entry.parent !== '.' ? entry.parent : null;
                 this.$emit('entry-added', parent, {
                     name: entry.name,
                     kind: entry.kind,
                     path: entry.path
+                });
+                this.$nextTick(() => {
+                    this.expandDirByPath(folderPath);
                 });
 
                 this.newDiagramModal.shown = false;
