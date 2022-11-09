@@ -18,9 +18,9 @@
         </div>
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
 
-        <!-- <Modal v-if="newDiagramModal.shown" @close="newDiagramModal.shown = false" :title="newDiagramModalTitle" primaryButton="Create" @primary-submit="newDiagramSubmitted">
-            <input type="text" class="textfield" v-model="newDiagramModal.name" placeholder="Diagram Title..."/>
-        </Modal> -->
+        <Modal v-if="newFolderModal.shown" @close="newFolderModal.shown = false" :title="newFolderModalTitle" primaryButton="Create" @primary-submit="newFolderSubmitted">
+            <input type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
+        </Modal>
 
         <CreateNewSchemeModal v-if="newDiagramModal.shown" :uploadEnabled="false" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
     </div>
@@ -129,10 +129,12 @@ export default {
 
     beforeMount() {
         window.electronAPI.$on('navigator:new-diagram-requested', this.ipcOnNewDiagramRequested);
+        window.electronAPI.$on('navigator:new-folder-requested', this.ipcOnNewFolderRequested);
     },
 
     beforeDestroy() {
         window.electronAPI.$off('navigator:new-diagram-requested', this.ipcOnNewDiagramRequested);
+        window.electronAPI.$off('navigator:new-folder-requested', this.ipcOnNewFolderRequested);
     },
 
     data() {
@@ -149,6 +151,12 @@ export default {
             newDiagramModal: {
                 shown: false,
                 folderPath: null
+            },
+
+            newFolderModal: {
+                shown: false,
+                parentPath: null,
+                name: ''
             }
         };
     },
@@ -213,6 +221,22 @@ export default {
             });
         },
 
+        ipcOnNewFolderRequested(event, parentPath) {
+            this.newFolderModal.parentPath = parentPath;
+            this.newFolderModal.name = '';
+            this.newFolderModal.shown = true;
+        },
+
+        newFolderSubmitted() {
+            const parentPath = this.newFolderModal.parentPath;
+            window.electronAPI.createNewFolder(
+                this.projectPath,
+                parentPath,
+                this.newFolderModal.name
+            ).then(entry => {
+                this.$emit('entry-added', parentPath, entry);
+            });
+        },
 
         ipcOnNewDiagramRequested(event, folderPath) {
             this.newDiagramModal.folderPath = folderPath;
@@ -237,11 +261,11 @@ export default {
         }
     },
     computed: {
-        newDiagramModalTitle() {
-            if (this.newDiagramModal.folderPath) {
-                return `New diagram in ${this.newDiagramModal.folderPath}`;
+        newFolderModalTitle() {
+            if (this.newFolderModal.parentPath) {
+                return `New folder in ${this.newFolderModal.parentPath}`;
             }
-            return 'New diagram';
+            return 'New folder';
         }
     },
     watch: {

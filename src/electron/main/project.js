@@ -156,3 +156,51 @@ export function createNewDiagram(fileIndex) {
         });
     };
 }
+
+
+/**
+ *
+ * @param {String} name
+ * @returns
+ */
+function verifyFileName(name) {
+    name = name.trim();
+    if (!name) {
+        return false;
+    }
+
+    if (name === '.') {
+        return false;
+    }
+
+    for (let i = 0; i < name.length; i++) {
+        const s = name.charAt(i);
+        if (s === '/' || s === '\\') {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ *
+ * @param {FileIndex} fileIndex
+ */
+export function createNewFolder(fileIndex) {
+    return (event, projectPath, parentPath, name) => {
+        if (!verifyFileName(name)) {
+            return Promise.reject('Incorrect file name');
+        }
+
+        const relativePath = parentPath ? path.join(parentPath, name) : name;
+        return fs.mkdir(path.join(projectPath, relativePath))
+        .then(() => {
+            fileIndex.indexFolder(relativePath, name, parentPath);
+            return {
+                kind: 'dir',
+                name: name,
+                path: relativePath
+            };
+        });
+    };
+}

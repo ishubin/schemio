@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     writeFile: (projectPath, filePath, content) => ipcRenderer.invoke('project:writeFile', projectPath, filePath, content),
     writeFileInFolder: (projectPath, folderPath, fileName, content) => ipcRenderer.invoke('project:writeFile', projectPath, folderPath, fileName, content),
     createNewDiagram: (projectPath, folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', projectPath, folderPath, diagram),
+    createNewFolder: (projectPath, parentPath, name) => ipcRenderer.invoke('project:createNewFolder', projectPath, parentPath, name),
 
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
