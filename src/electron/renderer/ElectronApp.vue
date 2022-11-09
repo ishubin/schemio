@@ -1,15 +1,18 @@
 <template>
     <div class="app-container">
-        <Navigator v-if="fileTree"
+        <Navigator v-if="projectPath && projectName && fileTree"
+            :projectPath="projectPath"
             :projectName="projectName"
             :fileTree="fileTree"
+            :fileTreeReloadKey="fileTreeReloadKey"
             :focusedFile="currentFocusedFilePath"
             @schemio-doc-selected="onSchemioDocSelected"
+            @entry-added="onFileTreeEntryAdded"
             />
         <div class="elec-main-body">
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
             <div class="elec-file-container">
-                <div v-if="!projectPath">
+                <div v-if="!projectPath" class="elec-no-project">
                     <span class="btn btn-primary" @click="openProject">Open Project...</span>
                 </div>
                 <div v-else style="height: 100%">
@@ -88,6 +91,40 @@ function initSchemioDiagramFile(originalFile) {
     return file;
 }
 
+
+function findDirInFileTree(fileTreeEntries, dirName) {
+    const bfsQueue = [].concat(fileTreeEntries);
+    for (let i = 0; i < bfsQueue.length; i++) {
+        const entry = bfsQueue[i];
+        if (entry.kind === 'dir') {
+            if (entry.path === dirName) {
+                return entry;
+            } else if (entry.children) {
+                for (let j = 0; j < entry.children.length; j++) {
+                    if (entry.children[j].kind === 'dir') {
+                        bfsQueue.push(entry.children[j]);
+                    }
+                }
+            }
+        }
+    }
+    return null;
+}
+
+function addEntryToFileTree(fileTree, parent, entry) {
+    if (!parent) {
+        fileTree.push(entry);
+    } else {
+        const dirEntry = findDirInFileTree(fileTree, parent);
+        if (dirEntry) {
+            if (dirEntry.children) {
+                dirEntry.children = [];
+            }
+            dirEntry.children.push(entry);
+        }
+    }
+}
+
 export default {
     components: {Navigator, SchemioEditorApp, FileTabPanel, Modal},
     data () {
@@ -95,6 +132,7 @@ export default {
             projectPath: null,
             projectName: null,
             fileTree: null,
+            fileTreeReloadKey: 1,
             files: [],
             currentOpenFileIdx: -1,
             currentFocusedFilePath: null,
@@ -240,6 +278,16 @@ export default {
         submitWarnCloseModal() {
             this.warnModifiedFileCloseModal.shown = false;
             this.submitCloseFile(this.warnModifiedFileCloseModal.fileIdx);
+        },
+
+        onFileTreeEntryAdded(parent, entry) {
+            addEntryToFileTree(this.fileTree, parent, entry);
+            this.fileTreeReloadKey++;
+            if (entry.kind === 'schemio-doc') {
+                this.$nextTick(() => {
+                    this.onSchemioDocSelected(entry.path);
+                });
+            }
         }
     }
 }

@@ -24,6 +24,13 @@
     flex: 1;
 }
 
+.elec-no-project {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+}
 
 .elec-tab-container .elec-tab-wrapper {
     width: 100%;

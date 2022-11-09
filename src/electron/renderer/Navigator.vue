@@ -4,8 +4,10 @@
             <span v-if="collapsed" class="toggle-button" @click="showNavigator"><i class="fa-solid fa-bars"></i></span>
             <div v-else class="project-name">{{projectName}}</div>
         </div>
-        <div v-if="!collapsed" class="navigator-body">
-            <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0" @click="onEntryClick(entry)"
+        <div v-if="!collapsed" class="navigator-body" @contextmenu.prevent="onVoidRightClick">
+            <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
+                @click="onEntryClick(entry)"
+                @contextmenu.prevent="openContextMenuForFile(entry)"
                 :class="{focused: entry.path === focusedFile}"
             >
                 <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
@@ -15,11 +17,19 @@
             </div>
         </div>
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
+
+        <!-- <Modal v-if="newDiagramModal.shown" @close="newDiagramModal.shown = false" :title="newDiagramModalTitle" primaryButton="Create" @primary-submit="newDiagramSubmitted">
+            <input type="text" class="textfield" v-model="newDiagramModal.name" placeholder="Diagram Title..."/>
+        </Modal> -->
+
+        <CreateNewSchemeModal v-if="newDiagramModal.shown" :uploadEnabled="false" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
     </div>
 </template>
 
 <script>
 import { dragAndDropBuilder } from '../../ui/dragndrop';
+import Modal from '../../ui/components/Modal.vue';
+import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
 
 /**
  *
@@ -84,14 +94,22 @@ function _flattenTreeAndFillLookup(entries, lookup) {
     return flatTree;
 }
 
-function updateTreeCollapseBitMaskAndLevel(entries) {
-    _updateTreeCollapseBitMaskAndLevel(entries, 0, 0, false);
+function updateTreeCollapseBitMaskAndLevel(entries, oldTreeLookup) {
+    _updateTreeCollapseBitMaskAndLevel(entries, 0, 0, false, oldTreeLookup);
 }
 
-function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMask, isParentCollapsed) {
+function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMask, isParentCollapsed, oldTreeLookup) {
     entries.forEach(entry => {
         entry.collapseBitMask = (parentCollapseBitMask << level) | (isParentCollapsed ? 1: 0);
         entry.level = level;
+
+        if (entry.kind === 'dir' && oldTreeLookup) {
+            const oldEntry = oldTreeLookup.get(entry.path);
+            if (oldEntry && oldEntry.kind === 'dir') {
+                entry.collapsed = oldEntry.collapsed;
+            }
+        }
+
         if (entry.children) {
             _updateTreeCollapseBitMaskAndLevel(entry.children, level + 1, entry.collapseBitMask, entry.collapsed);
         }
@@ -99,26 +117,50 @@ function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMas
 }
 
 export default {
+    components: {Modal, CreateNewSchemeModal},
+
     props: {
-        projectName: {type: String, required: false, default: null},
-        fileTree   : {type: Array, required: true},
-        focusedFile: {type: String, required: false},
+        projectName      : {type: String, required: true},
+        projectPath      : {type: String, required: true},
+        fileTree         : {type: Array, required: true},
+        fileTreeReloadKey: {type: Number, required: true},
+        focusedFile      : {type: String, required: false},
+    },
+
+    beforeMount() {
+        window.electronAPI.$on('navigator:new-diagram-requested', this.ipcOnNewDiagramRequested);
+    },
+
+    beforeDestroy() {
+        window.electronAPI.$off('navigator:new-diagram-requested', this.ipcOnNewDiagramRequested);
     },
 
     data() {
         const tree = generateFileTree(this.fileTree);
         updateTreeCollapseBitMaskAndLevel(tree);
         const {flatTree, lookup} = flattenTreeAndCreateLookup(tree);
-        console.log({tree, flatTree});
         return {
             navigatorWidth: 250,
             tree,
             flatTree,
             treeLookup: lookup,
-            collapsed: false
+            collapsed: false,
+
+            newDiagramModal: {
+                shown: false,
+                folderPath: null
+            }
         };
     },
     methods: {
+        reloadTree() {
+            const tree = generateFileTree(this.fileTree);
+            updateTreeCollapseBitMaskAndLevel(tree, this.treeLookup);
+            const {flatTree, lookup} = flattenTreeAndCreateLookup(tree);
+            this.flatTree = flatTree;
+            this.treeLookup = lookup;
+        },
+
         onEntryClick(entry) {
             if (entry.kind === 'dir') {
                 this.toggleCollapseDirState(entry);
@@ -155,6 +197,56 @@ export default {
         showNavigator() {
             this.navigatorWidth = 250;
             this.collapsed = false;
+        },
+
+        onVoidRightClick(event) {
+            if (event.target.classList.contains('navigator-body')) {
+                window.electronAPI.navigatorOpenContextMenuFile(null);
+            }
+        },
+
+        openContextMenuForFile(entry) {
+            window.electronAPI.navigatorOpenContextMenuFile({
+                name: entry.name,
+                path: entry.path,
+                kind: entry.kind
+            });
+        },
+
+
+        ipcOnNewDiagramRequested(event, folderPath) {
+            this.newDiagramModal.folderPath = folderPath;
+            this.newDiagramModal.shown = true;
+        },
+
+        newDiagramSubmitted(diagram) {
+            window.electronAPI.createNewDiagram(
+                this.projectPath,
+                this.newDiagramModal.folderPath,
+                diagram
+            ).then(entry => {
+                const parent = entry.parent !== '.' ? entry.parent : null;
+                this.$emit('entry-added', parent, {
+                    name: entry.name,
+                    kind: entry.kind,
+                    path: entry.path
+                });
+
+                this.newDiagramModal.shown = false;
+            });
+        }
+    },
+    computed: {
+        newDiagramModalTitle() {
+            if (this.newDiagramModal.folderPath) {
+                return `New diagram in ${this.newDiagramModal.folderPath}`;
+            }
+            return 'New diagram';
+        }
+    },
+    watch: {
+        fileTreeReloadKey(value) {
+            this.reloadTree();
         }
     }
 }

@@ -1,0 +1,1 @@
+This folder contains code that is shared between FS based and Electron distribution.
