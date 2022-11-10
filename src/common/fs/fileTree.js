@@ -12,21 +12,24 @@
 /**
  *
  * @param {Array<FileTreeEntry>} fileTreeEntries
- * @param {String} dirName
+ * @param {String} entryPath
  * @returns
  */
-export function findDirInFileTree(fileTreeEntries, dirName) {
+export function findEntryInFileTree(fileTreeEntries, entryPath) {
     const bfsQueue = [].concat(fileTreeEntries);
     for (let i = 0; i < bfsQueue.length; i++) {
         const entry = bfsQueue[i];
-        if (entry.kind === 'dir') {
-            if (entry.path === dirName) {
-                return entry;
-            } else if (entry.children) {
-                for (let j = 0; j < entry.children.length; j++) {
-                    if (entry.children[j].kind === 'dir') {
-                        bfsQueue.push(entry.children[j]);
-                    }
+        if (entry.path === entryPath) {
+            return entry;
+        }
+        if (entry.kind === 'dir' && entry.children) {
+            for (let j = 0; j < entry.children.length; j++) {
+                const childEntry = entry.children[j];
+                if (childEntry.path === entryPath) {
+                    return childEntry;
+                }
+                if (childEntry.kind === 'dir' && entryPath.startsWith(childEntry.path)) {
+                    bfsQueue.push(childEntry);
                 }
             }
         }
@@ -44,8 +47,8 @@ export function addEntryToFileTree(fileTree, parentPath, entry) {
     if (!parentPath) {
         fileTree.push(entry);
     } else {
-        const dirEntry = findDirInFileTree(fileTree, parentPath);
-        if (dirEntry) {
+        const dirEntry = findEntryInFileTree(fileTree, parentPath);
+        if (dirEntry && dirEntry.kind === 'dir') {
             if (!dirEntry.children) {
                 dirEntry.children = [];
             }
@@ -66,7 +69,7 @@ export function deleteEntryFromFileTree(fileTreeEntries, path) {
         if (fileTreeEntries[i].path === path) {
             fileTreeEntries.splice(i, 1);
             return;
-        } else if (fileTreeEntries[i].kind === 'dir' && fileTreeEntries[i].children) {
+        } else if (fileTreeEntries[i].kind === 'dir' && fileTreeEntries[i].children && path.startsWith(fileTreeEntries[i].path)) {
             bfsQueue.push(fileTreeEntries[i]);
         }
     }
@@ -78,9 +81,23 @@ export function deleteEntryFromFileTree(fileTreeEntries, path) {
                 entry.children.splice(j, 1);
                 return;
             }
-            if (entry.children[j].kind === 'dir') {
+            if (entry.children[j].kind === 'dir' && path.startsWith(entry.children[j].path)) {
                 bfsQueue.push(entry.children[j]);
             }
         }
     }
+}
+
+/**
+ *
+ * @param {Array<FileTreeEntry>} fileTreeEntries
+ * @param {Function} callback
+ */
+export function traverseFileTree(fileTreeEntries, callback) {
+    fileTreeEntries.forEach(entry => {
+        callback(entry);
+        if (entry.kind === 'dir' && entry.children) {
+            traverseFileTree(entry.children, callback);
+        }
+    });
 }

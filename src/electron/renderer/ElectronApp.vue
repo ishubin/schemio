@@ -59,7 +59,7 @@ import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
 import Modal from '../../ui/components/Modal.vue';
-import {addEntryToFileTree, deleteEntryFromFileTree} from '../../common/fs/fileTree';
+import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree} from '../../common/fs/fileTree';
 
 const fileHistories = new Map();
 
@@ -278,7 +278,29 @@ export default {
         },
 
         ipcOnFileTreeEntryDeleted(event, path) {
+            const entry = findEntryInFileTree(this.fileTree, path);
+            if (!entry) {
+                return;
+            }
             deleteEntryFromFileTree(this.fileTree, path);
+
+            traverseFileTree([entry], e => {
+                for (let i = 0; i < this.files.length; i++) {
+                    if (this.files[i].path === e.path) {
+                        this.files.splice(i, 1);
+                        if (this.currentOpenFileIdx === i) {
+                            if (this.files.length > 0) {
+                                this.currentOpenFileIdx-=1;
+                                this.focusFile((this.files.length - this.currentOpenFileIdx + 1) % this.files.length);
+                            } else {
+                                this.currentOpenFileIdx = -1;
+                                this.currentFocusedFilePath = null;
+                            }
+                        }
+                        break;
+                    }
+                }
+            });
             this.fileTreeReloadKey++;
         }
     }
