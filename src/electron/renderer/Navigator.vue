@@ -154,6 +154,7 @@ export default {
             navigatorWidth: 250,
             tree,
             flatTree,
+            // Map of entry path to entry
             treeLookup: lookup,
             collapsed: false,
 
@@ -264,8 +265,24 @@ export default {
                 }
 
                 if (entry.kind === 'dir') {
+                    const oldPath = entry.path;
+                    const newPath = entry.path.substring(0, entry.path.length - entry.name.length) + name;
                     window.electronAPI.renameFolder(this.projectPath, entry.path, name)
                     .then(() => {
+                        // updating lookup path so that in next update it can preserve collapse state of directories after reloading the tree
+                        const keysToUpdate = [];
+                        this.treeLookup.forEach((e, path) => {
+                            if (path.startsWith(oldPath)) {
+                                keysToUpdate.push(path);
+                            }
+                        });
+                        keysToUpdate.forEach(path => {
+                            if (path.startsWith(oldPath)) {
+                                const e = this.treeLookup.get(path);
+                                this.treeLookup.delete(path);
+                                this.treeLookup.set(newPath + path.substring(oldPath.length), e);
+                            }
+                        });
                         this.$emit('renamed-folder', entry.path, name);
                     });
                 }
