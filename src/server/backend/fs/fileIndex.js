@@ -28,11 +28,35 @@ import { walk } from './walk';
 
 export class FileIndex {
     constructor() {
+        this.rootPath = null;
+        this.fileTree = null;
         this.index = new DocumentIndex();
     }
 
     indexScheme(schemeId, scheme, fsPath, previewURL) {
         _indexScheme(this.index, schemeId, scheme, fsPath, previewURL)
+    }
+
+
+    deleteFile(filePath) {
+        return fs.rm(path.join(this.rootPath, filePath))
+        .then(() => {
+            const docId = this.index.getDocumentIdByPath(filePath);
+            this.index.deleteDocument(docId);
+
+            //TODO optimize: don't reindex entire tree since only single file was removed. The only thing left to implement is updating this.fileTree
+            return this.reindex(this.rootPath);
+        });
+    }
+
+    deleteFolder(folderPath) {
+        return fs.rm(path.join(this.rootPath, folderPath), {recursive: true, force: true})
+        .then(() => {
+            this.index.deleteFolder(folderPath);
+
+            //TODO optimize: don't reindex entire tree, instead delete the folder entry. The only thing left to implement is updating this.fileTree
+            return this.reindex(this.rootPath);
+        });
     }
 
     /**
@@ -60,8 +84,7 @@ export class FileIndex {
     }
 
     moveSchemeToFolder(id, fsPath, newFolder) {
-        this.index.moveDocument(id, newFolder);
-        this.index.updateDocument(id, {fsPath});
+        this.index.moveDocument(id, fsPath, newFolder);
     }
     /**
      *
@@ -93,6 +116,7 @@ export class FileIndex {
      */
     reindex(rootPath) {
         console.log('Starting reindex in ', rootPath);
+        this.rootPath = rootPath;
         return createIndexFromScratch(new DocumentIndex(), rootPath)
         .then(({index, fileTree}) => {
             this.index = index;

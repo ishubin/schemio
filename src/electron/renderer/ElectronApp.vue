@@ -129,8 +129,42 @@ function addEntryToFileTree(fileTree, parent, entry) {
     }
 }
 
+function deleteEntryFromFileTree(fileTreeEntries, path) {
+    const bfsQueue = [];
+    for (let i = 0; i < fileTreeEntries.length; i++) {
+        if (fileTreeEntries[i].path === path) {
+            fileTreeEntries.splice(i, 1);
+            return;
+        } else if (fileTreeEntries[i].kind === 'dir' && fileTreeEntries[i].children) {
+            bfsQueue.push(fileTreeEntries[i]);
+        }
+    }
+
+    for (let i = 0; i < bfsQueue.length; i++) {
+        const entry = bfsQueue[i];
+        for (let j = 0; j < entry.children.length; j++) {
+            if (entry.children[j].path === path) {
+                entry.children.splice(j, 1);
+                return;
+            }
+            if (entry.children[j].kind === 'dir') {
+                bfsQueue.push(entry.children[j]);
+            }
+        }
+    }
+}
+
 export default {
     components: {Navigator, SchemioEditorApp, FileTabPanel, Modal},
+
+    beforeMount() {
+        window.electronAPI.$on('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
+    },
+
+    beforeDestroy() {
+        window.electronAPI.$off('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
+    },
+
     data () {
         return {
             projectPath: null,
@@ -291,6 +325,11 @@ export default {
                     this.onSchemioDocSelected(entry.path);
                 });
             }
+        },
+
+        ipcOnFileTreeEntryDeleted(event, path) {
+            deleteEntryFromFileTree(this.fileTree, path);
+            this.fileTreeReloadKey++;
         }
     }
 }

@@ -38,7 +38,7 @@ app.whenReady().then(() => {
     ipcMain.handle('project:writeFileInFolder', writeProjectFileInFolder(fileIndex));
     ipcMain.handle('project:createNewDiagram', createNewDiagram(fileIndex));
     ipcMain.handle('project:createNewFolder', createNewFolder(fileIndex));
-    ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile)
+    ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(fileIndex))
 
 
     app.on('activate', () => {

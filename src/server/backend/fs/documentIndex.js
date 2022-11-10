@@ -4,6 +4,7 @@ import _ from 'lodash';
 export class DocumentIndex {
     constructor() {
         this.docs = new Map();
+        this.docIdsByPath = new Map();
         this.folders = new Map();
         this.folders.set('', {
             docs: new Set(),
@@ -19,6 +20,7 @@ export class DocumentIndex {
             doc,
             folder
         });
+        this.docIdsByPath.set(doc.fsPath, id);
 
         if (!this.folders.has(folder)) {
             this.indexFolder(folder, fileNameFromPath(folder));
@@ -30,7 +32,7 @@ export class DocumentIndex {
         return this.docs.has(id);
     }
 
-    moveDocument(id, newFolderPath) {
+    moveDocument(id, fsPath, newFolderPath) {
         const docEntry = this.docs.get(id);
         if (!docEntry) {
             return;
@@ -44,6 +46,8 @@ export class DocumentIndex {
         if (newFolder) {
             newFolder.docs.add(id);
         }
+        this.updateDocument(id, {fsPath});
+        this.docIdsByPath.set(id, fsPath);
     }
 
     traverseDocumentsInFolder(folderPath, callback) {
@@ -73,7 +77,18 @@ export class DocumentIndex {
         if (folder) {
             folder.docs.delete(id);
         }
+        this.docIdsByPath.delete(doc.doc.fsPath);
         this.docs.delete(id);
+    }
+
+    deleteFolder(folderPath) {
+        const folder = this.folders.get(folderPath);
+        if (!folder) {
+            return;
+        }
+        folder.docs.forEach(docId => this.deleteDocument(docId));
+        folder.folders.forEach(subFolderPath => this.deleteFolder(subFolderPath));
+        this.folders.delete(folderPath);
     }
 
     updateDocument(id, fields) {
@@ -92,6 +107,10 @@ export class DocumentIndex {
             return null;
         }
         return doc.doc;
+    }
+
+    getDocumentIdByPath(fsPath) {
+        return this.docIdsByPath.get(fsPath);
     }
 
     indexFolder(folder, name, parentFolder) {
