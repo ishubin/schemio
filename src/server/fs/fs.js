@@ -5,8 +5,8 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
-import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from '../backend/fs/fsUtils.js';
-import { FileIndex } from '../backend/fs/fileIndex';
+import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from '../../common/fs/fsUtils.js';
+import { FileIndex } from '../../common/fs/fileIndex';
 
 
 function isValidCharCode(code) {
@@ -400,7 +400,7 @@ export function fsMoveDirectory(config, fileIndex) {
         })
         .then(() => {
             //TODO optimize it. we should not reindex all documents, but only the parts that were updated
-            return fileIndex.reindex(config);
+            return fileIndex.reindex(config.fs.rootPath);
         })
         .then(() => {
             res.json({ satus: 'ok' });
@@ -446,7 +446,7 @@ export function fsPatchDirectory(config, fileIndex) {
         })
         .then(() => {
             //TODO optimize it. we should not reindex all documents, but only the parts that were updated
-            return fileIndex.reindex(config);
+            return fileIndex.reindex(config.fs.rootPath);
         })
         .then(() => {
             res.json({
@@ -491,7 +491,7 @@ export function fsDeleteDirectory(config, fileIndex) {
         })
         .then(() => {
             //TODO optimize it. we should not reindex all documents, but only the parts that were updated
-            return fileIndex.reindex(config);
+            return fileIndex.reindex(config.fs.rootPath);
         })
         .then(() => {
             res.json({

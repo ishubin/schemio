@@ -21,7 +21,7 @@ import {fsExportDownloadArchive, fsExportStatic, fsExportStatus} from './fs/fsEx
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
-import { FileIndex } from './backend/fs/fileIndex.js';
+import { FileIndex } from '../common/fs/fileIndex.js';
 
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});

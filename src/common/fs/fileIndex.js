@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
+import { deleteEntryFromFileTree } from './fileTree';
 import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
@@ -43,9 +44,7 @@ export class FileIndex {
         .then(() => {
             const docId = this.index.getDocumentIdByPath(filePath);
             this.index.deleteDocument(docId);
-
-            //TODO optimize: don't reindex entire tree since only single file was removed. The only thing left to implement is updating this.fileTree
-            return this.reindex(this.rootPath);
+            deleteEntryFromFileTree(this.fileTree, filePath);
         });
     }
 
@@ -54,8 +53,7 @@ export class FileIndex {
         .then(() => {
             this.index.deleteFolder(folderPath);
 
-            //TODO optimize: don't reindex entire tree, instead delete the folder entry. The only thing left to implement is updating this.fileTree
-            return this.reindex(this.rootPath);
+            deleteEntryFromFileTree(this.fileTree, folderPath);
         });
     }
 

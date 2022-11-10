@@ -59,6 +59,7 @@ import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
 import Modal from '../../ui/components/Modal.vue';
+import {addEntryToFileTree, deleteEntryFromFileTree} from '../../common/fs/fileTree';
 
 const fileHistories = new Map();
 
@@ -95,64 +96,6 @@ function initSchemioDiagramFile(originalFile) {
     return file;
 }
 
-
-function findDirInFileTree(fileTreeEntries, dirName) {
-    const bfsQueue = [].concat(fileTreeEntries);
-    for (let i = 0; i < bfsQueue.length; i++) {
-        const entry = bfsQueue[i];
-        if (entry.kind === 'dir') {
-            if (entry.path === dirName) {
-                return entry;
-            } else if (entry.children) {
-                for (let j = 0; j < entry.children.length; j++) {
-                    if (entry.children[j].kind === 'dir') {
-                        bfsQueue.push(entry.children[j]);
-                    }
-                }
-            }
-        }
-    }
-    return null;
-}
-
-function addEntryToFileTree(fileTree, parent, entry) {
-    if (!parent) {
-        fileTree.push(entry);
-    } else {
-        const dirEntry = findDirInFileTree(fileTree, parent);
-        if (dirEntry) {
-            if (!dirEntry.children) {
-                dirEntry.children = [];
-            }
-            dirEntry.children.push(entry);
-        }
-    }
-}
-
-function deleteEntryFromFileTree(fileTreeEntries, path) {
-    const bfsQueue = [];
-    for (let i = 0; i < fileTreeEntries.length; i++) {
-        if (fileTreeEntries[i].path === path) {
-            fileTreeEntries.splice(i, 1);
-            return;
-        } else if (fileTreeEntries[i].kind === 'dir' && fileTreeEntries[i].children) {
-            bfsQueue.push(fileTreeEntries[i]);
-        }
-    }
-
-    for (let i = 0; i < bfsQueue.length; i++) {
-        const entry = bfsQueue[i];
-        for (let j = 0; j < entry.children.length; j++) {
-            if (entry.children[j].path === path) {
-                entry.children.splice(j, 1);
-                return;
-            }
-            if (entry.children[j].kind === 'dir') {
-                bfsQueue.push(entry.children[j]);
-            }
-        }
-    }
-}
 
 export default {
     components: {Navigator, SchemioEditorApp, FileTabPanel, Modal},

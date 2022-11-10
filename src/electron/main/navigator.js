@@ -1,4 +1,4 @@
-import { FileIndex } from '../../server/backend/fs/fileIndex';
+import { FileIndex } from '../../common/fs/fileIndex';
 
 const { BrowserWindow, Menu } = require('electron');
 

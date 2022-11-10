@@ -4,7 +4,7 @@
   "description": "in browser app for creating interactive diagrams",
   "main": "./.webpack/main",
   "scripts": {
-    "build": "babel src/server -d dist/server",
+    "build": "babel src/server -d dist/server ; babel src/common -d dist/common",
     "start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build-standalone; npm run build-ui-static-app-dev; npm run build && node dist/server/server.js'",
     "light-start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",
     "start-drive": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-drive-dev; npm run build && node dist/server/server-drive.js'",

@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { FileIndex } = require('../../server/backend/fs/fileIndex');
+const { FileIndex } = require('../../common/fs/fileIndex');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder } = require('./project');
 
