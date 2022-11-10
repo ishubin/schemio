@@ -155,10 +155,26 @@
     display: inline-block;
 }
 .elec-navigator .navigator-entry {
+    display: flex;
+    flex-direction: row;
     white-space: nowrap;
     padding: 3px 5px;
     font-size: 13px;
     cursor: pointer;
+}
+.elec-navigator .navigator-entry .entry-name {
+    padding: 1px;
+}
+.elec-navigator .navigator-entry .icon {
+    display: inline-block;
+    padding-right: 5px;
+}
+.elec-navigator .navigator-entry input.renaming-textfield {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 1px;
+    margin: 0;
 }
 .elec-navigator .navigator-entry.focused {
     background: #dedede;

@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
-import { deleteEntryFromFileTree } from './fileTree';
+import { deleteEntryFromFileTree, findEntryInFileTree, renameEntryInFileTree } from './fileTree';
 import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
@@ -54,6 +54,15 @@ export class FileIndex {
             this.index.deleteFolder(folderPath);
 
             deleteEntryFromFileTree(this.fileTree, folderPath);
+        });
+    }
+
+    renameFile(filePath, newName) {
+        const srcPath = path.join(this.rootPath, filePath);
+        const dstPath = path.join(path.dirname(srcPath), newName);
+        return fs.move(srcPath, dstPath)
+        .then(() => {
+            renameEntryInFileTree(this.fileTree, filePath, newName);
         });
     }
 

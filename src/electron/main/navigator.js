@@ -32,7 +32,8 @@ export function navigatorOpenContextMenuForFile(fileIndex) {
             template = template.concat([{
                 type: 'separator'
             }, {
-                label: 'Rename'
+                label: 'Rename',
+                click: () => event.sender.send('navigator:rename', file.path)
             }, {
                 label: 'Delete',
                 click: () => {

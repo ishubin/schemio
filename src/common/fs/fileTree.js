@@ -13,7 +13,7 @@
  *
  * @param {Array<FileTreeEntry>} fileTreeEntries
  * @param {String} entryPath
- * @returns
+ * @returns {FileTreeEntry}
  */
 export function findEntryInFileTree(fileTreeEntries, entryPath) {
     const bfsQueue = [].concat(fileTreeEntries);
@@ -85,6 +85,20 @@ export function deleteEntryFromFileTree(fileTreeEntries, path) {
                 bfsQueue.push(entry.children[j]);
             }
         }
+    }
+}
+
+export function renameEntryInFileTree(fileTreeEntries, entryPath, newName) {
+    const entry = findEntryInFileTree(fileTreeEntries, entryPath);
+
+    const renamedPath = entry.path.substring(0, entry.path.length - entry.name.length) + newName;
+    entry.path = renamedPath;
+    entry.name = newName;
+
+    if (entry.kind === 'dir' && entry.children) {
+        traverseFileTree(entry.children, subEntry => {
+            subEntry.path = renamedPath + subEntry.path.substring(entryPath.length);
+        });
     }
 }
 

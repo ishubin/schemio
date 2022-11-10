@@ -6,14 +6,20 @@
         </div>
         <div v-if="!collapsed" class="navigator-body" @contextmenu.prevent="onVoidRightClick">
             <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
-                @click="onEntryClick(entry)"
+                @click="onEntryClick($event, entry)"
                 @contextmenu.prevent="openContextMenuForFile(entry)"
                 :class="{focused: entry.path === focusedFile}"
             >
                 <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
-                <i v-if="entry.kind === 'dir'" class="folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
-                <i v-else class="fa-regular fa-file"></i>
-                <span>{{entry.name}}</span>
+                <i v-if="entry.kind === 'dir'" class="icon folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
+                <i v-else class="icon fa-regular fa-file"></i>
+                <input v-if="renamingFilePath === entry.path" ref="renamingInput" type="text" class="renaming-textfield"
+                    :value="renamingFilePath"
+                    @keydown.enter="submitRenaming"
+                    @keydown.esc="submitRenaming"
+                    @blur="submitRenaming"
+                    />
+                <span class="entry-name" v-else>{{entry.name}}</span>
             </div>
         </div>
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
@@ -30,6 +36,7 @@
 import { dragAndDropBuilder } from '../../ui/dragndrop';
 import Modal from '../../ui/components/Modal.vue';
 import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
+import { findEntryInFileTree } from '../../common/fs/fileTree';
 
 /**
  *
@@ -130,11 +137,13 @@ export default {
     beforeMount() {
         window.electronAPI.$on('navigator:new-diagram-requested', this.ipcOnNewDiagramRequested);
         window.electronAPI.$on('navigator:new-folder-requested', this.ipcOnNewFolderRequested);
+        window.electronAPI.$on('navigator:rename', this.ipcOnNavigatorRename);
     },
 
     beforeDestroy() {
         window.electronAPI.$off('navigator:new-diagram-requested', this.ipcOnNewDiagramRequested);
         window.electronAPI.$off('navigator:new-folder-requested', this.ipcOnNewFolderRequested);
+        window.electronAPI.$off('navigator:rename', this.ipcOnNavigatorRename);
     },
 
     data() {
@@ -157,7 +166,9 @@ export default {
                 shown: false,
                 parentPath: null,
                 name: ''
-            }
+            },
+
+            renamingFilePath: null
         };
     },
     methods: {
@@ -169,7 +180,10 @@ export default {
             this.treeLookup = lookup;
         },
 
-        onEntryClick(entry) {
+        onEntryClick(event, entry) {
+            if (event.target.tagName.toLowerCase() === 'input') {
+                return;
+            }
             if (entry.kind === 'dir') {
                 this.toggleCollapseDirState(entry);
             } else if (entry.kind === 'schemio-doc') {
@@ -229,6 +243,34 @@ export default {
                 path: entry.path,
                 kind: entry.kind
             });
+        },
+
+        ipcOnNavigatorRename(event, filePath) {
+            this.renamingFilePath = filePath;
+            this.$nextTick(() => {
+                if (this.$refs.renamingInput) {
+                    this.$refs.renamingInput[0].focus();
+                }
+            });
+        },
+
+        submitRenaming(event) {
+            if (this.renamingFilePath) {
+                const entry = findEntryInFileTree(this.fileTree, this.renamingFilePath);
+                this.renamingFilePath = null;
+                const name = event.target.value.trim();
+                if (!entry || !name || entry.name === name) {
+                    return;
+                }
+
+                if (entry.kind === 'dir') {
+                    window.electronAPI.renameFolder(this.projectPath, entry.path, name)
+                    .then(() => {
+                        this.$emit('renamed-folder', entry.path, name);
+                    });
+                }
+
+            }
         },
 
         ipcOnNewFolderRequested(event, parentPath) {

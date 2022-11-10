@@ -1,10 +1,9 @@
 import { FileIndex } from '../../common/fs/fileIndex';
+import { findEntryInFileTree } from '../../common/fs/fileTree';
 import { schemioExtension } from '../../common/fs/fsUtils';
 
 const path = require('path');
-const fs = require('fs/promises');
-// const fs = require('fs');
-const walker = require('walker');
+const fs = require('fs-extra');
 const { dialog } = require('electron');
 
 
@@ -104,6 +103,20 @@ export function createNewDiagram(fileIndex) {
         .then(content => {
             return writeProjectFileInFolder(fileIndex)(event, projectPath, folderPath, id + schemioExtension, content);
         });
+    };
+}
+
+/**
+ *
+ * @param {FileIndex} fileIndex
+ * @returns
+ */
+export function renameFolder(fileIndex) {
+    return (event, projectPath, filePath, newName) => {
+        if (!verifyFileName(newName)) {
+            return Promise.reject(`Invalid name: "${newName}"`);
+        }
+        return fileIndex.renameFile(filePath, newName);
     };
 }
 

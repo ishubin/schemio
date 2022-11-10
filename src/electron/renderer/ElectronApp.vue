@@ -8,6 +8,7 @@
             :focusedFile="currentFocusedFilePath"
             @schemio-doc-selected="onSchemioDocSelected"
             @entry-added="onFileTreeEntryAdded"
+            @renamed-folder="onFolderRenamed"
             />
         <div class="elec-main-body">
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
@@ -59,7 +60,7 @@ import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
 import Modal from '../../ui/components/Modal.vue';
-import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree} from '../../common/fs/fileTree';
+import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree } from '../../common/fs/fileTree';
 
 const fileHistories = new Map();
 
@@ -275,6 +276,11 @@ export default {
                     this.onSchemioDocSelected(entry.path);
                 });
             }
+        },
+
+        onFolderRenamed(folderPath, name) {
+            renameEntryInFileTree(this.fileTree, folderPath, name);
+            this.fileTreeReloadKey++;
         },
 
         ipcOnFileTreeEntryDeleted(event, path) {
