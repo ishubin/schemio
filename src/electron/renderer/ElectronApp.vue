@@ -102,10 +102,12 @@ export default {
 
     beforeMount() {
         window.electronAPI.$on('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
+        window.electronAPI.$on('navigator:open', this.ipcOnNavigatorOpen);
     },
 
     beforeDestroy() {
         window.electronAPI.$off('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
+        window.electronAPI.$off('navigator:open', this.ipcOnNavigatorOpen);
     },
 
     data () {
@@ -138,15 +140,20 @@ export default {
            });
         },
 
+        ipcOnNavigatorOpen(event, filePath) {
+            this.onSchemioDocSelected(filePath);
+        },
+
         onSchemioDocSelected(docPath) {
+            const idx = this.findFileIdxByPath(docPath);
+            if (idx >= 0) {
+                this.focusFile(idx);
+                return;
+            }
+
             window.electronAPI.readFile(this.projectPath, docPath).then(file => {
-                const idx = this.findFileIdxByPath(file.path);
-                if (idx >= 0) {
-                    this.focusFile(idx);
-                } else {
-                    const newIdx = this.appendFile(file);
-                    this.focusFile(newIdx);
-                }
+                const newIdx = this.appendFile(file);
+                this.focusFile(newIdx);
             });
         },
 

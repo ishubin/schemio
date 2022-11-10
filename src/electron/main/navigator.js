@@ -15,16 +15,17 @@ export function navigatorOpenContextMenuForFile(fileIndex) {
             if (file.kind === 'dir') {
                 template.push({
                     label: 'New diagram...',
-                    click: () => {event.sender.send('navigator:new-diagram-requested', file.path)}
+                    click: () => event.sender.send('navigator:new-diagram-requested', file.path)
                 });
                 template.push({
                     label: 'New folder...',
-                    click: () => {event.sender.send('navigator:new-folder-requested', file.path)}
+                    click: () => event.sender.send('navigator:new-folder-requested', file.path)
                 });
             }
             if (file.kind === 'schemio-doc') {
                 template.push({
-                    label: 'Open'
+                    label: 'Open',
+                    click: () => event.sender.send('navigator:open', file.path)
                 });
             }
 
