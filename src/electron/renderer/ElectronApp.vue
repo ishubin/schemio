@@ -234,8 +234,18 @@ export default {
             window.electronAPI.writeFile(this.projectPath, file.path, content)
             .then(() => {
                 file.modified = false;
+                const entry = findEntryInFileTree(this.fileTree, file.path);
+                if (!entry) {
+                    return;
+                }
+                if (file.kind === 'schemio-doc' && entry.name !== document.name) {
+                    file.name = document.name;
+                    entry.name = document.name;
+                    this.fileTreeReloadKey++;
+                }
             })
             .catch(err => {
+                console.error(err);
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
                 file.modified = true;
             });
