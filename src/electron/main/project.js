@@ -1,5 +1,4 @@
 import { FileIndex } from '../../common/fs/fileIndex';
-import { findEntryInFileTree } from '../../common/fs/fileTree';
 import { schemioExtension } from '../../common/fs/fsUtils';
 
 const path = require('path');
@@ -120,7 +119,36 @@ export function renameFolder(fileIndex) {
     };
 }
 
+/**
+ *
+ * @param {FileIndex} fileIndex
+ * @returns
+ */
+export function renameDiagram(fileIndex) {
+    return (event, projectPath, filePath, newName) => {
+        if (!newName.trim()) {
+            return Promise.reject('Name should not be empty');
+        }
 
+        const fullPath = path.join(projectPath, filePath);
+        return fs.readFile(fullPath)
+        .then(content => {
+            return JSON.parse(content);
+        })
+        .then(diagram => {
+            diagram.name = newName;
+            const content = JSON.stringify(diagram);
+            return fs.writeFile(fullPath, content, {encoding: 'utf-8'})
+            .then(() => {
+                return diagram;
+            });
+        })
+        .then(diagram => {
+            fileIndex.updateScheme(diagram.id, diagram);
+            fileIndex.renameDiagramInTree(filePath, diagram.name);
+        });
+    }
+}
 /**
  *
  * @param {String} name

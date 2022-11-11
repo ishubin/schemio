@@ -9,6 +9,7 @@
             @schemio-doc-selected="onSchemioDocSelected"
             @entry-added="onFileTreeEntryAdded"
             @renamed-folder="onFolderRenamed"
+            @renamed-diagram="onDiagramRenamed"
             />
         <div class="elec-main-body">
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
@@ -279,7 +280,34 @@ export default {
         },
 
         onFolderRenamed(folderPath, name) {
+            const entry = findEntryInFileTree(this.fileTree, folderPath);
+            if (!entry) {
+                return;
+            }
+
+            const newPath = entry.path.substring(0, entry.path.length - entry.name.length) + name;
             renameEntryInFileTree(this.fileTree, folderPath, name);
+            this.files.forEach(file => {
+                if (file.path.startsWidth(folderPath)) {
+                    file.path = newPath + file.path.substring(folderPath.length);
+                }
+            });
+            this.fileTreeReloadKey++;
+        },
+
+        onDiagramRenamed(filePath, name) {
+            const entry = findEntryInFileTree(this.fileTree, filePath);
+            if (!entry) {
+                return;
+            }
+            entry.name = name;
+            for (let i = 0; i < this.files.length; i++) {
+                if (this.files[i].path === filePath) {
+                    this.files[i].name = name;
+                    this.files[i].document.name = name;
+                    break;
+                }
+            }
             this.fileTreeReloadKey++;
         },
 

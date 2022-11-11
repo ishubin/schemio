@@ -14,7 +14,7 @@
                 <i v-if="entry.kind === 'dir'" class="icon folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
                 <i v-else class="icon fa-regular fa-file"></i>
                 <input v-if="renamingFilePath === entry.path" ref="renamingInput" type="text" class="renaming-textfield"
-                    :value="renamingFilePath"
+                    :value="renamingName"
                     @keydown.enter="submitRenaming"
                     @keydown.esc="submitRenaming"
                     @blur="submitRenaming"
@@ -169,7 +169,8 @@ export default {
                 name: ''
             },
 
-            renamingFilePath: null
+            renamingFilePath: null,
+            renamingName: null
         };
     },
     methods: {
@@ -247,7 +248,13 @@ export default {
         },
 
         ipcOnNavigatorRename(event, filePath) {
+            const entry = findEntryInFileTree(this.fileTree, filePath);
+            if (!entry) {
+                return;
+            }
+
             this.renamingFilePath = filePath;
+            this.renamingName = entry.name;
             this.$nextTick(() => {
                 if (this.$refs.renamingInput) {
                     this.$refs.renamingInput[0].focus();
@@ -265,29 +272,41 @@ export default {
                 }
 
                 if (entry.kind === 'dir') {
-                    const oldPath = entry.path;
-                    const newPath = entry.path.substring(0, entry.path.length - entry.name.length) + name;
-                    window.electronAPI.renameFolder(this.projectPath, entry.path, name)
-                    .then(() => {
-                        // updating lookup path so that in next update it can preserve collapse state of directories after reloading the tree
-                        const keysToUpdate = [];
-                        this.treeLookup.forEach((e, path) => {
-                            if (path.startsWith(oldPath)) {
-                                keysToUpdate.push(path);
-                            }
-                        });
-                        keysToUpdate.forEach(path => {
-                            if (path.startsWith(oldPath)) {
-                                const e = this.treeLookup.get(path);
-                                this.treeLookup.delete(path);
-                                this.treeLookup.set(newPath + path.substring(oldPath.length), e);
-                            }
-                        });
-                        this.$emit('renamed-folder', entry.path, name);
-                    });
+                    this.submitRenamingFolder(entry, name);
+                } else if (entry.kind === 'schemio-doc') {
+                    this.submitRenamingDiagram(entry, name);
                 }
-
             }
+        },
+
+        submitRenamingDiagram(entry, name) {
+            window.electronAPI.renameDiagram(this.projectPath, entry.path, name)
+            .then(() => {
+                this.$emit('renamed-diagram', entry.path, name);
+            });
+        },
+
+        submitRenamingFolder(entry, name) {
+            const oldPath = entry.path;
+            const newPath = entry.path.substring(0, entry.path.length - entry.name.length) + name;
+            window.electronAPI.renameFolder(this.projectPath, entry.path, name)
+            .then(() => {
+                // updating lookup path so that in next update it can preserve collapse state of directories after reloading the tree
+                const keysToUpdate = [];
+                this.treeLookup.forEach((e, path) => {
+                    if (path.startsWith(oldPath)) {
+                        keysToUpdate.push(path);
+                    }
+                });
+                keysToUpdate.forEach(path => {
+                    if (path.startsWith(oldPath)) {
+                        const e = this.treeLookup.get(path);
+                        this.treeLookup.delete(path);
+                        this.treeLookup.set(newPath + path.substring(oldPath.length), e);
+                    }
+                });
+                this.$emit('renamed-folder', entry.path, name);
+            });
         },
 
         ipcOnNewFolderRequested(event, parentPath) {

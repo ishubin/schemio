@@ -66,6 +66,14 @@ export class FileIndex {
         });
     }
 
+    renameDiagramInTree(filePath, newName) {
+        const diagramEntry = findEntryInFileTree(this.fileTree, filePath);
+        if (!diagramEntry) {
+            return;
+        }
+        diagramEntry.name = newName;
+    }
+
     /**
      *
      * @param {*} id
@@ -221,8 +229,8 @@ function createIndexFromScratch(index, rootPath) {
                 name: path.basename(filePath),
                 children: []
             };
-            findParentList(filePath).push(dirEntry);
-            allDirs.set(filePath, dirEntry);
+            findParentList(relativeFilePath).push(dirEntry);
+            allDirs.set(relativeFilePath, dirEntry);
 
         } else if (filePath.endsWith(schemioExtension)) {
             return fs.readFile(filePath).then(content => {
@@ -240,7 +248,7 @@ function createIndexFromScratch(index, rootPath) {
                     }
                 }
 
-                findParentList(filePath).push({
+                findParentList(relativeFilePath).push({
                     kind: 'schemio-doc',
                     path: path.relative(rootPath, filePath),
                     name: scheme.name

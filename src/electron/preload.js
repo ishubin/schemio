@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createNewDiagram: (projectPath, folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', projectPath, folderPath, diagram),
     createNewFolder: (projectPath, parentPath, name) => ipcRenderer.invoke('project:createNewFolder', projectPath, parentPath, name),
     renameFolder: (projectPath, folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', projectPath, folderPath, newFolderName),
+    renameDiagram: (projectPath, filePath, newName) => ipcRenderer.invoke('project:renameDiagram', projectPath, filePath, newName),
 
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
