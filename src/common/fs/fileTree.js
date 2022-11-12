@@ -39,6 +39,37 @@ export function findEntryInFileTree(fileTreeEntries, entryPath) {
 
 /**
  *
+ * @param {Array<FileTreeEntry>} fileTreeEntries
+ * @param {String} path
+ * @returns {FileTreeEntry}
+ */
+export function findParentEntryInFileTree(fileTreeEntries, path) {
+    const bfsQueue = [];
+    for (let i = 0; i < fileTreeEntries.length; i++) {
+        if (fileTreeEntries[i].path === path) {
+            return null;
+        } else if (fileTreeEntries[i].kind === 'dir' && fileTreeEntries[i].children && path.startsWith(fileTreeEntries[i].path)) {
+            bfsQueue.push(fileTreeEntries[i]);
+        }
+    }
+
+    for (let i = 0; i < bfsQueue.length; i++) {
+        const entry = bfsQueue[i];
+        for (let j = 0; j < entry.children.length; j++) {
+            if (entry.children[j].path === path) {
+                return entry;
+            }
+            if (entry.children[j].kind === 'dir' && path.startsWith(entry.children[j].path)) {
+                bfsQueue.push(entry.children[j]);
+            }
+        }
+    }
+
+    return null;
+}
+
+/**
+ *
  * @param {Array<FileTreeEntry>} fileTree
  * @param {String} parent
  * @param {String} entry

@@ -4,11 +4,13 @@
             <span v-if="collapsed" class="toggle-button" @click="showNavigator"><i class="fa-solid fa-bars"></i></span>
             <div v-else class="project-name">{{projectName}}</div>
         </div>
-        <div v-if="!collapsed" class="navigator-body" @contextmenu.prevent="onVoidRightClick">
-            <div class="navigator-entry" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
-                @click="onEntryClick($event, entry)"
+        <div v-if="!collapsed" class="navigator-body navigator-droppable" data-entry-kind="void" @contextmenu.prevent="onVoidRightClick">
+            <div class="navigator-entry navigator-droppable" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
+                @mousedown="onEntryMouseDown($event, entry)"
                 @contextmenu.prevent="openContextMenuForFile(entry)"
                 :class="{focused: entry.path === focusedFile}"
+                :data-entry-path="entry.path"
+                :data-entry-kind="entry.kind"
             >
                 <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
                 <i v-if="entry.kind === 'dir'" class="icon folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
@@ -29,6 +31,10 @@
         </Modal>
 
         <CreateNewSchemeModal v-if="newDiagramModal.shown" :uploadEnabled="false" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
+
+        <div ref="entryDragger" class="navigator-entry-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
+            {{dragging.name}}
+        </div>
     </div>
 </template>
 
@@ -36,7 +42,7 @@
 import { dragAndDropBuilder } from '../../ui/dragndrop';
 import Modal from '../../ui/components/Modal.vue';
 import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
-import { findEntryInFileTree } from '../../common/fs/fileTree';
+import { findEntryInFileTree, findParentEntryInFileTree } from '../../common/fs/fileTree';
 
 /**
  *
@@ -170,7 +176,14 @@ export default {
             },
 
             renamingFilePath: null,
-            renamingName: null
+            renamingName: null,
+
+            dragging: {
+                startedDragging: false,
+                name: '',
+                dropKind: 'void',
+                dropPath: null
+            }
         };
     },
     methods: {
@@ -182,16 +195,77 @@ export default {
             this.treeLookup = lookup;
         },
 
-        onEntryClick(event, entry) {
-            if (event.target.tagName.toLowerCase() === 'input') {
+        onEntryMouseDown(event, entry) {
+            dragAndDropBuilder(event)
+            .withDraggedElement(this.$refs.entryDragger)
+            .withDroppableClass('navigator-droppable')
+            .onDragStart(() => {
+                this.dragging.startedDragging = true;
+                this.dragging.name = entry.name;
+            })
+            .onDone(() => {
+                if (!this.dragging.startedDragging) {
+                    return;
+                }
+                this.dragging.startedDragging = false;
+                if (this.dragging.dropKind === 'void') {
+                    this.submitMoveEntryToRoot(entry);
+                } else {
+                    const dstEntry = findEntryInFileTree(this.fileTree, this.dragging.dropPath);
+                    this.submitMoveEntryToEntry(entry, dstEntry);
+                }
+            })
+            .onDragOver((event, element) => {
+                this.dragging.dropKind = element.getAttribute('data-entry-kind');
+                this.dragging.dropPath = element.getAttribute('data-entry-path');
+            })
+            .onSimpleClick(() => {
+                if (event.target.tagName.toLowerCase() === 'input') {
+                    return;
+                }
+                if (entry.kind === 'dir') {
+                    this.toggleCollapseDirState(entry);
+                } else if (entry.kind === 'schemio-doc') {
+                    this.$emit('schemio-doc-selected', entry.path);
+                }
+            })
+            .build();
+        },
+
+        submitMoveEntryToRoot(entry) {
+            const parentEntry = findParentEntryInFileTree(this.fileTree, entry.path);
+            if (!parentEntry) {
+                //already at root level
                 return;
             }
-            if (entry.kind === 'dir') {
-                this.toggleCollapseDirState(entry);
-            } else if (entry.kind === 'schemio-doc') {
-                this.$emit('schemio-doc-selected', entry.path);
-            }
+
+            window.electronAPI.moveFile(this.projectPath, entry.path, null)
+            .then(response => {
+                this.$emit('moved-entries', response.movedEntries);
+            });
         },
+
+        submitMoveEntryToEntry(entry, dstEntry) {
+            //checking if it tried to move directory to itself
+            if (dstEntry.path.startsWith(entry.path)) {
+                return;
+            }
+
+            let parentEntry = dstEntry;
+            if (dstEntry.kind !== 'dir') {
+                parentEntry = findParentEntryInFileTree(this.fileTree, dstEntry.path);
+                if (!parentEntry) {
+                    this.submitMoveEntryToRoot(entry)
+                    return;
+                }
+            }
+
+            window.electronAPI.moveFile(this.projectPath, entry.path, parentEntry.path)
+            .then(response => {
+                this.$emit('moved-entries', response.movedEntries);
+            });
+        },
+
         toggleCollapseDirState(entry) {
             entry.collapsed = !entry.collapsed;
 

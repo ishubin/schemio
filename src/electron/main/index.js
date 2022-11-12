@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { FileIndex } = require('../../common/fs/fileIndex');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram } = require('./project');
+const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree } = require('./project');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -33,6 +33,7 @@ const fileIndex = new FileIndex();
 app.whenReady().then(() => {
     createWindow();
     ipcMain.handle('project:open', openProject(fileIndex));
+    ipcMain.handle('project:fileTree', projectFileTree(fileIndex));
     ipcMain.handle('project:readFile', readProjectFile);
     ipcMain.handle('project:writeFile', writeProjectFile(fileIndex));
     ipcMain.handle('project:writeFileInFolder', writeProjectFileInFolder(fileIndex));
@@ -41,6 +42,7 @@ app.whenReady().then(() => {
     ipcMain.handle('project:renameFolder', renameFolder(fileIndex));
     ipcMain.handle('project:renameDiagram', renameDiagram(fileIndex));
     ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(fileIndex));
+    ipcMain.handle('project:moveFile', moveFile(fileIndex));
 
 
     app.on('activate', () => {

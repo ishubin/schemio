@@ -10,6 +10,7 @@
             @entry-added="onFileTreeEntryAdded"
             @renamed-folder="onFolderRenamed"
             @renamed-diagram="onDiagramRenamed"
+            @moved-entries="onFileTreeEntriesMoved"
             />
         <div class="elec-main-body">
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
@@ -61,7 +62,7 @@ import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
 import Modal from '../../ui/components/Modal.vue';
-import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree } from '../../common/fs/fileTree';
+import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, findParentEntryInFileTree, traverseFileTree, renameEntryInFileTree } from '../../common/fs/fileTree';
 
 const fileHistories = new Map();
 
@@ -319,6 +320,25 @@ export default {
                 }
             }
             this.fileTreeReloadKey++;
+        },
+
+        onFileTreeEntriesMoved(movedEntries) {
+            window.electronAPI.getProjectFileTree(this.projectPath)
+            .then(fileTree => {
+                this.fileTree = fileTree;
+                this.fileTreeReloadKey++;
+
+                //correcting any open files that were affected by the move
+                const m = new Map();
+                movedEntries.forEach(e => {
+                    m.set(e.src, e.dst);
+                });
+                this.files.forEach(file => {
+                    if (m.has(file.path)) {
+                        file.path = m.get(file.path);
+                    }
+                });
+            });
         },
 
         ipcOnFileTreeEntryDeleted(event, path) {

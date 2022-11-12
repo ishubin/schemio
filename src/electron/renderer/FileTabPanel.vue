@@ -4,6 +4,7 @@
             <div class="file-tab" v-for="(file, fileIdx) in files"
                 :class="{selected: fileIdx === currentOpenFileIndex}"
                 :key="`tab-${file.path}`"
+                :title="file.path"
             >
                 <i v-if="file.modified" class="icon-file-modified fa-solid fa-circle"></i>
                 <span class="title" @click="$emit('selected-file', fileIdx)">{{file.name}}</span>

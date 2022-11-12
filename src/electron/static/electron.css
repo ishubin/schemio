@@ -182,6 +182,12 @@
 .elec-navigator .navigator-entry:hover {
     background: #ddd;
 }
+.elec-navigator .navigator-entry-drag-preview {
+    background: #ddd;
+    padding: 1px;
+    border-radius: 2px;
+    font-size: 13px;
+}
 
 
 .elec-file-container > div {

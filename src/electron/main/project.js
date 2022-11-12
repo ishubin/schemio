@@ -195,3 +195,25 @@ export function createNewFolder(fileIndex) {
         });
     };
 }
+
+/**
+ *
+ * @param {FileIndex} fileIndex
+ * @returns
+ */
+export function moveFile(fileIndex) {
+    return (event, projectPath, filePath, newParentPath) => {
+        return fileIndex.moveFile(filePath, newParentPath);
+    };
+}
+
+/**
+ *
+ * @param {FileIndex} fileIndex
+ * @returns
+ */
+export function projectFileTree(fileIndex) {
+    return (event, projectPath) => {
+        return fileIndex.fileTree;
+    };
+}

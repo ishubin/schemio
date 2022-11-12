@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
-import { deleteEntryFromFileTree, findEntryInFileTree, renameEntryInFileTree } from './fileTree';
+import { deleteEntryFromFileTree, findEntryInFileTree, moveEntryInFileTree, renameEntryInFileTree, traverseFileTree } from './fileTree';
 import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
@@ -72,6 +72,45 @@ export class FileIndex {
             return;
         }
         diagramEntry.name = newName;
+    }
+
+    moveFile(filePath, newParentPath) {
+        const srcPath = path.join(this.rootPath, filePath);
+        const baseName = path.basename(filePath);
+        const newRelativePath = newParentPath ? path.join(newParentPath, baseName) : baseName;
+        const dstPath = path.join(this.rootPath, newRelativePath);
+
+        // generating records of all affected files and folder
+        // this will be used by the client to correct any open files
+        const movedEntries = [{
+            src: filePath,
+            dst: newRelativePath
+        }];
+
+        console.log('Searching of rentry: ', filePath);
+        const fileEntry = findEntryInFileTree(this.fileTree, filePath);
+        if (!fileEntry) {
+            return Promise.reject(`Could not find entry: ${filePath}`);
+        }
+        if (fileEntry.kind === 'dir') {
+            traverseFileTree(fileEntry.children, entry => {
+                movedEntries.push({
+                    src: entry.path,
+                    dst: newRelativePath + entry.path.substring(filePath.length)
+                });
+            });
+        }
+
+        return fs.move(srcPath, dstPath)
+        .then(() => {
+            //TODO find a way to rebuild the tree without running a full reindex
+            // The reason I didn't implement that in the first place is because of the fact that fileTree.js is being also used on the client side
+            // But, in order to move entries within file trees we have to know the right file separator.
+            // But I don't want to bring "path" module dependency to the client side.
+            return this.reindex(this.rootPath).then(() => {
+                return { movedEntries };
+            });
+        });
     }
 
     /**
