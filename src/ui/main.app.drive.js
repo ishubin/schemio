@@ -17,6 +17,8 @@ import { applyVueFilters } from './vue.filters';
 import Header from './app/components/HeaderDrive.vue';
 import Footer from './app/components/Footer.vue';
 import HomeDriveView from './app/view/HomeDriveView.vue';
+import { googleDriveClientProvider } from './app/client/googleDriveClient';
+import { offlineClientProvider } from './app/client/offlineClient';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -31,13 +33,13 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {apiClientType: 'drive', userStylesEnabled: false, projectArtEnabled: false}),
-    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {apiClientType: 'offline', isOfflineEditor: true , userStylesEnabled: false, projectArtEnabled: false}),
+    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: googleDriveClientProvider, userStylesEnabled: false, projectArtEnabled: false}),
+    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true , userStylesEnabled: false, projectArtEnabled: false}),
     route('AboutView',              '/about',            AboutView),
     route('NotFoundView',           '/not-found',        NotFoundView),
     route('HomeView',               '/',                 HomeDriveView),
-    route('SearchView',             '/search',           SearchView, {apiClientType: 'drive'}),
-    route('FolderView',             '/f/*',              FolderView, {apiClientType: 'drive'}),
+    route('SearchView',             '/search',           SearchView, {clientProvider: googleDriveClientProvider}),
+    route('FolderView',             '/f/*',              FolderView, {clientProvider: googleDriveClientProvider}),
     { path: '*', redirect: '/not-found'}
 ];
 

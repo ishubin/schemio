@@ -117,7 +117,6 @@
 </template>
 
 <script>
-import { createApiClientForType } from '../apiClient';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import Modal from '../../components/Modal.vue';
@@ -127,7 +126,7 @@ import MoveToFolderModal from '../components/MoveToFolderModal.vue';
 
 
 function isValidCharCode(code) {
-    return (code >= 48 && code <= 57) 
+    return (code >= 48 && code <= 57)
         || (code >= 65 && code <= 90)
         || (code >= 97 && code <= 122)
         || code === 32
@@ -139,10 +138,10 @@ export default {
     components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal},
 
     props: {
-        apiClientType  : {type: String, default: 'fs'},
+        clientProvider : {type: Object, required: true},
         toolbarShown   : {type: Boolean, default: true},
     },
-    
+
     beforeMount() {
         this.loadNextPage();
     },
@@ -354,7 +353,7 @@ export default {
 
         loadNextPage() {
             this.isLoading = true;
-            createApiClientForType(this.apiClientType)
+            this.clientProvider.create()
             .then(apiClient => {
                 this.$store.dispatch('setApiClient', apiClient);
                 this.apiClient = apiClient;

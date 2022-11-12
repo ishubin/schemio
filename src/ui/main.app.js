@@ -16,6 +16,8 @@ import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
 import Header from './app/components/Header.vue';
 import Footer from './app/components/Footer.vue';
+import { fsClientProvider } from './app/client/fsClient';
+import { offlineClientProvider } from './app/client/offlineClient';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -29,13 +31,13 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {apiClientType: 'fs'}),
-    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {apiClientType: 'offline', isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
+    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: fsClientProvider}),
+    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
     route('AboutView',              '/about',            AboutView),
     route('NotFoundView',           '/not-found',        NotFoundView),
-    route('HomeView',               '/',                 FolderView, {apiClientType: 'fs'}),
-    route('SearchView',             '/search',           SearchView, {apiClientType: 'fs'}),
-    route('FolderView',             '/f/*',              FolderView, {apiClientType: 'fs'}),
+    route('HomeView',               '/',                 FolderView, {clientProvider: fsClientProvider}),
+    route('SearchView',             '/search',           SearchView, {clientProvider: fsClientProvider}),
+    route('FolderView',             '/f/*',              FolderView, {clientProvider: fsClientProvider}),
     { path: '*', redirect: '/not-found'}
 ];
 

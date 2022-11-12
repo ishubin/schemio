@@ -33,7 +33,7 @@
         <div v-else-if="errorMessage" class="middle-content">
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
-        <SchemioEditorApp v-else-if="apiClientType === 'offline'"
+        <SchemioEditorApp v-else-if="clientProvider.type === 'offline'"
             :key="`offline-scheme-${appReloadKey}`"
             :scheme="scheme"
             :schemePatch="schemePatch"
@@ -131,7 +131,6 @@
 </template>
 <script>
 import JSZip from 'jszip';
-import { createApiClientForType } from '../apiClient';
 import SchemioEditorApp from '../../SchemioEditorApp.vue';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
@@ -175,7 +174,7 @@ export default {
     },
 
     props: {
-        apiClientType    : {type: String, default: 'fs'},
+        clientProvider: {type: Object,  required: true},
         isOfflineEditor  : {type: Boolean, default: false},
         editAllowed      : {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: true},
@@ -193,18 +192,18 @@ export default {
         }
 
         this.isLoading = true;
-        if (this.apiClientType === 'static') {
+        if (this.clientProvider.type === 'static') {
             this.isStaticEditor = true;
         }
 
-        let chain = createApiClientForType(this.apiClientType)
+        let chain = this.clientProvider.create()
         .then(apiClient => {
             this.$store.dispatch('setApiClient', apiClient);
             this.apiClient = apiClient;
             return apiClient;
         });
 
-        if (this.apiClientType === 'offline') {
+        if (this.clientProvider.type === 'offline') {
             chain = chain.then(apiClient => {
                 this.loadSchemeFromLink();
                 this.isLoading = false;
@@ -287,7 +286,7 @@ export default {
             },
 
             menuOptions: [
-                {name: 'New diagram',       callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.apiClientType === 'static'},
+                {name: 'New diagram',       callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.clientProvider.type === 'static'},
                 {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
                 {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
@@ -710,7 +709,7 @@ export default {
     },
     computed: {
         originSchemeForPatch() {
-            if (this.apiClientType === 'static') {
+            if (this.clientProvider.type === 'static') {
                 return this.originScheme;
             }
             return null;

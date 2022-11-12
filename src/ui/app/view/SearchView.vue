@@ -62,7 +62,6 @@
 
 <script>
 import Pagination from '../../components/Pagination.vue';
-import { createApiClientForType } from '../apiClient';
 
 function toPageNumber(text) {
     const page = parseInt(text);
@@ -76,7 +75,7 @@ export default {
     components: {Pagination},
 
     props: {
-        apiClientType  : {type: String, default: 'fs'},
+        clientProvider  : {type: Object, required: true},
     },
 
     beforeMount() {
@@ -110,7 +109,7 @@ export default {
 
         loadNextPage() {
             this.isLoading = true;
-            createApiClientForType(this.apiClientType)
+            this.clientProvider.create()
             .then(apiClient => {
                 this.$store.dispatch('setApiClient', apiClient);
                 this.apiClient = apiClient;

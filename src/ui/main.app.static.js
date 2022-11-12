@@ -15,6 +15,8 @@ import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
 import Header from './app/components/Header.vue';
 import Footer from './app/components/Footer.vue';
+import { staticClientProvider } from './app/client/staticClient';
+import { offlineClientProvider } from './app/client/offlineClient';
 
 window.createSchemioStaticApp = function (options) {
     let editAllowed = false;
@@ -39,12 +41,12 @@ window.createSchemioStaticApp = function (options) {
 
 
     const routes = [
-        route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {apiClientType: 'static', editAllowed}),
-        route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {apiClientType: 'offline', isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
+        route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: staticClientProvider, editAllowed}),
+        route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
         route('AboutView',              '/about',            AboutView),
         route('NotFoundView',           '/not-found',        NotFoundView),
-        route('HomeView',               '/',                 FolderView, {apiClientType: 'static'}),
-        route('FolderView',             '/f/*',              FolderView, {apiClientType: 'static', toolbarShown: false}),
+        route('HomeView',               '/',                 FolderView, {clientProvider: staticClientProvider}),
+        route('FolderView',             '/f/*',              FolderView, {clientProvider: staticClientProvider, toolbarShown: false}),
         { path: '*', redirect: '/not-found'}
     ];
 
