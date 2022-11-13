@@ -14,6 +14,8 @@ import '../static/electron.css';
 
 applyVueFilters(Vue);
 
+store.dispatch('setAssetsPath', '../assets');
+
 new Vue(Vue.util.extend({
     store,
 }, ElectronApp)).$mount('#app');

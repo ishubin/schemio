@@ -23,23 +23,21 @@
         <g :transform="`translate(0 ${imageY})`">
 
 
-            <defs v-if="item.shapeProps.image">
-                <clipPath :id="`image-crop-clip-path-${item.id}`">
-                    <path
-                        :d="`M 0 0  L ${item.area.w} 0   L ${item.area.w} ${item.area.h}  L 0 ${item.area.h} Z`"
-                        :data-item-id="item.id"
-                        stroke-width="0px"
-                        stroke="rgba(255, 255, 255, 0)"
-                        fill="rgba(255, 255, 255, 0)" />
-                </clipPath>
+            <clipPath :id="`image-crop-clip-path-${item.id}`">
+                <path
+                    :d="`M 0 0  L ${item.area.w} 0   L ${item.area.w} ${item.area.h}  L 0 ${item.area.h} Z`"
+                    :data-item-id="item.id"
+                    stroke-width="0px"
+                    stroke="rgba(255, 255, 255, 0)"
+                    fill="rgba(255, 255, 255, 0)" />
+            </clipPath>
 
-                <pattern :id="`image-fill-${item.id}`" patternUnits="userSpaceOnUse" :width="imageWidth" :height="imageHeight">
-                    <image :xlink:href="item.shapeProps.image" :x="-item.shapeProps.crop.x * imageWidth" :y="-item.shapeProps.crop.y * imageHeight" :width="imageWidth * (1 + item.shapeProps.crop.x + item.shapeProps.crop.w)" :height="imageHeight * (1 + item.shapeProps.crop.y + item.shapeProps.crop.h)" :preserveAspectRatio="imagePreserveAspectRatio"/>
-                </pattern>
-            </defs>
+            <pattern :id="`image-fill-${item.id}`" patternUnits="userSpaceOnUse" :width="imageWidth" :height="imageHeight">
+                <image :xlink:href="imagePath" :x="-item.shapeProps.crop.x * imageWidth" :y="-item.shapeProps.crop.y * imageHeight" :width="imageWidth * (1 + item.shapeProps.crop.x + item.shapeProps.crop.w)" :height="imageHeight * (1 + item.shapeProps.crop.y + item.shapeProps.crop.h)" :preserveAspectRatio="imagePreserveAspectRatio"/>
+            </pattern>
 
             <g :style="{'clip-path': `url(#image-crop-clip-path-${item.id})`}">
-                <rect v-if="item.shapeProps.image"
+                <rect
                     :x="0" :y="0"
                     :width="imageWidth" :height="imageHeight"
                     :stroke-width="item.shapeProps.strokeSize + 'px'"
@@ -61,6 +59,8 @@ const computePath = (item) => {
     return `M 0 0  L ${W} 0  L ${W} ${H} L 0 ${H} Z`;
 };
 
+const missingSchemePreview = '/images/missing-scheme-preview.png';
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -78,7 +78,7 @@ export default {
             description: 'It lets you upload an image or specify a link to external image',
             item: {
                 shapeProps: {
-                    image: '/assets/images/missing-scheme-preview.png'
+                    image: ''
                 }
             },
         }],
@@ -154,7 +154,15 @@ export default {
                 return Math.max(0, this.item.area.h - this.item.shapeProps.titleHeight);
             }
             return this.item.area.h;
+        },
+
+        imagePath() {
+            if (!this.item.shapeProps.image) {
+                return this.$store.getters.assetsPath + missingSchemePreview;
+            }
+            return this.item.shapeProps.image;
         }
     },
+
 }
 </script>

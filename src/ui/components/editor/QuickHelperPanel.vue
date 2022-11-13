@@ -88,12 +88,12 @@
                     </li>
                     <li>
                         <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
-                            <img src="/assets/images/helper-panel/bring-to-front.svg"/>
+                            <img :src="`${assetsPath}/images/helper-panel/bring-to-front.svg`"/>
                         </span>
                     </li>
                     <li>
                         <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
-                            <img src="/assets/images/helper-panel/bring-to-back.svg"/>
+                            <img :src="`${assetsPath}/images/helper-panel/bring-to-back.svg`"/>
                         </span>
                     </li>
                 </ul>
@@ -598,6 +598,10 @@ export default {
     },
 
     computed: {
+        assetsPath() {
+            return this.$store.getters.assetsPath;
+        },
+
         shouldSnapToGrid() {
             return this.$store.getters.shouldSnapToGrid;
         },

@@ -44,10 +44,10 @@ app.whenReady().then(() => {
     ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(fileIndex));
     ipcMain.handle('project:moveFile', moveFile(fileIndex));
 
-    const protocolName = 'schemio';
+    const projectProtocolName = 'project';
     protocol.registerFileProtocol(protocolName, (request, callback) => {
         console.log(request.url);
-        const url = request.url.substring(protocolName.length + 3);
+        const url = request.url.substring(projectProtocolName.length + 3);
         callback({ path: url });
     });
 
