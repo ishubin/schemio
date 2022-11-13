@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const { FileIndex } = require('../../common/fs/fileIndex');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree } = require('./project');
@@ -44,6 +44,12 @@ app.whenReady().then(() => {
     ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(fileIndex));
     ipcMain.handle('project:moveFile', moveFile(fileIndex));
 
+    const protocolName = 'schemio';
+    protocol.registerFileProtocol(protocolName, (request, callback) => {
+        console.log(request.url);
+        const url = request.url.substring(protocolName.length + 3);
+        callback({ path: url });
+    });
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
