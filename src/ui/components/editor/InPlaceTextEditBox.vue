@@ -36,7 +36,7 @@ export default {
         cssStyle       : {type: Object},
         zoom           : {type: Number},
         creatingNewItem: {type: Boolean},
-        scalingVector  : {type: Number},
+        scalingVector  : {type: Object},
         markupDisabled : {type: Boolean, default: false}
     },
     components: {RichTextEditor, EditorContent},
