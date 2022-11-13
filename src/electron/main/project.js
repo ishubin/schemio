@@ -1,4 +1,3 @@
-import { FileIndex } from '../../common/fs/fileIndex';
 import { schemioExtension } from '../../common/fs/fsUtils';
 import { ContextHolder } from './context';
 

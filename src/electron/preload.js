@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
+    copyFileToProjectMedia: (filePath, fileName) => ipcRenderer.invoke('media:copyFileToProject', filePath, fileName),
+
     $on: (channel, callback) =>  ipcRenderer.on(channel, callback),
     $off: (channel, callback) =>  ipcRenderer.off(channel, callback),
 });

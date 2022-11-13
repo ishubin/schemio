@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
-import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions} from '../../common/fs/fsUtils.js';
+import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
 import { FileIndex } from '../../common/fs/fileIndex';
 
 
@@ -926,18 +926,3 @@ export function fsGetStyles(config) {
     }
 }
 
-
-function leftZeroPad(number) {
-    if (number >= 0 && number < 10) {
-        return '0' + number;
-    }
-    return '' + number;
-}
-
-function getFileExtension(name) {
-    const idx = name.lastIndexOf('.');
-    if (idx > 0) {
-        return name.substring(idx + 1);
-    }
-    return '';
-}

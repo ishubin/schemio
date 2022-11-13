@@ -17,12 +17,12 @@ export class ContextHolder {
 
     register(id) {
         const data = {};
-        this.contexts.set(id, data);
+        this.contexts.set('' + id, data);
         this.initCalback(data);
     }
 
     remove(id) {
-        this.contexts.delete(id);
+        this.contexts.delete('' + id);
     }
 
     /**
@@ -31,7 +31,7 @@ export class ContextHolder {
      * @returns {ContextData}
      */
     from(event) {
-        const id = event.sender.id;
+        const id = '' + event.sender.id;
         return this.contexts.get(id);
     }
 

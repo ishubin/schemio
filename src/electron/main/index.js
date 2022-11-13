@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, protocol } = require('electron');
+const path = require('path');
 const { FileIndex } = require('../../common/fs/fileIndex');
 const { generateUserAgent, ContextHolder } = require('./context');
+const { copyFileToProjectMedia } = require('./media');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree } = require('./project');
 
@@ -37,9 +39,9 @@ const createWindow = () => {
 
 
 
-const projectProtocolName = 'project';
+const mediaProtocolName = 'media';
 protocol.registerSchemesAsPrivileged([{
-    scheme: projectProtocolName,
+    scheme: mediaProtocolName,
     privileges: {
         standard: true,
         secure: true,
@@ -49,11 +51,17 @@ protocol.registerSchemesAsPrivileged([{
     }
 }]);
 
+const mediaUrlPrefix = `${mediaProtocolName}://local/`;
 app.whenReady().then(() => {
-    protocol.registerFileProtocol(projectProtocolName, (request, callback) => {
-        const url = request.url.substring(projectProtocolName.length + 3);
-        callback({ path: url });
+    protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
+        const url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
+        const fileIndex = contextHolder.fromRequest(request).fileIndex;
+        const fullPath = path.join(fileIndex.rootPath, '.media', url );
+        console.log('Resolved media path', fullPath);
+        callback({ path: fullPath});
     });
+
+
     createWindow();
     ipcMain.handle('project:open', openProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));
@@ -66,6 +74,8 @@ app.whenReady().then(() => {
     ipcMain.handle('project:renameDiagram', renameDiagram(contextHolder));
     ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(contextHolder));
     ipcMain.handle('project:moveFile', moveFile(contextHolder));
+    ipcMain.handle('media:copyFileToProject', copyFileToProjectMedia(contextHolder));
+
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the

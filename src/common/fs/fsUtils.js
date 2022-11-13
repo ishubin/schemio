@@ -10,7 +10,8 @@ export const supportedMediaExtensions = new Set([
     'gif',
     'tiff',
     'bmp',
-    'svg'
+    'svg',
+    'webp'
 ]);
 
 export function fileNameFromPath(filePath) {
@@ -29,4 +30,19 @@ export function folderPathFromPath(filePath) {
         return '/';
     }
     return null;
+}
+
+export function getFileExtension(name) {
+    const idx = name.lastIndexOf('.');
+    if (idx > 0) {
+        return name.substring(idx + 1);
+    }
+    return '';
+}
+
+export function leftZeroPad(number) {
+    if (number >= 0 && number < 10) {
+        return '0' + number;
+    }
+    return '' + number;
 }

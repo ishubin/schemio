@@ -7,7 +7,7 @@ import forEach from 'lodash/forEach';
 /**
  * Filters out irrelevant elements from svg element
  * also adds proper styles to elements which are usual provided by css
- * @param {SVGElement} svgElement 
+ * @param {SVGElement} svgElement
  */
 export function filterOutPreviewSvgElements(svgElement) {
     for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
@@ -60,7 +60,7 @@ function convertImageToDataURL(imageElement) {
                 imageElement.setAttribute('xlink:href', dataURL);
                 resolve();
             } catch(err) {
-                console.error('Could not convert image ' + imageURL + ' to dataURL', err);
+                console.error('Could not convert image ' + imageUrl + ' to dataURL', err);
                 reject();
             }
         };
@@ -97,8 +97,8 @@ function collectAllImageNodes(svgElement, arr) {
 
 /**
  * Traverses through all elements in SVG and changes images tags so that they use rasterized dataURL of image they were referencing
- * 
- * @param {SVGElement} svgElement 
+ *
+ * @param {SVGElement} svgElement
  */
 export function rasterizeAllImagesToDataURL(svgElement) {
     const imageElements = collectAllImageNodes(svgElement);
