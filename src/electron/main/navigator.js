@@ -1,14 +1,17 @@
 import { FileIndex } from '../../common/fs/fileIndex';
+import { ContextHolder } from './context';
 
 const { BrowserWindow, Menu } = require('electron');
 
+
 /**
  *
- * @param {FileIndex} fileIndex
+ * @param {ContextHolder} contextHolder
  * @returns
  */
-export function navigatorOpenContextMenuForFile(fileIndex) {
+export function navigatorOpenContextMenuForFile(contextHolder) {
     return (event, file) => {
+        const fileIndex = contextHolder.from(event).fileIndex;
         let template = [];
 
         if (file) {

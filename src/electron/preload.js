@@ -2,15 +2,15 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
     openProject       : () => ipcRenderer.invoke('project:open'),
-    getProjectFileTree: (projectPath) =>  ipcRenderer.invoke('project:fileTree', projectPath),
-    readFile          : (projectPath, filePath) => ipcRenderer.invoke('project:readFile', projectPath, filePath),
-    writeFile         : (projectPath, filePath, content) => ipcRenderer.invoke('project:writeFile', projectPath, filePath, content),
-    writeFileInFolder : (projectPath, folderPath, fileName, content) => ipcRenderer.invoke('project:writeFile', projectPath, folderPath, fileName, content),
-    createNewDiagram  : (projectPath, folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', projectPath, folderPath, diagram),
-    createNewFolder   : (projectPath, parentPath, name) => ipcRenderer.invoke('project:createNewFolder', projectPath, parentPath, name),
-    renameFolder      : (projectPath, folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', projectPath, folderPath, newFolderName),
-    renameDiagram     : (projectPath, filePath, newName) => ipcRenderer.invoke('project:renameDiagram', projectPath, filePath, newName),
-    moveFile          : (projectPath, filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', projectPath, filePath, newParentPath),
+    getProjectFileTree: () =>  ipcRenderer.invoke('project:fileTree'),
+    readFile          : (filePath) => ipcRenderer.invoke('project:readFile', filePath),
+    writeFile         : (filePath, content) => ipcRenderer.invoke('project:writeFile', filePath, content),
+    writeFileInFolder : (folderPath, fileName, content) => ipcRenderer.invoke('project:writeFile', folderPath, fileName, content),
+    createNewDiagram  : (folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', folderPath, diagram),
+    createNewFolder   : (parentPath, name) => ipcRenderer.invoke('project:createNewFolder', parentPath, name),
+    renameFolder      : (folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', folderPath, newFolderName),
+    renameDiagram     : (filePath, newName) => ipcRenderer.invoke('project:renameDiagram', filePath, newName),
+    moveFile          : (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
 
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 

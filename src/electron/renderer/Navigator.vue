@@ -239,7 +239,7 @@ export default {
                 return;
             }
 
-            window.electronAPI.moveFile(this.projectPath, entry.path, null)
+            window.electronAPI.moveFile(entry.path, null)
             .then(response => {
                 this.$emit('moved-entries', response.movedEntries);
             });
@@ -260,7 +260,7 @@ export default {
                 }
             }
 
-            window.electronAPI.moveFile(this.projectPath, entry.path, parentEntry.path)
+            window.electronAPI.moveFile(entry.path, parentEntry.path)
             .then(response => {
                 this.$emit('moved-entries', response.movedEntries);
             });
@@ -354,7 +354,7 @@ export default {
         },
 
         submitRenamingDiagram(entry, name) {
-            window.electronAPI.renameDiagram(this.projectPath, entry.path, name)
+            window.electronAPI.renameDiagram(entry.path, name)
             .then(() => {
                 this.$emit('renamed-diagram', entry.path, name);
             });
@@ -363,7 +363,7 @@ export default {
         submitRenamingFolder(entry, name) {
             const oldPath = entry.path;
             const newPath = entry.path.substring(0, entry.path.length - entry.name.length) + name;
-            window.electronAPI.renameFolder(this.projectPath, entry.path, name)
+            window.electronAPI.renameFolder(entry.path, name)
             .then(() => {
                 // updating lookup path so that in next update it can preserve collapse state of directories after reloading the tree
                 const keysToUpdate = [];
@@ -397,7 +397,7 @@ export default {
 
         newFolderSubmitted() {
             const parentPath = this.newFolderModal.parentPath;
-            window.electronAPI.createNewFolder(this.projectPath, parentPath, this.newFolderModal.name)
+            window.electronAPI.createNewFolder(parentPath, this.newFolderModal.name)
             .then(entry => {
                 this.$emit('entry-added', parentPath, entry);
                 this.newFolderModal.shown = false;
@@ -415,7 +415,7 @@ export default {
         newDiagramSubmitted(diagram) {
             const folderPath = this.newDiagramModal.folderPath;
 
-            window.electronAPI.createNewDiagram(this.projectPath, folderPath, diagram)
+            window.electronAPI.createNewDiagram(folderPath, diagram)
             .then(entry => {
                 const parent = entry.parent !== '.' ? entry.parent : null;
                 this.$emit('entry-added', parent, {

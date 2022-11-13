@@ -154,7 +154,7 @@ export default {
                 return;
             }
 
-            window.electronAPI.readFile(this.projectPath, docPath).then(file => {
+            window.electronAPI.readFile(docPath).then(file => {
                 const newIdx = this.appendFile(file);
                 this.focusFile(newIdx);
             });
@@ -232,7 +232,7 @@ export default {
                 content = JSON.stringify(document);
             }
             this.$store.dispatch('clearStatusMessage');
-            window.electronAPI.writeFile(this.projectPath, file.path, content)
+            window.electronAPI.writeFile(file.path, content)
             .then(() => {
                 file.modified = false;
                 const entry = findEntryInFileTree(this.fileTree, file.path);
@@ -323,7 +323,7 @@ export default {
         },
 
         onFileTreeEntriesMoved(movedEntries) {
-            window.electronAPI.getProjectFileTree(this.projectPath)
+            window.electronAPI.getProjectFileTree()
             .then(fileTree => {
                 this.fileTree = fileTree;
                 this.fileTreeReloadKey++;
