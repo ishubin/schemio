@@ -13,7 +13,7 @@ const SUB_STATE_STACK_LIMIT = 10;
 
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event
  */
 export function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
@@ -29,7 +29,7 @@ export function isEventRightClick(event) {
 
 class State {
     /**
-     * @param {EventBus} EventBus 
+     * @param {EventBus} EventBus
      * @param {Vuex.Store} store - a Vuex store object
      */
     constructor(eventBus, store, name, listener) {
@@ -51,12 +51,14 @@ class State {
             }
         }
         this.subState = newSubState;
+        this.subState.listener = this.listener;
         this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
     }
 
     migrateToPreviousSubState() {
         if (this.previousSubStates.length > 0) {
             this.subState = this.previousSubStates.pop();
+            this.subState.listener = this.listener;
             this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
         }
     }
@@ -92,7 +94,7 @@ class State {
     mouseDown(x, y, mx, my, object, event) {
         if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event);
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         if (this.subState) this.subState.mouseMove(x, y, mx, my, object, event);
     }
@@ -103,12 +105,12 @@ class State {
 
 
     /**
-     * 
-     * @param {*} x 
-     * @param {*} y 
-     * @param {*} mx 
-     * @param {*} my 
-     * @param {MouseEvent} event 
+     *
+     * @param {*} x
+     * @param {*} y
+     * @param {*} mx
+     * @param {*} my
+     * @param {MouseEvent} event
      */
     mouseWheel(x, y, mx, my, event) {
         if (event) {
@@ -183,8 +185,8 @@ class State {
 
     /**
      * Changes screen offset coords and checks bounding box of all items in relative transform so that they are always visible on the screen
-     * @param {*} sx 
-     * @param {*} sy 
+     * @param {*} sx
+     * @param {*} sy
      */
     dragScreenTo(sx, sy) {
         // getting bounding box of items in relative transform
@@ -200,10 +202,10 @@ class State {
             const maxScreenY = this.schemeContainer.screenSettings.height - bbox.y * scale - padding;
 
             this.schemeContainer.screenTransform.x = Math.max(minScreenX, Math.min(sx, maxScreenX));
-            this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY)); 
+            this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY));
         } else {
             this.schemeContainer.screenTransform.x = sx;
-            this.schemeContainer.screenTransform.y = sy; 
+            this.schemeContainer.screenTransform.y = sy;
         }
 
         this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
@@ -223,7 +225,7 @@ class State {
 
     /**
      * Checks snapping of item and returns new offset that should be applied to item
-     * 
+     *
      * @param {SnappingPoints} points - points of an item by which it should snap it to other items
      * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
      * @param {Number} dx - pre-snap candidate offset on x axis
@@ -321,7 +323,7 @@ class State {
     /**
      * Based on zoom it calculates a precision with which we should round the updated value
      * This is needed to avoid issues with floating values calculation so that users don't get uggly values with many digits after point.
-     * 
+     *
      * @returns precision for which we should round the value
      */
     getUpdatePrecision() {
@@ -436,7 +438,7 @@ export class MultiSelectState extends SubState {
         }
         StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         this.selectorCallback(this.multiSelectBox, isMultiSelectKey(event));
         StoreUtils.setMultiSelectBox(this.store, null);

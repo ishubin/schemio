@@ -265,9 +265,10 @@ class SchemeContainer {
      * @param {Scheme} scheme
      * @param {EventBus} eventBus
      */
-    constructor(scheme, eventBus) {
+    constructor(scheme, eventBus, listener) {
         Debugger.register('SchemioContainer', this);
 
+        this.listener = listener;
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
@@ -1306,7 +1307,7 @@ class SchemeContainer {
             if (newParentId) {
                 this.eventBus.emitItemChanged(newParentId);
             }
-            this.eventBus.emitSchemeChangeCommited();
+            this.listener.onSchemeChangeCommitted(this.editorId);
         }
 
 
@@ -2446,7 +2447,7 @@ class SchemeContainer {
             item.area.y += correction.y;
             this.eventBus.emitItemChanged(item.id, 'area');
         }
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
     }
 
@@ -2508,7 +2509,7 @@ class SchemeContainer {
             item.area.y += correction.y;
             this.eventBus.emitItemChanged(item.id, 'area');
         }
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
     }
 
@@ -2540,7 +2541,7 @@ class SchemeContainer {
                 this.eventBus.emitItemChanged(item.id, 'area');
             });
         });
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
     }
 

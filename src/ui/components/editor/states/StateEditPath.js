@@ -329,7 +329,7 @@ class BezierConversionState extends SubState {
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateCurveEditPoint(this.store, this.item, this.pathId, this.pointId, this.point);
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         this.updateBezierPoint(x, y);
         const newPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
@@ -400,7 +400,7 @@ class CreatingPathState extends SubState {
             const firstPoint = this.item.shapeProps.paths[this.pathId].points[0];
             const dx = (point.x - firstPoint.x) * this.item.area.w / PATH_POINT_CONVERSION_SCALE;
             const dy = (point.y - firstPoint.y) * this.item.area.h / PATH_POINT_CONVERSION_SCALE;
-            
+
             if (Math.sqrt(dx * dx + dy * dy) * this.getSchemeContainer().screenTransform.scale <= 5) {
                 point.x = firstPoint.x;
                 point.y = firstPoint.y;
@@ -411,7 +411,7 @@ class CreatingPathState extends SubState {
         }
 
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
         if (this.item.shapeProps.paths.length > this.pathId && this.item.shapeProps.paths[this.pathId].points.length > 0) {
@@ -545,7 +545,7 @@ class DragObjectState extends SubState {
             this.handleCurveControlPointDrag(x, y, event);
         }
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         this.parentState.historyCommit();
         StoreUtils.clearItemSnappers(this.store);
@@ -597,7 +597,7 @@ class DragObjectState extends SubState {
 
         curvePoint[`x${index}`] = this._cx(snappedLocalAbsoluteCurvePoint.x) - curvePoint.x;
         curvePoint[`y${index}`] = this._cy(snappedLocalAbsoluteCurvePoint.y) - curvePoint.y;
-        
+
         if (curvePoint.t === 'B' && !(event.metaKey || event.ctrlKey || event.shiftKey)) {
             curvePoint[`x${oppositeIndex}`] = -curvePoint[`x${index}`];
             curvePoint[`y${oppositeIndex}`] = -curvePoint[`y${index}`];
@@ -726,7 +726,7 @@ class IdleState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
-        if (this.clickedObject && 
+        if (this.clickedObject &&
             (this.clickedObject.type === 'path-point' || this.clickedObject.type === 'path-control-point' || this.clickedObject.type === 'path-segment')) {
             this.migrate(new DragObjectState(this.parentState, this.clickedObject, x, y));
             this.reset();
@@ -755,10 +755,10 @@ class IdleState extends SubState {
         });
         EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         if (this.clickedObject && this.clickedObject.type === 'path-segment') {
-            // making sure that only 
+            // making sure that only
             this.selectPath(object, false);
         } else if (this.shouldSelectOnlyOne && this.clickedObject) {
             if (this.clickedObject.type === 'path-point') {
@@ -836,7 +836,7 @@ export default class StateEditPath extends State {
                     paths.splice(i, 1);
                 }
             }
-            
+
             if (paths.length === 0) {
                 this.schemeContainer.deleteItem(this.item);
             } else {
@@ -865,7 +865,7 @@ export default class StateEditPath extends State {
             }
             this.schemeContainer.updateMultiItemEditBox();
         }
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         super.cancel();
     }
 
@@ -901,7 +901,7 @@ export default class StateEditPath extends State {
         for (let i = 0; i < selectedPoints.length && !clickedOnSelectedPoint; i++) {
             clickedOnSelectedPoint = object.pathIndex === selectedPoints[i].pathId && object.pointIndex === selectedPoints[i].pointId;
         }
-        
+
         if (selectedPoints.length > 1 && clickedOnSelectedPoint) {
             const menuOptions = [{
                 name: 'Delete points',
@@ -1063,7 +1063,7 @@ export default class StateEditPath extends State {
         });
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     duplicatePath(pathId) {
@@ -1075,7 +1075,7 @@ export default class StateEditPath extends State {
         this.item.shapeProps.paths.push(newPath);
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     mergePoints(pref1, pref2) {
@@ -1111,7 +1111,7 @@ export default class StateEditPath extends State {
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     mergePointsOfTwoPaths(pathId1, pId1, pathId2, pId2) {
@@ -1164,7 +1164,7 @@ export default class StateEditPath extends State {
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     breakPath(pathIndex, pointIndex) {
@@ -1177,7 +1177,7 @@ export default class StateEditPath extends State {
 
         this.eventBus.emitItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.historyCommit();
     }
 
@@ -1230,7 +1230,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     deleteSelectedPoints() {
@@ -1242,7 +1242,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.historyCommit();
     }
 
@@ -1259,7 +1259,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.historyCommit();
     }
 
@@ -1280,7 +1280,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.historyCommit();
     }
 
@@ -1289,7 +1289,7 @@ export default class StateEditPath extends State {
         if (!point) {
             return;
         }
-        
+
         let dx = 10, dy = 0;
         if (this.item.shapeProps.paths[pathId].points.length > 2) {
             // calculating dx and dy via previous and next points
@@ -1314,7 +1314,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.historyCommit();
     }
 
@@ -1327,7 +1327,7 @@ export default class StateEditPath extends State {
         this.eventBus.emitItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.updateCurveEditPoint(this.store, this.item, pathId, pointIndex, this.item.shapeProps.paths[pathId].points[pointIndex]);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.historyCommit();
     }
 
@@ -1339,7 +1339,7 @@ export default class StateEditPath extends State {
         let bestSnappedVerticalProximity = 100000;
         //TODO configure snapping precision
         const maxSnapProximity = 6;
-        
+
         let horizontalSnapper = null;
         let verticalSnapper = null;
 

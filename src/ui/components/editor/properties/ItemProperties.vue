@@ -14,12 +14,13 @@
             </li>
         </ul>
 
-        <general-panel v-if="currentTab === 'description'"
+        <GeneralPanel v-if="currentTab === 'description'"
             :key="`general-panel-${item.id}`"
+            :editorId="editorId"
             :item="item"
             :schemeContainer="schemeContainer"
             @tags-changed="emitItemFieldChange('tags', arguments[0])"/>
-        <links-panel v-if="currentTab === 'description'" :key="`links-panel-${item.id}`" :item="item"/>
+        <LinksPanel v-if="currentTab === 'description'" :editorId="editorId" :key="`links-panel-${item.id}`" :item="item"/>
 
         <div v-if="currentTab === 'behavior'">
             <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
@@ -209,6 +210,7 @@ import indexOf from 'lodash/indexOf';
 import mapValues from 'lodash/mapValues';
 import forEach from 'lodash/forEach';
 import EventBus from '../EventBus.js';
+import EditorEventBus from '../EditorEventBus.js';
 import Panel from '../Panel.vue';
 import Tooltip from '../../Tooltip.vue';
 import GeneralPanel from './GeneralPanel.vue';
@@ -246,6 +248,7 @@ const tabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 1
 
 export default {
     props: {
+        editorId: {type: String, required: true},
         item: { type: Object },
         schemeContainer: { type: Object },
         userStylesEnabled: { type: Boolean, default: false}
@@ -390,7 +393,7 @@ export default {
                     box.area[areaProperty] = value;
                     this.schemeContainer.updateMultiItemEditBoxItems(box, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
                 }
-                EventBus.emitSchemeChangeCommited(`editbox.area.${areaProperty}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `editbox.area.${areaProperty}`);
             }
         },
 
@@ -407,7 +410,7 @@ export default {
                     }
 
                     EventBus.emitItemChanged(item.id, 'area.sx');
-                    EventBus.emitSchemeChangeCommited(`editbox.area.s`);
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `editbox.area.s`);
                     this.schemeContainer.updateMultiItemEditBoxAreaOnly();
                     this.schemeContainer.updateChildTransforms(this.schemeContainer.multiItemEditBox.items[0]);
                     EventBus.$emit(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED);
@@ -480,7 +483,7 @@ export default {
                     this.item.effects[this.editEffectModal.currentEffectIndex] = effect;
                 }
                 EventBus.emitItemChanged(this.item.id, 'effects');
-                EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
             }
         },
 
@@ -499,7 +502,7 @@ export default {
 
             this.item.effects.splice(idx, 1);
             EventBus.emitItemChanged(this.item.id, 'effects');
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.effects`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
         },
 
         onEffectIdChanged(newEffectId) {

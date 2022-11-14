@@ -25,7 +25,6 @@ const EventBus = new Vue({
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
 
-            SCHEME_CHANGE_COMMITED: 'scheme-changed-commited',
 
             ANY_ITEM_CLICKED: 'any-item-clicked',
             ITEM_CHANGED: 'item-changed',
@@ -34,7 +33,6 @@ const EventBus = new Vue({
             ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',
             ANY_ITEM_DESELECTED: 'any-item-deselected',
-            ITEM_HIGHLIGHT_SET: 'item-highlight-set',
 
             // used to trigger in-svg text edit of an item
             ITEM_TEXT_SLOT_EDIT_TRIGGERED: 'item-text-slot-edit-triggered',
@@ -109,9 +107,6 @@ const EventBus = new Vue({
         };
     },
     methods: {
-        emitSchemeChangeCommited(affinityId) {
-            this.$emit(EventBus.SCHEME_CHANGE_COMMITED, affinityId);
-        },
 
         /**
          * emits an event when a single item is supposed to be highlighted

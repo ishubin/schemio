@@ -21,7 +21,7 @@
                                 @click="startRecording"
                                 title="Record items for currently selected frame"
                                 >
-                                <i class="far fa-dot-circle"></i> 
+                                <i class="far fa-dot-circle"></i>
                             </span>
                             <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
                             <span v-if="isPlaying" class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
@@ -72,7 +72,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(track, trackIdx) in framesMatrix" 
+                        <tr v-for="(track, trackIdx) in framesMatrix"
                             class="track-droppable-area"
                             :data-track-index="trackIdx"
                             :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function', 'drop-below': trackDrag.on && !trackDrag.dropHead && trackIdx === trackDrag.dstTrackIdx}"
@@ -182,6 +182,7 @@ import AnimationFunctions from '../../../animations/functions/AnimationFunctions
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import shortid from 'shortid';
 import myMath from '../../../myMath';
+import EditorEventBus from '../EditorEventBus';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -189,7 +190,7 @@ const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity'
 
 
 function calculateTrackColor(kind, id, property) {
-    let hue = Math.abs(utils.hashString(kind + id)) % 360; 
+    let hue = Math.abs(utils.hashString(kind + id)) % 360;
     const propertyHash = Math.abs(utils.hashString(property));
     const hueJitter = propertyHash % 20 - 10;
     hue = (hue + hueJitter) % 360;
@@ -335,6 +336,7 @@ function findFrameIdx(animation, frame) {
 
 export default {
     props: {
+        editorId       : {type: String, required: true},
         schemeContainer: {type: Object, required: true},
         framePlayer    : {type: Object, required: true},
         light          : {type: Boolean, default: true},
@@ -344,13 +346,13 @@ export default {
 
     beforeMount() {
         this.compileAnimations();
-        EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
+        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
         EventBus.$on(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
         EventBus.subscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
+        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
         EventBus.$off(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
         EventBus.unsubscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
         StoreUtils.setAnimationEditorRecording(this.$store, false);
@@ -1055,7 +1057,7 @@ export default {
                         }
                     }
                 });
-            
+
                 forEach(Interpolations.values(), interpolation => {
                     if (frame.kind !== interpolation) {
                         options.push({
@@ -1108,7 +1110,7 @@ export default {
             this.framePlayer.shapeProps.totalFrames -= 1;
             this.totalFrames = this.framePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         insertEmptyFramesAtFrame(frameNumber) {
@@ -1131,7 +1133,7 @@ export default {
             this.framePlayer.shapeProps.totalFrames += 1;
             this.totalFrames = this.framePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         onContextMenuOptionClick(option) {
@@ -1230,7 +1232,7 @@ export default {
                     this.enrichFrameWithIcon(this.framesMatrix[trackIdx].frames[frame - 1], track.valueType);
                 }
 
-                EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
                 this.shouldRecompileAnimations = true;
             } else if (track.kind === 'sections') {
                 const sections = this.framePlayer.shapeProps.sections;
@@ -1241,7 +1243,7 @@ export default {
                         break;
                     }
                 }
-                EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.sections.${frame}`);
             }
         },
 
@@ -1268,7 +1270,7 @@ export default {
 
             this.framesMatrix[trackIdx].frames[frameIdx] = frame;
             sections.splice(idx, 0, frame);
-            EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.sections.${frame}`);
         },
 
         addFunctionFrame(trackIdx, frameIdx) {

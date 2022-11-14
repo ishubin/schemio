@@ -88,7 +88,7 @@ export default class StateCreateItem extends State {
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
         this.eventBus.emitItemChanged(this.item.id);
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.cancel();
     }
 

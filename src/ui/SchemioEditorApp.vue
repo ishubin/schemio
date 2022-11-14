@@ -6,6 +6,7 @@
     <div class="scheme-editor-app">
         <SchemeEditor v-if="patch.patchedScheme && patch.isToggled"
             key="patched-scheme"
+            :editorId="editorId"
             :scheme="patch.patchedScheme"
             :mode="mode"
             :active="active"
@@ -30,6 +31,7 @@
 
         <SchemeEditor v-else
             :key="`origin-scheme`"
+            :editorId="editorId"
             :scheme="scheme"
             :mode="mode"
             :modified="modified"
@@ -54,7 +56,6 @@
             @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
             />
 
-        <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
 
         <div v-if="scheme && patch.patchedScheme" class="patch-menu-wrapper">
             <div class="patch-menu-popup">
@@ -86,6 +87,7 @@
 
         <SystemMessagePanel/>
 
+        <Debugger v-if="debuggerShown" @close="debuggerShown = false"/>
     </div>
 </template>
 
@@ -104,6 +106,7 @@ export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor, ColorPicker, Modal, PatchDetails},
 
     props: {
+        editorId         : {type: String, required: true},
         mode             : {type: String, default: 'view'},
         scheme           : {type: Object, default: () => null},
         editAllowed      : {type: Boolean, default: false},

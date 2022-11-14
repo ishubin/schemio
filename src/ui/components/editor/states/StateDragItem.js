@@ -95,7 +95,7 @@ class EditBoxState extends SubState {
         }
         this.schemeContainer.reindexItems();
 
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.migrateToPreviousSubState();
     }
 
@@ -169,7 +169,7 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.eventBus.emitItemsHighlighted([]);
         this.migrateToPreviousSubState();
     }
@@ -763,7 +763,7 @@ class IdleState extends SubState {
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.setItemControlPoints(this.store, item);
             StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
-            this.eventBus.emitSchemeChangeCommited();
+            this.listener.onSchemeChangeCommitted();
         }
     }
 
@@ -785,7 +785,7 @@ class IdleState extends SubState {
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.setItemControlPoints(this.store, item);
         StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     findTextSlotAndEmitInPlaceEdit(item, x, y) {

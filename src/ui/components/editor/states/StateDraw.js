@@ -105,7 +105,7 @@ export default class StateDraw extends State {
                     t: 'L'
                 };
                 this.item.shapeProps.paths[this.currentPathId].points.push(convertCurvePointToRelative(point, this.item.area.w, this.item.area.h));
-                
+
                 EventBus.emitItemChanged(this.item.id, `shapeProps.paths`);
             }
         }
@@ -115,7 +115,7 @@ export default class StateDraw extends State {
         this.isDrawing = false;
         EventBus.emitItemChanged(this.item.id, 'shapeProps.paths');
     }
-    
+
     cancel() {
         this.eventBus.emitItemsHighlighted([]);
         const item = this.submitDrawing();
@@ -148,6 +148,7 @@ export default class StateDraw extends State {
             readjustItemAreaAndPoints(this.item);
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
+            this.listener.onSchemeChangeCommitted();
             return this.item;
         }
         return null;

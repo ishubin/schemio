@@ -106,9 +106,11 @@ import Panel from '../editor/Panel.vue';
 import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import Tooltip from '../Tooltip.vue';
+import EditorEventBus from './EditorEventBus.js';
 
 export default {
     props: {
+        editorId: {type: String, required: true},
         schemeContainer: { type: Object },
     },
     components: {VueTagsInput, RichTextEditor, ColorPicker, Panel, Tooltip},
@@ -145,7 +147,7 @@ export default {
         },
 
         onPropertyChange(propertyName) {
-            EventBus.emitSchemeChangeCommited(`scheme.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scheme.${propertyName}`);
         },
     },
 
@@ -171,7 +173,7 @@ export default {
         'screenSettings.draggable': {
             handler(value) {
                 this.schemeContainer.scheme.settings.screen.draggable = value;
-                EventBus.emitSchemeChangeCommited('scheme.settings.screen.draggable');
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, 'scheme.settings.screen.draggable');
             }
         }
     }

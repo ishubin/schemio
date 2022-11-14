@@ -59,7 +59,7 @@
                 <h5>Description</h5>
                 <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
 
-                <links-panel :item="item"/>
+                <LinksPanel :editorId="editorId" :item="item"/>
             </modal>
 
             <div class="styles-popup" v-if="stylesPopup.shown" :style="{top: `${stylesPopup.y}px`, left: `${stylesPopup.x}px`}">
@@ -82,9 +82,16 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import { applyItemStyle } from './properties/ItemStyles';
 import LinksPanel from './properties/LinksPanel.vue';
 import map from 'lodash/map';
+import EditorEventBus from './EditorEventBus';
 
 export default {
-    props: ['x', 'y', 'item', 'schemeContainer'],
+    props: {
+        editorId       : {type: String, required: true},
+        x              : {type: Number},
+        y              : {type: Number},
+        item           : {type: Object},
+        schemeContainer: {type: Object}
+    },
 
     components: {
         AdvancedColorEditor, StrokeControl, Modal,
@@ -151,18 +158,18 @@ export default {
         },
 
         commitSchemeChange(propertyName) {
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.${propertyName}`);
         },
 
         updateShapeProp(name, value) {
             this.item.shapeProps[name] = value;
             EventBus.emitItemChanged(this.item.id, `shapeProps.${name}`);
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.shapeProps.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.${name}`);
         },
 
         deleteItem() {
             this.schemeContainer.deleteSelectedItems();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         triggerNameEdit() {
@@ -185,7 +192,7 @@ export default {
         applyItemStyle(style) {
             if (applyItemStyle(this.item, style)) {
                 EventBus.emitItemChanged(this.item.id);
-                EventBus.emitSchemeChangeCommited(`item.${this.item.id}.styles`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.styles`);
             }
             this.stylesPopup.shown = false;
         }
@@ -202,7 +209,7 @@ export default {
         itemName(value) {
             this.item.name = value;
             EventBus.emitItemChanged(this.item.id, 'name');
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.name`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.name`);
         }
     },
 

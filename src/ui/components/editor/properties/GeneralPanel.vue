@@ -32,10 +32,12 @@ import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import EventBus from '../EventBus';
+import EditorEventBus from '../EditorEventBus';
 import Shape from '../items/shapes/Shape';
 
 export default {
     props: {
+        editorId: {type: String, required: true},
         item: {type: Object},
         schemeContainer: {type: Object}
     },
@@ -67,7 +69,7 @@ export default {
         },
 
         commitSchemeChange(propertyName) {
-            EventBus.emitSchemeChangeCommited(`item.${this.item.id}.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.${propertyName}`);
             EventBus.emitItemChanged(this.item.id, propertyName);
         }
     },

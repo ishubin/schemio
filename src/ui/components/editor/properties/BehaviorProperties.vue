@@ -154,6 +154,7 @@ import {textSlotProperties, getItemPropertyDescriptionForShape} from '../../../s
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
+import EditorEventBus from '../EditorEventBus.js';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
@@ -174,9 +175,10 @@ function sanitizeEvent(event) {
 
 export default {
     props: {
-        item: Object,
-        schemeContainer: Object,
-        extended: { type: Boolean, default: false }
+        editorId       : {type: Object, required: true},
+        item           : {type: Object},
+        schemeContainer: {type: Object},
+        extended       : { type: Boolean, default: false }
     },
 
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
@@ -444,7 +446,7 @@ export default {
                         });
                         this.item.behavior.events.push(event);
                     });
-                    EventBus.emitSchemeChangeCommited();
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                 }
             });
         },
@@ -588,7 +590,7 @@ export default {
 
         emitChangeCommited(affinityId) {
             EventBus.emitItemChanged(this.item.id);
-            EventBus.emitSchemeChangeCommited(affinityId);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
         },
 
         showFunctionArgumentsEditor(action, eventIndex, actionIndex) {
@@ -616,7 +618,7 @@ export default {
                     event.actions[actionIndex].args[argName] = value;
                 }
             }
-            EventBus.emitSchemeChangeCommited(`items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
         },
 
         onActionDragStarted(eventIndex, actionIndex) {

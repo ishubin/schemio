@@ -35,6 +35,7 @@
         </div>
         <SchemioEditorApp v-else-if="clientProvider.type === 'offline'"
             :key="`offline-scheme-${appReloadKey}`"
+            :editorId="`offline-scheme-${appReloadKey}`"
             :scheme="scheme"
             :schemePatch="schemePatch"
             :mode="mode"
@@ -56,6 +57,7 @@
         />
         <SchemioEditorApp v-else-if="scheme"
             :key="`scheme-${appReloadKey}`"
+            :editorId="`scheme-${appReloadKey}`"
             :scheme="scheme"
             :schemePatch="schemePatch"
             :mode="mode"

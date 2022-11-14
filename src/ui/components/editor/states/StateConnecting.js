@@ -556,7 +556,7 @@ export default class StateConnecting extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
         this.eventBus.emitItemChanged(this.item.id, 'area');
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.schemeContainer.selectItem(this.item);
         this.reset();
     }

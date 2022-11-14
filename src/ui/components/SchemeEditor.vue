@@ -53,6 +53,7 @@
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
                     :class="['state-' + state, 'sub-state-' + editorSubStateName]"
+                    :editorId="editorId"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
                     :patchIndex="patchIndex"
@@ -97,6 +98,7 @@
 
                         <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
                             :key="`floating-helper-panel-${floatingHelperPanel.item.id}`"
+                            :editorId="editorId"
                             :x="floatingHelperPanel.x"
                             :y="floatingHelperPanel.y"
                             :item="floatingHelperPanel.item"
@@ -108,6 +110,7 @@
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
+                    :editorId="editorId"
                     :schemeContainer="interactiveSchemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
@@ -163,6 +166,7 @@
                         <FrameAnimatorPanel
                             v-if="animationEditorCurrentFramePlayer"
                             :key="animationEditorCurrentFramePlayer.id"
+                            :editorId="editorId"
                             :schemeContainer="schemeContainer"
                             :framePlayer="animationEditorCurrentFramePlayer"
                             :light="false"
@@ -172,6 +176,7 @@
                         <FrameAnimatorPanel
                             v-else-if="animatorPanel.framePlayer"
                             :key="animatorPanel.framePlayer.id"
+                            :editorId="editorId"
                             :schemeContainer="schemeContainer"
                             :framePlayer="animatorPanel.framePlayer"
                             :light="true"
@@ -238,8 +243,9 @@
                     </div>
                     <div v-else class="tabs-body">
                         <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.item">
-                            <scheme-properties v-if="mode === 'edit'"
+                            <SchemeProperties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
+                                :editorId="editorId"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 @export-all-shapes="openExportAllShapesModal"
                                 @delete-diagram-requested="$emit('delete-diagram-requested')"/>
@@ -250,11 +256,12 @@
                         <div v-if="currentTab === 'Item' && !inPlaceTextEditor.item">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
-                                    <item-selector :scheme-container="schemeContainer" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
+                                    <ItemSelector :editorId="editorId" :scheme-container="schemeContainer" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
                                 </panel>
 
-                                <item-properties v-if="schemeContainer.selectedItems.length > 0"
+                                <ItemProperties v-if="schemeContainer.selectedItems.length > 0"
                                     :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                                    :editorId="editorId"
                                     :item="schemeContainer.selectedItems[0]"
                                     :revision="schemeRevision"
                                     :schemeContainer="schemeContainer"
@@ -365,6 +372,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EventBus from './editor/EventBus.js';
+import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer, { worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
@@ -489,6 +497,7 @@ export default {
     },
 
     props: {
+        editorId         : {type: String, required: true},
         mode             : {type: String, default: 'view'},
         scheme           : {type: Object, required: true},
         patchIndex       : {type: Object, default: null},
@@ -515,34 +524,51 @@ export default {
     },
 
     created() {
-        const defaultListener = {
-            onCancel: () => this.cancelCurrentState()
-        };
         this.states = {
-            interact: new StateInteract(EventBus, this.$store, this.userEventBus, defaultListener),
-            createItem: new StateCreateItem(EventBus, this.$store, defaultListener),
+            interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
+                onCancel: () => this.cancelCurrentState()
+            }),
+            createItem: new StateCreateItem(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+            }),
             editPath: new StateEditPath(EventBus, this.$store, {
                 onCancel: () => this.cancelCurrentState(),
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 onHistoryStateChange: (undoable, redoable) => {
                     this.historyState.undoable = undoable;
                     this.historyState.redoable = redoable;
                 }
             }),
-            connecting: new StateConnecting(EventBus, this.$store, defaultListener),
+            connecting: new StateConnecting(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+            }),
             dragItem: new StateDragItem(EventBus, this.$store, {
                 onCancel: () => this.cancelCurrentState(),
-                onStartConnecting: (item, point) => this.startConnecting(item, point)
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onStartConnecting: (item, point) => this.startConnecting(item, point),
             }),
-            pickElement: new StatePickElement(EventBus, this.$store, defaultListener),
-            cropImage: new StateCropImage(EventBus, this.$store, defaultListener),
-            draw: new StateDraw(EventBus, this.$store, defaultListener),
+            pickElement: new StatePickElement(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
+            }),
+            cropImage: new StateCropImage(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+            }),
+            draw: new StateDraw(EventBus, this.$store, {
+                onCancel: () => this.cancelCurrentState(),
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+            }),
         };
     },
 
     beforeMount() {
+        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.commitHistory);
         this.registerEventBusHandlers();
     },
     beforeDestroy() {
+        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
         this.deregisterEventBusHandlers();
     },
 
@@ -660,13 +686,13 @@ export default {
         registerEventBusHandlers() {
             if (!this.eventsRegistered) {
                 this.eventsRegistered = true;
+
                 EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
                 EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
                 EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
                 EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-                EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
                 EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
                 EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
@@ -695,7 +721,6 @@ export default {
                 EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
                 EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
                 EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-                EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
                 EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
                 EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
@@ -730,7 +755,9 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, EventBus);
+                this.schemeContainer = new SchemeContainer(scheme, EventBus, {
+                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                });
 
                 if (this.mode === 'view') {
                     this.switchToViewMode();
@@ -1010,7 +1037,7 @@ export default {
         closeItemTextEditor() {
             if (this.inPlaceTextEditor.item) {
                 EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
-                EventBus.emitSchemeChangeCommited(`item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 this.schemeContainer.reindexItems();
             }
@@ -1109,7 +1136,7 @@ export default {
                 url: link.url,
                 type: link.type,
             });
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         startCreatingExternalComponentForItem(item) {
@@ -1238,7 +1265,7 @@ export default {
                     applyStyleFromAnotherItem(this.$store.state.copiedStyleItem, item);
                     EventBus.emitItemChanged(item.id);
                 });
-                EventBus.emitSchemeChangeCommited();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             }
         },
 
@@ -1259,7 +1286,7 @@ export default {
                             const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
                             const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
                             this.schemeContainer.pasteItems(items, centerX, centerY);
-                            EventBus.emitSchemeChangeCommited();
+                            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         });
                     }
                 }
@@ -1476,7 +1503,7 @@ export default {
                     StoreUtils.setSelectedConnectorPath(this.$store, Shape.find(item.shape).computeOutline(item));
                 }
             }
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.shapeProps.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.shapeProps.${name}`);
             if (reindexingNeeded) {
                 this.schemeContainer.reindexItems();
             }
@@ -1495,7 +1522,7 @@ export default {
             if (name === 'tags') {
                 this.schemeContainer.reindexTags();
             }
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.${name}`);
         },
 
         onItemShapeChanged(shapeName) {
@@ -1508,7 +1535,7 @@ export default {
                 });
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.shape`);
         },
 
         onItemStyleApplied(style) {
@@ -1519,7 +1546,7 @@ export default {
                     itemIds += item.id;
                 }
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.${name}`);
         },
 
         onInPlaceEditTextPropertyChanged(item, textSlotName, propertyName, value) {
@@ -1528,7 +1555,7 @@ export default {
                 recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
             }
             EventBus.emitItemChanged(item.id);
-            EventBus.emitSchemeChangeCommited(`item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
         },
 
         // this is triggered from quick helper panel
@@ -1544,7 +1571,7 @@ export default {
                 EventBus.emitItemChanged(item.id, `textSlots.*.${propertyName}`);
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.*.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.*.${propertyName}`);
 
         },
 
@@ -1559,7 +1586,7 @@ export default {
                 EventBus.emitItemChanged(item.id, `textSlots.${textSlotName}.${propertyName}`);
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
         convertCurvePointToSimple() {
@@ -1592,7 +1619,9 @@ export default {
         },
 
         switchToViewMode() {
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus, {
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+            });
             this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
 
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
@@ -1654,7 +1683,9 @@ export default {
             })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, EventBus);
+                const componentSchemeContainer = new SchemeContainer(scheme, EventBus, {
+                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                });
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems();
                 EventBus.emitItemChanged(item.id);
@@ -1887,7 +1918,7 @@ export default {
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         /**
@@ -1991,7 +2022,7 @@ export default {
 
         deleteSelectedItems() {
             this.schemeContainer.deleteSelectedItems();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         itemCreationDraggedToSvgEditor(item, pageX, pageY) {
@@ -2021,7 +2052,7 @@ export default {
             item.area.h = worldHeight / Math.max(0.0000001, sv.y);
 
             this.schemeContainer.selectItem(item);
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         toLocalPoint(mouseX, mouseY) {

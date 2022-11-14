@@ -103,6 +103,7 @@ export default class StateCropImage extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        const changeCommitted = this.startedDragging;
         this.reset();
 
         const worldPoint = myMath.worldPointInArea(0, 0, this.editBox.area);
@@ -128,6 +129,10 @@ export default class StateCropImage extends State {
             this.item.shapeProps.crop.y = (localPoint.y - y0) / this.item.area.h;
             this.item.shapeProps.crop.h = h0 / this.item.area.h - this.item.shapeProps.crop.y - 1;
         }
+
+        if (changeCommitted) {
+            this.listener.onSchemeChangeCommitted();
+        }
     }
 
     resetCrop() {
@@ -141,6 +146,7 @@ export default class StateCropImage extends State {
         this.item.shapeProps.crop.w = 0;
         this.item.shapeProps.crop.h = 0;
 
+        this.listener.onSchemeChangeCommitted();
         this.cancel();
     }
 }

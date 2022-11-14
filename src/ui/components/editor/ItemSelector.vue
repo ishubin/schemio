@@ -94,6 +94,7 @@ import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';
 import { createSettingStorageFromLocalStorage } from '../../LimitedSettingsStorage';
+import EditorEventBus from './EditorEventBus';
 
 const settingsStorage = createSettingStorageFromLocalStorage('item-selector', 5);
 
@@ -110,7 +111,11 @@ function visitItems(items, parentItem, callback) {
 }
 
 export default {
-    props: ['schemeContainer', 'minHeight'],
+    props: {
+        editorId: {type: String, required: true},
+        schemeContainer: {type: Object},
+        minHeight: {type: Number},
+    },
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
@@ -418,7 +423,7 @@ export default {
         toggleItemVisibility(item) {
             item.visible = !item.visible;
             EventBus.emitItemChanged(item.id, 'visible');
-            EventBus.emitSchemeChangeCommited(`item.${item.id}.visible`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.visible`);
             this.$forceUpdate();
         },
 
@@ -465,7 +470,7 @@ export default {
                     const item = this.schemeContainer.findItemById(this.nameEdit.itemId);
                     if (item) {
                         item.name = this.nameEdit.name;
-                        EventBus.emitSchemeChangeCommited(`item.${item.id}.name`);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.name`);
                     }
                 }
             }

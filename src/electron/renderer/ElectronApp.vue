@@ -21,7 +21,8 @@
                 <div v-else style="height: 100%">
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
-                            :key="`schemio-editor-${file.path}`"
+                            :key="`editor-${file.path}`"
+                            :editorId="`editor-${file.path}`"
                             :scheme="file.document"
                             :schemeReloadKey="file.schemeReloadKey"
                             :mode="file.schemeMode"

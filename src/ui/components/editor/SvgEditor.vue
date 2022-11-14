@@ -206,6 +206,7 @@ const lastMousePosition = {
 
 export default {
     props: {
+        editorId            : {type: String, required: true},
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
         stateLayerShown     : { type: Boolean, default: false},
