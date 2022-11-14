@@ -23,7 +23,7 @@
                 :offset-y="offsetY"
                 :zoom="vZoom"
                 :use-mouse-wheel="useMouseWheel"
-                mode="view" 
+                mode="view"
                 :userEventBus="userEventBus"
                 @mouse-wheel="mouseWheel"
                 @mouse-move="mouseMove"
@@ -48,6 +48,7 @@
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
 import EventBus from '../components/editor/EventBus';
+import EditorEventBus from '../components/editor/EditorEventBus';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
@@ -60,7 +61,10 @@ import shortid from 'shortid';
 const editorId = 'standalone-' + shortid.generate;
 
 const userEventBus = new UserEventBus(editorId);
-const stateInteract = new StateInteract(EventBus, store, userEventBus);
+const stateInteract = new StateInteract(EventBus, store, userEventBus, {
+    onCancel: () => {},
+    onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+});
 
 export default {
     props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],

@@ -234,7 +234,9 @@ export default {
 
         EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
-        EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+
+        EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
@@ -242,6 +244,7 @@ export default {
 
         EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
+
         EventBus.$on(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
         EventBus.$on(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
     },
@@ -267,13 +270,17 @@ export default {
         this.mouseEventsEnabled = false;
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
-        EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
+
+        EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
+
         EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
+
         EventBus.$off(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
         EventBus.$off(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
 

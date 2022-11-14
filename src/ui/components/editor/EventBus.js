@@ -22,7 +22,6 @@ const EventBus = new Vue({
             BRING_TO_VIEW: 'bring-to-view',
 
 
-            ANY_ITEM_CLICKED: 'any-item-clicked',
             ITEM_CHANGED: 'item-changed',
             ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',

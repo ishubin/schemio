@@ -68,7 +68,7 @@ class StateInteract extends State {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item) {
-                    this.eventBus.$emit(EventBus.ANY_ITEM_CLICKED, object.item);
+                    this.listener.onItemClicked(object.item);
                     this.emit(object.item, CLICKED);
                     this.handleItemClick(object.item, mx, my);
                 } else {

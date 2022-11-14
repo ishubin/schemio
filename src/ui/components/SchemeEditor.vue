@@ -526,7 +526,8 @@ export default {
     created() {
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
-                onCancel: () => this.cancelCurrentState()
+                onCancel: () => this.cancelCurrentState(),
+                onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
                 onCancel: () => this.cancelCurrentState(),
@@ -565,10 +566,14 @@ export default {
 
     beforeMount() {
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.commitHistory);
+        EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
         this.registerEventBusHandlers();
     },
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
+        EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         this.deregisterEventBusHandlers();
     },
 
@@ -687,7 +692,6 @@ export default {
             if (!this.eventsRegistered) {
                 this.eventsRegistered = true;
 
-                EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
                 EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
@@ -697,7 +701,6 @@ export default {
                 EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
                 EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-                EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
                 EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -715,7 +718,6 @@ export default {
         deregisterEventBusHandlers() {
             if (this.eventsRegistered) {
                 this.eventsRegistered = false;
-                EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
                 EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
                 EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
@@ -725,7 +727,6 @@ export default {
                 EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
                 EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-                EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
                 EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);

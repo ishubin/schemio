@@ -32,6 +32,16 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'scheme-change-committed', [], affinityId),
     },
 
+    item: {
+        clicked: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-item-clicked', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-item-clicked', [], callback),
+                $emit: (editorId, item) => $emit(editorId, 'any-item-clicked', [], item),
+            }
+        }
+    },
+
     component:{
         loadRequested: {
             any: {
