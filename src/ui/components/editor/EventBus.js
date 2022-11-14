@@ -24,8 +24,6 @@ const EventBus = new Vue({
 
             ANY_ITEM_CLICKED: 'any-item-clicked',
             ITEM_CHANGED: 'item-changed',
-            ITEM_SELECTED: 'item-selected',
-            ITEM_DESELECTED: 'item-deselected',
             ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',
             ANY_ITEM_DESELECTED: 'any-item-deselected',
@@ -126,21 +124,13 @@ const EventBus = new Vue({
         _itemChangedEvent(itemId) { return `${EventBus.ITEM_CHANGED}/${itemId}`; },
 
         emitItemSelected(itemId) {
-            this.$emit(this._itemSelectedEvent(itemId));
             this.$emit(EventBus.ANY_ITEM_SELECTED, itemId);
         },
-        subscribeForItemSelected(itemId, callback) {this.$on(this._itemSelectedEvent(itemId), callback)},
-        unsubscribeForItemSelected(itemId, callback) {this.$off(this._itemSelectedEvent(itemId), callback)},
-        _itemSelectedEvent(itemId) { return `${EventBus.ITEM_SELECTED}/${itemId}`; },
 
 
         emitItemDeselected(itemId) {
-            this.$emit(this._itemDeselectedEvent(itemId));
             this.$emit(EventBus.ANY_ITEM_DESELECTED, itemId);
         },
-        subscribeForItemDeselected(itemId, callback) {this.$on(this._itemDeselectedEvent(itemId), callback)},
-        unsubscribeForItemDeselected(itemId, callback) {this.$off(this._itemDeselectedEvent(itemId), callback)},
-        _itemDeselectedEvent(itemId) { return `${EventBus.ITEM_DESELECTED}/${itemId}`; },
 
         emitAnyItemDeselected() {
             this.$emit(EventBus.ANY_ITEM_DESELECTED);
