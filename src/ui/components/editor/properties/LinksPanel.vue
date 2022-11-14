@@ -34,8 +34,8 @@ import shortid from 'shortid';
 
 export default {
     props: {
-        editorId: {type: Object, required: true},
-        item: {type: Object, required: true}
+        editorId: {type: String, required: true},
+        item    : {type: Object, required: true}
     },
     components: { Panel, LinkEditPopup },
 

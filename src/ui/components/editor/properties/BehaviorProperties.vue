@@ -175,7 +175,7 @@ function sanitizeEvent(event) {
 
 export default {
     props: {
-        editorId       : {type: Object, required: true},
+        editorId       : {type: String, required: true},
         item           : {type: Object},
         schemeContainer: {type: Object},
         extended       : { type: Boolean, default: false }
