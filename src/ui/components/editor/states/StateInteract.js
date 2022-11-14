@@ -75,7 +75,7 @@ class StateInteract extends State {
                     // checking whether user clicked on the item link or not
                     // if it was item link - then we don't want to remove them from DOM
                     if (!event.target || !event.target.closest('.item-link')) {
-                        this.eventBus.$emit(EventBus.VOID_CLICKED);
+                        this.listener.onVoidClicked();
                     }
                 }
             }

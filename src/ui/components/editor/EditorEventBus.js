@@ -42,6 +42,19 @@ const EditorEventBus = {
         }
     },
 
+    void: {
+        clicked: {
+            $on: (editorId, callback) => $on(editorId, 'void-clicked', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'void-clicked', [], callback),
+            $emit: (editorId) => $emit(editorId, 'void-clicked', []),
+        },
+        doubleClicked: {
+            $on: (editorId, callback) => $on(editorId, 'void-double-clicked', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'void-double-clicked', [], callback),
+            $emit: (editorId, x, y, mx, my) => $emit(editorId, 'void-double-clicked', [], x, y, mx, my),
+        }
+    },
+
     component:{
         loadRequested: {
             any: {

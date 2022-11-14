@@ -38,15 +38,6 @@ const EventBus = new Vue({
             ITEM_IN_PLACE_TEXT_EDITOR_CREATED: 'item-in-place-text-editor-created',
 
 
-            // triggered when user clicks empty space
-            VOID_CLICKED: 'void-clicked',
-
-            // triggered when user clicks empty space with right button
-            VOID_RIGHT_CLICKED: 'void-clicked',
-
-            // triggered when user double clicks empty space
-            VOID_DOUBLE_CLICKED: 'void-double-clicked',
-
             // used to trigger display of item description as a tooltip (when in interactive mode)
             ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
 

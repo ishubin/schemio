@@ -64,6 +64,7 @@ const userEventBus = new UserEventBus(editorId);
 const stateInteract = new StateInteract(EventBus, store, userEventBus, {
     onCancel: () => {},
     onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+    onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
 });
 
 export default {
@@ -78,13 +79,14 @@ export default {
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
         EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
         EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
         EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+
     },
     data() {
         return {

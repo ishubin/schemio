@@ -527,7 +527,8 @@ export default {
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
                 onCancel: () => this.cancelCurrentState(),
-                onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+                    onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+                    onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
                 onCancel: () => this.cancelCurrentState(),
@@ -549,6 +550,8 @@ export default {
                 onCancel: () => this.cancelCurrentState(),
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 onStartConnecting: (item, point) => this.startConnecting(item, point),
+                onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
+                onVoidDoubleClicked: (x, y, mx, my) => EditorEventBus.void.doubleClicked.$emit(this.editorId, x, y, mx, my),
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
                 onCancel: () => this.cancelCurrentState(),
@@ -568,12 +571,14 @@ export default {
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.commitHistory);
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
+        EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
         this.registerEventBusHandlers();
     },
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
+        EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         this.deregisterEventBusHandlers();
     },
 
@@ -694,7 +699,6 @@ export default {
 
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
                 EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
                 EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
                 EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
@@ -702,7 +706,6 @@ export default {
                 EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
                 EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
                 EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-                EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
                 EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -720,7 +723,6 @@ export default {
                 this.eventsRegistered = false;
                 EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
                 EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
                 EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
                 EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
@@ -728,7 +730,6 @@ export default {
                 EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
                 EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
                 EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-                EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
                 EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
@@ -1868,7 +1869,7 @@ export default {
             this.customContextMenu.show = true;
         },
 
-        onRightClickedVoid(x, y, mouseX, mouseY) {
+        onVoidRightClicked(mouseX, mouseY) {
             if (this.mode === 'edit') {
                 this.customContextMenu.menuOptions = [{
                     name: 'Paste',

@@ -237,9 +237,10 @@ export default {
 
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
 
+        EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+
         EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
+        EditorEventBus.void.doubleClicked.$on(this.editorId, this.onVoidDoubleClicked);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
 
         EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
@@ -271,11 +272,11 @@ export default {
         EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
         EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
 
-        EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
 
         EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
+        EditorEventBus.void.doubleClicked.$off(this.editorId, this.onVoidDoubleClicked);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
 
         EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
