@@ -15,8 +15,9 @@
             </div>
         </div>
         <div class="ssc-body">
-            <svg-editor ref="svgEditor"
+            <SvgEditor ref="svgEditor"
                 v-if="schemeContainer"
+                :editorId="editorId"
                 :scheme-container="schemeContainer"
                 :offset-x="offsetX"
                 :offset-y="offsetY"
@@ -54,9 +55,11 @@ import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
 import StateInteract from '../components/editor/states/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
+import shortid from 'shortid';
 
+const editorId = 'standalone-' + shortid.generate;
 
-const userEventBus = new UserEventBus();
+const userEventBus = new UserEventBus(editorId);
 const stateInteract = new StateInteract(EventBus, store, userEventBus);
 
 export default {
@@ -81,6 +84,7 @@ export default {
     },
     data() {
         return {
+            editorId,
             schemeContainer: null,
             initialized: false,
             userEventBus,

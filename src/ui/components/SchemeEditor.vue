@@ -583,7 +583,7 @@ export default {
             editorRevision: 0,
 
             state: 'interact',
-            userEventBus: new UserEventBus(),
+            userEventBus: new UserEventBus(this.editorId),
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
@@ -697,7 +697,7 @@ export default {
                 EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
                 EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-                EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
+                EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
                 EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -725,7 +725,7 @@ export default {
                 EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
                 EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-                EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
+                EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
                 EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
@@ -1695,14 +1695,14 @@ export default {
                 }
 
                 this.$nextTick(() => {
-                    EventBus.emitComponentSchemeMounted(item);
+                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item);
                 });
             })
             .catch(err => {
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
                 item.meta.componentLoadFailed = true;
-                EventBus.emitComponentLoadFailed(item);
+                EditorEventBus.component.loadFailed.specific.$emit(this.editorId, item.id, item);
             });
         },
 

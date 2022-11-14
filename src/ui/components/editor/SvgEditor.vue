@@ -24,6 +24,7 @@
                         <ItemSvg
                             :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
+                            :editorId="editorId"
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
@@ -74,6 +75,7 @@
                             v-if="item.visible"
                             :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
+                            :editorId="editorId"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
@@ -109,6 +111,7 @@
                         <ItemSvg
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
+                            :editorId="editorId"
                             :patchIndex="patchIndex"
                             :mode="mode"
                             />
@@ -186,6 +189,7 @@ import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
 import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Component.vue';
+import EditorEventBus from './EditorEventBus';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -235,8 +239,9 @@ export default {
         EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
-        EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
+
+        EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
+        EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
         EventBus.$on(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
         EventBus.$on(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
     },
@@ -267,8 +272,8 @@ export default {
         EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
         EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
         EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
-        EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
+        EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
+        EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
         EventBus.$off(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
         EventBus.$off(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
 

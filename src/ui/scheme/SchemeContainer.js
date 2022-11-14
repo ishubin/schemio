@@ -2385,10 +2385,6 @@ class SchemeContainer {
         return this.frameAnimations[itemId];
     }
 
-    getEventBus() {
-        return this.eventBus;
-    }
-
     alignItemsHorizontally(items) {
         if (items.length < 2) {
             return;

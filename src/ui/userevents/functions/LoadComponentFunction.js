@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import EditorEventBus from "../../components/editor/EditorEventBus";
+
 export default {
     name: 'Load component',
 
@@ -22,13 +24,7 @@ export default {
                 return;
             }
 
-            const eventBus = schemeContainer.getEventBus();
-            if (!eventBus) {
-                resultCallback();
-                return;
-            }
-
-            eventBus.emitComponentLoadRequested(item);
+            EditorEventBus.component.loadRequested.specific.$emit(userEventBus.editorId, item.id, item);
             resultCallback();
         });
     }

@@ -12,7 +12,11 @@ const log = new Logger('UserEventBus');
  * when user interacts with elements
  */
 export default class UserEventBus {
-    constructor() {
+    constructor(editorId) {
+        // editorId is used by LoadComponentFunction.js and may be used by other functions
+        // Ideally instead of this, editorId should be passed into every function, so I am just cutting corners here.
+        this.editorId = editorId;
+
         this.itemEventSubscribers = {};
         this.revision = shortid.generate();
     }
@@ -32,8 +36,8 @@ export default class UserEventBus {
 
     /**
      * Emits event that originated for a specific item
-     * @param {string} itemId 
-     * @param {string} eventName 
+     * @param {string} itemId
+     * @param {string} eventName
      */
     emitItemEvent(itemId, eventName) {
         log.infoEvent(eventName, [itemId]);

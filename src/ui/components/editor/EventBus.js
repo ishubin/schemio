@@ -17,10 +17,6 @@ this just does not work well and we have to come up with tricks like activating/
 const EventBus = new Vue({
     data() {
         return {
-            COMPONENT_LOAD_REQUESTED: 'component-load-requested',
-            COMPONENT_LOAD_FAILED: 'component-load-failed',
-            COMPONENT_SCHEME_MOUNTED: 'component-scheme-mounted',
-
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
@@ -208,18 +204,6 @@ const EventBus = new Vue({
 
         emitItemCreationDraggedToSvgEditor(item, pageX, pageY) {
             this.$emit(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, item, pageX, pageY);
-        },
-
-        emitComponentLoadRequested(item) {
-            this.$emit(EventBus.COMPONENT_LOAD_REQUESTED, item);
-        },
-
-        emitComponentLoadFailed(item) {
-            this.$emit(EventBus.COMPONENT_LOAD_FAILED, item);
-        },
-
-        emitComponentSchemeMounted(item) {
-            this.$emit(EventBus.COMPONENT_SCHEME_MOUNTED, item);
         },
 
         emitFloatingHelperPanelUpdated() {

@@ -19,6 +19,7 @@
                 v-if="shouldBeDrawn && shapeComponent && item.visible"
                 :is="shapeComponent"
                 :item="item"
+                :editorId="editorId"
                 :mode="mode"
                 :style="{'opacity': item.selfOpacity/100.0}"
                 @custom-event="onShapeCustomEvent"
@@ -78,6 +79,7 @@
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}-${item.meta.revision}`"
                 :item="childItem"
+                :editorId="editorId"
                 :patchIndex="patchIndex"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
@@ -135,6 +137,7 @@
                 v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
                 :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
+                :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"
                 :patchIndex="patchIndex"
                 :mode="mode"
@@ -150,6 +153,7 @@
                 v-if="childItem.visible && childItem.shape !== 'hud'"
                 :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
+                :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
@@ -214,6 +218,7 @@ function hasStrokeSizeProp(shape) {
 export default {
     name: 'ItemSvg',
     props: {
+        editorId            : {type: String, required: true},
         item                : {type: Object},
         mode                : {type: String},
         patchIndex          : {type: Object, default: null},

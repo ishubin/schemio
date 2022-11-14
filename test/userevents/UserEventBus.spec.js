@@ -30,7 +30,7 @@ describe('UserEventBus', () => {
 
     it('should invoke subscribed callback for a simple event', () => {
         const eventBus = new UserEventBus();
-        
+
         let callbackInvokeCounter = 0; // this one should increment in the end
         let inactiveInvokeCounter = 0; // this one should stay unchanged
 
