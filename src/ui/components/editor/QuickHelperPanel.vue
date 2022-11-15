@@ -244,7 +244,6 @@ import EditorEventBus from './EditorEventBus';
 
 export default {
     props: {
-        /** @type {SchemeContainer} */
         editorId            : {type: String, required: true},
         schemeContainer     : { type: Object, required: true },
         mode                : { type: String, required: true },    // "edit" or "view"
@@ -264,14 +263,14 @@ export default {
     },
 
     beforeMount() {
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
+        EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionChanged);
+        EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionChanged);
         EventBus.$on(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
+        EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionChanged);
+        EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionChanged);
         EventBus.$off(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
     },
 

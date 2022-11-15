@@ -36,6 +36,26 @@ const EditorEventBus = {
     },
 
     item: {
+        selected: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-item-selected', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-item-selected', [], callback),
+                $emit: (editorId, itemId) => $emit(editorId, 'any-item-selected', [], itemId),
+            },
+            specific: {
+                $emit: (editorId, itemId) => EditorEventBus.item.selected.any.$emit(editorId, itemId)
+            }
+        },
+        deselected: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-item-deselected', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-item-deselected', [], callback),
+                $emit: (editorId, itemId) => $emit(editorId, 'any-item-deselected', [], itemId),
+            },
+            specific: {
+                $emit: (editorId, itemId) => EditorEventBus.item.deselected.any.$emit(editorId, itemId)
+            }
+        },
         clicked: {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-item-clicked', [], callback),

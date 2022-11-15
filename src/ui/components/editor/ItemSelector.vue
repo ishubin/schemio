@@ -119,14 +119,14 @@ export default {
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        EditorEventBus.item.selected.any.$on(this.editorId, this.onAnyItemSelected);
+        EditorEventBus.item.deselected.any.$on(this.editorId, this.onAnyItemDeselected);
         this.scrollToSelection();
     },
     beforeDestroy() {
         document.body.removeEventListener('mouseup', this.onMouseUp);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
+        EditorEventBus.item.deselected.any.$off(this.editorId, this.onAnyItemDeselected);
     },
     data() {
         const height = parseInt(settingsStorage.get('height', 0));

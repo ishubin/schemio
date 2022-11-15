@@ -706,7 +706,7 @@ class IdleState extends SubState {
 
     deselectAllItems() {
         this.schemeContainer.deselectAllItems();
-        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
+        forEach(this.schemeContainer.selectedItems, item => this.listener.onItemDeselected(item));
     }
 
     dragItemsByKeyboard(dx, dy) {

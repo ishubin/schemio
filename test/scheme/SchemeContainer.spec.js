@@ -6,8 +6,6 @@ SchemeContainer.prototype.getSvgOutlineOfItem = () => {return null;};
 
 const EventBusStub = {
     emitConnectorDeselected() {},
-    emitItemSelected() {},
-    emitItemDeselected() {}
 };
 
 const schemeThreeLevel = {

@@ -1518,7 +1518,7 @@ class SchemeContainer {
             this.multiItemEditBox = null;
             this.reindexItems();
             // This event is needed to inform some components that they need to update their state because selection has dissapeared
-            if (this.eventBus) this.eventBus.emitAnyItemDeselected();
+            EditorEventBus.item.deselected.any.$emit(this.editorId);
         }
     }
 
@@ -1584,7 +1584,7 @@ class SchemeContainer {
         if (inclusive) {
             this.selectItemInclusive(item);
             this.selectedItemsMap[item.id] = true;
-            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
+            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         } else {
             const deselectedItemIds = [];
             forEach(this.selectedItems, selectedItem => {
@@ -1595,11 +1595,11 @@ class SchemeContainer {
             this.selectedItems = [];
             forEach(deselectedItemIds, itemId => {
                 this.selectedItemsMap[itemId] = false;
-                if (this.eventBus) this.eventBus.emitItemDeselected(itemId);
+                EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId);
             });
 
             this.selectItemInclusive(item);
-            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
+            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         }
         this.updateMultiItemEditBox();
     }
@@ -1611,7 +1611,7 @@ class SchemeContainer {
         forEach(items, item => {
             this.selectedItems.push(item);
             this.selectedItemsMap[item.id] = true;
-            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
+            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         });
         this.updateMultiItemEditBox();
     }
@@ -1667,7 +1667,7 @@ class SchemeContainer {
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
         if (this.eventBus) {
-            forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
+            forEach(itemIds, itemId => EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId));
         }
 
         this.updateMultiItemEditBox();

@@ -21,10 +21,6 @@ const EventBus = new Vue({
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
 
-
-            ANY_ITEM_SELECTED: 'any-item-selected',
-            ANY_ITEM_DESELECTED: 'any-item-deselected',
-
             // used to trigger in-svg text edit of an item
             ITEM_TEXT_SLOT_EDIT_TRIGGERED: 'item-text-slot-edit-triggered',
             ITEM_TEXT_SLOT_EDIT_CANCELED: 'item-text-slot-edit-canceled',
@@ -97,19 +93,6 @@ const EventBus = new Vue({
         emitItemsHighlighted(itemIds, options) {
             const highlightPins = options ? options.highlightPins: false;
             this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds, {highlightPins});
-        },
-
-        emitItemSelected(itemId) {
-            this.$emit(EventBus.ANY_ITEM_SELECTED, itemId);
-        },
-
-
-        emitItemDeselected(itemId) {
-            this.$emit(EventBus.ANY_ITEM_DESELECTED, itemId);
-        },
-
-        emitAnyItemDeselected() {
-            this.$emit(EventBus.ANY_ITEM_DESELECTED);
         },
 
         emitRightClickedItem(item, mouseX, mouseY) {
