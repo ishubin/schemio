@@ -78,7 +78,6 @@
 import {getStandardRectPins} from './ShapeDefaults'
 import StrokePattern from '../StrokePattern.js';
 import AdvancedFill from '../AdvancedFill.vue';
-import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
 import htmlSanitize from '../../../../../htmlSanitize';
 import myMath from '../../../../myMath';
@@ -347,8 +346,8 @@ export default {
 
     beforeMount() {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         EditorEventBus.component.loadRequested.specific.$on(this.editorId, this.item.id, this.onComponentLoadRequested);
         EditorEventBus.component.loadFailed.specific.$on(this.editorId, this.item.id, this.onComponentLoadFailed);
@@ -357,8 +356,8 @@ export default {
 
     beforeDestroy() {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         EditorEventBus.component.loadRequested.specific.$off(this.editorId, this.item.id, this.onComponentLoadRequested);
         EditorEventBus.component.loadFailed.specific.$off(this.editorId, this.item.id, this.onComponentLoadFailed);
@@ -418,14 +417,10 @@ export default {
             return style;
         },
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = slotName;
-            }
+            this.hideTextSlot = slotName;
         },
         onItemTextSlotEditCanceled(item, slotName) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = null;
-            }
+            this.hideTextSlot = null;
         },
         onButtonMouseOver() {
             this.buttonHovered = true;

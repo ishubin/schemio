@@ -138,6 +138,7 @@
                 <!-- Item Text Editor -->
                 <InPlaceTextEditBox v-if="inPlaceTextEditor.shown"
                     :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.slotName}`"
+                    :editorId="editorId"
                     :item="inPlaceTextEditor.item"
                     :slotName="inPlaceTextEditor.slotName"
                     :area="inPlaceTextEditor.area"
@@ -568,6 +569,9 @@ export default {
                 onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
                 onVoidDoubleClicked: (x, y, mx, my) => EditorEventBus.void.doubleClicked.$emit(this.editorId, x, y, mx, my),
                 onItemDeselected: (item) => EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id),
+                onItemTextSlotEditTriggered: (item, slotName, area, markupDisabled, creatingNewItem) => {
+                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
+                },
                 onItemChanged
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
@@ -595,6 +599,7 @@ export default {
         EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionUpdated);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+        EditorEventBus.textSlot.triggered.any.$on(this.editorId, this.onItemTextSlotEditTriggered);
         this.registerEventBusHandlers();
     },
     beforeDestroy() {
@@ -605,6 +610,7 @@ export default {
         EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionUpdated);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+        EditorEventBus.textSlot.triggered.any.$off(this.editorId, this.onItemTextSlotEditTriggered);
         this.deregisterEventBusHandlers();
     },
 
@@ -728,7 +734,6 @@ export default {
                 EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
                 EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
                 EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-                EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
@@ -749,7 +754,6 @@ export default {
                 EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
                 EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
                 EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-                EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
                 EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
                 EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
                 EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
@@ -1058,7 +1062,7 @@ export default {
 
         closeItemTextEditor() {
             if (this.inPlaceTextEditor.item) {
-                EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
+                EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 EditorEventBus.item.changed.specific.$emit(this.editorId, this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 this.schemeContainer.reindexItems();
@@ -1475,7 +1479,7 @@ export default {
                 this.currentTab = `Text: ${anotherSlotName}`;
             }
 
-            EventBus.emitItemTextSlotMoved(item, slotName, anotherSlotName);
+            EditorEventBus.textSlot.moved.$emit(this.editorId, item, slotName, anotherSlotName);
         },
 
         // triggered from ItemProperties or QuickHelperPanel components

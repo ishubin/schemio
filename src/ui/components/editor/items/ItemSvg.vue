@@ -167,7 +167,6 @@
 import AdvancedFill from './AdvancedFill.vue';
 import StrokePattern from './StrokePattern.js';
 import Shape from './shapes/Shape.js';
-import EventBus from '../EventBus.js';
 import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
@@ -231,8 +230,8 @@ export default {
     mounted() {
         this.switchShape(this.item.shape);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         const shape = Shape.find(this.item.shape);
         if (shape && shape.shapeEvents.mounted) {
@@ -244,8 +243,8 @@ export default {
 
     beforeDestroy() {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
 
     data() {
@@ -402,13 +401,11 @@ export default {
         },
 
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            if (item.id === this.item.id) {
-                this.hiddenTextSlotName = slotName;
-            }
+            this.hiddenTextSlotName = slotName;
         },
 
         onItemTextSlotEditCanceled(item, slotName) {
-            if (item.id === this.item.id && this.hiddenTextSlotName === slotName) {
+            if (this.hiddenTextSlotName === slotName) {
                 this.hiddenTextSlotName = null;
             }
         },

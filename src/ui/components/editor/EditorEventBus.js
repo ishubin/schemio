@@ -80,6 +80,50 @@ const EditorEventBus = {
         }
     },
 
+    textSlot: {
+        triggered: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-text-slot-triggered', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-text-slot-triggered', [], callback),
+                $emit: (editorId, item, slotName, area, markupDisabled, creatingNewItem) => {
+                    $emit(editorId, 'any-text-slot-triggered', [], item, slotName, area, markupDisabled, creatingNewItem);
+                }
+            },
+            specific: {
+                $on: (editorId, itemId, callback) => $on(editorId, 'text-slot-triggered', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'text-slot-triggered', [itemId], callback),
+                $emit: (editorId, item, slotName, area, markupDisabled, creatingNewItem) => {
+                    EditorEventBus.textSlot.triggered.any.$emit(editorId, item, slotName, area, markupDisabled, creatingNewItem);
+                    $emit(editorId, 'text-slot-triggered', [item.id], item, slotName, area, markupDisabled, creatingNewItem);
+                }
+            },
+        },
+        canceled: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-text-slot-canceled', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-text-slot-canceled', [], callback),
+                $emit: (editorId, item, slotName) => {
+                    $emit(editorId, 'any-text-slot-canceled', [], item, slotName);
+                }
+            },
+            specific: {
+                $on: (editorId, itemId, callback) => $on(editorId, 'text-slot-canceled', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'text-slot-canceled', [itemId], callback),
+                $emit: (editorId, item, slotName) => {
+                    EditorEventBus.textSlot.canceled.any.$emit(editorId, item, slotName);
+                    $emit(editorId, 'text-slot-canceled', [item.id], item, slotName);
+                }
+            },
+        },
+        moved: {
+            $on: (editorId, callback) => $on(editorId, 'text-slot-moved', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'text-slot-moved', [], callback),
+            $emit: (editorId, item, slotName, destinationSlotName) => {
+                $emit(editorId, 'text-slot-moved', [], item, slotName, destinationSlotName);
+            }
+        }
+    },
+
     void: {
         clicked: {
             $on: (editorId, callback) => $on(editorId, 'void-clicked', [], callback),

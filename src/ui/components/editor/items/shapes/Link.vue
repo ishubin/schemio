@@ -21,7 +21,6 @@
 import map from 'lodash/map';
 import LinkTypes from '../../LinkTypes.js';
 import htmlSanitize from '../../../../../htmlSanitize';
-import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
 import EditorEventBus from '../../EditorEventBus.js';
 
@@ -74,13 +73,13 @@ export default {
 
     beforeMount() {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy() {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
 
     data() {
@@ -113,14 +112,10 @@ export default {
             this.linkStyle = this.createLinkStyle();
         },
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = true;
-            }
+            this.hideTextSlot = true;
         },
         onItemTextSlotEditCanceled(item, slotName) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = false;
-            }
+            this.hideTextSlot = false;
         }
     },
 

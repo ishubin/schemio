@@ -745,7 +745,7 @@ export default {
                 enrichItemWithDefaults(textItem);
                 this.schemeContainer.addItem(textItem);
                 this.$nextTick(() => {
-                    EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
+                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, textItem, 'body', {
                         x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
                     }, false, true);
                 });

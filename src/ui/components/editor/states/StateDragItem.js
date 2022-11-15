@@ -793,7 +793,7 @@ class IdleState extends SubState {
         if (!textSlot) {
             return;
         }
-        this.eventBus.emitItemTextSlotEditTriggered(item, textSlot.name, textSlot.area, textSlot.markupDisabled, false);
+        this.listener.onItemTextSlotEditTriggered(item, textSlot.name, textSlot.area, textSlot.markupDisabled, false);
     }
 
     findItemTextSlotByPoint(item, x, y) {
