@@ -26,6 +26,7 @@ import Functions from '../userevents/functions/Functions';
 import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation';
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
+import EditorEventBus from '../components/editor/EditorEventBus';
 
 const log = new Logger('SchemeContainer');
 
@@ -265,9 +266,10 @@ class SchemeContainer {
      * @param {Scheme} scheme
      * @param {EventBus} eventBus
      */
-    constructor(scheme, eventBus, listener) {
+    constructor(scheme, editorId, eventBus, listener) {
         Debugger.register('SchemioContainer', this);
 
+        this.editorId = editorId;
         this.listener = listener;
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
@@ -421,7 +423,7 @@ class SchemeContainer {
                 };
 
                 this.attachItemsToComponentItem(item, [rootItem]);
-                this.eventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             }
         }
     }
@@ -1176,7 +1178,7 @@ class SchemeContainer {
             shape.readjustItem(item, this, isSoft, context, precision);
             updateItemRevision(item);
             if (this.eventBus) {
-                this.eventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             }
             this.svgOutlinePathCache.forceUpdate(item);
         }
@@ -1302,10 +1304,10 @@ class SchemeContainer {
 
         if (this.eventBus) {
             if (previousParentId) {
-                this.eventBus.emitItemChanged(previousParentId);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, previousParentId);
             }
             if (newParentId) {
-                this.eventBus.emitItemChanged(newParentId);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
             }
             this.listener.onSchemeChangeCommitted(this.editorId);
         }
@@ -1483,7 +1485,7 @@ class SchemeContainer {
 
         itemsArray.splice(index, 1);
         if (parentItem) {
-            this.eventBus.emitItemChanged(parentItem.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, parentItem.id);
         }
     }
 
@@ -1833,7 +1835,7 @@ class SchemeContainer {
                 const clonedItem = this.findItemById(cloneId);
                 if (clonedItem && !clonedItem.meta.componentRoot) {
                     this.setPropertyForItem(clonedItem, setter);
-                    this.eventBus.emitItemChanged(clonedItem.id);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, clonedItem.id);
                 }
             });
         }
@@ -2097,7 +2099,7 @@ class SchemeContainer {
                 updateItemRevision(item);
 
                 this.readjustItemAndDescendants(item.id, isSoft, context, precision);
-                if (this.eventBus) this.eventBus.emitItemChanged(item.id, 'area');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
 
                 this.updatePropertyForClones(item, clone => {
                     clone.area.x = item.area.x;
@@ -2441,7 +2443,7 @@ class SchemeContainer {
 
             item.area.x += correction.x;
             item.area.y += correction.y;
-            this.eventBus.emitItemChanged(item.id, 'area');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
         this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
@@ -2503,7 +2505,7 @@ class SchemeContainer {
 
             item.area.x += correction.x;
             item.area.y += correction.y;
-            this.eventBus.emitItemChanged(item.id, 'area');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
         this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
@@ -2534,7 +2536,7 @@ class SchemeContainer {
             const correction = this._findCenteringCorrection(items, parentId);
             forEach(items, item => {
                 correctionCallback(item, correction);
-                this.eventBus.emitItemChanged(item.id, 'area');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
             });
         });
         this.listener.onSchemeChangeCommitted(this.editorId);

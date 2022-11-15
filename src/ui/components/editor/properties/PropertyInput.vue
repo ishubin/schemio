@@ -19,7 +19,7 @@
             <option v-for="argOption in descriptor.options">{{argOption}}</option>
         </select>
 
-        <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :value="value" :disabled="disabled" @selected="emitValue( arguments[0])"/>
+        <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :editorId="editorId" :value="value" :disabled="disabled" @selected="emitValue( arguments[0])"/>
 
         <PathCapDropdown v-if="descriptor.type === 'path-cap'"
             :value="value"
@@ -49,7 +49,7 @@
 
        <scheme-search-modal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefSelect"></scheme-search-modal>
     </div>
-    
+
 </template>
 
 <script>
@@ -64,6 +64,7 @@ import ColorMatrix from './ColorMatrix.vue';
 
 export default {
     props: {
+        editorId       : {type: String, required: true},
         descriptor     : {type: Object, required: true},
         schemeContainer: {type: Object, required: true},
         value          : [Number, String, Object, Boolean],

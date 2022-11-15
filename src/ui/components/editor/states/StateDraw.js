@@ -50,7 +50,7 @@ export default class StateDraw extends State {
             this.currentPathId = this.item.shapeProps.paths.length - 1;
         }
         this.isDrawing = true;
-        EventBus.emitItemChanged(this.item.id, 'shapeProps.points');
+        this.listener.onItemChanged(this.item.id, 'shapeProps.points');
     }
 
     initFirstClick(x, y) {
@@ -106,14 +106,14 @@ export default class StateDraw extends State {
                 };
                 this.item.shapeProps.paths[this.currentPathId].points.push(convertCurvePointToRelative(point, this.item.area.w, this.item.area.h));
 
-                EventBus.emitItemChanged(this.item.id, `shapeProps.paths`);
+                this.listener.onItemChanged(this.item.id, `shapeProps.paths`);
             }
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         this.isDrawing = false;
-        EventBus.emitItemChanged(this.item.id, 'shapeProps.paths');
+        this.listener.onItemChanged(this.item.id, 'shapeProps.paths');
     }
 
     cancel() {

@@ -122,7 +122,7 @@
                     <h4>{{previewItem.item.name}}</h4>
 
                     <svg v-if="previewItem.item.item" :width="previewWidth + 'px'" :height="previewHeight + 'px'">
-                        <item-svg :item="previewItem.item.item" mode="edit"/>
+                        <ItemSvg :editorId="editorId" :item="previewItem.item.item" mode="edit"/>
                     </svg>
                 </div>
                 <div v-if="previewItem.artIcon">
@@ -143,7 +143,7 @@
                 :width="`${itemCreationDragged.item.area.x + itemCreationDragged.item.area.w + 50}px`"
                 :height="`${itemCreationDragged.item.area.y + itemCreationDragged.item.area.h + 50}px`"
                 >
-                <item-svg :item="itemCreationDragged.item" mode="edit"/>
+                <ItemSvg :editorId="editorId" :item="itemCreationDragged.item" mode="edit"/>
             </svg>
         </div>
     </div>
@@ -182,6 +182,7 @@ const PATH_EDITED = 'path-edited';
 
 export default {
     props: {
+        editorId         : {type: String, required: true},
         schemeContainer  : {type: Object},
         projectArtEnabled: {type: Boolean, default: true},
     },

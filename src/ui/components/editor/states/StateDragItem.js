@@ -210,7 +210,7 @@ class DragControlPointState extends SubState {
                     shape.controlPoints.handleDrag(this.item, this.pointId, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy, dx, dy, this, this.schemeContainer);
                 }
 
-                this.eventBus.emitItemChanged(this.item.id);
+                this.listener.onItemChanged(this.item.id);
                 this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
                 // updating all control points as they might affect one another
@@ -308,7 +308,7 @@ class DragControlPointState extends SubState {
         const shape = Shape.find(this.item.shape);
         StoreUtils.setItemControlPoints(this.store, this.item);
 
-        this.eventBus.emitItemChanged(this.item.id);
+        this.listener.onItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.reindexNeeded = true;
         this.lastModifiedItem = this.item;
@@ -759,7 +759,7 @@ class IdleState extends SubState {
                 x: closestPoint.x,
                 y: closestPoint.y,
             });
-            this.eventBus.emitItemChanged(item.id);
+            this.listener.onItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.setItemControlPoints(this.store, item);
             StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
@@ -781,7 +781,7 @@ class IdleState extends SubState {
 
     handleDoubleClickOnConnectorControlPoint(item, pointId) {
         item.shapeProps.points.splice(pointId, 1);
-        this.eventBus.emitItemChanged(item.id);
+        this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.setItemControlPoints(this.store, item);
         StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));

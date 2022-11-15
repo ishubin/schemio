@@ -7,6 +7,7 @@ import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
 import MoveAlongPathAnimationFunction from '../../animations/functions/MoveAlongPathAnimationFunction';
 import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 class MoveAlongPathAnimation extends Animation {
@@ -24,7 +25,7 @@ class MoveAlongPathAnimation extends Animation {
         this.domPath = null;
         this.pathItem = null;
         this.pathTotalLength = 1.0;
-        
+
     }
 
     init() {
@@ -63,8 +64,8 @@ class MoveAlongPathAnimation extends Animation {
 
             const convertedT = convertTime(t, this.args.movement);
             this.moveToPathLength(this.pathTotalLength * (this.args.startPosition * (1.0 - convertedT) + this.args.endPosition * convertedT) / 100.0);
-            
-            EventBus.emitItemChanged(this.item.id);
+
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             return true;
         }
         return false;

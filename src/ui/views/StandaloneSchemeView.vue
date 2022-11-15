@@ -60,7 +60,7 @@ import shortid from 'shortid';
 
 const editorId = 'standalone-' + shortid.generate;
 
-const userEventBus = new UserEventBus(editorId);
+const userEventBus = new UserEventBus();
 const stateInteract = new StateInteract(EventBus, store, userEventBus, {
     onCancel: () => {},
     onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
@@ -117,7 +117,7 @@ export default {
                 console.error('Failed to load shapes', err);
             })
             .then(() => {
-                this.schemeContainer = new SchemeContainer(this.scheme, EventBus);
+                this.schemeContainer = new SchemeContainer(this.scheme, editorId, EventBus);
                 stateInteract.schemeContainer = this.schemeContainer;
                 stateInteract.reset();
                 this.initialized = true;

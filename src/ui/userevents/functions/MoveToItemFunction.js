@@ -7,6 +7,7 @@ import { convertTime } from '../../animations/ValueAnimation';
 import EventBus from '../../components/editor/EventBus';
 import { worldPointOnItem, worldVectorOnItem, relativePointForItem } from '../../scheme/SchemeContainer';
 import myMath from '../../myMath';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 function calculateItemPositionToMatchAnotherItem(item, destinationItem, matchPointType) {
@@ -103,14 +104,14 @@ class MoveToItemAnimation extends Animation {
             if (this.args.alignHeight) {
                 this.item.area.h = this.originalHeight * (1.0 - convertedT) + this.destinationHeight * convertedT;
             }
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
 
             return shouldProceedAnimating;
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
         }
         return false;
@@ -194,7 +195,7 @@ export default {
                     if (args.alignHeight) {
                         item.area.h = destinationHeight;
                     }
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                     schemeContainer.reindexItemTransforms(item);
                 }
             }

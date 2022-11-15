@@ -41,6 +41,7 @@
                         <div v-if="!selectedFrameControl.blank && selectedFrameControl.propertyDescriptor">
                             <PropertyInput
                                     :key="`frame-prop-input-${selectedFrameControl.trackIdx}-${selectedFrameControl.frame}`"
+                                    :editorId="editorId"
                                     :descriptor="selectedFrameControl.propertyDescriptor"
                                     :value="selectedFrameControl.value"
                                     :shapeProps="{}"
@@ -348,13 +349,13 @@ export default {
         this.compileAnimations();
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
         EventBus.$on(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
-        EventBus.subscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
     },
 
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
         EventBus.$off(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
-        EventBus.unsubscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
         StoreUtils.setAnimationEditorRecording(this.$store, false);
     },
 
@@ -445,7 +446,7 @@ export default {
             }
 
             if (this.isRecording) {
-                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme, this.editorId));
             }
         },
 
@@ -678,7 +679,7 @@ export default {
         startRecording() {
             this.isRecording = true;
             StoreUtils.setAnimationEditorRecording(this.$store, true);
-            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId);
         },
 
         stopRecording() {
@@ -1216,7 +1217,7 @@ export default {
                     const item = this.schemeContainer.findItemById(animation.id);
                     if (item) {
                         utils.setObjectProperty(item, animation.property, value);
-                        EventBus.emitItemChanged(item.id, animation.property);
+                        EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, animation.property);
 
                         if (animation.property.startsWith('area.')) {
                             this.schemeContainer.updateMultiItemEditBox();

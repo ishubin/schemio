@@ -22,8 +22,6 @@ const EventBus = new Vue({
             BRING_TO_VIEW: 'bring-to-view',
 
 
-            ITEM_CHANGED: 'item-changed',
-            ANY_ITEM_CHANGED: 'any-item-changed',
             ANY_ITEM_SELECTED: 'any-item-selected',
             ANY_ITEM_DESELECTED: 'any-item-deselected',
 
@@ -100,18 +98,6 @@ const EventBus = new Vue({
             const highlightPins = options ? options.highlightPins: false;
             this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds, {highlightPins});
         },
-
-        /**
-         * @param {string} itemId  id of an item
-         * @param {string} propertyPath  path to a field that was changed. This argument is optional
-         */
-        emitItemChanged(itemId, propertyPath) {
-            this.$emit(this._itemChangedEvent(itemId), propertyPath);
-            this.$emit(EventBus.ANY_ITEM_CHANGED, itemId, propertyPath);
-        },
-        subscribeForItemChanged(itemId, callback) { this.$on(this._itemChangedEvent(itemId), callback); },
-        unsubscribeForItemChanged(itemId, callback) { this.$off(this._itemChangedEvent(itemId), callback); },
-        _itemChangedEvent(itemId) { return `${EventBus.ITEM_CHANGED}/${itemId}`; },
 
         emitItemSelected(itemId) {
             this.$emit(EventBus.ANY_ITEM_SELECTED, itemId);

@@ -144,18 +144,19 @@ import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import ColorPicker from '../ColorPicker.vue';
 import {textWhiteSpaceOptions} from '../../../scheme/Item';
+import EditorEventBus from '../EditorEventBus';
 
 export default {
-    props: ['item', 'slotName'],
+    props: ['item', 'editorId', 'slotName'],
     components: {EditorMenuBar, Dropdown, NumberTextfield, ColorPicker},
 
     beforeMount() {
         EventBus.$on(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
     data() {
         const shape = Shape.find(this.item.shape);

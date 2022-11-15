@@ -20,6 +20,9 @@ function $off(editorId, eventName, args, callback) {
     bus.$off(generateEvent(editorId, eventName, args), callback);
 }
 function $emit(editorId, eventName, eventArgs, ...emitArgs) {
+    if (!editorId) {
+        throw new Error('editorId should be specified, got: ', editorId);
+    }
     const fullEventName = generateEvent(editorId, eventName, eventArgs);
     log.infoEvent(fullEventName, emitArgs);
     bus.$emit(fullEventName, ...emitArgs);
@@ -39,6 +42,21 @@ const EditorEventBus = {
                 $off: (editorId, callback) => $off(editorId, 'any-item-clicked', [], callback),
                 $emit: (editorId, item) => $emit(editorId, 'any-item-clicked', [], item),
             }
+        },
+        changed: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-item-changed', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-item-changed', [], callback),
+                $emit: (editorId, itemId, propertyPath) => $emit(editorId, 'any-item-changed', [], itemId, propertyPath),
+            },
+            specific: {
+                $on: (editorId, itemId, callback) => $on(editorId, 'item-changed', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'item-changed', [itemId], callback),
+                $emit: (editorId, itemId, propertyPath) => {
+                    EditorEventBus.item.changed.any.$emit(editorId, itemId, propertyPath);
+                    $emit(editorId, 'item-changed', [itemId], itemId, propertyPath);
+                }
+            },
         }
     },
 

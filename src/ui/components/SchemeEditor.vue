@@ -7,6 +7,7 @@
         <QuickHelperPanel
             :key="`quick-helper-panel-${mode}`"
             v-if="currentSchemeContainer"
+            :editorId="editorId"
             :scheme-container="currentSchemeContainer"
             :mode="mode"
             :state="state"
@@ -86,6 +87,7 @@
                         <g v-if="state === 'editPath' && curveEditItem && curveEditItem.meta">
                             <PathEditBox
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
+                                :editorId="editorId"
                                 :item="curveEditItem"
                                 :zoom="schemeContainer.screenTransform.scale"
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
@@ -194,7 +196,7 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
-                        <CreateItemMenu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
+                        <CreateItemMenu :editorId="editorId" :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
                             @drawing-requested="switchStateDrawing"
@@ -283,14 +285,18 @@
                         </div>
 
                         <div v-if="inPlaceTextEditor.item && mode === 'edit'">
-                            <text-slot-properties :item="inPlaceTextEditor.item" :slot-name="inPlaceTextEditor.slotName"
+                            <TextSlotProperties
+                                :editorId="editorId"
+                                :item="inPlaceTextEditor.item"
+                                :slot-name="inPlaceTextEditor.slotName"
                                 @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0]);"
                                 @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
                         <div v-else-if="mode === 'edit'">
-                            <text-slot-properties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
+                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
+                                :editorId="editorId"
                                 :item="itemTextSlot.item"
                                 :slot-name="itemTextSlot.slotName"
                                 @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
@@ -328,7 +334,8 @@
             @close="closeConnectorProposedDestination()"
         />
 
-        <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
+        <AdvancedBehaviorProperties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
+            :editorId="editorId"
             :scheme-container="schemeContainer"
         />
 
@@ -524,45 +531,57 @@ export default {
     },
 
     created() {
+        const onCancel = () => this.cancelCurrentState();
+        const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
+        const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
+
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
-                onCancel: () => this.cancelCurrentState(),
-                    onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
-                    onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+                onCancel,
+                onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+                onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+                onItemChanged
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
-                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged
             }),
             editPath: new StateEditPath(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
-                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onCancel,
+                onSchemeChangeCommitted,
                 onHistoryStateChange: (undoable, redoable) => {
                     this.historyState.undoable = undoable;
                     this.historyState.redoable = redoable;
-                }
+                },
+                onItemChanged
             }),
             connecting: new StateConnecting(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
-                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged
             }),
             dragItem: new StateDragItem(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
-                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onCancel,
+                onSchemeChangeCommitted,
                 onStartConnecting: (item, point) => this.startConnecting(item, point),
                 onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
                 onVoidDoubleClicked: (x, y, mx, my) => EditorEventBus.void.doubleClicked.$emit(this.editorId, x, y, mx, my),
+                onItemChanged
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
+                onCancel,
+                onItemChanged
             }),
             cropImage: new StateCropImage(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
-                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged
             }),
             draw: new StateDraw(EventBus, this.$store, {
-                onCancel: () => this.cancelCurrentState(),
-                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged
             }),
         };
     },
@@ -570,6 +589,7 @@ export default {
     beforeMount() {
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.commitHistory);
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
         this.registerEventBusHandlers();
@@ -577,6 +597,7 @@ export default {
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         this.deregisterEventBusHandlers();
@@ -712,7 +733,6 @@ export default {
                 EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
                 EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
                 EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-                EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
                 EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
@@ -736,7 +756,6 @@ export default {
                 EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
                 EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
                 EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-                EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
                 EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
@@ -757,7 +776,7 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, EventBus, {
+                this.schemeContainer = new SchemeContainer(scheme, this.editorId, EventBus, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 
@@ -1040,7 +1059,7 @@ export default {
             if (this.inPlaceTextEditor.item) {
                 EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 this.schemeContainer.reindexItems();
             }
             this.inPlaceTextEditor.shown = false;
@@ -1265,7 +1284,7 @@ export default {
             if (this.$store.state.copiedStyleItem) {
                 forEach(this.schemeContainer.getSelectedItems(), item => {
                     applyStyleFromAnotherItem(this.$store.state.copiedStyleItem, item);
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                 });
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             }
@@ -1451,7 +1470,7 @@ export default {
             }
             item.textSlots[anotherSlotName] = utils.clone(item.textSlots[slotName]);
             item.textSlots[slotName].text = '';
-            EventBus.emitItemChanged(item.id, `textSlots.${anotherSlotName}`);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${anotherSlotName}`);
             if (!this.inPlaceTextEditor.item) {
                 this.currentTab = `Text: ${anotherSlotName}`;
             }
@@ -1472,7 +1491,7 @@ export default {
                     if (propDescriptor && propDescriptor.type === type) {
                         this.schemeContainer.setPropertyForItem(item, item => {
                             item.shapeProps[name] = utils.clone(value);
-                            EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `shapeProps.${name}`);
                         });
 
                         item.meta.revision += 1;
@@ -1483,7 +1502,7 @@ export default {
                     if (item.shape === 'component') {
                         if (item.shapeProps.kind !== 'embedded' && item._childItems) {
                             item._childItems = [];
-                            EventBus.emitItemChanged(item.id);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                         }
 
                         if (name === 'kind' || name === 'referenceItem' || name === 'placement') {
@@ -1516,7 +1535,7 @@ export default {
             forEach(this.schemeContainer.selectedItems, item => {
                 this.schemeContainer.setPropertyForItem(item, item => {
                     item[name] = utils.clone(value);
-                    EventBus.emitItemChanged(item.id, name);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, name);
                 });
                 itemIds += item.id;
             });
@@ -1533,7 +1552,7 @@ export default {
                 this.schemeContainer.setPropertyForItem(item, item => {
                     item.shape = shapeName;
                     enrichItemWithDefaults(item);
-                    EventBus.emitItemChanged(item.id, 'shape');
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'shape');
                 });
                 itemIds += item.id;
             });
@@ -1544,7 +1563,7 @@ export default {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 if (applyItemStyle(item, style)) {
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                     itemIds += item.id;
                 }
             });
@@ -1556,7 +1575,7 @@ export default {
                 item.textSlots[textSlotName][propertyName] = utils.clone(value);
                 recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
             }
-            EventBus.emitItemChanged(item.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
         },
 
@@ -1570,7 +1589,7 @@ export default {
                         recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
                     });
                 }
-                EventBus.emitItemChanged(item.id, `textSlots.*.${propertyName}`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.*.${propertyName}`);
                 itemIds += item.id;
             });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.*.${propertyName}`);
@@ -1585,7 +1604,7 @@ export default {
                     item.textSlots[textSlotName][propertyName] = utils.clone(value);
                     recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
                 }
-                EventBus.emitItemChanged(item.id, `textSlots.${textSlotName}.${propertyName}`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${textSlotName}.${propertyName}`);
                 itemIds += item.id;
             });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
@@ -1621,7 +1640,7 @@ export default {
         },
 
         switchToViewMode() {
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus, {
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, EventBus, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });
             this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
@@ -1685,12 +1704,12 @@ export default {
             })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, EventBus, {
+                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, EventBus, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems();
-                EventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
 
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {
                     this.zoomToItems([item]);

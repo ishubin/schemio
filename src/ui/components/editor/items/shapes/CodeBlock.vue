@@ -18,7 +18,6 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
-import EventBus from '../../EventBus';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -41,7 +40,6 @@ function onThemeUpdate($store, item, value, previousValue) {
         item.textSlots.title.color = 'rgba(0, 0, 0, 1.0)';
         item.textSlots.body.color = 'rgba(0, 0, 0, 1.0)';
     }
-    EventBus.emitItemChanged(item.id);
 }
 
 function onLangUpdate($store, item, value, previousValue) {
@@ -115,7 +113,7 @@ const allLanguages = Object.keys(langMapping);
 
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
     components: {AdvancedFill},
 
     shapeConfig: {

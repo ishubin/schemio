@@ -15,7 +15,7 @@
             </foreignObject>
         </a>
     </g>
-    
+
 </template>
 <script>
 import map from 'lodash/map';
@@ -23,9 +23,10 @@ import LinkTypes from '../../LinkTypes.js';
 import htmlSanitize from '../../../../../htmlSanitize';
 import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
+import EditorEventBus from '../../EditorEventBus.js';
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
 
     shapeConfig: {
         shapeType: 'vue',
@@ -37,7 +38,7 @@ export default {
             name: 'Link',
             iconUrl: '/assets/images/items/link.svg',
             item: {
-                textSlots: { 
+                textSlots: {
                     link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
                 },
             }
@@ -72,12 +73,12 @@ export default {
     },
 
     beforeMount() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },

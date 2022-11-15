@@ -174,6 +174,7 @@ import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 import { findEffect } from '../../effects/Effects';
 import myMath from '../../../myMath';
+import EditorEventBus from '../EditorEventBus';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -229,7 +230,7 @@ export default {
 
     mounted() {
         this.switchShape(this.item.shape);
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
 
@@ -242,7 +243,7 @@ export default {
     },
 
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
         EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
     },

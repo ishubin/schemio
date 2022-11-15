@@ -24,7 +24,7 @@ export default {
                 return;
             }
 
-            EditorEventBus.component.loadRequested.specific.$emit(userEventBus.editorId, item.id, item);
+            EditorEventBus.component.loadRequested.specific.$emit(schemeContainer.editorId, item.id, item);
             resultCallback();
         });
     }

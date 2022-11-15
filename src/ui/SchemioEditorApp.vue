@@ -167,8 +167,8 @@ export default{
 
                 this.patch.patchedScheme = applySchemePatch(this.scheme, patch);
                 this.patch.isToggled = true;
-                this.patch.originSchemeContainer = new SchemeContainer(this.scheme);
-                this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme);
+                this.patch.originSchemeContainer = new SchemeContainer(this.scheme, this.editorId);
+                this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme, this.editorId);
                 this.$forceUpdate();
             }
         },

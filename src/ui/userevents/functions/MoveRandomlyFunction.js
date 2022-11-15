@@ -3,9 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
-import myMath from '../../myMath';
 import { convertTime } from '../../animations/ValueAnimation';
 import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 class MoveRandomlyAnimation extends Animation {
@@ -62,18 +62,18 @@ class MoveRandomlyAnimation extends Animation {
             const t = convertTime(this._t, 'ease-in-out');
 
 
-            
+
             this.item.area.x = Math.pow(1 - t, 2) * this.point1.x  + 2 * (1 - t) * t * this.point2.x + t * t * this.point3.x;
             this.item.area.y = Math.pow(1 - t, 2) * this.point1.y  + 2 * (1 - t) * t * this.point2.y + t * t * this.point3.y;
 
             this.schemeContainer.reindexItemTransforms(this.item);
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             return true;
         } else {
             this.item.area.x = this.itemInitialPosition.x;
             this.item.area.y = this.itemInitialPosition.y;
             this.schemeContainer.reindexItemTransforms(this.item);
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
         }
         return false;
     }

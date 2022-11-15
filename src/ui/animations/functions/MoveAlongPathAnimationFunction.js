@@ -1,6 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+import EditorEventBus from "../../components/editor/EditorEventBus";
 import EventBus from "../../components/editor/EventBus";
 import Shape from "../../components/editor/items/shapes/Shape";
 import myMath from "../../myMath";
@@ -87,7 +88,7 @@ export default {
                 const angle = myMath.fullAngleForNormalizedVector(vx, vy) * 180 / Math.PI;
 
                 item.area.r = angle;
-                
+
                 if (isFinite(rotationOffset)) {
                     item.area.r += rotationOffset;
                 };
@@ -107,6 +108,6 @@ export default {
         item.area.y = localPoint.y - item.area.h/2;
 
         schemeContainer.reindexItemTransforms(item);
-        EventBus.emitItemChanged(item.id);
+        EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     }
 }

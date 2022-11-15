@@ -63,14 +63,12 @@ export default {
 
     methods: {
         onItemTagChange(newTags) {
-            // this.item.tags = map(newTags, tag => tag.text);
-
             this.$emit('tags-changed', map(newTags, tag => tag.text));
         },
 
         commitSchemeChange(propertyName) {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.${propertyName}`);
-            EventBus.emitItemChanged(this.item.id, propertyName);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, propertyName);
         }
     },
 

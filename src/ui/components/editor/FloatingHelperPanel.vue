@@ -24,6 +24,7 @@
                 </li>
                 <li v-if="supportsStroke">
                     <StrokeControl
+                        :editorId="editorId"
                         :item="item"
                         @color-changed="updateShapeProp('strokeColor', arguments[0])"
                         @size-changed="updateShapeProp('strokeSize', arguments[0])"
@@ -163,7 +164,7 @@ export default {
 
         updateShapeProp(name, value) {
             this.item.shapeProps[name] = value;
-            EventBus.emitItemChanged(this.item.id, `shapeProps.${name}`);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, `shapeProps.${name}`);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.${name}`);
         },
 
@@ -191,7 +192,7 @@ export default {
 
         applyItemStyle(style) {
             if (applyItemStyle(this.item, style)) {
-                EventBus.emitItemChanged(this.item.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.styles`);
             }
             this.stylesPopup.shown = false;
@@ -208,7 +209,7 @@ export default {
 
         itemName(value) {
             this.item.name = value;
-            EventBus.emitItemChanged(this.item.id, 'name');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'name');
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.name`);
         }
     },

@@ -589,7 +589,7 @@ export default {
         },
 
         emitChangeCommited(affinityId) {
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
         },
 

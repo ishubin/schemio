@@ -6,6 +6,7 @@ import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 import EventBus from '../../components/editor/EventBus';
 import utils from '../../utils';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 
@@ -45,14 +46,14 @@ class ScaleAnimation extends Animation {
             this.item.area.sx = this.originalArea.sx * (1.0 - convertedT) + this.destinationScale.sx * convertedT;
             this.item.area.sy = this.originalArea.sy * (1.0 - convertedT) + this.destinationScale.sy * convertedT;
 
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
 
             return proceed;
         } else {
             this.item.area.sx = this.destinationScale.sx;
             this.item.area.sy = this.destinationScale.sy;
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
         }
         return false;
@@ -96,7 +97,7 @@ export default {
             } else {
                 item.area.sx = parseFloat(args.scaleX);
                 item.area.sy = parseFloat(args.scaleY);
-                EventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 schemeContainer.reindexItemTransforms(item);
             }
         }

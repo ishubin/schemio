@@ -22,8 +22,9 @@
                 <div :id="`advanced-behavior-item-${item.id}`" v-for="item in itemsWithBehavior">
                     <span class="item-title">{{item.name}}</span>
 
-                    <behavior-properties
+                    <BehaviorProperties
                         :key="`behavior-panel-${item.id}`"
+                        :editorId="editorId"
                         :item="item"
                         :extended="true"
                         :scheme-container="schemeContainer"
@@ -55,13 +56,13 @@ import ElementPicker from '../ElementPicker.vue';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import map from 'lodash/map';
-import shortid from 'shortid';
 
 export default {
     components: { Modal, BehaviorProperties, ElementPicker },
 
     props: {
-        schemeContainer: Object,
+        editorId       : {type: String, required: true},
+        schemeContainer: {type: Object},
     },
 
     beforeMount() {

@@ -24,8 +24,9 @@
 
         <div v-if="currentTab === 'behavior'">
             <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
-            <behavior-properties
+            <BehaviorProperties
                 :key="`behavior-panel-${item.id}-${behaviorPanelRevision}`"
+                :editorId="editorId"
                 :item="item"
                 :scheme-container="schemeContainer"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
@@ -98,6 +99,7 @@
                             <td class="value" width="50%">
                                 <PropertyInput
                                     :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.fat}`"
+                                    :editorId="editorId"
                                     :descriptor="arg"
                                     :value="item.shapeProps[argName]"
                                     :shapeProps="item.shapeProps"
@@ -191,6 +193,7 @@
 
         <EditEffectModal v-if="editEffectModal.shown"
             :key="`edit-effect-modal-${item.id}-${editEffectModal.currentEffectIndex}-${editEffectModal.effectId}`"
+            :editorId="editorId"
             :isAdding="editEffectModal.isAdding"
             :effectId="editEffectModal.effectId"
             :effectArgs="editEffectModal.effectArgs"
@@ -266,12 +269,12 @@ export default {
         }
         this.currentTab = tab;
         EventBus.$on(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
 
     beforeDestroy() {
         EventBus.$off(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
 
     mounted() {
@@ -319,7 +322,7 @@ export default {
         },
 
         onShapePropChange(name, type, value) {
-            // handling onUpdate shape arg callback (used in swim lane item)
+            // handling onUpdate shape arg callback (used in swim lane item and code_block)
             const shape = Shape.find(this.item.shape);
             if (shape && shape.args[name]) {
                 const argConfig = shape.args[name];
@@ -327,6 +330,7 @@ export default {
                     const previousValue = this.item.shapeProps[name];
                     this.item.shapeProps[name] = value;
                     argConfig.onUpdate(this.$store, this.item, value, previousValue);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, `shapeProps.${name}`);
                 }
             }
 
@@ -409,7 +413,7 @@ export default {
                         item.area.sy = sy;
                     }
 
-                    EventBus.emitItemChanged(item.id, 'area.sx');
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area.sx');
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `editbox.area.s`);
                     this.schemeContainer.updateMultiItemEditBoxAreaOnly();
                     this.schemeContainer.updateChildTransforms(this.schemeContainer.multiItemEditBox.items[0]);
@@ -449,7 +453,7 @@ export default {
             this.editEffectModal.effectId = effectId;
             this.editEffectModal.shown = true;
             this.editEffectModal.currentEffectIndex = this.item.effects.length - 1;
-            EventBus.emitItemChanged(this.item.id, 'effects');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
         },
 
         effectModalClosed() {
@@ -457,7 +461,7 @@ export default {
                 if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
                     this.item.effects.splice(this.editEffectModal.currentEffectIndex, 1);
                 }
-                EventBus.emitItemChanged(this.item.id, 'effects');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
             }
             this.editEffectModal.shown = false;
             this.editEffectModal.currentEffectIndex = -1;
@@ -467,7 +471,7 @@ export default {
             if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
                 this.item.effects[this.editEffectModal.currentEffectIndex].args[argName] = value;
             }
-            EventBus.emitItemChanged(this.item.id, 'effects');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
         },
 
         onEffectNameChanged(name) {
@@ -482,7 +486,7 @@ export default {
                 if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
                     this.item.effects[this.editEffectModal.currentEffectIndex] = effect;
                 }
-                EventBus.emitItemChanged(this.item.id, 'effects');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
             }
         },
@@ -501,7 +505,7 @@ export default {
             }
 
             this.item.effects.splice(idx, 1);
-            EventBus.emitItemChanged(this.item.id, 'effects');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
         },
 
@@ -519,7 +523,7 @@ export default {
                 name: effect.name,
                 args: this.editEffectModal.effectArgs
             };
-            EventBus.emitItemChanged(this.item.id, 'effects');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
         }
     },
     computed: {

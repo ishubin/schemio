@@ -422,7 +422,7 @@ export default {
 
         toggleItemVisibility(item) {
             item.visible = !item.visible;
-            EventBus.emitItemChanged(item.id, 'visible');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'visible');
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.visible`);
             this.$forceUpdate();
         },

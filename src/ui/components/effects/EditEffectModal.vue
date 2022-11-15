@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <Modal
-        :title="isAdding ? 'Add effect': 'Edit Effect'" 
+        :title="isAdding ? 'Add effect': 'Edit Effect'"
         :primaryButton="isAdding ? 'Add Effect': null"
         @primary-submit="addEffect"
         @close="$emit('close')"
@@ -23,6 +23,7 @@
 
         <EffectEditor
             :key="`effect-editor-${effectId}`"
+            :editorId="editorId"
             :schemeContainer="schemeContainer"
             :effectId="effectId"
             :effectArgs="effectArgs"
@@ -50,6 +51,7 @@ export default {
     components: { Modal, EffectEditor },
 
     props: {
+        editorId  : { type: String, required: true},
         title     : { type: String, default: 'Add effect' },
         isAdding  : { type: Boolean, default: true },
         effectId  : { type: String, required: true },

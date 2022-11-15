@@ -87,7 +87,7 @@ export default class StateCreateItem extends State {
         }
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
-        this.eventBus.emitItemChanged(this.item.id);
+        this.listener.onItemChanged(this.item.id);
         this.listener.onSchemeChangeCommitted();
         this.cancel();
     }
@@ -109,6 +109,6 @@ export default class StateCreateItem extends State {
             this.item.area.h = this.round(this.originalPoint.y - y);
             this.item.area.y = this.round(y);
         }
-        EventBus.emitItemChanged(this.item.id);
+        this.listener.onItemChanged(this.item.id);
     }
 }

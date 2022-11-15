@@ -110,6 +110,7 @@
                     <li v-if="firstSelectedItem">
                         <StrokeControl
                             :key="`stroke-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
+                            :editorId="editorId"
                             :item="firstSelectedItem"
                             @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
                             @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
@@ -119,6 +120,7 @@
                     <li v-if="firstSelectedItem">
                         <TextStyleControl
                             :key="`text-style-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
+                            :editorId="editorId"
                             :item="firstSelectedItem"
                             @property-changed="onTextStylePropertyChange"
                             />
@@ -238,10 +240,12 @@ import MenuDropdown from '../MenuDropdown.vue';
 import Shape from './items/shapes/Shape';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
+import EditorEventBus from './EditorEventBus';
 
 export default {
     props: {
         /** @type {SchemeContainer} */
+        editorId            : {type: String, required: true},
         schemeContainer     : { type: Object, required: true },
         mode                : { type: String, required: true },    // "edit" or "view"
         state               : { type: String, required: true},
@@ -357,7 +361,7 @@ export default {
 
             if (this.isCreatingConnector()) {
                 this.$store.state.connecting.connectorItem.shapeProps.smoothing = smoothingType;
-                EventBus.emitItemChanged(this.$store.state.connecting.connectorItem.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.$store.state.connecting.connectorItem.id);
             } else {
                 this.emitShapePropChange('smoothing', 'choice', smoothingType);
             }
@@ -438,7 +442,7 @@ export default {
                 item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
             }
 
-            EventBus.emitItemChanged(item.id, 'area');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
 
             this.schemeContainer.updateMultiItemEditBox();
 
@@ -448,7 +452,7 @@ export default {
                 const localPoint = this.schemeContainer.localPointOnItem(originalWorldPoint.x, originalWorldPoint.y, item);
                 childItem.area.x = localPoint.x;
                 childItem.area.y = localPoint.y;
-                EventBus.emitItemChanged(childItem.id, 'area');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, childItem.id, 'area');
             });
         },
 
