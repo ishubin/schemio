@@ -135,7 +135,6 @@
 </template>
 
 <script>
-import EventBus from '../EventBus';
 import { EditorMenuBar } from 'tiptap';
 import {getAllFonts} from '../../../scheme/Fonts';
 import map from 'lodash/map';
@@ -151,11 +150,11 @@ export default {
     components: {EditorMenuBar, Dropdown, NumberTextfield, ColorPicker},
 
     beforeMount() {
-        EventBus.$on(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
+        EditorEventBus.inPlaceTextEditor.created.$on(this.editorId, this.onTextEditorCreated);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
     beforeDestroy() {
-        EventBus.$off(EventBus.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, this.onTextEditorCreated);
+        EditorEventBus.inPlaceTextEditor.created.$off(this.editorId, this.onTextEditorCreated);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
     data() {

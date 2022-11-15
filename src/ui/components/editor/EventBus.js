@@ -21,10 +21,6 @@ const EventBus = new Vue({
             KEY_UP: 'key-up',
             BRING_TO_VIEW: 'bring-to-view',
 
-            // used when in place rich text editor is created and mounted, this comes after ITEM_TEXT_SLOT_EDIT_TRIGGERED event
-            ITEM_IN_PLACE_TEXT_EDITOR_CREATED: 'item-in-place-text-editor-created',
-
-
             // used to trigger display of item description as a tooltip (when in interactive mode)
             ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
 
@@ -90,10 +86,6 @@ const EventBus = new Vue({
 
         emitRightClickedItem(item, mouseX, mouseY) {
             this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
-        },
-
-        emitItemInPlaceTextEditorCreated(editor) {
-            this.$emit(this.ITEM_IN_PLACE_TEXT_EDITOR_CREATED, editor);
         },
 
         emitElementPickRequested(elementPickCallback) {

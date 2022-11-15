@@ -18,7 +18,6 @@
 import htmlSanitize from '../../../htmlSanitize';
 import utils from '../../utils';
 import RichTextEditor from '../RichTextEditor.vue';
-import EventBus from './EventBus';
 import { Keys, identifyKeyPress } from '../../events';
 import { Editor, EditorContent } from 'tiptap';
 import {
@@ -74,7 +73,7 @@ export default {
         init() {
             if (!this.markupDisabled) {
                 this.editor = this.createEditor(this.text);
-                EventBus.emitItemInPlaceTextEditorCreated(this.editor);
+                EditorEventBus.inPlaceTextEditor.created.$emit(this.editorId, this.editor);
             }
         },
 
