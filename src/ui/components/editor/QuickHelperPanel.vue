@@ -465,7 +465,7 @@ export default {
 
         toggleClickableMarkers(shown) {
             if (shown) {
-                EventBus.$emit(EventBus.CLICKABLE_MARKERS_TOGGLED);
+                EditorEventBus.clickableMarkers.toggled.$emit(this.editorId);
             }
             StoreUtils.setShowClickableMarkers(this.$store, shown);
         },

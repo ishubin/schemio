@@ -41,7 +41,6 @@
 import axios from 'axios';
 import Modal from '../Modal.vue';
 import {registerExternalShapeGroup} from './items/shapes/ExtraShapes';
-import EventBus from './EventBus';
 import StoreUtils from '../../store/StoreUtils';
 
 const ASSETS_PREFIX = '/assets';
@@ -145,7 +144,7 @@ export default {
                 }
                 this.isLoading = false;
                 StoreUtils.addArtPack(this.$store, artPackEntry.ref, artPack);
-                EventBus.$emit(EventBus.ART_PACK_ADDED, artPack);
+                this.$emit('art-pack-added', artPack);
                 artPackEntry.used = true;
             })
             .catch(err => {
@@ -161,7 +160,7 @@ export default {
             .then(response => {
                 this.isLoading = false;
                 registerExternalShapeGroup(this.$store, shapeGroup.id, response.data);
-                EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
+                this.$emit('extra-shapes-registered');
                 shapeGroup.used = true;
             })
             .catch(err => {

@@ -19,34 +19,8 @@ const EventBus = new Vue({
         return {
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
-
-            // triggered in case user clicked undo or redo and the scheme was reset to a new state
-            HISTORY_UNDONE: 'history-undone',
-
-            IMAGE_CROP_TRIGGERED: 'image-crop-triggered',
-
-            FLOATING_HELPER_PANEL_UPDATED: 'floating-helper-panel-updated',
-
-            // used for each frame_player item to initialize it's callbacks for its own frame animation
-            FRAME_PLAYER_PREPARED: 'frame-player-prepared',
-
-            CLICKABLE_MARKERS_TOGGLED: 'clickable-markers-toggled',
-
-            EXTRA_SHAPE_GROUP_REGISTERED: 'extra-shape-group-registered',
-
-            ART_PACK_ADDED: 'art-pack-added'
         };
     },
-    methods: {
-
-        emitFloatingHelperPanelUpdated() {
-            this.$emit(EventBus.FLOATING_HELPER_PANEL_UPDATED);
-        },
-
-        emitFramePlayerPrepared(framePlayerItem, frameCallbacks) {
-            this.$emit(EventBus.FRAME_PLAYER_PREPARED, framePlayerItem, frameCallbacks);
-        },
-    }
 });
 
 // Adding logging of all events in EventBus

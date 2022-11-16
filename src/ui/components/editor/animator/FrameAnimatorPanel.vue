@@ -349,13 +349,11 @@ export default {
     beforeMount() {
         this.compileAnimations();
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
-        EventBus.$on(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
     },
 
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
-        EventBus.$off(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
         StoreUtils.setAnimationEditorRecording(this.$store, false);
     },

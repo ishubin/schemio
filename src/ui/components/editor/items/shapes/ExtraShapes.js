@@ -1,7 +1,6 @@
 import axios from "axios";
 import { traverseItems } from "../../../../scheme/Item";
 import StoreUtils from "../../../../store/StoreUtils";
-import EventBus from "../../EventBus";
 import Shape from "./Shape";
 
 export function generateShapeId(shapeGroupId, shapeDef) {
@@ -83,7 +82,6 @@ function loadAllMissingShapes(shapeIds, $store) {
             }
             return axios.get(shapeGroup.ref).then(response => {
                 registerExternalShapeGroup($store, shapeGroupId, response.data);
-                EventBus.$emit(EventBus.EXTRA_SHAPE_GROUP_REGISTERED);
             });
         }))
     });

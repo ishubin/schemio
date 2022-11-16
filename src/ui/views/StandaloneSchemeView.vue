@@ -92,6 +92,7 @@ export default {
             onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
             onScreenTransformUpdated: (screenTransform) => this.onScreenTransformUpdated(screenTransform),
             onItemsHighlighted: (highlightedItems) => this.highlightedItems = highlightedItems,
+            onSubStateMigrated: () => {},
         });
     },
     data() {

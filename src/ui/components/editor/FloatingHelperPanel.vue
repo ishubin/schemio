@@ -155,7 +155,7 @@ export default {
         },
 
         cropImage() {
-            EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, this.item);
+            this.$emit('image-crop-requested', this.item);
         },
 
         commitSchemeChange(propertyName) {

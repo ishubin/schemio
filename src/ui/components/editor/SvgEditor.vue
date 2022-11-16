@@ -246,8 +246,8 @@ export default {
         EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
 
-        EventBus.$on(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
-        EventBus.$on(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
+        EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
+        EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.updateClickableMarkers);
     },
     mounted() {
         this.updateSvgSize();
@@ -281,8 +281,8 @@ export default {
         EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
 
-        EventBus.$off(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
-        EventBus.$off(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
+        EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
+        EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.updateClickableMarkers);
 
         if (this.useMouseWheel) {
             const svgElement = this.$refs.svgDomElement;

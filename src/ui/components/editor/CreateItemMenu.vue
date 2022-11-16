@@ -112,7 +112,10 @@
             {{errorMessage}}
         </modal>
 
-        <ExtraShapesModal v-if="extraShapesModal.shown" @close="extraShapesModal.shown = false"/>
+        <ExtraShapesModal v-if="extraShapesModal.shown"
+            @art-pack-added="updateAllArtPacks"
+            @extra-shapes-registered="updateAllPanels"
+            @close="extraShapesModal.shown = false"/>
 
         <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
@@ -150,7 +153,6 @@
 </template>
 
 <script>
-import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import CustomArtUploadModal from './CustomArtUploadModal.vue';
 import EditArtModal from './EditArtModal.vue';
@@ -191,14 +193,8 @@ export default {
 
     beforeMount() {
         this.filterItemPanels();
-        EventBus.$on(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
-        EventBus.$on(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
     },
 
-    beforeDestroy() {
-        EventBus.$off(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
-        EventBus.$off(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
-    },
     data() {
         return {
             customArtUploadModalShown   : false,
@@ -470,11 +466,11 @@ export default {
                 img.onload = function () {
                     if (this.width > 1 && this.height > 1) {
                         newItem.area = { x: 0, y: 0, w: this.width, h: this.height};
-                        this.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                        that.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                     }
                 };
                 img.onerror = (err) => {
-                    this.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                    that.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                 };
                 img.src = imageUrl;
             }

@@ -113,6 +113,7 @@
                             :item="floatingHelperPanel.item"
                             :schemeContainer="schemeContainer"
                             @edit-path-requested="onEditPathRequested"
+                            @image-crop-requested="startCroppingImage"
                             />
                     </div>
                 </SvgEditor>
@@ -209,7 +210,11 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
-                        <CreateItemMenu :editorId="editorId" :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"
+                        <CreateItemMenu
+                            :key="`${editorId}-${schemeContainer.scheme.id}`"
+                            :editorId="editorId"
+                            :scheme-container="schemeContainer"
+                            :projectArtEnabled="projectArtEnabled"
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
                             @drawing-requested="switchStateDrawing"
@@ -555,6 +560,7 @@ export default {
         const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
         const onScreenTransformUpdated = (screenTransform) => this.onScreenTransformUpdated(screenTransform);
         const onItemsHighlighted = (highlightedItems) => this.highlightedItems = highlightedItems;
+        const onSubStateMigrated = () => {};
 
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
@@ -566,6 +572,7 @@ export default {
                 onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
@@ -573,6 +580,7 @@ export default {
                 onSchemeChangeCommitted,
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
             editPath: new StateEditPath(EventBus, this.$store, {
@@ -586,6 +594,7 @@ export default {
                 onContextMenuRequested: (mx, my, menuOptions) => this.onContextMenuRequested(mx, my, menuOptions),
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
             connecting: new StateConnecting(EventBus, this.$store, {
@@ -593,6 +602,7 @@ export default {
                 onSchemeChangeCommitted,
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
             dragItem: new StateDragItem(EventBus, this.$store, {
@@ -609,12 +619,14 @@ export default {
                 onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
                 onScreenTransformUpdated
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
                 onCancel,
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
             cropImage: new StateCropImage(EventBus, this.$store, {
@@ -622,6 +634,7 @@ export default {
                 onSchemeChangeCommitted,
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
             draw: new StateDraw(EventBus, this.$store, {
@@ -629,6 +642,7 @@ export default {
                 onSchemeChangeCommitted,
                 onItemChanged,
                 onItemsHighlighted,
+                onSubStateMigrated,
                 onScreenTransformUpdated
             }),
         };
@@ -788,8 +802,6 @@ export default {
 
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-                EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
         },
 
@@ -798,8 +810,6 @@ export default {
                 this.eventsRegistered = false;
                 EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-                EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
         },
 
@@ -1835,7 +1845,7 @@ export default {
                     this.customContextMenu.menuOptions.push({
                         name: 'Crop image',
                         iconClass: 'fas fa-crop',
-                        clicked: () => EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, item)
+                        clicked: () => this.startCroppingImage(item)
                     });
                 }
             } else {

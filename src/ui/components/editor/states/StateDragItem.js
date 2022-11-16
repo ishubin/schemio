@@ -852,12 +852,10 @@ export default class StateDragItem extends State {
 
     migrateSubState(subState) {
         super.migrateSubState(subState);
-        EventBus.emitFloatingHelperPanelUpdated();
     }
 
     migrateToPreviousSubState() {
         super.migrateToPreviousSubState();
-        EventBus.emitFloatingHelperPanelUpdated();
     }
 
     reset() {

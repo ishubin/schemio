@@ -260,6 +260,22 @@ const EditorEventBus = {
             $off: (editorId, callback) => $off(editorId, 'edit-box-items-updated', [], callback),
             $emit: (editorId) => $emit(editorId, 'edit-box-items-updated', []),
         },
+    },
+
+    framePlayer: {
+        prepared: {
+            $on: (editorId, callback) => $on(editorId, 'frame-player-prepared', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'frame-player-prepared', [], callback),
+            $emit: (editorId, framePlayerItem, frameCallbacks) => $emit(editorId, 'frame-player-prepared', [], framePlayerItem, frameCallbacks),
+        }
+    },
+
+    clickableMarkers: {
+        toggled: {
+            $on: (editorId, callback) => $on(editorId, 'clickable-markers-toggled', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'clickable-markers-toggled', [], callback),
+            $emit: (editorId) => $emit(editorId, 'clickable-markers-toggled', []),
+        }
     }
 };
 

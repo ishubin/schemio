@@ -53,6 +53,7 @@ class State {
         this.subState = newSubState;
         this.subState.listener = this.listener;
         this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
+        this.listener.onSubStateMigrated();
     }
 
     migrateToPreviousSubState() {
@@ -60,6 +61,7 @@ class State {
             this.subState = this.previousSubStates.pop();
             this.subState.listener = this.listener;
             this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
+            this.listener.onSubStateMigrated();
         }
     }
 

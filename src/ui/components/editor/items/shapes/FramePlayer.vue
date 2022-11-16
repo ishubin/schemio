@@ -3,12 +3,12 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g>
-        <g v-for="(button,buttonIndex) in buttons" 
+        <g v-for="(button,buttonIndex) in buttons"
             @click="onClickedButton(buttonIndex)"
             @mouseover="onMouseOverButton(buttonIndex)"
             @mouseout="onMouseOutButton(buttonIndex)"
             >
-            <circle 
+            <circle
                 :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
                 :cy="buttonSize/2 + topOffset"
                 :r="buttonSize/2"
@@ -17,7 +17,7 @@
                 style="-webkit-transition: fill 200ms linear; -ms-transition: fill 200ms linear; transition: fill 200ms linear;"
                 stroke-width="1"/>
 
-            <foreignObject 
+            <foreignObject
                 :x="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize)"
                 :y="topOffset"
                 :width="buttonSize"
@@ -27,7 +27,7 @@
                 </div>
             </foreignObject>
 
-            <circle 
+            <circle
                 :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
                 :cy="buttonSize/2 + topOffset"
                 :r="buttonSize/2"
@@ -37,7 +37,7 @@
                 style="cursor: pointer"/>
         </g>
 
-        <foreignObject v-if="currentSection" x="0" :y="buttonSize + 6 + topOffset" 
+        <foreignObject v-if="currentSection" x="0" :y="buttonSize + 6 + topOffset"
             :width="item.area.w" height="60" xmlns="http://www.w3.org/1999/xhtml">
             <div :style="framesTextStyle">
                 <div>{{currentSection.number}} / {{totalSections}}</div>
@@ -49,10 +49,10 @@
 
 <script>
 import forEach from 'lodash/forEach';
-import EventBus from '../../EventBus';
+import EditorEventBus from '../../EditorEventBus';
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
 
     shapeConfig: {
         shapeType: 'vue',
@@ -109,9 +109,9 @@ export default {
     },
 
     beforeMount() {
-        EventBus.emitFramePlayerPrepared(this.item, this.createFrameCallbacks());
+        EditorEventBus.framePlayer.prepared.$emit(this.editorId, this.item, this.createFrameCallbacks());
     },
-    
+
     data() {
         const sectionsMapping = [];
         const map = new Map();
@@ -147,7 +147,7 @@ export default {
             iconPlaying: 'fas fa-pause',
             click: () => {this.onClickedTogglePlay()}
         }];
-        
+
         if (this.item.shapeProps.sections.length > 0) {
             buttons = [{
                 icon: 'fas fa-fast-backward',
@@ -277,14 +277,14 @@ export default {
                 }
 
                 this.$emit('frame-animator', {
-                    operation: 'play', 
+                    operation: 'play',
                     item: this.item,
                     frame: startingFrame,
                     callbacks: this.createFrameCallbacks()
                 });
             } else {
                 this.$emit('frame-animator', {
-                    operation: 'stop', 
+                    operation: 'stop',
                     item: this.item,
                 });
             }
