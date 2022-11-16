@@ -170,7 +170,7 @@ class DragControlPointState extends SubState {
 
     mouseUp(x, y, mx, my, object, event) {
         this.listener.onSchemeChangeCommitted();
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         this.migrateToPreviousSubState();
     }
 
@@ -280,7 +280,7 @@ class DragControlPointState extends SubState {
             curvePoint.x = localCurvePoint.x;
             curvePoint.y = localCurvePoint.y;
 
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
@@ -295,7 +295,7 @@ class DragControlPointState extends SubState {
             curvePoint.y = localPoint.y;
 
             // nothing to attach to so reseting highlights in case it was set previously
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = null;
                 this.item.shapeProps.sourceItemPosition = 0;
@@ -519,10 +519,10 @@ class DragEditBoxState extends EditBoxState {
         }
 
         if (this.proposedItemForMounting) {
-            this.eventBus.emitItemsHighlighted([this.proposedItemForMounting.id], {highlightPins: false});
+            this.listener.onItemsHighlighted({itemIds: [this.proposedItemForMounting.id], showPins: false});
             this.proposedToRemountToRoot = false;
         } else {
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             this.proposedToRemountToRoot = true;
         }
 
@@ -539,7 +539,7 @@ class DragEditBoxState extends EditBoxState {
             }
         }
 
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         super.mouseUp(x, y, mx, my, object, event);
     }
 

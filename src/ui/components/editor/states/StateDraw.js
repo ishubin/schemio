@@ -117,7 +117,7 @@ export default class StateDraw extends State {
     }
 
     cancel() {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         const item = this.submitDrawing();
         if (item) {
             this.schemeContainer.selectItem(item);

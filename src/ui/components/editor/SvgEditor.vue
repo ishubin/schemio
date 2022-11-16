@@ -216,6 +216,7 @@ export default {
         stateLayerShown     : { type: Boolean, default: false},
         userEventBus        : { type: Object, default: null},
         patchIndex          : { type: Object, default: null},
+        highlightedItems    : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -241,7 +242,6 @@ export default {
         EditorEventBus.void.doubleClicked.$on(this.editorId, this.onVoidDoubleClicked);
 
         EditorEventBus.item.selected.any.$on(this.editorId, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
 
         EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
@@ -277,7 +277,6 @@ export default {
         EditorEventBus.void.doubleClicked.$off(this.editorId, this.onVoidDoubleClicked);
 
         EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
-        EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
 
         EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
@@ -519,9 +518,7 @@ export default {
             }
         },
 
-        highlightItems(itemIds, options) {
-            const highlightPins = options ? options.highlightPins : false;
-
+        highlightItems(itemIds, showPins) {
             this.worldHighlightedItems = [];
 
             forEach(itemIds, itemId => {
@@ -575,7 +572,7 @@ export default {
                     scalingFactor
                 };
 
-                if (highlightPins) {
+                if (showPins) {
                     itemHighlight.pins = shape.getPins(item);
                 }
 
@@ -1043,6 +1040,10 @@ export default {
         textSelectionEnabled(isEnabled) {
             this.mouseEventsEnabled = !(this.mode === 'view' && isEnabled);
             this.$forceUpdate();
+        },
+
+        highlightedItems(value) {
+            this.highlightItems(value.itemIds, value.showPins);
         }
     }
 }

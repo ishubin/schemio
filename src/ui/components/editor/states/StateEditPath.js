@@ -791,7 +791,7 @@ export default class StateEditPath extends State {
     }
 
     reset() {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         this.item = null;
         this.history = new History({size: 100});
         this.updateHistoryState();
@@ -828,7 +828,7 @@ export default class StateEditPath extends State {
         if (this.subState) {
             this.subState.reset();
         }
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         if (this.item && this.item.id) {
             const paths = this.item.shapeProps.paths;
             for (let i = paths.length - 1; i >= 0; i--) {

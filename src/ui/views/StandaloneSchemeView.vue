@@ -25,6 +25,7 @@
                 :use-mouse-wheel="useMouseWheel"
                 mode="view"
                 :userEventBus="userEventBus"
+                :highlightedItems="highlightedItems"
                 @mouse-wheel="mouseWheel"
                 @mouse-move="mouseMove"
                 @mouse-down="mouseDown"
@@ -61,19 +62,7 @@ import StateInteract from '../components/editor/states/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import shortid from 'shortid';
 
-const editorId = 'standalone-' + shortid.generate;
 
-const userEventBus = new UserEventBus();
-const stateInteract = new StateInteract(EventBus, store, userEventBus, {
-    onCancel: () => {},
-    onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
-    onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
-    onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
-    onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
-    onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
-    onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
-    onScreenTransformUpdated: (screenTransform) => this.onScreenTransformUpdated(screenTransform),
-});
 
 export default {
     props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
@@ -84,19 +73,32 @@ export default {
         this.$store.dispatch('setAssetsPath', '/');
         this.initSchemeContainer();
 
-        EditorEventBus.screenTransformUpdated.$on(editorId, this.onScreenTransformUpdated);
+        EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
     },
     beforeDestroy() {
-        EditorEventBus.screenTransformUpdated.$off(editorId, this.onScreenTransformUpdated);
+        EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+    },
+    created() {
+        this.userEventBus = new UserEventBus();
+        this.stateInteract = new StateInteract(EventBus, store, this.userEventBus, {
+            onCancel: () => {},
+            onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+            onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
+            onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+            onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
+            onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
+            onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
+            onScreenTransformUpdated: (screenTransform) => this.onScreenTransformUpdated(screenTransform),
+            onItemsHighlighted: (highlightedItems) => this.highlightedItems = highlightedItems,
+        });
     },
     data() {
         return {
-            editorId,
+            editorId: 'standalone-' + shortid.generate,
             schemeContainer: null,
             initialized: false,
-            userEventBus,
             textZoom: "" + this.zoom,
             vZoom: this.zoom,
 
@@ -105,6 +107,11 @@ export default {
                 shown: false,
                 x: 0,
                 y: 0
+            },
+
+            highlightedItems: {
+                itemIds: [],
+                showPins: false
             },
 
             sidePanel: {
@@ -120,9 +127,9 @@ export default {
                 console.error('Failed to load shapes', err);
             })
             .then(() => {
-                this.schemeContainer = new SchemeContainer(this.scheme, editorId, EventBus);
-                stateInteract.schemeContainer = this.schemeContainer;
-                stateInteract.reset();
+                this.schemeContainer = new SchemeContainer(this.scheme, this.editorId, EventBus);
+                this.stateInteract.schemeContainer = this.schemeContainer;
+                this.stateInteract.reset();
                 this.initialized = true;
                 if (this.autoZoom) {
                     this.zoomToScheme();
@@ -132,31 +139,31 @@ export default {
 
         mouseWheel(x, y, mx, my, event) {
             if (this.initialized) {
-                stateInteract.mouseWheel(x, y, mx, my, event);
+                this.stateInteract.mouseWheel(x, y, mx, my, event);
             }
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
         mouseUp(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
@@ -194,7 +201,7 @@ export default {
             if (items && items.length > 0) {
                 const area = this.getBoundingBoxOfItems(items);
                 if (area) {
-                    EditorEventBus.zoomToAreaRequested.$emit(editorId, area, false);
+                    EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
                 }
             }
         },

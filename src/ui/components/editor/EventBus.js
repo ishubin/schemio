@@ -20,8 +20,6 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
 
-            ITEMS_HIGHLIGHTED: 'items-highlighted',
-
             ITEM_SURROUND_CREATED: 'item-surround-created',
 
             BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested',
@@ -49,16 +47,6 @@ const EventBus = new Vue({
         };
     },
     methods: {
-
-        /**
-         * emits an event when a single item is supposed to be highlighted
-         * @param {Array} itemIds array of ids of items that should be highlighted. In case it is set as null or empty - then no items should be highlighted at all.
-         */
-        emitItemsHighlighted(itemIds, options) {
-            const highlightPins = options ? options.highlightPins: false;
-            this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds, {highlightPins});
-        },
-
         emitItemSurroundCreated(item, boundingBox, padding) {
             this.$emit(EventBus.ITEM_SURROUND_CREATED, item, boundingBox, padding);
         },

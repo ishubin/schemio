@@ -32,6 +32,7 @@
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
             @path-edit-stopped="onPathEditStopped"
+            @items-highlighted="onItemsHighlighted"
             >
             <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
                 <li v-if="modified">
@@ -61,6 +62,7 @@
                     :patchIndex="patchIndex"
                     :mode="mode"
                     :zoom="zoom"
+                    :highlightedItems="highlightedItems"
                     :stateLayerShown="state === 'draw' || state === 'createItem'"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
@@ -125,6 +127,7 @@
                     :textSelectionEnabled="textSelectionEnabled"
                     :zoom="zoom"
                     :userEventBus="userEventBus"
+                    :highlightedItems="highlightedItems"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
                     @mouse-down="mouseDown"
@@ -550,6 +553,7 @@ export default {
         const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
         const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
         const onScreenTransformUpdated = (screenTransform) => this.onScreenTransformUpdated(screenTransform);
+        const onItemsHighlighted = (highlightedItems) => this.highlightedItems = highlightedItems;
 
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
@@ -560,12 +564,14 @@ export default {
                 onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
                 onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             editPath: new StateEditPath(EventBus, this.$store, {
@@ -578,12 +584,14 @@ export default {
                 onPathPointsUpdated: () => { this.pathPointsUpdateKey++; },
                 onContextMenuRequested: (mx, my, menuOptions) => this.onContextMenuRequested(mx, my, menuOptions),
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             connecting: new StateConnecting(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             dragItem: new StateDragItem(EventBus, this.$store, {
@@ -599,23 +607,27 @@ export default {
                 },
                 onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
                 onCancel,
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             cropImage: new StateCropImage(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
             draw: new StateDraw(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
+                onItemsHighlighted,
                 onScreenTransformUpdated
             }),
         };
@@ -669,6 +681,11 @@ export default {
             isLoading: false,
             loadingStep: 'load', // can be "load", "img-preload"
             schemeLoadErrorMessage: null,
+
+            highlightedItems: {
+                itemIds: [],
+                showPins: false
+            },
 
             cropImage: {
                 editBox: null,
@@ -868,8 +885,12 @@ export default {
             this.states[this.state].reset();
         },
 
+        resetItemHighlight() {
+            this.highlightedItems = { itemIds: [], showPins: false };
+        },
+
         switchStateDragItem() {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states.dragItem.schemeContainer = this.schemeContainer;
             this.states[this.state].cancel();
             this.state = 'dragItem';
@@ -878,7 +899,7 @@ export default {
 
 
         switchStateInteract() {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states.interact.schemeContainer = this.interactiveSchemeContainer;
             this.states[this.state].cancel();
             this.state = 'interact';
@@ -887,7 +908,7 @@ export default {
         },
 
         switchStatePickElement(elementPickCallback) {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states.pickElement.reset();
             this.states.pickElement.schemeContainer = this.schemeContainer;
             this.states.pickElement.setElementPickCallback(elementPickCallback);
@@ -897,7 +918,7 @@ export default {
 
 
         switchStateCreateItem(item) {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states[this.state].cancel();
             if (item.shape === 'path') {
                 item.shapeProps.points = [];
@@ -922,7 +943,7 @@ export default {
         },
 
         startPathEditing(item) {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states[this.state].cancel();
 
             item.shapeProps.points = [];
@@ -941,7 +962,7 @@ export default {
         },
 
         switchStateDrawing() {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
 
             this.states[this.state].cancel();
             this.state = 'draw';
@@ -958,7 +979,7 @@ export default {
         },
 
         startConnecting(sourceItem, worldPoint) {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states[this.state].cancel();
             let localPoint = null;
             if (worldPoint) {
@@ -979,7 +1000,7 @@ export default {
         },
 
         onEditPathRequested(item) {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states[this.state].cancel();
             this.state = 'editPath';
             this.states.editPath.reset();
@@ -995,7 +1016,7 @@ export default {
         },
 
         startCroppingImage(item) {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
             this.states[this.state].cancel();
             this.state = 'cropImage';
 
@@ -2295,6 +2316,10 @@ export default {
                 callbacks.onToggle();
             })
             .build();
+        },
+
+        onItemsHighlighted(highlightedItems) {
+            this.highlightedItems = highlightedItems;
         },
 
 

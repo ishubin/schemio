@@ -49,7 +49,7 @@ export default class StateConnecting extends State {
     }
 
     reset() {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false})
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;
@@ -66,7 +66,7 @@ export default class StateConnecting extends State {
 
     cancel() {
         StoreUtils.setCurrentConnector(this.store, null);
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false})
         if (this.item) {
             // deleting last point
             this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
@@ -376,7 +376,7 @@ export default class StateConnecting extends State {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false})
 
         if (this.addedToScheme) {
             if (this.candidatePointSubmited) {
@@ -474,11 +474,11 @@ export default class StateConnecting extends State {
         const closestPointToItem = this.findClosestAttachmentPoint(x, y);
 
         if (closestPointToItem) {
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
             this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
         } else {
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             this.item.shapeProps.sourceItem = null;
             this.item.shapeProps.sourceItemPosition = 0;
         }
@@ -520,7 +520,7 @@ export default class StateConnecting extends State {
                 curvePoint.by = normal.y;
             }
 
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (isSource) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
@@ -534,7 +534,7 @@ export default class StateConnecting extends State {
                 delete curvePoint.by;
             }
             // nothing to attach to so reseting highlights in case it was set previously
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (isSource) {
                 this.item.shapeProps.sourceItem = null;
                 this.item.shapeProps.sourceItemPosition = 0;

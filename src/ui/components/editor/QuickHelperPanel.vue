@@ -585,10 +585,10 @@ export default {
                     }
                 });
                 this.searchHighlights = filteredItems;
-                EventBus.emitItemsHighlighted(highlightedItemIds);
+                this.$emit('items-highlighted', {itemIds: highlightedItemIds, showPins: false});
             } else {
                 this.searchHighlights = [];
-                EventBus.emitItemsHighlighted([]);
+                this.$emit('items-highlighted', {itemIds: [], showPins: false});
             }
         },
 
