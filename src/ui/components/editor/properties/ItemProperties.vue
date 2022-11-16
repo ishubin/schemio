@@ -213,7 +213,6 @@ import map from 'lodash/map';
 import indexOf from 'lodash/indexOf';
 import mapValues from 'lodash/mapValues';
 import forEach from 'lodash/forEach';
-import EventBus from '../EventBus.js';
 import EditorEventBus from '../EditorEventBus.js';
 import Panel from '../Panel.vue';
 import Tooltip from '../../Tooltip.vue';

@@ -99,7 +99,6 @@
 
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
-import EventBus from './EventBus.js';
 import RichTextEditor from '../RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';

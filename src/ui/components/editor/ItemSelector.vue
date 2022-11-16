@@ -89,7 +89,6 @@
 <script>
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
-import EventBus from './EventBus';
 import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';

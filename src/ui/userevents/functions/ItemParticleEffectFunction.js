@@ -7,7 +7,6 @@ import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import myMath from '../../myMath';
-import EventBus from '../../components/editor/EventBus';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 const PI_2 = Math.PI * 2.0;

@@ -227,7 +227,6 @@
 
 <script>
 import '../../typedef';
-import EventBus from './EventBus';
 import Dropdown from '../../components/Dropdown.vue';
 import StrokeControl from './StrokeControl.vue';
 import TextStyleControl from './TextStyleControl.vue';

@@ -177,7 +177,6 @@ import '../../typedef';
 import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, traverseItems, hasItemDescription} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
-import EventBus from './EventBus.js';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';

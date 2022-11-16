@@ -3,13 +3,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import EventBus from '../EventBus.js';
 import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 
 export default class StateCreateItem extends State {
-    constructor(eventBus, store, listener) {
-        super(eventBus, store, 'create-item', listener);
+    constructor(store, listener) {
+        super(store, 'create-item', listener);
         this.item = null;
         this.addedToScheme = false;
         this.originalPoint = null;

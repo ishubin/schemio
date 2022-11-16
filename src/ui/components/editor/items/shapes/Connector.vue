@@ -28,7 +28,6 @@
 import forEach from 'lodash/forEach';
 import map from 'lodash/forEach';
 import StrokePattern from '../StrokePattern.js';
-import EventBus from '../../EventBus';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';

@@ -4,7 +4,6 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import ValueAnimation  from '../../animations/ValueAnimation';
 import EditorEventBus from '../../components/editor/EditorEventBus';
-import EventBus from '../../components/editor/EventBus';
 
 export default {
     name: 'Hide',

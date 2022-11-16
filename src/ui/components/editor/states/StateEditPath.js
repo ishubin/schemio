@@ -8,7 +8,6 @@ import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
-import EventBus from '../EventBus.js';
 import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 import History from '../../../history/History.js';
@@ -784,8 +783,8 @@ class IdleState extends SubState {
 }
 
 export default class StateEditPath extends State {
-    constructor(eventBus, store, listener) {
-        super(eventBus, store,  'editPath', listener);
+    constructor(store, listener) {
+        super(store,  'editPath', listener);
         this.item = null;
         this.history = new History();
     }

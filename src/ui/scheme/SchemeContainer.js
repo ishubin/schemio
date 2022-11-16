@@ -264,9 +264,8 @@ class SchemeContainer {
     /**
      *
      * @param {Scheme} scheme
-     * @param {EventBus} eventBus
      */
-    constructor(scheme, editorId, eventBus, listener) {
+    constructor(scheme, editorId, listener) {
         Debugger.register('SchemioContainer', this);
 
         this.editorId = editorId;
@@ -274,7 +273,6 @@ class SchemeContainer {
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
-        this.eventBus = eventBus;
         // contains an array of items that were selected
         this.selectedItems = [];
         // used to quick access to item selection state
@@ -1177,9 +1175,7 @@ class SchemeContainer {
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
             updateItemRevision(item);
-            if (this.eventBus) {
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
-            }
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             this.svgOutlinePathCache.forceUpdate(item);
         }
 
@@ -1302,15 +1298,13 @@ class SchemeContainer {
             item.area.y = newLocalPoint.y;
         }
 
-        if (this.eventBus) {
-            if (previousParentId) {
-                EditorEventBus.item.changed.specific.$emit(this.editorId, previousParentId);
-            }
-            if (newParentId) {
-                EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
-            }
-            this.listener.onSchemeChangeCommitted(this.editorId);
+        if (previousParentId) {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, previousParentId);
         }
+        if (newParentId) {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
+        }
+        this.listener.onSchemeChangeCommitted(this.editorId);
 
 
 
@@ -1666,9 +1660,7 @@ class SchemeContainer {
 
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
-        if (this.eventBus) {
-            forEach(itemIds, itemId => EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId));
-        }
+        forEach(itemIds, itemId => EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId));
 
         this.updateMultiItemEditBox();
     }

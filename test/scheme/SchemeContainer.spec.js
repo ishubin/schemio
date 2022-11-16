@@ -4,10 +4,6 @@ import expect from 'expect';
 // stubbing this function as it doesn't work in unit tests
 SchemeContainer.prototype.getSvgOutlineOfItem = () => {return null;};
 
-const EventBusStub = {
-    emitConnectorDeselected() {},
-};
-
 const schemeThreeLevel = {
     items: [{
         id: 'qwe',
@@ -38,7 +34,7 @@ const schemeThreeLevel = {
 
 describe('SchemeContainer', () => {
     it('should calculate world point on item', () => {
-        const schemeContainer = new SchemeContainer({items: []}, EventBusStub);
+        const schemeContainer = new SchemeContainer({items: []});
 
         const point = schemeContainer.worldPointOnItem(30, 20, {
             area: {x: 100, y: 200, r: 45, w: 100, h: 100, px: 0, py: 0, sx: 1, sy: 1}
@@ -59,7 +55,7 @@ describe('SchemeContainer', () => {
                 area: {x: 10, y: 30, w: 10, h: 10, r: 90, px: 0, py: 0, sx: 1, sy: 1},
                 shape: 'rect'
             }]
-        }]}, EventBusStub);
+        }]});
 
         const point = schemeContainer.worldPointOnItem(30, 20, schemeContainer.findItemById('asd'));
 
@@ -78,7 +74,7 @@ describe('SchemeContainer', () => {
                 area: {x: 10, y: 30, w: 10, h: 10, r: 90, px: 0, py: 0, sx: 1, sy: 1},
                 shape: 'rect',
             }]
-        }]}, EventBusStub);
+        }]});
 
         const point = schemeContainer.localPointOnItem(40, 10, schemeContainer.findItemById('asd'));
         console.log('Local p', point);
@@ -88,27 +84,27 @@ describe('SchemeContainer', () => {
     });
 
     it('should reindex all items including child items', () => {
-        const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);
+        const schemeContainer = new SchemeContainer(schemeThreeLevel);
 
         expect(schemeContainer.findItemById('qwe').name).toStrictEqual('Parent item');
         expect(schemeContainer.findItemById('asd').name).toStrictEqual('Child item');
         expect(schemeContainer.findItemById('zxc').name).toStrictEqual('child sub-item');
         expect(schemeContainer.findItemById('ert').name).toStrictEqual('Child item 2');
-        
+
         expect(schemeContainer.getItems()).toHaveLength(4);
     });
 
     it('It should calculate boundary box properly including the child elements and their world coord.', () => {
-        const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);
-        
+        const schemeContainer = new SchemeContainer(schemeThreeLevel);
+
         expect(schemeContainer.getBoundingBoxOfItems(schemeContainer.getItems())).toStrictEqual({
             x: 10, y: 0, w: 140, h: 50
         });
     });
 
     it('It should find items by tag', () => {
-        const schemeContainer = new SchemeContainer(schemeThreeLevel, EventBusStub);
-        
+        const schemeContainer = new SchemeContainer(schemeThreeLevel);
+
         let items = schemeContainer.findItemsByTag('tag-1');
         expect(items).toHaveLength(2);
         expect(items[0].id).toBe('qwe');

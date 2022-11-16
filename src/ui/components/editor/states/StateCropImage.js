@@ -1,6 +1,5 @@
 import shortid from 'shortid';
 import myMath from "../../../myMath";
-import { localPointOnItem } from "../../../scheme/SchemeContainer";
 import utils from "../../../utils";
 import State from "./State";
 import { dragMultiItemEditBoxByDragger } from "./StateDragItem";
@@ -9,11 +8,8 @@ const IS_SOFT = true;
 const IS_NOT_SOFT = false;
 
 export default class StateCropImage extends State {
-    /**
-     * @param {EventBus} eventBus
-     */
-    constructor(eventBus, store, listener) {
-        super(eventBus, store, 'crop-image', listener);
+    constructor(store, listener) {
+        super(store, 'crop-image', listener);
         this.item = null;
         this.editBox = null;
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};

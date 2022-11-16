@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import myMath from '../../../myMath.js';
-import EventBus from '../EventBus.js';
 import State from './State.js';
 import {simplifyPathPoints} from '../items/shapes/Path.vue';
 import { readjustItemAreaAndPoints } from './StateEditPath.js';
@@ -20,8 +19,8 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
 };
 
 export default class StateDraw extends State {
-    constructor(eventBus, store, listener) {
-        super(eventBus, store, 'draw', listener);
+    constructor(store, listener) {
+        super(store, 'draw', listener);
         this.item = null;
         this.isDrawing = false;
         this.strokeColor = null;

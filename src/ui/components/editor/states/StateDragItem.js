@@ -5,7 +5,6 @@
 
 import State, { DragScreenState, MultiSelectState, SubState } from './State.js';
 import Shape from '../items/shapes/Shape';
-import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import myMath from '../../../myMath';
@@ -841,11 +840,8 @@ class IdleState extends SubState {
 }
 
 export default class StateDragItem extends State {
-    /**
-     * @param {EventBus} eventBus
-     */
-    constructor(eventBus, store, listener) {
-        super(eventBus, store,  'drag-item', listener);
+    constructor(store, listener) {
+        super(store,  'drag-item', listener);
         this.subState = null;
         this.listener = listener;
     }

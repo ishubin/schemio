@@ -23,7 +23,6 @@
  * This component is used in order to pick any item on the scheme
  */
 import Dropdown from '../Dropdown.vue';
-import EventBus from './EventBus.js';
 import forEach from 'lodash/forEach';
 import indexOf from 'lodash/indexOf';
 import EditorEventBus from './EditorEventBus';

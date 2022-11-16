@@ -66,7 +66,6 @@
 <script>
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import EditorEventBus from './EditorEventBus';
-import EventBus from './EventBus';
 import { computeCurvePath, convertCurvePointToItemScale, PATH_POINT_CONVERSION_SCALE } from './items/shapes/StandardCurves';
 
 function convertPathPointToWorld(p, item) {

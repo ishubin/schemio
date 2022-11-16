@@ -178,7 +178,6 @@ import { jsonDiff } from '../../../json-differ';
 import { compileAnimations, findItemPropertyDescriptor, findSchemePropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
-import EventBus from '../EventBus';
 import StoreUtils from '../../../store/StoreUtils';
 import AnimationFunctions from '../../../animations/functions/AnimationFunctions';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';

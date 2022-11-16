@@ -10,7 +10,6 @@ import {enrichItemWithDefaults} from '../../../scheme/ItemFixer';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
-import EventBus from '../EventBus.js';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
@@ -29,8 +28,8 @@ function isEventRightClick(event) {
 }
 
 export default class StateConnecting extends State {
-    constructor(eventBus, store, listener) {
-        super(eventBus, store, 'connecting', listener);
+    constructor(store, listener) {
+        super(store, 'connecting', listener);
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;

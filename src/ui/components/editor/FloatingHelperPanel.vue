@@ -76,7 +76,6 @@ import RichTextEditor from '../RichTextEditor.vue';
 import StrokeControl from './StrokeControl.vue';
 import StylesMiniPalette from './properties/StylesMiniPalette.vue';
 import Modal from '../Modal.vue';
-import EventBus from './EventBus';
 import Shape from './items/shapes/Shape';
 import myMath from '../../myMath';
 import VueTagsInput from '@johmun/vue-tags-input';

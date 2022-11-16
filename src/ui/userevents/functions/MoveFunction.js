@@ -4,7 +4,6 @@
 import AnimationRegistry from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
-import EventBus from '../../components/editor/EventBus';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 

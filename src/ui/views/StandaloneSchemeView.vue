@@ -51,7 +51,6 @@
 <script>
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
-import EventBus from '../components/editor/EventBus';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
@@ -82,7 +81,7 @@ export default {
     },
     created() {
         this.userEventBus = new UserEventBus();
-        this.stateInteract = new StateInteract(EventBus, store, this.userEventBus, {
+        this.stateInteract = new StateInteract(store, this.userEventBus, {
             onCancel: () => {},
             onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
             onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
@@ -128,7 +127,7 @@ export default {
                 console.error('Failed to load shapes', err);
             })
             .then(() => {
-                this.schemeContainer = new SchemeContainer(this.scheme, this.editorId, EventBus);
+                this.schemeContainer = new SchemeContainer(this.scheme, this.editorId);
                 this.stateInteract.schemeContainer = this.schemeContainer;
                 this.stateInteract.reset();
                 this.initialized = true;

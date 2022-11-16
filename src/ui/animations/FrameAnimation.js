@@ -4,7 +4,6 @@
 import forEach from 'lodash/forEach';
 import Shape from '../components/editor/items/shapes/Shape';
 import utils from '../utils';
-import EventBus from '../components/editor/EventBus';
 import { convertTime, Interpolations } from './ValueAnimation';
 import { encodeColor, parseColor } from '../colors';
 import Animation from './Animation';

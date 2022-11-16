@@ -5,7 +5,6 @@
 import State from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
-import EventBus from '../EventBus.js';
 import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 
@@ -19,11 +18,10 @@ This state works as dragging the screen, zooming, selecting elements
 class StateInteract extends State {
     /**
      *
-     * @param {EventBus} EventBus
      * @param {UserEventBus} userEventBus
      */
-    constructor(eventBus, store, userEventBus, listener) {
-        super(eventBus, store,  'interact', listener);
+    constructor(store, userEventBus, listener) {
+        super(store,  'interact', listener);
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};

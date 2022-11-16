@@ -6,7 +6,6 @@ import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
 import MoveAlongPathAnimationFunction from '../../animations/functions/MoveAlongPathAnimationFunction';
-import EventBus from '../../components/editor/EventBus';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 

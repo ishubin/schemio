@@ -3,6 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import findKey from 'lodash/findKey';
+import Vue from 'vue';
+
 
 export const Keys = {
     ESCAPE: 'escape',
@@ -39,10 +41,38 @@ keyMap[Keys.SPACE] = event => event.key === ' ' || event.keyCode === 32;
 keyMap[Keys.MINUS] = event => event.key === '-' || event.keyCode === 189;
 keyMap[Keys.EQUALS] = event => event.key === '=' || event.keyCode === 187;
 /**
- * 
- * @param {MouseEvent} event 
+ *
+ * @param {MouseEvent} event
  * @returns {String} id of event which is available in Keys object
  */
 export function identifyKeyPress(event) {
     return findKey(keyMap, (check, keyName) => check(event));
 }
+
+const keyEventBus = new Vue({});
+
+export function registerKeyPressHandler(callback) {
+    keyEventBus.$on('key-press', callback);
+}
+
+export function deregisterKeyPressHandler(callback) {
+    keyEventBus.$off('key-press', callback);
+}
+
+function handleKeyPress(event, isDown) {
+    event = event || window.event;
+    if (event.target !== document.body) {
+        return;
+    }
+    const key = identifyKeyPress(event);
+    if (key) {
+        event.preventDefault();
+
+        keyEventBus.$emit('key-press', isDown, key, {
+            ctrlCmdPressed: event.metaKey || event.ctrlKey
+        });
+    }
+}
+
+document.addEventListener('keydown', (event) => handleKeyPress(event, true));
+document.addEventListener('keyup', (event) => handleKeyPress(event, false));

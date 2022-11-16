@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import EditorEventBus from "../../components/editor/EditorEventBus";
-import EventBus from "../../components/editor/EventBus";
 import Shape from "../../components/editor/items/shapes/Shape";
 import myMath from "../../myMath";
 

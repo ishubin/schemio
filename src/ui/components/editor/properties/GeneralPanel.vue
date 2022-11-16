@@ -31,7 +31,6 @@ import map from 'lodash/map';
 import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
-import EventBus from '../EventBus';
 import EditorEventBus from '../EditorEventBus';
 import Shape from '../items/shapes/Shape';
 

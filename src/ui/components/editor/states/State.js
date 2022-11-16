@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import EventBus from '../EventBus';
 import myMath from '../../../myMath';
 import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
@@ -29,12 +28,10 @@ export function isEventRightClick(event) {
 
 class State {
     /**
-     * @param {EventBus} EventBus
      * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(eventBus, store, name, listener) {
+    constructor(store, name, listener) {
         this.schemeContainer = null;
-        this.eventBus = eventBus;
         this.name = name || '';
         this.store = store;
 
@@ -344,7 +341,7 @@ class State {
 
 export class SubState extends State {
     constructor(parentState, name) {
-        super(parentState.eventBus, parentState.store, name);
+        super(parentState.store, name);
         this.schemeContainer = parentState.schemeContainer;
         this.parentState = parentState;
     }

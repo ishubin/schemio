@@ -392,9 +392,9 @@ import shortid from 'shortid';
 import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
-import { Keys } from '../events';
+import { Keys, registerKeyPressHandler } from '../events';
 
-import {applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem } from '../scheme/Item';
 import {enrichItemWithDefaults} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
@@ -402,7 +402,6 @@ import SvgEditor from './editor/SvgEditor.vue';
 import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
-import EventBus from './editor/EventBus.js';
 import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer, { worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
@@ -563,7 +562,7 @@ export default {
         const onSubStateMigrated = () => {};
 
         this.states = {
-            interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
+            interact: new StateInteract(this.$store, this.userEventBus, {
                 onCancel,
                 onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
                 onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
@@ -575,7 +574,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            createItem: new StateCreateItem(EventBus, this.$store, {
+            createItem: new StateCreateItem(this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -583,7 +582,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            editPath: new StateEditPath(EventBus, this.$store, {
+            editPath: new StateEditPath(this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onHistoryStateChange: (undoable, redoable) => {
@@ -597,7 +596,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            connecting: new StateConnecting(EventBus, this.$store, {
+            connecting: new StateConnecting(this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -605,7 +604,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            dragItem: new StateDragItem(EventBus, this.$store, {
+            dragItem: new StateDragItem(this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onStartConnecting: (item, point) => this.startConnecting(item, point),
@@ -622,14 +621,14 @@ export default {
                 onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
                 onScreenTransformUpdated
             }),
-            pickElement: new StatePickElement(EventBus, this.$store, {
+            pickElement: new StatePickElement(this.$store, {
                 onCancel,
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            cropImage: new StateCropImage(EventBus, this.$store, {
+            cropImage: new StateCropImage(this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -637,7 +636,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            draw: new StateDraw(EventBus, this.$store, {
+            draw: new StateDraw(this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -800,16 +799,15 @@ export default {
             if (!this.eventsRegistered) {
                 this.eventsRegistered = true;
 
-                EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-                EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
+                registerKeyPressHandler(this.keyPressHandler);
             }
         },
 
         deregisterEventBusHandlers() {
             if (this.eventsRegistered) {
                 this.eventsRegistered = false;
-                EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-                EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
+
+                deregisterKeyPressHandler(this.keyPressHandler);
             }
         },
 
@@ -828,7 +826,7 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, this.editorId, EventBus, {
+                this.schemeContainer = new SchemeContainer(scheme, this.editorId, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 
@@ -1267,7 +1265,15 @@ export default {
             }
         },
 
-        onKeyPress(key, keyOptions) {
+        keyPressHandler(isDown, key, keyOptions) {
+            if (isDown) {
+                this.onKeyDown(key, keyOptions);
+            } else {
+                this.onKeyUp(key, keyOptions);
+            }
+        },
+
+        onKeyDown(key, keyOptions) {
             if (!this.active) {
                 return;
             }
@@ -1695,7 +1701,7 @@ export default {
         },
 
         switchToViewMode() {
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, EventBus, {
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });
             this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
@@ -1759,7 +1765,7 @@ export default {
             })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, EventBus, {
+                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
