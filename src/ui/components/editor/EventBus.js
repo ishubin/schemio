@@ -20,8 +20,6 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
 
-            ITEM_SURROUND_CREATED: 'item-surround-created',
-
             BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested',
 
             MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED: 'multi-item-edit-box-items-updated',
@@ -47,10 +45,6 @@ const EventBus = new Vue({
         };
     },
     methods: {
-        emitItemSurroundCreated(item, boundingBox, padding) {
-            this.$emit(EventBus.ITEM_SURROUND_CREATED, item, boundingBox, padding);
-        },
-
         emitItemCreationDraggedToSvgEditor(item, pageX, pageY) {
             this.$emit(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, item, pageX, pageY);
         },

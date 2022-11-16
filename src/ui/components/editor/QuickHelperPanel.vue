@@ -265,13 +265,13 @@ export default {
     beforeMount() {
         EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionChanged);
         EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionChanged);
-        EventBus.$on(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
+        EditorEventBus.itemSurround.created.$on(this.editorId, this.onItemSurroundCreated);
     },
 
     beforeDestroy() {
         EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionChanged);
         EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionChanged);
-        EventBus.$off(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
+        EditorEventBus.itemSurround.created.$off(this.editorId, this.onItemSurroundCreated);
     },
 
     data() {

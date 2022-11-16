@@ -230,6 +230,14 @@ const EditorEventBus = {
         $on: (editorId, callback) => $on(editorId, 'screen-transform-updated', [], callback),
         $off: (editorId, callback) => $off(editorId, 'screen-transform-updated', [], callback),
         $emit: (editorId, screenTransform) => $emit(editorId, 'screen-transform-updated', [], screenTransform),
+    },
+
+    itemSurround: {
+        created: {
+            $on: (editorId, callback) => $on(editorId, 'item-surround-created', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'item-surround-created', [], callback),
+            $emit: (editorId, item, boundingBox, padding) => $emit(editorId, 'item-surround-created', [], item, boundingBox, padding),
+        }
     }
 };
 

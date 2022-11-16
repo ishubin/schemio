@@ -2045,7 +2045,7 @@ export default {
                     }
                 });
                 this.schemeContainer.selectItem(rect);
-                EventBus.emitItemSurroundCreated(rect, box.area, padding);
+                EditorEventBus.itemSurround.created.$emit(this.editorId, rect, box.area, padding);
             }
         },
 
