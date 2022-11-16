@@ -226,6 +226,11 @@ const EditorEventBus = {
         },
     },
 
+    screenTransformUpdated: {
+        $on: (editorId, callback) => $on(editorId, 'screen-transform-updated', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'screen-transform-updated', [], callback),
+        $emit: (editorId, screenTransform) => $emit(editorId, 'screen-transform-updated', [], screenTransform),
+    }
 };
 
 export default EditorEventBus;

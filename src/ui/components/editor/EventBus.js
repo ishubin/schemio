@@ -20,8 +20,6 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
 
-            SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated',
-
             ITEMS_HIGHLIGHTED: 'items-highlighted',
 
             ITEM_SURROUND_CREATED: 'item-surround-created',

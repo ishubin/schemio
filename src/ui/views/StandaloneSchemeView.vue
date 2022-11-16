@@ -32,6 +32,7 @@
                 @mouse-double-click="mouseDoubleClick"
                 @item-tooltip-requested="onItemTooltipTriggered"
                 @item-side-panel-requested="onItemSidePanelTriggered"
+                @screen-transform-updated="onScreenTransformUpdated"
                 />
 
             <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
@@ -71,6 +72,7 @@ const stateInteract = new StateInteract(EventBus, store, userEventBus, {
     onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
     onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
     onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
+    onScreenTransformUpdated: (screenTransform) => this.onScreenTransformUpdated(screenTransform),
 });
 
 export default {
@@ -82,13 +84,12 @@ export default {
         this.$store.dispatch('setAssetsPath', '/');
         this.initSchemeContainer();
 
-        EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+        EditorEventBus.screenTransformUpdated.$on(editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
     },
     beforeDestroy() {
-        EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
+        EditorEventBus.screenTransformUpdated.$off(editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
-
     },
     data() {
         return {

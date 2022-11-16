@@ -865,7 +865,7 @@ export default {
 
 
         informUpdateOfScreenTransform(screenTransform) {
-            EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, screenTransform);
+            this.$emit('screen-transform-updated', screenTransform);
         },
 
         calculateLinkBackgroundRectWidth(link) {

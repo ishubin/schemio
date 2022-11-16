@@ -70,6 +70,7 @@
                     @svg-size-updated="onSvgSizeUpdated"
                     @item-tooltip-requested="onItemTooltipTriggered"
                     @item-side-panel-requested="onItemSidePanelTriggered"
+                    @screen-transform-updated="onScreenTransformUpdated"
                     >
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
@@ -132,6 +133,7 @@
                     @svg-size-updated="onSvgSizeUpdated"
                     @item-tooltip-requested="onItemTooltipTriggered"
                     @item-side-panel-requested="onItemSidePanelTriggered"
+                    @screen-transform-updated="onScreenTransformUpdated"
                     >
 
                     <div slot="overlay">
@@ -547,6 +549,7 @@ export default {
         const onCancel = () => this.cancelCurrentState();
         const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
         const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
+        const onScreenTransformUpdated = (screenTransform) => this.onScreenTransformUpdated(screenTransform);
 
         this.states = {
             interact: new StateInteract(EventBus, this.$store, this.userEventBus, {
@@ -556,12 +559,14 @@ export default {
                 onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
                 onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
                 onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             editPath: new StateEditPath(EventBus, this.$store, {
                 onCancel,
@@ -572,12 +577,14 @@ export default {
                 },
                 onPathPointsUpdated: () => { this.pathPointsUpdateKey++; },
                 onContextMenuRequested: (mx, my, menuOptions) => this.onContextMenuRequested(mx, my, menuOptions),
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             connecting: new StateConnecting(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             dragItem: new StateDragItem(EventBus, this.$store, {
                 onCancel,
@@ -591,21 +598,25 @@ export default {
                     EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
                 },
                 onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
                 onCancel,
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             cropImage: new StateCropImage(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
             draw: new StateDraw(EventBus, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
-                onItemChanged
+                onItemChanged,
+                onScreenTransformUpdated
             }),
         };
     },
@@ -621,6 +632,7 @@ export default {
         EditorEventBus.textSlot.triggered.any.$on(this.editorId, this.onItemTextSlotEditTriggered);
         EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
         EditorEventBus.elementPick.canceled.$on(this.editorId, this.onElementPickCanceled);
+        EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         this.registerEventBusHandlers();
     },
     beforeDestroy() {
@@ -634,6 +646,7 @@ export default {
         EditorEventBus.textSlot.triggered.any.$off(this.editorId, this.onItemTextSlotEditTriggered);
         EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
         EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
+        EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         this.deregisterEventBusHandlers();
     },
 
@@ -757,7 +770,6 @@ export default {
 
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
                 EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
                 EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
@@ -769,7 +781,6 @@ export default {
                 this.eventsRegistered = false;
                 EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
                 EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
                 EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);

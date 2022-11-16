@@ -6,6 +6,7 @@ import myMath from '../../myMath';
 import forEach from 'lodash/forEach';
 import ValueAnimation from '../../animations/ValueAnimation';
 import AnimationRegistry from '../../animations/AnimationRegistry';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 /**
  * Recreating item transform because in some weird cases when some of ancestors were moved,
@@ -187,7 +188,7 @@ export default {
                     schemeContainer.screenTransform.y = oldY * (1.0-t) + destY * t;
                 },
                 destroy: () => {
-                    EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+                    EditorEventBus.screenTransformUpdated.$emit(schemeContainer.editorId, schemeContainer.screenTransform);
                     if (!args.inBackground) {
                         resultCallback();
                     }
@@ -200,7 +201,7 @@ export default {
             schemeContainer.screenTransform.scale = newZoom;
             schemeContainer.screenTransform.x = destX;
             schemeContainer.screenTransform.y = destY;
-            EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+            EditorEventBus.screenTransformUpdated.$emit(schemeContainer.editorId, schemeContainer.screenTransform);
             resultCallback();
         }
     }

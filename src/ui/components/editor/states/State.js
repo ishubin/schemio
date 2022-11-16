@@ -174,7 +174,7 @@ class State {
         schemeContainer.screenTransform.x = sx;
         schemeContainer.screenTransform.y = sy;
 
-        EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
     }
 
     dragScreenOffset(dx, dy) {
@@ -208,7 +208,7 @@ class State {
             this.schemeContainer.screenTransform.y = sy;
         }
 
-        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
     }
 
     isSnappingToItemsEnabled() {
@@ -399,7 +399,7 @@ export class DragScreenState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
         this.migrateToPreviousSubState();
     }
 }

@@ -4,6 +4,7 @@
 import EventBus from '../../components/editor/EventBus';
 import ValueAnimation from '../../animations/ValueAnimation';
 import AnimationRegistry from '../../animations/AnimationRegistry';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 export default {
     name: 'Transform Screen (Hidden)',
@@ -38,7 +39,7 @@ export default {
                 schemeContainer.screenTransform.y = oldY * (1.0-t) + args.y * t;
             },
             destroy: () => {
-                EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+                EditorEventBus.screenTransformUpdated.$emit(schemeContainer.editorId, schemeContainer.screenTransform);
                 resultCallback();
             }
         }), 'screen', 'screen-transform');
