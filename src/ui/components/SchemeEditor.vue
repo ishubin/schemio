@@ -1975,7 +1975,7 @@ export default {
                     actions: [ ]
                 });
             }
-            EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
+            EditorEventBus.behaviorPanel.requested.$emit(this.editorId);
         },
 
         mergePaths(allItems) {

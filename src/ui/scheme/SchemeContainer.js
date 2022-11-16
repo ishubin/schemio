@@ -2113,7 +2113,7 @@ class SchemeContainer {
             }
         });
 
-        if (this.eventBus) this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
+        EditorEventBus.editBox.updated.$emit(this.editorId);
     }
 
     /**

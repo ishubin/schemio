@@ -115,9 +115,10 @@
                 </table>
             </panel>
 
-            <position-panel
+            <PositionPanel
                 v-if="schemeContainer.multiItemEditBox"
                 :key="`position-panel-${item.id}-${schemeContainer.multiItemEditBox.id}`"
+                :editorId="editorId"
                 :edit-box="schemeContainer.multiItemEditBox"
                 :item="item"
                 @area-changed="onPositionPanelAreaChanged"
@@ -268,12 +269,12 @@ export default {
             tab = ALL_TABS_NAMES[0];
         }
         this.currentTab = tab;
-        EventBus.$on(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
+        EditorEventBus.behaviorPanel.requested.$on(this.editorId, this.onBehaviorPanelRequested);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.BEHAVIOR_PANEL_REQUESTED, this.onBehaviorPanelRequested);
+        EditorEventBus.behaviorPanel.requested.$off(this.editorId, this.onBehaviorPanelRequested);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
 
@@ -417,7 +418,7 @@ export default {
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `editbox.area.s`);
                     this.schemeContainer.updateMultiItemEditBoxAreaOnly();
                     this.schemeContainer.updateChildTransforms(this.schemeContainer.multiItemEditBox.items[0]);
-                    EventBus.$emit(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED);
+                    EditorEventBus.editBox.updated.$emit(this.editorId);
                 }
             }
         },

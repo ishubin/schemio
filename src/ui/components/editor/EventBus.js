@@ -20,11 +20,6 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
 
-            BEHAVIOR_PANEL_REQUESTED: 'behavior-panel-requested',
-
-            MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED: 'multi-item-edit-box-items-updated',
-            MULTI_ITEM_EDIT_BOX_AREA_UPDATED: 'multi-item-edit-box-area-updated',
-
             ITEM_CREATION_DRAGGED_TO_SVG_EDITOR: 'item-creation-dragged-to-svg-editor',
 
             // triggered in case user clicked undo or redo and the scheme was reset to a new state

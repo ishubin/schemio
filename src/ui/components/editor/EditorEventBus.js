@@ -14,9 +14,15 @@ function generateEvent(editorId, eventName, args) {
 }
 
 function $on(editorId, eventName, args, callback) {
+    if (!editorId) {
+        throw new Error('editorId should be specified, got: ', editorId);
+    }
     bus.$on(generateEvent(editorId, eventName, args), callback);
 }
 function $off(editorId, eventName, args, callback) {
+    if (!editorId) {
+        throw new Error('editorId should be specified, got: ', editorId);
+    }
     bus.$off(generateEvent(editorId, eventName, args), callback);
 }
 function $emit(editorId, eventName, eventArgs, ...emitArgs) {
@@ -238,6 +244,22 @@ const EditorEventBus = {
             $off: (editorId, callback) => $off(editorId, 'item-surround-created', [], callback),
             $emit: (editorId, item, boundingBox, padding) => $emit(editorId, 'item-surround-created', [], item, boundingBox, padding),
         }
+    },
+
+    behaviorPanel: {
+        requested: {
+            $on: (editorId, callback) => $on(editorId, 'behavior-panel-requested', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'behavior-panel-requested', [], callback),
+            $emit: (editorId) => $emit(editorId, 'behavior-panel-requested', []),
+        }
+    },
+
+    editBox: {
+        updated: {
+            $on: (editorId, callback) => $on(editorId, 'edit-box-items-updated', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'edit-box-items-updated', [], callback),
+            $emit: (editorId) => $emit(editorId, 'edit-box-items-updated', []),
+        },
     }
 };
 
