@@ -30,6 +30,8 @@
                 @mouse-down="mouseDown"
                 @mouse-up="mouseUp"
                 @mouse-double-click="mouseDoubleClick"
+                @item-tooltip-requested="onItemTooltipTriggered"
+                @item-side-panel-requested="onItemSidePanelTriggered"
                 />
 
             <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
@@ -64,7 +66,11 @@ const userEventBus = new UserEventBus();
 const stateInteract = new StateInteract(EventBus, store, userEventBus, {
     onCancel: () => {},
     onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+    onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
     onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+    onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
+    onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
+    onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
 });
 
 export default {
@@ -77,14 +83,10 @@ export default {
         this.initSchemeContainer();
 
         EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
     },
     beforeDestroy() {
         EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
 
     },
@@ -191,7 +193,7 @@ export default {
             if (items && items.length > 0) {
                 const area = this.getBoundingBoxOfItems(items);
                 if (area) {
-                    EventBus.emitBringToViewInstantly(area);
+                    EditorEventBus.zoomToAreaRequested.$emit(editorId, area, false);
                 }
             }
         },

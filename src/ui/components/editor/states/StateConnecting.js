@@ -371,7 +371,7 @@ export default class StateConnecting extends State {
             // what if we want to attach this point to another item
             this.handleEdgePointDrag(point, false);
 
-            this.listener.onItemChange(this.item.id);
+            this.listener.onItemChanged(this.item.id);
         }
     }
 
@@ -395,7 +395,7 @@ export default class StateConnecting extends State {
                     y: this.round(snappedLocalCurvePoint.y),
                     t: 'L'
                 });
-                this.listener.onItemChange(this.item.id);
+                this.listener.onItemChanged(this.item.id);
             }
         }
 
@@ -555,7 +555,7 @@ export default class StateConnecting extends State {
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
-        this.listener.onItemChange(this.item.id, 'area');
+        this.listener.onItemChanged(this.item.id, 'area');
         this.listener.onSchemeChangeCommitted();
         this.schemeContainer.selectItem(this.item);
         this.reset();

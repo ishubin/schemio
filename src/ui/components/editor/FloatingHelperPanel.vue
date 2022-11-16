@@ -151,7 +151,7 @@ export default {
         },
 
         editPath() {
-            EventBus.emitCurveEdited(this.item);
+            this.$emit('edit-path-requested', this.item);
         },
 
         cropImage() {

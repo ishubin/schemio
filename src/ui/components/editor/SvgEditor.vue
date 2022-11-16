@@ -232,8 +232,8 @@ export default {
             this.prepareFrameAnimations();
         }
 
-        EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
-        EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
+        EditorEventBus.zoomToAreaRequested.$on(this.editorId, this.onBringToView);
+        EditorEventBus.item.linksShowRequested.any.$on(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
 
@@ -269,8 +269,8 @@ export default {
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
-        EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
-        EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
+        EditorEventBus.zoomToAreaRequested.$off(this.editorId, this.onBringToView);
+        EditorEventBus.item.linksShowRequested.any.$off(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
@@ -896,9 +896,9 @@ export default {
                 }
                 if (item.description.trim().length > 8) {
                     if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                        EventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
+                        this.$emit('item-side-panel-requested', item);
                     } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                        EventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, lastMousePosition.x, lastMousePosition.y);
+                        this.$emit('item-tooltip-requested', item, lastMousePosition.x, lastMousePosition.y);
                     }
                 }
             }

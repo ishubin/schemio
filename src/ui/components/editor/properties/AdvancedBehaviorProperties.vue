@@ -7,7 +7,8 @@
             <input type="text" class="textfield" v-model="searchKeyword" placeholder="Search...">
 
             <div class="advanced-behavior-menu">
-                <element-picker
+                <ElementPicker
+                    :editorId="editorId"
                     :key="`advanced-behavior-pick-item-1-${revision}`"
                     :scheme-container="schemeContainer"
                     :excluded-item-ids="existingItemIds"
@@ -34,8 +35,9 @@
             </div>
 
             <div class="advanced-behavior-menu">
-                <element-picker
+                <ElementPicker
                     :key="`advanced-behavior-pick-item-2-${revision}`"
+                    :editorId="editorId"
                     :scheme-container="schemeContainer"
                     :excluded-item-ids="existingItemIds"
                     :use-self="false"

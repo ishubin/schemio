@@ -643,7 +643,7 @@ class IdleState extends SubState {
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
             if (object.item.shape === 'path') {
-                this.eventBus.emitCurveEdited(object.item);
+                this.listener.onEditPathRequested(object.item);
             } else if (object.item.shape === 'connector') {
                 this.handleDoubleClickOnConnector(object.item, x, y);
             } else {
@@ -657,7 +657,7 @@ class IdleState extends SubState {
             this.listener.onVoidDoubleClicked(x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box' && object.multiItemEditBox.items.length === 1 && object.multiItemEditBox.items[0].shape === 'path') {
             // if user double clicks on the path but hits its edit box instead
-            this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
+            this.listener.onEditPathRequested(object.multiItemEditBox.items[0]);
         }
     }
 
@@ -697,7 +697,7 @@ class IdleState extends SubState {
             if (!this.schemeContainer.isItemSelected(object.item)) {
                 this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
             }
-            this.eventBus.emitRightClickedItem(object.item, mx, my);
+            this.listener.onItemRightClick(object.item, mx, my);
         } else if (object.type === 'void') {
             this.schemeContainer.deselectAllItems();
             this.listener.onVoidRightClicked(mx, my);

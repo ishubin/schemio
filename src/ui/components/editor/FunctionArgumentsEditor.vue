@@ -48,7 +48,8 @@
                             <option v-for="option in arg.options">{{option}}</option>
                         </select>
 
-                        <element-picker v-if="arg.type === 'element'"
+                        <ElementPicker v-if="arg.type === 'element'"
+                            :editorId="editorId"
                             :scheme-container="schemeContainer"
                             :element="argumentValues[argName]"
                             :disabled="!argumentControlStates[argName].shown"
@@ -73,6 +74,7 @@ import NumberTextfield from '../NumberTextfield.vue';
 
 export default {
     props: {
+        editorId           : {type: String, required: true},
         functionDescription: {type: Object, required: true},
         args               : {type: Object, required: true},
         schemeContainer    : {type: Object, required: true},

@@ -155,6 +155,7 @@
             />
 
         <FunctionArgumentsEditor v-if="functionEditorModal.shown"
+            :editorId="editorId"
             :functionDescription="functionEditorModal.functionDescription"
             :args="functionEditorModal.args"
             :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"

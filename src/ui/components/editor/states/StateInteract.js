@@ -99,13 +99,13 @@ class StateInteract extends State {
 
     handleItemClick(item, mx, my) {
         if (item.links && item.links.length > 0) {
-            this.eventBus.$emit(EventBus.ITEM_LINKS_SHOW_REQUESTED, item);
+            this.listener.onItemLinksShowRequested(item);
         }
         if (hasItemDescription(item)) {
             if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                this.eventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
+                this.listener.onItemSidePanelRequested(item);
             } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                this.eventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, mx, my);
+                this.listener.onItemTooltipRequested(item, mx, my);
             }
         }
     }

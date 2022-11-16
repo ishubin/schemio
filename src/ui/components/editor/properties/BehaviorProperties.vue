@@ -55,7 +55,8 @@
                             <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
                         </div>
                         <div>
-                            <element-picker
+                            <ElementPicker
+                                :editorId="editorId"
                                 :element="action.element"
                                 :scheme-container="schemeContainer"
                                 :self-item="item"
@@ -115,7 +116,8 @@
         <span class="btn btn-secondary" @click="copyAllEvents()">Copy all events</span>
         <span class="btn btn-secondary" @click="pasteEvents()">Paste events</span>
 
-        <function-arguments-editor v-if="functionArgumentsEditor.shown"
+        <FunctionArgumentsEditor v-if="functionArgumentsEditor.shown"
+            :editorId="editorId"
             :function-description="functionArgumentsEditor.functionDescription"
             :args="functionArgumentsEditor.args"
             :scheme-container="schemeContainer"

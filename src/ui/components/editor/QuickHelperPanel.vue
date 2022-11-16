@@ -170,7 +170,7 @@
                         </span>
                     </li>
                     <li>
-                        <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
+                        <span @click="stopPathEdit" class="btn btn-small btn-primary">Stop Edit</span>
                     </li>
                 </ul>
             </div>
@@ -370,8 +370,8 @@ export default {
             return this.state === 'connecting' && this.$store.state.connecting.connectorItem;
         },
 
-        stopEditCurve() {
-            EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+        stopPathEdit() {
+            this.$emit('path-edit-stopped');
         },
 
         stopDrawing() {

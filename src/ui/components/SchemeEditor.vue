@@ -31,6 +31,7 @@
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
+            @path-edit-stopped="onPathEditStopped"
             >
             <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
                 <li v-if="modified">
@@ -67,6 +68,8 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
+                    @item-tooltip-requested="onItemTooltipTriggered"
+                    @item-side-panel-requested="onItemSidePanelTriggered"
                     >
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
@@ -89,6 +92,7 @@
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
                                 :editorId="editorId"
                                 :item="curveEditItem"
+                                :pathPointsUpdateKey="pathPointsUpdateKey"
                                 :zoom="schemeContainer.screenTransform.scale"
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                                 :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
@@ -105,6 +109,7 @@
                             :y="floatingHelperPanel.y"
                             :item="floatingHelperPanel.item"
                             :schemeContainer="schemeContainer"
+                            @edit-path-requested="onEditPathRequested"
                             />
                     </div>
                 </SvgEditor>
@@ -125,6 +130,8 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
+                    @item-tooltip-requested="onItemTooltipTriggered"
+                    @item-side-panel-requested="onItemSidePanelTriggered"
                     >
 
                     <div slot="overlay">
@@ -259,7 +266,12 @@
                         <div v-if="currentTab === 'Item' && !inPlaceTextEditor.item">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
-                                    <ItemSelector :editorId="editorId" :scheme-container="schemeContainer" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
+                                    <ItemSelector
+                                        :editorId="editorId"
+                                        :scheme-container="schemeContainer"
+                                        :min-height="200"
+                                        :key="`${schemeRevision}-${schemeContainer.revision}`"
+                                        @item-right-clicked="onItemRightClick"/>
                                 </panel>
 
                                 <ItemProperties v-if="schemeContainer.selectedItems.length > 0"
@@ -541,6 +553,9 @@ export default {
                 onCancel,
                 onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
                 onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+                onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
+                onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
+                onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
                 onItemChanged
             }),
             createItem: new StateCreateItem(EventBus, this.$store, {
@@ -555,6 +570,8 @@ export default {
                     this.historyState.undoable = undoable;
                     this.historyState.redoable = redoable;
                 },
+                onPathPointsUpdated: () => { this.pathPointsUpdateKey++; },
+                onContextMenuRequested: (mx, my, menuOptions) => this.onContextMenuRequested(mx, my, menuOptions),
                 onItemChanged
             }),
             connecting: new StateConnecting(EventBus, this.$store, {
@@ -568,10 +585,12 @@ export default {
                 onStartConnecting: (item, point) => this.startConnecting(item, point),
                 onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
                 onVoidDoubleClicked: (x, y, mx, my) => EditorEventBus.void.doubleClicked.$emit(this.editorId, x, y, mx, my),
+                onEditPathRequested: (item) => this.onEditPathRequested(item),
                 onItemDeselected: (item) => EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id),
                 onItemTextSlotEditTriggered: (item, slotName, area, markupDisabled, creatingNewItem) => {
                     EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
                 },
+                onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
                 onItemChanged
             }),
             pickElement: new StatePickElement(EventBus, this.$store, {
@@ -600,6 +619,8 @@ export default {
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
         EditorEventBus.textSlot.triggered.any.$on(this.editorId, this.onItemTextSlotEditTriggered);
+        EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
+        EditorEventBus.elementPick.canceled.$on(this.editorId, this.onElementPickCanceled);
         this.registerEventBusHandlers();
     },
     beforeDestroy() {
@@ -611,6 +632,8 @@ export default {
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         EditorEventBus.textSlot.triggered.any.$off(this.editorId, this.onItemTextSlotEditTriggered);
+        EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
+        EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
         this.deregisterEventBusHandlers();
     },
 
@@ -643,6 +666,9 @@ export default {
                 undoable: this.historyUndoable,
                 redoable: this.historyRedoable,
             },
+
+            // used for triggering update of path points in PathEditBox component
+            pathPointsUpdateKey: 0,
 
             inPlaceTextEditor: {
                 item: null,
@@ -731,16 +757,8 @@ export default {
 
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-                EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
                 EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-                EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-                EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-                EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-                EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
                 EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-                EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
                 EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
@@ -751,16 +769,8 @@ export default {
                 this.eventsRegistered = false;
                 EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-                EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-                EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
                 EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-                EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-                EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-                EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-                EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-                EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
                 EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-                EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
                 EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
@@ -815,7 +825,7 @@ export default {
                     if (this.schemeContainer.selectedItems.length > 0) {
                         const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
                         if (area) {
-                            EventBus.emitBringToViewInstantly(area);
+                            EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
                         }
                     }
                 }
@@ -882,7 +892,7 @@ export default {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
                 this.state = 'editPath';
-                EventBus.emitCurveEdited(item);
+                this.onEditPathRequested(item);
             } else if (item.shape === 'connector') {
                 item.shapeProps.points = [];
                 this.state = 'connecting';
@@ -911,7 +921,7 @@ export default {
                 item.shapeProps.closed = false;
             }
             this.state = 'editPath';
-            EventBus.emitCurveEdited(item);
+            this.onEditPathRequested(item);
 
             this.states[this.state].schemeContainer = this.schemeContainer;
             this.states[this.state].reset();
@@ -957,7 +967,7 @@ export default {
             }
         },
 
-        onCurveEditRequested(item) {
+        onEditPathRequested(item) {
             EventBus.emitItemsHighlighted([]);
             this.states[this.state].cancel();
             this.state = 'editPath';
@@ -967,7 +977,7 @@ export default {
             this.updateFloatingHelperPanel();
         },
 
-        onCurveEditStopped() {
+        onPathEditStopped() {
             if (this.state === 'editPath') {
                 this.states.editPath.cancel();
             }
@@ -1119,7 +1129,7 @@ export default {
             }
             const area = this.calculateZoomingAreaForItems(items);
             if (area) {
-                EventBus.emitBringToViewAnimated(area);
+                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, true);
             }
         },
 
@@ -1375,11 +1385,11 @@ export default {
                 const existingItem = this.schemeContainer.findItemById(storeItem.id);
                 if (existingItem) {
                     this.$store.dispatch('setCurveEditItem', existingItem);
-                    EventBus.$emit(EventBus.CURVE_EDITED, existingItem);
+                    this.onEditPathRequested(existingItem);
                 } else {
                     this.$store.dispatch('setCurveEditItem', null);
                     if (this.$store.state.editorStateName === 'editPath') {
-                        EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+                        this.onPathEditStopped();
                     }
                 }
             } else {
@@ -1731,7 +1741,7 @@ export default {
             });
         },
 
-        onRightClickedItem(item, mouseX, mouseY) {
+        onItemRightClick(item, mouseX, mouseY) {
             const x = this.x_(mouseX);
             const y = this.y_(mouseY);
 
@@ -1882,7 +1892,7 @@ export default {
             if (item.shape === 'path') {
                 this.customContextMenu.menuOptions.push({
                     name: 'Edit Path',
-                    clicked: () => { EventBus.emitCurveEdited(item); }
+                    clicked: () => { this.onEditPathRequested(item); }
                 });
             }
 
@@ -1906,7 +1916,7 @@ export default {
             }
         },
 
-        onCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
+        onContextMenuRequested(mouseX, mouseY, menuOptions) {
             this.customContextMenu.menuOptions = menuOptions;
 
             const svgRect = document.getElementById('svg_plot').getBoundingClientRect();

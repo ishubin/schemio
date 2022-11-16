@@ -77,6 +77,13 @@ const EditorEventBus = {
                     $emit(editorId, 'item-changed', [itemId], itemId, propertyPath);
                 }
             },
+        },
+        linksShowRequested: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'item-links-show-requested', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'item-links-show-requested', [], callback),
+                $emit: (editorId, item) => $emit(editorId, 'item-links-show-requested', [], item),
+            }
         }
     },
 
@@ -198,7 +205,27 @@ const EditorEventBus = {
                 }
             },
         },
-    }
+    },
+
+    zoomToAreaRequested: {
+        $on: (editorId, callback) => $on(editorId, 'zoom-to-area-requested', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'zoom-to-area-requested', [], callback),
+        $emit: (editorId, area, isAnimated) => $emit(editorId, 'zoom-to-area-requested', [], area, isAnimated),
+    },
+
+    elementPick: {
+        requested: {
+            $on: (editorId, callback) => $on(editorId, 'element-pick-requested', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'element-pick-requested', [], callback),
+            $emit: (editorId, pickCallback) => $emit(editorId, 'element-pick-requested', [], pickCallback),
+        },
+        canceled: {
+            $on: (editorId, callback) => $on(editorId, 'element-pick-canceled', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'element-pick-canceled', [], callback),
+            $emit: (editorId) => $emit(editorId, 'element-pick-canceled', []),
+        },
+    },
+
 };
 
 export default EditorEventBus;

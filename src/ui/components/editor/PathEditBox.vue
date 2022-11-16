@@ -65,6 +65,7 @@
 </template>
 <script>
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
+import EditorEventBus from './EditorEventBus';
 import EventBus from './EventBus';
 import { computeCurvePath, convertCurvePointToItemScale, PATH_POINT_CONVERSION_SCALE } from './items/shapes/StandardCurves';
 
@@ -89,18 +90,18 @@ function convertPathPointToWorld(p, item) {
 
 export default {
     props: {
-        editorId          : {type: String, required: true},
-        item              : {type: Object},
-        zoom              : {type: Number},
-        boundaryBoxColor  : {type: String},
-        controlPointsColor: {type: String}},
+        editorId           : {type: String, required: true},
+        pathPointsUpdateKey: {type: Number, required: true},
+        item               : {type: Object},
+        zoom               : {type: Number},
+        boundaryBoxColor   : {type: String},
+        controlPointsColor : {type: String}
+    },
     mounted() {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
     },
     beforeDestroy() {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
     },
 
     data() {
@@ -156,6 +157,12 @@ export default {
         curvePaths() {
             return this.$store.getters.curveEditPaths;
         },
+    },
+
+    watch: {
+        pathPointsUpdateKey() {
+            this.update();
+        }
     }
 }
 </script>

@@ -713,7 +713,8 @@ class IdleState extends SubState {
             if (object && (object.type === 'path-point' || object.type === 'path-control-point')) {
                 if (!StoreUtils.getCurveEditPaths(this.store)[object.pathIndex].points[object.pointIndex].selected) {
                     StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, isMultiSelectKey(event));
-                    EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+                    this.listener.onPathPointsUpdated();
+                    this.listener.onPathPointsUpdated();
                 } else {
                     if (!isMultiSelectKey(event)) {
                         this.shouldSelectOnlyOne = true;
@@ -741,7 +742,7 @@ class IdleState extends SubState {
     selectByBoundaryBox(box, inclusive) {
         if (!inclusive) {
             StoreUtils.resetCurveEditPointSelection(this.store);
-            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+            this.listener.onPathPointsUpdated();
         }
 
         this.parentState.item.shapeProps.paths.forEach((path, pathId) => {
@@ -753,7 +754,7 @@ class IdleState extends SubState {
                 }
             });
         });
-        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+        this.listener.onPathPointsUpdated();
     }
 
     mouseUp(x, y, mx, my, object, event) {
@@ -763,7 +764,7 @@ class IdleState extends SubState {
         } else if (this.shouldSelectOnlyOne && this.clickedObject) {
             if (this.clickedObject.type === 'path-point') {
                 StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, false);
-                EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+                this.listener.onPathPointsUpdated();
             }
         } else if (this.clickedObject && !isValidObject(this.clickedObject)) {
             StoreUtils.resetCurveEditPointSelection(this.store);
@@ -778,7 +779,7 @@ class IdleState extends SubState {
         for (let i = 0; i < this.parentState.item.shapeProps.paths[object.pathIndex].points.length; i++) {
             StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, i, true);
         }
-        EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+        this.listener.onPathPointsUpdated();
     }
 }
 
@@ -889,7 +890,7 @@ export default class StateEditPath extends State {
 
     contextMenuHandler(x, y, mx, my, object, event) {
         if (!isValidObject(object)) {
-            this.eventBus.emitCustomContextMenuRequested(mx, my, [{
+            this.listener.onContextMenuRequested(mx, my, [{
                 name: 'Add new path',
                 clicked: () => this.startCreatingNewPath()
             }]);
@@ -922,7 +923,7 @@ export default class StateEditPath extends State {
                     clicked: () => this.mergePoints(selectedPoints[0], selectedPoints[1])
                 })
             }
-            this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
+            this.listener.onContextMenuRequested(mx, my, menuOptions);
             return;
         }
 
@@ -931,7 +932,7 @@ export default class StateEditPath extends State {
             // In this case we need to reset everything and treat it as a single point context menu
 
             StoreUtils.selectCurveEditPoint(this.store, object.pathIndex, object.pointIndex, false);
-            EventBus.$emit(EventBus.CURVE_EDIT_POINTS_UPDATED);
+            this.listener.onPathPointsUpdated();
 
             const point = this.item.shapeProps.paths[object.pathIndex].points[object.pointIndex];
 
@@ -976,10 +977,10 @@ export default class StateEditPath extends State {
                 });
             }
 
-            this.eventBus.emitCustomContextMenuRequested(mx, my, menuOptions);
+            this.listener.onContextMenuRequested(mx, my, menuOptions);
 
         } else if (object && object.type === 'path-segment') {
-            this.eventBus.emitCustomContextMenuRequested(mx, my, [{
+            this.listener.onContextMenuRequested(mx, my, [{
                 name: 'Extract path',
                 clicked: () => this.extractPath(object.pathIndex)
             }, {

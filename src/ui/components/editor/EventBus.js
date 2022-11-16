@@ -19,29 +19,6 @@ const EventBus = new Vue({
         return {
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
-            BRING_TO_VIEW: 'bring-to-view',
-
-            // used to trigger display of item description as a tooltip (when in interactive mode)
-            ITEM_TOOLTIP_TRIGGERED: 'item-tooltip-triggered',
-
-            // used to trigger side panel for specified item in interaction (view) mode
-            ITEM_SIDE_PANEL_TRIGGERED: 'item-side-panel-triggered',
-
-            // used in view mode in case item has links
-            ITEM_LINKS_SHOW_REQUESTED: 'item-links-show-requested',
-
-            RIGHT_CLICKED_ITEM: 'right-clicked-item',
-
-            // used inside ElementPicker and force editor state to switch to StatePickElement
-            ELEMENT_PICK_REQUESTED: 'element-pick-requested',
-            ELEMENT_PICK_CANCELED: 'element-pick-canceled',
-
-            CURVE_EDITED: 'curve-edited',
-            CURVE_EDIT_STOPPED: 'curve-edit-stopped',
-            CURVE_EDIT_POINTS_UPDATED: 'curve-edit-points-updated',
-
-
-            CUSTOM_CONTEXT_MENU_REQUESTED: 'custom-context-menu-requested',
 
             SCREEN_TRANSFORM_UPDATED: 'screen-transform-updated',
 
@@ -84,36 +61,8 @@ const EventBus = new Vue({
             this.$emit(EventBus.ITEMS_HIGHLIGHTED, itemIds, {highlightPins});
         },
 
-        emitRightClickedItem(item, mouseX, mouseY) {
-            this.$emit(EventBus.RIGHT_CLICKED_ITEM, item, mouseX, mouseY);
-        },
-
-        emitElementPickRequested(elementPickCallback) {
-            this.$emit(EventBus.ELEMENT_PICK_REQUESTED, elementPickCallback);
-        },
-
-        emitElementPickCanceled() {
-            this.$emit(EventBus.ELEMENT_PICK_CANCELED);
-        },
-
-        emitCurveEdited(item) {
-            this.$emit(EventBus.CURVE_EDITED, item);
-        },
-
-        emitCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
-            this.$emit(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, mouseX, mouseY, menuOptions);
-        },
-
         emitItemSurroundCreated(item, boundingBox, padding) {
             this.$emit(EventBus.ITEM_SURROUND_CREATED, item, boundingBox, padding);
-        },
-
-        emitBringToViewAnimated(area) {
-            this.$emit(EventBus.BRING_TO_VIEW, area, true);
-        },
-
-        emitBringToViewInstantly(area) {
-            this.$emit(EventBus.BRING_TO_VIEW, area, false);
         },
 
         emitItemCreationDraggedToSvgEditor(item, pageX, pageY) {

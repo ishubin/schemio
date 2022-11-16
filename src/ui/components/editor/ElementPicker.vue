@@ -26,11 +26,13 @@ import Dropdown from '../Dropdown.vue';
 import EventBus from './EventBus.js';
 import forEach from 'lodash/forEach';
 import indexOf from 'lodash/indexOf';
+import EditorEventBus from './EditorEventBus';
 
 const maxNameSymbols = 20;
 
 export default {
     props: {
+        editorId:           {type: String, required: true},
         element:            {type: String,  default: null},
         selfItem:           {type: Object,  default: null},
         schemeContainer:    {type: Object},
@@ -50,7 +52,7 @@ export default {
     },
 
     beforeDestroy() {
-        EventBus.emitElementPickCanceled();
+        EditorEventBus.elementPick.canceled.$emit(this.editorId);
     },
 
     data() {
@@ -70,7 +72,7 @@ export default {
                     type: 'none'
                 });
             }
-            
+
             if (this.useSelf) {
                 options.push({
                     iconClass: 'fas fa-cube',
@@ -81,7 +83,7 @@ export default {
             }
 
             forEach(this.schemeContainer.getItems(), item => {
-                let itemShouldBeIncluded = true;                
+                let itemShouldBeIncluded = true;
 
                 if (this.excludedItemIds && this.excludedItemIds.length > 0) {
                     itemShouldBeIncluded = indexOf(this.excludedItemIds, item.id) < 0;
@@ -128,13 +130,13 @@ export default {
         },
 
         onDropdownToggled() {
-            EventBus.emitElementPickRequested((element) => {
+            EditorEventBus.elementPick.requested.$emit(this.editorId, (element) => {
                 this.$emit('selected', element);
             });
         },
 
         onDropdownHidden() {
-            EventBus.emitElementPickCanceled();
+            EditorEventBus.elementPick.canceled.$emit(this.editorId);
         }
     },
 
@@ -182,13 +184,13 @@ export default {
     filters: {
         toShortName(name) {
             // tried to use overflow: hidden but it din't work out
-            // I hate CSS so have to use this function :( 
+            // I hate CSS so have to use this function :(
             if (name.length > maxNameSymbols) {
                 return name.substr(0, maxNameSymbols - 1) + '…';
             }
             return name;
         }
     }
-    
+
 }
 </script>
