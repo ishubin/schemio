@@ -20,8 +20,6 @@ const EventBus = new Vue({
             KEY_PRESS: 'key-press',
             KEY_UP: 'key-up',
 
-            ITEM_CREATION_DRAGGED_TO_SVG_EDITOR: 'item-creation-dragged-to-svg-editor',
-
             // triggered in case user clicked undo or redo and the scheme was reset to a new state
             HISTORY_UNDONE: 'history-undone',
 
@@ -40,9 +38,6 @@ const EventBus = new Vue({
         };
     },
     methods: {
-        emitItemCreationDraggedToSvgEditor(item, pageX, pageY) {
-            this.$emit(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, item, pageX, pageY);
-        },
 
         emitFloatingHelperPanelUpdated() {
             this.$emit(EventBus.FLOATING_HELPER_PANEL_UPDATED);

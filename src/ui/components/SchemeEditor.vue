@@ -214,6 +214,7 @@
                             @path-edited="startPathEditing"
                             @drawing-requested="switchStateDrawing"
                             @state-drag-item-requested="cancelCurrentState"
+                            @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
                     </div>
                 </div>
@@ -788,7 +789,6 @@ export default {
                 EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
                 EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-                EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
         },
@@ -799,7 +799,6 @@ export default {
                 EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
                 EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
                 EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-                EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
                 EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
             }
         },

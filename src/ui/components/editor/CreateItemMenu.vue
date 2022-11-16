@@ -449,7 +449,7 @@ export default {
             if (this.linkCreation.withMouse) {
                 this.$emit(ITEM_PICKED_FOR_CREATION, item);
             } else {
-                EventBus.emitItemCreationDraggedToSvgEditor(item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
+                this.$emit('item-creation-dragged-to-editor', item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
             }
         },
 
@@ -470,11 +470,11 @@ export default {
                 img.onload = function () {
                     if (this.width > 1 && this.height > 1) {
                         newItem.area = { x: 0, y: 0, w: this.width, h: this.height};
-                        EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                        this.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                     }
                 };
                 img.onerror = (err) => {
-                    EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                    this.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                 };
                 img.src = imageUrl;
             }
@@ -628,7 +628,7 @@ export default {
                 itemClone.id = shortid.generate();
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
                 itemClone.name = that.makeUniqueName(item.name);
-                EventBus.emitItemCreationDraggedToSvgEditor(itemClone, pageX + mouseOffset, pageY + mouseOffset);
+                that.$emit('item-creation-dragged-to-editor', itemClone, pageX + mouseOffset, pageY + mouseOffset);
             }
 
             document.addEventListener('mousemove', onMouseMove);
