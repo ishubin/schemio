@@ -392,7 +392,7 @@ import shortid from 'shortid';
 import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
-import { Keys, registerKeyPressHandler } from '../events';
+import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
 
 import {applyStyleFromAnotherItem, defaultItem } from '../scheme/Item';
 import {enrichItemWithDefaults} from '../scheme/ItemFixer';
@@ -659,7 +659,7 @@ export default {
         EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
         EditorEventBus.elementPick.canceled.$on(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
-        this.registerEventBusHandlers();
+        registerKeyPressHandler(this.keyPressHandler);
     },
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
@@ -673,7 +673,7 @@ export default {
         EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
         EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
-        this.deregisterEventBusHandlers();
+        deregisterKeyPressHandler(this.keyPressHandler);
     },
 
     mounted() {
@@ -790,27 +790,9 @@ export default {
             },
 
             bottomPanelHeight: 300,
-
-            eventsRegistered: false
         }
     },
     methods: {
-        registerEventBusHandlers() {
-            if (!this.eventsRegistered) {
-                this.eventsRegistered = true;
-
-                registerKeyPressHandler(this.keyPressHandler);
-            }
-        },
-
-        deregisterEventBusHandlers() {
-            if (this.eventsRegistered) {
-                this.eventsRegistered = false;
-
-                deregisterKeyPressHandler(this.keyPressHandler);
-            }
-        },
-
         init() {
             this.initSchemeContainer(this.scheme);
         },
@@ -1266,6 +1248,10 @@ export default {
         },
 
         keyPressHandler(isDown, key, keyOptions) {
+            if (!this.active) {
+                return;
+            }
+
             if (isDown) {
                 this.onKeyDown(key, keyOptions);
             } else {
@@ -1274,9 +1260,6 @@ export default {
         },
 
         onKeyDown(key, keyOptions) {
-            if (!this.active) {
-                return;
-            }
             if (this.mode === 'edit') {
                 if (key === Keys.CTRL_C) {
                     this.copySelectedItems();
@@ -1304,6 +1287,13 @@ export default {
                 this.states[this.state].keyPressed(key, keyOptions);
             }
         },
+
+        onKeyUp(key, keyOptions) {
+            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
+                this.states[this.state].keyUp(key, keyOptions);
+            }
+        },
+
 
         copySelectedItems() {
             const copyBuffer = this.schemeContainer.copySelectedItems();
@@ -2144,12 +2134,6 @@ export default {
             };
         },
 
-        onKeyUp(key, keyOptions) {
-            if (this.active && key !== Keys.ESCAPE && key != Keys.DELETE) {
-                this.states[this.state].keyUp(key, keyOptions);
-            }
-        },
-
         mouseWheel(x, y, mx, my, event) {
             if (this.active) {
                 this.states[this.state].mouseWheel(x, y, mx, my, event);
@@ -2361,14 +2345,6 @@ export default {
                 this.switchToViewMode();
             } else {
                 this.switchToEditMode();
-            }
-        },
-
-        active(active) {
-            if (this.active) {
-                this.registerEventBusHandlers();
-            } else {
-                this.deregisterEventBusHandlers();
             }
         },
 
