@@ -13,6 +13,7 @@
             @moved-entries="onFileTreeEntriesMoved"
             />
         <div class="elec-main-body">
+            <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
             <div class="elec-file-container">
                 <div v-if="!projectPath" class="elec-no-project">
@@ -31,6 +32,7 @@
                             :modified="file.modified"
                             :historyUndoable="file.historyUndoable"
                             :historyRedoable="file.historyRedoable"
+                            :isSaving="file.isSaving"
                             @scheme-save-requested="saveFile(file, arguments[0], arguments[1])"
                             @mode-change-requested="onModeChangeRequested(file, arguments[0])"
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
@@ -80,6 +82,7 @@ function initSchemioDiagramFile(originalFile) {
         historyId: originalFile.path + shortid.generate(),
         historyUndoable: false,
         historyRedoable: false,
+        isSaving: false
     };
 
     const history = new History({size: 30});
@@ -115,7 +118,7 @@ export default {
         window.electronAPI.$off('navigator:open', this.ipcOnNavigatorOpen);
     },
 
-    data () {
+    data() {
         return {
             projectPath: null,
             projectName: null,
@@ -125,6 +128,7 @@ export default {
             currentOpenFileIdx: -1,
             currentFocusedFilePath: null,
             navigatorWidth: 250,
+            progressBarShown: false,
             warnModifiedFileCloseModal: {
                 name: null,
                 fileIdx: null,
@@ -142,7 +146,7 @@ export default {
                     this.projectName = project.name;
                     this.fileTree = project.fileTree
                 }
-           });
+            });
         },
 
         ipcOnNavigatorOpen(event, filePath) {
@@ -156,15 +160,22 @@ export default {
                 return;
             }
 
-            window.electronAPI.readFile(docPath).then(file => {
-                // protection from a race condition so that it does not open same file in two tabs
-                for (let i = 0; i < this.files.length; i++) {
-                    if (this.files[i].path === file.path) {
-                        return;
+            this.progressBarShown = true;
+            this.$nextTick(() => {
+                window.electronAPI.readFile(docPath).then(file => {
+                    // protection from a race condition so that it does not open same file in two tabs
+                    for (let i = 0; i < this.files.length; i++) {
+                        if (this.files[i].path === file.path) {
+                            return;
+                        }
                     }
-                }
-                const newIdx = this.appendFile(file);
-                this.focusFile(newIdx);
+                    const newIdx = this.appendFile(file);
+                    this.focusFile(newIdx);
+                    this.progressBarShown = false;
+                })
+                .catch(err => {
+                    this.progressBarShown = false;
+                });
             });
         },
 
@@ -235,6 +246,7 @@ export default {
         },
 
         saveFile(file, document, preview) {
+            file.isSaving = true;
             let content = document;
             if (file.kind === 'schemio-doc') {
                 content = JSON.stringify(document);
@@ -242,6 +254,7 @@ export default {
             this.$store.dispatch('clearStatusMessage');
             window.electronAPI.writeFile(file.path, content)
             .then(() => {
+                file.isSaving = false;
                 file.modified = false;
                 const entry = findEntryInFileTree(this.fileTree, file.path);
                 if (!entry) {
@@ -255,6 +268,7 @@ export default {
             })
             .catch(err => {
                 console.error(err);
+                file.isSaving = false;
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
                 file.modified = true;
             });

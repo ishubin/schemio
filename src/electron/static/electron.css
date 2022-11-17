@@ -10,6 +10,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
 .elec-tab-container {
@@ -23,6 +24,26 @@
 .elec-file-container {
     flex: 1;
 }
+
+.elec-file-progress-bar {
+    position: absolute;
+    height: 5px;
+    background: red;
+    width: 100%;
+    z-index: 5;
+    background: linear-gradient(90deg, var(--accent-strong-down) 0%, var(--accent-faint-up) 25%, var(--accent-faint-up) 50%, var(--accent-strong-down) 75%) 0% 0% / 60% 100%;
+    animation: elec-progress-animation 30s linear infinite;
+}
+@keyframes elec-progress-animation {
+    0% {
+        background-position: 0%
+    }
+    100% {
+        background-position: 6000%
+    }
+}
+
+
 
 .elec-no-project {
     display: flex;

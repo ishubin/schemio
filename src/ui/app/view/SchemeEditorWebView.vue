@@ -47,6 +47,7 @@
             :menuOptions="menuOptions"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
+            :isSaving="isSaving"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveOfflineScheme"
             @history-committed="onHistoryCommitted"
@@ -69,6 +70,7 @@
             :menuOptions="menuOptions"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
+            :isSaving="isSaving"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
@@ -267,6 +269,7 @@ export default {
             is404: false,
             errorMessage: null,
             isLoading: false,
+            isSaving: false,
 
             originScheme: null,
             modifiedScheme: null,
@@ -439,6 +442,7 @@ export default {
             }
 
             this.$store.dispatch('clearStatusMessage');
+            this.isSaving = true;
             this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
             .then(() => {
                 this.modified = false;
@@ -447,10 +451,12 @@ export default {
                 if (this.schemeId && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
                     this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, preview);
                 }
+                this.isSaving = false;
             })
             .catch(err => {
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
                 this.modified = true;
+                this.isSaving = false;
             });
         },
 

@@ -37,7 +37,8 @@
             >
             <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
                 <li v-if="modified">
-                    <span class="btn btn-primary" @click="saveScheme()">Save</span>
+                    <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
+                    <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -535,6 +536,7 @@ export default {
         scheme           : {type: Object, required: true},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
+        isSaving         : { type: Boolean, required: true},
 
         // means that it should handle all keyboard and mouse events as it is focused and not hidden
         active           : {type: Boolean, default: true},

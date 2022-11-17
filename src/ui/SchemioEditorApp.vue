@@ -19,6 +19,7 @@
             :comments="comments"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
+            :isSaving="isSaving"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
             @history-committed="$emit('history-committed', arguments[0], arguments[1])"
@@ -45,6 +46,7 @@
             :comments="comments"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
+            :isSaving="isSaving"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="$emit('scheme-save-requested', arguments[0], arguments[1])"
@@ -115,11 +117,12 @@ export default{
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
-        schemeReloadKey : {type: String, default: null},
+        schemeReloadKey  : {type: String, default: null},
         comments         : {type: Object, default: () => null},
         schemePatch      : {type: Object, default: null},
         historyUndoable  : { type: Boolean, required: true},
         historyRedoable  : { type: Boolean, required: true},
+        isSaving         : { type: Boolean, required: true},
     },
 
     beforeMount() {
