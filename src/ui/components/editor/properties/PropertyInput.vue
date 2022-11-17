@@ -31,6 +31,7 @@
             @selected="emitValue(arguments[0])"/>
 
         <ElementPicker v-if="descriptor.type === 'element'"
+            :editorId="editorId"
             :element="value"
             :use-self="false"
             :allow-none="true"

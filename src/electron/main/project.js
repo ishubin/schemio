@@ -1,9 +1,11 @@
-import { schemioExtension } from '../../common/fs/fsUtils';
+import { mediaFolder, schemioExtension } from '../../common/fs/fsUtils';
 import { ContextHolder } from './context';
 
 const path = require('path');
 const fs = require('fs-extra');
 const { dialog } = require('electron');
+const _ = require('lodash');
+
 
 /**
  *
@@ -243,4 +245,76 @@ export function projectFileTree(contextHolder) {
         const fileIndex = contextHolder.from(event).fileIndex;
         return fileIndex.fileTree;
     };
+}
+
+
+const resultsPerPage = 25;
+function toPageNumber(text) {
+    const page = parseInt(text);
+    if (!isNaN(page) && page !== undefined) {
+        return Math.max(1, page);
+    }
+    return 1;
+}
+
+/**
+ *
+ * @param {ContextHolder} contextHolder
+ * @returns
+ */
+export function findDiagrams(contextHolder) {
+    return (event, query, page) => {
+        const fileIndex = contextHolder.from(event).fileIndex;
+
+        const entities = fileIndex.searchIndexDocuments(query || '');
+        page = toPageNumber(page);
+
+        let start = (page - 1) * resultsPerPage;
+        let end = start + resultsPerPage;
+        start = Math.max(0, Math.min(start, entities.length));
+        end = Math.max(start, Math.min(end, entities.length));
+
+        const totalResults = entities.length;
+        const results = entities.slice(start, end);
+
+        return Promise.resolve({
+            kind: 'page',
+            totalResults: totalResults,
+            results,
+            totalPages: Math.ceil(totalResults / resultsPerPage),
+            page: page
+        });
+    }
+}
+
+
+/**
+ *
+ * @param {ContextHolder} contextHolder
+ * @returns
+ */
+export function getDiagram(contextHolder) {
+    return (event, docId) => {
+        const fileIndex = contextHolder.from(event).fileIndex;
+        const doc = fileIndex.getDocumentFromIndex(docId);
+        if (!doc) {
+            return Promise.reject(`Diagram with id "${docId}" does not exist`);
+        }
+        const fullPath = path.join(fileIndex.rootPath, doc.fsPath);
+
+        let folderPath = path.basename(doc.fsPath);
+        if (folderPath === '.') {
+            folderPath = null
+        }
+
+        return fs.readFile(fullPath, 'utf-8').then(content => {
+            const diagram = JSON.parse(content);
+            diagram.projectLink = '/';
+            return {
+                scheme: diagram,
+                folderPath: folderPath,
+                viewOnly: false
+            };
+        });
+    }
 }

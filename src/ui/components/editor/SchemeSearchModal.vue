@@ -27,7 +27,7 @@
                 <tbody>
                     <tr class="scheme-row" v-for="scheme in searchResult.results"  @click="onSchemeSelect(scheme)">
                         <td class="scheme-icon">
-                            <img v-if="scheme.previewURL" class="scheme-preview" :src="`${scheme.previewURL}?v=${scheme.modifiedTime}`"/>
+                            <img v-if="scheme.previewURL" class="scheme-preview" :src="`${scheme.previewURL}`"/>
                             <i v-else class="icon far fa-file fa-2x"></i>
                         </td>
                         <td class="scheme-title">{{scheme.name}}</td>
@@ -92,6 +92,14 @@ export default {
                 this.isLoading = false;
                 this.searchResult = searchResponse;
                 this.totalPages = searchResponse.totalPages;
+
+                if (this.searchResult.results && Array.isArray(this.searchResult.results)) {
+                    this.searchResult.results.forEach(scheme => {
+                        if (scheme.previewURL && !scheme.previewURL.startsWith('media://')) {
+                            scheme.previewURL += `?v=${scheme.modifiedTime}`
+                        }
+                    });
+                }
 
                 if (searchResponse.kind === 'chunk') {
                     this.nextPageToken = searchResponse.nextPageToken;

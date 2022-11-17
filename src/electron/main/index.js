@@ -4,7 +4,7 @@ const { FileIndex } = require('../../common/fs/fileIndex');
 const { generateUserAgent, ContextHolder } = require('./context');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree } = require('./project');
+const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram } = require('./project');
 
 const contextHolder = new ContextHolder(data => {
     data.fileIndex = new FileIndex();
@@ -55,7 +55,7 @@ protocol.registerSchemesAsPrivileged([{
 const mediaUrlPrefix = `${mediaProtocolName}://local/`;
 app.whenReady().then(() => {
     protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
-        const url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
+        let url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
         const fileIndex = contextHolder.fromRequest(request).fileIndex;
         const fullPath = path.join(fileIndex.rootPath, '.media', url );
         callback({ path: fullPath});
@@ -74,6 +74,8 @@ app.whenReady().then(() => {
     ipcMain.handle('project:renameDiagram', renameDiagram(contextHolder));
     ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(contextHolder));
     ipcMain.handle('project:moveFile', moveFile(contextHolder));
+    ipcMain.handle('project:findDiagrams', findDiagrams(contextHolder));
+    ipcMain.handle('project:getDiagram', getDiagram(contextHolder));
     ipcMain.handle('media:copyFileToProject', copyFileToProjectMedia(contextHolder));
     ipcMain.handle('media:uploadDiagramPreview', uploadDiagramPreview(contextHolder))
 
