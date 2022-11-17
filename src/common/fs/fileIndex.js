@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
-import { deleteEntryFromFileTree, findEntryInFileTree, moveEntryInFileTree, renameEntryInFileTree, traverseFileTree } from './fileTree';
+import { addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, moveEntryInFileTree, renameEntryInFileTree, traverseFileTree } from './fileTree';
 import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
@@ -36,6 +36,14 @@ export class FileIndex {
 
     indexScheme(schemeId, scheme, fsPath, previewURL) {
         _indexScheme(this.index, schemeId, scheme, fsPath, previewURL)
+        const entry = findEntryInFileTree(this.fileTree, fsPath);
+        if (!entry) {
+            addEntryToFileTree(this.fileTree, path.dirname(fsPath), {
+                name: scheme.name,
+                path: fsPath,
+                kind: 'schemio-doc'
+            });
+        }
     }
 
 

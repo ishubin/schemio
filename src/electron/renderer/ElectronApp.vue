@@ -156,6 +156,12 @@ export default {
             }
 
             window.electronAPI.readFile(docPath).then(file => {
+                // protection from a race condition so that it does not open same file in two tabs
+                for (let i = 0; i < this.files.length; i++) {
+                    if (this.files[i].path === file.path) {
+                        return;
+                    }
+                }
                 const newIdx = this.appendFile(file);
                 this.focusFile(newIdx);
             });
@@ -300,7 +306,7 @@ export default {
             const newPath = entry.path.substring(0, entry.path.length - entry.name.length) + name;
             renameEntryInFileTree(this.fileTree, folderPath, name);
             this.files.forEach(file => {
-                if (file.path.startsWidth(folderPath)) {
+                if (file.path.startsWith(folderPath)) {
                     file.path = newPath + file.path.substring(folderPath.length);
                 }
             });

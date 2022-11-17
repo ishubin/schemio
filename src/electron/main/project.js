@@ -118,7 +118,11 @@ export function createNewDiagram(contextHolder) {
             return JSON.stringify(scheme)
         })
         .then(content => {
-            return writeProjectFileInFolder(fileIndex)(event, folderPath, id + schemioExtension, content);
+            return writeProjectFileInFolder(contextHolder)(event, folderPath, id + schemioExtension, content);
+        })
+        .then(entry => {
+            fileIndex.indexScheme(scheme.id, scheme, entry.path, null);
+            return entry;
         });
     };
 }
@@ -205,7 +209,7 @@ export function createNewFolder(contextHolder) {
         }
 
         const relativePath = parentPath ? path.join(parentPath, name) : name;
-        return fs.mkdir(path.join(fileIndex.readProjectFile, relativePath))
+        return fs.mkdir(path.join(fileIndex.rootPath, relativePath))
         .then(() => {
             fileIndex.indexFolder(relativePath, name, parentPath);
             return {

@@ -75,7 +75,7 @@ export function findParentEntryInFileTree(fileTreeEntries, path) {
  * @param {String} entry
  */
 export function addEntryToFileTree(fileTree, parentPath, entry) {
-    if (!parentPath) {
+    if (!parentPath || parentPath === '.') {
         fileTree.push(entry);
     } else {
         const dirEntry = findEntryInFileTree(fileTree, parentPath);
