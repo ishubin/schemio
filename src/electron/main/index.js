@@ -58,7 +58,6 @@ app.whenReady().then(() => {
         const url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
         const fileIndex = contextHolder.fromRequest(request).fileIndex;
         const fullPath = path.join(fileIndex.rootPath, '.media', url );
-        console.log('Resolved media path', fullPath);
         callback({ path: fullPath});
     });
 

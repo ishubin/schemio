@@ -176,6 +176,7 @@
     display: inline-block;
 }
 .elec-navigator .navigator-entry {
+    position: relative;
     display: flex;
     flex-direction: row;
     white-space: nowrap;
@@ -209,7 +210,23 @@
     border-radius: 2px;
     font-size: 13px;
 }
-
+.elec-navigator .navigator-entry-preview {
+    position: fixed;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+}
+.elec-navigator .navigator-entry-preview h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.elec-navigator .navigator-entry-preview img {
+    flex: 1;
+    max-width: 250px;
+    max-height: 250px;
+}
 
 .elec-file-container > div {
     height: 100%;

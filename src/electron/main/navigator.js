@@ -1,4 +1,3 @@
-import { FileIndex } from '../../common/fs/fileIndex';
 import { ContextHolder } from './context';
 
 const { BrowserWindow, Menu } = require('electron');

@@ -8,6 +8,8 @@
             <div class="navigator-entry navigator-droppable" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
                 @mousedown="onEntryMouseDown($event, entry)"
                 @contextmenu.prevent="openContextMenuForFile(entry)"
+                @mouseover="showPreviewForEntry($event, entry)"
+                @mouseleave="stopPreviewForEntry(entry)"
                 :class="{focused: entry.path === focusedFile}"
                 :data-entry-path="entry.path"
                 :data-entry-kind="entry.kind"
@@ -25,6 +27,11 @@
             </div>
         </div>
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
+
+        <div class="navigator-entry-preview" v-if="preview.shown" :style="{left: `${navigatorWidth}px`, top: `${preview.top}px`}">
+            <h3>{{preview.name}}</h3>
+            <img :src="preview.url"/>
+        </div>
 
         <Modal v-if="newFolderModal.shown" @close="newFolderModal.shown = false" :title="newFolderModalTitle" primaryButton="Create" @primary-submit="newFolderSubmitted">
             <input ref="newFolderName" type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
@@ -58,6 +65,11 @@ function generateFileTree(entries) {
             path: originalEntry.path,
             collapseBitMask: 0,
         };
+
+        if (originalEntry.previewURL) {
+            entry.previewURL = originalEntry.previewURL;
+        }
+
         if (entry.kind === 'dir') {
             entry.collapsed = true;
             if (originalEntry.children) {
@@ -183,6 +195,13 @@ export default {
                 name: '',
                 dropKind: 'void',
                 dropPath: null
+            },
+
+            preview: {
+                shown: false,
+                name: '',
+                url: null,
+                top: 0
             }
         };
     },
@@ -429,6 +448,19 @@ export default {
 
                 this.newDiagramModal.shown = false;
             });
+        },
+
+        showPreviewForEntry(event, entry) {
+            if (entry.previewURL) {
+                this.preview.name = entry.name;
+                this.preview.url = entry.previewURL;
+                this.preview.top = event.target.getBoundingClientRect().top;
+                this.preview.shown = true;
+            }
+        },
+
+        stopPreviewForEntry(entry) {
+            this.preview.shown = false;
         }
     },
     computed: {
