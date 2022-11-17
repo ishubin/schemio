@@ -510,7 +510,7 @@ class DragEditBoxState extends EditBoxState {
         }
 
         // checking if it can fit into another item
-        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
+        if (this.store.state.autoRemount && !this.parentState.isRecording ) {
             const fakeItem = {meta: {}, area: this.multiItemEditBox.area};
             this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => !this.multiItemEditBox.itemIds.has(item.id));
         } else {
@@ -529,7 +529,7 @@ class DragEditBoxState extends EditBoxState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording) {
+        if (this.store.state.autoRemount && !this.parentState.isRecording) {
             if (this.multiItemEditBox && this.proposedItemForMounting) {
                 // it should remount all items in multi item edit box into the new proposed parent
                 this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
@@ -844,6 +844,7 @@ export default class StateDragItem extends State {
         super(store,  'drag-item', listener);
         this.subState = null;
         this.listener = listener;
+        this.isRecording= false;
     }
 
     migrateSubState(subState) {
@@ -873,6 +874,13 @@ export default class StateDragItem extends State {
 
     shouldAllowFloatingHelperPanel() {
         return this.subState && this.subState.name === 'idle';
+    }
+
+    enableRecording() {
+        this.isRecording = true;
+    }
+    disableRecording() {
+        this.isRecording = false;
     }
 }
 

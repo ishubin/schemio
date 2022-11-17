@@ -174,11 +174,6 @@ const store = new Vuex.Store({
         draw: {
             epsilon: 5
         },
-
-        animationEditor: {
-            currentFramePlayer: null,
-            isRecording: false
-        }
     },
     mutations: {
         SET_ROOT_PATH(state, path) {
@@ -438,14 +433,6 @@ const store = new Vuex.Store({
             }
         },
 
-        START_ANIMATION_EDITOR(state, framePlayer) {
-            state.animationEditor.currentFramePlayer = framePlayer;
-        },
-
-        SET_ANIMATION_EDITOR_RECORDING(state, isRecording) {
-            state.animationEditor.isRecording = isRecording;
-        },
-
         COPY_ITEM_STYLE(state, item) {
             state.copiedStyleItem = utils.clone(item);
         },
@@ -635,14 +622,6 @@ const store = new Vuex.Store({
             commit('UPDATE_DRAW_EPSILON', epsilon);
         },
 
-        startAnimationEditor({commit}, framePlayer) {
-            commit('START_ANIMATION_EDITOR', framePlayer);
-        },
-
-        setAnimationEditorRecording({commit}, isRecording) {
-            commit('SET_ANIMATION_EDITOR_RECORDING', isRecording);
-        },
-
         copyItemStyle({commit}, item) {
             commit('COPY_ITEM_STYLE', item);
         },
@@ -704,10 +683,6 @@ const store = new Vuex.Store({
         drawEpsilon: state => state.draw.epsilon,
 
         editorSubStateName: state => state.editorSubStateName,
-
-        animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
-
-        animationEditorIsRecording: state => state.animationEditor.isRecording,
 
         patchAdditionsColor: state => state.patch.settings.additionsColor,
         patchDeletionsColor: state => state.patch.settings.deletionsColor,

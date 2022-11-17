@@ -17,6 +17,7 @@
             :menuOptions="menuOptions"
             :historyUndoable="historyState.undoable"
             :historyRedoable="historyState.redoable"
+            :isRecording="isRecording"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
@@ -171,22 +172,23 @@
             </div>
 
 
-            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)"
+            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || currentAnimatorFramePlayer)"
                 class="bottom-panel"
-                :style="{height: animationEditorCurrentFramePlayer ? `${bottomPanelHeight}px`: null}"
+                :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
                 >
-                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="animationEditorCurrentFramePlayer"></div>
+                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
                         <FrameAnimatorPanel
-                            v-if="animationEditorCurrentFramePlayer"
-                            :key="animationEditorCurrentFramePlayer.id"
+                            v-if="currentAnimatorFramePlayer"
+                            :key="currentAnimatorFramePlayer.id"
                             :editorId="editorId"
                             :schemeContainer="schemeContainer"
-                            :framePlayer="animationEditorCurrentFramePlayer"
+                            :framePlayer="currentAnimatorFramePlayer"
                             :light="false"
                             @close="closeAnimatorEditor"
+                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
                             />
 
                         <FrameAnimatorPanel
@@ -197,6 +199,7 @@
                             :framePlayer="animatorPanel.framePlayer"
                             :light="true"
                             @animation-editor-opened="onAnimatiorEditorOpened"
+                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
                             />
                     </div>
                     <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
@@ -790,6 +793,11 @@ export default {
             },
 
             bottomPanelHeight: 300,
+
+            // flag that is set when record button is pressed in frame animator panel
+            isRecording: false,
+
+            currentAnimatorFramePlayer: null
         }
     },
     methods: {
@@ -1723,11 +1731,11 @@ export default {
         },
 
         onAnimatiorEditorOpened(framePlayer) {
-            StoreUtils.startAnimationEditor(this.$store, framePlayer);
+            this.currentAnimatorFramePlayer = framePlayer;
         },
 
         closeAnimatorEditor() {
-            StoreUtils.startAnimationEditor(this.$store, null);
+            this.currentAnimatorFramePlayer = null;
         },
 
         onComponentLoadRequested(item) {
@@ -2321,6 +2329,14 @@ export default {
             this.highlightedItems = highlightedItems;
         },
 
+        onFrameAnimatorRectordingStateUpdated(isRecording) {
+            this.isRecording = isRecording;
+            if (isRecording) {
+                this.states.dragItem.enableRecording();
+            } else {
+                this.states.dragItem.disableRecording();
+            }
+        },
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
@@ -2388,10 +2404,6 @@ export default {
 
         editorStateName() {
             return this.$store.getters.editorStateName;
-        },
-
-        animationEditorCurrentFramePlayer() {
-            return this.$store.getters.animationEditorCurrentFramePlayer;
         },
 
         commentsEntityId() {

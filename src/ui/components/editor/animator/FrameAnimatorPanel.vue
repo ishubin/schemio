@@ -354,7 +354,7 @@ export default {
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
-        StoreUtils.setAnimationEditorRecording(this.$store, false);
+        this.$emit('recording-state-updated', false);
     },
 
     data() {
@@ -444,7 +444,7 @@ export default {
             }
 
             if (this.isRecording) {
-                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme, this.editorId));
+                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId);
             }
         },
 
@@ -676,13 +676,13 @@ export default {
 
         startRecording() {
             this.isRecording = true;
-            StoreUtils.setAnimationEditorRecording(this.$store, true);
+            this.$emit('recording-state-updated', true);
             this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId);
         },
 
         stopRecording() {
             this.isRecording = false;
-            StoreUtils.setAnimationEditorRecording(this.$store, false);
+            this.$emit('recording-state-updated', false);
         },
 
         onSchemeChange() {

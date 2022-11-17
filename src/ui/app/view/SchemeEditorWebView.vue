@@ -80,7 +80,7 @@
             @export-picture-requested="openExportPictureModal"
         />
 
-        <CreatePatchModal v-if="createPatchModalShown" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
+        <CreatePatchModal v-if="createPatchModalShown" :key="`create-patch-modal-${appReloadKey}`" :editorId="`scheme-${appReloadKey}`" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
 
         <CreateNewSchemeModal v-if="newSchemePopup.show"
             :name="newSchemePopup.name"

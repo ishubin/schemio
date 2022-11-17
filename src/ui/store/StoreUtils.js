@@ -106,14 +106,6 @@ export default {
         store.dispatch('removeSystemMessage', id);
     },
 
-    startAnimationEditor(store, framePlayer) {
-        store.dispatch('startAnimationEditor', framePlayer);
-    },
-
-    setAnimationEditorRecording(store, isRecording) {
-        store.dispatch('setAnimationEditorRecording', isRecording);
-    },
-
     setDefaultConnectorSmoothing(store, smoothing) {
         store.dispatch('setDefaultConnectorSmoothing', smoothing);
     },
