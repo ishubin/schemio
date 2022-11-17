@@ -1129,7 +1129,7 @@ export default {
 
         saveScheme() {
             const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-            snapshotSvg('#svg_plot [data-type="scene-transform"]', area).then(svgPreview => {
+            snapshotSvg(`#svg-plot-${this.editorId} [data-type="scene-transform"]`, area).then(svgPreview => {
                 this.$emit('scheme-save-requested', this.schemeContainer.scheme, svgPreview);
             })
             .catch(err => {
@@ -1953,7 +1953,7 @@ export default {
                     name: 'Paste',
                     clicked: () => {this.pasteItemsFromClipboard();}
                 }];
-                const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+                const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
                 this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
                 this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
                 this.customContextMenu.id = shortid.generate();
@@ -1964,7 +1964,7 @@ export default {
         onContextMenuRequested(mouseX, mouseY, menuOptions) {
             this.customContextMenu.menuOptions = menuOptions;
 
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
             this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
             this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
             this.customContextMenu.id = shortid.generate();
@@ -2170,7 +2170,7 @@ export default {
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
-            var rect = document.getElementById('svg_plot').getBoundingClientRect(),
+            var rect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect(),
                 offsetX = pageX - rect.left,
                 offsetY  = pageY - rect.top;
 
@@ -2217,7 +2217,7 @@ export default {
             const maxScreen = {x: this._x(max.x), y: this._y(max.y) + bottomMargin};
             const midX = (minScreen.x + maxScreen.x)/2;
 
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
 
             if (midX < 0 || midX > svgRect.width) {
                 this.resetFloatingHelperPanel();

@@ -697,71 +697,71 @@ ul.pagination li a.current {
     height: 100%;
     overflow: hidden;
 }
-#svg_plot {
+.svg-editor-plot {
     width: 100%;
     height: 100%;
 }
-#svg_plot foreignObject h1,
-#svg_plot foreignObject h2,
-#svg_plot foreignObject h3,
-#svg_plot foreignObject h4,
-#svg_plot foreignObject h4,
-#svg_plot foreignObject h6 {
+.svg-editor-plot foreignObject h1,
+.svg-editor-plot foreignObject h2,
+.svg-editor-plot foreignObject h3,
+.svg-editor-plot foreignObject h4,
+.svg-editor-plot foreignObject h4,
+.svg-editor-plot foreignObject h6 {
     color: unset;
 }
-#svg_plot foreignObject ul {
+.svg-editor-plot foreignObject ul {
     margin: 0;
 }
-#svg_plot .grid line {
+.svg-editor-plot .grid line {
     stroke-width: 1;
 }
-#svg_plot .grid line.grid-line-zero {
+.svg-editor-plot .grid line.grid-line-zero {
     stroke-width: 3;
 }
-#svg_plot rect.multi-select-box {
+.svg-editor-plot rect.multi-select-box {
     stroke-width: 2;
     stroke: rgb(21, 155, 218);
     fill: rgba(55, 175, 255, 0.219);
 }
-#svg_plot .item-control-point {
+.svg-editor-plot .item-control-point {
     opacity: 1.0;
     cursor: pointer;
 }
-#svg_plot .item-control-point:hover {
+.svg-editor-plot .item-control-point:hover {
     opacity: 0.7;
 }
-#svg_plot rect.boundary-box {
+.svg-editor-plot rect.boundary-box {
     stroke-width: 1;
     fill: rgba(255, 255, 255, 0.01);
     opacity: 0.5;
 }
-#svg_plot .boundary-box-dragger {
+.svg-editor-plot .boundary-box-dragger {
     cursor: pointer;
 }
-#svg_plot .boundary-box-dragger:hover {
+.svg-editor-plot .boundary-box-dragger:hover {
     opacity: 0.5;
 }
-#svg_plot .boundary-box-pivot-dragger:hover {
+.svg-editor-plot .boundary-box-pivot-dragger:hover {
     cursor: pointer;
     opacity: 0.3;
 }
 
-#svg_plot .boundary-box-connector-starter {
+.svg-editor-plot .boundary-box-connector-starter {
     stroke: 'none';
     opacity: 0.6;
     cursor: pointer;
 }
-#svg_plot .boundary-box-connector-starter:hover {
+.svg-editor-plot .boundary-box-connector-starter:hover {
     opacity: 1;
 }
 
 
-#svg_plot .missing-shape rect {
+.svg-editor-plot .missing-shape rect {
     stroke-width: 2px;
     stroke: #db3a3a;
     fill: rgba(227, 120, 120, 0.3);
 }
-#svg_plot .missing-shape div {
+.svg-editor-plot .missing-shape div {
     color: #db3a3a;
     font-family: Arial, Helvetica, sans-serif;
     padding: 0px;
@@ -773,60 +773,60 @@ ul.pagination li a.current {
 }
 
 /********** Item Cursor *******************/
-#svg_plot .item-cursor-pointer {
+.svg-editor-plot .item-cursor-pointer {
     cursor: pointer;
 }
 
 
 /**********************/
 /*      Item link    */
-#svg_plot .item-link p {
+.svg-editor-plot .item-link p {
     margin: 0;
     padding: 0;
 }
-#svg_plot .item-link circle {
+.svg-editor-plot .item-link circle {
     stroke-width: 2;
 }
-#svg_plot .item-link .item-link-icon {
+.svg-editor-plot .item-link .item-link-icon {
     fill: #fff;
     font-weight: bold;
     font-size: 12px;
     font-family: "Font Awesome 5 Free";
 }
-#svg_plot .item-link .item-link-full-title {
+.svg-editor-plot .item-link .item-link-full-title {
     font-size: 16px;
     font-weight: normal;
     font-family: "Lucida Console", monospace;
     fill: var(--base-strong-up);
 }
-#svg_plot .item-link .item-link-title {
+.svg-editor-plot .item-link .item-link-title {
     display: inline-block;
     padding: 2px 4px;
     background: var(--faint-weak);
     color: var(--base-strong);
     opacity: 0.8;
 }
-#svg_plot .item-link:hover .item-link-title {
+.svg-editor-plot .item-link:hover .item-link-title {
     background: var(--base-strong);
     color: var(--faint-weak);
 }
-#svg_plot .item-edit-menu-link:hover circle {
+.svg-editor-plot .item-edit-menu-link:hover circle {
     r: 15;
     cursor: pointer;
 }
-#svg_plot .item-edit-menu-link text.link-icon {
+.svg-editor-plot .item-edit-menu-link text.link-icon {
     font-weight: bold;
     font-size: 12px;
     fill: var(--base-weak);
     font-family: "Font Awesome 5 Free";
     cursor: pointer;
 }
-#svg_plot .item-edit-menu-link text.item-link-full-title {
+.svg-editor-plot .item-edit-menu-link text.item-link-full-title {
     fill: var(--base-strong-up);
     font-size: 12px;
     display: none;
 }
-#svg_plot .item-edit-menu-link:hover text.item-link-full-title {
+.svg-editor-plot .item-edit-menu-link:hover text.item-link-full-title {
     display: inline-block;
 }
 
@@ -876,10 +876,10 @@ textarea.in-place-text-editor {
 /*****************************************/
 /* Hover state in create component state */
 /*****************************************/
-.state-createItem #svg_plot .state-hover-layer {
+.state-createItem .svg-editor-plot .state-hover-layer {
     cursor: crosshair;
 }
-.state-draw #svg_plot, .state-draw #svg_plot .state-hover-layer {
+.state-draw .svg-editor-plot, .state-draw .svg-editor-plot .state-hover-layer {
     cursor: crosshair;
 }
 

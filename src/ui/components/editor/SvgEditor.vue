@@ -4,7 +4,8 @@
 
 <template lang="html">
     <div id="svg-editor" class="svg-editor">
-        <svg id="svg_plot" ref="svgDomElement"
+        <svg :id="`svg-plot-${editorId}`" ref="svgDomElement"
+            class="svg-editor-plot"
             :class="cssClass"
             :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"

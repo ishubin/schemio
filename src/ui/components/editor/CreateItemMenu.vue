@@ -589,7 +589,7 @@ export default {
 
             function onMouseUp(event) {
                 reset();
-                if (utils.domHasParentNode(event.target, el => el.id === 'svg_plot')) {
+                if (utils.domHasParentNode(event.target, el => el.id === `svg-plot-${that.editorId}`)) {
                     submitItem(event.pageX, event.pageY);
                 } else if (pixelsMoved < 10) {
                     that.onItemPicked(item);
@@ -624,7 +624,7 @@ export default {
                 itemClone.id = shortid.generate();
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
                 itemClone.name = that.makeUniqueName(item.name);
-                that.$emit('item-creation-dragged-to-editor', itemClone, pageX + mouseOffset, pageY + mouseOffset);
+                that.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
             }
 
             document.addEventListener('mousemove', onMouseMove);

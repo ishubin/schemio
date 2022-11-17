@@ -512,7 +512,7 @@ export default {
             const xo = schemeContainer.screenTransform.x;
             const yo = schemeContainer.screenTransform.y;
 
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
             const cx = svgRect.width / 2;
             const cy = svgRect.height / 2;
 
