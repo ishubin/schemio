@@ -516,11 +516,13 @@ export default {
                 description: '',
                 text: '',
                 links: [],
-                shape: 'rect',
+                shape: 'image',
                 area: { x: 0, y: 0, w: 100, h: 60},
                 shapeProps: {
                     strokeSize: 0,
-                    fill: {type: 'image', image: art.url}
+                    showTitle: false,
+                    image: art.url,
+                    stretch: false,
                 },
             };
             enrichItemWithDefaults(item);

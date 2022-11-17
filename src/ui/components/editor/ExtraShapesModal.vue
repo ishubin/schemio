@@ -1,5 +1,5 @@
 <template>
-    <modal title="Additional shapes" @close="$emit('close')" width="900">
+    <modal title="Additional shapes" @close="$emit('close')" :width="900">
         <div v-if="isLoading" class="loader">
             <div class="loader-element"></div>
         </div>

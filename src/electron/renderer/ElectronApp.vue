@@ -22,7 +22,7 @@
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
                             :key="`editor-${file.path}`"
-                            :editorId="`editor-${file.path}`"
+                            :editorId="`editor-${file.editorId}`"
                             :scheme="file.document"
                             :schemeReloadKey="file.schemeReloadKey"
                             :mode="file.schemeMode"
@@ -72,6 +72,7 @@ function initSchemioDiagramFile(originalFile) {
         ...originalFile,
         document: {},
         error: null,
+        editorId: shortid.generate(),
         modified: false,
         schemeMode: 'view',
         schemeReloadKey: shortid.generate(),
