@@ -265,6 +265,8 @@ export default {
                     entry.name = document.name;
                     this.fileTreeReloadKey++;
                 }
+
+                return window.electronAPI.uploadDiagramPreview(document.id, preview);
             })
             .catch(err => {
                 console.error(err);

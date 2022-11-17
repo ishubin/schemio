@@ -2,12 +2,13 @@ const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path');
 const { FileIndex } = require('../../common/fs/fileIndex');
 const { generateUserAgent, ContextHolder } = require('./context');
-const { copyFileToProjectMedia } = require('./media');
+const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree } = require('./project');
 
 const contextHolder = new ContextHolder(data => {
     data.fileIndex = new FileIndex();
+    data.fileIndex.isElectron = true;
 });
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -75,6 +76,7 @@ app.whenReady().then(() => {
     ipcMain.handle('navigator:contexMenuFile', navigatorOpenContextMenuForFile(contextHolder));
     ipcMain.handle('project:moveFile', moveFile(contextHolder));
     ipcMain.handle('media:copyFileToProject', copyFileToProjectMedia(contextHolder));
+    ipcMain.handle('media:uploadDiagramPreview', uploadDiagramPreview(contextHolder))
 
 
     app.on('activate', () => {

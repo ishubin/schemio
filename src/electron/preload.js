@@ -12,9 +12,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     renameDiagram     : (filePath, newName) => ipcRenderer.invoke('project:renameDiagram', filePath, newName),
     moveFile          : (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
 
+
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
     copyFileToProjectMedia: (filePath, fileName) => ipcRenderer.invoke('media:copyFileToProject', filePath, fileName),
+    uploadDiagramPreview  : (docId, preview) => ipcRenderer.invoke('media:uploadDiagramPreview', docId, preview),
 
     $on: (channel, callback) =>  ipcRenderer.on(channel, callback),
     $off: (channel, callback) =>  ipcRenderer.off(channel, callback),

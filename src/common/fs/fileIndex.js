@@ -32,6 +32,7 @@ export class FileIndex {
         this.rootPath = null;
         this.fileTree = null;
         this.index = new DocumentIndex();
+        this.isElectron = false;
     }
 
     indexScheme(schemeId, scheme, fsPath, previewURL) {
@@ -179,7 +180,7 @@ export class FileIndex {
     reindex(rootPath) {
         console.log('Starting reindex in ', rootPath);
         this.rootPath = rootPath;
-        return createIndexFromScratch(new DocumentIndex(), rootPath)
+        return createIndexFromScratch(new DocumentIndex(), rootPath, this.isElectron)
         .then(({index, fileTree}) => {
             this.index = index;
             this.fileTree = fileTree;
@@ -248,7 +249,7 @@ function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
  * @param {String} rootPath
  * @returns
  */
-function createIndexFromScratch(index, rootPath) {
+function createIndexFromScratch(index, rootPath, isElectron) {
     const fileTree = [];
     const allDirs = new Map();
 
@@ -295,17 +296,23 @@ function createIndexFromScratch(index, rootPath) {
                     }
                 }
 
+                let previewURL = null;
+                if (fs.existsSync(path.join(rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
+                    if (isElectron) {
+                        previewURL = `media://local/previews/${schemeId}.svg`;
+                    } else {
+                        previewURL = `/media/previews/${schemeId}.svg`;
+                    }
+                }
+
                 findParentList(relativeFilePath).push({
                     kind: 'schemio-doc',
                     path: path.relative(rootPath, filePath),
-                    name: scheme.name
+                    name: scheme.name,
+                    previewURL
                 });
 
                 if (!index.hasDocument(schemeId)) {
-                    let previewURL = null;
-                    if (fs.existsSync(path.join(rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
-                        previewURL = `/media/previews/${schemeId}.svg`;
-                    }
                     _indexScheme(index, schemeId, scheme, fsPath, previewURL);
                 } else {
                     const existingDocument = index.getDocument(schemeId);

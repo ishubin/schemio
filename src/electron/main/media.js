@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 import { nanoid } from "nanoid";
-import { getFileExtension, leftZeroPad, supportedMediaExtensions } from "../../common/fs/fsUtils";
+import { getFileExtension, leftZeroPad, mediaFolder, supportedMediaExtensions } from "../../common/fs/fsUtils";
 import { ContextHolder } from "./context";
 
 /**
@@ -26,7 +26,7 @@ export function copyFileToProjectMedia(contextHolder) {
         const id = nanoid(6);
         const mediaFileName = `${fileName}-${id}.${extension}`;
 
-        const mediaStoragePath = path.join(fileIndex.rootPath, '.media');
+        const mediaStoragePath = path.join(fileIndex.rootPath, mediaFolder);
         const folderPath = path.join(mediaStoragePath, firstPart);
         const fullMediaFilePath = path.join(folderPath, mediaFileName);
 
@@ -43,6 +43,29 @@ export function copyFileToProjectMedia(contextHolder) {
         })
         .then(() => {
             return 'media://local/' + pathParts.join('/') + '/' + mediaFileName;
+        });
+    };
+}
+
+export function uploadDiagramPreview(contextHolder) {
+    return (event, docId, preview) => {
+        const fileIndex = contextHolder.from(event).fileIndex;
+        const folderPath = path.join(fileIndex.rootPath, mediaFolder, 'previews');
+        const previewPath = path.join(folderPath, `${docId}.svg`);
+
+        return fs.stat(folderPath).then(stat => {
+            if (!stat.isDirectory()) {
+                return Promise.reject('media storage is not a directory' + folderPath);
+            }
+        })
+        .catch(() => {
+            return fs.mkdirs(folderPath);
+        })
+        .then(() => {
+            return fs.writeFile(previewPath, preview);
+        })
+        .then(() => {
+            return {status: 'ok'};
         });
     };
 }
