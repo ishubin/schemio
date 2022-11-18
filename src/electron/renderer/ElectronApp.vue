@@ -33,6 +33,7 @@
                             :historyUndoable="file.historyUndoable"
                             :historyRedoable="file.historyRedoable"
                             :isSaving="file.isSaving"
+                            :userStylesEnabled="true"
                             @scheme-save-requested="saveFile(file, arguments[0], arguments[1])"
                             @mode-change-requested="onModeChangeRequested(file, arguments[0])"
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"

@@ -1,4 +1,4 @@
-import { mediaFolder, schemioExtension } from '../../common/fs/fsUtils';
+import { schemioExtension } from '../../common/fs/fsUtils';
 import { ContextHolder } from './context';
 
 const path = require('path');

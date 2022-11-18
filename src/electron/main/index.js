@@ -1,10 +1,12 @@
 const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path');
 const { FileIndex } = require('../../common/fs/fileIndex');
+const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { generateUserAgent, ContextHolder } = require('./context');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram } = require('./project');
+const { createStyle, getStyles, deleteStyle } = require('./styles');
 
 const contextHolder = new ContextHolder(data => {
     data.fileIndex = new FileIndex();
@@ -79,6 +81,14 @@ app.whenReady().then(() => {
     ipcMain.handle('media:copyFileToProject', copyFileToProjectMedia(contextHolder));
     ipcMain.handle('media:uploadDiagramPreview', uploadDiagramPreview(contextHolder))
 
+    ipcMain.handle('art:create', createArt(contextHolder));
+    ipcMain.handle('art:getAll', getAllArt(contextHolder));
+    ipcMain.handle('art:save', saveArt(contextHolder));
+    ipcMain.handle('art:delete', deleteArt(contextHolder));
+
+    ipcMain.handle('style:create', createStyle(contextHolder));
+    ipcMain.handle('style:getAll', getStyles(contextHolder));
+    ipcMain.handle('style:delete', deleteStyle(contextHolder));
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the

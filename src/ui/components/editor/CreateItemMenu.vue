@@ -192,6 +192,7 @@ export default {
     components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },
 
     beforeMount() {
+        this.loadProjectArt();
         this.filterItemPanels();
     },
 
@@ -243,6 +244,15 @@ export default {
         }
     },
     methods: {
+        loadProjectArt() {
+            if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
+                this.$store.state.apiClient.getAllArt()
+                .then(artList => {
+                    this.artList = artList;
+                });
+            }
+        },
+
         updateAllPanels() {
             this.itemPanels = this.generateItemPanels();
             this.filterItemPanels();

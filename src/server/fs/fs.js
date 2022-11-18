@@ -7,6 +7,8 @@ import path from 'path';
 import { nanoid } from 'nanoid'
 import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
 import { FileIndex } from '../../common/fs/fileIndex';
+import artService from '../../common/fs/artService.js';
+import styleService from '../../common/fs/styleService.js';
 
 
 function isValidCharCode(code) {
@@ -726,7 +728,7 @@ export function fsDownloadMediaFile(config) {
     };
 }
 
-export function fsCreateArt(config) {
+export function fsCreateArt(fileIndex) {
     return (req, res) => {
         const art = req.body;
         if (!art.name || !art.url) {
@@ -734,42 +736,18 @@ export function fsCreateArt(config) {
             return;
         }
 
-        const newArt = {
-            id: nanoid(),
-            name: art.name,
-            url: art.url
-        };
-
-        const artFile = path.join(config.fs.rootPath, '.art.json');
-
-        fs.stat(artFile)
-        .catch(err => {
-            return fs.writeFile(artFile, '[]');
-        })
-        .then(() => {
-            return fs.readFile(artFile, 'utf-8');
-        })
-        .then(content => {
-            try {
-                return JSON.parse(content);
-            } catch(err) {
-                return [];
-            }
-        })
-        .then(existingArt => {
-            existingArt.push(newArt);
-            return fs.writeFile(artFile, JSON.stringify(existingArt));
-        })
-        .then(() => {
+        return artService.create(fileIndex, art.name, art.url)
+        .then(newArt => {
             res.json(newArt);
         })
         .catch(err => {
             console.error('Failed to create an art', err);
+            res.$serverError('Failed to create art');
         });
     };
 }
 
-export function fsSaveDeleteArt(config, isDeletion) {
+export function fsSaveDeleteArt(fileIndex, isDeletion) {
     return (req, res) => {
         const artId = req.params.artId;
         let art = null;
@@ -782,24 +760,15 @@ export function fsSaveDeleteArt(config, isDeletion) {
             }
         }
 
-        const artFile = path.join(config.fs.rootPath, '.art.json');
-        fs.readFile(artFile, 'utf-8').then(content => {
-            return JSON.parse(content);
-        })
-        .then(allArt => {
-            for (let i = 0; i < allArt.length; i++) {
-                if (allArt[i].id === artId) {
-                    if (isDeletion) {
-                        allArt.splice(i, 1);
-                    } else {
-                        allArt[i].name = art.name;
-                        allArt[i].url = art.url;
-                    }
-                    return fs.writeFile(artFile, JSON.stringify(allArt));
-                }
-            }
-            return null;
-        })
+        let chain = null;
+
+        if (isDeletion) {
+            chain = artService.delete(fileIndex, artId);
+        } else {
+            chain = artService.save(fileIndex, art.name, art.url);
+        }
+
+        return chain
         .then(() => {
             res.json({
                 status: 'ok'
@@ -812,11 +781,11 @@ export function fsSaveDeleteArt(config, isDeletion) {
     };
 }
 
-export function fsGetArt(config) {
+export function fsGetArt(fileIndex) {
     return (req, res) => {
-        const artFile = path.join(config.fs.rootPath, '.art.json');
-        return fs.readFile(artFile).then(content => {
-            res.json(JSON.parse(content));
+        return artService.getAll(fileIndex)
+        .then(art => {
+            res.json(art);
         })
         .catch(err => {
             res.json([]);
@@ -824,7 +793,7 @@ export function fsGetArt(config) {
     };
 }
 
-export function fsSaveStyle(config) {
+export function fsSaveStyle(fileIndex) {
     return (req, res) => {
         const style = req.body;
         if (!style || !style.fill || !style.strokeColor || !style.textColor) {
@@ -832,33 +801,7 @@ export function fsSaveStyle(config) {
             return;
         }
 
-        const stylesFile = path.join(config.fs.rootPath, '.styles.json');
-
-        fs.stat(stylesFile)
-        .catch(err => {
-            return fs.writeFile(stylesFile, '[]');
-        })
-        .then(() => {
-            return fs.readFile(stylesFile, 'utf-8');
-        })
-        .then(content => {
-            try {
-                return JSON.parse(content);
-            } catch(err) {
-                return [];
-            }
-        })
-        .then(styles => {
-            const newStyle = {
-                id: nanoid(),
-                fill: style.fill,
-                strokeColor: style.strokeColor,
-                textColor: style.textColor
-            }
-            styles.push(newStyle);
-
-            return fs.writeFile(stylesFile, JSON.stringify(styles)).then(() => newStyle);
-        })
+        styleService.create(fileIndex, style.fill, style.strokeColor, style.textColor)
         .then(style => {
             res.json(style);
         })
@@ -869,35 +812,11 @@ export function fsSaveStyle(config) {
     }
 }
 
-export function fsDeleteStyle(config) {
+export function fsDeleteStyle(fileIndex) {
     return (req, res) => {
         const styleId = req.params.styleId;
 
-        const stylesFile = path.join(config.fs.rootPath, '.styles.json');
-
-        fs.stat(stylesFile)
-        .catch(err => {
-            return fs.writeFile(stylesFile, '[]');
-        })
-        .then(() => {
-            return fs.readFile(stylesFile, 'utf-8');
-        })
-        .then(content => {
-            try {
-                return JSON.parse(content);
-            } catch(err) {
-                return [];
-            }
-        })
-        .then(styles => {
-            for (let i = 0; i < styles.length; i++) {
-                if (styles[i].id === styleId) {
-                    styles.splice(i, 1);
-                    return fs.writeFile(stylesFile, JSON.stringify(styles));
-                }
-            }
-            return null;
-        })
+        styleService.delete(fileIndex, styleId)
         .then(() => {
             res.json({
                 status: 'ok'
@@ -911,12 +830,9 @@ export function fsDeleteStyle(config) {
     }
 }
 
-export function fsGetStyles(config) {
+export function fsGetStyles(fileIndex) {
     return (req, res) => {
-        const stylesFile = path.join(config.fs.rootPath, '.styles.json');
-        fs.readFile(stylesFile, 'utf-8').then(content => {
-            return JSON.parse(content);
-        })
+        styleService.getAll(fileIndex)
         .then(styles => {
             res.json(styles);
         })

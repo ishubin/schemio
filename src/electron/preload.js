@@ -14,6 +14,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     findDiagrams      : (query, page) => ipcRenderer.invoke('project:findDiagrams', query, page),
     getDiagram        : (docId) => ipcRenderer.invoke('project:getDiagram', docId),
 
+
+    createArt: (name, url) => ipcRenderer.invoke('art:create', name, url),
+    getAllArt: () => ipcRenderer.invoke('art:getAll'),
+    saveArt  : (artId, name, url) => ipcRenderer.invoke('art:save', artId, name, url),
+    deleteArt: (artId) => ipcRenderer.invoke('art:delete', artId),
+
+
+    createStyle: (fill, strokeColor, textColor) => ipcRenderer.invoke('style:create', fill, strokeColor, textColor),
+    deleteStyle: (styleId) => ipcRenderer.invoke('style:delete', styleId),
+    getStyles: () => ipcRenderer.invoke('style:getAll'),
+
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
     copyFileToProjectMedia: (filePath, fileName) => ipcRenderer.invoke('media:copyFileToProject', filePath, fileName),

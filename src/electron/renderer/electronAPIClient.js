@@ -5,7 +5,6 @@ export function electronAPICLient() {
         },
 
         findSchemes(filters) {
-            let url = '/v1/fs/docs';
             const query = filters.query || null;
             const page = filters.page || 0;
 
@@ -14,6 +13,34 @@ export function electronAPICLient() {
 
         getScheme(docId) {
             return window.electronAPI.getDiagram(docId);
-        }
+        },
+
+        createArt({name, url}) {
+            return window.electronAPI.createArt(name, url);
+        },
+
+        getAllArt() {
+            return window.electronAPI.getAllArt();
+        },
+
+        saveArt(artId, {name, url}) {
+            return window.electronAPI.saveArt(artId, name, url);
+        },
+
+        deleteArt(artId) {
+            return window.electronAPI.deleteArt(artId);
+        },
+
+        saveStyle(fill, strokeColor, textColor) {
+            return window.electronAPI.createStyle(fill, strokeColor, textColor);
+        },
+
+        getStyles() {
+            return window.electronAPI.getStyles();
+        },
+
+        deleteStyle(styleId) {
+            return window.electronAPI.deleteStyle(styleId);
+        },
     };
 }

@@ -23,7 +23,6 @@ import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
 import { FileIndex } from '../common/fs/fileIndex.js';
 
-
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 
 const cwd = process.cwd();
@@ -66,15 +65,15 @@ fileIndex.reindex(config.fs.rootPath).then(() => {
         app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config, fileIndex));
         app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config, fileIndex));
 
-        app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config, fileIndex));
-        app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config, fileIndex));
+        app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(fileIndex));
+        app.get('/v1/fs/art', jsonBodyParser, fsGetArt(fileIndex));
 
-        app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification, fileIndex));
-        app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion, fileIndex));
+        app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(fileIndex, modification));
+        app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(fileIndex, deletion));
 
-        app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config, fileIndex));
-        app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config, fileIndex));
-        app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config, fileIndex));
+        app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(fileIndex));
+        app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(fileIndex));
+        app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(fileIndex));
 
         app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config, fileIndex));
         app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config, fileIndex));
