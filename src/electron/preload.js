@@ -33,6 +33,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     menu: {
         updateHistoryState: (undoable, redoable) => ipcRenderer.invoke('menu:update-history-state', undoable, redoable),
+        enableMenuItem: (menuItemId) => ipcRenderer.invoke('menu:enable-item', menuItemId),
+        disableMenuItem: (menuItemId) => ipcRenderer.invoke('menu:disable-item', menuItemId),
     },
 
     $on: (channel, callback) =>  ipcRenderer.on(channel, callback),

@@ -6,6 +6,14 @@ function updateHistoryState(event, undoable, redoable) {
     Menu.getApplicationMenu().getMenuItemById('edit-redo').enabled = redoable;
 }
 
+function enableMenuItem(event, menuItemId) {
+    Menu.getApplicationMenu().getMenuItemById(menuItemId).enabled = true;
+}
+
+function disableMenuItem(event, menuItemId) {
+    Menu.getApplicationMenu().getMenuItemById(menuItemId).enabled = false;
+}
+
 function menuItem(id, label, enabled, eventName, accelerator) {
     return {
         id, label, enabled, accelerator,
@@ -38,9 +46,15 @@ export function buildAppMenu() {
     {
         label: 'File',
         submenu: [
-        { label: 'Export project...'},
-        isMac ? { role: 'close' } : { role: 'quit' },
-        ]
+            { label: 'Open Project...'},
+            menuItem('file-exportStatic', 'Export project...', false, 'file:exportStatic', null),
+            { label: 'Import diagram...'},
+            { label: 'Export diagram as JSON..'},
+            { label: 'Export diagram as HTML..'},
+            { label: 'Export diagram as PNG..'},
+            { label: 'Export diagram as SVG..'},
+            isMac ? { role: 'close' } : { role: 'quit' },
+            ]
     },
     // { role: 'editMenu' }
     {
@@ -99,4 +113,7 @@ export function buildAppMenu() {
     Menu.setApplicationMenu(menu);
 
     ipcMain.handle('menu:update-history-state', updateHistoryState);
+
+    ipcMain.handle('menu:enable-item', enableMenuItem)
+    ipcMain.handle('menu:disable-item', disableMenuItem)
 }

@@ -129,8 +129,8 @@ export default {
     beforeDestroy() {
         window.electronAPI.$off('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
         window.electronAPI.$off('navigator:open', this.ipcOnNavigatorOpen);
-        window.electronAPI.$off('history:undo', undoHistoryForCurrentFile);
-        window.electronAPI.$off('history:redo', redoHistoryForCurrentFile);
+        window.electronAPI.$off('history:undo', this.undoHistoryForCurrentFile);
+        window.electronAPI.$off('history:redo', this.redoHistoryForCurrentFile);
         window.electronAPI.$off('edit:cut', this.onMenuEditCut);
         window.electronAPI.$off('edit:copy', this.onMenuEditCopy);
         window.electronAPI.$off('edit:paste', this.onMenuEditPaste);
@@ -169,6 +169,8 @@ export default {
                     this.projectName = project.name;
                     this.fileTree = project.fileTree
                 }
+
+                window.electronAPI.menu.enableMenuItem('file-exportStatic');
             });
         },
 
