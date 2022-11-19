@@ -10,6 +10,8 @@ import { Keys } from '../../../events';
 
 const SUB_STATE_STACK_LIMIT = 10;
 
+const zoomOptions = [ 0.1, 0.25, 0.35, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 7.5, 10 ];
+
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
  * @param {MouseEvent} event
@@ -146,12 +148,41 @@ class State {
         }
     }
 
-    zoomOutByKey() {
-        this.changeZoomTo(this.schemeContainer.screenTransform.scale * 0.9);
+    resetZoom() {
+        this.changeZoomTo(1);
     }
 
-    zoomInByKey() {
-        this.changeZoomTo(this.schemeContainer.screenTransform.scale * 1.1);
+    zoomOut() {
+        const currentZoom = this.schemeContainer.screenTransform.scale;
+        let selectedZoom = zoomOptions[0];
+        let found = false;
+        for (let i = 0; i < zoomOptions.length && !found; i++) {
+            if (zoomOptions[i] < currentZoom) {
+                selectedZoom = zoomOptions[i];
+            } else {
+                found = true;
+            }
+        }
+        this.changeZoomTo(selectedZoom);
+    }
+
+    zoomIn() {
+        const currentZoom = this.schemeContainer.screenTransform.scale;
+        let selectedZoom = zoomOptions[zoomOptions.length - 1];
+        let found = false;
+        let i = zoomOptions.length - 1;
+        while(!found) {
+            if (zoomOptions[i] > currentZoom) {
+                selectedZoom = zoomOptions[i];
+            } else {
+                found = true;
+            }
+            i = i - 1;
+            if (i < 0) {
+                found = true;
+            }
+        }
+        this.changeZoomTo(selectedZoom);
     }
 
     changeZoomTo(newScale) {

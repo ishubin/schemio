@@ -121,6 +121,9 @@ export default {
         window.electronAPI.$on('edit:paste', this.onMenuEditPaste);
         window.electronAPI.$on('edit:delete', this.onMenuEditDelete);
         window.electronAPI.$on('edit:selectAll', this.onMenuEditSelectAll);
+        window.electronAPI.$on('view:zoomIn', this.onMenuViewZoomIn);
+        window.electronAPI.$on('view:zoomOut', this.onMenuViewZoomOut);
+        window.electronAPI.$on('view:resetZoom', this.onMenuViewResetZoom);
     },
 
     beforeDestroy() {
@@ -133,6 +136,9 @@ export default {
         window.electronAPI.$off('edit:paste', this.onMenuEditPaste);
         window.electronAPI.$off('edit:delete', this.onMenuEditDelete);
         window.electronAPI.$off('edit:selectAll', this.onMenuEditSelectAll);
+        window.electronAPI.$off('view:zoomIn', this.onMenuViewZoomIn);
+        window.electronAPI.$off('view:zoomOut', this.onMenuViewZoomOut);
+        window.electronAPI.$off('view:resetZoom', this.onMenuViewResetZoom);
     },
 
     data() {
@@ -439,7 +445,16 @@ export default {
             simulateKeyPress(Keys.DELETE, true);
         },
         onMenuEditSelectAll() {
-            simulateKeyPress(Keys.CTRL_A, true);
+            simulateKeyPress(Keys.CTRL_X, true);
+        },
+        onMenuViewZoomIn() {
+            simulateKeyPress(Keys.EQUALS, true);
+        },
+        onMenuViewZoomOut() {
+            simulateKeyPress(Keys.MINUS, true);
+        },
+        onMenuViewResetZoom() {
+            simulateKeyPress(Keys.CTRL_ZERO, true);
         },
     }
 }

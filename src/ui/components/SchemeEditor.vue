@@ -460,7 +460,6 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
 };
 
 
-
 function imgPreload(imageUrl) {
     return new Promise((resolve, reject) => {
         const img = new Image();

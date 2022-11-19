@@ -117,6 +117,9 @@ app.whenReady().then(() => {
       'edit:paste',
       'edit:delete',
       'edit:selectAll',
+      'view:zoomIn',
+      'view:zoomOut',
+      'view:resetZoom',
     ].forEach(retransmitToRenderer);
 });
 // Quit when all windows are closed, except on macOS. There, it's common

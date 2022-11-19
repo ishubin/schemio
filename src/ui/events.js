@@ -15,6 +15,7 @@ export const Keys = {
     CTRL_S: 'ctrl-s',
     CTRL_X: 'ctrl-z',
     CTRL_Z: 'ctrl-z',
+    CTRL_ZERO: 'ctrl-0',
     CTRL_SHIFT_Z: 'ctrl-shift-z',
     UP: 'up',
     DOWN: 'down',
@@ -34,6 +35,7 @@ keyMap[Keys.CTRL_C] = event => event.key === 'c' && (event.metaKey || event.ctrl
 keyMap[Keys.CTRL_V] = event => event.key === 'v' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_S] = event => event.key === 's' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_Z] = event => event.key === 'z' && (event.metaKey || event.ctrlKey) && (!event.shiftKey);
+keyMap[Keys.CTRL_ZERO] = event => event.keyCode === 48 && (event.metaKey || event.ctrlKey) && !event.shiftKey;
 keyMap[Keys.CTRL_SHIFT_Z] = event => event.key === 'z' && (event.metaKey || event.ctrlKey) && event.shiftKey;
 keyMap[Keys.LEFT] = event => event.key === 'ArrowLeft';
 keyMap[Keys.RIGHT] = event => event.key === 'ArrowRight';

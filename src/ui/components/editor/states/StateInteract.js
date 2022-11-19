@@ -56,9 +56,11 @@ class StateInteract extends State {
 
     keyPressed(key, keyOptions) {
         if (key === Keys.MINUS) {
-            this.zoomOutByKey();
+            this.zoomOut();
         } else if (key === Keys.EQUALS) {
-            this.zoomInByKey();
+            this.zoomIn();
+        } else if (key === Keys.CTRL_ZERO) {
+            this.resetZoom();
         }
     }
 

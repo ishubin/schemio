@@ -60,13 +60,9 @@ export function buildAppMenu() {
     {
         label: 'View',
         submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
-        { type: 'separator' },
+            menuItem('view-zoomIn', 'Zoom In', true, 'view:zoomIn', '='),
+            menuItem('view-zoomOut', 'Zoom Out', true, 'view:zoomOut', '-'),
+            menuItem('view-resetZoom', 'Reset Zoom', true, 'view:resetZoom', 'CmdOrCtrl+0'),
         ]
     },
     // { role: 'windowMenu' }

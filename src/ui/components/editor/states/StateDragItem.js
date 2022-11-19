@@ -602,9 +602,11 @@ class IdleState extends SubState {
         } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
         } else if (key === Keys.MINUS) {
-            this.zoomOutByKey();
+            this.zoomOut();
         } else if (key === Keys.EQUALS) {
-            this.zoomInByKey();
+            this.zoomIn();
+        } else if (key === Keys.CTRL_ZERO) {
+            this.resetZoom();
         }
     }
 
