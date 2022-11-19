@@ -1271,24 +1271,27 @@ export default {
 
         onKeyDown(key, keyOptions) {
             if (this.mode === 'edit') {
-                if (key === Keys.CTRL_C) {
-                    this.copySelectedItems();
-                } else if (key === Keys.CTRL_V) {
-                    this.pasteItemsFromClipboard();
-                } else if (Keys.CTRL_S === key) {
-                    this.saveScheme();
-                } else if (Keys.CTRL_Z === key) {
-                    this.historyUndo();
-                } else if (Keys.CTRL_SHIFT_Z === key) {
-                    this.historyRedo();
-                } else if (Keys.CTRL_A === key) {
-                    this.schemeContainer.selectAllItems();
-                } else if (Keys.DELETE === key) {
-                    if (this.state === 'editPath') {
-                        this.states.editPath.deleteSelectedPoints();
-                    } else if (this.state === 'dragItem') {
+                if (this.state === 'dragItem') {
+                    if (key === Keys.CTRL_C) {
+                        this.copySelectedItems();
+                    } else if (key === Keys.CTRL_X) {
+                        this.copySelectedItems();
+                        this.deleteSelectedItems();
+                    } else if (key === Keys.CTRL_V) {
+                        this.pasteItemsFromClipboard();
+                    } else if (Keys.CTRL_S === key) {
+                        this.saveScheme();
+                    } else if (Keys.CTRL_Z === key) {
+                        this.historyUndo();
+                    } else if (Keys.CTRL_SHIFT_Z === key) {
+                        this.historyRedo();
+                    } else if (Keys.CTRL_A === key) {
+                        this.schemeContainer.selectAllItems();
+                    } else if (Keys.DELETE === key) {
                         this.deleteSelectedItems();
                     }
+                } else if (this.state === 'editPath') {
+                    this.states.editPath.deleteSelectedPoints();
                 }
             }
             if (key === Keys.ESCAPE) {

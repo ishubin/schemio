@@ -61,6 +61,7 @@
 <script>
 import shortid from 'shortid';
 import { enrichSchemeWithDefaults } from '../../ui/scheme/Scheme';
+import { Keys, simulateKeyPress } from '../../ui/events';
 import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
@@ -106,17 +107,32 @@ function initSchemioDiagramFile(originalFile) {
 }
 
 
+
 export default {
     components: {Navigator, SchemioEditorApp, FileTabPanel, Modal},
 
     beforeMount() {
         window.electronAPI.$on('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
         window.electronAPI.$on('navigator:open', this.ipcOnNavigatorOpen);
+        window.electronAPI.$on('history:undo', this.undoHistoryForCurrentFile);
+        window.electronAPI.$on('history:redo', this.redoHistoryForCurrentFile);
+        window.electronAPI.$on('edit:cut', this.onMenuEditCut);
+        window.electronAPI.$on('edit:copy', this.onMenuEditCopy);
+        window.electronAPI.$on('edit:paste', this.onMenuEditPaste);
+        window.electronAPI.$on('edit:delete', this.onMenuEditDelete);
+        window.electronAPI.$on('edit:selectAll', this.onMenuEditSelectAll);
     },
 
     beforeDestroy() {
         window.electronAPI.$off('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
         window.electronAPI.$off('navigator:open', this.ipcOnNavigatorOpen);
+        window.electronAPI.$off('history:undo', undoHistoryForCurrentFile);
+        window.electronAPI.$off('history:redo', redoHistoryForCurrentFile);
+        window.electronAPI.$off('edit:cut', this.onMenuEditCut);
+        window.electronAPI.$off('edit:copy', this.onMenuEditCopy);
+        window.electronAPI.$off('edit:paste', this.onMenuEditPaste);
+        window.electronAPI.$off('edit:delete', this.onMenuEditDelete);
+        window.electronAPI.$off('edit:selectAll', this.onMenuEditSelectAll);
     },
 
     data() {
@@ -201,7 +217,9 @@ export default {
 
         focusFile(idx) {
             this.currentOpenFileIdx = idx;
-            this.currentFocusedFilePath = this.files[idx].path;
+            const file = this.files[idx];
+            this.currentFocusedFilePath = file.path;
+            this.updateHistoryState(file);
         },
 
         onModeChangeRequested(file, mode) {
@@ -244,6 +262,21 @@ export default {
             const history = fileHistories.get(file.historyId);
             file.historyUndoable = history.undoable();
             file.historyRedoable = history.redoable();
+            window.electronAPI.menu.updateHistoryState(file.historyUndoable, file.historyRedoable);
+        },
+
+        undoHistoryForCurrentFile() {
+            if (this.currentOpenFileIdx < 0) {
+                return;
+            }
+            this.undoHistory(this.files[this.currentOpenFileIdx]);
+        },
+
+        redoHistoryForCurrentFile() {
+            if (this.currentOpenFileIdx < 0) {
+                return;
+            }
+            this.redoHistory(this.files[this.currentOpenFileIdx]);
         },
 
         saveFile(file, document, preview) {
@@ -391,7 +424,23 @@ export default {
                 }
             });
             this.fileTreeReloadKey++;
-        }
+        },
+
+        onMenuEditCut() {
+            simulateKeyPress(Keys.CTRL_X, true);
+        },
+        onMenuEditCopy() {
+            simulateKeyPress(Keys.CTRL_C, true);
+        },
+        onMenuEditPaste() {
+            simulateKeyPress(Keys.CTRL_V, true);
+        },
+        onMenuEditDelete() {
+            simulateKeyPress(Keys.DELETE, true);
+        },
+        onMenuEditSelectAll() {
+            simulateKeyPress(Keys.CTRL_A, true);
+        },
     }
 }
 </script>

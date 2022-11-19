@@ -13,6 +13,7 @@ export const Keys = {
     CTRL_C: 'ctrl-c',
     CTRL_V: 'ctrl-v',
     CTRL_S: 'ctrl-s',
+    CTRL_X: 'ctrl-z',
     CTRL_Z: 'ctrl-z',
     CTRL_SHIFT_Z: 'ctrl-shift-z',
     UP: 'up',
@@ -27,6 +28,7 @@ export const Keys = {
 const keyMap = {};
 keyMap[Keys.ESCAPE] = event => event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27;
 keyMap[Keys.DELETE] = event => event.key === 'Backspace' || event.key === 'Delete' || event.keyCode === 8 || event.keyCode === 127;
+keyMap[Keys.CTRL_X] = event => event.key === 'x' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_A] = event => event.key === 'a' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_C] = event => event.key === 'c' && (event.metaKey || event.ctrlKey);
 keyMap[Keys.CTRL_V] = event => event.key === 'v' && (event.metaKey || event.ctrlKey);
@@ -72,6 +74,12 @@ function handleKeyPress(event, isDown) {
             ctrlCmdPressed: event.metaKey || event.ctrlKey
         });
     }
+}
+
+export function simulateKeyPress(key, isControlPressed) {
+    keyEventBus.$emit('key-press', true, key, {
+        ctrlCmdPressed: isControlPressed
+    });
 }
 
 document.addEventListener('keydown', (event) => handleKeyPress(event, true));

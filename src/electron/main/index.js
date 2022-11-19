@@ -4,9 +4,12 @@ const { FileIndex } = require('../../common/fs/fileIndex');
 const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { generateUserAgent, ContextHolder } = require('./context');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
+const { buildAppMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram } = require('./project');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
+
+buildAppMenu();
 
 const contextHolder = new ContextHolder(data => {
     data.fileIndex = new FileIndex();
@@ -38,6 +41,7 @@ const createWindow = () => {
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
+    return mainWindow;
 };
 
 
@@ -64,7 +68,7 @@ app.whenReady().then(() => {
     });
 
 
-    createWindow();
+    const mainWindow = createWindow();
     ipcMain.handle('project:open', openProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));
     ipcMain.handle('project:readFile', readProjectFile(contextHolder));
@@ -97,6 +101,23 @@ app.whenReady().then(() => {
             createWindow();
         }
     });
+
+
+    const retransmitToRenderer = (eventName) => {
+        app.on(eventName, () => {
+            mainWindow.webContents.send(eventName);
+        });
+    }
+
+    [
+      'history:undo',
+      'history:redo',
+      'edit:cut',
+      'edit:copy',
+      'edit:paste',
+      'edit:delete',
+      'edit:selectAll',
+    ].forEach(retransmitToRenderer);
 });
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
