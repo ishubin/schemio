@@ -60,14 +60,14 @@ export function buildAppMenu() {
     {
         label: 'Edit',
         submenu: [
-            menuItem('edit-undo', 'Undo', false, 'history:undo', 'CmdOrCtrl+Z'),
-            menuItem('edit-redo', 'Redo', false, 'history:redo', 'Shift+CmdOrCtrl+Z'),
+            menuItem('edit-undo', 'Undo', false, 'history:undo', null),
+            menuItem('edit-redo', 'Redo', false, 'history:redo', null),
             { type: 'separator' },
-            menuItem('edit-cut', 'Cut', true, 'edit:cut', 'CmdOrCtrl+X'),
-            menuItem('edit-copy', 'Copy', true, 'edit:copy', 'CmdOrCtrl+C'),
-            menuItem('edit-paste', 'Paste', true, 'edit:paste', 'CmdOrCtrl+V'),
-            menuItem('edit-delete', 'Delete', true, 'edit:delete', 'Del'),
-            menuItem('edit-selectAll', 'Select all', true, 'edit:selectAll', 'CmdOrCtrl+A'),
+            menuItem('edit-cut', 'Cut', true, 'edit:cut', null),
+            menuItem('edit-copy', 'Copy', true, 'edit:copy', null),
+            menuItem('edit-paste', 'Paste', true, 'edit:paste', null),
+            menuItem('edit-delete', 'Delete', true, 'edit:delete', null),
+            menuItem('edit-selectAll', 'Select all', true, 'edit:selectAll', null),
         ]
     },
     // { role: 'viewMenu' }

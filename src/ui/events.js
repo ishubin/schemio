@@ -79,9 +79,11 @@ function handleKeyPress(event, isDown) {
 }
 
 export function simulateKeyPress(key, isControlPressed) {
-    keyEventBus.$emit('key-press', true, key, {
-        ctrlCmdPressed: isControlPressed
-    });
+    if (document.activeElement === document.body) {
+        keyEventBus.$emit('key-press', true, key, {
+            ctrlCmdPressed: isControlPressed
+        });
+    }
 }
 
 document.addEventListener('keydown', (event) => handleKeyPress(event, true));

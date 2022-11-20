@@ -476,7 +476,7 @@ export default {
             simulateKeyPress(Keys.DELETE, true);
         },
         onMenuEditSelectAll() {
-            simulateKeyPress(Keys.CTRL_X, true);
+            simulateKeyPress(Keys.CTRL_A, true);
         },
         onMenuViewZoomIn() {
             simulateKeyPress(Keys.EQUALS, true);
