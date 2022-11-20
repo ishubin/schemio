@@ -11,7 +11,7 @@
             </p>
 
             <div v-if="exportStatus.status === 'finished'">
-                Done, you can download all your exported documents using this <a class="link" :href="`/v1/static-export/download/${exportStatus.archiveVersion}`">link</a>
+                Done, you can download all your exported documents using this <a class="link" :href="`/v1/static-export/download/${exportStatus.version}`">link</a>
             </div>
         </div>
     </modal>

@@ -1,7 +1,6 @@
 import fs from 'fs-extra';
 import path from 'path'
 import forEach from 'lodash/forEach';
-import archiver from 'archiver';
 import os from 'os';
 import { walk } from './walk';
 import shortid from 'shortid';
@@ -270,38 +269,5 @@ export function startStaticExporter(rootPath) {
     })
     .then(() => {
         return exporterPath;
-    })
- //   .then(archiveExportedDocs(rootPath));
+    });
 }
-
-/*
-function createArchiveName(version) {
-    return `schemio-export-${version}.zip`;
-}
-
-function archiveExportedDocs(exporterPath) {
-    return () => {
-        return new Promise((resolve, reject) => {
-            const version = new Date().getTime();
-            const folderPath = path.join(rootPath, exporterFolder);
-            const archivePath = path.join(rootPath, createArchiveName(version));
-            const output = fs.createWriteStream(archivePath);
-            const archive = archiver('zip', {
-                zlib: { level: 9 }
-            });
-
-            output.on('close', () => {
-                resolve(archivePath);
-            });
-
-            output.on('error', (err) => {
-                reject(err);
-            });
-
-            archive.pipe(output);
-            archive.directory(folderPath, false);
-            archive.finalize();
-        });
-    }
-}
-*/

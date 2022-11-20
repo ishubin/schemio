@@ -77,7 +77,7 @@ fileIndex.reindex(config.fs.rootPath).then(() => {
 
         app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config, fileIndex));
         app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config, fileIndex));
-        app.get('/v1/static-export/download/:archiveVersion', fsExportDownloadArchive(config, fileIndex));
+        app.get('/v1/static-export/download/:version', fsExportDownloadArchive(config, fileIndex));
     }
 
     app.get('/media/*', fsDownloadMediaFile(config, fileIndex));
