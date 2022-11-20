@@ -1,29 +1,29 @@
 import SetFunction from '../../src/ui/userevents/functions/SetFunction.js';
 import expect from 'expect';
 
-const mockedResultCallback = () => {};
-
+const stubResultCallback = () => {};
+const stubSchemeContainer = {editorId: 1};
 describe('SetFunction', () => {
     it('should not fail if item is null', () => {
-        SetFunction.execute(null, ['opacity', 1.0], null, null, mockedResultCallback);
+        SetFunction.execute(null, ['opacity', 1.0], stubSchemeContainer, null, stubResultCallback);
     });
 
     it('should not do anything if field is empty', () => {
         const item = { opacity: 0.5 };
-        SetFunction.execute(item, {field: '', value: 1.0}, null, null, mockedResultCallback);
-        SetFunction.execute(item, {field: '.something', value: 1.0}, null, null, mockedResultCallback);
+        SetFunction.execute(item, {field: '', value: 1.0}, stubSchemeContainer, null, stubResultCallback);
+        SetFunction.execute(item, {field: '.something', value: 1.0}, stubSchemeContainer, null, stubResultCallback);
         expect(item).toStrictEqual({opacity: 0.5});
     });
 
     it('should mutate existing property', () => {
         const item = { opacity: 0.5 };
-        SetFunction.execute(item, {field: 'opacity', value: 1.0}, null, null, mockedResultCallback);
+        SetFunction.execute(item, {field: 'opacity', value: 1.0}, stubSchemeContainer, null, stubResultCallback);
         expect(item).toStrictEqual({opacity: 1.0});
     });
 
     it('should add property', () => {
         const item = { opacity: 0.5 };
-        SetFunction.execute(item, {field: 'name', value: 'Blah'}, null, null, mockedResultCallback);
+        SetFunction.execute(item, {field: 'name', value: 'Blah'}, stubSchemeContainer, null, stubResultCallback);
         expect(item).toStrictEqual({
             opacity: 0.5,
             name: 'Blah'
@@ -40,7 +40,7 @@ describe('SetFunction', () => {
                 }
             }
         };
-        SetFunction.execute(item, {field: 'shapeProps.someOtherField.someValue', value: 123}, null, null, mockedResultCallback);
+        SetFunction.execute(item, {field: 'shapeProps.someOtherField.someValue', value: 123}, stubSchemeContainer, null, stubResultCallback);
         expect(item).toStrictEqual({
             opacity: 0.5,
             shapeProps: {
@@ -56,7 +56,7 @@ describe('SetFunction', () => {
         const item = {
             opacity: 0.5
         };
-        SetFunction.execute(item, {field: 'shapeProps.someOtherField.someValue', value: 123}, null, null, mockedResultCallback);
+        SetFunction.execute(item, {field: 'shapeProps.someOtherField.someValue', value: 123}, stubSchemeContainer, null, stubResultCallback);
         expect(item).toStrictEqual({
             opacity: 0.5,
             shapeProps: {
