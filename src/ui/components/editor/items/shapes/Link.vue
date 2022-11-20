@@ -97,7 +97,7 @@ export default {
         },
         onLinkClick(event) {
             if (this.item.shapeProps.url.startsWith('/')) {
-                window.location = url;
+                window.location = this.item.shapeProps.url;
                 event.preventDefault();
             }
             return false;

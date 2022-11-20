@@ -103,8 +103,24 @@ function exportMediaForScheme(rootPath, exporterPath, scheme, schemeId) {
     });
 }
 
-function referencesOtherScheme(url) {
-    return typeof url === 'string' && url.startsWith('/docs/');
+
+const electronDiagramURLPrefix = 'project://diagram/';
+const fsDiagramURLPrefix = '/docs/';
+
+const diagramURLPrefixes = [electronDiagramURLPrefix, fsDiagramURLPrefix];
+
+
+function fixLink(url) {
+    if (!url) {
+        return '';
+    }
+
+    for (let i = 0; i < diagramURLPrefixes.length; i++) {
+        if (url.startsWith(diagramURLPrefixes[i])) {
+            return `#/docs/${url.substring(diagramURLPrefixes[i].length)}`;
+        }
+    }
+    return url;
 }
 
 /**
@@ -124,16 +140,13 @@ function fixSchemeURLs(scheme) {
     };
 
     traverseItems(scheme.items, item => {
-        if (item.shape === 'link' && referencesOtherScheme(item.shapeProps.url)) {
-            item.shapeProps.url = '#' + item.shapeProps.url;
+        if (item.shape === 'link') {
+            item.shapeProps.url =  fixLink(item.shapeProps.url);
         }
 
         if (item.links) {
             forEach(item.links, link => {
-                //TODO convert electron based document links (project://diagram/...)
-                if (referencesOtherScheme(link.url)) {
-                    link.url = '#' + link.url;
-                }
+                link.url = fixLink(link.url);
             });
         }
         fixURLs(item.shapeProps);

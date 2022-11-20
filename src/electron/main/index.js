@@ -9,60 +9,21 @@ const { buildAppMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram } = require('./project');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
+const { createWindow } = require('./window');
 
 buildAppMenu();
+
 
 const contextHolder = new ContextHolder(data => {
     data.fileIndex = new FileIndex();
     data.fileIndex.isElectron = true;
 });
 
+
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
     app.quit();
 }
-const createWindow = () => {
-    // Create the browser window.
-    const mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600,
-        webPreferences: {
-            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-            nodeIntegration: true,
-            contextIsolation: true,
-            enableRemoteModule: true,
-            webSecurity: false
-        },
-    });
-
-    contextHolder.register(mainWindow.webContents.id);
-
-    // and load the index.html of the app.
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY, {userAgent: generateUserAgent(mainWindow.webContents.id)});
-
-    mainWindow.webContents.on('will-navigate', (e, url) => {
-        e.preventDefault();
-        if (url.startsWith('project://')) {
-            //TODO trigger opening of a new tab
-        } else {
-            shell.openExternal(url);
-        }
-    });
-
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
-        return { action: 'deny' };
-    });
-    // mainWindow.webContents.on('new-window', function(e, url) {
-    //     e.preventDefault();
-    //     require('electron').shell.openExternal(url);
-    // });
-
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
-    return mainWindow;
-};
-
 
 
 const mediaProtocolName = 'media';
@@ -87,7 +48,7 @@ app.whenReady().then(() => {
     });
 
 
-    const mainWindow = createWindow();
+    const mainWindow = createWindow(contextHolder);
     ipcMain.handle('project:open', openProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));
     ipcMain.handle('project:readFile', readProjectFile(contextHolder));
@@ -117,7 +78,7 @@ app.whenReady().then(() => {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
+            createWindow(contextHolder);
         }
     });
 

@@ -40,7 +40,6 @@ export class ContextHolder {
      * @param {BrowserWindow} browserWindow
      */
     fromWindow(browserWindow) {
-        console.log('Browser window id', browserWindow.id);
         return this.contexts.get('' + browserWindow.id);
     }
 
