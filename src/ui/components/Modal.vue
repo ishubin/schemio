@@ -48,7 +48,7 @@ const recordedModalPositions = {};
 
 export default {
     props: {
-        title        : String,
+        title        : { type: String, default: ''},
         width        : { type: Number, default: 600 },
 
         // used only if stretchWidth is enabled
@@ -90,7 +90,7 @@ export default {
             y = recordedPosition.y;
         }
 
-        
+
         this.x = clampModalPosition(x, modalRect.width, window.innerWidth, MIN_OVERLAP);
         this.y = clampModalPosition(y, 40, window.innerHeight, MIN_OVERLAP);
     },
@@ -118,7 +118,7 @@ export default {
         onKeyPress(event) {
             if (event.key === 'Escape') {
                 this.$emit('close');
-            }    
+            }
         },
 
         initModalDrag(event) {

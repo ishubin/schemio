@@ -102,7 +102,7 @@ export const googleDriveClientProvider = {
                                     });
                                 } else if (file.mimeType === 'application/json' && file.title.endsWith(schemioExtension)) {
                                     entries.push({
-                                        kind: 'scheme',
+                                        kind: 'schemio:doc',
                                         id: file.id,
                                         name: convertSchemioFileTitle(file.title),
                                         modifiedTime: file.modifiedDate

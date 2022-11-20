@@ -50,7 +50,7 @@ export function readProjectFile(contextHolder) {
             let kind = 'file';
             if (name.endsWith(schemioExtension)) {
                 name = name.substring(0, name.length - schemioExtension.length);
-                kind = 'schemio-doc';
+                kind = 'schemio:doc';
             }
             return {
                 path: filePath,
@@ -90,7 +90,7 @@ export function writeProjectFileInFolder(contextHolder) {
             let kind = 'file';
             if (name.endsWith(schemioExtension)) {
                 name = name.substring(0, name.length - schemioExtension.length);
-                kind = 'schemio-doc';
+                kind = 'schemio:doc';
             }
             return {
                 name,

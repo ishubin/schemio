@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, shell } = require('electron');
 const path = require('path');
 const { FileIndex } = require('../../common/fs/fileIndex');
 const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { generateUserAgent, ContextHolder } = require('./context');
+const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
@@ -38,6 +39,24 @@ const createWindow = () => {
 
     // and load the index.html of the app.
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY, {userAgent: generateUserAgent(mainWindow.webContents.id)});
+
+    mainWindow.webContents.on('will-navigate', (e, url) => {
+        e.preventDefault();
+        if (url.startsWith('project://')) {
+            //TODO trigger opening of a new tab
+        } else {
+            shell.openExternal(url);
+        }
+    });
+
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        shell.openExternal(url);
+        return { action: 'deny' };
+    });
+    // mainWindow.webContents.on('new-window', function(e, url) {
+    //     e.preventDefault();
+    //     require('electron').shell.openExternal(url);
+    // });
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();
@@ -99,6 +118,14 @@ app.whenReady().then(() => {
         // dock icon is clicked and there are no other windows open.
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow();
+        }
+    });
+
+
+    app.on('file:exportStatic', (browserWindow) => {
+        const contextData = contextHolder.fromWindow(browserWindow);
+        if (contextData) {
+            startElectronProjectExporter(contextData, browserWindow);
         }
     });
 

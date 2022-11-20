@@ -42,7 +42,7 @@ export class FileIndex {
             addEntryToFileTree(this.fileTree, path.dirname(fsPath), {
                 name: scheme.name,
                 path: fsPath,
-                kind: 'schemio-doc'
+                kind: 'schemio:doc'
             });
         }
     }
@@ -238,6 +238,7 @@ function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
         name: scheme.name,
         lowerName: scheme.name.toLowerCase(),
         modifiedTime: scheme.modifiedTime,
+        publicLink: `project://diagram/${schemeId}`,
         previewURL
     }, folderPathFromPath(fsPath));
 }
@@ -306,7 +307,7 @@ function createIndexFromScratch(index, rootPath, isElectron) {
                 }
 
                 findParentList(relativeFilePath).push({
-                    kind: 'schemio-doc',
+                    kind: 'schemio:doc',
                     path: path.relative(rootPath, filePath),
                     name: scheme.name,
                     previewURL

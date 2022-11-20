@@ -24,7 +24,7 @@ export function navigatorOpenContextMenuForFile(contextHolder) {
                     click: () => event.sender.send('navigator:new-folder-requested', file.path)
                 });
             }
-            if (file.kind === 'schemio-doc') {
+            if (file.kind === 'schemio:doc') {
                 template.push({
                     label: 'Open',
                     click: () => event.sender.send('navigator:open', file.path)
@@ -39,7 +39,7 @@ export function navigatorOpenContextMenuForFile(contextHolder) {
             }, {
                 label: 'Delete',
                 click: () => {
-                    if (file.kind === 'schemio-doc') {
+                    if (file.kind === 'schemio:doc') {
                         fileIndex.deleteFile(file.path)
                         .then(() => {
                             event.sender.send('navigator:entry-deleted', file.path);

@@ -17,8 +17,8 @@ function disableMenuItem(event, menuItemId) {
 function menuItem(id, label, enabled, eventName, accelerator) {
     return {
         id, label, enabled, accelerator,
-        click() {
-            app.emit(eventName);
+        click(menuItem, browserWindow) {
+            app.emit(eventName, browserWindow);
         }
     };
 }

@@ -373,7 +373,7 @@
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
-                    <span>Loading scheme...</span>
+                    <span>Loading diagram...</span>
                 </div>
                 <div v-if="loadingStep === 'load-shapes'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>

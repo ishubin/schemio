@@ -55,6 +55,19 @@
             Unsaved changes in <b>{{warnModifiedFileCloseModal.name}}</b>.
             <br/> Close anyway?
         </Modal>
+
+        <Modal v-if="staticExporterModal.shown"
+            :showHeader="false"
+            :showFooter="false"
+            :closable="false"
+            :width="300"
+            >
+
+            <div style="padding: 20px">
+                <i class="fas fa-spinner fa-spin fa-1x"></i>
+                <span>Exporting project files...</span>
+            </div>
+        </Modal>
     </div>
 </template>
 
@@ -124,6 +137,8 @@ export default {
         window.electronAPI.$on('view:zoomIn', this.onMenuViewZoomIn);
         window.electronAPI.$on('view:zoomOut', this.onMenuViewZoomOut);
         window.electronAPI.$on('view:resetZoom', this.onMenuViewResetZoom);
+        window.electronAPI.$on('file:exportStatic:started', this.onStaticExporterStarted);
+        window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
     },
 
     beforeDestroy() {
@@ -139,6 +154,8 @@ export default {
         window.electronAPI.$off('view:zoomIn', this.onMenuViewZoomIn);
         window.electronAPI.$off('view:zoomOut', this.onMenuViewZoomOut);
         window.electronAPI.$off('view:resetZoom', this.onMenuViewResetZoom);
+        window.electronAPI.$off('file:exportStatic:started', this.onStaticExporterStarted);
+        window.electronAPI.$off('file:exportStatic:stopped', this.onStaticExporterStopped);
     },
 
     data() {
@@ -156,11 +173,23 @@ export default {
                 name: null,
                 fileIdx: null,
                 shown: false
+            },
+
+            staticExporterModal: {
+                shown: false,
             }
         };
     },
 
     methods: {
+        onStaticExporterStarted() {
+            this.staticExporterModal.shown = true;
+        },
+
+        onStaticExporterStopped() {
+            this.staticExporterModal.shown = false;
+        },
+
         openProject() {
             window.electronAPI.openProject()
             .then(project => {
@@ -206,7 +235,7 @@ export default {
 
         appendFile(file) {
             const newIdx = Math.min(this.files.length, this.currentOpenFileIdx + 1);
-            if (file.kind === 'schemio-doc')  {
+            if (file.kind === 'schemio:doc')  {
                 file = initSchemioDiagramFile(file);
             }
             this.files.splice(newIdx, 0, file);
@@ -290,7 +319,7 @@ export default {
         saveFile(file, document, preview) {
             file.isSaving = true;
             let content = document;
-            if (file.kind === 'schemio-doc') {
+            if (file.kind === 'schemio:doc') {
                 content = JSON.stringify(document);
             }
             this.$store.dispatch('clearStatusMessage');
@@ -302,7 +331,7 @@ export default {
                 if (!entry) {
                     return;
                 }
-                if (file.kind === 'schemio-doc' && entry.name !== document.name) {
+                if (file.kind === 'schemio:doc' && entry.name !== document.name) {
                     file.name = document.name;
                     entry.name = document.name;
                     this.fileTreeReloadKey++;
@@ -349,7 +378,7 @@ export default {
         onFileTreeEntryAdded(parent, entry) {
             addEntryToFileTree(this.fileTree, parent, entry);
             this.fileTreeReloadKey++;
-            if (entry.kind === 'schemio-doc') {
+            if (entry.kind === 'schemio:doc') {
                 this.$nextTick(() => {
                     this.onSchemioDocSelected(entry.path);
                 });

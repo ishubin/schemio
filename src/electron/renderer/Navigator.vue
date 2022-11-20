@@ -244,7 +244,7 @@ export default {
                 }
                 if (entry.kind === 'dir') {
                     this.toggleCollapseDirState(entry);
-                } else if (entry.kind === 'schemio-doc') {
+                } else if (entry.kind === 'schemio:doc') {
                     this.$emit('schemio-doc-selected', entry.path);
                 }
             })
@@ -366,7 +366,7 @@ export default {
 
                 if (entry.kind === 'dir') {
                     this.submitRenamingFolder(entry, name);
-                } else if (entry.kind === 'schemio-doc') {
+                } else if (entry.kind === 'schemio:doc') {
                     this.submitRenamingDiagram(entry, name);
                 }
             }

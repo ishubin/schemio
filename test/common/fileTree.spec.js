@@ -17,12 +17,12 @@ describe('fileTree', () => {
                     path: 'a/b/c',
                     children: [{
                         name: 'c1_file',
-                        kind: 'schemio-doc',
+                        kind: 'schemio:doc',
                         path: 'a/b/c1/c1_file'
                     }]
                 }, {
                     name: 'c2_file',
-                    kind: 'schemio-doc',
+                    kind: 'schemio:doc',
                     path: 'a/b/c2_file'
                 }]
             }]
@@ -43,12 +43,12 @@ describe('fileTree', () => {
                     path: 'a/e2/c',
                     children: [{
                         name: 'c1_file',
-                        kind: 'schemio-doc',
+                        kind: 'schemio:doc',
                         path: 'a/e2/c1/c1_file'
                     }]
                 }, {
                     name: 'c2_file',
-                    kind: 'schemio-doc',
+                    kind: 'schemio:doc',
                     path: 'a/e2/c2_file'
                 }]
             }]
@@ -71,12 +71,12 @@ describe('fileTree', () => {
                     path: 'a/b2/c',
                     children: [{
                         name: 'c1_file',
-                        kind: 'schemio-doc',
+                        kind: 'schemio:doc',
                         path: 'a/b2/c1/c1_file'
                     }]
                 }, {
                     name: 'c2_file',
-                    kind: 'schemio-doc',
+                    kind: 'schemio:doc',
                     path: 'a/b2/c2_file'
                 }]
             }]
@@ -97,12 +97,12 @@ describe('fileTree', () => {
                     path: 'a/e/c',
                     children: [{
                         name: 'c1_file',
-                        kind: 'schemio-doc',
+                        kind: 'schemio:doc',
                         path: 'a/e/c1/c1_file'
                     }]
                 }, {
                     name: 'c2_file',
-                    kind: 'schemio-doc',
+                    kind: 'schemio:doc',
                     path: 'a/e/c2_file'
                 }]
             }]

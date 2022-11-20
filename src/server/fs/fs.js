@@ -586,7 +586,7 @@ export function fsListFilesRoute(config, fileIndex) {
         const docs = fileIndex.listIndexDocumentsByFolder(publicPath);
         docs.forEach(doc => {
             entries.push({
-                kind: 'scheme',
+                kind: 'schemio:doc',
                 id: doc.id,
                 name: doc.name,
                 path: publicPath,
