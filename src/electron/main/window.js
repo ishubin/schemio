@@ -36,17 +36,14 @@ export function createWindow(contextHolder) {
             urlString = url.path;
         }
 
-        const prefixes = ['project://diagram/', '/docs/'];
-        for (let i = 0; i < prefixes.length; i++) {
-            const prefix = prefixes[i];
-            if (urlString.startsWith(prefix)) {
-                const docId = urlString.substring(prefix.length);
-                const doc  = contextHolder.fromWindow(mainWindow).fileIndex.getDocumentFromIndex(docId);
-                if (doc) {
-                    mainWindow.webContents.send('navigator:open', doc.fsPath);
-                }
-                return;
+        const docsPrefix = '/docs/';
+        if (urlString.startsWith(docsPrefix)) {
+            const docId = urlString.substring(docsPrefix.length);
+            const doc  = contextHolder.fromWindow(mainWindow).fileIndex.getDocumentFromIndex(docId);
+            if (doc) {
+                mainWindow.webContents.send('navigator:open', doc.fsPath);
             }
+            return;
         }
 
         if ((url.protocol === 'http:' || url.protocol === 'https:') && url.hostname !== 'localhost') {

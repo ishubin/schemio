@@ -104,10 +104,7 @@ function exportMediaForScheme(rootPath, exporterPath, scheme, schemeId) {
 }
 
 
-const electronDiagramURLPrefix = 'project://diagram/';
 const fsDiagramURLPrefix = '/docs/';
-
-const diagramURLPrefixes = [electronDiagramURLPrefix, fsDiagramURLPrefix];
 
 
 function fixLink(url) {
@@ -115,10 +112,8 @@ function fixLink(url) {
         return '';
     }
 
-    for (let i = 0; i < diagramURLPrefixes.length; i++) {
-        if (url.startsWith(diagramURLPrefixes[i])) {
-            return `#/docs/${url.substring(diagramURLPrefixes[i].length)}`;
-        }
+    if (url.startsWith(fsDiagramURLPrefix)) {
+        return `#/docs/${url.substring(fsDiagramURLPrefix.length)}`;
     }
     return url;
 }
