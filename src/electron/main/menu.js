@@ -1,4 +1,4 @@
-const { app, Menu, ipcMain } = require('electron');
+const { app, Menu, ipcMain, BrowserWindow } = require('electron');
 
 
 function updateHistoryState(event, undoable, redoable) {
@@ -114,6 +114,29 @@ export function buildAppMenu() {
 
     ipcMain.handle('menu:update-history-state', updateHistoryState);
 
-    ipcMain.handle('menu:enable-item', enableMenuItem)
-    ipcMain.handle('menu:disable-item', disableMenuItem)
+    ipcMain.handle('menu:enable-item', enableMenuItem);
+    ipcMain.handle('menu:disable-item', disableMenuItem);
+}
+
+
+function convertContextMenuOptions(event, menuId, options) {
+    return options.map(option => {
+        const electronOption = {
+            label: option.label,
+        };
+        if (option.submenu) {
+            electronOption.submenu = convertContextMenuOptions(event, menuId, option.submenu);
+        } else {
+            electronOption.click = () => {
+                event.sender.send('menu:contextMenuOptionSelected', menuId, option.label);
+            };
+        }
+        return electronOption;
+    });
+}
+
+
+export function showContextMenu(event, menuId, menuOptions) {
+    const menu = Menu.buildFromTemplate(convertContextMenuOptions(event, menuId, menuOptions));
+    menu.popup(BrowserWindow.fromWebContents(event.sender));
 }

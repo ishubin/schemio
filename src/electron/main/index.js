@@ -5,7 +5,7 @@ const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { generateUserAgent, ContextHolder } = require('./context');
 const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
-const { buildAppMenu } = require('./menu');
+const { buildAppMenu, showContextMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram } = require('./project');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
@@ -73,6 +73,8 @@ app.whenReady().then(() => {
     ipcMain.handle('style:create', createStyle(contextHolder));
     ipcMain.handle('style:getAll', getStyles(contextHolder));
     ipcMain.handle('style:delete', deleteStyle(contextHolder));
+
+    ipcMain.handle('menu:showContextMenu', showContextMenu);
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the

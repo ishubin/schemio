@@ -40,6 +40,7 @@
                             @undo-history-requested="undoHistory(file)"
                             @redo-history-requested="redoHistory(file)"
                             @export-picture-requested="openExportPictureModal(file, arguments[0], arguments[1])"
+                            @context-menu-requested="onContextMenuRequested(files, arguments[2])"
                         />
                     </div>
                 </div>
@@ -144,6 +145,13 @@ export default {
         'export-json-modal': ExportJSONModal,
     },
 
+    created() {
+        this.contextMenu = {
+            id: null,
+            options: new Map(),
+        };
+    },
+
     beforeMount() {
         window.electronAPI.$on('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
         window.electronAPI.$on('navigator:open', this.ipcOnNavigatorOpen);
@@ -159,6 +167,7 @@ export default {
         window.electronAPI.$on('view:resetZoom', this.onMenuViewResetZoom);
         window.electronAPI.$on('file:exportStatic:started', this.onStaticExporterStarted);
         window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
+        window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
     },
 
     beforeDestroy() {
@@ -176,6 +185,7 @@ export default {
         window.electronAPI.$off('view:resetZoom', this.onMenuViewResetZoom);
         window.electronAPI.$off('file:exportStatic:started', this.onStaticExporterStarted);
         window.electronAPI.$off('file:exportStatic:stopped', this.onStaticExporterStopped);
+        window.electronAPI.$off('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
     },
 
     data() {
@@ -535,6 +545,39 @@ export default {
             this.exportPictureModal.backgroundColor = file.document.style.backgroundColor;
             this.exportPictureModal.kind = kind;
             this.exportPictureModal.shown = true;
+        },
+
+
+        onContextMenuRequested(file, menuOptions) {
+            this.contextMenu.id = shortid.generate();
+            this.contextMenu.options = new Map();
+            const convertMenuOptions = (options) => {
+                return options.map(option => {
+                    const eventOption = {
+                        label: option.name,
+                    };
+                    if (option.subOptions) {
+                        eventOption.submenu = convertMenuOptions(option.subOptions);
+                    }
+
+                    if (option.clicked) {
+                        this.contextMenu.options.set(option.name, option);
+                    }
+                    return eventOption;
+                });
+            };
+
+            window.electronAPI.menu.openContextMenu(this.contextMenu.id, convertMenuOptions(menuOptions));
+        },
+
+        onContextMenuOptionSelected(event, menuId, label) {
+            if (this.contextMenu.id !== menuId) {
+                return;
+            }
+
+            if (this.contextMenu.options.has(label)) {
+                this.contextMenu.options.get(label).clicked();
+            }
         },
     }
 }
