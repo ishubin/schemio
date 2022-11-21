@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 
@@ -14,7 +14,7 @@ class CrawlEffectAnimation extends Animation {
         this.domContainer = null;
         this.domPath = null;
         this.time = 0.0;
-        
+
         this.backupOpacity = 1.0;
         this.domAnimationPath = null;
     }
@@ -34,7 +34,7 @@ class CrawlEffectAnimation extends Animation {
         if (!this.domContainer || !this.domPath) {
             return false;
         }
-        
+
         this.domAnimationPath = this.svg('path', {
             'd': this.domPath.getAttribute('d'),
             'stroke-dasharray': this.args.length,
@@ -95,7 +95,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new CrawlEffectAnimation(item, args, resultCallback), item.id, this.name);
+            playInAnimationRegistry(schemeContainer.editorId, new CrawlEffectAnimation(item, args, resultCallback), item.id, this.name);
         }
         if (args.inBackground) {
             resultCallback();

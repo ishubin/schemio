@@ -1,8 +1,8 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
-import ValueAnimation, { convertTime } from '../../animations/ValueAnimation';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
+import ValueAnimation from '../../animations/ValueAnimation';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 export default {
@@ -29,7 +29,7 @@ export default {
             return;
         }
         if (args.animated) {
-            AnimationRegistry.play(new ValueAnimation({
+            playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
                 durationMillis: args.animationDuration * 1000.0,
                 animationType: args.transition,
                 init() {

@@ -4,7 +4,7 @@
 import myMath from '../../myMath';
 import forEach from 'lodash/forEach';
 import ValueAnimation from '../../animations/ValueAnimation';
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 /**
@@ -178,7 +178,7 @@ export default {
             const oldY = schemeContainer.screenTransform.y;
             const oldZoom = schemeContainer.screenTransform.scale;
 
-            AnimationRegistry.play(new ValueAnimation({
+            playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
                 durationMillis: args.animationDuration * 1000.0,
                 animationType: 'ease-in-out',
                 update: (t) => {

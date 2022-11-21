@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {stopAllAnimationsForEntityInAnimationRegistry} from '../../animations/AnimationRegistry';
 
 export default {
     name: 'Stop All Animations',
@@ -11,9 +11,8 @@ export default {
     args: {},
 
     execute(entity, args, schemeContainer, userEventBus, resultCallback) {
-        //TODO figure out a way to stop all invocations for specified item
         if (entity && entity.id) {
-            AnimationRegistry.stopAllAnimationsForEntity(entity.id);
+            stopAllAnimationsForEntityInAnimationRegistry(schemeContainer.editorId, entity.id);
         }
         resultCallback();
     }

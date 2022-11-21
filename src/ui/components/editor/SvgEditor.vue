@@ -185,7 +185,7 @@ import utils from '../../utils.js';
 import SchemeContainer, { itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
 import Compiler from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
@@ -667,7 +667,7 @@ export default {
                 } else {
                     frameAnimation.setStopFrame(-1);
                 }
-                AnimationRegistry.play(frameAnimation, itemId, 'frame-player');
+                playInAnimationRegistry(this.editorId, frameAnimation, itemId, 'frame-player');
 
             } else if (args.operation === 'setFrame') {
                 frameAnimation.toggleFrame(args.frame);
@@ -775,7 +775,7 @@ export default {
             const destY = (this.height)/2 - (area.y + area.h/2) *newZoom;
 
             if (animated) {
-                AnimationRegistry.play(new ValueAnimation({
+                playInAnimationRegistry(this.editorId, new ValueAnimation({
                     durationMillis: 400,
                     animationType: 'ease-out',
                     update: (t) => {
@@ -796,7 +796,7 @@ export default {
         },
 
         startLinksAnimation() {
-            AnimationRegistry.play(new ValueAnimation({
+            playInAnimationRegistry(this.editorId, new ValueAnimation({
                 durationMillis: 300,
 
                 update: (t) => {

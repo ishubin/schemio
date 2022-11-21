@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 import { worldPointOnItem, worldVectorOnItem, relativePointForItem } from '../../scheme/SchemeContainer';
@@ -171,7 +171,7 @@ export default {
 
             if (destinationPosition) {
                 if (args.animate) {
-                    AnimationRegistry.play(
+                    playInAnimationRegistry(schemeContainer.editorId, 
                         new MoveToItemAnimation(item, args, destinationPosition, destinationAngle, destinationWidth, destinationHeight, schemeContainer, resultCallback),
                         item.id,
                         this.name

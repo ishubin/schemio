@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import ValueAnimation from '../../animations/ValueAnimation';
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 export default {
@@ -29,7 +29,7 @@ export default {
         const oldY = schemeContainer.screenTransform.y;
         const oldZoom = schemeContainer.screenTransform.scale;
 
-        AnimationRegistry.play(new ValueAnimation({
+        playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
             durationMillis: 500.0,
             animationType: 'ease-in-out',
             update: (t) => {

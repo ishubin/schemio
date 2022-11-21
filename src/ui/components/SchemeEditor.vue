@@ -411,7 +411,7 @@ import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import Shape from './editor/items/shapes/Shape.js';
-import AnimationRegistry from '../animations/AnimationRegistry';
+import {createAnimationRegistry, destroyAnimationRegistry} from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
@@ -547,6 +547,7 @@ export default {
     },
 
     created() {
+        this.animationRegistry = createAnimationRegistry(this.editorId);
         const onCancel = () => this.cancelCurrentState();
         const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
         const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
@@ -667,6 +668,8 @@ export default {
         EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         deregisterKeyPressHandler(this.keyPressHandler);
+
+        destroyAnimationRegistry(this.editorId);
     },
 
     mounted() {
@@ -1693,13 +1696,13 @@ export default {
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
-            AnimationRegistry.enableAnimations();
+            this.animationRegistry.enableAnimations();
             this.switchStateInteract();
         },
 
         switchToEditMode() {
             this.interactiveSchemeContainer = null;
-            AnimationRegistry.stopAllAnimations();
+            this.animationRegistry.stopAllAnimations();
             this.switchStateDragItem();
         },
 

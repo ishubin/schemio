@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import utils from '../../../ui/utils.js';
-import AnimationRegistry from '../../animations/AnimationRegistry.js';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry.js';
 import ValueAnimation from '../../animations/ValueAnimation.js';
 import { encodeColor, parseColor } from '../../colors.js';
 import EditorEventBus from '../../components/editor/EditorEventBus.js';
@@ -10,8 +10,8 @@ import Shape from '../../components/editor/items/shapes/Shape.js';
 import { getItemPropertyDescriptionForShape } from '../../scheme/Item.js';
 
 
-function playAnimation(item, args, resultCallback, updateCallback) {
-    AnimationRegistry.play(new ValueAnimation({
+function playAnimation(editorId, item, args, resultCallback, updateCallback) {
+    playInAnimationRegistry(editorId, new ValueAnimation({
         durationMillis: args.animationDuration * 1000.0,
         animationType: args.transition,
         update: updateCallback,
@@ -52,7 +52,7 @@ function animateGradientColor(editorId, item, args, resultCallback, startGradien
         }
     }
 
-    playAnimation(item, args, resultCallback, t => {
+    playAnimation(editorId, item, args, resultCallback, t => {
         color.gradient.direction = originalDirection * (1 - t) + endGradient.direction * t;
         color.gradient.colors.forEach((c, i) => {
             c.c = encodeColor({
@@ -68,14 +68,14 @@ function animateGradientColor(editorId, item, args, resultCallback, startGradien
     return true;
 }
 
-function animateAdvancedColor(editorId,item, args, resultCallback, startValue) {
+function animateAdvancedColor(editorId, item, args, resultCallback, startValue) {
     if (typeof args.value !== 'object' || typeof startValue !== 'object') {
         return false;
     }
     if (args.value.type === 'solid' && startValue.type === 'solid') {
         const startColor = parseColor(startValue.color);
         const endColor = parseColor(args.value.color);
-        playAnimation(item, args, resultCallback, (t) => {
+        playAnimation(editorId, item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, {
                 type: 'solid',
                 color: encodeColor({
@@ -98,14 +98,14 @@ function animateAdvancedColor(editorId,item, args, resultCallback, startValue) {
 function animateValue(editorId, property, item, args, resultCallback) {
     const startValue = utils.getObjectProperty(item, args.field);
     if (property.type === 'number') {
-        playAnimation(item, args, resultCallback, (t) => {
+        playAnimation(editorId, item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, startValue * (1 - t) + args.value * t);
             EditorEventBus.item.changed.specific.$emit(editorId, item.id);
         });
     } else if (property.type === 'color') {
         const startColor = parseColor(startValue);
         const endColor = parseColor(args.value);
-        playAnimation(item, args, resultCallback, (t) => {
+        playAnimation(editorId, item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, encodeColor({
                 r: startColor.r * (1 - t) + endColor.r * t,
                 g: startColor.g * (1 - t) + endColor.g * t,
