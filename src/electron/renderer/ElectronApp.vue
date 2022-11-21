@@ -41,6 +41,7 @@
                             @redo-history-requested="redoHistory(file)"
                             @export-picture-requested="openExportPictureModal(file, arguments[0], arguments[1])"
                             @context-menu-requested="onContextMenuRequested(files, arguments[2])"
+                            @new-diagram-requested-for-item="onNewDiagramRequestedForItem(file, arguments[0], arguments[1])"
                         />
                     </div>
                 </div>
@@ -579,6 +580,10 @@ export default {
                 this.contextMenu.options.get(label).clicked();
             }
         },
+
+        onNewDiagramRequestedForItem(file, item, isExternalComponent) {
+            throw new Error('Not implemented yet');
+        }
     }
 }
 </script>

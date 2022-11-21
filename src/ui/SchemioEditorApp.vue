@@ -29,6 +29,7 @@
             @delete-diagram-requested="$emit('delete-diagram-requested')"
             @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
             @context-menu-requested="$emit('context-menu-requested', arguments[0], arguments[1], arguments[2])"
+            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
             />
 
         <SchemeEditor v-else
@@ -58,6 +59,7 @@
             @delete-diagram-requested="$emit('delete-diagram-requested')"
             @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
             @context-menu-requested="$emit('context-menu-requested', arguments[0], arguments[1], arguments[2])"
+            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
             />
 
 

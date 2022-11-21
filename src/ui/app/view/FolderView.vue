@@ -101,7 +101,6 @@
             </modal>
 
             <CreateNewSchemeModal v-if="newSchemeModal.shown"
-                :apiClient="apiClient"
                 @scheme-submitted="onSchemeSubmitted"
                 @close="newSchemeModal.shown = false"
             />

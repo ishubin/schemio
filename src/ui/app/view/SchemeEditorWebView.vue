@@ -82,6 +82,7 @@
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @export-picture-requested="openExportPictureModal"
             @context-menu-requested="onContextMenuRequested"
+            @new-diagram-requested-for-item="onNewDiagramRequestedForItem(arguments[0], arguments[1])"
         />
 
         <ContextMenu v-if="customContextMenu.show"
@@ -99,7 +100,6 @@
         <CreateNewSchemeModal v-if="newSchemePopup.show"
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
-            :apiClient="apiClient"
             @close="newSchemePopup.show = false"
             @scheme-submitted="submitNewScheme"
         />
@@ -167,6 +167,9 @@ import ExportAsLinkModal from '../../components/editor/ExportAsLinkModal.vue';
 import ExportHTMLModal from '../../components/editor/ExportHTMLModal.vue';
 import History from '../../history/History.js';
 import { prepareDiagramForPictureExport } from '../../diagramExporter';
+import {stripAllHtml} from '../../../htmlSanitize';
+import EditorEventBus from '../../components/editor/EditorEventBus';
+
 
 const defaultHistorySize = 30;
 
@@ -294,7 +297,8 @@ export default {
                 name: '',
                 description: '',
                 show: false,
-                isExternalComponent: false
+                // item for which new diagram was requested
+                item: null
             },
 
             duplicateDiagramModal: {
@@ -304,7 +308,10 @@ export default {
             },
 
             menuOptions: [
-                {name: 'New diagram',       callback: () => {this.newSchemePopup.show = true},  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.clientProvider.type === 'static'},
+                {name: 'New diagram',       callback: () => {
+                    this.newSchemePopup.item = null;
+                    this.newSchemePopup.show = true;
+                },  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.clientProvider.type === 'static'},
                 {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
                 {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
                 {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
@@ -396,8 +403,27 @@ export default {
         },
 
         submitNewScheme(scheme) {
+            this.newSchemePopup.show = false;
             return this.apiClient.createNewScheme(this.path, scheme)
             .then(createdScheme => {
+                if (this.newSchemePopup.item) {
+                    const item = this.newSchemePopup.item;
+                    if (item.shape === 'component') {
+                        item.shapeProps.schemeId = createdScheme.id;
+                        EditorEventBus.item.changed.specific.$emit(`scheme-${this.appReloadKey}`, item.id, 'shapeProps.schemeId');
+                    } else {
+                        if (!item.links) {
+                            item.links = [];
+                        }
+                        item.links.push({
+                            title: createdScheme.name,
+                            url: `/docs/${createdScheme.id}`,
+                            type: 'doc'
+                        });
+                    }
+                    EditorEventBus.schemeChangeCommitted.$emit(`scheme-${this.appReloadKey}`);
+                    this.newSchemePopup.item = null;
+                }
                 const isHistoryMode = this.$router && this.$router.mode === 'history';
                 const publicLink = isHistoryMode ?  `/docs/${createdScheme.id}#m=edit` : `#/docs/${createdScheme.id}?m=edit`
                 window.open(publicLink, '_blank');
@@ -671,6 +697,20 @@ export default {
             this.customContextMenu.mouseY = y;
             this.customContextMenu.menuOptions = menuOptions;
             this.customContextMenu.show = true;
+        },
+
+        onNewDiagramRequestedForItem(item, isExternalComponent) {
+            this.newSchemePopup.name = item.name;
+            this.newSchemePopup.description = item.description;
+            if (isExternalComponent && item.shape === 'component') {
+                const title = stripAllHtml(item.textSlots.body.text);
+                if (title.length > 0) {
+                    this.newSchemePopup.name = title;
+                }
+            }
+            this.newSchemePopup.item = item;
+            this.newSchemePopup.show = true;
+
         }
     },
     computed: {

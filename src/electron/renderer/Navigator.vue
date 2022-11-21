@@ -37,7 +37,7 @@
             <input ref="newFolderName" type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
         </Modal>
 
-        <CreateNewSchemeModal v-if="newDiagramModal.shown" :uploadEnabled="false" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
+        <CreateNewSchemeModal v-if="newDiagramModal.shown" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
 
         <div ref="entryDragger" class="navigator-entry-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
             {{dragging.name}}

@@ -1192,7 +1192,7 @@ export default {
         },
 
         startCreatingChildSchemeForItem(item, isExternalComponent) {
-            throw new Error('not implemented');
+            this.$emit('new-diagram-requested-for-item', item, isExternalComponent);
         },
 
         onUpdateOffset(x, y) {
