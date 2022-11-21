@@ -124,6 +124,8 @@ export function createNewDiagram(contextHolder) {
         })
         .then(entry => {
             fileIndex.indexScheme(scheme.id, scheme, entry.path, null);
+            entry.name = scheme.name;
+            entry.id = scheme.id;
             return entry;
         });
     };

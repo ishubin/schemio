@@ -37,7 +37,6 @@
             <input ref="newFolderName" type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
         </Modal>
 
-        <CreateNewSchemeModal v-if="newDiagramModal.shown" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
 
         <div ref="entryDragger" class="navigator-entry-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
             {{dragging.name}}
@@ -48,7 +47,6 @@
 <script>
 import { dragAndDropBuilder } from '../../ui/dragndrop';
 import Modal from '../../ui/components/Modal.vue';
-import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
 import { findEntryInFileTree, findParentEntryInFileTree } from '../../common/fs/fileTree';
 
 /**
@@ -142,7 +140,7 @@ function _updateTreeCollapseBitMaskAndLevel(entries, level, parentCollapseBitMas
 }
 
 export default {
-    components: {Modal, CreateNewSchemeModal},
+    components: {Modal},
 
     props: {
         projectName      : {type: String, required: true},
@@ -150,6 +148,7 @@ export default {
         fileTree         : {type: Array, required: true},
         fileTreeReloadKey: {type: Number, required: true},
         focusedFile      : {type: String, required: false},
+        folderToExpand   : {type: String, default: null},
     },
 
     beforeMount() {
@@ -175,11 +174,6 @@ export default {
             // Map of entry path to entry
             treeLookup: lookup,
             collapsed: false,
-
-            newDiagramModal: {
-                shown: false,
-                folderPath: null
-            },
 
             newFolderModal: {
                 shown: false,
@@ -427,27 +421,7 @@ export default {
         },
 
         ipcOnNewDiagramRequested(event, folderPath) {
-            this.newDiagramModal.folderPath = folderPath;
-            this.newDiagramModal.shown = true;
-        },
-
-        newDiagramSubmitted(diagram) {
-            const folderPath = this.newDiagramModal.folderPath;
-
-            window.electronAPI.createNewDiagram(folderPath, diagram)
-            .then(entry => {
-                const parent = entry.parent !== '.' ? entry.parent : null;
-                this.$emit('entry-added', parent, {
-                    name: entry.name,
-                    kind: entry.kind,
-                    path: entry.path
-                });
-                this.$nextTick(() => {
-                    this.expandDirByPath(folderPath);
-                });
-
-                this.newDiagramModal.shown = false;
-            });
+            this.$emit('new-diagram-requested', folderPath);
         },
 
         showPreviewForEntry(event, entry) {
@@ -474,6 +448,10 @@ export default {
     watch: {
         fileTreeReloadKey(value) {
             this.reloadTree();
+        },
+
+        folderToExpand(folderPath) {
+            this.expandDirByPath(folderPath);
         }
     }
 }

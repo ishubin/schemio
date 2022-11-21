@@ -6,11 +6,13 @@
             :fileTree="fileTree"
             :fileTreeReloadKey="fileTreeReloadKey"
             :focusedFile="currentFocusedFilePath"
+            :folderToExpand="navigatorFolderToExpand"
             @schemio-doc-selected="onSchemioDocSelected"
             @entry-added="onFileTreeEntryAdded"
             @renamed-folder="onFolderRenamed"
             @renamed-diagram="onDiagramRenamed"
             @moved-entries="onFileTreeEntriesMoved"
+            @new-diagram-requested="onNewDiagramRequested"
             />
         <div class="elec-main-body">
             <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
@@ -23,7 +25,7 @@
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
                             :key="`editor-${file.path}`"
-                            :editorId="`editor-${file.editorId}`"
+                            :editorId="`${file.editorId}`"
                             :scheme="file.document"
                             :schemeReloadKey="file.schemeReloadKey"
                             :mode="file.schemeMode"
@@ -82,6 +84,8 @@
             :height="exportPictureModal.height"
             :background-color="exportPictureModal.backgroundColor"
             @close="exportPictureModal.shown = false"/>
+
+        <CreateNewSchemeModal v-if="newDiagramModal.shown" :name="newDiagramModal.name" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
     </div>
 </template>
 
@@ -93,12 +97,15 @@ import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
+import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
 import Modal from '../../ui/components/Modal.vue';
 import ExportJSONModal from '../../ui/components/editor/ExportJSONModal.vue';
 import ExportPictureModal from '../../ui/components/editor/ExportPictureModal.vue';
-import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree } from '../../common/fs/fileTree';
+import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree, findParentEntryInFileTree } from '../../common/fs/fileTree';
 import StoreUtils from '../../ui/store/StoreUtils';
 import { prepareDiagramForPictureExport } from '../../ui/diagramExporter';
+import EditorEventBus from '../../ui/components/editor/EditorEventBus';
+import { stripAllHtml } from '../../htmlSanitize';
 
 const fileHistories = new Map();
 
@@ -142,7 +149,7 @@ function initSchemioDiagramFile(originalFile) {
 export default {
     components: {
         Navigator, SchemioEditorApp, FileTabPanel, Modal,
-        ExportPictureModal,
+        ExportPictureModal, CreateNewSchemeModal,
         'export-json-modal': ExportJSONModal,
     },
 
@@ -219,6 +226,16 @@ export default {
                 exportedItems: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
+
+            newDiagramModal: {
+                name: '',
+                shown: false,
+                folderPath: null,
+                item: null,
+                editorId: null
+            },
+
+            navigatorFolderToExpand: null
         };
     },
 
@@ -581,8 +598,67 @@ export default {
             }
         },
 
+        onNewDiagramRequested(folderPath) {
+            this.newDiagramModal.folderPath = folderPath;
+            this.newDiagramModal.name = '';
+            this.newDiagramModal.item = null;
+            this.newDiagramModal.editorId = null;
+            this.newDiagramModal.shown = true;
+        },
+
+        newDiagramSubmitted(diagram) {
+            const folderPath = this.newDiagramModal.folderPath;
+
+            window.electronAPI.createNewDiagram(folderPath, diagram)
+            .then(entry => {
+                const parent = entry.parent !== '.' ? entry.parent : null;
+
+                this.onFileTreeEntryAdded(parent, {
+                    name: entry.name,
+                    kind: entry.kind,
+                    path: entry.path
+                });
+
+                this.$nextTick(() => {
+                    this.navigatorFolderToExpand = folderPath;
+                });
+
+                if (this.newDiagramModal.item) {
+                    const item = this.newDiagramModal.item;
+                    if (item.shape === 'component') {
+                        item.shapeProps.schemeId = entry.id;
+                        EditorEventBus.item.changed.specific.$emit(this.newDiagramModal.editorId, item.id, 'shapeProps.schemeId');
+                    } else {
+                        if (!item.links) {
+                            item.links = [];
+                        }
+                        item.links.push({
+                            title: entry.name,
+                            url: `/docs/${entry.id}`,
+                            type: 'doc'
+                        });
+                    }
+                    EditorEventBus.schemeChangeCommitted.$emit(this.newDiagramModal.editorId);
+
+                }
+                this.newDiagramModal.shown = false;
+            });
+        },
+
         onNewDiagramRequestedForItem(file, item, isExternalComponent) {
-            throw new Error('Not implemented yet');
+            const parentEntry = findParentEntryInFileTree(this.fileTree, file.path);
+            this.newDiagramModal.folderPath = parentEntry ? parentEntry.path : null;
+            this.newDiagramModal.name = item.name;
+
+            if (isExternalComponent && item.shape === 'component') {
+                const title = stripAllHtml(item.textSlots.body.text);
+                if (title.length > 0) {
+                    this.newDiagramModal.name = title;
+                }
+            }
+            this.newDiagramModal.item = item;
+            this.newDiagramModal.editorId = file.editorId;
+            this.newDiagramModal.shown = true;
         }
     }
 }
