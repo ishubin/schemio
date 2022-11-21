@@ -15,7 +15,8 @@
             @dragenter="onDragEnter"
             @dragover="onDragOver"
             @dragleave="onDragLeave"
-            data-void="true">
+            data-void="true"
+            oncontextmenu="return false;">
 
             <g v-if="mode === 'view' && schemeContainer">
                 <g data-type="scene-transform" :transform="transformSvg">

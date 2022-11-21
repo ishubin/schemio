@@ -28,6 +28,7 @@
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"
             @delete-diagram-requested="$emit('delete-diagram-requested')"
             @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
+            @context-menu-requested="$emit('context-menu-requested', arguments[0], arguments[1], arguments[2])"
             />
 
         <SchemeEditor v-else
@@ -56,6 +57,7 @@
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"
             @delete-diagram-requested="$emit('delete-diagram-requested')"
             @export-picture-requested="$emit('export-picture-requested', arguments[0], arguments[1])"
+            @context-menu-requested="$emit('context-menu-requested', arguments[0], arguments[1], arguments[2])"
             />
 
 

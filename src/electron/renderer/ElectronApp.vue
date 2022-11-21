@@ -39,6 +39,7 @@
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
                             @undo-history-requested="undoHistory(file)"
                             @redo-history-requested="redoHistory(file)"
+                            @export-picture-requested="openExportPictureModal(file, arguments[0], arguments[1])"
                         />
                     </div>
                 </div>
@@ -68,6 +69,17 @@
                 <span>Exporting project files...</span>
             </div>
         </Modal>
+
+
+        <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
+
+        <export-picture-modal v-if="exportPictureModal.shown"
+            :exported-items="exportPictureModal.exportedItems"
+            :kind="exportPictureModal.kind"
+            :width="exportPictureModal.width"
+            :height="exportPictureModal.height"
+            :background-color="exportPictureModal.backgroundColor"
+            @close="exportPictureModal.shown = false"/>
     </div>
 </template>
 
@@ -80,7 +92,11 @@ import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
 import Modal from '../../ui/components/Modal.vue';
-import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, findParentEntryInFileTree, traverseFileTree, renameEntryInFileTree } from '../../common/fs/fileTree';
+import ExportJSONModal from '../../ui/components/editor/ExportJSONModal.vue';
+import ExportPictureModal from '../../ui/components/editor/ExportPictureModal.vue';
+import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree } from '../../common/fs/fileTree';
+import StoreUtils from '../../ui/store/StoreUtils';
+import { prepareDiagramForPictureExport } from '../../ui/diagramExporter';
 
 const fileHistories = new Map();
 
@@ -122,7 +138,11 @@ function initSchemioDiagramFile(originalFile) {
 
 
 export default {
-    components: {Navigator, SchemioEditorApp, FileTabPanel, Modal},
+    components: {
+        Navigator, SchemioEditorApp, FileTabPanel, Modal,
+        ExportPictureModal,
+        'export-json-modal': ExportJSONModal,
+    },
 
     beforeMount() {
         window.electronAPI.$on('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
@@ -177,7 +197,17 @@ export default {
 
             staticExporterModal: {
                 shown: false,
-            }
+            },
+
+            exportJSONModalShown: false,
+            exportPictureModal: {
+                kind: 'svg',
+                width: 100,
+                height: 100,
+                shown: false,
+                exportedItems: [],
+                backgroundColor: 'rgba(255,255,255,1.0)'
+            },
         };
     },
 
@@ -486,6 +516,25 @@ export default {
         },
         onMenuViewResetZoom() {
             simulateKeyPress(Keys.CTRL_ZERO, true);
+        },
+
+        openExportPictureModal(file, items, kind) {
+            if (!Array.isArray(items) || items.length === 0) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
+                return;
+            }
+            const result = prepareDiagramForPictureExport(items);
+
+            if (!result) {
+                return;
+            }
+
+            this.exportPictureModal.exportedItems = result.exportedItems;
+            this.exportPictureModal.width = result.width;
+            this.exportPictureModal.height = result.height;
+            this.exportPictureModal.backgroundColor = file.document.style.backgroundColor;
+            this.exportPictureModal.kind = kind;
+            this.exportPictureModal.shown = true;
         },
     }
 }

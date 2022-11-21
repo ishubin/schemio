@@ -336,16 +336,6 @@
             </div>
         </div>
 
-        <context-menu v-if="customContextMenu.show"
-            :key="customContextMenu.id"
-            :mouse-x="customContextMenu.mouseX"
-            :mouse-y="customContextMenu.mouseY"
-            :options="customContextMenu.menuOptions"
-            @close="customContextMenu.show = false"
-            @selected="onCustomContextMenuOptionSelected"
-        />
-
-
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
             @submit-link="onItemLinkSubmit"
@@ -436,7 +426,6 @@ import {copyToClipboard, getTextFromClipboard} from '../clipboard';
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import FloatingHelperPanel from './editor/FloatingHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
-import ContextMenu from './editor/ContextMenu.vue';
 import StrokePattern from './editor/items/StrokePattern';
 import StateCreateItem from './editor/states/StateCreateItem.js';
 import StateInteract from './editor/states/StateInteract.js';
@@ -526,7 +515,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        Comments, ContextMenu, MultiItemEditBox,
+        Comments, MultiItemEditBox,
     },
 
     props: {
@@ -740,13 +729,6 @@ export default {
             sidePanelLeftWidthLastUsed: 220,
             schemeContainer: null,
             interactiveSchemeContainer: null,
-
-            customContextMenu: {
-                id: shortid.generate(),
-                show: false,
-                mouseX: 0, mouseY: 0,
-                menuOptions: []
-            },
 
             zoom: 100,
             textSelectionEnabled: false,
@@ -1796,7 +1778,7 @@ export default {
 
             const selectedOnlyOne = this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox;
 
-            this.customContextMenu.menuOptions = [{
+            let contextMenuOptions = [{
                 name: 'Bring to Front',
                 clicked: () => {this.bringSelectedItemsToFront();}
             }, {
@@ -1814,13 +1796,13 @@ export default {
 
             if (!this.offline && selectedOnlyOne) {
                 if (item.shape === 'component' && item.shapeProps.kind === 'external') {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Create external diagram for this component...',
                         iconClass: 'far fa-file',
                         clicked: () => {this.startCreatingExternalComponentForItem(item); }
                     });
                 } else {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Create diagram for this element...',
                         iconClass: 'far fa-file',
                         clicked: () => {this.startCreatingChildSchemeForItem(item); }
@@ -1828,7 +1810,7 @@ export default {
                 }
             }
 
-            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
+            contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Copy',
                 iconsClass: 'fas fa-copy',
                 clicked: () => {this.copySelectedItems(item);}
@@ -1838,19 +1820,19 @@ export default {
             }]);
 
             if (this.$store.state.copiedStyleItem) {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Apply copied item style',
                     clicked: () => {this.applyCopiedItemStyle(item);}
                 });
             }
 
             if (selectedOnlyOne) {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Create component from this item',
                     clicked: () => {this.createComponentFromItem(item);}
                 });
                 if (item.shape === 'image') {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Crop image',
                         iconClass: 'fas fa-crop',
                         clicked: () => this.startCroppingImage(item)
@@ -1862,14 +1844,14 @@ export default {
                     allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'path';
                 }
                 if (allCurves) {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Merge paths',
                         clicked: () => this.mergePaths(this.schemeContainer.multiItemEditBox.items)
                     })
                 }
             }
 
-            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
+            contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Delete',
                 iconClass: 'fas fa-trash',
                 clicked: () => {this.deleteSelectedItems();}
@@ -1913,14 +1895,14 @@ export default {
                 });
             }
 
-            this.customContextMenu.menuOptions.push({
+            contextMenuOptions.push({
                 name: 'Align',
                 subOptions: alignSubOptions
             });
 
 
             if (selectedOnlyOne) {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Events',
                     subOptions: [{
                         name: 'Init',
@@ -1939,47 +1921,27 @@ export default {
             }
 
             if (item.shape === 'path') {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Edit Path',
                     clicked: () => { this.onEditPathRequested(item); }
                 });
             }
 
-            this.customContextMenu.mouseX = mouseX + 5;
-            this.customContextMenu.mouseY = mouseY + 5;
-            this.customContextMenu.id = shortid.generate();
-            this.customContextMenu.show = true;
+            this.$emit('context-menu-requested', mouseX, mouseY, contextMenuOptions);
         },
 
         onVoidRightClicked(mouseX, mouseY) {
             if (this.mode === 'edit') {
-                this.customContextMenu.menuOptions = [{
+                this.onContextMenuRequested(mouseX, mouseY, [{
                     name: 'Paste',
                     clicked: () => {this.pasteItemsFromClipboard();}
-                }];
-                const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
-                this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
-                this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
-                this.customContextMenu.id = shortid.generate();
-                this.customContextMenu.show = true;
+                }]);
             }
         },
 
         onContextMenuRequested(mouseX, mouseY, menuOptions) {
-            this.customContextMenu.menuOptions = menuOptions;
-
             const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
-            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
-            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
-            this.customContextMenu.id = shortid.generate();
-            this.customContextMenu.show = true;
-        },
-
-        onCustomContextMenuOptionSelected(option) {
-            if (!option.subOptions) {
-                option.clicked();
-            }
-            this.customContextMenu.show = false;
+            this.$emit('context-menu-requested', mouseX + svgRect.left + 5, mouseY + svgRect.top + 5, menuOptions);
         },
 
         addItemBehaviorEvent(item, eventName) {

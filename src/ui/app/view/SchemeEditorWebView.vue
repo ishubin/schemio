@@ -55,6 +55,7 @@
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
             @export-picture-requested="openExportPictureModal"
+            @context-menu-requested="onContextMenuRequested"
         />
         <SchemioEditorApp v-else-if="scheme"
             :key="`scheme-${appReloadKey}`"
@@ -80,7 +81,18 @@
             @editor-state-changed="onEditorStateChanged"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @export-picture-requested="openExportPictureModal"
+            @context-menu-requested="onContextMenuRequested"
         />
+
+        <ContextMenu v-if="customContextMenu.show"
+            :key="customContextMenu.id"
+            :mouse-x="customContextMenu.mouseX"
+            :mouse-y="customContextMenu.mouseY"
+            :options="customContextMenu.menuOptions"
+            @close="customContextMenu.show = false"
+            @selected="onCustomContextMenuOptionSelected"
+        />
+
 
         <CreatePatchModal v-if="createPatchModalShown" :key="`create-patch-modal-${appReloadKey}`" :editorId="`scheme-${appReloadKey}`" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
 
@@ -131,6 +143,8 @@
         <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="scheme" @close="exportAsLinkModalShown = false"/>
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="scheme" @close="exportHTMLModalShown = false"/>
+
+
     </div>
 </template>
 <script>
@@ -146,14 +160,13 @@ import { createHasher } from '../../url/hasher';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import ImportSchemeModal from '../../components/editor/ImportSchemeModal.vue';
+import ContextMenu from '../../components/editor/ContextMenu.vue';
 import ExportJSONModal from '../../components/editor/ExportJSONModal.vue';
 import ExportPictureModal from '../../components/editor/ExportPictureModal.vue';
 import ExportAsLinkModal from '../../components/editor/ExportAsLinkModal.vue';
 import ExportHTMLModal from '../../components/editor/ExportHTMLModal.vue';
 import History from '../../history/History.js';
-import { traverseItems } from '../../scheme/Item';
-import { worldPointOnItem, worldAngleOfItem, getBoundingBoxOfItems } from '../../scheme/SchemeContainer';
-import { filterOutPreviewSvgElements } from '../../svgPreview';
+import { prepareDiagramForPictureExport } from '../../diagramExporter';
 
 const defaultHistorySize = 30;
 
@@ -171,7 +184,7 @@ function loadOfflineScheme() {
 export default {
     components: {
         SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal,
-        ExportPictureModal,
+        ExportPictureModal, ContextMenu,
         'export-json-modal': ExportJSONModal,
         'export-as-link-modal': ExportAsLinkModal,
         'export-html-modal': ExportHTMLModal,
@@ -334,6 +347,14 @@ export default {
 
             historyUndoable: false,
             historyRedoable: false,
+
+            customContextMenu: {
+                id: shortid.generate(),
+                show: false,
+                mouseX: 0, mouseY: 0,
+                menuOptions: []
+            },
+
         };
     },
 
@@ -620,100 +641,37 @@ export default {
         },
 
         openExportPictureModal(items, kind) {
-            if (!items || items.length === 0) {
+            if (!Array.isArray(items) || items.length === 0) {
                 StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
                 return;
             }
-            const exportedItems = [];
-            let minP = null;
-            let maxP = null;
-
-            const collectedItems = [];
-
-            forEach(items, item => {
-                if (item.visible && item.opacity > 0.0001) {
-                    const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
-                    if (domElement) {
-                        const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(item);
-                        if (minP) {
-                            minP.x = Math.min(minP.x, itemBoundingBox.x);
-                            minP.y = Math.min(minP.y, itemBoundingBox.y);
-                        } else {
-                            minP = {
-                                x: itemBoundingBox.x,
-                                y: itemBoundingBox.y
-                            };
-                        }
-                        if (maxP) {
-                            maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
-                            maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
-                        } else {
-                            maxP = {
-                                x: itemBoundingBox.x + itemBoundingBox.w,
-                                y: itemBoundingBox.y + itemBoundingBox.h
-                            };
-                        }
-                        const itemDom = domElement.cloneNode(true);
-                        filterOutPreviewSvgElements(itemDom);
-                        collectedItems.push({
-                            item, itemDom
-                        });
-                    }
-                }
-            });
-
-            forEach(collectedItems, collectedItem => {
-                const item = collectedItem.item;
-                const itemDom = collectedItem.itemDom;
-                const worldPoint = worldPointOnItem(0, 0, item);
-                const angle = worldAngleOfItem(item);
-                const x = worldPoint.x - minP.x;
-                const y = worldPoint.y - minP.y;
-
-                itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
-                const html = itemDom.outerHTML;
-                exportedItems.push({item, html})
-            });
-
-            this.exportPictureModal.exportedItems = exportedItems;
-            this.exportPictureModal.width = maxP.x - minP.x;
-            this.exportPictureModal.height = maxP.y - minP.y;
-            if (this.exportPictureModal.width > 5) {
-                this.exportPictureModal.width = Math.round(this.exportPictureModal.width);
-            }
-            if (this.exportPictureModal.height > 5) {
-                this.exportPictureModal.height = Math.round(this.exportPictureModal.height);
+            const result = prepareDiagramForPictureExport(items);
+            if (!result) {
+                return;
             }
 
-            // this check is needed when export straight vertical or horizontal curve lines
-            // in such case area is defined with zero width or height and it makes SVG export confused
-            if (this.exportPictureModal.width < 0.001) {
-                this.exportPictureModal.width = 20;
-            }
-            if (this.exportPictureModal.height < 0.001) {
-                this.exportPictureModal.height = 20;
-            }
+            this.exportPictureModal.exportedItems = result.exportedItems;
+            this.exportPictureModal.width = result.width;
+            this.exportPictureModal.height = result.height;
             this.exportPictureModal.backgroundColor = this.scheme.style.backgroundColor;
             this.exportPictureModal.kind = kind;
             this.exportPictureModal.shown = true;
         },
 
-        /**
-         * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
-         */
-        calculateBoundingBoxOfAllSubItems(parentItem) {
-            const items = [];
-            traverseItems(parentItem, item => {
-                if (item.visible && item.opacity > 0.0001) {
-                    // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
-                    if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
-                        items.push(item);
-                    }
-                }
-            });
-            return getBoundingBoxOfItems(items);
+        onCustomContextMenuOptionSelected(option) {
+            if (!option.subOptions) {
+                option.clicked();
+            }
+            this.customContextMenu.show = false;
         },
 
+        onContextMenuRequested(x, y, menuOptions) {
+            this.customContextMenu.id = shortid.generate();
+            this.customContextMenu.mouseX = x;
+            this.customContextMenu.mouseY = y;
+            this.customContextMenu.menuOptions = menuOptions;
+            this.customContextMenu.show = true;
+        }
     },
     computed: {
         originSchemeForPatch() {
