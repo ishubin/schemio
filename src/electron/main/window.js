@@ -1,4 +1,4 @@
-const { BrowserWindow, shell } = require('electron');
+const { BrowserWindow, shell, Menu } = require('electron');
 const { generateUserAgent, ContextHolder } = require('./context');
 const URL = require('url');
 
@@ -55,6 +55,33 @@ export function createWindow(contextHolder) {
         shell.openExternal(url);
         return { action: 'deny' };
     });
+
+
+
+    const selectionMenu = Menu.buildFromTemplate([
+        {role: 'copy'},
+        {type: 'separator'},
+        {role: 'selectall'},
+    ]);
+
+    const inputMenu = Menu.buildFromTemplate([
+        {role: 'cut'},
+        {role: 'copy'},
+        {role: 'paste'},
+        {type: 'separator'},
+        {role: 'selectall'},
+    ]);
+
+    mainWindow.webContents.on('context-menu', (e, props) => {
+        const { selectionText, isEditable } = props;
+        if (isEditable) {
+            inputMenu.popup(mainWindow);
+        } else if (selectionText && selectionText.trim() !== '') {
+            selectionMenu.popup(mainWindow);
+        }
+    });
+
+
 
     // Open the DevTools.
     mainWindow.webContents.openDevTools();

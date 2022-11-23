@@ -106,6 +106,7 @@ import StoreUtils from '../../ui/store/StoreUtils';
 import { prepareDiagramForPictureExport } from '../../ui/diagramExporter';
 import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
+import {registerElectronKeyEvents} from './keyboard.js';
 
 const fileHistories = new Map();
 
@@ -118,7 +119,6 @@ function initSchemioDiagramFile(originalFile) {
         modified: false,
         schemeMode: 'view',
         schemeReloadKey: shortid.generate(),
-        // Take it out of here so that it does not become reactive
         historyId: originalFile.path + shortid.generate(),
         historyUndoable: false,
         historyRedoable: false,
@@ -176,6 +176,8 @@ export default {
         window.electronAPI.$on('file:exportStatic:started', this.onStaticExporterStarted);
         window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
+
+        registerElectronKeyEvents();
     },
 
     beforeDestroy() {
