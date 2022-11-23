@@ -1,6 +1,9 @@
 import artService from "../../common/fs/artService";
 import { ContextHolder } from "./context";
 
+const fsMediaPrefix = '/media/';
+const electronMediaPrefix = 'media://local/';
+
 /**
  *
  * @param {ContextHolder} contextHolder
@@ -19,7 +22,17 @@ export function createArt(contextHolder) {
 export function getAllArt(contextHolder) {
     return (event) => {
         const fileIndex = contextHolder.from(event).fileIndex;
-        return artService.getAll(fileIndex);
+        return artService.getAll(fileIndex)
+        .then(art => {
+            if (Array.isArray(art)) {
+                art.forEach(artEntry => {
+                    if (artEntry.url && artEntry.url.startsWith(fsMediaPrefix)) {
+                        artEntry.url = electronMediaPrefix + artEntry.url.substring(fsMediaPrefix.length);
+                    }
+                });
+            }
+            return art;
+        });
     };
 }
 

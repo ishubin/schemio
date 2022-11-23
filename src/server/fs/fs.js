@@ -5,11 +5,13 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
-import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, supportedMediaExtensions, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
+import { folderPathFromPath, mediaFolder, supportedMediaExtensions, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
 import { FileIndex } from '../../common/fs/fileIndex';
 import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
 import { ProjectService } from '../../common/fs/projectService.js';
+
+const electronMediaPrefix = 'media://local/';
 
 function serverErrorHandler(res, message) {
     return (err) => {
@@ -572,6 +574,13 @@ export function fsGetArt(fileIndex) {
     return (req, res) => {
         return artService.getAll(fileIndex)
         .then(art => {
+            if (Array.isArray(art)) {
+                art.forEach(artEntry => {
+                    if (artEntry.url && artEntry.url.startsWith(electronMediaPrefix)) {
+                        artEntry.url = '/media/' + artEntry.url.substring(electronMediaPrefix.length);
+                    }
+                });
+            }
             res.json(art);
         })
         .catch(err => {

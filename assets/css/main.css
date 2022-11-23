@@ -1503,6 +1503,7 @@ ul.links-editor .edit-link:hover {
     user-select: none;
 }
 .item-menu .item-container {
+    position: relative;
     display: inline-block;
     width: 42px;
     height: 32px;
@@ -1512,8 +1513,8 @@ ul.links-editor .edit-link:hover {
 }
 .item-menu .item-container img {
     display: block;
-    width: 42px;
-    height: 32px;
+    max-width: 42px;
+    max-height: 32px;
     text-align: center;
 }
 .item-menu .item-container span {
@@ -1530,6 +1531,28 @@ ul.links-editor .edit-link:hover {
 }
 .art-pack-author {
     font-size: 12px;
+}
+
+
+.project-art-editor .item-menu .item-container img {
+    max-width: 60px;
+    max-height: 60px;
+}
+.project-art-editor .item-menu .item-container:hover {
+    opacity: 1;
+}
+.project-art-editor .item-menu .item-container {
+    width: 60px;
+    height: 60px;
+    cursor: default;
+}
+.item-menu .item-container .remove-icon {
+    color: var(--critic-strong);
+    font-size: 14px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
 }
 
 .create-item-menu .preview-item {
