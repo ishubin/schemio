@@ -58,7 +58,7 @@
             @close="warnModifiedFileCloseModal.shown = false"
             >
             Unsaved changes in <b>{{warnModifiedFileCloseModal.name}}</b>.
-            <br/> Close anyway?
+            Close anyway?
         </Modal>
 
         <Modal v-if="staticExporterModal.shown"

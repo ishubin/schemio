@@ -217,6 +217,8 @@
     flex-direction: column;
     background: #f0f0f0;
     border: 1px solid #ccc;
+    z-index: 100;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
 }
 .elec-navigator .navigator-entry-preview h3 {
     margin-top: 0;
