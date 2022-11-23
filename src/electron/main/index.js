@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, protocol, shell } = require('electron');
 const path = require('path');
 const { FileIndex } = require('../../common/fs/fileIndex');
+const { ProjectService } = require('../../common/fs/projectService');
 const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { generateUserAgent, ContextHolder } = require('./context');
 const { startElectronProjectExporter } = require('./exporter');
@@ -17,6 +18,7 @@ buildAppMenu();
 const contextHolder = new ContextHolder(data => {
     data.fileIndex = new FileIndex();
     data.fileIndex.isElectron = true;
+    data.projectService = new ProjectService(data.fileIndex);
 });
 
 

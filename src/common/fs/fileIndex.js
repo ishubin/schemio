@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
-import { addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, moveEntryInFileTree, renameEntryInFileTree, traverseFileTree } from './fileTree';
+import { addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, renameEntryInFileTree } from './fileTree';
 import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
@@ -40,38 +40,33 @@ export class FileIndex {
         const entry = findEntryInFileTree(this.fileTree, fsPath);
         if (!entry) {
             addEntryToFileTree(this.fileTree, path.dirname(fsPath), {
+                id: scheme.id,
                 name: scheme.name,
                 path: fsPath,
-                kind: 'schemio:doc'
+                kind: 'schemio:doc',
+                modifiedTime: scheme.modifiedTime
             });
         }
     }
 
 
     deleteFile(filePath) {
-        return fs.rm(path.join(this.rootPath, filePath))
-        .then(() => {
-            const docId = this.index.getDocumentIdByPath(filePath);
+        const docId = this.index.getDocumentIdByPath(filePath);
+        if (docId) {
             this.index.deleteDocument(docId);
-            deleteEntryFromFileTree(this.fileTree, filePath);
-        });
+        }
+        deleteEntryFromFileTree(this.fileTree, filePath);
     }
 
     deleteFolder(folderPath) {
-        return fs.rm(path.join(this.rootPath, folderPath), {recursive: true, force: true})
-        .then(() => {
-            this.index.deleteFolder(folderPath);
-
-            deleteEntryFromFileTree(this.fileTree, folderPath);
-        });
+        deleteEntryFromFileTree(this.fileTree, folderPath);
     }
 
     renameFile(filePath, newName) {
-        const srcPath = path.join(this.rootPath, filePath);
-        const dstPath = path.join(path.dirname(srcPath), newName);
-        return fs.move(srcPath, dstPath)
-        .then(() => {
-            renameEntryInFileTree(this.fileTree, filePath, newName);
+        return renameEntryInFileTree(this.fileTree, filePath, newName, (oldPath, changedEntry) => {
+            if (changedEntry.kind === 'schemio:doc') {
+                this.index.updateDocument(changedEntry.id, {fsPath: changedEntry.path});
+            }
         });
     }
 
@@ -81,45 +76,6 @@ export class FileIndex {
             return;
         }
         diagramEntry.name = newName;
-    }
-
-    moveFile(filePath, newParentPath) {
-        const srcPath = path.join(this.rootPath, filePath);
-        const baseName = path.basename(filePath);
-        const newRelativePath = newParentPath ? path.join(newParentPath, baseName) : baseName;
-        const dstPath = path.join(this.rootPath, newRelativePath);
-
-        // generating records of all affected files and folder
-        // this will be used by the client to correct any open files
-        const movedEntries = [{
-            src: filePath,
-            dst: newRelativePath
-        }];
-
-        console.log('Searching of rentry: ', filePath);
-        const fileEntry = findEntryInFileTree(this.fileTree, filePath);
-        if (!fileEntry) {
-            return Promise.reject(`Could not find entry: ${filePath}`);
-        }
-        if (fileEntry.kind === 'dir') {
-            traverseFileTree(fileEntry.children, entry => {
-                movedEntries.push({
-                    src: entry.path,
-                    dst: newRelativePath + entry.path.substring(filePath.length)
-                });
-            });
-        }
-
-        return fs.move(srcPath, dstPath)
-        .then(() => {
-            //TODO find a way to rebuild the tree without running a full reindex
-            // The reason I didn't implement that in the first place is because of the fact that fileTree.js is being also used on the client side
-            // But, in order to move entries within file trees we have to know the right file separator.
-            // But I don't want to bring "path" module dependency to the client side.
-            return this.reindex(this.rootPath).then(() => {
-                return { movedEntries };
-            });
-        });
     }
 
     /**
@@ -139,11 +95,26 @@ export class FileIndex {
     }
 
     updatePreviewURL(id, previewURL) {
+        const doc = this.index.getDocument(id);
+        if (doc) {
+            const entry = findEntryInFileTree(this.fileTree, doc.fsPath);
+            if (entry) {
+                entry.previewURL = previewURL;
+            }
+        }
         this.index.updateDocument(id, { previewURL });
     }
 
     indexFolder(folder, name, parentFolder) {
-        this.index.indexFolder(folder, name, parentFolder);
+        const folderEntry = findEntryInFileTree(this.fileTree, folder);
+        if (!folderEntry) {
+            addEntryToFileTree(this.fileTree, parentFolder, {
+                kind: 'dir',
+                name,
+                path: folder,
+                children: []
+            });
+        }
     }
 
     moveSchemeToFolder(id, fsPath, newFolder) {
@@ -158,18 +129,27 @@ export class FileIndex {
         return this.index.getDocument(id);
     }
 
+    getDocumentFromIndexByPath(filePath) {
+        const id = this.index.docIdsByPath.get(filePath);
+        return this.index.getDocument(id);
+    }
+
     searchIndexDocuments(query) {
         const lowerQuery = query.toLowerCase();
         const indexResults = this.index.search(doc => doc.lowerName.indexOf(lowerQuery) >= 0);
         return indexResults;
     }
 
-    listIndexDocumentsByFolder(folderPath) {
-        return this.index.getDocumentsInFolder(folderPath);
-    }
+    listFilesInFolder(folderPath) {
+        if (!folderPath) {
+            return this.fileTree;
+        }
 
-    listIndexFoldersByParent(parentFolder) {
-        return this.index.getFoldersByParent(parentFolder);
+        const folderEntry = findEntryInFileTree(this.fileTree, folderPath);
+        if (folderEntry) {
+            return folderEntry.children;
+        }
+        return [];
     }
 
     /**
@@ -186,19 +166,6 @@ export class FileIndex {
             this.fileTree = fileTree;
             console.log('Finished indexing');
         });
-    }
-
-    /**
-     * Searches through all sub-folders in given folder and collects document ids
-     * @param {*} folderPath
-     * @returns {Array<String>} document ids in specified folderPath
-     */
-    getAllDocumentIdsInFolder(folderPath) {
-        const ids = [];
-        this.index.traverseDocumentsInFolder(folderPath, (doc, docId) => {
-            ids.push(docId);
-        });
-        return ids;
     }
 
     genereateDocId(name) {
@@ -270,8 +237,6 @@ function createIndexFromScratch(index, rootPath, isElectron) {
         }
 
         if (isDirectory) {
-            index.indexFolder(relativeFilePath, fileNameFromPath(relativeFilePath), folderPathFromPath(relativeFilePath));
-
             const dirEntry = {
                 kind: 'dir',
                 path: relativeFilePath,
@@ -307,10 +272,12 @@ function createIndexFromScratch(index, rootPath, isElectron) {
                 }
 
                 findParentList(relativeFilePath).push({
+                    id: scheme.id,
                     kind: 'schemio:doc',
                     path: path.relative(rootPath, filePath),
                     name: scheme.name,
-                    previewURL
+                    previewURL,
+                    modifiedTime: scheme.modifiedTime
                 });
 
                 if (!index.hasDocument(schemeId)) {

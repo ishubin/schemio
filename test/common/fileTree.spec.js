@@ -1,4 +1,4 @@
-import { renameEntryInFileTree } from "../../src/common/fs/fileTree";
+import { deleteEntryFromFileTree, renameEntryInFileTree } from "../../src/common/fs/fileTree";
 import expect from 'expect';
 
 describe('fileTree', () => {
@@ -106,6 +106,45 @@ describe('fileTree', () => {
                     path: 'a/e/c2_file'
                 }]
             }]
+        }]);
+    });
+
+    it('deleteEntryFromFileTree should delete directory', () => {
+        const tree = [{
+            name: 'a',
+            kind: 'dir',
+            path: 'a',
+            children: [{
+                name: 'b2',
+                kind: 'dir',
+                path: 'a/b2',
+                children: [{
+                    name: 'c1',
+                    kind: 'dir',
+                    path: 'a/b2/c',
+                    children: [{
+                        name: 'c1_file',
+                        kind: 'schemio:doc',
+                        path: 'a/b2/c1/c1_file'
+                    }]
+                }, {
+                    name: 'c2_file',
+                    kind: 'schemio:doc',
+                    path: 'a/b2/c2_file'
+                }]
+            }]
+        }, {
+            name: 'a2',
+            kind: 'schemio:doc',
+            path: 'a2'
+        }];
+
+        deleteEntryFromFileTree(tree, 'a');
+
+        expect(tree).toStrictEqual([{
+            name: 'a2',
+            kind: 'schemio:doc',
+            path: 'a2'
         }]);
     });
 });

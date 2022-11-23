@@ -10,7 +10,7 @@ const { BrowserWindow, Menu } = require('electron');
  */
 export function navigatorOpenContextMenuForFile(contextHolder) {
     return (event, file) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
+        const projectService = contextHolder.from(event).projectService;
         let template = [];
 
         if (file) {
@@ -40,12 +40,12 @@ export function navigatorOpenContextMenuForFile(contextHolder) {
                 label: 'Delete',
                 click: () => {
                     if (file.kind === 'schemio:doc') {
-                        fileIndex.deleteFile(file.path)
+                        projectService.deleteFile(file.path)
                         .then(() => {
                             event.sender.send('navigator:entry-deleted', file.path);
                         });
                     } else if (file.kind === 'dir') {
-                        fileIndex.deleteFolder(file.path)
+                        projectService.deleteFolder(file.path)
                         .then(() => {
                             event.sender.send('navigator:entry-deleted', file.path);
                         });

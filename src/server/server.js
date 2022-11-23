@@ -22,6 +22,7 @@ import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
 import { FileIndex } from '../common/fs/fileIndex.js';
+import { ProjectService } from '../common/fs/projectService.js';
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 
@@ -30,6 +31,7 @@ const config = loadConfig();
 
 const fileIndex = new FileIndex();
 fileIndex.reindex(config.fs.rootPath).then(() => {
+    const projectService = new ProjectService(fileIndex);
     const app = express();
     const modification = false;
     const deletion = true;
@@ -45,23 +47,23 @@ fileIndex.reindex(config.fs.rootPath).then(() => {
     app.use('/assets', express.static('assets'));
     app.use('/v1', apiMiddleware);
 
-    app.get('/v1/fs/list',   fsListFilesRoute(config, fileIndex));
-    app.get('/v1/fs/list/*', fsListFilesRoute(config, fileIndex));
-    app.get('/v1/fs/docs/:docId', jsonBodyParser, fsGetScheme(config, fileIndex));
-    app.get('/v1/fs/docs', jsonBodyParser, fsSearchSchemes(config, fileIndex));
+    app.get('/v1/fs/list',   fsListFilesRoute(config, projectService));
+    app.get('/v1/fs/list/*', fsListFilesRoute(config, projectService));
+    app.get('/v1/fs/docs/:docId', jsonBodyParser, fsGetScheme(config, projectService));
+    app.get('/v1/fs/docs', jsonBodyParser, fsSearchSchemes(config, projectService));
 
     if (!config.viewOnlyMode) {
-        app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config, fileIndex));
-        app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config, fileIndex));
-        app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config, fileIndex));
+        app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config, projectService));
+        app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config, projectService));
+        app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config, projectService));
 
-        app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config, fileIndex));
-        app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config, fileIndex));
+        app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config, projectService));
+        app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config, projectService));
 
-        app.post('/v1/fs/docs', jsonBodyParser, fsCreateScheme(config, fileIndex));
-        app.patch('/v1/fs/docs/:schemeId', jsonBodyParser, fsPatchScheme(config, fileIndex));
-        app.delete('/v1/fs/docs/:schemeId', jsonBodyParser, fsDeleteScheme(config, fileIndex));
-        app.put('/v1/fs/docs/:schemeId', jsonBodyParser, fsSaveScheme(config, fileIndex));
+        app.post('/v1/fs/docs', jsonBodyParser, fsCreateScheme(config, projectService));
+        app.patch('/v1/fs/docs/:schemeId', jsonBodyParser, fsPatchScheme(config, projectService));
+        app.delete('/v1/fs/docs/:schemeId', jsonBodyParser, fsDeleteScheme(config, projectService));
+        app.put('/v1/fs/docs/:schemeId', jsonBodyParser, fsSaveScheme(config, projectService));
         app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config, fileIndex));
         app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config, fileIndex));
 

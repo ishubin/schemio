@@ -9,7 +9,14 @@ import {fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension, sup
 import { FileIndex } from '../../common/fs/fileIndex';
 import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
+import { ProjectService } from '../../common/fs/projectService.js';
 
+function serverErrorHandler(res, message) {
+    return (err) => {
+        console.error(message, err);
+        res.$serverError(message);
+    }
+}
 
 function isValidCharCode(code) {
     return (code >= 48 && code <= 57)
@@ -44,23 +51,13 @@ function pathToSchemePreview(config, schemeId) {
     return path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`);
 }
 
-function deleteFile(filePath, failIfNotPresent) {
-    if (fs.existsSync(filePath)) {
-        return fs.unlink(filePath);
-
-    } else if (failIfNotPresent) {
-        return Promise.reject('Not a file '+ filePath);
-    }
-    return Promise.resolve();
-};
-
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsMoveScheme(config, fileIndex) {
+export function fsMoveScheme(config, projectService) {
     return (req, res) => {
         let schemeId = req.query.id;
         if (!schemeId) {
@@ -68,131 +65,74 @@ export function fsMoveScheme(config, fileIndex) {
             return;
         }
 
-        schemeId = schemeId.replace(/\//g, '');
-        if (schemeId.length === 0) {
-            res.$apiBadRequest('Invalid request: document id is empty');
-            return;
-        }
+        const parentPath = req.query.parent;
 
-        const doc = fileIndex.getDocumentFromIndex(schemeId);
-        if (!doc) {
-            res.$apiNotFound('Scheme was not found');
-            return;
-        }
-
-        const fileName = schemeId + schemioExtension;
-        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
-
-        const safeDst = safePath(req.query.dst);
-        const relativeDstPath = path.join(safeDst, fileName);
-        const realDstFolder = path.join(config.fs.rootPath, safeDst)
-        const realDst = path.join(config.fs.rootPath, relativeDstPath);
-
-        Promise.all([fs.stat(fullPath), fs.stat(realDstFolder)])
-        .then(values => {
-            const [srcStat, dstStat] = values;
-            if (!srcStat.isFile) {
-                throw new Error('Source is not a file');
-            }
-            if (!dstStat.isDirectory) {
-                throw new Error('Destination is not a directory');
-            }
-        })
+        projectService.moveDiagramById(schemeId, parentPath)
         .then(() => {
-            return fs.readFile(fullPath).then(JSON.parse);
-        })
-        .then(scheme => {
-            return fs.move(fullPath, realDst).then(() => {
-                return scheme;
-            });
-        })
-        .then(scheme => {
-            fileIndex.moveSchemeToFolder(schemeId, relativeDstPath, safeDst);
             res.json({ satus: 'ok' });
         })
-        .catch(err => {
-            console.error(err);
-            res.$serverError('Failed to move directory');
-        })
+        .catch(serverErrorHandler(res, 'Failed to move diagram'));
     };
 }
 
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsPatchScheme(config, fileIndex) {
+export function fsPatchScheme(config, projectService) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const doc = fileIndex.getDocumentFromIndex(schemeId);
-        if (!doc) {
+        const filePath = projectService.getDiagramPath(schemeId);
+        if (!filePath) {
             res.$apiNotFound('Scheme was not found');
             return;
         }
         const patchRequest = req.body;
 
-        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
+        let chain = Promise.resolve();
 
-        fs.readFile(fullPath).then(content => {
-            const scheme = JSON.parse(content);
-
-            if (patchRequest.hasOwnProperty('name')) {
-                const newName = patchRequest.name.trim();
-                if (newName.length === 0) {
-                    throw new Error('Empty name');
-                }
-
-                scheme.name = newName;
-                return fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
-                    fileIndex.indexScheme(schemeId, scheme, doc.fsPath);
-                });
+        if (patchRequest.hasOwnProperty('name')) {
+            const newName = patchRequest.name.trim();
+            if (newName.length === 0) {
+                res.$apiBadRequest('Invalid name');
+                return;
             }
-        })
-        .then(() => {
+            chain = projectService.renameDiagram(filePath, newName);
+        }
+
+        chain.then(() => {
             res.json({
                 status: 'ok'
             });
         })
-        .catch(err => {
-            console.error('Failed to patch scheme', doc.fsPath, err);
-            res.$serverError('Failed to patch scheme')
-        })
+        .catch(serverErrorHandler(res, 'Failed to rename diagram'));
     };
 }
 
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsDeleteScheme(config, fileIndex) {
+export function fsDeleteScheme(config, projectService) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const doc = fileIndex.getDocumentFromIndex(schemeId)
-        if (!doc) {
+        const filePath = projectService.getDiagramPath(schemeId);
+        if (!filePath) {
             res.$apiNotFound('Scheme was not found');
             return;
         }
 
-        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
-
-        Promise.all([
-            deleteFile(fullPath, true),
-            deleteFile(pathToSchemePreview(config, schemeId), false)
-        ])
+        projectService.deleteFile(filePath)
         .then(() => {
-            fileIndex.unindexScheme(schemeId);
             res.$success('Removed document ' + schemeId);
         })
-        .catch(err => {
-            console.error('Failed to delete diagram file', fullPath, err);
-            res.$serverError('Failed to delete diagram')
-        })
+        .catch(serverErrorHandler(res, 'Failed to delete diagram'));
     };
 }
 
@@ -209,42 +149,21 @@ function toPageNumber(text) {
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsSearchSchemes(config, fileIndex) {
+export function fsSearchSchemes(config, projectService) {
     return (req, res) => {
-        const entities = fileIndex.searchIndexDocuments(req.query.q || '');
-        const page = toPageNumber(req.query.page);
+        const query = req.query.q;
+        const page = req.query.page;
 
-        let start = (page - 1) * resultsPerPage;
-        let end = start + resultsPerPage;
-        start = Math.max(0, Math.min(start, entities.length));
-        end = Math.max(start, Math.min(end, entities.length));
-
-        const totalResults = entities.length;
-        const filtered = entities.slice(start, end);
-
-        const schemes = _.map(filtered, doc => {
-            let previewURL = null;
-            if (fs.existsSync(pathToSchemePreview(config, doc.id))) {
-                previewURL = `/media/previews/${doc.id}.svg`;
-            }
-            return {
-                name: doc.name,
-                publicLink: `/docs/${doc.id}`,
-                id: doc.id,
-                modifiedTime: doc.modifiedTime,
-                previewURL
-            };
-        });
-
-        res.json({
-            kind: 'page',
-            totalResults: totalResults,
-            results: schemes,
-            totalPages: Math.ceil(totalResults / resultsPerPage),
-            page: page
+        projectService.findDiagrams(query, page)
+        .then(result => {
+            res.json(result);
+        })
+        .catch(err => {
+            console.error(err);
+            res.$serverError('Failed to search for diagrams');
         });
     };
 }
@@ -252,29 +171,15 @@ export function fsSearchSchemes(config, fileIndex) {
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsGetScheme(config, fileIndex) {
+export function fsGetScheme(config, projectService) {
     return (req, res) => {
         const schemeId = req.params.docId;
 
-        const doc = fileIndex.getDocumentFromIndex(schemeId);
-        if (!doc) {
-            res.$apiNotFound('Scheme was not found');
-            return;
-        }
-        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
-
-        let idx = doc.fsPath.lastIndexOf('/');
-        if (idx < 0) {
-            idx = 0;
-        }
-        const folderPath = doc.fsPath.substring(0, idx);
-
-        fs.readFile(fullPath, 'utf-8').then(content => {
-            const scheme = JSON.parse(content);
-            scheme.projectLink = '/';
+        projectService.getDiagram(schemeId)
+        .then(({scheme, folderPath}) => {
             res.json({
                 scheme: scheme,
                 folderPath: folderPath,
@@ -282,12 +187,8 @@ export function fsGetScheme(config, fileIndex) {
             });
         })
         .catch(err => {
-            if (err.code === 'ENOENT') {
-                res.$apiNotFound('Such document does not exist');
-            } else {
-                console.error('Failed to read document file', fullPath, err);
-                res.$serverError('Failed to create scheme');
-            }
+            console.error(err);
+            res.$apiNotFound('Scheme was not found');
         });
     };
 }
@@ -295,15 +196,15 @@ export function fsGetScheme(config, fileIndex) {
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsSaveScheme(config, fileIndex) {
+export function fsSaveScheme(config, projectService) {
     return (req, res) => {
         const schemeId = req.params.schemeId;
 
-        const doc = fileIndex.getDocumentFromIndex(schemeId)
-        if (!doc) {
+        const filePath = projectService.getDiagramPath(schemeId);
+        if (!filePath) {
             res.$apiNotFound('Scheme was not found');
         }
 
@@ -312,35 +213,23 @@ export function fsSaveScheme(config, fileIndex) {
         scheme.modifiedTime = new Date();
         scheme.publicLink = `/docs/${schemeId}`;
 
-        const fullPath = path.join(config.fs.rootPath, doc.fsPath);
-
-        fs.stat(fullPath)
-        .then(stat => {
-            if (!stat.isFile()) {
-                return Promise.reject('Not a file: ' + fullPath);
-            }
-            return fs.writeFile(fullPath, JSON.stringify(scheme));
-        })
+        projectService.writeFile(null, filePath, JSON.stringify(scheme))
         .then(() => {
-            fileIndex.updateScheme(schemeId, scheme);
             res.json(scheme);
         })
-        .catch(err => {
-            console.error(err);
-            res.$serverError('Failed to create scheme');
-        });
+        .catch(serverErrorHandler(res, 'Failed to save diagram'));
     };
 }
 
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsCreateScheme(config, fileIndex) {
+export function fsCreateScheme(config, projectService) {
     return (req, res) => {
-        const publicPath = safePath(req.query.path);
+        const folderPath = safePath(req.query.path);
 
         const scheme = req.body;
 
@@ -349,68 +238,31 @@ export function fsCreateScheme(config, fileIndex) {
             return;
         }
 
-        const id = fileIndex.genereateDocId(scheme.name);
-        const indexPath = path.join(publicPath, id + schemioExtension)
-        const fullPath = path.join(config.fs.rootPath, indexPath);
-        scheme.id = id;
-        scheme.modifiedTime = new Date();
-
-        scheme.publicLink = `/docs/${id}`;
-        scheme.previewURL = null;
-
-        fs.writeFile(fullPath, JSON.stringify(scheme)).then(() => {
-            fileIndex.indexScheme(id, scheme, indexPath);
+        projectService.createNewDiagram(folderPath, scheme)
+        .then(() => {
             res.json(scheme);
         })
-        .catch(err => {
-            res.$serverError('Failed to create document');
-        });
+        .catch(serverErrorHandler(res, 'Failed to create new diagram'));
     };
 }
 
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsMoveDirectory(config, fileIndex) {
+export function fsMoveDirectory(config, projectService) {
     return (req, res) => {
         const src = safePath(req.query.src);
-        const dst = safePath(req.query.dst);
+        const parentPath = safePath(req.query.parent);
 
-        const realSrc = path.join(config.fs.rootPath, src);
-        const realDst = path.join(config.fs.rootPath, dst);
 
-        Promise.all([fs.stat(realSrc), fs.stat(realDst)])
-        .then(values => {
-            const [srcStat, dstStat] = values;
-            if (!srcStat.isDirectory) {
-                throw new Error('Source is not a directory');
-            }
-            if (!dstStat.isDirectory) {
-                throw new Error('Destination is not a directory');
-            }
-        })
-        .then(() => {
-            let name = src;
-            const idx = src.lastIndexOf('/');
-            if (idx >= 0)  {
-                name = src.substring(idx + 1);
-            }
-            return fs.move(realSrc, `${realDst}/${name}`);
-        })
-        .then(() => {
-            //TODO optimize it. we should not reindex all documents, but only the parts that were updated
-            return fileIndex.reindex(config.fs.rootPath);
-        })
+        projectService.moveFile(src, parentPath)
         .then(() => {
             res.json({ satus: 'ok' });
         })
-        .catch(err => {
-            console.error(err);
-            res.$serverError('Failed to move directory');
-        })
+        .catch(serverErrorHandler(res, 'Failed to move directory'));
     };
 }
 
@@ -418,103 +270,67 @@ export function fsMoveDirectory(config, fileIndex) {
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsPatchDirectory(config, fileIndex) {
+export function fsPatchDirectory(config, projectService) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
 
-        let newName = null;
-        if (req.body.hasOwnProperty('name')) {
-            newName = req.body.name.trim();
-        }
-        if (!validateFileName(newName)) {
-            res.$apiBadRequest('Invalid directory name');
-            return;
-        }
+        const patchRequest = req.body;
 
-        const realPath = path.join(config.fs.rootPath, publicPath);
-        const newPublicPath = path.join(path.dirname(publicPath), newName);
+        let chain = Promise.resolve();
 
-        fs.stat(realPath).then(stat => {
-            if (!stat.isDirectory()) {
-                throw new Error('Not a directory');
+        if (patchRequest.hasOwnProperty('name')) {
+            const newName = patchRequest.name.trim();
+            if (newName.length === 0) {
+                res.$apiBadRequest('Invalid name');
+                return;
             }
+            chain = projectService.renameFolder(publicPath, newName);
+
+        }
+
+        chain.then(entry => {
+            res.json(entry);
         })
-        .then(() => {
-            const newPath = path.join(config.fs.rootPath, newPublicPath);
-            return fs.move(realPath, newPath);
-        })
-        .then(() => {
-            //TODO optimize it. we should not reindex all documents, but only the parts that were updated
-            return fileIndex.reindex(config.fs.rootPath);
-        })
-        .then(() => {
-            res.json({
-                kind: 'dir',
-                path: newPublicPath,
-                name: newName
-            });
-        })
-        .catch(err => {
-            console.error(err);
-            res.$serverError('Failed to rename a directory');
-        });
+        .catch(serverErrorHandler(res, 'Failed to rename folder'));
     };
 }
 
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsDeleteDirectory(config, fileIndex) {
+export function fsDeleteDirectory(config, projectService) {
     return (req, res) => {
         const publicPath = safePath(req.query.path);
-        const realPath = path.join(config.fs.rootPath, publicPath);
 
-        fs.stat(realPath).then(stat => {
-            if (!stat.isDirectory()) {
-                throw new Error('Not a directory');
-            }
-        })
-        .then(() => {
-            return fs.rmdir(realPath, {recursive: true});
-        })
-        .then(() => {
-            const docIds = fileIndex.getAllDocumentIdsInFolder(publicPath);
-            let chain = Promise.resolve(null);
-            docIds.forEach(docId => {
-                chain = chain.then(deleteFile(pathToSchemePreview(config, docId)));
-            });
-            return chain;
-        })
-        .then(() => {
-            //TODO optimize it. we should not reindex all documents, but only the parts that were updated
-            return fileIndex.reindex(config.fs.rootPath);
-        })
+        console.log('Deleting folder', publicPath);
+        projectService.deleteFolder(publicPath)
         .then(() => {
             res.json({
                 status: 'ok',
-                message: `Removed directory: ${publicPath}/${req.query.name}`
+                message: `Removed directory: ${publicPath}`
             });
         })
         .catch(err => {
-            console.error('Failed to delete a dir', realPath, err);
+            console.error('Failed to delete a dir', publicPath, err);
             res.$serverError('Failed to delete directory');
         });
     };
 }
 
+
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsCreateDirectory(config, fileIndex) {
+export function fsCreateDirectory(config, projectService) {
     return (req, res) => {
         const dirBody = req.body;
         if (!validateFileName(dirBody.name)) {
@@ -522,23 +338,13 @@ export function fsCreateDirectory(config, fileIndex) {
             return;
         }
 
-        const publicPath = safePath(decodeURI(dirBody.path));
-        const relativePath = path.join(publicPath, dirBody.name);
-        const realPath = path.join(config.fs.rootPath, relativePath);
+        const parentPath = safePath(decodeURI(dirBody.path));
 
-
-        fs.mkdir(realPath).then(() => {
-            fileIndex.indexFolder(relativePath, dirBody.name, publicPath);
-            res.json({
-                kind: 'dir',
-                name: dirBody.name,
-                path: realPath
-            });
+        projectService.createFolder(parentPath, dirBody.name)
+        .then(entry => {
+            res.json(entry);
         })
-        .catch(err => {
-            console.error('Failed to create directory', realPath, err);
-            res.$serverError('Failed to create directory');
-        });
+        .catch(serverErrorHandler(res, 'Failed to create directory'));
     };
 }
 
@@ -546,10 +352,10 @@ export function fsCreateDirectory(config, fileIndex) {
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsListFilesRoute(config, fileIndex) {
+export function fsListFilesRoute(config, projectService) {
     return (req, res) => {
         const pathPrefix = '/v1/fs/list';
         if (req.path.indexOf(pathPrefix) !== 0) {
@@ -562,39 +368,20 @@ export function fsListFilesRoute(config, fileIndex) {
             publicPath = publicPath.substring(1);
         }
 
-        const entries = [];
+        let entries = projectService.listFilesInFolder(publicPath);
+
         if (publicPath) {
             let parentFolder = folderPathFromPath(publicPath);
             if (!parentFolder) {
                 parentFolder = '';
             }
 
-            entries.push({
+            entries =  [{
                 kind: 'dir',
                 name: '..',
                 path: parentFolder
-            });
+            }].concat(entries);
         }
-        fileIndex.listIndexFoldersByParent(publicPath).forEach(folder => {
-            entries.push({
-                kind: 'dir',
-                name: fileNameFromPath(folder),
-                path: folder
-            });
-        });
-
-        const docs = fileIndex.listIndexDocumentsByFolder(publicPath);
-        docs.forEach(doc => {
-            entries.push({
-                kind: 'schemio:doc',
-                id: doc.id,
-                name: doc.name,
-                path: publicPath,
-                previewURL: doc.previewURL,
-                modifiedTime: doc.modifiedTime
-            });
-        });
-
         res.json({
             path: publicPath,
             viewOnly: config.viewOnlyMode,

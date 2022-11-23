@@ -72,7 +72,7 @@ export function findParentEntryInFileTree(fileTreeEntries, path) {
  *
  * @param {Array<FileTreeEntry>} fileTree
  * @param {String} parent
- * @param {String} entry
+ * @param {FileTreeEntry} entry
  */
 export function addEntryToFileTree(fileTree, parentPath, entry) {
     if (!parentPath || parentPath === '.') {
@@ -119,7 +119,7 @@ export function deleteEntryFromFileTree(fileTreeEntries, path) {
     }
 }
 
-export function renameEntryInFileTree(fileTreeEntries, entryPath, newName) {
+export function renameEntryInFileTree(fileTreeEntries, entryPath, newName, callback) {
     const entry = findEntryInFileTree(fileTreeEntries, entryPath);
 
     const renamedPath = entry.path.substring(0, entry.path.length - entry.name.length) + newName;
@@ -128,9 +128,15 @@ export function renameEntryInFileTree(fileTreeEntries, entryPath, newName) {
 
     if (entry.kind === 'dir' && entry.children) {
         traverseFileTree(entry.children, subEntry => {
+            const oldPath = subEntry.path;
             subEntry.path = renamedPath + subEntry.path.substring(entryPath.length);
+            if (callback) {
+                callback(oldPath, subEntry);
+            }
         });
     }
+
+    return entry;
 }
 
 /**

@@ -90,7 +90,7 @@ export default {
                 return;
             }
             this.selectedPath = path;
-            
+
             this.$forceUpdate();
 
             this.loadEntries();

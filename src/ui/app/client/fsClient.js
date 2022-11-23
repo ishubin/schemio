@@ -18,8 +18,8 @@ export const fsClientProvider = {
                 return axios.get(url).then(unwrapAxios);
             },
 
-            moveDir(oldPath, newPath) {
-                return axios.post(`/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&dst=${encodeURIComponent(newPath)}`).then(unwrapAxios);
+            moveDir(oldPath, parentPath) {
+                return axios.post(`/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&parent=${encodeURIComponent(parentPath)}`).then(unwrapAxios);
             },
 
             deleteDir(path) {
@@ -46,7 +46,7 @@ export const fsClientProvider = {
             },
 
             moveScheme(schemeId, newFolder) {
-                return axios.post(`/v1/fs/movescheme?id=${encodeURIComponent(schemeId)}&dst=${encodeURIComponent(newFolder)}`).then(unwrapAxios);
+                return axios.post(`/v1/fs/movescheme?id=${encodeURIComponent(schemeId)}&parent=${encodeURIComponent(newFolder)}`).then(unwrapAxios);
             },
 
             createNewScheme(path, scheme) {

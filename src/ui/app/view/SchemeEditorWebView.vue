@@ -367,6 +367,9 @@ export default {
 
     methods: {
         buildBreadcrumbs(path) {
+            if (!path) {
+                path = '';
+            }
             const folders = path.split('/');
 
             const breadcrumbs = [];
