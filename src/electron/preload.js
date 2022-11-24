@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
     openProject       : () => ipcRenderer.invoke('project:open'),
+    selectProject     : (projectPath) => ipcRenderer.invoke('project:select', projectPath),
     getProjectFileTree: () =>  ipcRenderer.invoke('project:fileTree'),
     readFile          : (filePath) => ipcRenderer.invoke('project:readFile', filePath),
     writeFile         : (filePath, content) => ipcRenderer.invoke('project:writeFile', filePath, content),
@@ -37,6 +38,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
         disableMenuItem: (menuItemId) => ipcRenderer.invoke('menu:disable-item', menuItemId),
 
         openContextMenu: (menuId, menuOptions) => ipcRenderer.invoke('menu:showContextMenu', menuId, menuOptions),
+    },
+
+    storage: {
+        getLastOpenProjects: () => ipcRenderer.invoke('storage:getLastOpenProjects'),
     },
 
     $on: (channel, callback) =>  ipcRenderer.on(channel, callback),

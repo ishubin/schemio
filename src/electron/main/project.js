@@ -1,5 +1,6 @@
 import { ProjectService } from '../../common/fs/projectService';
 import { ContextHolder } from './context';
+import { storeOpenProject } from './storage';
 const { dialog } = require('electron');
 
 
@@ -18,13 +19,24 @@ export function openProject(contextHolder) {
                 return;
             } else {
                 const projectPath = filePaths[0];
-                const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
-                contextHolder.from(event).projectService = projectService;
-                contextHolder.from(event).projectPath = projectPath;
-                return projectService.load(projectPath);
+                return selectProject(contextHolder)(event, projectPath);
             }
         })
     }
+}
+
+/**
+ *
+ * @param {ContextHolder} contextHolder
+ */
+export function selectProject(contextHolder) {
+    return (event, projectPath) => {
+        storeOpenProject(projectPath);
+        const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
+        contextHolder.from(event).projectService = projectService;
+        contextHolder.from(event).projectPath = projectPath;
+        return projectService.load(projectPath);
+    };
 }
 
 /**

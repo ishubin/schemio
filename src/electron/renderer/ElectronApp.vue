@@ -1,6 +1,7 @@
 <template>
-    <div class="app-container">
+    <div class="app-container elec-app-container">
         <Navigator v-if="projectPath && projectName && fileTree"
+            :key="projectPath"
             :projectPath="projectPath"
             :projectName="projectName"
             :fileTree="fileTree"
@@ -18,9 +19,22 @@
             <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
             <div class="elec-file-container">
-                <div v-if="!projectPath" class="elec-no-project">
-                    <span class="btn btn-primary" @click="openProject">Open Project...</span>
+
+                <div v-if="!projectPath" class="elec-welcome-panel">
+                    <div class="elec-welcome-container">
+                        <h1>Schemio</h1>
+                        <p class="welcome-caption">Building interactive diagrams</p>
+
+                        <span class="link" @click="openProject"><i class="fa-regular fa-folder-open"></i> Open Project...</span>
+
+                        <h3>Recent projects</h3>
+
+                        <div v-for="project in lastOpenProjects">
+                            <span class="link" @click="selectProject(project.path)" :title="project.path"><i class="fa-regular fa-folder-open"></i> {{project.name}}</span>
+                        </div>
+                    </div>
                 </div>
+
                 <div v-else style="height: 100%">
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
@@ -59,6 +73,16 @@
             >
             Unsaved changes in <b>{{warnModifiedFileCloseModal.name}}</b>.
             Close anyway?
+        </Modal>
+
+        <Modal v-if="warnUnsavedChanges.shown" title="Unsaved changes"
+            closeName="Cancel"
+            primaryButton="Open project"
+            :width="300"
+            @primary-submit="warnUnsavedChanges.shown = false; openProject();"
+            @close="warnUnsavedChanges.shown = false"
+            >
+            Unsaved changes in this project
         </Modal>
 
         <Modal v-if="staticExporterModal.shown"
@@ -171,6 +195,15 @@ export default {
         window.electronAPI.$on('file:exportStatic:started', this.onStaticExporterStarted);
         window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
+        window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
+
+
+        window.electronAPI.storage.getLastOpenProjects().then(projects => {
+            if (projects.length > 10) {
+                projects.splice(10, projects.length - 10);
+            }
+            this.lastOpenProjects = projects;
+        });
 
         registerElectronKeyEvents();
     },
@@ -191,6 +224,7 @@ export default {
         window.electronAPI.$off('file:exportStatic:started', this.onStaticExporterStarted);
         window.electronAPI.$off('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$off('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
+        window.electronAPI.$off('file:openProject', this.onMenuFileOpenProject);
     },
 
     data() {
@@ -204,9 +238,14 @@ export default {
             currentFocusedFilePath: null,
             navigatorWidth: 250,
             progressBarShown: false,
+            lastOpenProjects: [],
             warnModifiedFileCloseModal: {
                 name: null,
                 fileIdx: null,
+                shown: false
+            },
+
+            warnUnsavedChanges: {
                 shown: false
             },
 
@@ -249,13 +288,29 @@ export default {
             window.electronAPI.openProject()
             .then(project => {
                 if (project) {
-                    this.projectPath = project.path;
-                    this.projectName = project.name;
-                    this.fileTree = project.fileTree
+                    this.switchToProject(project);
                 }
-
-                window.electronAPI.menu.enableMenuItem('file-exportStatic');
             });
+        },
+
+        selectProject(projectPath) {
+            window.electronAPI.selectProject(projectPath).then(project => {
+                if (project) {
+                    this.switchToProject(project);
+                }
+            });
+        },
+
+        switchToProject(project) {
+            this.projectPath = project.path;
+            this.projectName = project.name;
+            this.fileTree = project.fileTree
+
+            this.currentOpenFileIdx = -1;
+            for(let i = this.files.length; i >=0 ; i--) {
+                this.destroyFile(i);
+            }
+            window.electronAPI.menu.enableMenuItem('file-exportStatic');
         },
 
         ipcOnNavigatorOpen(event, filePath) {
@@ -421,6 +476,14 @@ export default {
                 if (newFocusedIdx >= 0) {
                     this.focusFile(newFocusedIdx);
                 }
+            }
+            this.destroyFile(fileIdx);
+        },
+
+        destroyFile(fileIdx) {
+            const file = this.files[fileIdx];
+            if (file) {
+                fileHistories.delete(file.historyId);
             }
             this.files.splice(fileIdx, 1);
         },
@@ -656,6 +719,18 @@ export default {
             this.newDiagramModal.item = item;
             this.newDiagramModal.editorId = file.editorId;
             this.newDiagramModal.shown = true;
+        },
+
+        onMenuFileOpenProject() {
+            if (this.files) {
+                for (let i = 0; i < this.files.length; i++) {
+                    if (this.files[i].modified) {
+                        this.warnUnsavedChanges.shown = true;
+                        return;
+                    }
+                }
+            }
+            this.openProject();
         }
     }
 }

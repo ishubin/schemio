@@ -6,7 +6,8 @@ const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu, showContextMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram } = require('./project');
+const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject } = require('./project');
+const { getLastOpenProjects } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
 
@@ -49,6 +50,7 @@ app.whenReady().then(() => {
 
     const mainWindow = createWindow(contextHolder);
     ipcMain.handle('project:open', openProject(contextHolder));
+    ipcMain.handle('project:select', selectProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));
     ipcMain.handle('project:readFile', readProjectFile(contextHolder));
     ipcMain.handle('project:writeFile', writeProjectFile(contextHolder));
@@ -75,6 +77,8 @@ app.whenReady().then(() => {
 
     ipcMain.handle('menu:showContextMenu', showContextMenu);
 
+    ipcMain.handle('storage:getLastOpenProjects', getLastOpenProjects);
+
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
         // dock icon is clicked and there are no other windows open.
@@ -99,6 +103,7 @@ app.whenReady().then(() => {
     }
 
     [
+      'file:openProject',
       'history:undo',
       'history:redo',
       'edit:cut',

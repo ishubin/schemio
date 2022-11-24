@@ -46,7 +46,7 @@ export function buildAppMenu() {
     {
         label: 'File',
         submenu: [
-            { label: 'Open Project...'},
+            menuItem('file-openProject', 'Open project...', true, 'file:openProject', null),
             menuItem('file-exportStatic', 'Export project...', false, 'file:exportStatic', null),
             { label: 'Import diagram...'},
             { label: 'Export diagram as JSON..'},

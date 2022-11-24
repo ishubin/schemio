@@ -3,6 +3,14 @@
     height: 100%;
     flex-direction: row;
 }
+.elec-app-container .link {
+    text-decoration: none;
+}
+.elec-app-container .link:hover {
+    text-decoration: none;
+    opacity: 0.8;
+}
+
 .elec-navigator {
     border-right: 2px solid #999;
 }
@@ -45,13 +53,35 @@
 
 
 
-.elec-no-project {
+.elec-welcome-panel {
     display: flex;
     justify-content: center;
     align-content: center;
     justify-items: center;
     align-items: center;
 }
+.elec-welcome-container {
+    max-width: 400px;
+}
+.elec-welcome-container h1 {
+    margin-bottom: 5px;
+}
+.elec-welcome-container .welcome-caption {
+    margin-top: 5px;
+    font-size: 22px;
+}
+.elec-welcome-container h1,
+.elec-welcome-container h3,
+.elec-welcome-container .welcome-caption {
+    color: #1d3d7a;
+}
+.elec-welcome-container h3 {
+    margin-bottom: 5px;
+}
+.elec-welcome-container .link {
+    font-size: 15px;
+}
+
 
 .elec-tab-container .elec-tab-wrapper {
     width: 100%;

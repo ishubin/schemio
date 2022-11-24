@@ -73,6 +73,9 @@ export class ObjectService {
         const objectsFile = path.join(projectPath, this.relativeIndexPath);
         return fs.readFile(objectsFile).then(content => {
             return JSON.parse(content);
+        })
+        .catch(err => {
+            return [];
         });
     }
 }
