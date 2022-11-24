@@ -39,9 +39,9 @@ export function createWindow(contextHolder) {
         const docsPrefix = '/docs/';
         if (urlString.startsWith(docsPrefix)) {
             const docId = urlString.substring(docsPrefix.length);
-            const doc  = contextHolder.fromWindow(mainWindow).fileIndex.getDocumentFromIndex(docId);
-            if (doc) {
-                mainWindow.webContents.send('navigator:open', doc.fsPath);
+            const fsPath  = contextHolder.fromWindow(mainWindow).projectService.getDiagramPath(docId);
+            if (fsPath) {
+                mainWindow.webContents.send('navigator:open', fsPath);
             }
             return;
         }

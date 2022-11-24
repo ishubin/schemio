@@ -128,15 +128,10 @@ function initSchemioDiagramFile(originalFile) {
     const history = new History({size: 30});
     fileHistories.set(file.historyId, history);
 
-    try {
-        file.document = JSON.parse(file.content);
-        file.name = file.document.name || 'Unnamed';
-        if (!file.document.items || file.document.items.length === 0) {
-            file.schemeMode = 'edit';
-        }
-    }
-    catch (err) {
-        file.error = 'Failed to read schemio diagram';
+    file.document = file.content;
+    file.name = file.document.name || 'Unnamed';
+    if (!file.document.items || file.document.items.length === 0) {
+        file.schemeMode = 'edit';
     }
 
     enrichSchemeWithDefaults(file.document);

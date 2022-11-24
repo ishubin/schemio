@@ -10,8 +10,8 @@ const electronMediaPrefix = 'media://local/';
  */
 export function createArt(contextHolder) {
     return (event, name, url) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
-        return artService.create(fileIndex, name, url);
+        const projectPath = contextHolder.from(event).projectPath;
+        return artService.create(projectPath, name, url);
     };
 }
 
@@ -21,8 +21,8 @@ export function createArt(contextHolder) {
  */
 export function getAllArt(contextHolder) {
     return (event) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
-        return artService.getAll(fileIndex)
+        const projectPath = contextHolder.from(event).projectPath;
+        return artService.getAll(projectPath)
         .then(art => {
             if (Array.isArray(art)) {
                 art.forEach(artEntry => {
@@ -42,8 +42,8 @@ export function getAllArt(contextHolder) {
  */
 export function saveArt(contextHolder) {
     return (event, artId, name, url) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
-        return artService.save(fileIndex, artId, name, url);
+        const projectPath = contextHolder.from(event).projectPath;
+        return artService.save(projectPath, artId, name, url);
     }
 }
 
@@ -54,7 +54,7 @@ export function saveArt(contextHolder) {
  */
 export function deleteArt(contextHolder) {
     return (event, artId) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
-        return artService.delete(fileIndex, artId);
+        const projectPath = contextHolder.from(event).projectPath;
+        return artService.delete(projectPath, artId);
     }
 }

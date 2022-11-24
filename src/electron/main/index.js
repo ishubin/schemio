@@ -1,9 +1,7 @@
 const { app, BrowserWindow, ipcMain, protocol, shell } = require('electron');
 const path = require('path');
-const { FileIndex } = require('../../common/fs/fileIndex');
-const { ProjectService } = require('../../common/fs/projectService');
 const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
-const { generateUserAgent, ContextHolder } = require('./context');
+const { ContextHolder } = require('./context');
 const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu, showContextMenu } = require('./menu');
@@ -16,9 +14,8 @@ buildAppMenu();
 
 
 const contextHolder = new ContextHolder(data => {
-    data.fileIndex = new FileIndex();
-    data.fileIndex.isElectron = true;
-    data.projectService = new ProjectService(data.fileIndex);
+    data.projectService = null;
+    data.projectPath = null;
 });
 
 
@@ -44,8 +41,8 @@ const mediaUrlPrefix = `${mediaProtocolName}://local/`;
 app.whenReady().then(() => {
     protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
         let url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
-        const fileIndex = contextHolder.fromRequest(request).fileIndex;
-        const fullPath = path.join(fileIndex.rootPath, '.media', url );
+        const projectPath = contextHolder.fromRequest(request).projectPath;
+        const fullPath = path.join(projectPath, '.media', url );
         callback({ path: fullPath});
     });
 

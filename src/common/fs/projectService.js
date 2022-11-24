@@ -2,24 +2,27 @@ import { FileIndex } from "./fileIndex";
 import path from 'path';
 import { schemioExtension } from "./fsUtils";
 import { findEntryInFileTree, traverseFileTree } from "./fileTree";
+import { convertDiagram } from "./diagramConverter";
 const fs = require('fs-extra');
 
 
 export class ProjectService {
-    /**
-     *
-     * @param {FileIndex} fileIndex
-     */
-    constructor(fileIndex) {
-        this.fileIndex = fileIndex;
+    constructor(projectPath, isElectron, mediaPrefixFrom, mediaPrefixTo) {
+        this.fileIndex = new FileIndex(projectPath, isElectron, (filePath) => this.readFile(filePath));
+
+        // uses the following two in order to convert all image references to project media
+        // either from electron to fs or from fs to electron
+        this.mediaPrefixFrom = mediaPrefixFrom;
+        this.mediaPrefixTo = mediaPrefixTo;
+        this.projectPath = projectPath;
     }
 
-    load(projectPath) {
-        return this.fileIndex.reindex(projectPath)
+    load() {
+        return this.fileIndex.reindex()
         .then(() => {
             return {
-                path: projectPath,
-                name: path.basename(projectPath),
+                path: this.projectPath,
+                name: path.basename(this.projectPath),
                 fileTree: this.fileIndex.fileTree
             };
         });
@@ -34,12 +37,18 @@ export class ProjectService {
     }
 
     readFile(filePath) {
-        return fs.readFile(path.join(this.fileIndex.rootPath, filePath), {encoding: 'utf-8'}).then(content => {
+        return fs.readFile(path.join(this.projectPath, filePath), {encoding: 'utf-8'}).then(content => {
             let name = path.basename(filePath);
             let kind = 'file';
             if (name.endsWith(schemioExtension)) {
                 name = name.substring(0, name.length - schemioExtension.length);
                 kind = 'schemio:doc';
+
+                content = JSON.parse(content);
+
+                if (this.mediaPrefixFrom && this.mediaPrefixTo) {
+                    content = convertDiagram(content, this.mediaPrefixFrom, this.mediaPrefixTo);
+                }
             }
             return {
                 path: filePath,
@@ -56,7 +65,7 @@ export class ProjectService {
 
     writeFile(folderPath, filePath, content) {
         const relativePath = folderPath ? path.join(folderPath, filePath) : filePath;
-        const fullPath = path.join(this.fileIndex.rootPath, relativePath);
+        const fullPath = path.join(this.projectPath, relativePath);
         return fs.writeFile(fullPath, content, {encoding: 'utf-8'})
         .then(() => {
             let name = path.basename(filePath);
@@ -100,7 +109,7 @@ export class ProjectService {
         }
 
         const relativePath = parentPath ? path.join(parentPath, name) : name;
-        return fs.mkdir(path.join(this.fileIndex.rootPath, relativePath))
+        return fs.mkdir(path.join(this.projectPath, relativePath))
         .then(() => {
             this.fileIndex.indexFolder(relativePath, name, parentPath);
             return {
@@ -116,7 +125,7 @@ export class ProjectService {
             return Promise.reject(`Invalid name: "${newName}"`);
         }
 
-        const srcPath = path.join(this.fileIndex.rootPath, filePath);
+        const srcPath = path.join(this.projectPath, filePath);
         const dstPath = path.join(path.dirname(srcPath), newName);
         return fs.move(srcPath, dstPath)
         .then(() => this.fileIndex.renameFile(filePath, newName));
@@ -124,12 +133,12 @@ export class ProjectService {
 
     deleteFile(filePath) {
         //TODO delete diagram previews in media
-        return fs.rm(path.join(this.fileIndex.rootPath, filePath))
+        return fs.rm(path.join(this.projectPath, filePath))
         .then(() => this.fileIndex.deleteFile(filePath));
     }
 
     deleteFolder(folderPath) {
-        return fs.rm(path.join(this.fileIndex.rootPath, folderPath), {recursive: true, force: true})
+        return fs.rm(path.join(this.projectPath, folderPath), {recursive: true, force: true})
         .then(() => this.fileIndex.deleteFolder(folderPath));
     }
 
@@ -138,7 +147,7 @@ export class ProjectService {
             return Promise.reject('Name should not be empty');
         }
 
-        const fullPath = path.join(this.fileIndex.rootPath, filePath);
+        const fullPath = path.join(this.projectPath, filePath);
         return fs.readFile(fullPath)
         .then(content => {
             return JSON.parse(content);
@@ -188,10 +197,10 @@ export class ProjectService {
     }
 
     moveFile(filePath, newParentPath) {
-        const srcPath = path.join(this.fileIndex.rootPath, filePath);
+        const srcPath = path.join(this.projectPath, filePath);
         const baseName = path.basename(filePath);
         const newRelativePath = newParentPath ? path.join(newParentPath, baseName) : baseName;
-        const dstPath = path.join(this.fileIndex.rootPath, newRelativePath);
+        const dstPath = path.join(this.projectPath, newRelativePath);
 
         // generating records of all affected files and folders
         // this will be used by the client to correct any open files
@@ -219,7 +228,7 @@ export class ProjectService {
         // But I don't want to bring "path" module dependency to the client side.
 
         return fs.move(srcPath, dstPath)
-        .then(() => this.fileIndex.reindex(this.fileIndex.rootPath))
+        .then(() => this.fileIndex.reindex())
         .then(() => {
             return {movedEntries};
         });
@@ -234,22 +243,21 @@ export class ProjectService {
         if (!doc) {
             return Promise.reject(`Diagram with id "${docId}" does not exist`);
         }
-        const fullPath = path.join(this.fileIndex.rootPath, doc.fsPath);
-
         let folderPath = path.dirname(doc.fsPath);
         if (folderPath === '.') {
             folderPath = null
         }
-
-        return fs.readFile(fullPath, 'utf-8').then(content => {
-            const diagram = JSON.parse(content);
-            diagram.projectLink = '/';
+        return this.readFile(doc.fsPath).then(fileEntry => {
             return {
-                scheme: diagram,
+                scheme: fileEntry.content,
                 folderPath: folderPath,
                 viewOnly: false
             };
         });
+    }
+
+    updateDiagramPreview(docId, previewURL) {
+        this.fileIndex.updatePreviewURL(docId, previewURL);
     }
 }
 

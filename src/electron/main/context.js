@@ -1,4 +1,3 @@
-import { FileIndex } from "../../common/fs/fileIndex";
 import { ProjectService } from "../../common/fs/projectService";
 const userAgentPrefix = 'schemio: ';
 
@@ -6,8 +5,8 @@ const userAgentPrefix = 'schemio: ';
 /**
  * A point on svg path, contains coords + distance on the path that was can be used to calculate this point again
  * @typedef {Object} ContextData
- * @property {FileIndex} fileIndex
  * @property {ProjectService} projectService
+ * @property {String} projectPath
  */
 
 export class ContextHolder {

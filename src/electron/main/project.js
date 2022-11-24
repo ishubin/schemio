@@ -1,8 +1,5 @@
-import { schemioExtension } from '../../common/fs/fsUtils';
+import { ProjectService } from '../../common/fs/projectService';
 import { ContextHolder } from './context';
-
-const path = require('path');
-const fs = require('fs-extra');
 const { dialog } = require('electron');
 
 
@@ -21,7 +18,9 @@ export function openProject(contextHolder) {
                 return;
             } else {
                 const projectPath = filePaths[0];
-                const projectService = contextHolder.from(event).projectService;
+                const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
+                contextHolder.from(event).projectService = projectService;
+                contextHolder.from(event).projectPath = projectPath;
                 return projectService.load(projectPath);
             }
         })

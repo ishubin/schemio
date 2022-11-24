@@ -11,7 +11,7 @@ import { ContextHolder } from "./context";
  */
 export function copyFileToProjectMedia(contextHolder) {
     return (event, filePath, fileName) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
+        const projectPath = contextHolder.from(event).projectPath;
 
         const extension = getFileExtension(fileName).toLowerCase();
         if (!supportedMediaExtensions.has(extension)) {
@@ -26,7 +26,7 @@ export function copyFileToProjectMedia(contextHolder) {
         const id = nanoid(6);
         const mediaFileName = `${fileName}-${id}.${extension}`;
 
-        const mediaStoragePath = path.join(fileIndex.rootPath, mediaFolder);
+        const mediaStoragePath = path.join(projectPath, mediaFolder);
         const folderPath = path.join(mediaStoragePath, firstPart);
         const fullMediaFilePath = path.join(folderPath, mediaFileName);
 
@@ -49,8 +49,8 @@ export function copyFileToProjectMedia(contextHolder) {
 
 export function uploadDiagramPreview(contextHolder) {
     return (event, docId, preview) => {
-        const fileIndex = contextHolder.from(event).fileIndex;
-        const folderPath = path.join(fileIndex.rootPath, mediaFolder, 'previews');
+        const projectPath = contextHolder.from(event).projectPath;
+        const folderPath = path.join(projectPath, mediaFolder, 'previews');
         const previewPath = path.join(folderPath, `${docId}.svg`);
 
         return fs.stat(folderPath).then(stat => {

@@ -6,7 +6,6 @@ import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
 import { folderPathFromPath, mediaFolder, supportedMediaExtensions, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
-import { FileIndex } from '../../common/fs/fileIndex';
 import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
 import { ProjectService } from '../../common/fs/projectService.js';
@@ -396,10 +395,10 @@ export function fsListFilesRoute(config, projectService) {
 /**
  *
  * @param {*} config
- * @param {FileIndex} fileIndex
+ * @param {ProjectService} projectService
  * @returns
  */
-export function fsCreateSchemePreview(config, fileIndex) {
+export function fsCreateSchemePreview(config, projectService) {
     return (req, res) => {
         const svg = req.body.svg;
         if (!svg) {
@@ -415,8 +414,8 @@ export function fsCreateSchemePreview(config, fileIndex) {
 
         schemeId = schemeId.replace(/(\/|\\)/g, '');
 
-        const doc = fileIndex.getDocumentFromIndex(schemeId);
-        if (!doc) {
+        const fsPath = projectService.getDiagramPath(schemeId);
+        if (!fsPath) {
             res.$apiNotFound('Such document does not exist');
             return;
         }
@@ -435,7 +434,7 @@ export function fsCreateSchemePreview(config, fileIndex) {
             return fs.writeFile(fullPathToPreview, svg);
         })
         .then(() => {
-            fileIndex.updatePreviewURL(schemeId, `/media/previews/${schemeId}.svg`);
+            projectService.updateDiagramPreview(schemeId,  `/media/previews/${schemeId}.svg`);
             res.json({
                 status: 'ok'
             });
@@ -518,7 +517,7 @@ export function fsDownloadMediaFile(config) {
     };
 }
 
-export function fsCreateArt(fileIndex) {
+export function fsCreateArt(config) {
     return (req, res) => {
         const art = req.body;
         if (!art.name || !art.url) {
@@ -526,7 +525,7 @@ export function fsCreateArt(fileIndex) {
             return;
         }
 
-        return artService.create(fileIndex, art.name, art.url)
+        return artService.create(config.fs.rootPath, art.name, art.url)
         .then(newArt => {
             res.json(newArt);
         })
@@ -537,7 +536,7 @@ export function fsCreateArt(fileIndex) {
     };
 }
 
-export function fsSaveDeleteArt(fileIndex, isDeletion) {
+export function fsSaveDeleteArt(config, isDeletion) {
     return (req, res) => {
         const artId = req.params.artId;
         let art = null;
@@ -553,9 +552,9 @@ export function fsSaveDeleteArt(fileIndex, isDeletion) {
         let chain = null;
 
         if (isDeletion) {
-            chain = artService.delete(fileIndex, artId);
+            chain = artService.delete(config.fs.rootPath, artId);
         } else {
-            chain = artService.save(fileIndex, art.name, art.url);
+            chain = artService.save(config.fs.rootPath, art.name, art.url);
         }
 
         return chain
@@ -571,9 +570,9 @@ export function fsSaveDeleteArt(fileIndex, isDeletion) {
     };
 }
 
-export function fsGetArt(fileIndex) {
+export function fsGetArt(config) {
     return (req, res) => {
-        return artService.getAll(fileIndex)
+        return artService.getAll(config.fs.rootPath)
         .then(art => {
             if (Array.isArray(art)) {
                 art.forEach(artEntry => {
@@ -590,7 +589,7 @@ export function fsGetArt(fileIndex) {
     };
 }
 
-export function fsSaveStyle(fileIndex) {
+export function fsSaveStyle(config) {
     return (req, res) => {
         const style = req.body;
         if (!style || !style.fill || !style.strokeColor || !style.textColor) {
@@ -598,7 +597,7 @@ export function fsSaveStyle(fileIndex) {
             return;
         }
 
-        styleService.create(fileIndex, style.fill, style.strokeColor, style.textColor)
+        styleService.create(config.fs.rootPath, style.fill, style.strokeColor, style.textColor)
         .then(style => {
             res.json(style);
         })
@@ -609,11 +608,11 @@ export function fsSaveStyle(fileIndex) {
     }
 }
 
-export function fsDeleteStyle(fileIndex) {
+export function fsDeleteStyle(config) {
     return (req, res) => {
         const styleId = req.params.styleId;
 
-        styleService.delete(fileIndex, styleId)
+        styleService.delete(config.fs.rootPath, styleId)
         .then(() => {
             res.json({
                 status: 'ok'
@@ -628,9 +627,9 @@ export function fsDeleteStyle(fileIndex) {
 }
 
 
-export function fsGetStyles(fileIndex) {
+export function fsGetStyles(config) {
     return (req, res) => {
-        styleService.getAll(fileIndex)
+        styleService.getAll(config.fs.rootPath)
         .then(styles => {
             if (Array.isArray(styles)) {
                 styles.forEach(style => {

@@ -9,7 +9,7 @@ const fs = require('fs-extra');
  * @param {BrowserWindow} browserWindow
  */
 export function startElectronProjectExporter(contextData, browserWindow) {
-    const fileIndex = contextData.fileIndex;
+    const projectPath = contextData.projectPath;
 
     dialog.showOpenDialog({
         properties: ['openDirectory', 'createDirectory']
@@ -21,7 +21,7 @@ export function startElectronProjectExporter(contextData, browserWindow) {
         const dstPath = filePaths[0];
 
         browserWindow.webContents.send('file:exportStatic:started');
-        startStaticExporter(fileIndex.rootPath)
+        startStaticExporter(projectPath)
         .then(exporterPath => {
             fs.copy(exporterPath, dstPath, {recursive: true})
             .then(() => {

@@ -6,7 +6,7 @@ import { nanoid } from 'nanoid';
 import path from 'path';
 import { DocumentIndex } from './documentIndex';
 import { addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, renameEntryInFileTree } from './fileTree';
-import { fileNameFromPath, folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
+import { folderPathFromPath, mediaFolder, schemioExtension } from './fsUtils';
 import { walk } from './walk';
 
 /**
@@ -28,11 +28,12 @@ import { walk } from './walk';
 
 
 export class FileIndex {
-    constructor() {
-        this.rootPath = null;
+    constructor(rootPath, isElectron, fileReader) {
+        this.rootPath = rootPath;
         this.fileTree = null;
         this.index = new DocumentIndex();
-        this.isElectron = false;
+        this.isElectron = isElectron;
+        this.fileReader = fileReader;
     }
 
     indexScheme(schemeId, scheme, fsPath, previewURL) {
@@ -157,10 +158,9 @@ export class FileIndex {
      * @param {String} rootPath
      * @returns {Promise}
      */
-    reindex(rootPath) {
-        console.log('Starting reindex in ', rootPath);
-        this.rootPath = rootPath;
-        return createIndexFromScratch(new DocumentIndex(), rootPath, this.isElectron)
+    reindex() {
+        console.log('Starting reindex in ', this.rootPath);
+        return createIndexFromScratch(new DocumentIndex(), this.rootPath, this.isElectron, this.fileReader)
         .then(({index, fileTree}) => {
             this.index = index;
             this.fileTree = fileTree;
@@ -217,7 +217,7 @@ function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
  * @param {String} rootPath
  * @returns
  */
-function createIndexFromScratch(index, rootPath, isElectron) {
+function createIndexFromScratch(index, rootPath, isElectron, fileReader) {
     const fileTree = [];
     const allDirs = new Map();
 
@@ -235,7 +235,7 @@ function createIndexFromScratch(index, rootPath, isElectron) {
         if (relativeFilePath.charAt(0) === '/') {
             relativeFilePath = relativeFilePath.substring(1);
         }
-
+        const fsPath = path.relative(rootPath, filePath);
         if (isDirectory) {
             const dirEntry = {
                 kind: 'dir',
@@ -247,12 +247,9 @@ function createIndexFromScratch(index, rootPath, isElectron) {
             allDirs.set(relativeFilePath, dirEntry);
 
         } else if (filePath.endsWith(schemioExtension)) {
-            return fs.readFile(filePath).then(content => {
-                const scheme = JSON.parse(content);
-                let fsPath = filePath.substring(rootPath.length);
-                if (fsPath.charAt(0) === '/') {
-                    fsPath = fsPath.substring(1);
-                }
+            return fileReader(fsPath).then(file => {
+                const scheme = file.content;
+
                 let schemeId = scheme.id;
 
                 if (!schemeId) {
@@ -286,7 +283,6 @@ function createIndexFromScratch(index, rootPath, isElectron) {
                     const existingDocument = index.getDocument(schemeId);
                     console.warn(`WARNING: Could not index document "${fsPath}" since its id is clashing with "${existingDocument.fsPath}"`);
                 }
-
             })
             .catch(err => {
                 console.error('Failed to index scheme file:' + filePath, err);

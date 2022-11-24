@@ -624,13 +624,8 @@ export default {
         },
 
         deleteScheme() {
-            const projectLink = this.scheme.projectLink;
             this.$store.state.apiClient.deleteScheme(this.scheme.id).then(() => {
-                if (projectLink) {
-                    window.location = projectLink;
-                } else {
-                    window.location = '/';
-                }
+                this.$router.push('/');
             });
         },
 

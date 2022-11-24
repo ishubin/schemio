@@ -21,7 +21,6 @@ import {fsExportDownloadArchive, fsExportStatic, fsExportStatus} from './fs/fsEx
 import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
-import { FileIndex } from '../common/fs/fileIndex.js';
 import { ProjectService } from '../common/fs/projectService.js';
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
@@ -29,9 +28,8 @@ const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 const cwd = process.cwd();
 const config = loadConfig();
 
-const fileIndex = new FileIndex();
-fileIndex.reindex(config.fs.rootPath).then(() => {
-    const projectService = new ProjectService(fileIndex);
+const projectService = new ProjectService(config.fs.rootPath, false, 'media://local/', '/media/');
+projectService.load().then(() => {
     const app = express();
     const modification = false;
     const deletion = true;
@@ -64,25 +62,25 @@ fileIndex.reindex(config.fs.rootPath).then(() => {
         app.patch('/v1/fs/docs/:schemeId', jsonBodyParser, fsPatchScheme(config, projectService));
         app.delete('/v1/fs/docs/:schemeId', jsonBodyParser, fsDeleteScheme(config, projectService));
         app.put('/v1/fs/docs/:schemeId', jsonBodyParser, fsSaveScheme(config, projectService));
-        app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config, fileIndex));
-        app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config, fileIndex));
+        app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config, projectService));
+        app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
 
-        app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(fileIndex));
-        app.get('/v1/fs/art', jsonBodyParser, fsGetArt(fileIndex));
+        app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
+        app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
 
-        app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(fileIndex, modification));
-        app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(fileIndex, deletion));
+        app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
+        app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
 
-        app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(fileIndex));
-        app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(fileIndex));
-        app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(fileIndex));
+        app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
+        app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
+        app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
 
-        app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config, fileIndex));
-        app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config, fileIndex));
-        app.get('/v1/static-export/download/:version', fsExportDownloadArchive(config, fileIndex));
+        app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config));
+        app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config));
+        app.get('/v1/static-export/download/:version', fsExportDownloadArchive(config));
     }
 
-    app.get('/media/*', fsDownloadMediaFile(config, fileIndex));
+    app.get('/media/*', fsDownloadMediaFile(config));
 
 
     app.get('*', (req, res) => {

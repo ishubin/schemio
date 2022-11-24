@@ -3,21 +3,20 @@ import { ObjectService } from "./objectService";
 const artObjectService = new ObjectService('.art.json');
 
 const artService = {
-    create(fileIndex, name, url) {
-        return artObjectService.create(fileIndex.rootPath, {name, url});
+    create(projectPath, name, url) {
+        return artObjectService.create(projectPath, {name, url});
     },
 
-
-    getAll(fileIndex) {
-        return artObjectService.getAll(fileIndex.rootPath);
+    getAll(projectPath) {
+        return artObjectService.getAll(projectPath);
     },
 
-    save(fileIndex, artId, name, url) {
-        return artObjectService.save(fileIndex.rootPath,  artId, {name, url});
+    save(projectPath, artId, name, url) {
+        return artObjectService.save(projectPath,  artId, {name, url});
     },
 
-    delete(fileIndex, artId) {
-        return artObjectService.delete(fileIndex.rootPath,  artId);
+    delete(projectPath, artId) {
+        return artObjectService.delete(projectPath,  artId);
     }
 };
 
