@@ -11,6 +11,7 @@ import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
 import { ProjectService } from '../../common/fs/projectService.js';
 
+const fsMediaPrefix = '/media/';
 const electronMediaPrefix = 'media://local/';
 
 function serverErrorHandler(res, message) {
@@ -577,7 +578,7 @@ export function fsGetArt(fileIndex) {
             if (Array.isArray(art)) {
                 art.forEach(artEntry => {
                     if (artEntry.url && artEntry.url.startsWith(electronMediaPrefix)) {
-                        artEntry.url = '/media/' + artEntry.url.substring(electronMediaPrefix.length);
+                        artEntry.url = fsMediaPrefix + artEntry.url.substring(electronMediaPrefix.length);
                     }
                 });
             }
@@ -626,10 +627,18 @@ export function fsDeleteStyle(fileIndex) {
     }
 }
 
+
 export function fsGetStyles(fileIndex) {
     return (req, res) => {
         styleService.getAll(fileIndex)
         .then(styles => {
+            if (Array.isArray(styles)) {
+                styles.forEach(style => {
+                    if (style && style.fill && style.fill.image && style.fill.image.startsWith(electronMediaPrefix)) {
+                        style.fill.image = fsMediaPrefix + style.fill.image.substring(electronMediaPrefix.length);
+                    }
+                })
+            }
             res.json(styles);
         })
         .catch(err => {
