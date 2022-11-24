@@ -1,7 +1,6 @@
 import StateInteract from '../../src/ui/components/editor/states/StateInteract.js';
 import expect from 'expect';
 
-const EventBus = {};
 const schemeContainer = {
     findItemById(id) {
         return {id};
@@ -10,7 +9,7 @@ const schemeContainer = {
 describe('StateInteract', () => {
 
     it('should handle mousein and mouseout events correctly', () => {
-        const stateInteract = new StateInteract({}, EventBus);
+        const stateInteract = new StateInteract({});
         stateInteract.setSchemeContainer(schemeContainer);
         const invokations = [];
         stateInteract.emit = (element, eventName) => {
@@ -29,7 +28,7 @@ describe('StateInteract', () => {
     });
 
     it('should handle mousein and mouseout events when moving from one object to another', () => {
-        const stateInteract = new StateInteract({}, EventBus);
+        const stateInteract = new StateInteract({});
         stateInteract.setSchemeContainer(schemeContainer);
         const invokations = [];
         stateInteract.emit = (element, eventName) => {

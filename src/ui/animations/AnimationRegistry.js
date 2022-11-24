@@ -6,22 +6,123 @@ import forEach from 'lodash/forEach';
 // desired delta time between loop cycles in milliseconds
 const DESIRED_DELTA_TIME = 16;
 
-let animationsEnabled = true;
-let isAlreadyLooping = false;
-const animations = [];
+// storing all animation registries in global Map so tat Vue does not make it reactive
+// Can't figure out a better way to do this.
+const animationRegistries = new Map();
 
 
-function loopCycle(timeMarker, deltaTime) {
-    if (animations.length === 0) {
+class AnimationRegistry {
+    constructor() {
+        this.animationsEnabled = true;
+        this.isAlreadyLooping = false;
+        this.animations = [];
+    }
+
+    /**
+     *
+     * @param {Animation} animation
+     * @param {String} entityId Id of an item. It is needed in order to be able to stop all animations for a specific item
+     * @param {String} animationId Id of animation. It is used to avoid race conditions when same animations are played in parallel for the same item
+     */
+    play(animation, entityId, animationId) {
+        // checking whether such animation already exists
+        // this can be a case for frame player
+        // instead of linear search this could be optimized by using a map of animation ids
+        // but I don't think we are going to be using that many animations at the same time,
+        // so it's fine like this for now
+        for (let i = 0; i < this.animations.length; i++) {
+            if (this.animations[i].id === animation.id) {
+                this.animations[i].enabled = false;
+                try {
+                    this.animations[i].enabled = false;
+                } catch (err) {
+                    console.error(err);
+                    this.animations[i].destroy();
+                }
+                this.animations.splice(i, 1);
+                break;
+            }
+        }
+
+        animation.entityId = entityId;
+        animation.animationId = animationId;
+
+        if (animationId) {
+            stopSimilarAnimationForItem(this, entityId, animationId);
+        }
+
+        let success = false;
+        try {
+            animation.enabled = true;
+            success = animation.init();
+        } catch(e) {
+            console.error('Could not initialize animation', e);
+        }
+        if (success) {
+            this.animations.push(animation);
+            startAnimationLoop(this);
+        } else {
+            try {
+                animation.destroy();
+            } catch(err) {
+                console.error(err);
+            }
+        }
+    }
+
+    stopAllAnimations() {
+        const animations = this.animations;
+        this.animations = [];
+        forEach(animations, animation => {
+            try {
+                animation.destroy();
+            } catch(err) {
+                console.error(err);
+            }
+        });
+    }
+
+    disableAnimations() {
+        this.animationsEnabled = false;
+    }
+
+    enableAnimations() {
+        this.animationsEnabled = true;
+    }
+
+    stopAllAnimationsForEntity(entityId) {
+        forEach(this.animations, animation => {
+            if (animation.entityId === entityId) {
+                animation.enabled = false;
+                try {
+
+                } catch(err) {
+                    console.error(err);
+                    animation.destroy();
+                }
+            }
+        });
+    }
+}
+
+/**
+ *
+ * @param {AnimationRegistry} registry
+ * @param {*} timeMarker
+ * @param {*} deltaTime
+ * @returns
+ */
+function loopCycle(registry, timeMarker, deltaTime) {
+    if (registry.animations.length === 0) {
         // stopping the empty loop as it does not make sense since there are no animations
-        isAlreadyLooping = false;
+        registry.isAlreadyLooping = false;
         return;
     }
 
-    if (animationsEnabled) {
+    if (registry.animationsEnabled) {
         let i = 0;
-        while (i < animations.length) {
-            let animation = animations[i];
+        while (i < registry.animations.length) {
+            let animation = registry.animations[i];
             let status = true;
             try {
                 if (animation.enabled) {
@@ -39,7 +140,7 @@ function loopCycle(timeMarker, deltaTime) {
                 } catch(e) {
                     console.error(e);
                 }
-                animations.splice(i, 1);
+                registry.animations.splice(i, 1);
             } else {
                 i += 1;
             }
@@ -47,94 +148,78 @@ function loopCycle(timeMarker, deltaTime) {
 
         window.requestAnimationFrame(() => {
             const nextTimeMarker = performance.now();
-            loopCycle(nextTimeMarker, nextTimeMarker - timeMarker);
+            loopCycle(registry, nextTimeMarker, nextTimeMarker - timeMarker);
         });
     } else {
-        isAlreadyLooping = false;
+        registry.isAlreadyLooping = false;
     }
 }
 
-function startAnimationLoop() {
-    if (animationsEnabled && !isAlreadyLooping) {
-        isAlreadyLooping = true;
-        window.requestAnimationFrame(() => loopCycle(performance.now(), DESIRED_DELTA_TIME));
+/**
+ *
+ * @param {AnimationRegistry} registry
+ */
+function startAnimationLoop(registry) {
+    if (registry.animationsEnabled && !registry.isAlreadyLooping) {
+        registry.isAlreadyLooping = true;
+        window.requestAnimationFrame(() => loopCycle(registry, performance.now(), DESIRED_DELTA_TIME));
     }
 }
 
 
-function stopSimilarAnimationForItem(entityId, animationId) {
-    forEach(animations, animation => {
+/**
+ *
+ * @param {AnimationRegistry} registry
+ * @param {*} entityId
+ * @param {*} animationId
+ */
+function stopSimilarAnimationForItem(registry, entityId, animationId) {
+    forEach(registry.animations, animation => {
         if (animation.entityId === entityId && animation.animationId === animationId) {
             animation.enabled = false;
         }
     });
 }
 
-export default {
-    /**
-     *
-     * @param {Animation} animation
-     * @param {String} entityId Id of an item. It is needed in order to be able to stop all animations for a specific item
-     * @param {String} animationId Id of animation. It is used to avoid race conditions when same animations are played in parallel for the same item
-     */
-    play(animation, entityId, animationId) {
-        // checking whether such animation already exists
-        // this can be a case for frame player
-        // instead of linear search this could be optimized by using a map of animation ids
-        // but I don't think we are going to be using that many animations at the same time,
-        // so it's fine like this for now
-        for (let i = 0; i < animations.length; i++) {
-            if (animations[i].id === animation.id) {
-                animations.enabled = false;
-                animations.splice(i, 1);
-                break;
-            }
-        }
-
-        animation.entityId = entityId;
-        animation.animationId = animationId;
-
-        if (animationId) {
-            stopSimilarAnimationForItem(entityId, animationId);
-        }
-
-        let success = false;
-        try {
-            animation.enabled = true;
-            success = animation.init();
-        } catch(e) {
-            console.error('Could not initialize animation', e);
-        }
-        if (success) {
-            animations.push(animation);
-            startAnimationLoop();
-        } else {
-            animation.destroy();
-        }
-    },
 
 
-    stopAllAnimations() {
-        const animations = this.animations;
-        this.animations = [];
-        forEach(animations, animation => {
-            animation.destroy();
-        });
-    },
+/**
+ *
+ * @param {String} editorId
+ * @returns {AnimationRegistry}
+ */
+export function createAnimationRegistry(editorId) {
+    if (animationRegistries.has(editorId)) {
+        return animationRegistries.get(editorId);
+    }
 
-    disableAnimations() {
-        animationsEnabled = false;
-    },
+    const registry = new AnimationRegistry();
+    animationRegistries.set(editorId, registry);
+    return registry;
+}
 
-    enableAnimations() {
-        animationsEnabled = true;
-    },
+export function playInAnimationRegistry(editorId, animation, entityId, animationId) {
+    const registry = animationRegistries.get(editorId);
+    if (!registry) {
+        return;
+    }
 
-    stopAllAnimationsForEntity(entityId) {
-        forEach(animations, animation => {
-            if (animation.entityId === entityId) {
-                animation.enabled = false;
-            }
-        });
-    },
-};
+    registry.play(animation, entityId, animationId);
+}
+
+export function stopAllAnimationsForEntityInAnimationRegistry(editorId, entityId) {
+    const registry = animationRegistries.get(editorId);
+    if (!registry) {
+        return;
+    }
+
+    registry.stopAllAnimationsForEntity(entityId);
+}
+
+export function destroyAnimationRegistry(editorId) {
+    if (animationRegistries.has(editorId)) {
+        const registry = animationRegistries.get(editorId);
+        registry.stopAllAnimations();
+        animationRegistries.delete(editorId);
+    }
+}

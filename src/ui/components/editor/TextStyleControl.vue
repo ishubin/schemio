@@ -1,6 +1,6 @@
 <template>
     <div class="text-style-control">
-        <div v-if="supportsTextSlots" 
+        <div v-if="supportsTextSlots"
             class="text-style-control-toggle-button"
             :style="{'border-bottom': `4px solid ${textColor}`}"
             @click="toggleDropdown"
@@ -52,22 +52,23 @@ import NumberTextfield from '../NumberTextfield.vue';
 import Dropdown from '../Dropdown.vue';
 import { getAllFonts, getDefaultFont } from '../../scheme/Fonts';
 import map from 'lodash/map';
-import EventBus from './EventBus';
+import EditorEventBus from './EditorEventBus';
 
 export default {
     props: {
+        editorId: {type: String, required: true},
         item: {type: Object, required: true},
     },
 
     components: {'color-picker': VueColor.Sketch, NumberTextfield, Dropdown},
 
     beforeMount() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChange);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChange);
         document.body.addEventListener('click', this.onBodyClick);
     },
 
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChange);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChange);
         document.body.removeEventListener('click', this.onBodyClick);
     },
 

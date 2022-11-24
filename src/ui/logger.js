@@ -129,7 +129,7 @@ class Logger {
             console.error(`Could not measure time in ${this.name}. Missing timer ${timerName} initialisation`);
         }
     }
-    
+
     // used by event bus
     infoEvent(eventName, args) {
         const settings = LogConfig.loggers[this.name];

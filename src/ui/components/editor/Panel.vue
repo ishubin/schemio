@@ -9,7 +9,7 @@
             @click="togglePanel">
             {{name}}
         </div>
-        <span v-if="closable" class="panel-close" @click="$emit('close')"><i class="fas fa-times"/></span>
+        <span v-if="closable" class="panel-close" @click="$emit('close')"><i class="fas fa-times"></i></span>
         <div class="panel-body" v-if="isOpen">
             <slot></slot>
         </div>

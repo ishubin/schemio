@@ -19,6 +19,7 @@ describe('UserEvents Compiler', () => {
             id: 'abc'
         };
         const schemeContainer = {
+            editorId: 1,
             findElementsBySelector(selector, selfItem2) {
                 if (selector === 'self') {
                     return [ selfItem2 ];
@@ -78,6 +79,7 @@ describe('UserEvents Compiler', () => {
             opacity: 1.0
         }];
         const schemeContainer = {
+            editorId: 1,
             findElementsBySelector(selector, selfItem) {
                 if (selector === 'tag: my-group') {
                     return [items[0], items[1]];

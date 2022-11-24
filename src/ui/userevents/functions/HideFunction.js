@@ -1,9 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation  from '../../animations/ValueAnimation';
-import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 export default {
     name: 'Hide',
@@ -30,16 +30,16 @@ export default {
         }
         const initialOpacity = item.opacity;
         if (args.animated) {
-            AnimationRegistry.play(new ValueAnimation({
+            playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
                 durationMillis: args.animationDuration * 1000.0,
                 animationType: args.transition,
                 update(t) {
                     item.opacity = initialOpacity  * (1.0 - t);
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 },
                 destroy() {
                     item.visible = false;
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                     if (!args.inBackground) {
                         resultCallback();
                     }

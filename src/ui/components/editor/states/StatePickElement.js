@@ -5,9 +5,8 @@
 import State from './State.js';
 
 export default class StatePickElement extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'connecting';
+    constructor(store, listener) {
+        super(store, 'connecting', listener);
         this.elementPickCallback = null;
         this.highlightedItemId = null;
     }
@@ -44,14 +43,14 @@ export default class StatePickElement extends State {
     highlightItem(item) {
         if (item.id !== this.highlightedItemId) {
             this.highlightedItemId = item.id;
-            this.eventBus.emitItemsHighlighted([item.id]);
+            this.listener.onItemsHighlighted({itemIds: [item.id], showPins: false});
         }
     }
 
     resetHighlight() {
         if (this.highlightedItemId) {
             this.highlightedItemId = null;
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         }
     }
 };

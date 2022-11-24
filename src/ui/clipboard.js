@@ -23,9 +23,9 @@ export function getTextFromClipboard() {
 }
 
 /**
- * 
- * @param {String} kind 
- * @param {Object} data 
+ *
+ * @param {String} kind
+ * @param {Object} data
  * @returns {Promise}
  */
 export function copyObjectToClipboard(kind, data) {
@@ -33,8 +33,8 @@ export function copyObjectToClipboard(kind, data) {
 }
 
 /**
- * 
- * @param {String} kind 
+ *
+ * @param {String} kind
  * @returns {Promise}
  */
 export function getObjectFromClipboard(kind) {

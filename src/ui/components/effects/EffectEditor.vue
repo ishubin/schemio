@@ -12,6 +12,7 @@
                     </td>
                     <td class="value" width="50%" :colspan="arg.type === 'color-matrix' ? 2 : 1">
                         <PropertyInput
+                            :editorId="editorId"
                             :descriptor="arg"
                             :value="effectArgs[argName]"
                             :schemeContainer="schemeContainer"
@@ -33,7 +34,7 @@ import Tooltip from '../Tooltip.vue';
 import {findEffect} from './Effects';
 
 export default {
-    props: ['effectId', 'effectArgs', 'schemeContainer'],
+    props: ['editorId', 'effectId', 'effectArgs', 'schemeContainer'],
 
     components: {PropertyInput, Tooltip},
 

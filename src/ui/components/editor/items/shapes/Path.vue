@@ -5,7 +5,7 @@
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-        <path :d="shapePath" 
+        <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             style="stroke-linejoin: round;"
             :stroke="item.shapeProps.strokeColor"
@@ -25,12 +25,12 @@
 <script>
 import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
-import EventBus from '../../EventBus';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 import { computeCurvePath } from './StandardCurves';
+import EditorEventBus from '../../EditorEventBus';
 
 const log = new Logger('Path');
 
@@ -54,9 +54,9 @@ function computePath(item) {
 
 /**
  * Takes points of the path and simplifies them (tries to delete as many points as possible)
- * @property {Array} points - points of the path 
+ * @property {Array} points - points of the path
  * @property {Number} epsilon - minimum distance of the points to keep (used in Ramer-Douglas-Peucker algorithm)
- * @returns {Array} simplified path points 
+ * @returns {Array} simplified path points
  */
 export function simplifyPathPoints(points, epsilon) {
     if (!epsilon) {
@@ -93,10 +93,10 @@ export function simplifyPathPoints(points, epsilon) {
 }
 
 /**
- * @property {Item} item 
- * @property {Object} schemeContainer 
- * @property {Boolean} isSoft 
- * @property {ItemModificationContext} context 
+ * @property {Item} item
+ * @property {Object} schemeContainer
+ * @property {Boolean} isSoft
+ * @property {ItemModificationContext} context
  * @property {Number} precision - number of digits after point which it should round to
  */
 function readjustItem(item, schemeContainer, isSoft, context, precision) {
@@ -133,7 +133,7 @@ function getSnappers(item) {
 
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
     components: {AdvancedFill},
 
     shapeConfig: {
@@ -153,7 +153,7 @@ export default {
 
         /**
          * Disabling any text slots for path items. Otherwise users will be confused when they double click on it in edit mode.
-         */ 
+         */
         getTextSlots() {
             return [];
         },
@@ -180,10 +180,10 @@ export default {
     },
 
     mounted() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChange);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChange);
     },
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChange);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChange);
     },
 
     data() {

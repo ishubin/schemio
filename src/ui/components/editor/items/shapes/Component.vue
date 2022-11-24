@@ -78,11 +78,11 @@
 import {getStandardRectPins} from './ShapeDefaults'
 import StrokePattern from '../StrokePattern.js';
 import AdvancedFill from '../AdvancedFill.vue';
-import EventBus from '../../EventBus';
 import {generateTextStyle} from '../../text/ItemText';
 import htmlSanitize from '../../../../../htmlSanitize';
 import myMath from '../../../../myMath';
 import shortid from 'shortid';
+import EditorEventBus from '../../EditorEventBus';
 
 
 const computePath = (item) => {
@@ -198,7 +198,7 @@ export function generateComponentGoBackButton(componentItem, containerArea, curr
 }
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
     components: {AdvancedFill},
 
     shapeConfig: {
@@ -345,21 +345,23 @@ export default {
     },
 
     beforeMount() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
-        EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onAnyComponentLoadRequested);
-        EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onAnyComponentLoadFailed);
-        EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onAnyComponentMounted);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
+
+        EditorEventBus.component.loadRequested.specific.$on(this.editorId, this.item.id, this.onComponentLoadRequested);
+        EditorEventBus.component.loadFailed.specific.$on(this.editorId, this.item.id, this.onComponentLoadFailed);
+        EditorEventBus.component.mounted.specific.$on(this.editorId, this.item.id, this.onComponentMounted);
     },
 
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
-        EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onAnyComponentLoadRequested);
-        EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onAnyComponentLoadFailed);
-        EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onAnyComponentMounted);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
+
+        EditorEventBus.component.loadRequested.specific.$off(this.editorId, this.item.id, this.onComponentLoadRequested);
+        EditorEventBus.component.loadFailed.specific.$off(this.editorId, this.item.id, this.onComponentLoadFailed);
+        EditorEventBus.component.mounted.specific.$off(this.editorId, this.item.id, this.onComponentMounted);
     },
 
     data() {
@@ -378,7 +380,7 @@ export default {
     methods: {
         onLoadSchemeClick() {
             this.isLoading = true;
-            EventBus.emitComponentLoadRequested(this.item);
+            EditorEventBus.component.loadRequested.specific.$emit(this.editorId, this.item.id, this.item);
         },
         onItemChanged() {
             if (this.item._childItems && this.item._childItems.length > 0) {
@@ -415,14 +417,10 @@ export default {
             return style;
         },
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = slotName;
-            }
+            this.hideTextSlot = slotName;
         },
         onItemTextSlotEditCanceled(item, slotName) {
-            if (item.id === this.item.id) {
-                this.hideTextSlot = null;
-            }
+            this.hideTextSlot = null;
         },
         onButtonMouseOver() {
             this.buttonHovered = true;
@@ -432,20 +430,14 @@ export default {
             this.buttonHovered = false;
             this.$forceUpdate();
         },
-        onAnyComponentLoadRequested(item) {
-            if (this.item.id === item.id) {
-                this.isLoading = true;
-            }
+        onComponentLoadRequested() {
+            this.isLoading = true;
         },
-        onAnyComponentLoadFailed(item) {
-            if (this.item.id === item.id) {
-                this.isLoading = false;
-            }
+        onComponentLoadFailed() {
+            this.isLoading = false;
         },
-        onAnyComponentMounted(item) {
-            if (this.item.id === item.id) {
-                this.isLoading = false;
-            }
+        onComponentMounted() {
+            this.isLoading = false;
         },
 
         resetFailureMessage() {

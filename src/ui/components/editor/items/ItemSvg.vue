@@ -19,6 +19,7 @@
                 v-if="shouldBeDrawn && shapeComponent && item.visible"
                 :is="shapeComponent"
                 :item="item"
+                :editorId="editorId"
                 :mode="mode"
                 :style="{'opacity': item.selfOpacity/100.0}"
                 @custom-event="onShapeCustomEvent"
@@ -78,6 +79,7 @@
                 v-if="childItem.visible"
                 :key="`${childItem.id}-${childItem.shape}-${item.meta.revision}`"
                 :item="childItem"
+                :editorId="editorId"
                 :patchIndex="patchIndex"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
@@ -135,6 +137,7 @@
                 v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
                 :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
+                :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"
                 :patchIndex="patchIndex"
                 :mode="mode"
@@ -150,6 +153,7 @@
                 v-if="childItem.visible && childItem.shape !== 'hud'"
                 :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
+                :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"
                 :mode="mode"
                 @custom-event="$emit('custom-event', arguments[0])"
@@ -163,13 +167,13 @@
 import AdvancedFill from './AdvancedFill.vue';
 import StrokePattern from './StrokePattern.js';
 import Shape from './shapes/Shape.js';
-import EventBus from '../EventBus.js';
 import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
 import forEach from 'lodash/forEach';
 import { findEffect } from '../../effects/Effects';
 import myMath from '../../../myMath';
+import EditorEventBus from '../EditorEventBus';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -214,6 +218,7 @@ function hasStrokeSizeProp(shape) {
 export default {
     name: 'ItemSvg',
     props: {
+        editorId            : {type: String, required: true},
         item                : {type: Object},
         mode                : {type: String},
         patchIndex          : {type: Object, default: null},
@@ -224,9 +229,9 @@ export default {
 
     mounted() {
         this.switchShape(this.item.shape);
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         const shape = Shape.find(this.item.shape);
         if (shape && shape.shapeEvents.mounted) {
@@ -237,9 +242,9 @@ export default {
     },
 
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_CANCELED, this.onItemTextSlotEditCanceled);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
+        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
 
     data() {
@@ -396,13 +401,11 @@ export default {
         },
 
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            if (item.id === this.item.id) {
-                this.hiddenTextSlotName = slotName;
-            }
+            this.hiddenTextSlotName = slotName;
         },
 
         onItemTextSlotEditCanceled(item, slotName) {
-            if (item.id === this.item.id && this.hiddenTextSlotName === slotName) {
+            if (this.hiddenTextSlotName === slotName) {
                 this.hiddenTextSlotName = null;
             }
         },

@@ -4,12 +4,12 @@
 import forEach from 'lodash/forEach';
 import Shape from '../components/editor/items/shapes/Shape';
 import utils from '../utils';
-import EventBus from '../components/editor/EventBus';
 import { convertTime, Interpolations } from './ValueAnimation';
 import { encodeColor, parseColor } from '../colors';
 import Animation from './Animation';
 import { knownBlendModes } from '../scheme/ItemConst';
 import AnimationFunctions from './functions/AnimationFunctions';
+import EditorEventBus from '../components/editor/EditorEventBus';
 
 
 const NUMBER = 'number';
@@ -43,8 +43,8 @@ const knownSchemeProperties = new Map([
 
 /**
  * Finds supported scheme property descriptor for specified path
- * @param {String} propertyPath 
- * @returns 
+ * @param {String} propertyPath
+ * @returns
  */
 export function findSchemePropertyDescriptor(propertyPath) {
     return knownSchemeProperties.get(propertyPath);
@@ -53,9 +53,9 @@ export function findSchemePropertyDescriptor(propertyPath) {
 
 /**
  * Find a property descriptor for specified property path. In case the type is not supported for animations it returns null
- * @param {Item} item 
- * @param {String} propertyPath 
- * @returns 
+ * @param {Item} item
+ * @param {String} propertyPath
+ * @returns
  */
 export function findItemPropertyDescriptor(item, propertyPath) {
     const descriptor = knownProperties.get(propertyPath);
@@ -167,7 +167,7 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
         let d = nextFrame.frame - prevFrame.frame;
         if (d > 0 && frameNum >= prevFrame.frame && frameNum <= nextFrame.frame) {
             const t = convertTime((frameNum - prevFrame.frame) / d, prevFrame.kind);
-            
+
             return interpolateValue(propertyType, prevFrame.value, nextFrame.value, t);
         }
     }
@@ -175,7 +175,7 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
 }
 
 
-function creatObjectFrameAnimation(obj, propertyPath, propertyDescriptor, frames, totalFrames, isItem) {
+function creatObjectFrameAnimation(editorId, obj, propertyPath, propertyDescriptor, frames, totalFrames, isItem) {
     if (!propertyDescriptor) {
         return null;
     }
@@ -218,7 +218,7 @@ function creatObjectFrameAnimation(obj, propertyPath, propertyDescriptor, frames
 
             utils.setObjectProperty(obj, fields, value);
             if (isItem) {
-                EventBus.emitItemChanged(obj.id);
+                EditorEventBus.item.changed.specific.$emit(editorId, obj.id);
             }
         }
     };
@@ -313,13 +313,13 @@ function compileAnimationFunctions(framePlayer, functionAnimationTracks, schemeC
             animations.push(animation);
         }
     });
-    
+
     return animations;
 }
 
 export function compileAnimations(framePlayer, schemeContainer) {
     const animations = [];
-    
+
     const functionAnimationTracks = {};
 
     forEach(framePlayer.shapeProps.animations, animation => {
@@ -327,7 +327,7 @@ export function compileAnimations(framePlayer, schemeContainer) {
             const item = schemeContainer.findItemById(animation.id);
             if (item) {
                 const propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
-                const itemAnimation = creatObjectFrameAnimation(item, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, true);
+                const itemAnimation = creatObjectFrameAnimation(schemeContainer.editorId, item, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, true);
                 if (itemAnimation) {
                     animations.push(itemAnimation);
                 }
@@ -339,7 +339,7 @@ export function compileAnimations(framePlayer, schemeContainer) {
             functionAnimationTracks[animation.id][animation.property] = animation;
         } else if (animation.kind === 'scheme') {
             const propertyDescriptor = findSchemePropertyDescriptor(animation.property);
-            const schemeAnimation = creatObjectFrameAnimation(schemeContainer.scheme, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, false);
+            const schemeAnimation = creatObjectFrameAnimation(schemeContainer.editorId, schemeContainer.scheme, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, false);
             if (schemeAnimation) {
                 animations.push(schemeAnimation);
             }
@@ -405,7 +405,7 @@ export class FrameAnimation extends Animation {
             this.toggleFrame(this.stopFrame);
             return false;
         }
-        
+
         this.toggleFrame(frame);
 
         if (nextFrame < this.totalFrames) {

@@ -5,7 +5,6 @@
 import State from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
-import EventBus from '../EventBus.js';
 import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 
@@ -18,18 +17,16 @@ This state works as dragging the screen, zooming, selecting elements
 */
 class StateInteract extends State {
     /**
-     * 
-     * @param {EventBus} EventBus 
-     * @param {UserEventBus} userEventBus 
+     *
+     * @param {UserEventBus} userEventBus
      */
-    constructor(eventBus, store, userEventBus) {
-        super(eventBus, store);
-        this.name = 'interact';
+    constructor(store, userEventBus, listener) {
+        super(store,  'interact', listener);
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
         this.originalZoom = 1.0;
-        
+
         // used in order to track whether mousein or mouseout event can be produced
         this.currentHoveredItem = null;
         this.hoveredItemIds = new Set();
@@ -59,9 +56,11 @@ class StateInteract extends State {
 
     keyPressed(key, keyOptions) {
         if (key === Keys.MINUS) {
-            this.zoomOutByKey();
+            this.zoomOut();
         } else if (key === Keys.EQUALS) {
-            this.zoomInByKey();
+            this.zoomIn();
+        } else if (key === Keys.CTRL_ZERO) {
+            this.resetZoom();
         }
     }
 
@@ -69,14 +68,14 @@ class StateInteract extends State {
         if (this.startedDragging && this.initialClickPoint) {
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item) {
-                    this.eventBus.$emit(EventBus.ANY_ITEM_CLICKED, object.item);
+                    this.listener.onItemClicked(object.item);
                     this.emit(object.item, CLICKED);
                     this.handleItemClick(object.item, mx, my);
                 } else {
                     // checking whether user clicked on the item link or not
                     // if it was item link - then we don't want to remove them from DOM
                     if (!event.target || !event.target.closest('.item-link')) {
-                        this.eventBus.$emit(EventBus.VOID_CLICKED);
+                        this.listener.onVoidClicked();
                     }
                 }
             }
@@ -100,13 +99,13 @@ class StateInteract extends State {
 
     handleItemClick(item, mx, my) {
         if (item.links && item.links.length > 0) {
-            this.eventBus.$emit(EventBus.ITEM_LINKS_SHOW_REQUESTED, item);
+            this.listener.onItemLinksShowRequested(item);
         }
         if (hasItemDescription(item)) {
             if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                this.eventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
+                this.listener.onItemSidePanelRequested(item);
             } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                this.eventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, mx, my);
+                this.listener.onItemTooltipRequested(item, mx, my);
             }
         }
     }
@@ -145,7 +144,7 @@ class StateInteract extends State {
                         this.sendItemEventById(itemId, MOUSE_OUT);
                     }
                 });
-                
+
                 allNewIds.forEach(itemId => {
                     if (!this.hoveredItemIds.has(itemId)) {
                         this.hoveredItemIds.add(itemId);

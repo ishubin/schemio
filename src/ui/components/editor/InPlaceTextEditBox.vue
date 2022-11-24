@@ -18,17 +18,18 @@
 import htmlSanitize from '../../../htmlSanitize';
 import utils from '../../utils';
 import RichTextEditor from '../RichTextEditor.vue';
-import EventBus from './EventBus';
 import { Keys, identifyKeyPress } from '../../events';
 import { Editor, EditorContent } from 'tiptap';
 import {
     Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem,
     TodoItem, TodoList, Bold, Code, Italic, Strike, Underline, History,
 } from 'tiptap-extensions';
+import EditorEventBus from './EditorEventBus';
 
 
 export default {
     props: {
+        editorId       : {type: String, required: true},
         item           : {type: Object},
         slotName       : {type: String},
         area           : {type: Object},
@@ -36,7 +37,7 @@ export default {
         cssStyle       : {type: Object},
         zoom           : {type: Number},
         creatingNewItem: {type: Boolean},
-        scalingVector  : {type: Number},
+        scalingVector  : {type: Object},
         markupDisabled : {type: Boolean, default: false}
     },
     components: {RichTextEditor, EditorContent},
@@ -44,14 +45,14 @@ export default {
     beforeMount() {
         document.addEventListener('mousedown', this.outsideClickListener);
         document.addEventListener('keydown', this.onKeyDown);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
+        EditorEventBus.textSlot.moved.$on(this.editorId, this.closeEditBox);
         this.init();
     },
 
     beforeDestroy() {
         document.removeEventListener('mousedown', this.outsideClickListener);
         document.removeEventListener('keydown', this.onKeyDown);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_MOVED, this.closeEditBox);
+        EditorEventBus.textSlot.moved.$off(this.editorId, this.closeEditBox);
     },
 
     mounted() {
@@ -72,7 +73,7 @@ export default {
         init() {
             if (!this.markupDisabled) {
                 this.editor = this.createEditor(this.text);
-                EventBus.emitItemInPlaceTextEditorCreated(this.editor);
+                EditorEventBus.inPlaceTextEditor.created.$emit(this.editorId, this.editor);
             }
         },
 

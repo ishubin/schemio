@@ -90,7 +90,7 @@ export default {
                 return;
             }
             this.selectedPath = path;
-            
+
             this.$forceUpdate();
 
             this.loadEntries();
@@ -101,7 +101,7 @@ export default {
                 this.apiClient.moveDir(this.source.path, path).then(() => {
                     this.$emit('moved');
                 });
-            } else if (this.source.kind === 'scheme') {
+            } else if (this.source.kind === 'schemio:doc') {
                 this.apiClient.moveScheme(this.source.id, path).then(() => {
                     this.$emit('moved');
                 });

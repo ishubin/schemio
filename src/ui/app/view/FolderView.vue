@@ -51,7 +51,7 @@
                                 <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
-                                <router-link class="entry-link" v-else-if="entry.kind === 'scheme'" :to="`/docs/${entry.id}`">
+                                <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`/docs/${entry.id}`">
                                     <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
                                     <span class="entry-link-text">{{entry.name}}</span>
@@ -101,7 +101,6 @@
             </modal>
 
             <CreateNewSchemeModal v-if="newSchemeModal.shown"
-                :apiClient="apiClient"
                 @scheme-submitted="onSchemeSubmitted"
                 @close="newSchemeModal.shown = false"
             />
@@ -117,7 +116,6 @@
 </template>
 
 <script>
-import { createApiClientForType } from '../apiClient';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import Modal from '../../components/Modal.vue';
@@ -127,7 +125,7 @@ import MoveToFolderModal from '../components/MoveToFolderModal.vue';
 
 
 function isValidCharCode(code) {
-    return (code >= 48 && code <= 57) 
+    return (code >= 48 && code <= 57)
         || (code >= 65 && code <= 90)
         || (code >= 97 && code <= 122)
         || code === 32
@@ -139,10 +137,10 @@ export default {
     components: {Modal, CreateNewSchemeModal, MenuDropdown, MoveToFolderModal},
 
     props: {
-        apiClientType  : {type: String, default: 'fs'},
+        clientProvider : {type: Object, required: true},
         toolbarShown   : {type: Boolean, default: true},
     },
-    
+
     beforeMount() {
         this.loadNextPage();
     },
@@ -270,7 +268,7 @@ export default {
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete directory';
                 });
-            } else if (entry.kind === 'scheme') {
+            } else if (entry.kind === 'schemio:doc') {
                 this.apiClient.deleteScheme(entry.id).then(() => {
                     window.location.reload();
                 })
@@ -318,7 +316,7 @@ export default {
                         this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this directory';
                     }
                 });
-            } else if (this.renameEntryModal.kind === 'scheme') {
+            } else if (this.renameEntryModal.kind === 'schemio:doc') {
                 this.apiClient.renameScheme(this.entries[this.renameEntryModal.entryIdx].id, this.renameEntryModal.name).then(() => {
                     this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
                     this.renameEntryModal.shown = false;
@@ -354,7 +352,7 @@ export default {
 
         loadNextPage() {
             this.isLoading = true;
-            createApiClientForType(this.apiClientType)
+            this.clientProvider.create()
             .then(apiClient => {
                 this.$store.dispatch('setApiClient', apiClient);
                 this.apiClient = apiClient;
@@ -402,7 +400,7 @@ export default {
                         event: 'move'
                     }];
 
-                    if (entry.kind === 'scheme') {
+                    if (entry.kind === 'schemio:doc') {
                         entry.encodedTime = encodeURIComponent(new Date(entry.modifiedTime).getTime());
                     }
                 });
@@ -426,7 +424,7 @@ export default {
         renameEntryModalTitle() {
             if (this.renameEntryModal.kind === 'dir') {
                 return 'Rename directory';
-            } else if (this.renameEntryModal.kind === 'scheme') {
+            } else if (this.renameEntryModal.kind === 'schemio:doc') {
                 return 'Rename scheme';
             }
             return 'Rename';

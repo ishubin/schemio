@@ -89,11 +89,11 @@
 <script>
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
-import EventBus from './EventBus';
 import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';
 import { createSettingStorageFromLocalStorage } from '../../LimitedSettingsStorage';
+import EditorEventBus from './EditorEventBus';
 
 const settingsStorage = createSettingStorageFromLocalStorage('item-selector', 5);
 
@@ -110,18 +110,22 @@ function visitItems(items, parentItem, callback) {
 }
 
 export default {
-    props: ['schemeContainer', 'minHeight'],
+    props: {
+        editorId: {type: String, required: true},
+        schemeContainer: {type: Object},
+        minHeight: {type: Number},
+    },
 
     mounted() {
         document.body.addEventListener('mouseup', this.onMouseUp);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        EditorEventBus.item.selected.any.$on(this.editorId, this.onAnyItemSelected);
+        EditorEventBus.item.deselected.any.$on(this.editorId, this.onAnyItemDeselected);
         this.scrollToSelection();
     },
     beforeDestroy() {
         document.body.removeEventListener('mouseup', this.onMouseUp);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onAnyItemDeselected);
+        EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
+        EditorEventBus.item.deselected.any.$off(this.editorId, this.onAnyItemDeselected);
     },
     data() {
         const height = parseInt(settingsStorage.get('height', 0));
@@ -228,7 +232,7 @@ export default {
             }
 
             if (event.button === 2) {
-                EventBus.emitRightClickedItem(item, event.pageX, event.pageY);
+                this.$emit('item-right-clicked', item, event.pageX, event.pageY);
             }
 
             dragAndDropBuilder(event)
@@ -417,8 +421,8 @@ export default {
 
         toggleItemVisibility(item) {
             item.visible = !item.visible;
-            EventBus.emitItemChanged(item.id, 'visible');
-            EventBus.emitSchemeChangeCommited(`item.${item.id}.visible`);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'visible');
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.visible`);
             this.$forceUpdate();
         },
 
@@ -465,7 +469,7 @@ export default {
                     const item = this.schemeContainer.findItemById(this.nameEdit.itemId);
                     if (item) {
                         item.name = this.nameEdit.name;
-                        EventBus.emitSchemeChangeCommited(`item.${item.id}.name`);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.name`);
                     }
                 }
             }

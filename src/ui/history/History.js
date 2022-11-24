@@ -13,7 +13,7 @@ export default class History {
         // Used to group commits
         this.lastAffinityId = null;
     }
-    
+
     /**
      * Commits a modification of on object
      * @param {Object} obj - New version of modified object
@@ -24,7 +24,7 @@ export default class History {
             this.checkpoints[this.currentPosition] = utils.clone(obj);
             return;
         }
-            
+
         this.lastAffinityId = affinityId;
 
         // erasing history in case commit was invoked after undoing

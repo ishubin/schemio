@@ -1,11 +1,11 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
-import EventBus from '../../components/editor/EventBus';
 import utils from '../../utils';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 
@@ -45,14 +45,14 @@ class ScaleAnimation extends Animation {
             this.item.area.sx = this.originalArea.sx * (1.0 - convertedT) + this.destinationScale.sx * convertedT;
             this.item.area.sy = this.originalArea.sy * (1.0 - convertedT) + this.destinationScale.sy * convertedT;
 
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
 
             return proceed;
         } else {
             this.item.area.sx = this.destinationScale.sx;
             this.item.area.sy = this.destinationScale.sy;
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
         }
         return false;
@@ -88,7 +88,7 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animate) {
-                AnimationRegistry.play(new ScaleAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
+                playInAnimationRegistry(schemeContainer.editorId, new ScaleAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
                 if (args.inBackground) {
                     resultCallback();
                 }
@@ -96,7 +96,7 @@ export default {
             } else {
                 item.area.sx = parseFloat(args.scaleX);
                 item.area.sy = parseFloat(args.scaleY);
-                EventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 schemeContainer.reindexItemTransforms(item);
             }
         }

@@ -10,7 +10,6 @@ import {enrichItemWithDefaults} from '../../../scheme/ItemFixer';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import forEach from 'lodash/forEach';
-import EventBus from '../EventBus.js';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const IS_NOT_SOFT = false;
@@ -29,9 +28,8 @@ function isEventRightClick(event) {
 }
 
 export default class StateConnecting extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'connecting';
+    constructor(store, listener) {
+        super(store, 'connecting', listener);
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;
@@ -50,7 +48,7 @@ export default class StateConnecting extends State {
     }
 
     reset() {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false})
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;
@@ -67,7 +65,7 @@ export default class StateConnecting extends State {
 
     cancel() {
         StoreUtils.setCurrentConnector(this.store, null);
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false})
         if (this.item) {
             // deleting last point
             this.item.shapeProps.points.splice(this.item.shapeProps.points.length - 1 , 1);
@@ -310,8 +308,7 @@ export default class StateConnecting extends State {
                         this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
                     }
                     this.submitItem();
-                    this.reset();
-                    this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+                    this.cancel();
                     return;
                 }
 
@@ -373,12 +370,12 @@ export default class StateConnecting extends State {
             // what if we want to attach this point to another item
             this.handleEdgePointDrag(point, false);
 
-            this.eventBus.emitItemChanged(this.item.id);
+            this.listener.onItemChanged(this.item.id);
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false})
 
         if (this.addedToScheme) {
             if (this.candidatePointSubmited) {
@@ -397,7 +394,7 @@ export default class StateConnecting extends State {
                     y: this.round(snappedLocalCurvePoint.y),
                     t: 'L'
                 });
-                this.eventBus.emitItemChanged(this.item.id);
+                this.listener.onItemChanged(this.item.id);
             }
         }
 
@@ -476,11 +473,11 @@ export default class StateConnecting extends State {
         const closestPointToItem = this.findClosestAttachmentPoint(x, y);
 
         if (closestPointToItem) {
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
             this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
         } else {
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             this.item.shapeProps.sourceItem = null;
             this.item.shapeProps.sourceItemPosition = 0;
         }
@@ -522,7 +519,7 @@ export default class StateConnecting extends State {
                 curvePoint.by = normal.y;
             }
 
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (isSource) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
@@ -536,7 +533,7 @@ export default class StateConnecting extends State {
                 delete curvePoint.by;
             }
             // nothing to attach to so reseting highlights in case it was set previously
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (isSource) {
                 this.item.shapeProps.sourceItem = null;
                 this.item.shapeProps.sourceItemPosition = 0;
@@ -557,8 +554,8 @@ export default class StateConnecting extends State {
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
-        this.eventBus.emitItemChanged(this.item.id, 'area');
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onItemChanged(this.item.id, 'area');
+        this.listener.onSchemeChangeCommitted();
         this.schemeContainer.selectItem(this.item);
         this.reset();
     }

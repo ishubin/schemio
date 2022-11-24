@@ -85,9 +85,6 @@ const store = new Vuex.Store({
 
         apiClient: null,
 
-        schemeModified: false,
-
-        editorStateName: 'interact',
         editorSubStateName: null,
 
         itemMenu: {
@@ -126,12 +123,6 @@ const store = new Vuex.Store({
         // toggles clickable item markers in view mode so that users can see
         // what they can click on the diagram and which elements are interactive
         showClickableMarkers: false,
-
-        // stores the state of the history in scheme editing
-        history: {
-            undoable: false,
-            redoable: false
-        },
 
         // item which style should be copied to other items
         copiedStyleItem: null,
@@ -183,11 +174,6 @@ const store = new Vuex.Store({
         draw: {
             epsilon: 5
         },
-
-        animationEditor: {
-            currentFramePlayer: null,
-            isRecording: false
-        }
     },
     mutations: {
         SET_ROOT_PATH(state, path) {
@@ -200,10 +186,6 @@ const store = new Vuex.Store({
 
         SET_API_CLIENT(state, apiClient) {
             state.apiClient = apiClient
-        },
-
-        SET_SCHEME_MODIFIED(state, isModified) {
-            state.schemeModified = isModified;
         },
 
         SET_AUTO_REMOUNT(state, autoRemount) {
@@ -284,14 +266,6 @@ const store = new Vuex.Store({
         },
 
 
-        /* History */
-        SET_HISTORY_UNDOABLE(state, isUndoable) {
-            state.history.undoable = isUndoable;
-        },
-        SET_HISTORY_REDOABLE(state, isRedoable) {
-            state.history.redoable = isRedoable;
-        },
-
         SET_DEFAULT_CONNECTOR_SMOOTHING(state, smoothing) {
             state.defaultConnectorSmoothing = smoothing;
             myStorage.save(DEFAULT_CONNECTOR_SMOOTHING, smoothing);
@@ -304,9 +278,6 @@ const store = new Vuex.Store({
         SET_ITEM_SNAP(state, enabled) {
             state.snap.items = enabled;
             myStorage.save('snap.items', enabled);
-        },
-        SET_EDITOR_STATE_NAME(state, stateName) {
-            state.editorStateName = stateName;
         },
         SET_EDITOR_SUB_STATE_NAME(state, stateName) {
             state.editorSubStateName = stateName;
@@ -462,14 +433,6 @@ const store = new Vuex.Store({
             }
         },
 
-        START_ANIMATION_EDITOR(state, framePlayer) {
-            state.animationEditor.currentFramePlayer = framePlayer;
-        },
-
-        SET_ANIMATION_EDITOR_RECORDING(state, isRecording) {
-            state.animationEditor.isRecording = isRecording;
-        },
-
         COPY_ITEM_STYLE(state, item) {
             state.copiedStyleItem = utils.clone(item);
         },
@@ -479,7 +442,6 @@ const store = new Vuex.Store({
         },
 
         UPDATE_PATCH_DIFF_COLOR(state, {changeType, color}) {
-            console.log('UPDATE_PATCH_DIFF_COLOR', changeType, color);
             if (changeType === 'additions') {
                 state.patch.settings.additionsColor = color;
             } else if (changeType === 'deletions') {
@@ -533,13 +495,6 @@ const store = new Vuex.Store({
             commit('SET_API_CLIENT', apiClient);
         },
 
-        markSchemeAsModified({commit}) {
-            commit('SET_SCHEME_MODIFIED', true);
-        },
-        markSchemeAsUnmodified({commit}) {
-            commit('SET_SCHEME_MODIFIED', false);
-        },
-
         setCurveEditItem({commit}, item) {
             const paths = [];
             if (item) {
@@ -570,15 +525,6 @@ const store = new Vuex.Store({
             commit('SELECT_CURVE_EDIT_POINT', { pathId, pointId, inclusive });
         },
 
-
-        setHistoryUndoable({commit}, isUndoable) {
-            commit('SET_HISTORY_UNDOABLE', isUndoable);
-        },
-
-        setHistoryRedoable({commit}, isRedoable) {
-            commit('SET_HISTORY_REDOABLE', isRedoable);
-        },
-
         setDefaultConnectorSmoothing({commit}, smoothing) {
             commit('SET_DEFAULT_CONNECTOR_SMOOTHING', smoothing);
         },
@@ -588,10 +534,6 @@ const store = new Vuex.Store({
         },
         setItemSnap({commit}, enabled) {
             commit('SET_ITEM_SNAP', enabled);
-        },
-
-        setEditorStateName({commit}, stateName) {
-            commit('SET_EDITOR_STATE_NAME', stateName);
         },
 
         setEditorSubStateName({commit}, stateName) {
@@ -680,14 +622,6 @@ const store = new Vuex.Store({
             commit('UPDATE_DRAW_EPSILON', epsilon);
         },
 
-        startAnimationEditor({commit}, framePlayer) {
-            commit('START_ANIMATION_EDITOR', framePlayer);
-        },
-
-        setAnimationEditorRecording({commit}, isRecording) {
-            commit('SET_ANIMATION_EDITOR_RECORDING', isRecording);
-        },
-
         copyItemStyle({commit}, item) {
             commit('COPY_ITEM_STYLE', item);
         },
@@ -720,8 +654,6 @@ const store = new Vuex.Store({
     getters: {
         apiClient: state => state.apiClient,
 
-        schemeModified: state => state.schemeModified,
-
         itemControlPointsList: state => state.itemControlPoints,
 
         curveEditPaths: state => state.curveEditing.paths,
@@ -750,12 +682,7 @@ const store = new Vuex.Store({
 
         drawEpsilon: state => state.draw.epsilon,
 
-        editorStateName: state => state.editorStateName,
         editorSubStateName: state => state.editorSubStateName,
-
-        animationEditorCurrentFramePlayer: state => state.animationEditor.currentFramePlayer,
-
-        animationEditorIsRecording: state => state.animationEditor.isRecording,
 
         patchAdditionsColor: state => state.patch.settings.additionsColor,
         patchDeletionsColor: state => state.patch.settings.deletionsColor,

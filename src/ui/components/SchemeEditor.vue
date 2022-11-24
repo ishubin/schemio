@@ -3,18 +3,21 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="scheme-editor-view">
-        <quick-helper-panel
+    <div class="scheme-editor-component">
+        <QuickHelperPanel
             :key="`quick-helper-panel-${mode}`"
             v-if="currentSchemeContainer"
+            :editorId="editorId"
             :scheme-container="currentSchemeContainer"
             :mode="mode"
+            :state="state"
             :textSelectionEnabled="textSelectionEnabled"
             :zoom="zoom"
-            :edit-allowed="offlineMode || editAllowed"
-            :is-static-editor="isStaticEditor"
-            :is-offline-editor="isOfflineEditor"
+            :edit-allowed="editAllowed"
             :menuOptions="menuOptions"
+            :historyUndoable="historyState.undoable"
+            :historyRedoable="historyState.redoable"
+            :isRecording="isRecording"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
@@ -24,25 +27,18 @@
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @convert-path-points-to-simple="convertCurvePointToSimple()"
             @convert-path-points-to-bezier="convertCurvePointToBezier()"
-            @import-json-requested="onImportSchemeJSONClicked"
-            @export-json-requested="exportAsJSON"
-            @export-svg-requested="exportAsSVG"
-            @export-png-requested="exportAsPNG"
-            @export-html-requested="exportHTMLModalShown = true"
-            @export-link-requested="exportAsLink"
-            @apply-patch-requested="triggerApplyPatchUpload"
-            @duplicate-diagram-requested="showDuplicateDiagramModal()"
-            @delete-diagram-requested="deleteSchemeWarningShown = true"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
-            @new-scheme-requested="onNewSchemeRequested"
-            @mode-changed="toggleMode"
+            @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
+            @stop-drawing-requested="stopDrawing"
+            @path-edit-stopped="onPathEditStopped"
+            @items-highlighted="onItemsHighlighted"
             >
-            <ul class="button-group" v-if="mode === 'edit' && (schemeModified || statusMessage.message)">
-                <li v-if="schemeModified">
-                    <span v-if="isSaving" class="btn btn-secondary" @click="onSaveSchemeClick()"><i class="fas fa-spinner fa-spin"></i>Saving...</span>
-                    <span v-else class="btn btn-primary" @click="onSaveSchemeClick()">Save</span>
+            <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
+                <li v-if="modified">
+                    <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
+                    <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
                 </li>
                 <li v-if="statusMessage.message">
                     <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
@@ -51,7 +47,7 @@
                     </div>
                 </li>
             </ul>
-            </quick-helper-panel>
+            </QuickHelperPanel>
 
         <div class="scheme-editor-middle-section" ref="middleSection">
             <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
@@ -62,12 +58,13 @@
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
                     :class="['state-' + state, 'sub-state-' + editorSubStateName]"
+                    :editorId="editorId"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :schemeContainer="schemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
-                    :offline="offlineMode"
                     :zoom="zoom"
+                    :highlightedItems="highlightedItems"
                     :stateLayerShown="state === 'draw' || state === 'createItem'"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
@@ -75,6 +72,9 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
+                    @item-tooltip-requested="onItemTooltipTriggered"
+                    @item-side-panel-requested="onItemSidePanelTriggered"
+                    @screen-transform-updated="onScreenTransformUpdated"
                     >
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
@@ -95,7 +95,9 @@
                         <g v-if="state === 'editPath' && curveEditItem && curveEditItem.meta">
                             <PathEditBox
                                 :key="`item-curve-edit-box-${curveEditItem.id}`"
+                                :editorId="editorId"
                                 :item="curveEditItem"
+                                :pathPointsUpdateKey="pathPointsUpdateKey"
                                 :zoom="schemeContainer.screenTransform.scale"
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                                 :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
@@ -107,10 +109,13 @@
 
                         <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
                             :key="`floating-helper-panel-${floatingHelperPanel.item.id}`"
+                            :editorId="editorId"
                             :x="floatingHelperPanel.x"
                             :y="floatingHelperPanel.y"
                             :item="floatingHelperPanel.item"
                             :schemeContainer="schemeContainer"
+                            @edit-path-requested="onEditPathRequested"
+                            @image-crop-requested="startCroppingImage"
                             />
                     </div>
                 </SvgEditor>
@@ -118,19 +123,23 @@
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
+                    :editorId="editorId"
                     :schemeContainer="interactiveSchemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
                     :textSelectionEnabled="textSelectionEnabled"
-                    :offline="offlineMode"
                     :zoom="zoom"
                     :userEventBus="userEventBus"
+                    :highlightedItems="highlightedItems"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
                     @mouse-down="mouseDown"
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
+                    @item-tooltip-requested="onItemTooltipTriggered"
+                    @item-side-panel-requested="onItemSidePanelTriggered"
+                    @screen-transform-updated="onScreenTransformUpdated"
                     >
 
                     <div slot="overlay">
@@ -144,6 +153,7 @@
                 <!-- Item Text Editor -->
                 <InPlaceTextEditBox v-if="inPlaceTextEditor.shown"
                     :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.slotName}`"
+                    :editorId="editorId"
                     :item="inPlaceTextEditor.item"
                     :slotName="inPlaceTextEditor.slotName"
                     :area="inPlaceTextEditor.area"
@@ -163,30 +173,34 @@
             </div>
 
 
-            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || animationEditorCurrentFramePlayer)"
+            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || currentAnimatorFramePlayer)"
                 class="bottom-panel"
-                :style="{height: animationEditorCurrentFramePlayer ? `${bottomPanelHeight}px`: null}"
+                :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
                 >
-                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="animationEditorCurrentFramePlayer"></div>
+                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
                         <FrameAnimatorPanel
-                            v-if="animationEditorCurrentFramePlayer"
-                            :key="animationEditorCurrentFramePlayer.id"
+                            v-if="currentAnimatorFramePlayer"
+                            :key="currentAnimatorFramePlayer.id"
+                            :editorId="editorId"
                             :schemeContainer="schemeContainer"
-                            :framePlayer="animationEditorCurrentFramePlayer"
+                            :framePlayer="currentAnimatorFramePlayer"
                             :light="false"
                             @close="closeAnimatorEditor"
+                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
                             />
 
                         <FrameAnimatorPanel
                             v-else-if="animatorPanel.framePlayer"
                             :key="animatorPanel.framePlayer.id"
+                            :editorId="editorId"
                             :schemeContainer="schemeContainer"
                             :framePlayer="animatorPanel.framePlayer"
                             :light="true"
                             @animation-editor-opened="onAnimatiorEditorOpened"
+                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
                             />
                     </div>
                     <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
@@ -200,7 +214,17 @@
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
-                        <create-item-menu :scheme-container="schemeContainer" :projectArtEnabled="projectArtEnabled"/>
+                        <CreateItemMenu
+                            :key="`${editorId}-${schemeContainer.scheme.id}`"
+                            :editorId="editorId"
+                            :scheme-container="schemeContainer"
+                            :projectArtEnabled="projectArtEnabled"
+                            @item-picked-for-creation="switchStateCreateItem"
+                            @path-edited="startPathEditing"
+                            @drawing-requested="switchStateDrawing"
+                            @state-drag-item-requested="cancelCurrentState"
+                            @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
+                        />
                     </div>
                 </div>
             </div>
@@ -244,11 +268,12 @@
                     </div>
                     <div v-else class="tabs-body">
                         <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.item">
-                            <scheme-properties v-if="mode === 'edit'"
+                            <SchemeProperties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
+                                :editorId="editorId"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 @export-all-shapes="openExportAllShapesModal"
-                                @delete-diagram-requested="deleteSchemeWarningShown = true"/>
+                                @delete-diagram-requested="$emit('delete-diagram-requested')"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
@@ -256,11 +281,17 @@
                         <div v-if="currentTab === 'Item' && !inPlaceTextEditor.item">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
-                                    <item-selector :scheme-container="schemeContainer" :min-height="200" :key="`${schemeRevision}-${schemeContainer.revision}`"/>
+                                    <ItemSelector
+                                        :editorId="editorId"
+                                        :scheme-container="schemeContainer"
+                                        :min-height="200"
+                                        :key="`${schemeRevision}-${schemeContainer.revision}`"
+                                        @item-right-clicked="onItemRightClick"/>
                                 </panel>
 
-                                <item-properties v-if="schemeContainer.selectedItems.length > 0"
+                                <ItemProperties v-if="schemeContainer.selectedItems.length > 0"
                                     :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                                    :editorId="editorId"
                                     :item="schemeContainer.selectedItems[0]"
                                     :revision="schemeRevision"
                                     :schemeContainer="schemeContainer"
@@ -282,14 +313,18 @@
                         </div>
 
                         <div v-if="inPlaceTextEditor.item && mode === 'edit'">
-                            <text-slot-properties :item="inPlaceTextEditor.item" :slot-name="inPlaceTextEditor.slotName"
+                            <TextSlotProperties
+                                :editorId="editorId"
+                                :item="inPlaceTextEditor.item"
+                                :slot-name="inPlaceTextEditor.slotName"
                                 @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0]);"
                                 @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
                         <div v-else-if="mode === 'edit'">
-                            <text-slot-properties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
+                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
+                                :editorId="editorId"
                                 :item="itemTextSlot.item"
                                 :slot-name="itemTextSlot.slotName"
                                 @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
@@ -300,33 +335,6 @@
                 </div>
             </div>
         </div>
-
-        <context-menu v-if="customContextMenu.show"
-            :key="customContextMenu.id"
-            :mouse-x="customContextMenu.mouseX"
-            :mouse-y="customContextMenu.mouseY"
-            :options="customContextMenu.menuOptions"
-            @close="customContextMenu.show = false"
-            @selected="onCustomContextMenuOptionSelected"
-        />
-
-
-        <export-html-modal v-if="exportHTMLModalShown" :scheme="schemeContainer.scheme" @close="exportHTMLModalShown = false"/>
-        <export-json-modal v-if="exportJSONModalShown" :scheme="schemeContainer.scheme" @close="exportJSONModalShown = false"/>
-        <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="schemeContainer.scheme" @close="exportAsLinkModalShown = false"/>
-
-        <import-scheme-modal v-if="importSchemeModal.shown" :scheme="importSchemeModal.scheme"
-            @close="importSchemeModal.shown = false"
-            @import-scheme-submitted="importScheme"/>
-
-        <create-new-scheme-modal v-if="newSchemePopup.show"
-            :name="newSchemePopup.name"
-            :description="newSchemePopup.description"
-            :apiClient="apiClient"
-            @close="newSchemePopup.show = false"
-            @scheme-submitted="submitNewSchemeForCreation"
-            ></create-new-scheme-modal>
-
 
         <link-edit-popup v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
@@ -344,39 +352,18 @@
             @close="closeConnectorProposedDestination()"
         />
 
-        <div v-if="importSchemeFileShown" style="display: none">
-            <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
-        </div>
-
-        <div v-if="loadPatchFileShown" style="display: none">
-            <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
-        </div>
-
-        <advanced-behavior-properties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
+        <AdvancedBehaviorProperties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
+            :editorId="editorId"
             :scheme-container="schemeContainer"
         />
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
-        <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
-            <p>
-                Duplicate current diagram in a new file
-            </p>
-            <input type="text" class="textfield" placeholder="Name" v-model="duplicateDiagramModal.name"/>
-            <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-danger">
-                {{duplicateDiagramModal.errorMessage}}
-            </div>
-        </modal>
-
-        <modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
-            Are you sure you want to delete <b>{{schemeContainer.scheme.name}}</b> scheme?
-        </modal>
-
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
-                    <span>Loading scheme...</span>
+                    <span>Loading diagram...</span>
                 </div>
                 <div v-if="loadingStep === 'load-shapes'">
                     <i class="fas fa-spinner fa-spin fa-1x"></i>
@@ -390,14 +377,6 @@
             </div>
         </modal>
 
-        <export-picture-modal v-if="exportPictureModal.shown"
-            :exported-items="exportPictureModal.exportedItems"
-            :kind="exportPictureModal.kind"
-            :width="exportPictureModal.width"
-            :height="exportPictureModal.height"
-            :background-color="exportPictureModal.backgroundColor"
-            @close="exportPictureModal.shown = false"/>
-
     </div>
 
 </template>
@@ -407,19 +386,18 @@ import shortid from 'shortid';
 import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
-import { Keys } from '../events';
+import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
 
-import {applyStyleFromAnotherItem, defaultItem, traverseItems } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem } from '../scheme/Item';
 import {enrichItemWithDefaults} from '../scheme/ItemFixer';
-import {enrichSchemeWithDefaults, prepareSchemeForSaving } from '../scheme/Scheme';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
-import EventBus from './editor/EventBus.js';
-import SchemeContainer, { worldAngleOfItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import EditorEventBus from './editor/EditorEventBus.js';
+import SchemeContainer, { worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -427,24 +405,17 @@ import ItemDetails from './editor/ItemDetails.vue';
 import SchemeProperties from './editor/SchemeProperties.vue';
 import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
-import CreateNewSchemeModal from './CreateNewSchemeModal.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
-import { createHasher } from '../url/hasher.js';
-import History from '../history/History.js';
 import Shape from './editor/items/shapes/Shape.js';
-import AnimationRegistry from '../animations/AnimationRegistry';
+import {createAnimationRegistry, destroyAnimationRegistry} from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
-import ExportHTMLModal from './editor/ExportHTMLModal.vue';
-import ExportJSONModal from './editor/ExportJSONModal.vue';
-import ExportAsLinkModal from './editor/ExportAsLinkModal.vue';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
-import ImportSchemeModal from './editor/ImportSchemeModal.vue';
 import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
@@ -455,10 +426,7 @@ import {copyToClipboard, getTextFromClipboard} from '../clipboard';
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
 import FloatingHelperPanel from './editor/FloatingHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
-import ContextMenu from './editor/ContextMenu.vue';
 import StrokePattern from './editor/items/StrokePattern';
-import { filterOutPreviewSvgElements } from '../svgPreview';
-import ExportPictureModal from './editor/ExportPictureModal.vue';
 import StateCreateItem from './editor/states/StateCreateItem.js';
 import StateInteract from './editor/states/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
@@ -468,7 +436,6 @@ import { mergeAllItemPaths } from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
-import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
@@ -480,24 +447,6 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     rotated: false,
     resized: false
 };
-
-const userEventBus = new UserEventBus();
-
-const states = {
-    interact: new StateInteract(EventBus, store, userEventBus),
-    createItem: new StateCreateItem(EventBus, store),
-    editPath: new StateEditPath(EventBus, store),
-    connecting: new StateConnecting(EventBus, store),
-    dragItem: new StateDragItem(EventBus, store),
-    pickElement: new StatePickElement(EventBus, store),
-    cropImage: new StateCropImage(EventBus, store),
-    draw: new StateDraw(EventBus, store),
-};
-
-
-
-const defaultHistorySize = 30;
-let history = new History({size: defaultHistorySize});
 
 
 function imgPreload(imageUrl) {
@@ -562,26 +511,32 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
-        CreateNewSchemeModal, LinkEditPopup, InPlaceTextEditBox,
+        LinkEditPopup, InPlaceTextEditBox,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        Comments, ContextMenu, ExportPictureModal, MultiItemEditBox,
-        'export-html-modal': ExportHTMLModal,
-        'export-json-modal': ExportJSONModal,
-        'import-scheme-modal': ImportSchemeModal,
-        'export-as-link-modal': ExportAsLinkModal
+        Comments, MultiItemEditBox,
     },
 
     props: {
-        scheme           : {type: Object, default: null},
+        editorId         : {type: String, required: true},
+        mode             : {type: String, default: 'view'},
+        scheme           : {type: Object, required: true},
         patchIndex       : {type: Object, default: null},
         editAllowed      : {type: Boolean, default: false},
-        isStaticEditor   : { type: Boolean, default: false},
-        isOfflineEditor  : { type: Boolean, default: false},
+        isSaving         : { type: Boolean, required: true},
+
+        // means that it should handle all keyboard and mouse events as it is focused and not hidden
+        active           : {type: Boolean, default: true},
+        modified         : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
+        historyUndoable  : { type: Boolean, required: true},
+        historyRedoable  : { type: Boolean, required: true},
+
+        //Used to signify that SchemeContainer needs to be recreted and item selection needs to be restored
+        schemeReloadKey : {type: String, default: null},
         comments         : {type: Object, default: {
             enabled: false,
             isAdmin: false,
@@ -591,72 +546,130 @@ export default {
         }},
     },
 
-    beforeMount() {
-        window.onbeforeunload = this.onBrowseClose;
-        this.markSchemeAsUnmodified();
-        EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$on(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$on(EventBus.KEY_UP, this.onKeyUp);
-        EventBus.$on(EventBus.PLACE_ITEM, this.onPlaceItem);
-        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
-        EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$on(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-        EventBus.$on(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
-        EventBus.$on(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$on(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
-        EventBus.$on(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-        EventBus.$on(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$on(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-        EventBus.$on(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
-        EventBus.$on(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
-        EventBus.$on(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$on(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
-        EventBus.$on(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$on(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-        EventBus.$on(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
-        EventBus.$on(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-        EventBus.$on(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-        EventBus.$on(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
-        EventBus.$on(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
-        EventBus.$on(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
+    created() {
+        this.animationRegistry = createAnimationRegistry(this.editorId);
+        const onCancel = () => this.cancelCurrentState();
+        const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
+        const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
+        const onScreenTransformUpdated = (screenTransform) => this.onScreenTransformUpdated(screenTransform);
+        const onItemsHighlighted = (highlightedItems) => this.highlightedItems = highlightedItems;
+        const onSubStateMigrated = () => {};
+
+        this.states = {
+            interact: new StateInteract(this.$store, this.userEventBus, {
+                onCancel,
+                onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+                onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+                onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
+                onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
+                onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+            createItem: new StateCreateItem(this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+            editPath: new StateEditPath(this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onHistoryStateChange: (undoable, redoable) => {
+                    this.historyState.undoable = undoable;
+                    this.historyState.redoable = redoable;
+                },
+                onPathPointsUpdated: () => { this.pathPointsUpdateKey++; },
+                onContextMenuRequested: (mx, my, menuOptions) => this.onContextMenuRequested(mx, my, menuOptions),
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+            connecting: new StateConnecting(this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+            dragItem: new StateDragItem(this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onStartConnecting: (item, point) => this.startConnecting(item, point),
+                onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
+                onVoidDoubleClicked: (x, y, mx, my) => EditorEventBus.void.doubleClicked.$emit(this.editorId, x, y, mx, my),
+                onEditPathRequested: (item) => this.onEditPathRequested(item),
+                onItemDeselected: (item) => EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id),
+                onItemTextSlotEditTriggered: (item, slotName, area, markupDisabled, creatingNewItem) => {
+                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
+                },
+                onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
+                onScreenTransformUpdated
+            }),
+            pickElement: new StatePickElement(this.$store, {
+                onCancel,
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+            cropImage: new StateCropImage(this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+            draw: new StateDraw(this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
+        };
     },
-    beforeDestroy(){
-        window.onbeforeunload = null;
-        EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$off(EventBus.KEY_PRESS, this.onKeyPress);
-        EventBus.$off(EventBus.KEY_UP, this.onKeyUp);
-        EventBus.$off(EventBus.PLACE_ITEM, this.onPlaceItem);
-        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.commitHistory);
-        EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$off(EventBus.ITEM_TEXT_SLOT_EDIT_TRIGGERED, this.onItemTextSlotEditTriggered);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionUpdated);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionUpdated);
-        EventBus.$off(EventBus.COMPONENT_LOAD_REQUESTED, this.onComponentLoadRequested);
-        EventBus.$off(EventBus.RIGHT_CLICKED_ITEM, this.onRightClickedItem);
-        EventBus.$off(EventBus.VOID_RIGHT_CLICKED, this.onRightClickedVoid);
-        EventBus.$off(EventBus.CUSTOM_CONTEXT_MENU_REQUESTED, this.onCustomContextMenuRequested);
-        EventBus.$off(EventBus.CANCEL_CURRENT_STATE, this.onCancelCurrentState);
-        EventBus.$off(EventBus.ELEMENT_PICK_REQUESTED, this.switchStatePickElement);
-        EventBus.$off(EventBus.START_CREATING_ITEM, this.switchStateCreateItem);
-        EventBus.$off(EventBus.START_CURVE_EDITING, this.onStartCurveEditing);
-        EventBus.$off(EventBus.START_DRAWING, this.switchStateDrawing);
-        EventBus.$off(EventBus.START_CONNECTING_ITEM, this.onStartConnecting);
-        EventBus.$off(EventBus.STOP_DRAWING, this.onStopDrawing);
-        EventBus.$off(EventBus.CURVE_EDITED, this.onCurveEditRequested);
-        EventBus.$off(EventBus.CURVE_EDIT_STOPPED, this.onCurveEditStopped);
-        EventBus.$off(EventBus.IMAGE_CROP_TRIGGERED, this.startCroppingImage);
-        EventBus.$off(EventBus.ELEMENT_PICK_CANCELED, this.onElementPickCanceled);
-        EventBus.$off(EventBus.ANY_ITEM_CHANGED, this.onAnyItemChanged);
-        EventBus.$off(EventBus.ITEM_CREATION_DRAGGED_TO_SVG_EDITOR, this.itemCreationDraggedToSvgEditor);
-        EventBus.$off(EventBus.FLOATING_HELPER_PANEL_UPDATED, this.updateFloatingHelperPanel);
+
+    beforeMount() {
+        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.commitHistory);
+        EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
+        EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionUpdated);
+        EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionUpdated);
+        EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
+        EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+        EditorEventBus.textSlot.triggered.any.$on(this.editorId, this.onItemTextSlotEditTriggered);
+        EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
+        EditorEventBus.elementPick.canceled.$on(this.editorId, this.onElementPickCanceled);
+        EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
+        registerKeyPressHandler(this.keyPressHandler);
+    },
+    beforeDestroy() {
+        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
+        EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
+        EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionUpdated);
+        EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionUpdated);
+        EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
+        EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+        EditorEventBus.textSlot.triggered.any.$off(this.editorId, this.onItemTextSlotEditTriggered);
+        EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
+        EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
+        EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
+        deregisterKeyPressHandler(this.keyPressHandler);
+
+        destroyAnimationRegistry(this.editorId);
     },
 
     mounted() {
@@ -670,26 +683,32 @@ export default {
             editorRevision: 0,
 
             state: 'interact',
-            userEventBus,
-
-            hasher: createHasher(this.$router ? this.$router.mode : 'history'),
-
-            offlineMode: false,
-            schemeId: null,
+            userEventBus: new UserEventBus(this.editorId),
 
             // used for triggering update of some ui components on undo/redo due to scheme reload
             schemeRevision: new Date().getTime(),
-            originalUrlEncoded: encodeURIComponent(window.location),
 
             isLoading: false,
             loadingStep: 'load', // can be "load", "img-preload"
-            isSaving: false,
             schemeLoadErrorMessage: null,
+
+            highlightedItems: {
+                itemIds: [],
+                showPins: false
+            },
 
             cropImage: {
                 editBox: null,
                 item: null
             },
+
+            historyState: {
+                undoable: this.historyUndoable,
+                redoable: this.historyRedoable,
+            },
+
+            // used for triggering update of path points in PathEditBox component
+            pathPointsUpdateKey: 0,
 
             inPlaceTextEditor: {
                 item: null,
@@ -714,28 +733,12 @@ export default {
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
-            customContextMenu: {
-                id: shortid.generate(),
-                show: false,
-                mouseX: 0, mouseY: 0,
-                menuOptions: []
-            },
-
             zoom: 100,
-            mode: 'view',
             textSelectionEnabled: false,
 
             addLinkPopup: {
                 item: null,
                 shown: false
-            },
-
-            newSchemePopup: {
-                name: '',
-                description: '',
-                show: false,
-                parentSchemeItem: null,
-                isExternalComponent: false
             },
 
             currentTab: 'Doc',
@@ -753,27 +756,13 @@ export default {
             // When an item is selected - we want to display additional tabs for it
             itemTextSlotsAvailable: [],
 
-            exportHTMLModalShown: false,
-            exportJSONModalShown: false,
-            exportAsLinkModalShown: false,
             exportShapeModal: {
                 shown: false,
                 scheme: null
             },
-            importSchemeFileShown: false,
-            importSchemeModal: {
-                sheme: null,
-                shown: false
-            },
-
-            loadPatchFileShown: false,
 
             advancedBehaviorProperties: {
                 shown: false
-            },
-
-            schemeTitleEdit: {
-                shown: false,
             },
 
             drawColorPallete,
@@ -782,23 +771,6 @@ export default {
                 framePlayer: null,
             },
 
-            exportPictureModal: {
-                kind: 'svg',
-                width: 100,
-                height: 100,
-                shown: false,
-                exportedItems: [],
-                backgroundColor: 'rgba(255,255,255,1.0)'
-            },
-
-            duplicateDiagramModal: {
-                shown: false,
-                name: '',
-                errorMessage: null
-            },
-
-            deleteSchemeWarningShown: false,
-
             floatingHelperPanel: {
                 shown: false,
                 item: null,
@@ -806,79 +778,44 @@ export default {
                 y: 0
             },
 
-            bottomPanelHeight: 300
+            bottomPanelHeight: 300,
+
+            // flag that is set when record button is pressed in frame animator panel
+            isRecording: false,
+
+            currentAnimatorFramePlayer: null
         }
     },
     methods: {
         init() {
-            if (!this.scheme) {
-                this.initOfflineMode();
-                return;
-            }
-
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
-                this.mode = 'edit';
-            } else {
-                this.mode = 'view';
-            }
-
-            this.loadingStep = 'load';
-            this.isLoading = true;
-            this.schemeLoadErrorMessage = null;
-
-            this.schemeId = this.scheme.id;
-
-
             this.initSchemeContainer(this.scheme);
         },
 
-        initOfflineMode() {
-            // here the edit mode is default since user chose to edit offline
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            if (pageParams.m && pageParams.m === 'view') {
-                this.mode = 'view';
-            } else {
-                this.mode = 'edit';
-            }
-
-            let scheme = {};
-
-            const offlineSchemeEncoded = window.localStorage.getItem('offlineScheme');
-            if (offlineSchemeEncoded) {
-                try {
-                    scheme = JSON.parse(offlineSchemeEncoded);
-                } catch (err) {
-                    scheme = {}
-                }
-            }
-
-
-            enrichSchemeWithDefaults(scheme);
-            this.offlineMode = true;
-            this.initSchemeContainer(scheme);
-        },
-
         initSchemeContainer(scheme) {
-            this.isLoading = true;
+            this.schemeLoadErrorMessage = null;
             this.loadingStep = 'load-shapes';
-            return collectAndLoadAllMissingShapes(scheme.items, this.$store)
+            this.isLoading = true;
+            collectAndLoadAllMissingShapes(scheme.items, this.$store)
             .catch(err => {
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, EventBus);
+                this.schemeContainer = new SchemeContainer(scheme, this.editorId, {
+                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                });
 
-                forEach(states, state => {
+                if (this.mode === 'view') {
+                    this.switchToViewMode();
+                } else {
+                    this.switchToEditMode();
+                }
+
+                forEach(this.states, state => {
                     state.setSchemeContainer(this.schemeContainer);
                     state.reset();
                 });
-
-                history = new History({size: defaultHistorySize});
-                history.commit(scheme);
-                document._history = history;
 
                 if (this.mode === 'view') {
                     this.switchToViewMode();
@@ -899,11 +836,10 @@ export default {
                     if (this.schemeContainer.selectedItems.length > 0) {
                         const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
                         if (area) {
-                            EventBus.emitBringToViewInstantly(area);
+                            EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
                         }
                     }
                 }
-
                 return this.schemeContainer;
             })
             .then(schemeContainer => {
@@ -919,81 +855,69 @@ export default {
             });
         },
 
-        toggleMode(mode) {
-            if (mode === 'edit' && !this.editAllowed) {
-                return;
-            }
-
-            this.mode = mode;
-            if (mode === 'view') {
-                this.hideSidePanelRight();
-                this.switchStateInteract();
-            } else if (mode === 'edit') {
-                this.showSidePanelRight();
-                this.switchStateDragItem();
-            }
-        },
-
         onTextSelectionForViewChanged(textSelectionEnabled) {
             this.textSelectionEnabled = textSelectionEnabled;
         },
 
-        onCancelCurrentState() {
+        cancelCurrentState() {
             if (this.mode === 'edit') {
                 this.state = 'dragItem';
             } else {
                 this.state = 'interact';
             }
-            states[this.state].reset();
-            this.updateHistoryState();
+            this.states[this.state].reset();
+        },
+
+        resetItemHighlight() {
+            this.highlightedItems = { itemIds: [], showPins: false };
         },
 
         switchStateDragItem() {
-            EventBus.emitItemsHighlighted([]);
-            states.dragItem.schemeContainer = this.schemeContainer;
-            states[this.state].cancel();
+            this.resetItemHighlight();
+            this.states.dragItem.schemeContainer = this.schemeContainer;
+            this.states[this.state].cancel();
             this.state = 'dragItem';
-            states.dragItem.reset();
+            this.states.dragItem.reset();
         },
 
 
         switchStateInteract() {
-            EventBus.emitItemsHighlighted([]);
-            states.interact.schemeContainer = this.interactiveSchemeContainer;
-            states[this.state].cancel();
+            this.resetItemHighlight();
+            this.states.interact.schemeContainer = this.interactiveSchemeContainer;
+            this.states[this.state].cancel();
             this.state = 'interact';
-            states[this.state].reset();
+            this.states[this.state].reset();
             this.updateFloatingHelperPanel();
         },
 
         switchStatePickElement(elementPickCallback) {
-            EventBus.emitItemsHighlighted([]);
-            states.pickElement.reset();
-            states.pickElement.schemeContainer = this.schemeContainer;
-            states.pickElement.setElementPickCallback(elementPickCallback);
+            this.resetItemHighlight();
+            this.states.pickElement.reset();
+            this.states.pickElement.schemeContainer = this.schemeContainer;
+            this.states.pickElement.setElementPickCallback(elementPickCallback);
             this.state = 'pickElement';
             this.updateFloatingHelperPanel();
         },
 
 
         switchStateCreateItem(item) {
-            EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
             if (item.shape === 'path') {
                 item.shapeProps.points = [];
                 this.setCurveEditItem(item);
                 this.state = 'editPath';
-                EventBus.emitCurveEdited(item);
+                this.onEditPathRequested(item);
             } else if (item.shape === 'connector') {
                 item.shapeProps.points = [];
                 this.state = 'connecting';
-                states['connecting'].setItem(item);
+                this.states['connecting'].setItem(item);
             } else {
                 this.state = 'createItem';
             }
-            states[this.state].schemeContainer = this.schemeContainer;
-            states[this.state].reset();
-            states[this.state].setItem(item);
+            this.states[this.state].schemeContainer = this.schemeContainer;
+            this.states[this.state].reset();
+            this.states[this.state].setItem(item);
             this.updateFloatingHelperPanel();
         },
 
@@ -1001,9 +925,9 @@ export default {
             this.$store.dispatch('setCurveEditItem', item);
         },
 
-        onStartCurveEditing(item) {
-            EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+        startPathEditing(item) {
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
 
             item.shapeProps.points = [];
             this.setCurveEditItem(item);
@@ -1012,41 +936,41 @@ export default {
                 item.shapeProps.closed = false;
             }
             this.state = 'editPath';
-            EventBus.emitCurveEdited(item);
+            this.onEditPathRequested(item);
 
-            states[this.state].schemeContainer = this.schemeContainer;
-            states[this.state].reset();
-            states[this.state].setItem(item);
+            this.states[this.state].schemeContainer = this.schemeContainer;
+            this.states[this.state].reset();
+            this.states[this.state].setItem(item);
             this.updateFloatingHelperPanel();
         },
 
         switchStateDrawing() {
-            EventBus.emitItemsHighlighted([]);
+            this.resetItemHighlight();
 
-            states[this.state].cancel();
+            this.states[this.state].cancel();
             this.state = 'draw';
-            states.draw.schemeContainer = this.schemeContainer;
-            states.draw.reset();
+            this.states.draw.schemeContainer = this.schemeContainer;
+            this.states.draw.reset();
             this.updateFloatingHelperPanel();
         },
 
-        onStopDrawing() {
+        stopDrawing() {
             if (this.state === 'draw') {
-                states.draw.cancel();
+                this.states.draw.cancel();
             }
             this.updateFloatingHelperPanel();
         },
 
-        onStartConnecting(sourceItem, worldPoint) {
-            EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+        startConnecting(sourceItem, worldPoint) {
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
             let localPoint = null;
             if (worldPoint) {
                 localPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, sourceItem);
             }
-            states.connecting.schemeContainer = this.schemeContainer;
-            states.connecting.reset();
-            const connector = states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
+            this.states.connecting.schemeContainer = this.schemeContainer;
+            this.states.connecting.reset();
+            const connector = this.states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
             this.state = 'connecting';
             this.updateFloatingHelperPanel();
@@ -1054,43 +978,43 @@ export default {
 
         onDrawColorPicked(color) {
             if (this.state === 'draw') {
-                states.draw.pickColor(color);
+                this.states.draw.pickColor(color);
             }
         },
 
-        onCurveEditRequested(item) {
-            EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+        onEditPathRequested(item) {
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
             this.state = 'editPath';
-            states.editPath.reset();
-            states.editPath.setItem(item);
+            this.states.editPath.reset();
+            this.states.editPath.setItem(item);
             this.setCurveEditItem(item);
             this.updateFloatingHelperPanel();
         },
 
-        onCurveEditStopped() {
+        onPathEditStopped() {
             if (this.state === 'editPath') {
-                states.editPath.cancel();
+                this.states.editPath.cancel();
             }
         },
 
         startCroppingImage(item) {
-            EventBus.emitItemsHighlighted([]);
-            states[this.state].cancel();
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
             this.state = 'cropImage';
 
-            states[this.state].schemeContainer = this.schemeContainer;
-            states.cropImage.reset();
+            this.states[this.state].schemeContainer = this.schemeContainer;
+            this.states.cropImage.reset();
             this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
             this.cropImage.item = item;
-            states.cropImage.setImageEditBox(this.cropImage.editBox);
-            states.cropImage.setImageItem(item);
+            this.states.cropImage.setImageEditBox(this.cropImage.editBox);
+            this.states.cropImage.setImageItem(item);
             this.updateFloatingHelperPanel();
         },
 
         onElementPickCanceled() {
             if (this.state === 'pickElement') {
-                states.pickElement.cancel();
+                this.states.pickElement.cancel();
             }
         },
 
@@ -1163,9 +1087,9 @@ export default {
 
         closeItemTextEditor() {
             if (this.inPlaceTextEditor.item) {
-                EventBus.emitItemTextSlotEditCanceled(this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
-                EventBus.emitSchemeChangeCommited(`item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                EventBus.emitItemChanged(this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
                 this.schemeContainer.reindexItems();
             }
             this.inPlaceTextEditor.shown = false;
@@ -1185,71 +1109,18 @@ export default {
             }
         },
 
-        onNewSchemeRequested() {
-            if (this.offlineMode) {
-                if (confirm('Area you sure you want to reset all your changes?')) {
-                    this.initOfflineMode();
-                }
-            } else if (this.schemeId) {
-                this.openNewSchemePopup();
-            }
-        },
-
-        openNewSchemePopup() {
-            this.newSchemePopup.show = true;
-        },
-
-        onSaveSchemeClick() {
-            if (!this.offlineMode && this.$store.state.apiClient) {
-                this.saveScheme();
-            } else {
-                this.saveToLocalStorage();
-            }
+        emitModeChangeRequested(mode) {
+            this.$emit('mode-change-requested', mode);
         },
 
         saveScheme() {
-            if (this.offlineMode) {
-                return;
-            }
-
-            if (this.isStaticEditor) {
-                EventBus.emitSchemePatchRequested(this.schemeContainer.scheme);
-                return;
-            }
-
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
-                return;
-            }
-
-            this.createSchemePreview();
-
-            this.isSaving = true;
-            this.$store.dispatch('clearStatusMessage');
-            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(this.schemeContainer.scheme))
-            .then(() => {
-                this.markSchemeAsUnmodified();
-                this.isSaving = false;
+            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+            snapshotSvg(`#svg-plot-${this.editorId} [data-type="scene-transform"]`, area).then(svgPreview => {
+                this.$emit('scheme-save-requested', this.schemeContainer.scheme, svgPreview);
             })
             .catch(err => {
-                this.isSaving = false;
-                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
-                this.markSchemeAsModified();
+                this.$emit('scheme-save-requested', this.schemeContainer.scheme);
             });
-        },
-
-        saveToLocalStorage() {
-            window.localStorage.setItem('offlineScheme', JSON.stringify(this.schemeContainer.scheme));
-            StoreUtils.addInfoSystemMessage(this.$store, 'Saved scheme to local storage', 'offline-save');
-            this.markSchemeAsUnmodified();
-        },
-
-        createSchemePreview() {
-            if (this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
-                var area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-                snapshotSvg('#svg_plot [data-type="scene-transform"]', area).then(svgCode => {
-                    return this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, svgCode);
-                });
-            }
         },
 
         // Zooms to selected items in edit mode
@@ -1273,7 +1144,7 @@ export default {
             }
             const area = this.calculateZoomingAreaForItems(items);
             if (area) {
-                EventBus.emitBringToViewAnimated(area);
+                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, true);
             }
         },
 
@@ -1306,7 +1177,7 @@ export default {
             const point = { x: 0, y: 0 };
             point.x = x;
             point.y = y;
-            EventBus.$emit(EventBus.START_CONNECTING_ITEM, sourceItem, point);
+            this.startConnecting(sourceItem, point);
         },
 
         onItemLinkSubmit(link) {
@@ -1316,7 +1187,7 @@ export default {
                 url: link.url,
                 type: link.type,
             });
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         startCreatingExternalComponentForItem(item) {
@@ -1324,41 +1195,7 @@ export default {
         },
 
         startCreatingChildSchemeForItem(item, isExternalComponent) {
-            this.newSchemePopup.name = item.name;
-            this.newSchemePopup.parentSchemeItem = item;
-            this.newSchemePopup.show = true;
-            this.newSchemePopup.isExternalComponent = isExternalComponent;
-        },
-
-        submitNewSchemeForCreation(scheme) {
-            //TODO in case item is a component - it should set scheme id in the shape props instead
-            const that = this;
-            return new Promise((resolve, reject) => {
-                that.$emit('new-scheme-submitted', scheme, (createdScheme, publicLink) => {
-                    if (publicLink) {
-                        const item = this.newSchemePopup.parentSchemeItem;
-                        if (item) {
-                            if (this.newSchemePopup.isExternalComponent && item.shape === 'component') {
-                                item.shapeProps.schemeId = createdScheme.id;
-                            } else {
-                                if (!item.links) {
-                                    item.links = [];
-                                }
-                                item.links.push({
-                                    title: `${createdScheme.name}`,
-                                    url: publicLink,
-                                    type: 'scheme'
-                                });
-                                EventBus.emitItemChanged(item.id, 'links');
-                            }
-                        }
-                        window.open(publicLink, '_blank');
-                    }
-
-                    resolve();
-                    this.newSchemePopup.show = false;
-                }, reject);
-            });
+            this.$emit('new-diagram-requested-for-item', item, isExternalComponent);
         },
 
         onUpdateOffset(x, y) {
@@ -1392,10 +1229,6 @@ export default {
             });
         },
 
-        onPlaceItem(item) {
-            this.schemeContainer.addItem(item);
-        },
-
         onAnyItemClicked(item) {
             this.sidePanelItemForViewMode = null;
             this.hideSidePanelRight();
@@ -1408,39 +1241,56 @@ export default {
             }
         },
 
-        onKeyPress(key, keyOptions) {
+        keyPressHandler(isDown, key, keyOptions) {
+            if (!this.active) {
+                return;
+            }
+
+            if (isDown) {
+                this.onKeyDown(key, keyOptions);
+            } else {
+                this.onKeyUp(key, keyOptions);
+            }
+        },
+
+        onKeyDown(key, keyOptions) {
             if (this.mode === 'edit') {
-                if (key === Keys.CTRL_C) {
-                    this.copySelectedItems();
-                } else if (key === Keys.CTRL_V) {
-                    this.pasteItemsFromClipboard();
-                } else if (Keys.CTRL_S === key) {
-                    if (this.offlineMode || !this.editAllowed) {
-                        this.exportAsJSON();
-                    } else {
+                if (this.state === 'dragItem') {
+                    if (key === Keys.CTRL_C) {
+                        this.copySelectedItems();
+                    } else if (key === Keys.CTRL_X) {
+                        this.copySelectedItems();
+                        this.deleteSelectedItems();
+                    } else if (key === Keys.CTRL_V) {
+                        this.pasteItemsFromClipboard();
+                    } else if (Keys.CTRL_S === key) {
                         this.saveScheme();
-                    }
-                } else if (Keys.CTRL_Z === key) {
-                    this.historyUndo();
-                } else if (Keys.CTRL_SHIFT_Z === key) {
-                    this.historyRedo();
-                } else if (Keys.CTRL_A === key) {
-                    this.schemeContainer.selectAllItems();
-                    EventBus.$emit(EventBus.ANY_ITEM_SELECTED);
-                } else if (Keys.DELETE === key) {
-                    if (this.state === 'editPath') {
-                        states.editPath.deleteSelectedPoints();
-                    } else if (this.state === 'dragItem') {
+                    } else if (Keys.CTRL_Z === key) {
+                        this.historyUndo();
+                    } else if (Keys.CTRL_SHIFT_Z === key) {
+                        this.historyRedo();
+                    } else if (Keys.CTRL_A === key) {
+                        this.schemeContainer.selectAllItems();
+                    } else if (Keys.DELETE === key) {
                         this.deleteSelectedItems();
                     }
+                } else if (this.state === 'editPath') {
+                    this.states.editPath.deleteSelectedPoints();
                 }
             }
             if (key === Keys.ESCAPE) {
-                states[this.state].cancel();
+                this.states[this.state].cancel();
             } else {
-                states[this.state].keyPressed(key, keyOptions);
+                this.states[this.state].keyPressed(key, keyOptions);
             }
         },
+
+        onKeyUp(key, keyOptions) {
+            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
+                this.states[this.state].keyUp(key, keyOptions);
+            }
+        },
+
 
         copySelectedItems() {
             const copyBuffer = this.schemeContainer.copySelectedItems();
@@ -1482,9 +1332,9 @@ export default {
             if (this.$store.state.copiedStyleItem) {
                 forEach(this.schemeContainer.getSelectedItems(), item => {
                     applyStyleFromAnotherItem(this.$store.state.copiedStyleItem, item);
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                 });
-                EventBus.emitSchemeChangeCommited();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             }
         },
 
@@ -1505,18 +1355,11 @@ export default {
                             const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
                             const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
                             this.schemeContainer.pasteItems(items, centerX, centerY);
-                            EventBus.emitSchemeChangeCommited();
+                            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         });
                     }
                 }
             })
-        },
-
-        onBrowseClose() {
-            if (this.$store.getters.schemeModified) {
-                return 'The changes were not saved';
-            }
-            return null;
         },
 
         onItemTooltipTriggered(item, mouseX, mouseY) {
@@ -1535,9 +1378,7 @@ export default {
         },
 
         commitHistory(affinityId) {
-            history.commit(this.schemeContainer.scheme, affinityId);
-            this.markSchemeAsModified();
-            this.updateHistoryState();
+            this.$emit('history-committed', this.schemeContainer.scheme, affinityId);
         },
 
         historyEditAllowed() {
@@ -1546,38 +1387,27 @@ export default {
 
         historyUndo() {
             if (this.state === 'editPath') {
-                states.editPath.undo();
-            } else if (history.undoable() && this.historyEditAllowed()) {
-                const scheme = history.undo();
-                if (scheme) {
-                    this.schemeContainer.scheme = scheme;
-                    this.schemeContainer.reindexItems();
-                    this.updateRevision();
-                    this.editorRevision++;
-                    this.restoreItemSelection();
-                    this.restoreCurveEditing();
-                    EventBus.$emit(EventBus.HISTORY_UNDONE);
-                }
-                this.updateHistoryState();
+                this.states.editPath.undo();
+            } else if (this.historyEditAllowed()) {
+                this.$emit('undo-history-requested');
             }
         },
 
         historyRedo() {
             if (this.state === 'editPath') {
-                states.editPath.redo();
-            } else if (history.redoable() && this.historyEditAllowed()) {
-                const scheme = history.redo();
-                if (scheme) {
-                    this.schemeContainer.scheme = scheme;
-                    this.schemeContainer.reindexItems();
-                    this.editorRevision++;
-                    this.updateRevision();
-                    this.restoreItemSelection();
-                    this.restoreCurveEditing();
-                    EventBus.$emit(EventBus.HISTORY_UNDONE);
-                }
-                this.updateHistoryState();
+                this.states.editPath.redo();
+            } else if (this.historyEditAllowed()) {
+                this.$emit('redo-history-requested');
             }
+        },
+
+        reloadSchemeContainer() {
+            this.schemeContainer.scheme = this.scheme;
+            this.schemeContainer.reindexItems();
+            this.editorRevision++;
+            this.updateRevision();
+            this.restoreItemSelection();
+            this.restoreCurveEditing();
         },
 
         restoreCurveEditing() {
@@ -1589,11 +1419,11 @@ export default {
                 const existingItem = this.schemeContainer.findItemById(storeItem.id);
                 if (existingItem) {
                     this.$store.dispatch('setCurveEditItem', existingItem);
-                    EventBus.$emit(EventBus.CURVE_EDITED, existingItem);
+                    this.onEditPathRequested(existingItem);
                 } else {
                     this.$store.dispatch('setCurveEditItem', null);
                     if (this.$store.state.editorStateName === 'editPath') {
-                        EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+                        this.onPathEditStopped();
                     }
                 }
             } else {
@@ -1613,11 +1443,6 @@ export default {
             });
         },
 
-        updateHistoryState() {
-            this.$store.dispatch('setHistoryUndoable', history.undoable());
-            this.$store.dispatch('setHistoryRedoable', history.redoable());
-        },
-
         updateRevision() {
             this.schemeRevision = new Date().getTime();
         },
@@ -1626,7 +1451,6 @@ export default {
             this.schemeContainer.bringSelectedItemsToFront();
             this.schemeContainer.reindexItems();
             this.commitHistory();
-            this.markSchemeAsModified();
             this.updateRevision();
         },
 
@@ -1634,16 +1458,7 @@ export default {
             this.schemeContainer.bringSelectedItemsToBack();
             this.schemeContainer.reindexItems();
             this.commitHistory();
-            this.markSchemeAsModified();
             this.updateRevision();
-        },
-
-        markSchemeAsModified() {
-            this.$store.dispatch('markSchemeAsModified');
-        },
-
-        markSchemeAsUnmodified() {
-            this.$store.dispatch('markSchemeAsUnmodified');
         },
 
         onScreenTransformUpdated(screenTransform) {
@@ -1656,94 +1471,7 @@ export default {
             }
         },
 
-        importScheme(scheme) {
-            const newScheme = utils.clone(scheme);
-            newScheme.id = this.schemeContainer.scheme.id;
-            const oldRevision = this.schemeContainer.revision;
 
-            this.initSchemeContainer(scheme)
-            .then(() => {
-                this.schemeContainer.revision = oldRevision + 1;
-                this.updateRevision();
-                this.commitHistory();
-                this.editorRevision++;
-
-                if (this.mode === 'view') {
-                    this.switchToViewMode();
-                }
-            });
-        },
-
-        onImportSchemeJSONClicked() {
-            this.importSchemeFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.importSchemeFileInput.click();
-            });
-        },
-
-        onImportSchemeFileInputChanged(event) {
-            this.loadSchemeFile(event.target.files[0]);
-        },
-
-        loadSchemeFile(file) {
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                this.importSchemeFileShown = false;
-                try {
-                    const scheme = JSON.parse(event.target.result);
-                    //TODO verify if it is correct scheme file
-                    this.importSchemeModal.scheme = scheme;
-                    this.importSchemeModal.shown = true;
-                } catch(err) {
-                    alert('Not able to import scheme. Malformed json');
-                }
-            };
-
-            reader.readAsText(file);
-        },
-
-
-        triggerApplyPatchUpload() {
-            this.loadPatchFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.loadPatchFileInput.click();
-            });
-        },
-
-        onLoadPatchFileInputChanged(fileEvent) {
-            const file = fileEvent.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                this.loadPatchFileShown = false;
-                try {
-                    const patch = JSON.parse(event.target.result);
-                    //TODO verify that it is correct patch file
-                    this.$emit('preview-patch-requested', patch);
-                } catch(err) {
-                    alert('Not able to load patch. Malformed json');
-                }
-            };
-
-            reader.readAsText(file);
-        },
-
-        exportAsJSON() {
-            this.exportJSONModalShown = true;
-        },
-
-        exportAsSVG() {
-            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'svg');
-        },
-
-        exportAsPNG() {
-            this.openExportPictureModal(this.schemeContainer, this.schemeContainer.scheme.items, 'png');
-        },
-
-        exportAsLink() {
-            this.exportAsLinkModalShown = true;
-        },
 
         /**
          * Triggered when any item got selected or deselected
@@ -1790,12 +1518,12 @@ export default {
             }
             item.textSlots[anotherSlotName] = utils.clone(item.textSlots[slotName]);
             item.textSlots[slotName].text = '';
-            EventBus.emitItemChanged(item.id, `textSlots.${anotherSlotName}`);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${anotherSlotName}`);
             if (!this.inPlaceTextEditor.item) {
                 this.currentTab = `Text: ${anotherSlotName}`;
             }
 
-            EventBus.emitItemTextSlotMoved(item, slotName, anotherSlotName);
+            EditorEventBus.textSlot.moved.$emit(this.editorId, item, slotName, anotherSlotName);
         },
 
         // triggered from ItemProperties or QuickHelperPanel components
@@ -1811,7 +1539,7 @@ export default {
                     if (propDescriptor && propDescriptor.type === type) {
                         this.schemeContainer.setPropertyForItem(item, item => {
                             item.shapeProps[name] = utils.clone(value);
-                            EventBus.emitItemChanged(item.id, `shapeProps.${name}`);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `shapeProps.${name}`);
                         });
 
                         item.meta.revision += 1;
@@ -1822,7 +1550,7 @@ export default {
                     if (item.shape === 'component') {
                         if (item.shapeProps.kind !== 'embedded' && item._childItems) {
                             item._childItems = [];
-                            EventBus.emitItemChanged(item.id);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                         }
 
                         if (name === 'kind' || name === 'referenceItem' || name === 'placement') {
@@ -1844,7 +1572,7 @@ export default {
                     StoreUtils.setSelectedConnectorPath(this.$store, Shape.find(item.shape).computeOutline(item));
                 }
             }
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.shapeProps.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.shapeProps.${name}`);
             if (reindexingNeeded) {
                 this.schemeContainer.reindexItems();
             }
@@ -1855,7 +1583,7 @@ export default {
             forEach(this.schemeContainer.selectedItems, item => {
                 this.schemeContainer.setPropertyForItem(item, item => {
                     item[name] = utils.clone(value);
-                    EventBus.emitItemChanged(item.id, name);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, name);
                 });
                 itemIds += item.id;
             });
@@ -1863,7 +1591,7 @@ export default {
             if (name === 'tags') {
                 this.schemeContainer.reindexTags();
             }
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.${name}`);
         },
 
         onItemShapeChanged(shapeName) {
@@ -1872,22 +1600,22 @@ export default {
                 this.schemeContainer.setPropertyForItem(item, item => {
                     item.shape = shapeName;
                     enrichItemWithDefaults(item);
-                    EventBus.emitItemChanged(item.id, 'shape');
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'shape');
                 });
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.shape`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.shape`);
         },
 
         onItemStyleApplied(style) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 if (applyItemStyle(item, style)) {
-                    EventBus.emitItemChanged(item.id);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                     itemIds += item.id;
                 }
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.${name}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.${name}`);
         },
 
         onInPlaceEditTextPropertyChanged(item, textSlotName, propertyName, value) {
@@ -1895,8 +1623,8 @@ export default {
                 item.textSlots[textSlotName][propertyName] = utils.clone(value);
                 recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
             }
-            EventBus.emitItemChanged(item.id);
-            EventBus.emitSchemeChangeCommited(`item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.textSlots.${textSlotName}.${propertyName}`);
         },
 
         // this is triggered from quick helper panel
@@ -1909,10 +1637,10 @@ export default {
                         recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
                     });
                 }
-                EventBus.emitItemChanged(item.id, `textSlots.*.${propertyName}`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.*.${propertyName}`);
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.*.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.*.${propertyName}`);
 
         },
 
@@ -1924,21 +1652,21 @@ export default {
                     item.textSlots[textSlotName][propertyName] = utils.clone(value);
                     recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
                 }
-                EventBus.emitItemChanged(item.id, `textSlots.${textSlotName}.${propertyName}`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${textSlotName}.${propertyName}`);
                 itemIds += item.id;
             });
-            EventBus.emitSchemeChangeCommited(`item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
         convertCurvePointToSimple() {
             if (this.state === 'editPath') {
-                states[this.state].convertSelectedPointsToSimple();
+                this.states[this.state].convertSelectedPointsToSimple();
             }
         },
 
         convertCurvePointToBezier() {
             if (this.state === 'editPath') {
-                states[this.state].convertSelectedPointsToBezier();
+                this.states[this.state].convertSelectedPointsToBezier();
             }
         },
 
@@ -1951,26 +1679,8 @@ export default {
          */
         onConnectorDestinationItemSelected(item) {
             if (this.state === 'connecting') {
-                states[this.state].submitConnectorDestinationItem(item);
+                this.states[this.state].submitConnectorDestinationItem(item);
             }
-        },
-
-        triggerSchemeTitleEdit() {
-            this.schemeTitleEdit.shown = true;
-            this.$nextTick(() => {
-                if (this.$refs.schemeTitle) {
-                    this.$refs.schemeTitle.focus();
-                }
-            });
-        },
-
-        submitTitleEdit() {
-            if (this.$refs.schemeTitle) {
-                this.schemeContainer.scheme.name = this.$refs.schemeTitle.innerHTML;
-                this.updateRevision();
-                this.commitHistory();
-            }
-            this.schemeTitleEdit.shown = false;
         },
 
         clearStatusMessage() {
@@ -1978,25 +1688,27 @@ export default {
         },
 
         switchToViewMode() {
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), EventBus);
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
+                onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+            });
             this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
 
             const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
-            AnimationRegistry.enableAnimations();
+            this.animationRegistry.enableAnimations();
             this.switchStateInteract();
         },
 
         switchToEditMode() {
             this.interactiveSchemeContainer = null;
-            AnimationRegistry.stopAllAnimations();
+            this.animationRegistry.stopAllAnimations();
             this.switchStateDragItem();
         },
 
         onDrawColorPicked(color) {
             if (this.state === 'draw') {
-                states.draw.pickColor(color);
+                this.states.draw.pickColor(color);
             }
         },
 
@@ -2008,11 +1720,11 @@ export default {
         },
 
         onAnimatiorEditorOpened(framePlayer) {
-            StoreUtils.startAnimationEditor(this.$store, framePlayer);
+            this.currentAnimatorFramePlayer = framePlayer;
         },
 
         closeAnimatorEditor() {
-            StoreUtils.startAnimationEditor(this.$store, null);
+            this.currentAnimatorFramePlayer = null;
         },
 
         onComponentLoadRequested(item) {
@@ -2040,34 +1752,36 @@ export default {
             })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, EventBus);
+                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, {
+                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                });
                 this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.interactiveSchemeContainer.prepareFrameAnimationsForItems();
-                EventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
 
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {
                     this.zoomToItems([item]);
                 }
 
                 this.$nextTick(() => {
-                    EventBus.emitComponentSchemeMounted(item);
+                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item);
                 });
             })
             .catch(err => {
                 console.error(err);
                 StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
                 item.meta.componentLoadFailed = true;
-                EventBus.emitComponentLoadFailed(item);
+                EditorEventBus.component.loadFailed.specific.$emit(this.editorId, item.id, item);
             });
         },
 
-        onRightClickedItem(item, mouseX, mouseY) {
+        onItemRightClick(item, mouseX, mouseY) {
             const x = this.x_(mouseX);
             const y = this.y_(mouseY);
 
             const selectedOnlyOne = this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox;
 
-            this.customContextMenu.menuOptions = [{
+            let contextMenuOptions = [{
                 name: 'Bring to Front',
                 clicked: () => {this.bringSelectedItemsToFront();}
             }, {
@@ -2085,13 +1799,13 @@ export default {
 
             if (!this.offline && selectedOnlyOne) {
                 if (item.shape === 'component' && item.shapeProps.kind === 'external') {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Create external diagram for this component...',
                         iconClass: 'far fa-file',
                         clicked: () => {this.startCreatingExternalComponentForItem(item); }
                     });
                 } else {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Create diagram for this element...',
                         iconClass: 'far fa-file',
                         clicked: () => {this.startCreatingChildSchemeForItem(item); }
@@ -2099,7 +1813,7 @@ export default {
                 }
             }
 
-            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
+            contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Copy',
                 iconsClass: 'fas fa-copy',
                 clicked: () => {this.copySelectedItems(item);}
@@ -2109,22 +1823,22 @@ export default {
             }]);
 
             if (this.$store.state.copiedStyleItem) {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Apply copied item style',
                     clicked: () => {this.applyCopiedItemStyle(item);}
                 });
             }
 
             if (selectedOnlyOne) {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Create component from this item',
                     clicked: () => {this.createComponentFromItem(item);}
                 });
                 if (item.shape === 'image') {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Crop image',
                         iconClass: 'fas fa-crop',
-                        clicked: () => EventBus.$emit(EventBus.IMAGE_CROP_TRIGGERED, item)
+                        clicked: () => this.startCroppingImage(item)
                     });
                 }
             } else {
@@ -2133,14 +1847,14 @@ export default {
                     allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'path';
                 }
                 if (allCurves) {
-                    this.customContextMenu.menuOptions.push({
+                    contextMenuOptions.push({
                         name: 'Merge paths',
                         clicked: () => this.mergePaths(this.schemeContainer.multiItemEditBox.items)
                     })
                 }
             }
 
-            this.customContextMenu.menuOptions = this.customContextMenu.menuOptions.concat([{
+            contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Delete',
                 iconClass: 'fas fa-trash',
                 clicked: () => {this.deleteSelectedItems();}
@@ -2184,14 +1898,14 @@ export default {
                 });
             }
 
-            this.customContextMenu.menuOptions.push({
+            contextMenuOptions.push({
                 name: 'Align',
                 subOptions: alignSubOptions
             });
 
 
             if (selectedOnlyOne) {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Events',
                     subOptions: [{
                         name: 'Init',
@@ -2210,47 +1924,27 @@ export default {
             }
 
             if (item.shape === 'path') {
-                this.customContextMenu.menuOptions.push({
+                contextMenuOptions.push({
                     name: 'Edit Path',
-                    clicked: () => { EventBus.emitCurveEdited(item); }
+                    clicked: () => { this.onEditPathRequested(item); }
                 });
             }
 
-            this.customContextMenu.mouseX = mouseX + 5;
-            this.customContextMenu.mouseY = mouseY + 5;
-            this.customContextMenu.id = shortid.generate();
-            this.customContextMenu.show = true;
+            this.$emit('context-menu-requested', mouseX, mouseY, contextMenuOptions);
         },
 
-        onRightClickedVoid(x, y, mouseX, mouseY) {
+        onVoidRightClicked(mouseX, mouseY) {
             if (this.mode === 'edit') {
-                this.customContextMenu.menuOptions = [{
+                this.onContextMenuRequested(mouseX, mouseY, [{
                     name: 'Paste',
                     clicked: () => {this.pasteItemsFromClipboard();}
-                }];
-                const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
-                this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
-                this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
-                this.customContextMenu.id = shortid.generate();
-                this.customContextMenu.show = true;
+                }]);
             }
         },
 
-        onCustomContextMenuRequested(mouseX, mouseY, menuOptions) {
-            this.customContextMenu.menuOptions = menuOptions;
-
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
-            this.customContextMenu.mouseX = mouseX + svgRect.left + 5;
-            this.customContextMenu.mouseY = mouseY + svgRect.top + 5;
-            this.customContextMenu.id = shortid.generate();
-            this.customContextMenu.show = true;
-        },
-
-        onCustomContextMenuOptionSelected(option) {
-            if (!option.subOptions) {
-                option.clicked();
-            }
-            this.customContextMenu.show = false;
+        onContextMenuRequested(mouseX, mouseY, menuOptions) {
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
+            this.$emit('context-menu-requested', mouseX + svgRect.left + 5, mouseY + svgRect.top + 5, menuOptions);
         },
 
         addItemBehaviorEvent(item, eventName) {
@@ -2263,7 +1957,7 @@ export default {
                     actions: [ ]
                 });
             }
-            EventBus.$emit(EventBus.BEHAVIOR_PANEL_REQUESTED);
+            EditorEventBus.behaviorPanel.requested.$emit(this.editorId);
         },
 
         mergePaths(allItems) {
@@ -2273,7 +1967,7 @@ export default {
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         /**
@@ -2333,7 +2027,7 @@ export default {
                     }
                 });
                 this.schemeContainer.selectItem(rect);
-                EventBus.emitItemSurroundCreated(rect, box.area, padding);
+                EditorEventBus.itemSurround.created.$emit(this.editorId, rect, box.area, padding);
             }
         },
 
@@ -2371,107 +2065,13 @@ export default {
                 }
             });
 
-            this.openExportPictureModal(this.schemeContainer, items, kind);
+            this.$emit('export-picture-requested', items, kind)
         },
 
-        openExportPictureModal(schemeContainer, items, kind) {
-            if (!items || items.length === 0) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
-                return;
-            }
-            const exportedItems = [];
-            let minP = null;
-            let maxP = null;
-
-            const collectedItems = [];
-
-            forEach(items, item => {
-                if (item.visible && item.opacity > 0.0001) {
-                    const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
-                    if (domElement) {
-                        const itemBoundingBox = this.calculateBoundingBoxOfAllSubItems(schemeContainer, item);
-                        if (minP) {
-                            minP.x = Math.min(minP.x, itemBoundingBox.x);
-                            minP.y = Math.min(minP.y, itemBoundingBox.y);
-                        } else {
-                            minP = {
-                                x: itemBoundingBox.x,
-                                y: itemBoundingBox.y
-                            };
-                        }
-                        if (maxP) {
-                            maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
-                            maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
-                        } else {
-                            maxP = {
-                                x: itemBoundingBox.x + itemBoundingBox.w,
-                                y: itemBoundingBox.y + itemBoundingBox.h
-                            };
-                        }
-                        const itemDom = domElement.cloneNode(true);
-                        filterOutPreviewSvgElements(itemDom);
-                        collectedItems.push({
-                            item, itemDom
-                        });
-                    }
-                }
-            });
-
-            forEach(collectedItems, collectedItem => {
-                const item = collectedItem.item;
-                const itemDom = collectedItem.itemDom;
-                const worldPoint = schemeContainer.worldPointOnItem(0, 0, item);
-                const angle = worldAngleOfItem(item);
-                const x = worldPoint.x - minP.x;
-                const y = worldPoint.y - minP.y;
-
-                itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
-                const html = itemDom.outerHTML;
-                exportedItems.push({item, html})
-            });
-
-            this.exportPictureModal.exportedItems = exportedItems;
-            this.exportPictureModal.width = maxP.x - minP.x;
-            this.exportPictureModal.height = maxP.y - minP.y;
-            if (this.exportPictureModal.width > 5) {
-                this.exportPictureModal.width = Math.round(this.exportPictureModal.width);
-            }
-            if (this.exportPictureModal.height > 5) {
-                this.exportPictureModal.height = Math.round(this.exportPictureModal.height);
-            }
-
-            // this check is needed when export straight vertical or horizontal curve lines
-            // in such case area is defined with zero width or height and it makes SVG export confused
-            if (this.exportPictureModal.width < 0.001) {
-                this.exportPictureModal.width = 20;
-            }
-            if (this.exportPictureModal.height < 0.001) {
-                this.exportPictureModal.height = 20;
-            }
-            this.exportPictureModal.backgroundColor = schemeContainer.scheme.style.backgroundColor;
-            this.exportPictureModal.kind = kind;
-            this.exportPictureModal.shown = true;
-        },
-
-        /**
-         * Calculates bounding box taking all sub items into account and excluding the ones that are not visible
-         */
-        calculateBoundingBoxOfAllSubItems(schemeContainer, parentItem) {
-            const items = [];
-            traverseItems(parentItem, item => {
-                if (item.visible && item.opacity > 0.0001) {
-                    // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
-                    if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
-                        items.push(item);
-                    }
-                }
-            });
-            return schemeContainer.getBoundingBoxOfItems(items)
-        },
 
         deleteSelectedItems() {
             this.schemeContainer.deleteSelectedItems();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         itemCreationDraggedToSvgEditor(item, pageX, pageY) {
@@ -2501,7 +2101,7 @@ export default {
             item.area.h = worldHeight / Math.max(0.0000001, sv.y);
 
             this.schemeContainer.selectItem(item);
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         toLocalPoint(mouseX, mouseY) {
@@ -2511,31 +2111,35 @@ export default {
             };
         },
 
-        onKeyUp(key, keyOptions) {
-            if (key !== Keys.ESCAPE && key != Keys.DELETE) {
-                states[this.state].keyUp(key, keyOptions);
+        mouseWheel(x, y, mx, my, event) {
+            if (this.active) {
+                this.states[this.state].mouseWheel(x, y, mx, my, event);
             }
         },
 
-        mouseWheel(x, y, mx, my, event) {
-            states[this.state].mouseWheel(x, y, mx, my, event);
-        },
-
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+            }
         },
         mouseUp(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
+            }
         },
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+            }
         },
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            if (this.active) {
+                this.states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+            }
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
-            var rect = document.getElementById('svg_plot').getBoundingClientRect(),
+            var rect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect(),
                 offsetX = pageX - rect.left,
                 offsetY  = pageY - rect.top;
 
@@ -2545,47 +2149,12 @@ export default {
             }
         },
 
-        deleteScheme() {
-            const projectLink = this.schemeContainer.scheme.projectLink;
-            this.$store.state.apiClient.deleteScheme(this.schemeContainer.scheme.id).then(() => {
-                if (projectLink) {
-                    window.location = projectLink;
-                } else {
-                    window.location = '/';
-                }
-            });
-        },
-
-        showDuplicateDiagramModal() {
-            this.duplicateDiagramModal.name = this.schemeContainer.scheme.name + ' Copy';
-            this.duplicateDiagramModal.errorMessage = null;
-            this.duplicateDiagramModal.shown = true;
-        },
-
-        duplicateDiagram() {
-            const name = this.duplicateDiagramModal.name.trim();
-            if (!name) {
-                this.duplicateDiagramModal.errorMessage = 'Name should not be empty';
-                return;
-            }
-
-            const scheme = utils.clone(this.schemeContainer.scheme);
-            scheme.id = null;
-            scheme.name = name;
-            this.submitNewSchemeForCreation(scheme).then(() => {
-                this.duplicateDiagramModal.shown = false;
-            })
-            .catch(err => {
-                this.duplicateDiagramModal.errorMessage = 'Oops, something went wrong.';
-            });
-        },
-
         updateFloatingHelperPanel() {
             if (!this.schemeContainer) {
                 return;
             }
             if (this.state !== 'dragItem'
-                || !states.dragItem.shouldAllowFloatingHelperPanel()
+                || !this.states.dragItem.shouldAllowFloatingHelperPanel()
                 || this.schemeContainer.selectedItems.length !== 1
                 || this.inPlaceTextEditor.shown) {
                 this.resetFloatingHelperPanel();
@@ -2617,7 +2186,7 @@ export default {
             const maxScreen = {x: this._x(max.x), y: this._y(max.y) + bottomMargin};
             const midX = (minScreen.x + maxScreen.x)/2;
 
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
 
             if (midX < 0 || midX > svgRect.width) {
                 this.resetFloatingHelperPanel();
@@ -2725,6 +2294,18 @@ export default {
             .build();
         },
 
+        onItemsHighlighted(highlightedItems) {
+            this.highlightedItems = highlightedItems;
+        },
+
+        onFrameAnimatorRectordingStateUpdated(isRecording) {
+            this.isRecording = isRecording;
+            if (isRecording) {
+                this.states.dragItem.enableRecording();
+            } else {
+                this.states.dragItem.disableRecording();
+            }
+        },
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
@@ -2745,10 +2326,6 @@ export default {
 
     watch: {
         mode(value) {
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            pageParams.m = value;
-            this.hasher.changeURLHash(pageParams);
-
             if (value === 'view') {
                 this.switchToViewMode();
             } else {
@@ -2761,8 +2338,19 @@ export default {
         },
 
         state(newState) {
-            this.$store.dispatch('setEditorStateName', newState);
-            EventBus.emitEditorStateChanged(this.state);
+            this.$emit('editor-state-changed', newState);
+        },
+
+        schemeReloadKey(newValue) {
+            this.reloadSchemeContainer();
+        },
+
+        historyUndoable(undoable) {
+            this.historyState.undoable = undoable;
+        },
+
+        historyRedoable(redoable) {
+            this.historyState.redoable = redoable;
         },
     },
 
@@ -2775,10 +2363,6 @@ export default {
             }
         },
 
-        schemeModified() {
-            return this.$store.getters.schemeModified;
-        },
-
         connectorProposedDestination() {
             return this.$store.getters.connectorProposedDestination;
         },
@@ -2789,10 +2373,6 @@ export default {
 
         editorStateName() {
             return this.$store.getters.editorStateName;
-        },
-
-        animationEditorCurrentFramePlayer() {
-            return this.$store.getters.animationEditorCurrentFramePlayer;
         },
 
         commentsEntityId() {

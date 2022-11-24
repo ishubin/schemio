@@ -65,7 +65,9 @@ export function dragAndDropBuilder(originalEvent) {
             const reset = (event) => {
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
-                if (!startedDragging) {
+
+                // making sure that it was not right click
+                if (!startedDragging && originalEvent.button !== 2) {
                     this.callbacks.onSimpleClick(event);
                 }
                 startedDragging = false;

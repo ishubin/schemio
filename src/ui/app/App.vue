@@ -13,7 +13,7 @@
 
 
 function shouldShowFooter(route) {
-    return route.name !== 'SchemeEditorView' && route.name !== 'OfflineSchemeEditorView';
+    return route.name !== 'SchemeEditorWebView' && route.name !== 'OfflineSchemeEditorWebView';
 }
 export default {
     data() {

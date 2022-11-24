@@ -4,7 +4,7 @@
 import shortid from 'shortid';
 import forEach from 'lodash/forEach';
 
-export default class Animation { 
+export default class Animation {
 
     constructor() {
         this.enabled = true;
@@ -13,7 +13,7 @@ export default class Animation {
     }
 
     /**
-     * Invoked before playing. 
+     * Invoked before playing.
      * @returns Boolean status whether it has succeeded initializing animation elements
      */
     init() {
@@ -24,7 +24,7 @@ export default class Animation {
      * Function that is invoked on each frame.
      * In case it returns false - it means that animation has finished and it will invoke destroy function
      * @param {Number} dt delta time between frames of animation
-     * @returns Boolean status that specifies whether animation should proceed. 
+     * @returns Boolean status that specifies whether animation should proceed.
      */
     play(dt) {
         return false;

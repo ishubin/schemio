@@ -26,6 +26,7 @@ import Functions from '../userevents/functions/Functions';
 import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation';
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
+import EditorEventBus from '../components/editor/EditorEventBus';
 
 const log = new Logger('SchemeContainer');
 
@@ -82,6 +83,57 @@ export function worldVectorOnItem(x, y, item) {
         y: p1.y - p0.y
     };
 }
+
+export function getBoundingBoxOfItems(items) {
+    if (!items || items.length === 0) {
+        return {x: 0, y: 0, w: 0, h: 0};
+    }
+
+    let range = null;
+
+    forEach(items, item => {
+        const points = [
+            worldPointOnItem(0, 0, item),
+            worldPointOnItem(item.area.w, 0, item),
+            worldPointOnItem(item.area.w, item.area.h, item),
+            worldPointOnItem(0, item.area.h, item),
+        ];
+
+        forEach(points, point => {
+            if (!range) {
+                range = {
+                    x1: point.x,
+                    x2: point.x,
+                    y1: point.y,
+                    y2: point.y,
+                }
+            } else {
+                if (range.x1 > point.x) {
+                    range.x1 = point.x;
+                }
+                if (range.x2 < point.x) {
+                    range.x2 = point.x;
+                }
+                if (range.y1 > point.y) {
+                    range.y1 = point.y;
+                }
+                if (range.y2 < point.y) {
+                    range.y2 = point.y;
+                }
+            }
+        });
+    });
+
+    const schemeBoundaryBox = {
+        x: range.x1,
+        y: range.y1,
+        w: range.x2 - range.x1,
+        h: range.y2 - range.y1,
+    };
+
+    return schemeBoundaryBox;
+}
+
 
 /**
  * converts worlds coords to local point in the transform of the parent of the item
@@ -212,15 +264,15 @@ class SchemeContainer {
     /**
      *
      * @param {Scheme} scheme
-     * @param {EventBus} eventBus
      */
-    constructor(scheme, eventBus) {
+    constructor(scheme, editorId, listener) {
         Debugger.register('SchemioContainer', this);
 
+        this.editorId = editorId;
+        this.listener = listener;
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
-        this.eventBus = eventBus;
         // contains an array of items that were selected
         this.selectedItems = [];
         // used to quick access to item selection state
@@ -369,7 +421,7 @@ class SchemeContainer {
                 };
 
                 this.attachItemsToComponentItem(item, [rootItem]);
-                this.eventBus.emitItemChanged(item.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             }
         }
     }
@@ -1047,53 +1099,7 @@ class SchemeContainer {
     }
 
     getBoundingBoxOfItems(items) {
-        if (!items || items.length === 0) {
-            return {x: 0, y: 0, w: 0, h: 0};
-        }
-
-        let range = null;
-
-        forEach(items, item => {
-            const points = [
-                this.worldPointOnItem(0, 0, item),
-                this.worldPointOnItem(item.area.w, 0, item),
-                this.worldPointOnItem(item.area.w, item.area.h, item),
-                this.worldPointOnItem(0, item.area.h, item),
-            ];
-
-            forEach(points, point => {
-                if (!range) {
-                    range = {
-                        x1: point.x,
-                        x2: point.x,
-                        y1: point.y,
-                        y2: point.y,
-                    }
-                } else {
-                    if (range.x1 > point.x) {
-                        range.x1 = point.x;
-                    }
-                    if (range.x2 < point.x) {
-                        range.x2 = point.x;
-                    }
-                    if (range.y1 > point.y) {
-                        range.y1 = point.y;
-                    }
-                    if (range.y2 < point.y) {
-                        range.y2 = point.y;
-                    }
-                }
-            });
-        });
-
-        const schemeBoundaryBox = {
-            x: range.x1,
-            y: range.y1,
-            w: range.x2 - range.x1,
-            h: range.y2 - range.y1,
-        };
-
-        return schemeBoundaryBox;
+        return getBoundingBoxOfItems(items);
     }
 
     /**
@@ -1169,9 +1175,7 @@ class SchemeContainer {
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
             updateItemRevision(item);
-            if (this.eventBus) {
-                this.eventBus.emitItemChanged(item.id);
-            }
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             this.svgOutlinePathCache.forceUpdate(item);
         }
 
@@ -1294,15 +1298,13 @@ class SchemeContainer {
             item.area.y = newLocalPoint.y;
         }
 
-        if (this.eventBus) {
-            if (previousParentId) {
-                this.eventBus.emitItemChanged(previousParentId);
-            }
-            if (newParentId) {
-                this.eventBus.emitItemChanged(newParentId);
-            }
-            this.eventBus.emitSchemeChangeCommited();
+        if (previousParentId) {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, previousParentId);
         }
+        if (newParentId) {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
+        }
+        this.listener.onSchemeChangeCommitted(this.editorId);
 
 
 
@@ -1477,7 +1479,7 @@ class SchemeContainer {
 
         itemsArray.splice(index, 1);
         if (parentItem) {
-            this.eventBus.emitItemChanged(parentItem.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, parentItem.id);
         }
     }
 
@@ -1510,7 +1512,7 @@ class SchemeContainer {
             this.multiItemEditBox = null;
             this.reindexItems();
             // This event is needed to inform some components that they need to update their state because selection has dissapeared
-            if (this.eventBus) this.eventBus.emitAnyItemDeselected();
+            EditorEventBus.item.deselected.any.$emit(this.editorId);
         }
     }
 
@@ -1576,7 +1578,7 @@ class SchemeContainer {
         if (inclusive) {
             this.selectItemInclusive(item);
             this.selectedItemsMap[item.id] = true;
-            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
+            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         } else {
             const deselectedItemIds = [];
             forEach(this.selectedItems, selectedItem => {
@@ -1587,11 +1589,11 @@ class SchemeContainer {
             this.selectedItems = [];
             forEach(deselectedItemIds, itemId => {
                 this.selectedItemsMap[itemId] = false;
-                if (this.eventBus) this.eventBus.emitItemDeselected(itemId);
+                EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId);
             });
 
             this.selectItemInclusive(item);
-            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
+            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         }
         this.updateMultiItemEditBox();
     }
@@ -1603,7 +1605,7 @@ class SchemeContainer {
         forEach(items, item => {
             this.selectedItems.push(item);
             this.selectedItemsMap[item.id] = true;
-            if (this.eventBus) this.eventBus.emitItemSelected(item.id);
+            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         });
         this.updateMultiItemEditBox();
     }
@@ -1658,9 +1660,7 @@ class SchemeContainer {
 
         // First we should reset selectedItems array and only then emit event for each event
         // Some components check selectedItems array to get information whether item is selected or not
-        if (this.eventBus) {
-            forEach(itemIds, itemId => this.eventBus.emitItemDeselected(itemId));
-        }
+        forEach(itemIds, itemId => EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId));
 
         this.updateMultiItemEditBox();
     }
@@ -1827,7 +1827,7 @@ class SchemeContainer {
                 const clonedItem = this.findItemById(cloneId);
                 if (clonedItem && !clonedItem.meta.componentRoot) {
                     this.setPropertyForItem(clonedItem, setter);
-                    this.eventBus.emitItemChanged(clonedItem.id);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, clonedItem.id);
                 }
             });
         }
@@ -2091,7 +2091,7 @@ class SchemeContainer {
                 updateItemRevision(item);
 
                 this.readjustItemAndDescendants(item.id, isSoft, context, precision);
-                if (this.eventBus) this.eventBus.emitItemChanged(item.id, 'area');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
 
                 this.updatePropertyForClones(item, clone => {
                     clone.area.x = item.area.x;
@@ -2105,7 +2105,7 @@ class SchemeContainer {
             }
         });
 
-        if (this.eventBus) this.eventBus.$emit(this.eventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED);
+        EditorEventBus.editBox.updated.$emit(this.editorId);
     }
 
     /**
@@ -2379,10 +2379,6 @@ class SchemeContainer {
         return this.frameAnimations[itemId];
     }
 
-    getEventBus() {
-        return this.eventBus;
-    }
-
     alignItemsHorizontally(items) {
         if (items.length < 2) {
             return;
@@ -2439,9 +2435,9 @@ class SchemeContainer {
 
             item.area.x += correction.x;
             item.area.y += correction.y;
-            this.eventBus.emitItemChanged(item.id, 'area');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
     }
 
@@ -2501,9 +2497,9 @@ class SchemeContainer {
 
             item.area.x += correction.x;
             item.area.y += correction.y;
-            this.eventBus.emitItemChanged(item.id, 'area');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
     }
 
@@ -2532,10 +2528,10 @@ class SchemeContainer {
             const correction = this._findCenteringCorrection(items, parentId);
             forEach(items, item => {
                 correctionCallback(item, correction);
-                this.eventBus.emitItemChanged(item.id, 'area');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
             });
         });
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted(this.editorId);
         this.updateMultiItemEditBox();
     }
 

@@ -15,20 +15,25 @@
             </div>
         </div>
         <div class="ssc-body">
-            <svg-editor ref="svgEditor"
+            <SvgEditor ref="svgEditor"
                 v-if="schemeContainer"
+                :editorId="editorId"
                 :scheme-container="schemeContainer"
                 :offset-x="offsetX"
                 :offset-y="offsetY"
                 :zoom="vZoom"
                 :use-mouse-wheel="useMouseWheel"
-                mode="view" 
+                mode="view"
                 :userEventBus="userEventBus"
+                :highlightedItems="highlightedItems"
                 @mouse-wheel="mouseWheel"
                 @mouse-move="mouseMove"
                 @mouse-down="mouseDown"
                 @mouse-up="mouseUp"
                 @mouse-double-click="mouseDoubleClick"
+                @item-tooltip-requested="onItemTooltipTriggered"
+                @item-side-panel-requested="onItemSidePanelTriggered"
+                @screen-transform-updated="onScreenTransformUpdated"
                 />
 
             <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
@@ -46,7 +51,7 @@
 <script>
 import SvgEditor from '../components/editor/SvgEditor.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
-import EventBus from '../components/editor/EventBus';
+import EditorEventBus from '../components/editor/EditorEventBus';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
 import forEach from 'lodash/forEach';
@@ -54,10 +59,9 @@ import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
 import StateInteract from '../components/editor/states/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
+import shortid from 'shortid';
 
 
-const userEventBus = new UserEventBus();
-const stateInteract = new StateInteract(EventBus, store, userEventBus);
 
 export default {
     props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
@@ -68,22 +72,33 @@ export default {
         this.$store.dispatch('setAssetsPath', '/');
         this.initSchemeContainer();
 
-        EventBus.$on(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$on(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$on(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
+        EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
     },
     beforeDestroy() {
-        EventBus.$off(EventBus.SCREEN_TRANSFORM_UPDATED, this.onScreenTransformUpdated);
-        EventBus.$off(EventBus.ITEM_TOOLTIP_TRIGGERED, this.onItemTooltipTriggered);
-        EventBus.$off(EventBus.ITEM_SIDE_PANEL_TRIGGERED, this.onItemSidePanelTriggered);
-        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
+        EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
+        EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+    },
+    created() {
+        this.userEventBus = new UserEventBus();
+        this.stateInteract = new StateInteract(store, this.userEventBus, {
+            onCancel: () => {},
+            onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
+            onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
+            onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+            onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
+            onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
+            onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
+            onScreenTransformUpdated: (screenTransform) => this.onScreenTransformUpdated(screenTransform),
+            onItemsHighlighted: (highlightedItems) => this.highlightedItems = highlightedItems,
+            onSubStateMigrated: () => {},
+        });
     },
     data() {
         return {
+            editorId: 'standalone-' + shortid.generate,
             schemeContainer: null,
             initialized: false,
-            userEventBus,
             textZoom: "" + this.zoom,
             vZoom: this.zoom,
 
@@ -92,6 +107,11 @@ export default {
                 shown: false,
                 x: 0,
                 y: 0
+            },
+
+            highlightedItems: {
+                itemIds: [],
+                showPins: false
             },
 
             sidePanel: {
@@ -107,9 +127,9 @@ export default {
                 console.error('Failed to load shapes', err);
             })
             .then(() => {
-                this.schemeContainer = new SchemeContainer(this.scheme, EventBus);
-                stateInteract.schemeContainer = this.schemeContainer;
-                stateInteract.reset();
+                this.schemeContainer = new SchemeContainer(this.scheme, this.editorId);
+                this.stateInteract.schemeContainer = this.schemeContainer;
+                this.stateInteract.reset();
                 this.initialized = true;
                 if (this.autoZoom) {
                     this.zoomToScheme();
@@ -119,31 +139,31 @@ export default {
 
         mouseWheel(x, y, mx, my, event) {
             if (this.initialized) {
-                stateInteract.mouseWheel(x, y, mx, my, event);
+                this.stateInteract.mouseWheel(x, y, mx, my, event);
             }
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
         mouseUp(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
             if (this.initialized) {
-                stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+                this.stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
             }
         },
 
@@ -181,7 +201,7 @@ export default {
             if (items && items.length > 0) {
                 const area = this.getBoundingBoxOfItems(items);
                 if (area) {
-                    EventBus.emitBringToViewInstantly(area);
+                    EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
                 }
             }
         },

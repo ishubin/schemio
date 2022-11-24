@@ -4,7 +4,8 @@
 
 <template lang="html">
     <div id="svg-editor" class="svg-editor">
-        <svg id="svg_plot" ref="svgDomElement"
+        <svg :id="`svg-plot-${editorId}`" ref="svgDomElement"
+            class="svg-editor-plot"
             :class="cssClass"
             :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
@@ -14,7 +15,8 @@
             @dragenter="onDragEnter"
             @dragover="onDragOver"
             @dragleave="onDragLeave"
-            data-void="true">
+            data-void="true"
+            oncontextmenu="return false;">
 
             <g v-if="mode === 'view' && schemeContainer">
                 <g data-type="scene-transform" :transform="transformSvg">
@@ -24,6 +26,7 @@
                         <ItemSvg
                             :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
+                            :editorId="editorId"
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
@@ -74,6 +77,7 @@
                             v-if="item.visible"
                             :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
                             :item="item"
+                            :editorId="editorId"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
@@ -109,6 +113,7 @@
                         <ItemSvg
                             :key="`${item.id}-${item.shape}`"
                             :item="item"
+                            :editorId="editorId"
                             :patchIndex="patchIndex"
                             :mode="mode"
                             />
@@ -174,18 +179,18 @@ import '../../typedef';
 import myMath from '../../myMath';
 import {ItemInteractionMode, defaultItem, traverseItems, hasItemDescription} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
-import EventBus from './EventBus.js';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer, { itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
 import Compiler from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
 import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Component.vue';
+import EditorEventBus from './EditorEventBus';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -206,12 +211,13 @@ const lastMousePosition = {
 
 export default {
     props: {
-        offline             : { type: Boolean, default: false},
+        editorId            : {type: String, required: true},
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
         stateLayerShown     : { type: Boolean, default: false},
         userEventBus        : { type: Object, default: null},
         patchIndex          : { type: Object, default: null},
+        highlightedItems    : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -228,17 +234,21 @@ export default {
             this.prepareFrameAnimations();
         }
 
-        EventBus.$on(EventBus.BRING_TO_VIEW, this.onBringToView);
-        EventBus.$on(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
-        EventBus.$on(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$on(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$on(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
-        EventBus.$on(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$on(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
-        EventBus.$on(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
-        EventBus.$on(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
-        EventBus.$on(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
+        EditorEventBus.zoomToAreaRequested.$on(this.editorId, this.onBringToView);
+        EditorEventBus.item.linksShowRequested.any.$on(this.editorId, this.onShowItemLinks);
+
+        EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+
+        EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+        EditorEventBus.void.doubleClicked.$on(this.editorId, this.onVoidDoubleClicked);
+
+        EditorEventBus.item.selected.any.$on(this.editorId, this.onAnyItemSelected);
+
+        EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
+        EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
+
+        EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
+        EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.updateClickableMarkers);
     },
     mounted() {
         this.updateSvgSize();
@@ -260,20 +270,23 @@ export default {
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
-        EventBus.$off(EventBus.BRING_TO_VIEW, this.onBringToView);
-        EventBus.$off(EventBus.ITEM_LINKS_SHOW_REQUESTED, this.onShowItemLinks);
-        EventBus.$off(EventBus.ANY_ITEM_CLICKED, this.onAnyItemClicked);
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onAnyItemSelected);
-        EventBus.$off(EventBus.VOID_CLICKED, this.onVoidClicked);
-        EventBus.$off(EventBus.VOID_DOUBLE_CLICKED, this.onVoidDoubleClicked);
-        EventBus.$off(EventBus.ITEMS_HIGHLIGHTED, this.highlightItems);
-        EventBus.$off(EventBus.COMPONENT_SCHEME_MOUNTED, this.onComponentSchemeMounted);
-        EventBus.$off(EventBus.COMPONENT_LOAD_FAILED, this.onComponentLoadFailed);
-        EventBus.$off(EventBus.FRAME_PLAYER_PREPARED, this.onFramePlayerPrepared);
-        EventBus.$off(EventBus.CLICKABLE_MARKERS_TOGGLED, this.updateClickableMarkers);
+        EditorEventBus.zoomToAreaRequested.$off(this.editorId, this.onBringToView);
+        EditorEventBus.item.linksShowRequested.any.$off(this.editorId, this.onShowItemLinks);
+
+        EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+        EditorEventBus.void.doubleClicked.$off(this.editorId, this.onVoidDoubleClicked);
+
+        EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
+
+        EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
+        EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
+
+        EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
+        EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.updateClickableMarkers);
 
         if (this.useMouseWheel) {
-            var svgElement = this.$refs.svgDomElement;
+            const svgElement = this.$refs.svgDomElement;
             if (svgElement) {
                 svgElement.removeEventListener('wheel', this.mouseWheel);
             }
@@ -303,6 +316,9 @@ export default {
     },
     methods: {
         updateSvgSize() {
+            if (!this.$refs.svgDomElement) {
+                return;
+            }
             const svgRect = this.$refs.svgDomElement.getBoundingClientRect();
             this.width = svgRect.width;
             this.height = svgRect.height;
@@ -503,9 +519,7 @@ export default {
             }
         },
 
-        highlightItems(itemIds, options) {
-            const highlightPins = options ? options.highlightPins : false;
-
+        highlightItems(itemIds, showPins) {
             this.worldHighlightedItems = [];
 
             forEach(itemIds, itemId => {
@@ -559,7 +573,7 @@ export default {
                     scalingFactor
                 };
 
-                if (highlightPins) {
+                if (showPins) {
                     itemHighlight.pins = shape.getPins(item);
                 }
 
@@ -653,7 +667,7 @@ export default {
                 } else {
                     frameAnimation.setStopFrame(-1);
                 }
-                AnimationRegistry.play(frameAnimation, itemId, 'frame-player');
+                playInAnimationRegistry(this.editorId, frameAnimation, itemId, 'frame-player');
 
             } else if (args.operation === 'setFrame') {
                 frameAnimation.toggleFrame(args.frame);
@@ -729,7 +743,7 @@ export default {
                 enrichItemWithDefaults(textItem);
                 this.schemeContainer.addItem(textItem);
                 this.$nextTick(() => {
-                    EventBus.emitItemTextSlotEditTriggered(textItem, 'body', {
+                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, textItem, 'body', {
                         x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
                     }, false, true);
                 });
@@ -761,7 +775,7 @@ export default {
             const destY = (this.height)/2 - (area.y + area.h/2) *newZoom;
 
             if (animated) {
-                AnimationRegistry.play(new ValueAnimation({
+                playInAnimationRegistry(this.editorId, new ValueAnimation({
                     durationMillis: 400,
                     animationType: 'ease-out',
                     update: (t) => {
@@ -782,7 +796,7 @@ export default {
         },
 
         startLinksAnimation() {
-            AnimationRegistry.play(new ValueAnimation({
+            playInAnimationRegistry(this.editorId, new ValueAnimation({
                 durationMillis: 300,
 
                 update: (t) => {
@@ -849,7 +863,7 @@ export default {
 
 
         informUpdateOfScreenTransform(screenTransform) {
-            EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, screenTransform);
+            this.$emit('screen-transform-updated', screenTransform);
         },
 
         calculateLinkBackgroundRectWidth(link) {
@@ -880,9 +894,9 @@ export default {
                 }
                 if (item.description.trim().length > 8) {
                     if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                        EventBus.$emit(EventBus.ITEM_SIDE_PANEL_TRIGGERED, item);
+                        this.$emit('item-side-panel-requested', item);
                     } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                        EventBus.$emit(EventBus.ITEM_TOOLTIP_TRIGGERED, item, lastMousePosition.x, lastMousePosition.y);
+                        this.$emit('item-tooltip-requested', item, lastMousePosition.x, lastMousePosition.y);
                     }
                 }
             }
@@ -1027,6 +1041,10 @@ export default {
         textSelectionEnabled(isEnabled) {
             this.mouseEventsEnabled = !(this.mode === 'view' && isEnabled);
             this.$forceUpdate();
+        },
+
+        highlightedItems(value) {
+            this.highlightItems(value.itemIds, value.showPins);
         }
     }
 }

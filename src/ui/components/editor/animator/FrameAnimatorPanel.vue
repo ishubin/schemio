@@ -21,7 +21,7 @@
                                 @click="startRecording"
                                 title="Record items for currently selected frame"
                                 >
-                                <i class="far fa-dot-circle"></i> 
+                                <i class="far fa-dot-circle"></i>
                             </span>
                             <span class="btn btn-secondary btn-small" title="Previous" @click="moveFrameLeft"><i class="fas fa-angle-left"></i></span>
                             <span v-if="isPlaying" class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
@@ -41,6 +41,7 @@
                         <div v-if="!selectedFrameControl.blank && selectedFrameControl.propertyDescriptor">
                             <PropertyInput
                                     :key="`frame-prop-input-${selectedFrameControl.trackIdx}-${selectedFrameControl.frame}`"
+                                    :editorId="editorId"
                                     :descriptor="selectedFrameControl.propertyDescriptor"
                                     :value="selectedFrameControl.value"
                                     :shapeProps="{}"
@@ -72,7 +73,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(track, trackIdx) in framesMatrix" 
+                        <tr v-for="(track, trackIdx) in framesMatrix"
                             class="track-droppable-area"
                             :data-track-index="trackIdx"
                             :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function', 'drop-below': trackDrag.on && !trackDrag.dropHead && trackIdx === trackDrag.dstTrackIdx}"
@@ -154,6 +155,7 @@
             />
 
         <FunctionArgumentsEditor v-if="functionEditorModal.shown"
+            :editorId="editorId"
             :functionDescription="functionEditorModal.functionDescription"
             :args="functionEditorModal.args"
             :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
@@ -176,12 +178,12 @@ import { jsonDiff } from '../../../json-differ';
 import { compileAnimations, findItemPropertyDescriptor, findSchemePropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
-import EventBus from '../EventBus';
 import StoreUtils from '../../../store/StoreUtils';
 import AnimationFunctions from '../../../animations/functions/AnimationFunctions';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import shortid from 'shortid';
 import myMath from '../../../myMath';
+import EditorEventBus from '../EditorEventBus';
 
 
 const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
@@ -189,7 +191,7 @@ const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity'
 
 
 function calculateTrackColor(kind, id, property) {
-    let hue = Math.abs(utils.hashString(kind + id)) % 360; 
+    let hue = Math.abs(utils.hashString(kind + id)) % 360;
     const propertyHash = Math.abs(utils.hashString(property));
     const hueJitter = propertyHash % 20 - 10;
     hue = (hue + hueJitter) % 360;
@@ -335,6 +337,7 @@ function findFrameIdx(animation, frame) {
 
 export default {
     props: {
+        editorId       : {type: String, required: true},
         schemeContainer: {type: Object, required: true},
         framePlayer    : {type: Object, required: true},
         light          : {type: Boolean, default: true},
@@ -344,16 +347,14 @@ export default {
 
     beforeMount() {
         this.compileAnimations();
-        EventBus.$on(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
-        EventBus.$on(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
-        EventBus.subscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
+        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.SCHEME_CHANGE_COMMITED, this.onSchemeChange);
-        EventBus.$off(EventBus.HISTORY_UNDONE, this.onHistoryUndone);
-        EventBus.unsubscribeForItemChanged(this.framePlayer.id, this.onFramePlayerChanged);
-        StoreUtils.setAnimationEditorRecording(this.$store, false);
+        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
+        this.$emit('recording-state-updated', false);
     },
 
     data() {
@@ -443,7 +444,7 @@ export default {
             }
 
             if (this.isRecording) {
-                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId);
             }
         },
 
@@ -675,13 +676,13 @@ export default {
 
         startRecording() {
             this.isRecording = true;
-            StoreUtils.setAnimationEditorRecording(this.$store, true);
-            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme));
+            this.$emit('recording-state-updated', true);
+            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId);
         },
 
         stopRecording() {
             this.isRecording = false;
-            StoreUtils.setAnimationEditorRecording(this.$store, false);
+            this.$emit('recording-state-updated', false);
         },
 
         onSchemeChange() {
@@ -1055,7 +1056,7 @@ export default {
                         }
                     }
                 });
-            
+
                 forEach(Interpolations.values(), interpolation => {
                     if (frame.kind !== interpolation) {
                         options.push({
@@ -1108,7 +1109,7 @@ export default {
             this.framePlayer.shapeProps.totalFrames -= 1;
             this.totalFrames = this.framePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         insertEmptyFramesAtFrame(frameNumber) {
@@ -1131,7 +1132,7 @@ export default {
             this.framePlayer.shapeProps.totalFrames += 1;
             this.totalFrames = this.framePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         onContextMenuOptionClick(option) {
@@ -1214,7 +1215,7 @@ export default {
                     const item = this.schemeContainer.findItemById(animation.id);
                     if (item) {
                         utils.setObjectProperty(item, animation.property, value);
-                        EventBus.emitItemChanged(item.id, animation.property);
+                        EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, animation.property);
 
                         if (animation.property.startsWith('area.')) {
                             this.schemeContainer.updateMultiItemEditBox();
@@ -1230,7 +1231,7 @@ export default {
                     this.enrichFrameWithIcon(this.framesMatrix[trackIdx].frames[frame - 1], track.valueType);
                 }
 
-                EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
                 this.shouldRecompileAnimations = true;
             } else if (track.kind === 'sections') {
                 const sections = this.framePlayer.shapeProps.sections;
@@ -1241,7 +1242,7 @@ export default {
                         break;
                     }
                 }
-                EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.sections.${frame}`);
             }
         },
 
@@ -1268,7 +1269,7 @@ export default {
 
             this.framesMatrix[trackIdx].frames[frameIdx] = frame;
             sections.splice(idx, 0, frame);
-            EventBus.emitSchemeChangeCommited(`animation.${this.framePlayer.id}.sections.${frame}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.sections.${frame}`);
         },
 
         addFunctionFrame(trackIdx, frameIdx) {

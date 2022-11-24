@@ -19,7 +19,7 @@
                     <line :x1="point.x" :y1="point.y" :x2="point.x2+point.x" :y2="point.y2+point.y" :stroke="boundaryBoxColor" :stroke-width="1/safeZoom"/>
                 </g>
 
-                <circle 
+                <circle
                     data-type="path-point"
                     :data-path-point-index="pointId"
                     :data-path-index="pathId"
@@ -29,7 +29,7 @@
 
 
                 <g v-if="point.t === 'B'">
-                    <path 
+                    <path
                         data-type="path-control-point"
                         :data-path-point-index="pointId"
                         :data-path-index="pathId"
@@ -37,7 +37,7 @@
                         :transform="`translate(${point.x1+point.x} ${point.y1+point.y})`"
                         :d="`M ${5*(point.vx1 + point.vy1)/safeZoom} ${5*(point.vy1 - point.vx1)/safeZoom}  l ${-10*point.vx1/safeZoom} ${-10*point.vy1/safeZoom}  l ${-10*point.vy1/safeZoom} ${10*point.vx1/safeZoom} l ${10*point.vx1/safeZoom} ${10*point.vy1/safeZoom} z`"
                         :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
-                    <path 
+                    <path
                         data-type="path-control-point"
                         :data-path-point-index="pointId"
                         :data-path-index="pathId"
@@ -48,7 +48,7 @@
                 </g>
 
                 <g v-if="point.t === 'A'">
-                    <circle 
+                    <circle
                         data-type="path-control-point"
                         :data-path-point-index="pointId"
                         :data-path-index="pathId"
@@ -60,12 +60,12 @@
                 </g>
             </g>
         </g>
-        
+
     </g>
 </template>
 <script>
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
-import EventBus from './EventBus';
+import EditorEventBus from './EditorEventBus';
 import { computeCurvePath, convertCurvePointToItemScale, PATH_POINT_CONVERSION_SCALE } from './items/shapes/StandardCurves';
 
 function convertPathPointToWorld(p, item) {
@@ -88,14 +88,19 @@ function convertPathPointToWorld(p, item) {
 }
 
 export default {
-    props: ['item', 'zoom', 'boundaryBoxColor', 'controlPointsColor'],
+    props: {
+        editorId           : {type: String, required: true},
+        pathPointsUpdateKey: {type: Number, required: true},
+        item               : {type: Object},
+        zoom               : {type: Number},
+        boundaryBoxColor   : {type: String},
+        controlPointsColor : {type: String}
+    },
     mounted() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$on(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
-        EventBus.$off(EventBus.CURVE_EDIT_POINTS_UPDATED, this.update);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
 
     data() {
@@ -151,6 +156,12 @@ export default {
         curvePaths() {
             return this.$store.getters.curveEditPaths;
         },
+    },
+
+    watch: {
+        pathPointsUpdateKey() {
+            this.update();
+        }
     }
 }
 </script>

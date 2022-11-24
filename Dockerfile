@@ -33,5 +33,6 @@ COPY html /usr/bin/app/html
 COPY --from=build /usr/src/app/node_modules /usr/bin/app/node_modules
 COPY --from=build /usr/src/app/dist/assets/*.js /usr/bin/app/assets/
 COPY --from=build /usr/src/app/dist/server /usr/bin/app/server
+COPY --from=build /usr/src/app/dist/common /usr/bin/app/common
 
 ENTRYPOINT [ "/usr/bin/app/entry.sh" ]

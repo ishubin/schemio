@@ -1,327 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import { fileNameFromPath, mediaFolder, schemioExtension } from "./fsUtils.js";
-import { walk } from "./walk";
 import fs from 'fs-extra';
 import path from 'path'
-import forEach from 'lodash/forEach';
 import archiver from 'archiver';
-import _ from "lodash";
-
+import { startStaticExporter } from '../../common/fs/exporter';
 
 let currentExporter = null;
 let lastExporter = null;
-
-const exporterFolder = '.exporter';
-
-function traverseItems(items, callback) {
-    forEach(items, item => {
-        callback(item);
-        if (item.childItems) {
-            traverseItems(item.childItems, callback);
-        }
-    })
-}
-const mediaPrefix = '/media/';
-
-function doesReferenceMedia(prop) {
-    return typeof prop === 'string' && prop.startsWith(mediaPrefix);
-}
-
-function exportMediaFile(config, mediaURL) {
-    if (!mediaURL.startsWith(mediaPrefix)) {
-        return Promise.resolve(null);
-    }
-
-    const relativeFilePath = mediaURL.substring(mediaPrefix.length);
-
-    const absoluteFilePath = path.join(config.fs.rootPath, '.media', relativeFilePath);
-    const absoluteDstFilePath = path.join(config.fs.rootPath, exporterFolder, 'media', relativeFilePath);
-
-    return fs.stat(absoluteFilePath)
-    .then(stat => {
-        if (!stat.isFile) {
-            throw new Error(`Not a file: ${relativeFilePath}`)
-        }
-
-        const idx = absoluteDstFilePath.lastIndexOf('/');
-        if (idx > 0) {
-            const dirPath = absoluteDstFilePath.substring(0, idx);
-            return fs.ensureDir(dirPath);
-        }
-    })
-    .then(() => {
-        return fs.copyFile(absoluteFilePath, absoluteDstFilePath);
-    }).then(() => {
-        return '.' + mediaURL;
-    });
-}
-
-function exportMediaForScheme(config, scheme, schemeId) {
-    let chain = Promise.resolve(null);
-
-    const mediaFailCatcher = err => {
-        console.error('Failed to export media', err);
-    };
-
-    traverseItems(scheme.items, item => {
-        if (item.shapeProps) {
-            if (item.shape === 'image' && doesReferenceMedia(item.shapeProps.image)) {
-                chain = chain.then(() => exportMediaFile(config, item.shapeProps.image))
-                .catch(mediaFailCatcher);
-            } else if (item.shapeProps.fill && typeof item.shapeProps.fill === 'object' && doesReferenceMedia(item.shapeProps.fill.image)) {
-                chain = chain.then(() => exportMediaFile(config, item.shapeProps.fill.image))
-                .catch(mediaFailCatcher);
-            }
-        }
-        if (item.behavior && item.behavior.events) {
-            _.forEach(item.behavior.events, behaviorEvent => {
-                _.forEach(behaviorEvent.actions, action => {
-                    _.forEach(action.args, (arg, argName) => {
-                        if (argName === 'fill' && typeof arg === 'object' && doesReferenceMedia(arg.image)) {
-                            chain = chain.then(() => exportMediaFile(config, arg.image))
-                            .catch(mediaFailCatcher);
-                        }
-                    });
-                });
-            });
-        }
-    });
-
-    return chain.then(() => {
-        const fileName =  `${schemeId}.svg`;
-        const filePath = path.join('previews', fileName);
-        const src = path.join(config.fs.rootPath, '.media', filePath);
-        const dstPreviewDir = path.join(config.fs.rootPath, exporterFolder, 'media', 'previews');
-        const dst = path.join(dstPreviewDir, fileName);
-
-        return fs.ensureDir(dstPreviewDir)
-        .then(() => {
-            return fs.copyFile(src, dst);
-        })
-        .catch(err => {
-            console.error('Could not cope scheme preview', err);
-        })
-        .then(() => {
-            return scheme;
-        })
-    });
-}
-
-function referencesOtherScheme(url) {
-    return typeof url === 'string' && url.startsWith('/docs/');
-}
-
-/**
- * Fixes scheme links and image urls
- * @param {*} scheme
- * @returns
- */
-function fixSchemeURLs(scheme) {
-    const fixURLs = (props) => {
-        _.forEach(props, (prop, propName) => {
-            if (propName === 'image' && typeof prop === 'string' && prop.startsWith('/')) {
-                props[propName] = '.' + props[propName];
-            } else if (typeof prop === 'object') {
-                fixURLs(prop);
-            }
-        });
-    };
-
-    traverseItems(scheme.items, item => {
-        if (item.shape === 'link' && referencesOtherScheme(item.shapeProps.url)) {
-            item.shapeProps.url = '#' + item.shapeProps.url;
-        }
-
-        if (item.links) {
-            forEach(item.links, link => {
-                if (referencesOtherScheme(link.url)) {
-                    link.url = '#' + link.url;
-                }
-            });
-        }
-        fixURLs(item.shapeProps);
-
-        if (item.behavior && item.behavior.events) {
-            _.forEach(item.behavior.events, behaviorEvent => {
-                if (behaviorEvent.actions) {
-                    _.forEach(behaviorEvent.actions, action => {
-                        fixURLs(action.args);
-                    });
-                }
-            });
-        }
-    });
-
-    return Promise.resolve(scheme);
-}
-
-const assetFiles = [
-    {file: 'index-static.html', src: 'index.html'},
-    {file: 'schemio.app.static.js'},
-    {file: 'main.css'},
-    {file: 'schemio-standalone.html'},
-    {file: 'schemio-standalone.js'},
-    {file: 'schemio-standalone.css'},
-    {file: 'syntax-highlight-worker.js'},
-    {file: 'syntax-highlight.css'},
-    {file: 'css', isDir: true},
-    {file: 'images', isDir: true},
-    {file: 'art', isDir: true},
-    {file: 'custom-fonts', isDir: true},
-    {file: 'shapes', isDir: true},
-    {file: 'webfonts', isDir: true},
-];
-
-function copyStaticAssets(config) {
-    return () => {
-        const exporterPath = path.join(config.fs.rootPath, exporterFolder);
-        return fs.ensureDir(path.join(exporterPath, 'assets')).then(() => {
-            return Promise.all(assetFiles.map(assetFile => {
-                const src = assetFile.src ? path.join(exporterPath, assetFile.src) : path.join(exporterPath, 'assets', assetFile.file);
-
-                if (assetFile.isDir) {
-                    return fs.copy(path.join('assets', assetFile.file), src, {recursive: true});
-                } else {
-                    return fs.copyFile(path.join('assets', assetFile.file), src);
-                }
-            }));
-        });
-    };
-}
-
-function startExporter(config) {
-    const exporterPath = path.join(config.fs.rootPath, exporterFolder, 'data');
-    const exporterIndexPath = path.join(exporterPath, 'fs.index.json');
-
-    currentExporter = {
-        startedAt: new Date(),
-        finishedAt: null,
-        entries: [],
-        schemeIndex: {}
-    };
-
-    const relativePath = filePath => {
-        if (filePath.startsWith(config.fs.rootPath)) {
-            const p = filePath.substring(config.fs.rootPath.length);
-            if (p.charAt(0) === '/') {
-                return p.substring(1);
-            }
-            return p;
-        }
-        return filePath;
-    }
-
-    const directoryLookup = new Map();
-
-    fs.ensureDir(exporterPath).then(() => {
-        return walk(config.fs.rootPath, (absoluteFilePath, isDirectory, absoluteParentPath) => {
-            const filePath = relativePath(absoluteFilePath);
-            const parentPath = relativePath(absoluteParentPath);
-
-            let parentDir = currentExporter;
-
-            if (directoryLookup.has(parentPath)) {
-                parentDir = directoryLookup.get(parentPath);
-            }
-
-            if (isDirectory) {
-                const newDir = {
-                    kind: 'dir',
-                    name: fileNameFromPath(filePath),
-                    path: filePath,
-                    entries: []
-                };
-                directoryLookup.set(filePath, newDir);
-                parentDir.entries.push(newDir);
-
-                return fs.ensureDir(path.join(exporterPath, filePath));
-            } else if (filePath.endsWith(schemioExtension)) {
-
-                return fs.readFile(absoluteFilePath)
-                .then(JSON.parse)
-                .then(scheme => exportMediaForScheme(config, scheme, scheme.id))
-                .then(fixSchemeURLs)
-                .then(scheme => {
-                    if (!scheme.id) {
-                        const idx = filePath.lastIndexOf('/') + 1;
-                        scheme.id = filePath.substring(idx, filePath.length - schemioExtension.length);
-                    }
-                    const entry = {
-                        kind: 'scheme',
-                        id: scheme.id,
-                        name: scheme.name,
-                        path: filePath.substring(0, filePath.length - schemioExtension.length),
-                        modifiedTime: scheme.modifiedTime,
-                    }
-                    return fs.stat(path.join(config.fs.rootPath, mediaFolder, 'previews', `${scheme.id}.svg`))
-                    .then(stat => {
-                        if (stat.isFile()) {
-                            entry.previewURL = `media/previews/${scheme.id}.svg`;
-                        }
-                        return {entry, scheme};
-                    });
-                }).then(({entry, scheme}) => {
-                    parentDir.entries.push(entry);
-                    return fs.writeFile(path.join(exporterPath, filePath), JSON.stringify(scheme)).then(() => scheme);
-                })
-                .then(scheme => {
-                    currentExporter.schemeIndex[scheme.id] = {
-                        path: filePath,
-                        name: scheme.name,
-                        modifiedTime: scheme.modifiedTime
-                    };
-                    return scheme;
-                })
-            }
-        });
-    })
-    .then(copyStaticAssets(config))
-    .then(() => {
-        return fs.writeFile(exporterIndexPath, JSON.stringify(currentExporter));
-    })
-    .then(archiveExportedDocs(config))
-    .then((archiveVersion) => {
-        lastExporter = currentExporter;
-        lastExporter.finishedAt = new Date();
-        lastExporter.archiveVersion = archiveVersion;
-        currentExporter = null;
-        console.log('Exporter finished');
-    }).catch(err => {
-        console.error('Exporter failed', err);
-    });
-}
-
-function createArchiveName(version) {
-    return `schemio-export-${version}.zip`;
-}
-
-function archiveExportedDocs(config) {
-    return () => {
-        return new Promise((resolve, reject) => {
-            const version = new Date().getTime();
-            const folderPath = path.join(config.fs.rootPath, exporterFolder);
-            const archivePath = path.join(config.fs.rootPath, createArchiveName(version));
-            const output = fs.createWriteStream(archivePath);
-            const archive = archiver('zip', {
-                zlib: { level: 9 }
-            });
-
-            output.on('close', () => {
-                resolve(version);
-            });
-
-            output.on('error', (err) => {
-                reject(err);
-            });
-
-            archive.pipe(output);
-            archive.directory(folderPath, false);
-            archive.finalize();
-        });
-    }
-}
 
 export function fsExportStatic(config) {
     return (req, res) => {
@@ -332,13 +18,64 @@ export function fsExportStatic(config) {
                 message: 'previous exporter is still running'
             });
         }
-        startExporter(config);
+
+        const version = new Date().getTime();
+        const startedAt = new Date();
+
+        currentExporter = {
+            status: 'running',
+            startedAt,
+            finishedAt: null,
+            version
+        };
+
+        startStaticExporter(config.fs.rootPath)
+        .then(archiveExportedFolder)
+        .then(archivePath => {
+            lastExporter = {
+                status: 'running',
+                startedAt,
+                finishedAt: new Date(),
+                version,
+                archivePath
+            };
+            if (currentExporter && currentExporter.version === version) {
+                currentExporter = null;
+            }
+        });
 
         res.json({
             status: 'ok',
             message: 'Started exporter',
         });
     };
+}
+
+function archiveExportedFolder(exporterPath) {
+    return new Promise((resolve, reject) => {
+        const folderPath = path.join(exporterPath);
+
+        const baseName = path.basename(exporterPath);
+        const parentPath = path.dirname(exporterPath);
+        const archivePath = path.join(parentPath, `${baseName}.zip`);
+
+        const output = fs.createWriteStream(archivePath);
+        const archive = archiver('zip', {
+            zlib: { level: 9 }
+        });
+
+        output.on('close', () => {
+            resolve(archivePath);
+        });
+
+        output.on('error', (err) => {
+            reject(err);
+        });
+
+        archive.pipe(output);
+        archive.directory(folderPath, false);
+        archive.finalize();
+    });
 }
 
 export function fsExportStatus(config) {
@@ -353,7 +90,7 @@ export function fsExportStatus(config) {
                 status: 'finished',
                 startedAt: lastExporter.startedAt,
                 finishedAt: lastExporter.finishedAt,
-                archiveVersion: lastExporter.archiveVersion
+                version: lastExporter.version
             });
         } else {
             res.json({
@@ -365,18 +102,25 @@ export function fsExportStatus(config) {
 
 export function fsExportDownloadArchive(config) {
     return (req, res) => {
-        const version = parseInt(req.params.archiveVersion);
-        const archivePath = path.join(config.fs.rootPath, createArchiveName(version));
+        const version = parseInt(req.params.version);
 
-        fs.stat(archivePath).then(stat => {
-            if (!stat.isFile()) {
-                throw new Error('Not a file');
-            }
-            res.download(archivePath);
-        })
-        .catch(err => {
+        if (lastExporter && lastExporter.version === version) {
+            const archivePath = lastExporter.archivePath;
+
+            fs.stat(archivePath).then(stat => {
+                if (!stat.isFile()) {
+                    throw new Error('Not a file');
+                }
+                res.download(archivePath);
+            })
+            .catch(err => {
+                res.status(404);
+                res.send('Not found');
+            });
+        } else {
             res.status(404);
             res.send('Not found');
-        })
+        }
     };
 }
+

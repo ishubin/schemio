@@ -11,9 +11,9 @@ import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 window.Schemio = {
     components: { Vue, Modal, CreateNewSchemeModal},
     /**
-     * 
-     * @param {*} querySelector 
-     * @param {Object} options 
+     *
+     * @param {*} querySelector
+     * @param {Object} options
      * @param {Object} options.scheme
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
@@ -37,6 +37,6 @@ window.Schemio = {
                 menuOptions      : options.menuOptions || [],
                 comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
             }})
-        }); 
+        });
     }
 }

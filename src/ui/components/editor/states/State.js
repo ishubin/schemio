@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import EventBus from '../EventBus';
 import myMath from '../../../myMath';
 import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
@@ -11,9 +10,11 @@ import { Keys } from '../../../events';
 
 const SUB_STATE_STACK_LIMIT = 10;
 
+const zoomOptions = [ 0.1, 0.25, 0.35, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 7.5, 10 ];
+
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event
  */
 export function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
@@ -29,17 +30,16 @@ export function isEventRightClick(event) {
 
 class State {
     /**
-     * @param {EventBus} EventBus 
      * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(eventBus, store, name) {
+    constructor(store, name, listener) {
         this.schemeContainer = null;
-        this.eventBus = eventBus;
         this.name = name || '';
         this.store = store;
 
         this.subState = null;
         this.previousSubStates = [];
+        this.listener = listener;
     }
 
     migrateSubState(newSubState) {
@@ -50,13 +50,17 @@ class State {
             }
         }
         this.subState = newSubState;
+        this.subState.listener = this.listener;
         this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
+        this.listener.onSubStateMigrated();
     }
 
     migrateToPreviousSubState() {
         if (this.previousSubStates.length > 0) {
             this.subState = this.previousSubStates.pop();
+            this.subState.listener = this.listener;
             this.store.dispatch('setEditorSubStateName', this.subState ? this.subState.name : 'null');
+            this.listener.onSubStateMigrated();
         }
     }
 
@@ -73,7 +77,7 @@ class State {
     // invoked when user cancels the state (e.g. press Esc key)
     cancel() {
         this.reset();
-        this.eventBus.$emit(this.eventBus.CANCEL_CURRENT_STATE, this.name);
+        this.listener.onCancel(this.name);
     }
 
     keyPressed(key, keyOptions) {
@@ -91,7 +95,7 @@ class State {
     mouseDown(x, y, mx, my, object, event) {
         if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event);
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         if (this.subState) this.subState.mouseMove(x, y, mx, my, object, event);
     }
@@ -102,12 +106,12 @@ class State {
 
 
     /**
-     * 
-     * @param {*} x 
-     * @param {*} y 
-     * @param {*} mx 
-     * @param {*} my 
-     * @param {MouseEvent} event 
+     *
+     * @param {*} x
+     * @param {*} y
+     * @param {*} mx
+     * @param {*} my
+     * @param {MouseEvent} event
      */
     mouseWheel(x, y, mx, my, event) {
         if (event) {
@@ -144,12 +148,41 @@ class State {
         }
     }
 
-    zoomOutByKey() {
-        this.changeZoomTo(this.schemeContainer.screenTransform.scale * 0.9);
+    resetZoom() {
+        this.changeZoomTo(1);
     }
 
-    zoomInByKey() {
-        this.changeZoomTo(this.schemeContainer.screenTransform.scale * 1.1);
+    zoomOut() {
+        const currentZoom = this.schemeContainer.screenTransform.scale;
+        let selectedZoom = zoomOptions[0];
+        let found = false;
+        for (let i = 0; i < zoomOptions.length && !found; i++) {
+            if (zoomOptions[i] < currentZoom) {
+                selectedZoom = zoomOptions[i];
+            } else {
+                found = true;
+            }
+        }
+        this.changeZoomTo(selectedZoom);
+    }
+
+    zoomIn() {
+        const currentZoom = this.schemeContainer.screenTransform.scale;
+        let selectedZoom = zoomOptions[zoomOptions.length - 1];
+        let found = false;
+        let i = zoomOptions.length - 1;
+        while(!found) {
+            if (zoomOptions[i] > currentZoom) {
+                selectedZoom = zoomOptions[i];
+            } else {
+                found = true;
+            }
+            i = i - 1;
+            if (i < 0) {
+                found = true;
+            }
+        }
+        this.changeZoomTo(selectedZoom);
     }
 
     changeZoomTo(newScale) {
@@ -159,7 +192,7 @@ class State {
         const xo = schemeContainer.screenTransform.x;
         const yo = schemeContainer.screenTransform.y;
 
-        const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+        const svgRect = document.getElementById(`svg-plot-${this.schemeContainer.editorId}`).getBoundingClientRect();
         const cx = svgRect.width / 2;
         const cy = svgRect.height / 2;
 
@@ -171,7 +204,7 @@ class State {
         schemeContainer.screenTransform.x = sx;
         schemeContainer.screenTransform.y = sy;
 
-        EventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, schemeContainer.screenTransform);
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
     }
 
     dragScreenOffset(dx, dy) {
@@ -182,8 +215,8 @@ class State {
 
     /**
      * Changes screen offset coords and checks bounding box of all items in relative transform so that they are always visible on the screen
-     * @param {*} sx 
-     * @param {*} sy 
+     * @param {*} sx
+     * @param {*} sy
      */
     dragScreenTo(sx, sy) {
         // getting bounding box of items in relative transform
@@ -199,13 +232,13 @@ class State {
             const maxScreenY = this.schemeContainer.screenSettings.height - bbox.y * scale - padding;
 
             this.schemeContainer.screenTransform.x = Math.max(minScreenX, Math.min(sx, maxScreenX));
-            this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY)); 
+            this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY));
         } else {
             this.schemeContainer.screenTransform.x = sx;
-            this.schemeContainer.screenTransform.y = sy; 
+            this.schemeContainer.screenTransform.y = sy;
         }
 
-        this.eventBus.$emit(EventBus.SCREEN_TRANSFORM_UPDATED, this.schemeContainer.screenTransform);
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
     }
 
     isSnappingToItemsEnabled() {
@@ -222,7 +255,7 @@ class State {
 
     /**
      * Checks snapping of item and returns new offset that should be applied to item
-     * 
+     *
      * @param {SnappingPoints} points - points of an item by which it should snap it to other items
      * @param {Set} excludeItemIds - items that should be excluded from snapping (so that they don't snap to themselve)
      * @param {Number} dx - pre-snap candidate offset on x axis
@@ -320,7 +353,7 @@ class State {
     /**
      * Based on zoom it calculates a precision with which we should round the updated value
      * This is needed to avoid issues with floating values calculation so that users don't get uggly values with many digits after point.
-     * 
+     *
      * @returns precision for which we should round the value
      */
     getUpdatePrecision() {
@@ -339,7 +372,7 @@ class State {
 
 export class SubState extends State {
     constructor(parentState, name) {
-        super(parentState.eventBus, parentState.store, name);
+        super(parentState.store, name);
         this.schemeContainer = parentState.schemeContainer;
         this.parentState = parentState;
     }
@@ -396,7 +429,7 @@ export class DragScreenState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.eventBus.$emit(this.eventBus.SCREEN_TRANSFORM_UPDATED);
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
         this.migrateToPreviousSubState();
     }
 }
@@ -435,7 +468,7 @@ export class MultiSelectState extends SubState {
         }
         StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         this.selectorCallback(this.multiSelectBox, isMultiSelectKey(event));
         StoreUtils.setMultiSelectBox(this.store, null);

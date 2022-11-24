@@ -4,16 +4,10 @@
 <template>
     <div class="quick-helper-panel-wrapper text-nonselectable">
         <div class="quick-helper-panel">
-            <div class="quick-helper-panel-section">
+            <div v-if="menuOptions && menuOptions.length > 0" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <menu-dropdown
-                            name=""
-                            icon-class="fas fa-bars"
-                            :options="menuDropdownOptions"
-                            @export-embedded-requested="$emit('export-embedded-requested')"
-                            @export-html-requested="$emit('export-html-requested')"
-                            />
+                        <menu-dropdown name="" icon-class="fas fa-bars" :options="menuOptions" />
                     </li>
                 </ul>
             </div>
@@ -94,12 +88,12 @@
                     </li>
                     <li>
                         <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
-                            <img src="/assets/images/helper-panel/bring-to-front.svg"/>
+                            <img :src="`${assetsPath}/images/helper-panel/bring-to-front.svg`"/>
                         </span>
                     </li>
                     <li>
                         <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
-                            <img src="/assets/images/helper-panel/bring-to-back.svg"/>
+                            <img :src="`${assetsPath}/images/helper-panel/bring-to-back.svg`"/>
                         </span>
                     </li>
                 </ul>
@@ -116,6 +110,7 @@
                     <li v-if="firstSelectedItem">
                         <StrokeControl
                             :key="`stroke-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
+                            :editorId="editorId"
                             :item="firstSelectedItem"
                             @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
                             @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
@@ -125,6 +120,7 @@
                     <li v-if="firstSelectedItem">
                         <TextStyleControl
                             :key="`text-style-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
+                            :editorId="editorId"
                             :item="firstSelectedItem"
                             @property-changed="onTextStylePropertyChange"
                             />
@@ -174,7 +170,7 @@
                         </span>
                     </li>
                     <li>
-                        <span @click="stopEditCurve" class="btn btn-small btn-primary">Stop Edit</span>
+                        <span @click="stopPathEdit" class="btn btn-small btn-primary">Stop Edit</span>
                     </li>
                 </ul>
             </div>
@@ -197,7 +193,7 @@
                         <input type="checkbox" title="Automatically mount items into other items"
                             id="chk-auto-remount"
                             :checked="autoRemount"
-                            :disabled="animationEditorIsRecording"
+                            :disabled="isRecording"
                             @change="onAutoRemountChange"/>
                         <label for="chk-auto-remount" title="Automatically mount items into other items">Auto mount</label>
                     </li>
@@ -231,7 +227,6 @@
 
 <script>
 import '../../typedef';
-import EventBus from './EventBus';
 import Dropdown from '../../components/Dropdown.vue';
 import StrokeControl from './StrokeControl.vue';
 import TextStyleControl from './TextStyleControl.vue';
@@ -244,18 +239,21 @@ import MenuDropdown from '../MenuDropdown.vue';
 import Shape from './items/shapes/Shape';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
+import EditorEventBus from './EditorEventBus';
 
 export default {
     props: {
-        /** @type {SchemeContainer} */
+        editorId            : {type: String, required: true},
         schemeContainer     : { type: Object, required: true },
         mode                : { type: String, required: true },    // "edit" or "view"
+        state               : { type: String, required: true},
         textSelectionEnabled: {type: Boolean, default: false},
         zoom                : { type: Number, required: true },
         editAllowed         : { type: Boolean, default: false },
-        isStaticEditor      : { type: Boolean, default: false},
-        isOfflineEditor     : { type: Boolean, default: false},
         menuOptions         : { type: Array, default: []},
+        historyUndoable     : { type: Boolean, required: true},
+        historyRedoable     : { type: Boolean, required: true},
+        isRecording         : { type: Boolean, required: true},
     },
 
     components: {
@@ -265,36 +263,18 @@ export default {
     },
 
     beforeMount() {
-        EventBus.$on(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
-        EventBus.$on(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
-        EventBus.$on(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
-        EventBus.$on(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
+        EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionChanged);
+        EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionChanged);
+        EditorEventBus.itemSurround.created.$on(this.editorId, this.onItemSurroundCreated);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.ANY_ITEM_SELECTED, this.onItemSelectionChanged);
-        EventBus.$off(EventBus.ANY_ITEM_DESELECTED, this.onItemSelectionChanged);
-        EventBus.$off(EventBus.ITEM_SURROUND_CREATED, this.onItemSurroundCreated);
-        EventBus.$off(EventBus.EDITOR_STATE_CHANGED, this.onEditorStateChanged);
+        EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionChanged);
+        EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionChanged);
+        EditorEventBus.itemSurround.created.$off(this.editorId, this.onItemSurroundCreated);
     },
 
     data() {
-        const eventCallback = (event) => {return () => {this.$emit(event)}};
-
-        const defaultMenuDropDownOptions = [
-            {name: 'New diagram',       callback: eventCallback('new-scheme-requested'),  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Import diagram',    callback: eventCallback('import-json-requested'), iconClass: 'fas fa-file-import'},
-            {name: 'Duplicate diagram', callback: eventCallback('duplicate-diagram-requested'), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Delete diagram',    callback: eventCallback('delete-diagram-requested'), iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Create patch',      callback: () => EventBus.emitSchemePatchRequested(this.schemeContainer.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
-            {name: 'Apply patch',       callback: eventCallback('apply-patch-requested'), iconClass: 'fas fa-file-import'},
-            {name: 'Export as JSON',    callback: eventCallback('export-json-requested'), iconClass: 'fas fa-file-export'},
-            {name: 'Export as SVG',     callback: eventCallback('export-svg-requested'),  iconClass: 'fas fa-file-export'},
-            {name: 'Export as PNG',     callback: eventCallback('export-png-requested'),  iconClass: 'fas fa-file-export'},
-            {name: 'Export as link',    callback: eventCallback('export-link-requested'), iconClass: 'fas fa-file-export'},
-            {name: 'Export as HTML',    callback: eventCallback('export-html-requested'), iconClass: 'fas fa-file-export'}
-        ];
-
         return {
             knownModes: ['view', 'edit'],
             searchKeyword: '',
@@ -337,9 +317,6 @@ export default {
                 item: null,
                 childItemOriginalPositions: {}
             },
-
-            menuDropdownOptions: defaultMenuDropDownOptions.concat(this.menuOptions),
-
         };
     },
 
@@ -383,28 +360,22 @@ export default {
 
             if (this.isCreatingConnector()) {
                 this.$store.state.connecting.connectorItem.shapeProps.smoothing = smoothingType;
-                EventBus.emitItemChanged(this.$store.state.connecting.connectorItem.id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.$store.state.connecting.connectorItem.id);
             } else {
                 this.emitShapePropChange('smoothing', 'choice', smoothingType);
             }
         },
 
         isCreatingConnector() {
-            return this.$store.state.editorStateName === 'connecting' && this.$store.state.connecting.connectorItem;
+            return this.state === 'connecting' && this.$store.state.connecting.connectorItem;
         },
 
-        onEditorStateChanged() {
-            if (this.isCreatingConnector()) {
-                this.currentConnectorSmoothing = this.$store.state.connecting.connectorItem.shapeProps.smoothing;
-            }
-        },
-
-        stopEditCurve() {
-            EventBus.$emit(EventBus.CURVE_EDIT_STOPPED);
+        stopPathEdit() {
+            this.$emit('path-edit-stopped');
         },
 
         stopDrawing() {
-            EventBus.$emit(EventBus.STOP_DRAWING);
+            this.$emit('stop-drawing-requested');
         },
 
         removeSelectedItems() {
@@ -470,7 +441,7 @@ export default {
                 item.area.h = this.itemSurround.boundingBox.h + 2 * padding;
             }
 
-            EventBus.emitItemChanged(item.id, 'area');
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
 
             this.schemeContainer.updateMultiItemEditBox();
 
@@ -480,7 +451,7 @@ export default {
                 const localPoint = this.schemeContainer.localPointOnItem(originalWorldPoint.x, originalWorldPoint.y, item);
                 childItem.area.x = localPoint.x;
                 childItem.area.y = localPoint.y;
-                EventBus.emitItemChanged(childItem.id, 'area');
+                EditorEventBus.item.changed.specific.$emit(this.editorId, childItem.id, 'area');
             });
         },
 
@@ -494,7 +465,7 @@ export default {
 
         toggleClickableMarkers(shown) {
             if (shown) {
-                EventBus.$emit(EventBus.CLICKABLE_MARKERS_TOGGLED);
+                EditorEventBus.clickableMarkers.toggled.$emit(this.editorId);
             }
             StoreUtils.setShowClickableMarkers(this.$store, shown);
         },
@@ -541,7 +512,7 @@ export default {
             const xo = schemeContainer.screenTransform.x;
             const yo = schemeContainer.screenTransform.y;
 
-            const svgRect = document.getElementById('svg_plot').getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
             const cx = svgRect.width / 2;
             const cy = svgRect.height / 2;
 
@@ -614,21 +585,24 @@ export default {
                     }
                 });
                 this.searchHighlights = filteredItems;
-                EventBus.emitItemsHighlighted(highlightedItemIds);
+                this.$emit('items-highlighted', {itemIds: highlightedItemIds, showPins: false});
             } else {
                 this.searchHighlights = [];
-                EventBus.emitItemsHighlighted([]);
+                this.$emit('items-highlighted', {itemIds: [], showPins: false});
             }
         },
+
+        state(state) {
+            if (this.isCreatingConnector()) {
+                this.currentConnectorSmoothing = this.$store.state.connecting.connectorItem.shapeProps.smoothing;
+            }
+        },
+
     },
 
     computed: {
-        historyRedoable() {
-            return this.$store.state.history.redoable;
-        },
-
-        historyUndoable() {
-            return this.$store.state.history.undoable;
+        assetsPath() {
+            return this.$store.getters.assetsPath;
         },
 
         shouldSnapToGrid() {
@@ -639,20 +613,16 @@ export default {
             return this.$store.getters.shouldSnapToItems;
         },
 
-        currentState() {
-            return this.$store.state.editorStateName;
-        },
-
         shouldShowPathHelpers() {
-            return this.$store.state.editorStateName === 'editPath';
+            return this.state === 'editPath';
         },
 
         shouldShowDrawHelpers() {
-            return this.$store.state.editorStateName === 'draw';
+            return this.state === 'draw';
         },
 
         shouldShowPathCaps() {
-            if (this.$store.state.editorStateName === 'editPath') {
+            if (this.state === 'editPath') {
                 return true;
             }
             if (this.selectedItemsCount > 0 && (this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'path')) {
@@ -662,7 +632,7 @@ export default {
         },
 
         shouldShowConnectorControls() {
-            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') || this.$store.state.editorStateName === 'connecting';
+            return (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') || this.state === 'connecting';
         },
 
         autoRemount() {
@@ -684,10 +654,6 @@ export default {
         drawEpsilon() {
             return this.$store.getters.drawEpsilon;
         },
-
-        animationEditorIsRecording() {
-            return this.$store.getters.animationEditorIsRecording;
-        }
     }
 }
 </script>

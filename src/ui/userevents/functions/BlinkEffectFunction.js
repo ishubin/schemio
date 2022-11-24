@@ -1,15 +1,16 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
-import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 class BlinkEffectAnimation extends Animation {
-    constructor(item, args, resultCallback) {
+    constructor(editorId, item, args, resultCallback) {
         super();
+        this.editorId = editorId;
         this.item = item;
         this.args = args;
         this.resultCallback = resultCallback;
@@ -88,7 +89,7 @@ class BlinkEffectAnimation extends Animation {
             }
         }
 
-        EventBus.emitItemChanged(this.item.id);
+        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
 
         return this.elapsedTime < this.args.duration * 1000.0;
     }
@@ -150,7 +151,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new BlinkEffectAnimation(item, args, resultCallback), item.id, this.name);
+            playInAnimationRegistry(schemeContainer.editorId, new BlinkEffectAnimation(schemeContainer.editorId, item, args, resultCallback), item.id, this.name);
 
             if (args.inBackground) {
                 resultCallback();

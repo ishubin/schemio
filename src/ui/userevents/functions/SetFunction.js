@@ -2,16 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import utils from '../../../ui/utils.js';
-import AnimationRegistry from '../../animations/AnimationRegistry.js';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry.js';
 import ValueAnimation from '../../animations/ValueAnimation.js';
 import { encodeColor, parseColor } from '../../colors.js';
-import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus.js';
 import Shape from '../../components/editor/items/shapes/Shape.js';
 import { getItemPropertyDescriptionForShape } from '../../scheme/Item.js';
 
 
-function playAnimation(item, args, resultCallback, updateCallback) {
-    AnimationRegistry.play(new ValueAnimation({
+function playAnimation(editorId, item, args, resultCallback, updateCallback) {
+    playInAnimationRegistry(editorId, new ValueAnimation({
         durationMillis: args.animationDuration * 1000.0,
         animationType: args.transition,
         update: updateCallback,
@@ -26,7 +26,7 @@ export function supportsAnimationForSetFunction(argType) {
     return argType === 'number' || argType === 'color' || argType === 'advanced-color';
 }
 
-function animateGradientColor(item, args, resultCallback, startGradient, endGradient) {
+function animateGradientColor(editorId, item, args, resultCallback, startGradient, endGradient) {
     if (startGradient.colors.length !== endGradient.colors.length) {
         return false;
     }
@@ -52,7 +52,7 @@ function animateGradientColor(item, args, resultCallback, startGradient, endGrad
         }
     }
 
-    playAnimation(item, args, resultCallback, t => {
+    playAnimation(editorId, item, args, resultCallback, t => {
         color.gradient.direction = originalDirection * (1 - t) + endGradient.direction * t;
         color.gradient.colors.forEach((c, i) => {
             c.c = encodeColor({
@@ -63,19 +63,19 @@ function animateGradientColor(item, args, resultCallback, startGradient, endGrad
             });
             c.p = decodedColors[i].startPos * (1 - t) + decodedColors[i].endPos * t;
         });
-        EventBus.emitItemChanged(item.id);
+        EditorEventBus.item.changed.specific.$emit(editorId, item.id);
     });
     return true;
 }
 
-function animateAdvancedColor(item, args, resultCallback, startValue) {
+function animateAdvancedColor(editorId, item, args, resultCallback, startValue) {
     if (typeof args.value !== 'object' || typeof startValue !== 'object') {
         return false;
     }
     if (args.value.type === 'solid' && startValue.type === 'solid') {
         const startColor = parseColor(startValue.color);
         const endColor = parseColor(args.value.color);
-        playAnimation(item, args, resultCallback, (t) => {
+        playAnimation(editorId, item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, {
                 type: 'solid',
                 color: encodeColor({
@@ -85,39 +85,39 @@ function animateAdvancedColor(item, args, resultCallback, startValue) {
                     a: startColor.a * (1 - t) + endColor.a * t,
                 })
             });
-            EventBus.emitItemChanged(item.id);
+            EditorEventBus.item.changed.specific.$emit(editorId, item.id);
         });
         return true;
     }
     if (args.value.type === 'gradient' && startValue.type === 'gradient') {
-        return animateGradientColor(item, args, resultCallback, startValue.gradient, args.value.gradient);
+        return animateGradientColor(editorId, item, args, resultCallback, startValue.gradient, args.value.gradient);
     }
     return false;
 }
 
-function animateValue(property, item, args, resultCallback) {
+function animateValue(editorId, property, item, args, resultCallback) {
     const startValue = utils.getObjectProperty(item, args.field);
     if (property.type === 'number') {
-        playAnimation(item, args, resultCallback, (t) => {
+        playAnimation(editorId, item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, startValue * (1 - t) + args.value * t);
-            EventBus.emitItemChanged(item.id);
+            EditorEventBus.item.changed.specific.$emit(editorId, item.id);
         });
     } else if (property.type === 'color') {
         const startColor = parseColor(startValue);
         const endColor = parseColor(args.value);
-        playAnimation(item, args, resultCallback, (t) => {
+        playAnimation(editorId, item, args, resultCallback, (t) => {
             utils.setObjectProperty(item, args.field, encodeColor({
                 r: startColor.r * (1 - t) + endColor.r * t,
                 g: startColor.g * (1 - t) + endColor.g * t,
                 b: startColor.b * (1 - t) + endColor.b * t,
                 a: startColor.a * (1 - t) + endColor.a * t,
             }));
-            EventBus.emitItemChanged(item.id);
+            EditorEventBus.item.changed.specific.$emit(editorId, item.id);
         });
     } else if (property.type === 'advanced-color') {
-        if (!animateAdvancedColor(item, args, resultCallback, startValue)) {
+        if (!animateAdvancedColor(editorId, item, args, resultCallback, startValue)) {
             utils.setObjectProperty(item, args.field, args.value);
-            EventBus.emitItemChanged(item.id);
+            EditorEventBus.item.changed.specific.$emit(editorId, item.id);
         }
     }
 }
@@ -147,14 +147,14 @@ export default {
             if (args.inBackground) {
                 resultCallback();
             }
-            animateValue(property, item, args, () =>{
+            animateValue(schemeContainer.editorId, property, item, args, () =>{
                 if (!args.inBackground) {
                     resultCallback();
                 }
             });
         } else {
             utils.setObjectProperty(item, args.field, args.value);
-            EventBus.emitItemChanged(item.id);
+            EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             resultCallback();
         }
     }

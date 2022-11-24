@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <modal title="Import Diagram" @close="$emit('close')" primaryButton="Import" @primary-submit="onImportSubmitted">
-        Are you sure you want to import <b>{{scheme.name}}</b>? All your current changes will be lost and overwritten with this scheme.
+        Are you sure you want to import <b>{{scheme.name}}</b>? All your current changes will be lost and overwritten with this new diagram.
     </modal>
 </template>
 <script>

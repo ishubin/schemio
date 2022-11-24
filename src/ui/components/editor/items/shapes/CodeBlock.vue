@@ -5,7 +5,7 @@
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-        <path :d="shapePath" 
+        <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :fill="svgFill"></path>
@@ -18,7 +18,6 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
-import EventBus from '../../EventBus';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -41,7 +40,6 @@ function onThemeUpdate($store, item, value, previousValue) {
         item.textSlots.title.color = 'rgba(0, 0, 0, 1.0)';
         item.textSlots.body.color = 'rgba(0, 0, 0, 1.0)';
     }
-    EventBus.emitItemChanged(item.id);
 }
 
 function onLangUpdate($store, item, value, previousValue) {
@@ -60,7 +58,7 @@ function highlightItemTextSlot($store, item, foreignObject) {
     if (assetsPath === '/') {
         assetsPath = '';
     }
-    const worker = new Worker(`${assetsPath}/syntax-highlight-worker.js`);
+    const worker = new Worker(`${assetsPath}/js/syntax-highlight-worker.js`);
     worker.onmessage = (event) => {
         const itemTextElement = foreignObject.querySelector('.item-text-element');
         if (itemTextElement) {
@@ -115,7 +113,7 @@ const allLanguages = Object.keys(langMapping);
 
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
     components: {AdvancedFill},
 
     shapeConfig: {

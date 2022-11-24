@@ -5,7 +5,7 @@
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
 
-        <path :d="shapePath" 
+        <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
@@ -28,13 +28,13 @@
 import forEach from 'lodash/forEach';
 import map from 'lodash/forEach';
 import StrokePattern from '../StrokePattern.js';
-import EventBus from '../../EventBus';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
+import EditorEventBus from '../../EditorEventBus.js';
 
 const log = new Logger('Connector');
 
@@ -119,9 +119,9 @@ function stepH(x1, x2) {
 const lineV2V = (x1, y1, x2, y2) => {
     const ym = (y1 + y2) / 2;
     return [
-        stepV(y1, ym), 
+        stepV(y1, ym),
         stepH(x1, x2),
-        stepV(ym, y2), 
+        stepV(ym, y2),
     ];
 }
 
@@ -637,7 +637,7 @@ function computeLinearPathAndCaps(item) {
             if (item.shapeProps.sourceCap && item.shapeProps.sourceCap !== 'empty') {
                 const nextPoint = item.shapeProps.points[1];
                 cap = computeCapByPosition(point.x, point.y, nextPoint.x, nextPoint.y, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
-            } 
+            }
             if (cap) {
                 if (cap.prolongLine) {
                     path = `M ${point.x} ${point.y} L ${cap.entryPoint.x} ${cap.entryPoint.y} `;
@@ -653,7 +653,7 @@ function computeLinearPathAndCaps(item) {
             if (item.shapeProps.destinationCap && item.shapeProps.destinationCap !== 'empty') {
                 const prevPoint = item.shapeProps.points[i - 1];
                 cap = computeCapByPosition(point.x, point.y, prevPoint.x, prevPoint.y, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap);
-            } 
+            }
             if (cap) {
                 path += `L ${cap.entryPoint.x} ${cap.entryPoint.y} `;
                 if (cap.prolongLine) {
@@ -748,7 +748,7 @@ function realignNormal(point, secondPoint) {
  * @param {String} attachmentItemSelector
  * @param {Number} attachmentItemPosition
  * @param {ItemModificationContext} context
- * @param {Boolean} isSource 
+ * @param {Boolean} isSource
  * @param {Function} callback - function which is used to pass changed attachment item position
  */
 function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
@@ -772,7 +772,7 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
                 }
 
                 callback(newPoint, attachmentItemPosition);
-                
+
             }
             return;
         }
@@ -833,10 +833,10 @@ function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurveP
 }
 
 /**
- * @property {Item} item 
- * @property {Object} schemeContainer 
- * @property {Boolean} isSoft 
- * @property {ItemModificationContext} context 
+ * @property {Item} item
+ * @property {Object} schemeContainer
+ * @property {Boolean} isSoft
+ * @property {ItemModificationContext} context
  * @property {Number} precision - number of digits after point which it should round to
  */
 function readjustItem(item, schemeContainer, isSoft, context, precision) {
@@ -906,7 +906,7 @@ function readjustItemArea(item, precision) {
         minY = worldPoints[0].y,
         maxX = worldPoints[0].x,
         maxY = worldPoints[0].y;
-    
+
     forEach(worldPoints, p => {
         minX = Math.min(minX, p.x);
         minY = Math.min(minY, p.y);
@@ -961,7 +961,7 @@ const menuItemPoints = [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}];
 const groupName = 'Connections';
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
     components: {AdvancedFill},
 
     shapeConfig: {
@@ -1113,7 +1113,7 @@ export default {
 
         /**
          * Disabling any text slots for curve items. Otherwise users will be confused when they double click on it in edit mode.
-         */ 
+         */
         getTextSlots() {
             return [];
         },
@@ -1178,10 +1178,10 @@ export default {
     },
 
     mounted() {
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChange);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChange);
     },
     beforeDestroy() {
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChange);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChange);
     },
 
     data() {

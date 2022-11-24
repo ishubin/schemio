@@ -55,7 +55,8 @@
                             <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
                         </div>
                         <div>
-                            <element-picker
+                            <ElementPicker
+                                :editorId="editorId"
                                 :element="action.element"
                                 :scheme-container="schemeContainer"
                                 :self-item="item"
@@ -115,7 +116,8 @@
         <span class="btn btn-secondary" @click="copyAllEvents()">Copy all events</span>
         <span class="btn btn-secondary" @click="pasteEvents()">Paste events</span>
 
-        <function-arguments-editor v-if="functionArgumentsEditor.shown"
+        <FunctionArgumentsEditor v-if="functionArgumentsEditor.shown"
+            :editorId="editorId"
             :function-description="functionArgumentsEditor.functionDescription"
             :args="functionArgumentsEditor.args"
             :scheme-container="schemeContainer"
@@ -148,12 +150,12 @@ import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
-import EventBus from '../EventBus.js';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import {textSlotProperties, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
+import EditorEventBus from '../EditorEventBus.js';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
@@ -174,9 +176,10 @@ function sanitizeEvent(event) {
 
 export default {
     props: {
-        item: Object,
-        schemeContainer: Object,
-        extended: { type: Boolean, default: false }
+        editorId       : {type: String, required: true},
+        item           : {type: Object},
+        schemeContainer: {type: Object},
+        extended       : { type: Boolean, default: false }
     },
 
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
@@ -444,7 +447,7 @@ export default {
                         });
                         this.item.behavior.events.push(event);
                     });
-                    EventBus.emitSchemeChangeCommited();
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                 }
             });
         },
@@ -587,8 +590,8 @@ export default {
         },
 
         emitChangeCommited(affinityId) {
-            EventBus.emitItemChanged(this.item.id);
-            EventBus.emitSchemeChangeCommited(affinityId);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
         },
 
         showFunctionArgumentsEditor(action, eventIndex, actionIndex) {
@@ -616,7 +619,7 @@ export default {
                     event.actions[actionIndex].args[argName] = value;
                 }
             }
-            EventBus.emitSchemeChangeCommited(`items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
         },
 
         onActionDragStarted(eventIndex, actionIndex) {

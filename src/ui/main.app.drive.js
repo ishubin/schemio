@@ -11,12 +11,14 @@ import FolderView from './app/view/FolderView.vue';
 import SearchView from './app/view/SearchView.vue';
 import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
-import SchemeEditorView from './app/view/SchemeEditorView.vue';
+import SchemeEditorWebView from './app/view/SchemeEditorWebView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
 import Header from './app/components/HeaderDrive.vue';
 import Footer from './app/components/Footer.vue';
 import HomeDriveView from './app/view/HomeDriveView.vue';
+import { googleDriveClientProvider } from './app/client/googleDriveClient';
+import { offlineClientProvider } from './app/client/offlineClient';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -31,13 +33,13 @@ function route(name, path, component, props) {
 
 
 const routes = [
-    route('SchemeEditorView',       '/docs/:schemeId',   SchemeEditorView, {apiClientType: 'drive', userStylesEnabled: false, projectArtEnabled: false}),
-    route('OfflineSchemeEditorView','/offline-editor',   SchemeEditorView, {apiClientType: 'offline', userStylesEnabled: false, projectArtEnabled: false}),
+    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: googleDriveClientProvider, userStylesEnabled: false, projectArtEnabled: false}),
+    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true , userStylesEnabled: false, projectArtEnabled: false}),
     route('AboutView',              '/about',            AboutView),
     route('NotFoundView',           '/not-found',        NotFoundView),
     route('HomeView',               '/',                 HomeDriveView),
-    route('SearchView',             '/search',           SearchView, {apiClientType: 'drive'}),
-    route('FolderView',             '/f/*',              FolderView, {apiClientType: 'drive'}),
+    route('SearchView',             '/search',           SearchView, {clientProvider: googleDriveClientProvider}),
+    route('FolderView',             '/f/*',              FolderView, {clientProvider: googleDriveClientProvider}),
     { path: '*', redirect: '/not-found'}
 ];
 

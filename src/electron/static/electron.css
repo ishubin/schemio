@@ -1,0 +1,266 @@
+.app-container {
+    display: flex;
+    height: 100%;
+    flex-direction: row;
+}
+.elec-app-container .link {
+    text-decoration: none;
+}
+.elec-app-container .link:hover {
+    text-decoration: none;
+    opacity: 0.8;
+}
+
+.elec-navigator {
+    border-right: 2px solid #999;
+}
+.elec-main-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.elec-tab-container {
+    position: relative;
+    height: 30px;
+    width: 100%;
+    white-space: nowrap;
+    background: #bbb;
+    user-select: none;
+}
+.elec-file-container {
+    flex: 1;
+}
+
+.elec-file-progress-bar {
+    position: absolute;
+    height: 5px;
+    background: red;
+    width: 100%;
+    z-index: 5;
+    background: linear-gradient(90deg, var(--accent-strong-down) 0%, var(--accent-faint-up) 25%, var(--accent-faint-up) 50%, var(--accent-strong-down) 75%) 0% 0% / 60% 100%;
+    animation: elec-progress-animation 30s linear infinite;
+}
+@keyframes elec-progress-animation {
+    0% {
+        background-position: 0%
+    }
+    100% {
+        background-position: 6000%
+    }
+}
+
+
+
+.elec-welcome-panel {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+}
+.elec-welcome-container {
+    max-width: 400px;
+}
+.elec-welcome-container h1 {
+    margin-bottom: 5px;
+}
+.elec-welcome-container .welcome-caption {
+    margin-top: 5px;
+    font-size: 22px;
+}
+.elec-welcome-container h1,
+.elec-welcome-container h3,
+.elec-welcome-container .welcome-caption {
+    color: #1d3d7a;
+}
+.elec-welcome-container h3 {
+    margin-bottom: 5px;
+}
+.elec-welcome-container .link {
+    font-size: 15px;
+}
+
+
+.elec-tab-container .elec-tab-wrapper {
+    width: 100%;
+    position: absolute;
+    height: 30px;
+    overflow: hidden;
+}
+.elec-tab-container .file-tab {
+    position: relative;
+    display: inline-block;
+    border-left: 1px solid #aaa;
+    background: #cfcfcf;
+    cursor: pointer;
+    max-width: 180px;
+    min-width: 110px;
+    height: 100%;
+    overflow: hidden;
+}
+.elec-tab-container .file-tab .icon-file-modified {
+    position: absolute;
+    opacity: 0.3;
+    left: 5px;
+    top: 8px;
+    font-size: 10px;
+}
+.elec-tab-container .file-tab:first-child {
+    border-left: none;
+}
+.elec-tab-container .file-tab:last-child {
+    border-right: 1px solid #bbb;
+}
+.elec-tab-container .file-tab > span.title{
+    display: inline-block;
+    padding: 5px 30px 5px 20px;
+    width: 100%;
+    height: 100%;
+    font-size: 13px;
+}
+.elec-tab-container .file-tab.selected {
+    background: #eeeeee;
+}
+.elec-tab-container .file-tab .close {
+    position: absolute;
+    display: none;
+    top: 5px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    padding-top: 2px;
+    text-align: center;
+    border-radius: 4px;
+    background: none;
+    font-size: 12px;
+}
+.elec-tab-container .file-tab:hover .close {
+    display: block;
+}
+.elec-tab-container .file-tab .close:hover {
+    background: #aaa;
+}
+.elec-tab-container .scroller {
+    display: none;
+    position: absolute;
+    width: 80px;
+    height: 5px;
+    cursor: grab;
+    background: #777;
+    bottom: 0;
+    left: 10px;
+}
+.elec-tab-container:hover .scroller {
+    display: block;
+}
+.elec-tab-container:hover .scroller.disabled {
+    display: none;
+}
+
+.elec-navigator {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    background: #f0f0f0;
+    user-select: none;
+}
+.elec-navigator-expander {
+    position: fixed;
+    top: 0;
+    height: 100%;
+    width: 1px;
+    background: #999;
+    cursor: ew-resize;
+    border: none;
+    user-select: none;
+    z-index: 100;
+}
+.elec-navigator-expander:hover {
+    border-left: 1px solid #999;
+    border-right: 1px solid #999;
+}
+.elec-navigator .navigator-header {
+    height: 30px;
+    font-size: 13px;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 7px 13px;
+    background: #ccc;
+    border-bottom: #999 solid 1px;
+}
+.elec-navigator.collapsed .navigator-header {
+    padding: 2px;
+}
+.elec-navigator.collapsed .navigator-header .toggle-button {
+    padding: 4px;
+}
+.elec-navigator .navigator-body {
+    height: 100%;
+    flex: 1;
+    overflow: auto;
+}
+.elec-navigator .navigator-spacing {
+    display: inline-block;
+}
+.elec-navigator .navigator-entry {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    white-space: nowrap;
+    padding: 3px 5px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.elec-navigator .navigator-entry .entry-name {
+    padding: 1px;
+}
+.elec-navigator .navigator-entry .icon {
+    display: inline-block;
+    padding-right: 5px;
+}
+.elec-navigator .navigator-entry input.renaming-textfield {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 1px;
+    margin: 0;
+}
+.elec-navigator .navigator-entry.focused {
+    background: #dedede;
+}
+.elec-navigator .navigator-entry:hover {
+    background: #ddd;
+}
+.elec-navigator .navigator-entry-drag-preview {
+    background: #ddd;
+    padding: 1px;
+    border-radius: 2px;
+    font-size: 13px;
+}
+.elec-navigator .navigator-entry-preview {
+    position: fixed;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    z-index: 100;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+.elec-navigator .navigator-entry-preview h3 {
+    margin-top: 0;
+    margin-bottom: 5px;
+}
+.elec-navigator .navigator-entry-preview img {
+    flex: 1;
+    max-width: 250px;
+    max-height: 250px;
+}
+
+.elec-file-container > div {
+    height: 100%;
+    width: 100%;
+}

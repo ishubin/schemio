@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import path from 'path';
 
 /**
- * 
+ *
  * @callback walkCallback
  * @param {String} filePath -  path to file or directory
  * @param {Boolean} isDirectory - specifies whether it is a directory
@@ -15,10 +15,10 @@ import path from 'path';
 
 
 /**
- * 
- * @param {String} dirPath 
+ *
+ * @param {String} dirPath
  * @param {walkCallback} callback - function that takes fileName and isDirectory arguments
- * @returns 
+ * @returns
  */
 export function walk(dirPath, callback) {
     return fs.readdir(dirPath).then(files => {

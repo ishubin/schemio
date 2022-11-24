@@ -63,22 +63,20 @@
 
 <script>
 import Panel from '../Panel.vue';
-import EventBus from '../EventBus.js';
 import NumberTextfield from '../../NumberTextfield.vue';
 import forEach from 'lodash/forEach';
+import EditorEventBus from '../EditorEventBus';
 
 export default {
-    props: ['item', 'editBox'],
+    props: ['item', 'editBox', 'editorId'],
     components: {Panel, NumberTextfield},
 
     beforeMount() {
-        EventBus.$on(EventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED, this.onEditBoxChange);
-        EventBus.$on(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED, this.onEditBoxChange);
+        EditorEventBus.editBox.updated.$on(this.editorId, this.onEditBoxChange);
     },
 
     beforeDestroy() {
-        EventBus.$off(EventBus.MULTI_ITEM_EDIT_BOX_ITEMS_UPDATED, this.onEditBoxChange);
-        EventBus.$off(EventBus.MULTI_ITEM_EDIT_BOX_AREA_UPDATED, this.onEditBoxChange);
+        EditorEventBus.editBox.updated.$off(this.editorId, this.onEditBoxChange);
     },
 
     data() {

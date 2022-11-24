@@ -10,7 +10,8 @@ export const supportedMediaExtensions = new Set([
     'gif',
     'tiff',
     'bmp',
-    'svg'
+    'svg',
+    'webp'
 ]);
 
 export function fileNameFromPath(filePath) {
@@ -31,12 +32,17 @@ export function folderPathFromPath(filePath) {
     return null;
 }
 
-export function removePrefix(text, prefix) {
-    let i = 0;
-    for (i = 0; i < text.length && i < prefix.length; i++) {
-        if (text.charAt(i) !== prefix.charAt(i)) {
-            break;
-        }
+export function getFileExtension(name) {
+    const idx = name.lastIndexOf('.');
+    if (idx > 0) {
+        return name.substring(idx + 1);
     }
-    return text.substring(i);
+    return '';
+}
+
+export function leftZeroPad(number) {
+    if (number >= 0 && number < 10) {
+        return '0' + number;
+    }
+    return '' + number;
 }

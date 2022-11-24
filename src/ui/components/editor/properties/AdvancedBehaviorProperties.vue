@@ -7,7 +7,8 @@
             <input type="text" class="textfield" v-model="searchKeyword" placeholder="Search...">
 
             <div class="advanced-behavior-menu">
-                <element-picker
+                <ElementPicker
+                    :editorId="editorId"
                     :key="`advanced-behavior-pick-item-1-${revision}`"
                     :scheme-container="schemeContainer"
                     :excluded-item-ids="existingItemIds"
@@ -22,8 +23,9 @@
                 <div :id="`advanced-behavior-item-${item.id}`" v-for="item in itemsWithBehavior">
                     <span class="item-title">{{item.name}}</span>
 
-                    <behavior-properties
+                    <BehaviorProperties
                         :key="`behavior-panel-${item.id}`"
+                        :editorId="editorId"
                         :item="item"
                         :extended="true"
                         :scheme-container="schemeContainer"
@@ -33,8 +35,9 @@
             </div>
 
             <div class="advanced-behavior-menu">
-                <element-picker
+                <ElementPicker
                     :key="`advanced-behavior-pick-item-2-${revision}`"
+                    :editorId="editorId"
                     :scheme-container="schemeContainer"
                     :excluded-item-ids="existingItemIds"
                     :use-self="false"
@@ -55,13 +58,13 @@ import ElementPicker from '../ElementPicker.vue';
 import filter from 'lodash/filter';
 import find from 'lodash/find';
 import map from 'lodash/map';
-import shortid from 'shortid';
 
 export default {
     components: { Modal, BehaviorProperties, ElementPicker },
 
     props: {
-        schemeContainer: Object,
+        editorId       : {type: String, required: true},
+        schemeContainer: {type: Object},
     },
 
     beforeMount() {

@@ -1,10 +1,10 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
-import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 class MoveAnimation extends Animation {
@@ -48,13 +48,13 @@ class MoveAnimation extends Animation {
             this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
             this.schemeContainer.reindexItemTransforms(this.item);
 
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             return true;
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
             this.schemeContainer.reindexItemTransforms(this.item);
-            EventBus.emitItemChanged(this.item.id);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
         }
         return false;
     }
@@ -89,7 +89,7 @@ export default {
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animate) {
-                AnimationRegistry.play(new MoveAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
+                playInAnimationRegistry(schemeContainer.editorId, new MoveAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
                 if (args.inBackground) {
                     resultCallback();
                 }

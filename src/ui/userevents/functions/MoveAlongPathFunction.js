@@ -1,12 +1,12 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
 import MoveAlongPathAnimationFunction from '../../animations/functions/MoveAlongPathAnimationFunction';
-import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
 class MoveAlongPathAnimation extends Animation {
@@ -24,7 +24,7 @@ class MoveAlongPathAnimation extends Animation {
         this.domPath = null;
         this.pathItem = null;
         this.pathTotalLength = 1.0;
-        
+
     }
 
     init() {
@@ -63,8 +63,8 @@ class MoveAlongPathAnimation extends Animation {
 
             const convertedT = convertTime(t, this.args.movement);
             this.moveToPathLength(this.pathTotalLength * (this.args.startPosition * (1.0 - convertedT) + this.args.endPosition * convertedT) / 100.0);
-            
-            EventBus.emitItemChanged(this.item.id);
+
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             return true;
         }
         return false;
@@ -110,7 +110,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new MoveAlongPathAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
+            playInAnimationRegistry(schemeContainer.editorId, new MoveAlongPathAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
             if (args.inBackground) {
                 resultCallback();
             }

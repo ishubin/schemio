@@ -29,11 +29,14 @@
 import LinkEditPopup from '../LinkEditPopup.vue';
 import Panel from '../Panel.vue';
 import linkTypes from '../LinkTypes.js';
-import EventBus from '../EventBus.js';
+import EditorEventBus from '../EditorEventBus.js';
 import shortid from 'shortid';
 
 export default {
-    props: ['item'],
+    props: {
+        editorId: {type: String, required: true},
+        item    : {type: Object, required: true}
+    },
     components: { Panel, LinkEditPopup },
 
     data() {
@@ -57,7 +60,7 @@ export default {
         },
         deleteLink(linkId) {
             this.item.links.splice(linkId, 1);
-            EventBus.emitSchemeChangeCommited();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
         editLink(linkId, link) {
             this.editLinkData = {
@@ -73,7 +76,7 @@ export default {
                 this.item.links[this.editLinkData.linkId].title = link.title;
                 this.item.links[this.editLinkData.linkId].url = link.url;
                 this.item.links[this.editLinkData.linkId].type = link.type;
-                EventBus.emitSchemeChangeCommited(`item.${this.item.id}.links.${this.editLinkData.linkId}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.links.${this.editLinkData.linkId}`);
             } else {
                 if (!this.item.links) {
                     this.item.links = [];
@@ -84,7 +87,7 @@ export default {
                     url: link.url,
                     type: link.type
                 });
-                EventBus.emitSchemeChangeCommited();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             }
         },
     },

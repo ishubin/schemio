@@ -3,14 +3,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import State from './State.js';
-import EventBus from '../EventBus.js';
 import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 
 export default class StateCreateItem extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'create-item';
+    constructor(store, listener) {
+        super(store, 'create-item', listener);
         this.item = null;
         this.addedToScheme = false;
         this.originalPoint = null;
@@ -78,7 +76,7 @@ export default class StateCreateItem extends State {
 
     submitItemAndFinishCreating() {
         this.schemeContainer.setActiveBoundaryBox(null);
-        
+
         if (this.store.state.autoRemount && this.item.shape !== 'hud') {
             const parentItem = this.schemeContainer.findItemSuitableForParent(this.item, candidateItem => candidateItem.id !== this.item.id);
             this.schemeContainer.deselectAllItems();
@@ -88,10 +86,9 @@ export default class StateCreateItem extends State {
         }
         this.schemeContainer.reindexItems();
         this.schemeContainer.selectItem(this.item);
-        this.eventBus.emitItemChanged(this.item.id);
-        this.eventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
-        this.eventBus.emitSchemeChangeCommited();
-        this.reset();
+        this.listener.onItemChanged(this.item.id);
+        this.listener.onSchemeChangeCommitted();
+        this.cancel();
     }
 
 
@@ -111,6 +108,6 @@ export default class StateCreateItem extends State {
             this.item.area.h = this.round(this.originalPoint.y - y);
             this.item.area.y = this.round(y);
         }
-        EventBus.emitItemChanged(this.item.id);
+        this.listener.onItemChanged(this.item.id);
     }
 }

@@ -1,6 +1,6 @@
 <template>
     <div class="stroke-control">
-        <div v-if="supportsStrokeColor" 
+        <div v-if="supportsStrokeColor"
             class="stroke-control-toggle-button"
             :style="{border: `4px solid ${strokeColor}`}"
             @click="toggleDropdown"
@@ -33,7 +33,7 @@ import VueColor from 'vue-color';
 import NumberTextfield from '../NumberTextfield.vue';
 import map from 'lodash/map';
 import StrokePattern from './items/StrokePattern';
-import EventBus from './EventBus';
+import EditorEventBus from './EditorEventBus';
 
 function shapeHasArgument(shape, argName, argType) {
     if (!shape) {
@@ -45,6 +45,7 @@ function shapeHasArgument(shape, argName, argType) {
 
 export default {
     props: {
+        editorId: {type: String, required: true},
         item: {type: Object, required: true},
     },
 
@@ -52,12 +53,12 @@ export default {
 
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
-        EventBus.subscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
 
     beforeDestroy() {
         document.body.removeEventListener('click', this.onBodyClick);
-        EventBus.unsubscribeForItemChanged(this.item.id, this.onItemChanged);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
 
 
@@ -66,7 +67,7 @@ export default {
 
         return {
             toggled: false,
-        
+
             supportsStrokeColor: props.supportsStrokeColor,
             supportsStrokeSize: props.supportsStrokeSize,
             supportsStrokePattern: props.supportsStrokePattern,

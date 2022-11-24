@@ -5,7 +5,6 @@
 
 import State, { DragScreenState, MultiSelectState, SubState } from './State.js';
 import Shape from '../items/shapes/Shape';
-import EventBus from '../EventBus.js';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 import myMath from '../../../myMath';
@@ -41,7 +40,7 @@ function isEventRightClick(event) {
 
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
- * @param {MouseEvent} event 
+ * @param {MouseEvent} event
  */
 function isMultiSelectKey(event) {
     return event.metaKey || event.ctrlKey || event.shiftKey;
@@ -80,7 +79,7 @@ class EditBoxState extends SubState {
         if (this.lastModifiedItem) {
             items.push(this.lastModifiedItem);
         }
-        
+
         let shouldUpdateMultiItemEditBox = false;
         forEach(items, item => {
             // Now doing hard readjustment (this is needed for curve items so that they can update their area)
@@ -95,7 +94,7 @@ class EditBoxState extends SubState {
         }
         this.schemeContainer.reindexItems();
 
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
         this.migrateToPreviousSubState();
     }
 
@@ -169,8 +168,8 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.eventBus.emitSchemeChangeCommited();
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onSchemeChangeCommitted();
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         this.migrateToPreviousSubState();
     }
 
@@ -209,8 +208,8 @@ class DragControlPointState extends SubState {
                 } else {
                     shape.controlPoints.handleDrag(this.item, this.pointId, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy, dx, dy, this, this.schemeContainer);
                 }
-                
-                this.eventBus.emitItemChanged(this.item.id);
+
+                this.listener.onItemChanged(this.item.id);
                 this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
                 // updating all control points as they might affect one another
@@ -257,7 +256,7 @@ class DragControlPointState extends SubState {
         if (!curvePoint) {
             return;
         }
-        
+
         let excludedIds = null
         if (this.multiItemEditBox) {
             excludedIds = this.multiItemEditBox.itemIds;
@@ -280,7 +279,7 @@ class DragControlPointState extends SubState {
             curvePoint.x = localCurvePoint.x;
             curvePoint.y = localCurvePoint.y;
 
-            this.eventBus.emitItemsHighlighted([closestPointToItem.itemId], {highlightPins: true});
+            this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
@@ -295,7 +294,7 @@ class DragControlPointState extends SubState {
             curvePoint.y = localPoint.y;
 
             // nothing to attach to so reseting highlights in case it was set previously
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = null;
                 this.item.shapeProps.sourceItemPosition = 0;
@@ -307,8 +306,8 @@ class DragControlPointState extends SubState {
 
         const shape = Shape.find(this.item.shape);
         StoreUtils.setItemControlPoints(this.store, this.item);
-        
-        this.eventBus.emitItemChanged(this.item.id);
+
+        this.listener.onItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         this.reindexNeeded = true;
         this.lastModifiedItem = this.item;
@@ -405,7 +404,7 @@ class RotateEditBoxState extends EditBoxState {
     constructor(parentState, multiItemEditBox, x, y, mx, my) {
         super(parentState, 'rotate-edit-box', multiItemEditBox, x, y, mx, my);
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         if (event.buttons === 0) {
             this.mouseUp(x, y, mx, my, object, event);
@@ -451,18 +450,18 @@ class RotateEditBoxState extends EditBoxState {
         const v2y = y - centerY;
         const v1SquareLength = v1x * v1x + v1y * v1y;
         const v2SquareLength = v2x * v2x + v2y * v2y;
-        
+
         if (v1SquareLength < 0.0001 || v2SquareLength < 0.0001) {
             return;
         }
 
         // cross production of two vectors to figure out the direction (clock-wise or counter clock-wise) of rotation
-        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1; 
+        const direction = (v1x * v2y - v2x * v1y >= 0) ? 1: -1;
 
         const cosa = (v1x * v2x + v1y * v2y)/(Math.sqrt(v1SquareLength) * Math.sqrt(v2SquareLength));
         let angle = direction * Math.acos(cosa);
         let angleDegrees = angle * 180 / Math.PI;
-        
+
         if (isNaN(angleDegrees)) {
             return 0;
         }
@@ -480,7 +479,7 @@ class DragEditBoxState extends EditBoxState {
         this.proposedItemForMounting = null;
         this.proposedToRemountToRoot = false;
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
 
@@ -511,7 +510,7 @@ class DragEditBoxState extends EditBoxState {
         }
 
         // checking if it can fit into another item
-        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording ) {
+        if (this.store.state.autoRemount && !this.parentState.isRecording ) {
             const fakeItem = {meta: {}, area: this.multiItemEditBox.area};
             this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => !this.multiItemEditBox.itemIds.has(item.id));
         } else {
@@ -519,10 +518,10 @@ class DragEditBoxState extends EditBoxState {
         }
 
         if (this.proposedItemForMounting) {
-            this.eventBus.emitItemsHighlighted([this.proposedItemForMounting.id], {highlightPins: false});
+            this.listener.onItemsHighlighted({itemIds: [this.proposedItemForMounting.id], showPins: false});
             this.proposedToRemountToRoot = false;
         } else {
-            this.eventBus.emitItemsHighlighted([]);
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             this.proposedToRemountToRoot = true;
         }
 
@@ -530,7 +529,7 @@ class DragEditBoxState extends EditBoxState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (this.store.state.autoRemount && !this.store.state.animationEditor.isRecording) {
+        if (this.store.state.autoRemount && !this.parentState.isRecording) {
             if (this.multiItemEditBox && this.proposedItemForMounting) {
                 // it should remount all items in multi item edit box into the new proposed parent
                 this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
@@ -539,7 +538,7 @@ class DragEditBoxState extends EditBoxState {
             }
         }
 
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         super.mouseUp(x, y, mx, my, object, event);
     }
 
@@ -559,7 +558,7 @@ class DragEditBoxState extends EditBoxState {
                 // remount it to root only in case it has a parent
                 if (item.meta && item.meta.parentId && item.meta.ancestorIds) {
                     const rootParent = this.schemeContainer.findItemById(item.meta.ancestorIds[0]);
-                    
+
                     if (rootParent) {
                         this.schemeContainer.remountItemAfterOtherItem(item.id, rootParent.id);
                     } else {
@@ -573,9 +572,10 @@ class DragEditBoxState extends EditBoxState {
 
 
 class IdleState extends SubState {
-    constructor(parentState) {
+    constructor(parentState, listener) {
         super(parentState, 'idle');
         this.clickedObject = null;
+        this.listener = listener;
     }
 
     reset() {
@@ -602,12 +602,14 @@ class IdleState extends SubState {
         } else if (key === Keys.SPACE && !this.startedDragging) {
             this.shouldDragScreen = true;
         } else if (key === Keys.MINUS) {
-            this.zoomOutByKey();
+            this.zoomOut();
         } else if (key === Keys.EQUALS) {
-            this.zoomInByKey();
+            this.zoomIn();
+        } else if (key === Keys.CTRL_ZERO) {
+            this.resetZoom();
         }
     }
-    
+
     mouseDown(x, y, mx, my, object, event) {
         if (isEventMiddleClick(event)) {
             this.migrate(new DragScreenState(this.parentState, {x, y, mx, my}));
@@ -627,7 +629,7 @@ class IdleState extends SubState {
                     this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
                 }
             } else if (object.connectorStarter) {
-                EventBus.$emit(EventBus.START_CONNECTING_ITEM, object.connectorStarter.item, object.connectorStarter.point);
+                this.listener.onStartConnecting(object.connectorStarter.item, object.connectorStarter.point)
                 return;
             }
         } else {
@@ -642,7 +644,7 @@ class IdleState extends SubState {
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
             if (object.item.shape === 'path') {
-                this.eventBus.emitCurveEdited(object.item);
+                this.listener.onEditPathRequested(object.item);
             } else if (object.item.shape === 'connector') {
                 this.handleDoubleClickOnConnector(object.item, x, y);
             } else {
@@ -650,18 +652,18 @@ class IdleState extends SubState {
             }
         } else if (object.controlPoint && object.controlPoint.item.shape === 'connector') {
             this.handleDoubleClickOnConnectorControlPoint(object.controlPoint.item, object.controlPoint.pointId);
-        } else if (object.itemTextElement) { 
+        } else if (object.itemTextElement) {
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
         } else if (object.type === 'void') {
-            this.eventBus.$emit(EventBus.VOID_DOUBLE_CLICKED, x, y, mx, my);
+            this.listener.onVoidDoubleClicked(x, y, mx, my);
         } else if (object.type === 'multi-item-edit-box' && object.multiItemEditBox.items.length === 1 && object.multiItemEditBox.items[0].shape === 'path') {
             // if user double clicks on the path but hits its edit box instead
-            this.eventBus.emitCurveEdited(object.multiItemEditBox.items[0]);
+            this.listener.onEditPathRequested(object.multiItemEditBox.items[0]);
         }
     }
-    
+
     mouseMove(x, y, mx, my, object, event) {
-        if (this.clickedObject) { 
+        if (this.clickedObject) {
             if (this.clickedObject.type === 'item' && this.schemeContainer.multiItemEditBox) {
                 this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
                 this.reset();
@@ -696,16 +698,16 @@ class IdleState extends SubState {
             if (!this.schemeContainer.isItemSelected(object.item)) {
                 this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
             }
-            this.eventBus.emitRightClickedItem(object.item, mx, my);
+            this.listener.onItemRightClick(object.item, mx, my);
         } else if (object.type === 'void') {
             this.schemeContainer.deselectAllItems();
-            this.eventBus.$emit(EventBus.VOID_RIGHT_CLICKED, x, y, mx, my);
+            this.listener.onVoidRightClicked(mx, my);
         }
     }
 
     deselectAllItems() {
         this.schemeContainer.deselectAllItems();
-        forEach(this.schemeContainer.selectedItems, item => this.eventBus.emitItemDeselected(item.id));
+        forEach(this.schemeContainer.selectedItems, item => this.listener.onItemDeselected(item));
     }
 
     dragItemsByKeyboard(dx, dy) {
@@ -758,11 +760,11 @@ class IdleState extends SubState {
                 x: closestPoint.x,
                 y: closestPoint.y,
             });
-            this.eventBus.emitItemChanged(item.id);
+            this.listener.onItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.setItemControlPoints(this.store, item);
             StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
-            this.eventBus.emitSchemeChangeCommited();
+            this.listener.onSchemeChangeCommitted();
         }
     }
 
@@ -780,11 +782,11 @@ class IdleState extends SubState {
 
     handleDoubleClickOnConnectorControlPoint(item, pointId) {
         item.shapeProps.points.splice(pointId, 1);
-        this.eventBus.emitItemChanged(item.id);
+        this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.setItemControlPoints(this.store, item);
         StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
-        this.eventBus.emitSchemeChangeCommited();
+        this.listener.onSchemeChangeCommitted();
     }
 
     findTextSlotAndEmitInPlaceEdit(item, x, y) {
@@ -792,7 +794,7 @@ class IdleState extends SubState {
         if (!textSlot) {
             return;
         }
-        this.eventBus.emitItemTextSlotEditTriggered(item, textSlot.name, textSlot.area, textSlot.markupDisabled, false);
+        this.listener.onItemTextSlotEditTriggered(item, textSlot.name, textSlot.area, textSlot.markupDisabled, false);
     }
 
     findItemTextSlotByPoint(item, x, y) {
@@ -816,8 +818,8 @@ class IdleState extends SubState {
         const selectedItems = [];
 
         forEach(this.schemeContainer.getItems(), item => {
-            const points = [ 
-                {x: 0, y: 0}, 
+            const points = [
+                {x: 0, y: 0},
                 {x: item.area.w, y: 0},
                 {x: item.area.w, y: item.area.h},
                 {x: 0, y: item.area.h},
@@ -840,27 +842,23 @@ class IdleState extends SubState {
 }
 
 export default class StateDragItem extends State {
-    /**
-     * @param {EventBus} eventBus 
-     */
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'drag-item';
+    constructor(store, listener) {
+        super(store,  'drag-item', listener);
         this.subState = null;
+        this.listener = listener;
+        this.isRecording= false;
     }
 
     migrateSubState(subState) {
         super.migrateSubState(subState);
-        EventBus.emitFloatingHelperPanelUpdated();
     }
 
     migrateToPreviousSubState() {
         super.migrateToPreviousSubState();
-        EventBus.emitFloatingHelperPanelUpdated();
     }
 
     reset() {
-        this.migrateSubState(new IdleState(this));
+        this.migrateSubState(new IdleState(this, this.listener));
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -870,7 +868,7 @@ export default class StateDragItem extends State {
             StoreUtils.clearItemSnappers(this.store);
         }
     }
-    
+
     mouseUp(x, y, mx, my, object, event) {
         super.mouseUp(x, y, mx, my, object, event);
         StoreUtils.clearItemSnappers(this.store);
@@ -878,6 +876,13 @@ export default class StateDragItem extends State {
 
     shouldAllowFloatingHelperPanel() {
         return this.subState && this.subState.name === 'idle';
+    }
+
+    enableRecording() {
+        this.isRecording = true;
+    }
+    disableRecording() {
+        this.isRecording = false;
     }
 }
 

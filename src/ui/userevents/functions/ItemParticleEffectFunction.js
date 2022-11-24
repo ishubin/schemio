@@ -2,12 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
-import AnimationRegistry from '../../animations/AnimationRegistry';
+import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import myMath from '../../myMath';
-import EventBus from '../../components/editor/EventBus';
+import EditorEventBus from '../../components/editor/EditorEventBus';
 
 const PI_2 = Math.PI * 2.0;
 
@@ -123,7 +123,7 @@ class ItemParticle extends Particle {
         this.particleItem.area.sy = this.scale;
         this.particleItem.area.r = this.angle;
         this.particleItem.opacity = this.opacity * 100;
-        EventBus.emitItemChanged(this.particleItem.id);
+        EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, this.particleItem.id);
     }
 
     destroy() {
@@ -165,7 +165,7 @@ class ItemParticleEffectAnimation extends Animation {
         if (!this.domContainer || !this.domItemPath) {
             return false;
         }
-        
+
         this.totalPathLength = this.domItemPath.getTotalLength();
         this.center = calculateCenterOfPath(this.domItemPath);
 
@@ -206,7 +206,7 @@ class ItemParticleEffectAnimation extends Animation {
                 }
             }
         }
-        
+
         for (let i = 0; i < this.particles.length; i++) {
             if (this.particles[i].lifeTime > this.args.lifeTime) {
                 this.particles[i].destroy();
@@ -270,7 +270,7 @@ class ItemParticleEffectAnimation extends Animation {
             if (maxLifeTime < 0.1) {
                 maxLifeTime = 1.0;
             }
-            let pathLength = 0; 
+            let pathLength = 0;
             if (this.args.backwards) {
                 pathLength = this.totalPathLength * Math.max(0, (1.0 - particle.lifeTime / maxLifeTime));
             } else {
@@ -305,7 +305,7 @@ class ItemParticleEffectAnimation extends Animation {
                     const angle = myMath.fullAngleForNormalizedVector(vx, vy) * 180 / Math.PI;
 
                     particle.angle = angle;
-                    
+
                     if (isFinite(this.args.rotationOffset)) {
                         particle.angle += this.args.rotationOffset;
                     };
@@ -316,7 +316,7 @@ class ItemParticleEffectAnimation extends Animation {
             particle.position.x += particle.direction.x * this.args.speed * dt / 1000.0;
             particle.position.y += particle.direction.y * this.args.speed * dt / 1000.0;
         }
-            
+
 
         let scale = 1.0;
         let opacity = 1;
@@ -337,7 +337,7 @@ class ItemParticleEffectAnimation extends Animation {
         }
         particle.scale = scale;
         particle.opacity = opacity;
-        
+
         particle.update();
     }
 
@@ -401,7 +401,7 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            AnimationRegistry.play(new ItemParticleEffectAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
+            playInAnimationRegistry(schemeContainer.editorId, new ItemParticleEffectAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
         }
         if (args.inBackground) {
             resultCallback();

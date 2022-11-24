@@ -3,7 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import myMath from '../../../myMath.js';
-import EventBus from '../EventBus.js';
 import State from './State.js';
 import {simplifyPathPoints} from '../items/shapes/Path.vue';
 import { readjustItemAreaAndPoints } from './StateEditPath.js';
@@ -20,9 +19,8 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
 };
 
 export default class StateDraw extends State {
-    constructor(eventBus, store) {
-        super(eventBus, store);
-        this.name = 'draw';
+    constructor(store, listener) {
+        super(store, 'draw', listener);
         this.item = null;
         this.isDrawing = false;
         this.strokeColor = null;
@@ -51,7 +49,7 @@ export default class StateDraw extends State {
             this.currentPathId = this.item.shapeProps.paths.length - 1;
         }
         this.isDrawing = true;
-        EventBus.emitItemChanged(this.item.id, 'shapeProps.points');
+        this.listener.onItemChanged(this.item.id, 'shapeProps.points');
     }
 
     initFirstClick(x, y) {
@@ -106,19 +104,19 @@ export default class StateDraw extends State {
                     t: 'L'
                 };
                 this.item.shapeProps.paths[this.currentPathId].points.push(convertCurvePointToRelative(point, this.item.area.w, this.item.area.h));
-                
-                EventBus.emitItemChanged(this.item.id, `shapeProps.paths`);
+
+                this.listener.onItemChanged(this.item.id, `shapeProps.paths`);
             }
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
         this.isDrawing = false;
-        EventBus.emitItemChanged(this.item.id, 'shapeProps.paths');
+        this.listener.onItemChanged(this.item.id, 'shapeProps.paths');
     }
-    
+
     cancel() {
-        this.eventBus.emitItemsHighlighted([]);
+        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         const item = this.submitDrawing();
         if (item) {
             this.schemeContainer.selectItem(item);
@@ -149,6 +147,7 @@ export default class StateDraw extends State {
             readjustItemAreaAndPoints(this.item);
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
+            this.listener.onSchemeChangeCommitted();
             return this.item;
         }
         return null;

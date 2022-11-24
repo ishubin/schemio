@@ -1,7 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import AnimationRegistry from "../../animations/AnimationRegistry";
+import {playInAnimationRegistry} from "../../animations/AnimationRegistry";
 
 
 export default {
@@ -39,7 +39,7 @@ export default {
         } else {
             frameAnimation.setStopFrame(-1);
         }
-        AnimationRegistry.play(frameAnimation, item.id, 'frame-player');
+        playInAnimationRegistry(schemeContainer.editorId, frameAnimation, item.id, 'frame-player');
         resultCallback();
     }
 }

@@ -11,7 +11,7 @@
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
                     <img :src="`${assetsPath}/images/icons/select.svg`" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateCurveCreation()" title="Create Path"
+                <div class="item-container" @click="initiatePathCreation()" title="Create Path"
                     @mouseover="showPreviewGif('create-curve')"
                     @mouseleave="stopPreviewGif('create-curve')"
                     >
@@ -112,7 +112,10 @@
             {{errorMessage}}
         </modal>
 
-        <ExtraShapesModal v-if="extraShapesModal.shown" @close="extraShapesModal.shown = false"/>
+        <ExtraShapesModal v-if="extraShapesModal.shown"
+            @art-pack-added="updateAllArtPacks"
+            @extra-shapes-registered="updateAllPanels"
+            @close="extraShapesModal.shown = false"/>
 
         <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
@@ -122,7 +125,7 @@
                     <h4>{{previewItem.item.name}}</h4>
 
                     <svg v-if="previewItem.item.item" :width="previewWidth + 'px'" :height="previewHeight + 'px'">
-                        <item-svg :item="previewItem.item.item" mode="edit"/>
+                        <ItemSvg :editorId="editorId" :item="previewItem.item.item" mode="edit"/>
                     </svg>
                 </div>
                 <div v-if="previewItem.artIcon">
@@ -143,14 +146,13 @@
                 :width="`${itemCreationDragged.item.area.x + itemCreationDragged.item.area.w + 50}px`"
                 :height="`${itemCreationDragged.item.area.y + itemCreationDragged.item.area.h + 50}px`"
                 >
-                <item-svg :item="itemCreationDragged.item" mode="edit"/>
+                <ItemSvg :editorId="editorId" :item="itemCreationDragged.item" mode="edit"/>
             </svg>
         </div>
     </div>
 </template>
 
 <script>
-import EventBus from './EventBus.js';
 import CreateImageModal from './CreateImageModal.vue';
 import CustomArtUploadModal from './CustomArtUploadModal.vue';
 import EditArtModal from './EditArtModal.vue';
@@ -177,8 +179,12 @@ const _gifDescriptions = {
 
 const mouseOffset = 2;
 
+const ITEM_PICKED_FOR_CREATION = 'item-picked-for-creation';
+const PATH_EDITED = 'path-edited';
+
 export default {
     props: {
+        editorId         : {type: String, required: true},
         schemeContainer  : {type: Object},
         projectArtEnabled: {type: Boolean, default: true},
     },
@@ -186,15 +192,10 @@ export default {
     components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },
 
     beforeMount() {
+        this.loadProjectArt();
         this.filterItemPanels();
-        EventBus.$on(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
-        EventBus.$on(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
     },
 
-    beforeDestroy() {
-        EventBus.$off(EventBus.EXTRA_SHAPE_GROUP_REGISTERED, this.updateAllPanels);
-        EventBus.$off(EventBus.ART_PACK_ADDED, this.updateAllArtPacks);
-    },
     data() {
         return {
             customArtUploadModalShown   : false,
@@ -243,6 +244,15 @@ export default {
         }
     },
     methods: {
+        loadProjectArt() {
+            if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
+                this.$store.state.apiClient.getAllArt()
+                .then(artList => {
+                    this.artList = artList;
+                });
+            }
+        },
+
         updateAllPanels() {
             this.itemPanels = this.generateItemPanels();
             this.filterItemPanels();
@@ -430,7 +440,7 @@ export default {
                 this.imageCreation.popupShown = true;
                 return;
             } else {
-                EventBus.$emit(EventBus.START_CREATING_ITEM, clonedItem);
+                this.$emit(ITEM_PICKED_FOR_CREATION, clonedItem);
             }
         },
 
@@ -443,9 +453,9 @@ export default {
             item.shapeProps.icon = link.type;
             recentPropsChanges.applyItemProps(item);
             if (this.linkCreation.withMouse) {
-                EventBus.$emit(EventBus.START_CREATING_ITEM, item);
+                this.$emit(ITEM_PICKED_FOR_CREATION, item);
             } else {
-                EventBus.emitItemCreationDraggedToSvgEditor(item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
+                this.$emit('item-creation-dragged-to-editor', item, this.itemCreationDragged.pageX + mouseOffset, this.itemCreationDragged.pageY + mouseOffset);
             }
         },
 
@@ -461,16 +471,16 @@ export default {
             utils.setObjectProperty(newItem, that.itemCreationDragged.imageProperty, imageUrl);
 
             if (this.imageCreation.withMouse) {
-                EventBus.$emit(EventBus.START_CREATING_ITEM, newItem);
+                this.$emit(ITEM_PICKED_FOR_CREATION, newItem);
             } else {
                 img.onload = function () {
                     if (this.width > 1 && this.height > 1) {
                         newItem.area = { x: 0, y: 0, w: this.width, h: this.height};
-                        EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                        that.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                     }
                 };
                 img.onerror = (err) => {
-                    EventBus.emitItemCreationDraggedToSvgEditor(newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
+                    that.$emit('item-creation-dragged-to-editor', newItem, that.itemCreationDragged.pageX + mouseOffset, that.itemCreationDragged.pageY + mouseOffset);
                 };
                 img.src = imageUrl;
             }
@@ -481,10 +491,10 @@ export default {
         },
 
         initiateSelectAndDrag() {
-            EventBus.$emit(EventBus.CANCEL_CURRENT_STATE);
+            this.$emit('state-drag-item-requested');
         },
 
-        initiateCurveCreation() {
+        initiatePathCreation() {
             const item = {
                 name: this.makeUniqueName('Path'),
                 area: {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5},
@@ -494,11 +504,11 @@ export default {
                 }
             };
             enrichItemWithDefaults(item);
-            EventBus.$emit(EventBus.START_CURVE_EDITING, item);
+            this.$emit(PATH_EDITED, item);
         },
 
         initiateDrawing(name) {
-            EventBus.$emit(EventBus.START_DRAWING);
+            this.$emit('drawing-requested');
         },
 
         preventEvent(event) {
@@ -516,11 +526,13 @@ export default {
                 description: '',
                 text: '',
                 links: [],
-                shape: 'rect',
+                shape: 'image',
                 area: { x: 0, y: 0, w: 100, h: 60},
                 shapeProps: {
                     strokeSize: 0,
-                    fill: {type: 'image', image: art.url}
+                    showTitle: false,
+                    image: art.url,
+                    stretch: false,
                 },
             };
             enrichItemWithDefaults(item);
@@ -589,7 +601,7 @@ export default {
 
             function onMouseUp(event) {
                 reset();
-                if (utils.domHasParentNode(event.target, el => el.id === 'svg_plot')) {
+                if (utils.domHasParentNode(event.target, el => el.id === `svg-plot-${that.editorId}`)) {
                     submitItem(event.pageX, event.pageY);
                 } else if (pixelsMoved < 10) {
                     that.onItemPicked(item);
@@ -624,7 +636,7 @@ export default {
                 itemClone.id = shortid.generate();
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
                 itemClone.name = that.makeUniqueName(item.name);
-                EventBus.emitItemCreationDraggedToSvgEditor(itemClone, pageX + mouseOffset, pageY + mouseOffset);
+                that.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
             }
 
             document.addEventListener('mousemove', onMouseMove);
