@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, protocol, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol } = require('electron');
 const path = require('path');
 const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { ContextHolder } = require('./context');
@@ -93,6 +93,10 @@ app.whenReady().then(() => {
         if (contextData) {
             startElectronProjectExporter(contextData, browserWindow);
         }
+    });
+
+    app.on('file:newWindow', () => {
+        createWindow(contextHolder);
     });
 
 

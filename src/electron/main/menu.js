@@ -46,6 +46,7 @@ export function buildAppMenu() {
     {
         label: 'File',
         submenu: [
+            menuItem('file-newWindow', 'New window', true, 'file:newWindow', null),
             menuItem('file-openProject', 'Open project...', true, 'file:openProject', null),
             menuItem('file-exportStatic', 'Export project...', false, 'file:exportStatic', null),
             { label: 'Import diagram...'},
