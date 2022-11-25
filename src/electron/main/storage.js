@@ -51,10 +51,10 @@ export function getLastOpenProjects(event) {
                 const bTime = new Date(b.lastOpen).getTime();
 
                 if (aTime < bTime) {
-                    return -1;
+                    return 1;
                 }
                 if (aTime > bTime) {
-                    return 1;
+                    return -1;
                 }
 
                 return 0;

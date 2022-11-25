@@ -31,6 +31,21 @@ export function openProject(contextHolder) {
  */
 export function selectProject(contextHolder) {
     return (event, projectPath) => {
+
+        //searching for already open project
+        let existingContextData = null;
+        contextHolder.contexts.forEach(contextData => {
+            if (contextData.projectPath === projectPath) {
+                existingContextData = contextData;
+            }
+        });
+
+        //if found a window with same open project - just focus it
+        if (existingContextData) {
+            existingContextData.window.focus();
+            return;
+        }
+
         storeOpenProject(projectPath);
         const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
         contextHolder.from(event).projectService = projectService;

@@ -9,7 +9,7 @@ const URL = require('url');
  */
 export function createWindow(contextHolder) {
     // Create the browser window.
-    const mainWindow = new BrowserWindow({
+    const window = new BrowserWindow({
         width: 800,
         height: 600,
         webPreferences: {
@@ -21,14 +21,14 @@ export function createWindow(contextHolder) {
         },
     });
 
-    mainWindow.maximize();
+    window.maximize();
 
-    contextHolder.register(mainWindow.webContents.id);
+    contextHolder.register(window.webContents.id, window);
 
     // and load the index.html of the app.
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY, {userAgent: generateUserAgent(mainWindow.webContents.id)});
+    window.loadURL(MAIN_WINDOW_WEBPACK_ENTRY, {userAgent: generateUserAgent(window.webContents.id)});
 
-    mainWindow.webContents.on('will-navigate', (e, urlString) => {
+    window.webContents.on('will-navigate', (e, urlString) => {
         e.preventDefault();
 
         const url = URL.parse(urlString);
@@ -39,9 +39,9 @@ export function createWindow(contextHolder) {
         const docsPrefix = '/docs/';
         if (urlString.startsWith(docsPrefix)) {
             const docId = urlString.substring(docsPrefix.length);
-            const fsPath  = contextHolder.fromWindow(mainWindow).projectService.getDiagramPath(docId);
+            const fsPath  = contextHolder.fromWindow(window).projectService.getDiagramPath(docId);
             if (fsPath) {
-                mainWindow.webContents.send('navigator:open', fsPath);
+                window.webContents.send('navigator:open', fsPath);
             }
             return;
         }
@@ -51,11 +51,10 @@ export function createWindow(contextHolder) {
         }
     });
 
-    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    window.webContents.setWindowOpenHandler(({ url }) => {
         shell.openExternal(url);
         return { action: 'deny' };
     });
-
 
 
     const selectionMenu = Menu.buildFromTemplate([
@@ -72,18 +71,16 @@ export function createWindow(contextHolder) {
         {role: 'selectall'},
     ]);
 
-    mainWindow.webContents.on('context-menu', (e, props) => {
+    window.webContents.on('context-menu', (e, props) => {
         const { selectionText, isEditable } = props;
         if (isEditable) {
-            inputMenu.popup(mainWindow);
+            inputMenu.popup(window);
         } else if (selectionText && selectionText.trim() !== '') {
-            selectionMenu.popup(mainWindow);
+            selectionMenu.popup(window);
         }
     });
 
-
-
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
-    return mainWindow;
+    window.webContents.openDevTools();
+    return window;
 };
