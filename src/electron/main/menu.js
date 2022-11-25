@@ -23,6 +23,10 @@ function menuItem(id, label, enabled, eventName, accelerator) {
     };
 }
 
+/**
+ *
+ * @returns {Menu}
+ */
 export function buildAppMenu() {
     const isMac = process.platform === 'darwin'
 
@@ -64,20 +68,20 @@ export function buildAppMenu() {
             menuItem('edit-undo', 'Undo', false, 'history:undo', null),
             menuItem('edit-redo', 'Redo', false, 'history:redo', null),
             { type: 'separator' },
-            menuItem('edit-cut', 'Cut', true, 'edit:cut', null),
-            menuItem('edit-copy', 'Copy', true, 'edit:copy', null),
-            menuItem('edit-paste', 'Paste', true, 'edit:paste', null),
-            menuItem('edit-delete', 'Delete', true, 'edit:delete', null),
-            menuItem('edit-selectAll', 'Select all', true, 'edit:selectAll', null),
+            menuItem('edit-cut', 'Cut', false, 'edit:cut', null),
+            menuItem('edit-copy', 'Copy', false, 'edit:copy', null),
+            menuItem('edit-paste', 'Paste', false, 'edit:paste', null),
+            menuItem('edit-delete', 'Delete', false, 'edit:delete', null),
+            menuItem('edit-selectAll', 'Select all', false, 'edit:selectAll', null),
         ]
     },
     // { role: 'viewMenu' }
     {
         label: 'View',
         submenu: [
-            menuItem('view-zoomIn', 'Zoom In', true, 'view:zoomIn', '='),
-            menuItem('view-zoomOut', 'Zoom Out', true, 'view:zoomOut', '-'),
-            menuItem('view-resetZoom', 'Reset Zoom', true, 'view:resetZoom', 'CmdOrCtrl+0'),
+            menuItem('view-zoomIn', 'Zoom In', false, 'view:zoomIn', '='),
+            menuItem('view-zoomOut', 'Zoom Out', false, 'view:zoomOut', '-'),
+            menuItem('view-resetZoom', 'Reset Zoom', false, 'view:resetZoom', 'CmdOrCtrl+0'),
         ]
     },
     // { role: 'windowMenu' }
@@ -117,6 +121,7 @@ export function buildAppMenu() {
 
     ipcMain.handle('menu:enable-item', enableMenuItem);
     ipcMain.handle('menu:disable-item', disableMenuItem);
+    return menu;
 }
 
 
@@ -140,4 +145,45 @@ function convertContextMenuOptions(event, menuId, options) {
 export function showContextMenu(event, menuId, menuOptions) {
     const menu = Menu.buildFromTemplate(convertContextMenuOptions(event, menuId, menuOptions));
     menu.popup(BrowserWindow.fromWebContents(event.sender));
+}
+
+
+function traverseMenuItems(items, callback) {
+    items.forEach(item => {
+        callback(item);
+        if (item.submenu && item.submenu.items) {
+            traverseMenuItems(item.submenu.items, callback);
+        }
+    });
+}
+
+/**
+ *
+ * @returns {Map<string, boolean>}
+ */
+export function saveAppMenuState() {
+    const menu = Menu.getApplicationMenu();
+    const menuState = new Map();
+
+    traverseMenuItems(menu.items, menuItem => {
+        if (menuItem.id) {
+            menuState.set(menuItem.id, menuItem.enabled);
+        }
+    });
+
+    return menuState;
+}
+
+/**
+ *
+ * @param {Map<string, boolean>} menuState
+ */
+export function restoreAppMenuState(menuState) {
+    const menu = Menu.getApplicationMenu();
+    menuState.forEach((enabled, itemId) => {
+        const menuItem = menu.getMenuItemById(itemId);
+        if (menuItem) {
+            menuItem.enabled = enabled;
+        }
+    });
 }

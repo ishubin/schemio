@@ -4,7 +4,7 @@ const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { ContextHolder } = require('./context');
 const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
-const { buildAppMenu, showContextMenu } = require('./menu');
+const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject } = require('./project');
 const { getLastOpenProjects } = require('./storage');
@@ -12,12 +12,10 @@ const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
 
 buildAppMenu();
+let  defaultMenuState = null;
+const allWindowsMenuStates = new Map();
 
-
-const contextHolder = new ContextHolder(data => {
-    data.projectService = null;
-    data.projectPath = null;
-});
+const contextHolder = new ContextHolder();
 
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -40,6 +38,8 @@ protocol.registerSchemesAsPrivileged([{
 
 const mediaUrlPrefix = `${mediaProtocolName}://local/`;
 app.whenReady().then(() => {
+    defaultMenuState = saveAppMenuState();
+
     protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
         let url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
         const projectPath = contextHolder.fromRequest(request).projectPath;
@@ -48,7 +48,7 @@ app.whenReady().then(() => {
     });
 
 
-    const mainWindow = createWindow(contextHolder);
+    createWindow(contextHolder);
     ipcMain.handle('project:open', openProject(contextHolder));
     ipcMain.handle('project:select', selectProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));
@@ -99,10 +99,27 @@ app.whenReady().then(() => {
         createWindow(contextHolder);
     });
 
+    app.on('browser-window-blur', (event, win) => {
+        const menuState = saveAppMenuState();
+        allWindowsMenuStates.set(win.webContents.id, menuState);
+    });
+
+    app.on('browser-window-focus', (event, win) => {
+        const menuState = allWindowsMenuStates.get(win.webContents.id);
+        if (menuState) {
+            restoreAppMenuState(menuState);
+        } else {
+            restoreAppMenuState(defaultMenuState);
+        }
+    });
 
     const retransmitToRenderer = (eventName) => {
         app.on(eventName, () => {
-            mainWindow.webContents.send(eventName);
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (!focusedWindow) {
+                return;
+            }
+            focusedWindow.webContents.send(eventName);
         });
     }
 

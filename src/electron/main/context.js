@@ -11,16 +11,17 @@ const userAgentPrefix = 'schemio: ';
  */
 
 export class ContextHolder {
-    constructor(initCalback) {
+    constructor() {
         this.contexts = new Map();
-        this.initCalback = initCalback;
     }
 
     register(id, window) {
-        console.log('Registering context ' + id);
-        const data = {window};
+        const data = {
+            window,
+            projectService: null,
+            projectPath: null,
+        };
         this.contexts.set('' + id, data);
-        this.initCalback(data);
     }
 
     remove(id) {
@@ -40,9 +41,10 @@ export class ContextHolder {
     /**
      *
      * @param {BrowserWindow} browserWindow
+     * @returns {ContextData}
      */
     fromWindow(browserWindow) {
-        return this.contexts.get('' + browserWindow.id);
+        return this.contexts.get('' + browserWindow.webContents.id);
     }
 
     /**
