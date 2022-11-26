@@ -52,12 +52,13 @@ export function buildAppMenu() {
         submenu: [
             menuItem('file-newWindow', 'New window', true, 'file:newWindow', null),
             menuItem('file-openProject', 'Open project...', true, 'file:openProject', null),
+            { type: 'separator' },
             menuItem('file-exportStatic', 'Export project...', false, 'file:exportStatic', null),
-            { label: 'Import diagram...'},
-            { label: 'Export diagram as JSON..'},
-            { label: 'Export diagram as HTML..'},
-            { label: 'Export diagram as PNG..'},
-            { label: 'Export diagram as SVG..'},
+            { type: 'separator' },
+            menuItem('file-importDiagram', 'Import diagram...', false, 'file:importDiagram', null),
+            menuItem('file-exportAsJSON', 'Import diagram...', false, 'file:exportAsJSON', null),
+            menuItem('file-exportAsPNG', 'Import diagram...', false, 'file:exportAsPNG', null),
+            menuItem('file-exportAsSVG', 'Import diagram...', false, 'file:exportAsSVG', null),
             isMac ? { role: 'close' } : { role: 'quit' },
             ]
     },
@@ -121,9 +122,49 @@ export function buildAppMenu() {
 
     ipcMain.handle('menu:enable-item', enableMenuItem);
     ipcMain.handle('menu:disable-item', disableMenuItem);
+
+    ipcMain.handle('menu:events:editorOpened', onEditorOpened);
+    ipcMain.handle('menu:events:noEditorDisplayed', onNoEditorDisplayed);
+    ipcMain.handle('menu:events:itemsSelected', onItemsSelected);
+    ipcMain.handle('menu:events:allItemsDeselected', onAllItemsDeselected);
     return menu;
 }
 
+function onEditorOpened(event) {
+    enableMenuItem(event, 'edit-paste');
+    enableMenuItem(event, 'edit-selectAll');
+    enableMenuItem(event, 'view-zoomIn');
+    enableMenuItem(event, 'view-zoomOut');
+    enableMenuItem(event, 'view-resetZoom');
+    enableMenuItem(event, 'file-importDiagram');
+    enableMenuItem(event, 'file-exportAsJSON');
+    enableMenuItem(event, 'file-exportAsPNG');
+    enableMenuItem(event, 'file-exportAsSVG');
+}
+function onNoEditorDisplayed(event) {
+    disableMenuItem(event, 'edit-copy');
+    disableMenuItem(event, 'edit-cut');
+    disableMenuItem(event, 'edit-paste');
+    disableMenuItem(event, 'edit-delete');
+    disableMenuItem(event, 'edit-selectAll');
+    disableMenuItem(event, 'view-zoomIn');
+    disableMenuItem(event, 'view-zoomOut');
+    disableMenuItem(event, 'view-resetZoom');
+    disableMenuItem(event, 'file-importDiagram');
+    disableMenuItem(event, 'file-exportAsJSON');
+    disableMenuItem(event, 'file-exportAsPNG');
+    disableMenuItem(event, 'file-exportAsSVG');
+}
+function onItemsSelected(event) {
+    enableMenuItem(event, 'edit-copy');
+    enableMenuItem(event, 'edit-cut');
+    enableMenuItem(event, 'edit-delete');
+}
+function onAllItemsDeselected(event) {
+    disableMenuItem(event, 'edit-copy');
+    disableMenuItem(event, 'edit-cut');
+    disableMenuItem(event, 'edit-delete');
+}
 
 function convertContextMenuOptions(event, menuId, options) {
     return options.map(option => {

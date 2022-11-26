@@ -50,6 +50,8 @@
                             :historyRedoable="file.historyRedoable"
                             :isSaving="file.isSaving"
                             :userStylesEnabled="true"
+                            @items-selected="onItemsSelected(file)"
+                            @items-deselected="onItemsDeselected(file)"
                             @scheme-save-requested="saveFile(file, arguments[0], arguments[1])"
                             @mode-change-requested="onModeChangeRequested(file, arguments[0])"
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
@@ -146,7 +148,8 @@ function initSchemioDiagramFile(originalFile) {
         historyId: originalFile.path + shortid.generate(),
         historyUndoable: false,
         historyRedoable: false,
-        isSaving: false
+        isSaving: false,
+        itemsSelected: false,
     };
 
     const history = new History({size: 30});
@@ -367,6 +370,11 @@ export default {
             const file = this.files[idx];
             this.currentFocusedFilePath = file.path;
             this.updateHistoryState(file);
+            if (file.itemsSelected) {
+                window.electronAPI.menu.events.emitItemsSelected();
+            } else {
+                window.electronAPI.menu.events.emitAllItemsDeselected();
+            }
         },
 
         onModeChangeRequested(file, mode) {
@@ -478,6 +486,9 @@ export default {
                 }
             }
             this.destroyFile(fileIdx);
+            if (this.files.length === 0) {
+                window.electronAPI.menu.events.emitNoEditorDisplayed();
+            }
         },
 
         destroyFile(fileIdx) {
@@ -731,6 +742,31 @@ export default {
                 }
             }
             this.openProject();
+        },
+
+        onItemsSelected(file) {
+            window.electronAPI.menu.events.emitItemsSelected();
+            file.itemsSelected = true;
+        },
+
+        onItemsDeselected(file) {
+            window.electronAPI.menu.events.emitAllItemsDeselected();
+            file.itemsSelected = false;
+        },
+    },
+
+    watch: {
+        currentOpenFileIdx(idx) {
+            if (idx >= 0 && this.files.length > 0 && idx < this.files.length) {
+                window.electronAPI.menu.events.emitEditorOpened();
+                if (this.files[idx].itemsSelected) {
+                    window.electronAPI.menu.events.emitItemsSelected();
+                } else {
+                    window.electronAPI.menu.events.emitAllItemsDeselected();
+                }
+            } else {
+                window.electronAPI.menu.events.emitNoEditorDisplayed();
+            }
         }
     }
 }

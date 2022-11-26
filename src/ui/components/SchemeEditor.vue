@@ -1478,6 +1478,7 @@ export default {
          */
         onItemSelectionUpdated() {
             if (this.schemeContainer.selectedItems.length > 0) {
+                this.$emit('items-selected');
                 this.currentTab = 'Item';
                 const item = this.schemeContainer.selectedItems[0];
                 const shape = Shape.find(item.shape);
@@ -1505,6 +1506,7 @@ export default {
                     this.itemTextSlotsAvailable.length = 0;
                 }
             } else {
+                this.$emit('items-deselected');
                 this.animatorPanel.framePlayer = null;
                 this.itemTextSlotsAvailable.length = 0;
             }

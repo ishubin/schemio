@@ -38,6 +38,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
         disableMenuItem: (menuItemId) => ipcRenderer.invoke('menu:disable-item', menuItemId),
 
         openContextMenu: (menuId, menuOptions) => ipcRenderer.invoke('menu:showContextMenu', menuId, menuOptions),
+
+        events: {
+            emitEditorOpened: () => ipcRenderer.invoke('menu:events:editorOpened'),
+            emitNoEditorDisplayed: () => ipcRenderer.invoke('menu:events:noEditorDisplayed'),
+            emitItemsSelected: () => ipcRenderer.invoke('menu:events:itemsSelected'),
+            emitAllItemsDeselected: () => ipcRenderer.invoke('menu:events:allItemsDeselected'),
+        }
     },
 
     storage: {
