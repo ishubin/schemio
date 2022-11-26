@@ -3,8 +3,6 @@ import path from 'path';
 const storage = require('electron-json-storage');
 
 
-console.log('Storage data path', storage.getDataPath());
-
 
 const RECENT_OPEN_PROJECTS = 'recentOpenProjects';
 
@@ -25,7 +23,7 @@ export function storeOpenProject(projectPath) {
     });
 }
 
-export function getLastOpenProjects(event) {
+export function getLastOpenProjects() {
     return new Promise((resolve, reject) => {
         storage.get(RECENT_OPEN_PROJECTS, (err, recentOpenProjects ) => {
             if (!recentOpenProjects || err) {
@@ -64,7 +62,7 @@ export function getLastOpenProjects(event) {
     });
 }
 
-export function forgetLastOpenProject(event, projectPath) {
+export function forgetLastOpenProject(projectPath) {
     return new Promise((resolve, reject) => {
         storage.get(RECENT_OPEN_PROJECTS, (err, recentOpenProjects ) => {
             if (!recentOpenProjects || err) {

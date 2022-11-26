@@ -52,6 +52,16 @@ export function buildAppMenu() {
         submenu: [
             menuItem('file-newWindow', 'New window', true, 'file:newWindow', null),
             menuItem('file-openProject', 'Open project...', true, 'file:openProject', null),
+            {
+                "label":"Open Recent",
+                "role":"recentdocuments",
+                "submenu":[
+                  {
+                    "label":"Clear Recent",
+                    "role":"clearrecentdocuments"
+                  }
+                ]
+            },
             { type: 'separator' },
             menuItem('file-exportStatic', 'Export project...', false, 'file:exportStatic', null),
             { type: 'separator' },

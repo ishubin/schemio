@@ -4,14 +4,22 @@ const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { ContextHolder } = require('./context');
 const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
-const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState } = require('./menu');
+const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState, setRecentProjectsInMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram } = require('./project');
+const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram, selectProjectInFocusedWindow } = require('./project');
 const { getLastOpenProjects, forgetLastOpenProject } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
 
-buildAppMenu();
+
+getLastOpenProjects().then(projects => {
+    if (Array.isArray(projects)) {
+        projects.forEach(project => {
+            app.addRecentDocument(project.path);
+        });
+    }
+});
+
 let  defaultMenuState = null;
 const allWindowsMenuStates = new Map();
 
@@ -38,6 +46,7 @@ protocol.registerSchemesAsPrivileged([{
 
 const mediaUrlPrefix = `${mediaProtocolName}://local/`;
 app.whenReady().then(() => {
+    buildAppMenu();
     defaultMenuState = saveAppMenuState();
 
     protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
@@ -77,8 +86,8 @@ app.whenReady().then(() => {
 
     ipcMain.handle('menu:showContextMenu', showContextMenu);
 
-    ipcMain.handle('storage:getLastOpenProjects', getLastOpenProjects);
-    ipcMain.handle('storage:forgetLastOpenProject', forgetLastOpenProject);
+    ipcMain.handle('storage:getLastOpenProjects', () => getLastOpenProjects());
+    ipcMain.handle('storage:forgetLastOpenProject', (projectPath) => forgetLastOpenProject(projectPath));
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
@@ -94,6 +103,12 @@ app.whenReady().then(() => {
         if (contextData) {
             startElectronProjectExporter(contextData, browserWindow);
         }
+    });
+
+    app.on('open-file', selectProjectInFocusedWindow(contextHolder));
+
+    app.on('file:selectRecentProject', (event, projectPath) => {
+        selectProject(contextHolder)(event, projectPath);
     });
 
     app.on('file:newWindow', () => {

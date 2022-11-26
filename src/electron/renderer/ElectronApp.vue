@@ -209,6 +209,7 @@ export default {
         window.electronAPI.$on('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
         window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
+        window.electronAPI.$on('project-selected', this.onProjectSelected);
 
 
         window.electronAPI.storage.getLastOpenProjects().then(projects => {
@@ -242,6 +243,7 @@ export default {
         window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$off('file:exportAsJSON', this.onFileExportAsJSON);
         window.electronAPI.$off('file:importDiagramFromText', this.onImportDiagramFromText);
+        window.electronAPI.$off('project-selected', this.onProjectSelected);
     },
 
     data() {
@@ -325,6 +327,10 @@ export default {
                     this.switchToProject(project);
                 }
             });
+        },
+
+        onProjectSelected(event, project) {
+            this.switchToProject(project);
         },
 
         switchToProject(project) {

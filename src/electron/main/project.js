@@ -1,7 +1,7 @@
 import { ProjectService } from '../../common/fs/projectService';
 import { ContextHolder } from './context';
 import { storeOpenProject } from './storage';
-const { dialog, BrowserWindow } = require('electron');
+const { dialog, BrowserWindow, ipcMain } = require('electron');
 import fs from 'fs-extra';
 
 
@@ -32,28 +32,52 @@ export function openProject(contextHolder) {
  */
 export function selectProject(contextHolder) {
     return (event, projectPath) => {
+        return _selectProject(contextHolder, contextHolder.from(event), projectPath);
+    };
+}
 
-        //searching for already open project
-        let existingContextData = null;
-        contextHolder.contexts.forEach(contextData => {
-            console.log('Checking project path', projectPath);
-            if (contextData.projectPath === projectPath) {
-                existingContextData = contextData;
-            }
-        });
-
-        //if found a window with same open project - just focus it
-        if (existingContextData) {
-            existingContextData.window.focus();
+/**
+ *
+ * @param {ContextHolder} contextHolder
+ * @returns
+ */
+export function selectProjectInFocusedWindow(contextHolder) {
+    return (event, projectPath) => {
+        const window = BrowserWindow.getFocusedWindow();
+        const contextData = contextHolder.fromWindow(window);
+        if (!contextData) {
             return;
         }
-
-        storeOpenProject(projectPath);
-        const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
-        contextHolder.from(event).projectService = projectService;
-        contextHolder.from(event).projectPath = projectPath;
-        return projectService.load(projectPath);
+        return _selectProject(contextHolder, contextData, projectPath)
+        .then(project => {
+            console.log('Sending project to webcontents', project);
+            if (project) {
+                window.webContents.send('project-selected', project);
+            }
+        });
     };
+}
+
+function _selectProject(contextHolder, contextData, projectPath) {
+    //searching for already open project
+    let existingContextData = null;
+    contextHolder.contexts.forEach(contextData => {
+        if (contextData.projectPath === projectPath) {
+            existingContextData = contextData;
+        }
+    });
+
+    //if found a window with same open project - just focus it
+    if (existingContextData) {
+        existingContextData.window.focus();
+        return Promise.resolve(null);
+    }
+
+    storeOpenProject(projectPath);
+    const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
+    contextData.projectService = projectService;
+    contextData.projectPath = projectPath;
+    return projectService.load(projectPath);
 }
 
 /**
