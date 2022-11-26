@@ -38,7 +38,7 @@
                 <div v-else style="height: 100%">
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
-                            :key="`editor-${file.path}`"
+                            :key="`editor-${file.path}-${file.hardReloadKey}`"
                             :editorId="`${file.editorId}`"
                             :scheme="file.document"
                             :schemeReloadKey="file.schemeReloadKey"
@@ -103,6 +103,10 @@
 
         <export-json-modal v-if="exportJSONModalShown.shown" :scheme="exportJSONModalShown.diagram" @close="exportJSONModalShown.shown = false"/>
 
+        <ImportSchemeModal v-if="importSchemeModal.shown" :scheme="importSchemeModal.diagram"
+            @close="importSchemeModal.shown = false"
+            @import-scheme-submitted="importDiagramSubmitted"/>
+
         <export-picture-modal v-if="exportPictureModal.shown"
             :exported-items="exportPictureModal.exportedItems"
             :kind="exportPictureModal.kind"
@@ -126,6 +130,7 @@ import FileTabPanel from './FileTabPanel.vue';
 import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
 import Modal from '../../ui/components/Modal.vue';
 import ExportJSONModal from '../../ui/components/editor/ExportJSONModal.vue';
+import ImportSchemeModal from '../../ui/components/editor/ImportSchemeModal.vue';
 import ExportPictureModal from '../../ui/components/editor/ExportPictureModal.vue';
 import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree, findParentEntryInFileTree } from '../../common/fs/fileTree';
 import StoreUtils from '../../ui/store/StoreUtils';
@@ -145,6 +150,7 @@ function initSchemioDiagramFile(originalFile) {
         modified: false,
         schemeMode: 'view',
         schemeReloadKey: shortid.generate(),
+        hardReloadKey: shortid.generate(),
         historyId: originalFile.path + shortid.generate(),
         historyUndoable: false,
         historyRedoable: false,
@@ -171,7 +177,7 @@ function initSchemioDiagramFile(originalFile) {
 export default {
     components: {
         Navigator, SchemioEditorApp, FileTabPanel, Modal,
-        ExportPictureModal, CreateNewSchemeModal,
+        ExportPictureModal, CreateNewSchemeModal, ImportSchemeModal,
         'export-json-modal': ExportJSONModal,
     },
 
@@ -202,6 +208,7 @@ export default {
         window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
         window.electronAPI.$on('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
+        window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
 
 
         window.electronAPI.storage.getLastOpenProjects().then(projects => {
@@ -234,6 +241,7 @@ export default {
         window.electronAPI.$off('file:exportAsPNG', this.onFileExportAsPNG);
         window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$off('file:exportAsJSON', this.onFileExportAsJSON);
+        window.electronAPI.$off('file:importDiagramFromText', this.onImportDiagramFromText);
     },
 
     data() {
@@ -282,6 +290,11 @@ export default {
                 folderPath: null,
                 item: null,
                 editorId: null
+            },
+
+            importSchemeModal: {
+                diagram: null,
+                shown: false
             },
 
             navigatorFolderToExpand: null
@@ -631,6 +644,29 @@ export default {
             if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
                 const file = this.files[this.currentOpenFileIdx];
                 this.openExportPictureModal(file, file.document.items, 'png');
+            }
+        },
+
+        onImportDiagramFromText(event, text) {
+            if (this.currentOpenFileIdx < 0 || this.currentOpenFileIdx >= this.files.length || this.files.length == 0) {
+                return;
+            }
+            try {
+                const diagram = JSON.parse(text);
+                //TODO verify if it is correct scheme file
+                enrichSchemeWithDefaults(diagram);
+                this.importSchemeModal.diagram = diagram;
+                this.importSchemeModal.shown = true;
+            } catch(err) {
+                //TODO handle error
+            }
+        },
+
+        importDiagramSubmitted() {
+            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
+                const file = this.files[this.currentOpenFileIdx];
+                file.document = this.importSchemeModal.diagram;
+                file.hardReloadKey = shortid.generate();
             }
         },
 

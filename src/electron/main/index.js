@@ -6,7 +6,7 @@ const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject } = require('./project');
+const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram } = require('./project');
 const { getLastOpenProjects } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
@@ -99,6 +99,8 @@ app.whenReady().then(() => {
         createWindow(contextHolder);
     });
 
+    app.on('file:importDiagram', importDiagram);
+
     app.on('browser-window-blur', (event, win) => {
         const menuState = saveAppMenuState();
         allWindowsMenuStates.set(win.webContents.id, menuState);
@@ -135,7 +137,6 @@ app.whenReady().then(() => {
       'view:zoomIn',
       'view:zoomOut',
       'view:resetZoom',
-      'file:importDiagram',
       'file:exportAsJSON',
       'file:exportAsPNG',
       'file:exportAsSVG',

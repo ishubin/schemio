@@ -1,7 +1,8 @@
 import { ProjectService } from '../../common/fs/projectService';
 import { ContextHolder } from './context';
 import { storeOpenProject } from './storage';
-const { dialog } = require('electron');
+const { dialog, BrowserWindow } = require('electron');
+import fs from 'fs-extra';
 
 
 /**
@@ -35,6 +36,7 @@ export function selectProject(contextHolder) {
         //searching for already open project
         let existingContextData = null;
         contextHolder.contexts.forEach(contextData => {
+            console.log('Checking project path', projectPath);
             if (contextData.projectPath === projectPath) {
                 existingContextData = contextData;
             }
@@ -184,4 +186,26 @@ export function getDiagram(contextHolder) {
         const projectService = contextHolder.from(event).projectService;
         return projectService.getDiagram(docId);
     }
+}
+
+
+export function importDiagram() {
+    dialog.showOpenDialog({
+        properties: ['openFile']
+    })
+    .then( ({canceled, filePaths}) => {
+        if (!canceled) {
+            const filePath = filePaths[0];
+
+            fs.readFile(filePath, 'utf-8').then(content => {
+                const focusedWindow = BrowserWindow.getFocusedWindow();
+                if (!focusedWindow) {
+                    return;
+                }
+                focusedWindow.webContents.send('file:importDiagramFromText', content);
+            });
+            //TODO error handle
+        }
+    })
+
 }

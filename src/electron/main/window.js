@@ -21,12 +21,18 @@ export function createWindow(contextHolder) {
         },
     });
 
+
+    const webContentsId = window.webContents.id;
     window.maximize();
 
-    contextHolder.register(window.webContents.id, window);
+    contextHolder.register(webContentsId, window);
 
     // and load the index.html of the app.
     window.loadURL(MAIN_WINDOW_WEBPACK_ENTRY, {userAgent: generateUserAgent(window.webContents.id)});
+
+    window.on('closed', (event) => {
+        contextHolder.remove(webContentsId);
+    });
 
     window.webContents.on('will-navigate', (e, urlString) => {
         e.preventDefault();
