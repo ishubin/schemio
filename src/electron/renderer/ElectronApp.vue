@@ -101,7 +101,7 @@
         </Modal>
 
 
-        <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
+        <export-json-modal v-if="exportJSONModalShown.shown" :scheme="exportJSONModalShown.diagram" @close="exportJSONModalShown.shown = false"/>
 
         <export-picture-modal v-if="exportPictureModal.shown"
             :exported-items="exportPictureModal.exportedItems"
@@ -201,6 +201,7 @@ export default {
         window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
         window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
         window.electronAPI.$on('file:exportAsSVG', this.onFileExportAsSVG);
+        window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
 
 
         window.electronAPI.storage.getLastOpenProjects().then(projects => {
@@ -232,6 +233,7 @@ export default {
         window.electronAPI.$off('file:openProject', this.onMenuFileOpenProject);
         window.electronAPI.$off('file:exportAsPNG', this.onFileExportAsPNG);
         window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
+        window.electronAPI.$off('file:exportAsJSON', this.onFileExportAsJSON);
     },
 
     data() {
@@ -260,7 +262,11 @@ export default {
                 shown: false,
             },
 
-            exportJSONModalShown: false,
+            exportJSONModalShown: {
+                diagram: null,
+                shown: false
+            },
+
             exportPictureModal: {
                 kind: 'svg',
                 width: 100,
@@ -625,6 +631,14 @@ export default {
             if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
                 const file = this.files[this.currentOpenFileIdx];
                 this.openExportPictureModal(file, file.document.items, 'png');
+            }
+        },
+
+        onFileExportAsJSON() {
+            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
+                const file = this.files[this.currentOpenFileIdx];
+                this.exportJSONModalShown.diagram = file.document;
+                this.exportJSONModalShown.shown = true;
             }
         },
 

@@ -4,7 +4,7 @@
 <template>
     <modal title="Export as JSON" @close="$emit('close')" primaryButton="Export" @primary-submit="onExportSubmitted">
         <p>
-            Exports diagram as JSON. You can later import the scheme back.
+            Exports diagram in JSON format.
         </p>
         <input type="checkbox" v-model="optimized" id="chk-export-json-optimized"><label for="chk-export-json-optimized"> Optimized</label>
         <p v-if="optimized">
