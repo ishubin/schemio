@@ -135,6 +135,10 @@ app.whenReady().then(() => {
       'view:zoomIn',
       'view:zoomOut',
       'view:resetZoom',
+      'file:importDiagram',
+      'file:exportAsJSON',
+      'file:exportAsPNG',
+      'file:exportAsSVG',
     ].forEach(retransmitToRenderer);
 });
 // Quit when all windows are closed, except on macOS. There, it's common

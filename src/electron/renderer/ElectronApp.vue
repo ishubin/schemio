@@ -199,6 +199,8 @@ export default {
         window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
+        window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
+        window.electronAPI.$on('file:exportAsSVG', this.onFileExportAsSVG);
 
 
         window.electronAPI.storage.getLastOpenProjects().then(projects => {
@@ -228,6 +230,8 @@ export default {
         window.electronAPI.$off('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$off('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$off('file:openProject', this.onMenuFileOpenProject);
+        window.electronAPI.$off('file:exportAsPNG', this.onFileExportAsPNG);
+        window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
     },
 
     data() {
@@ -615,6 +619,20 @@ export default {
         },
         onMenuViewResetZoom() {
             simulateKeyPress(Keys.CTRL_ZERO, true);
+        },
+
+        onFileExportAsPNG() {
+            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
+                const file = this.files[this.currentOpenFileIdx];
+                this.openExportPictureModal(file, file.document.items, 'png');
+            }
+        },
+
+        onFileExportAsSVG() {
+            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
+                const file = this.files[this.currentOpenFileIdx];
+                this.openExportPictureModal(file, file.document.items, 'svg');
+            }
         },
 
         openExportPictureModal(file, items, kind) {

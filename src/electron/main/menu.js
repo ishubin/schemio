@@ -56,9 +56,9 @@ export function buildAppMenu() {
             menuItem('file-exportStatic', 'Export project...', false, 'file:exportStatic', null),
             { type: 'separator' },
             menuItem('file-importDiagram', 'Import diagram...', false, 'file:importDiagram', null),
-            menuItem('file-exportAsJSON', 'Import diagram...', false, 'file:exportAsJSON', null),
-            menuItem('file-exportAsPNG', 'Import diagram...', false, 'file:exportAsPNG', null),
-            menuItem('file-exportAsSVG', 'Import diagram...', false, 'file:exportAsSVG', null),
+            menuItem('file-exportAsJSON', 'Export diagram as JSON...', false, 'file:exportAsJSON', null),
+            menuItem('file-exportAsPNG', 'Export diagram as PNG...', false, 'file:exportAsPNG', null),
+            menuItem('file-exportAsSVG', 'Export diagram as SVG...', false, 'file:exportAsSVG', null),
             isMac ? { role: 'close' } : { role: 'quit' },
             ]
     },
