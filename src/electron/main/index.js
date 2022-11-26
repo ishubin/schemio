@@ -7,7 +7,7 @@ const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
 const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram } = require('./project');
-const { getLastOpenProjects } = require('./storage');
+const { getLastOpenProjects, forgetLastOpenProject } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
 
@@ -78,6 +78,7 @@ app.whenReady().then(() => {
     ipcMain.handle('menu:showContextMenu', showContextMenu);
 
     ipcMain.handle('storage:getLastOpenProjects', getLastOpenProjects);
+    ipcMain.handle('storage:forgetLastOpenProject', forgetLastOpenProject);
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the

@@ -1,3 +1,64 @@
+:root {
+    --min-paragraph-height: 18px;
+    --paragraph-top-margin: 0px;
+
+    --header-background: #3f4245;
+    --header-text-color: #eee;
+
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --shadow-color-light: rgba(0, 0, 0, 0.3);
+
+    --base-strong: #111;
+    --base-strong-up: #3b3b3b;
+    --base-strong-up-up: #555;
+    --base-weak: #fff;
+
+    --faint-weak-down: #dddddd;
+    --faint-weak-down-down: #cccccc;
+    --faint-weak: #eeeeee;
+    --faint-weak-up: #f0f0f0;
+
+    --faint-strong-down: #7f8081;
+    --faint-strong: #9a9b9c;
+    --faint-strong-up: #c0c0c0;
+    --faint-strong-up-up: #d1d1d1;
+
+    --accent-strong-down: #135eb4;
+    --accent-strong: #2373ce;
+    --accent-faint: #5291da;
+    --accent-faint-up: #83addd;
+
+    --accent-weak-down: #c4daf5;
+    --accent-weak: #e1ebf7;
+    --accent-weak-up: #f0f4fa;
+
+    --complement-strong: #365a07;
+    --complement-faint: #bbe288;
+    --complement-weak: #fafdec;
+
+    --critic-strong: #d13c31;
+    --critic-faint: #e46960;
+    --critic-weak-down: #f3dedb;
+    --critic-weak: #f5e7e5;
+    --critic-weak-up: #f3e8e7;
+
+    --warning-strong: #eeaa45;
+    --warning-weak: #eedaba;
+
+    --success-strong: #23a85a;
+    --success-weak: #d6f1e1;
+
+
+    --section-delimiter-color: #b3b5b9;
+    --icon-button-hover-background: #d4d4d6;
+
+    --control-border-radius: 3px;
+    --middle-border-radius: 5px;
+    --modal-border-radius: 10px;
+
+    --page-content-font-size: 20px;
+}
+
 .app-container {
     display: flex;
     height: 100%;
@@ -80,6 +141,35 @@
 }
 .elec-welcome-container .link {
     font-size: 15px;
+    max-width: 400px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    display: block;
+}
+.elec-welcome-container .recent-projects {
+    position: relative;
+    padding-top: 1px;
+    padding-bottom: 1px;
+}
+.elec-welcome-container .recent-projects .icon-delete {
+    color: var(--critic-strong);
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 2px;
+    background: var(--accent-weak-up);
+    padding: 1px;
+    border-radius: 1px;
+    cursor: pointer;
+}
+.elec-welcome-container .recent-projects:hover {
+    background: var(--faint-weak-up);
+}
+.elec-welcome-container .recent-projects:hover .icon-delete {
+    display: inline-block;
+}
+.elec-welcome-container .recent-projects:hover .icon-delete {
+    opacity: 0.8;
 }
 
 

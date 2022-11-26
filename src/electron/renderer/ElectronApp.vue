@@ -29,8 +29,9 @@
 
                         <h3>Recent projects</h3>
 
-                        <div v-for="project in lastOpenProjects">
+                        <div class="recent-projects" v-for="(project, projectIdx) in lastOpenProjects">
                             <span class="link" @click="selectProject(project.path)" :title="project.path"><i class="fa-regular fa-folder-open"></i> {{project.name}}</span>
+                            <span class="icon-delete" @click="forgetRecentProject(projectIdx)"><i class="fas fa-times"></i></span>
                         </div>
                     </div>
                 </div>
@@ -821,6 +822,12 @@ export default {
             window.electronAPI.menu.events.emitAllItemsDeselected();
             file.itemsSelected = false;
         },
+
+        forgetRecentProject(idx) {
+            window.electronAPI.storage.forgetLastOpenProject(this.lastOpenProjects[idx].path).then(() => {
+                this.lastOpenProjects.splice(idx, 1);
+            });
+        }
     },
 
     watch: {

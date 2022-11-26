@@ -63,3 +63,24 @@ export function getLastOpenProjects(event) {
         });
     });
 }
+
+export function forgetLastOpenProject(event, projectPath) {
+    return new Promise((resolve, reject) => {
+        storage.get(RECENT_OPEN_PROJECTS, (err, recentOpenProjects ) => {
+            if (!recentOpenProjects || err) {
+                resolve();
+                return;
+            }
+
+            for(let storedPath in recentOpenProjects) {
+                if (recentOpenProjects.hasOwnProperty(storedPath) && storedPath === projectPath) {
+                    delete recentOpenProjects[projectPath];
+                    storage.set(RECENT_OPEN_PROJECTS, recentOpenProjects);
+                    break;
+                }
+            }
+
+            resolve();
+        });
+    });
+}

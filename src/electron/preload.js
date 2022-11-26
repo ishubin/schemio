@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     storage: {
         getLastOpenProjects: () => ipcRenderer.invoke('storage:getLastOpenProjects'),
+        forgetLastOpenProject: (projectPath) => ipcRenderer.invoke('storage:forgetLastOpenProject', projectPath),
     },
 
     $on: (channel, callback) =>  ipcRenderer.on(channel, callback),
