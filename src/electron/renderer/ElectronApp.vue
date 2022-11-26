@@ -38,7 +38,7 @@
                 <div v-else style="height: 100%">
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
-                            :key="`editor-${file.path}-${file.hardReloadKey}`"
+                            :key="`editor-${file.path}`"
                             :editorId="`${file.editorId}`"
                             :scheme="file.document"
                             :schemeReloadKey="file.schemeReloadKey"
@@ -150,7 +150,6 @@ function initSchemioDiagramFile(originalFile) {
         modified: false,
         schemeMode: 'view',
         schemeReloadKey: shortid.generate(),
-        hardReloadKey: shortid.generate(),
         historyId: originalFile.path + shortid.generate(),
         historyUndoable: false,
         historyRedoable: false,
@@ -393,6 +392,7 @@ export default {
             const file = this.files[idx];
             this.currentFocusedFilePath = file.path;
             this.updateHistoryState(file);
+            window.electronAPI.menu.events.emitEditorOpened();
             if (file.itemsSelected) {
                 window.electronAPI.menu.events.emitItemsSelected();
             } else {
@@ -666,7 +666,7 @@ export default {
             if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
                 const file = this.files[this.currentOpenFileIdx];
                 file.document = this.importSchemeModal.diagram;
-                file.hardReloadKey = shortid.generate();
+                file.schemeReloadKey = shortid.generate();
             }
         },
 

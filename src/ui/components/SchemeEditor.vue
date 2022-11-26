@@ -655,6 +655,7 @@ export default {
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         registerKeyPressHandler(this.keyPressHandler);
     },
+
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
@@ -1404,6 +1405,10 @@ export default {
         reloadSchemeContainer() {
             this.schemeContainer.scheme = this.scheme;
             this.schemeContainer.reindexItems();
+
+            if (this.mode === 'view') {
+                this.switchToViewMode();
+            }
             this.editorRevision++;
             this.updateRevision();
             this.restoreItemSelection();
@@ -1690,6 +1695,7 @@ export default {
         },
 
         switchToViewMode() {
+            this.animationRegistry.stopAllAnimations();
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });

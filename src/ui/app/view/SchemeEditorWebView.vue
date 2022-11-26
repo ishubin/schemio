@@ -559,6 +559,7 @@ export default {
             this.history.commit(this.scheme);
             this.modified = true;
             this.updateHistoryState();
+            this.appReloadKey = shortid.generate();
             this.schemeReloadKey = shortid.generate();
         },
 
