@@ -74,7 +74,13 @@ function _selectProject(contextHolder, contextData, projectPath) {
     }
 
     storeOpenProject(projectPath);
-    const projectService = new ProjectService(projectPath, true, '/media/', 'media://local/');
+    const projectService = new ProjectService(projectPath, true, {
+        '/media/': 'media://local/',
+        '/assets/': 'media://assets/'
+    }, {
+        'media://local/': '/media/',
+        'media://assets/': '/assets/'
+    });
     contextData.projectService = projectService;
     contextData.projectPath = projectPath;
     return projectService.load(projectPath);
@@ -97,24 +103,12 @@ export function readProjectFile(contextHolder) {
  * @param {ContextHolder} contextHolder
  * @returns
  */
-export function writeProjectFile(contextHolder) {
-    return (event, filePath, content) => {
-        return writeProjectFileInFolder(contextHolder)(event, null, filePath, content);
-    }
-}
-
-/**
- *
- * @param {ContextHolder} contextHolder
- * @returns
- */
-export function writeProjectFileInFolder(contextHolder) {
-    return (event, folderPath, filePath, content) => {
+export function writeProjectDiagram(contextHolder) {
+    return (event, filePath, diagram) => {
         const projectService = contextHolder.from(event).projectService;
-        return projectService.writeFile(folderPath, filePath, content);
+        return projectService.writeDiagram(filePath, diagram);
     }
 }
-
 
 /**
  *

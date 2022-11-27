@@ -480,12 +480,8 @@ export default {
 
         saveFile(file, document, preview) {
             file.isSaving = true;
-            let content = document;
-            if (file.kind === 'schemio:doc') {
-                content = JSON.stringify(document);
-            }
             this.$store.dispatch('clearStatusMessage');
-            window.electronAPI.writeFile(file.path, content)
+            window.electronAPI.writeDiagram(file.path, document)
             .then(() => {
                 file.isSaving = false;
                 file.modified = false;

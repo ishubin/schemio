@@ -28,7 +28,10 @@ const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 const cwd = process.cwd();
 const config = loadConfig();
 
-const projectService = new ProjectService(config.fs.rootPath, false, 'media://local/', '/media/');
+const projectService = new ProjectService(config.fs.rootPath, false, {
+    'media://local/': '/media/',
+    '../assets/': '/assets/'
+});
 projectService.load().then(() => {
     const app = express();
     const modification = false;

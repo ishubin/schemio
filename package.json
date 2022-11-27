@@ -9,7 +9,7 @@
     "light-start": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-dev; npm run build && node dist/server/server.js'",
     "start-drive": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-app-drive-dev; npm run build && node dist/server/server-drive.js'",
     "start-static": "nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-ui-static-app-dev; npm run build && node dist/server/server-static.js'",
-    "start-electron": "electron-forge start",
+    "start-electron": "SCHEMIO_DEVTOOLS=true electron-forge start",
     "package-electron": "electron-forge package",
     "make-electron": "electron-forge make",
     "build-playground": "babel src/server/server-playground.js -d dist/server",

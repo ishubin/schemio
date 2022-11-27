@@ -1,19 +1,18 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-    openProject       : () => ipcRenderer.invoke('project:open'),
-    selectProject     : (projectPath) => ipcRenderer.invoke('project:select', projectPath),
-    getProjectFileTree: () =>  ipcRenderer.invoke('project:fileTree'),
-    readFile          : (filePath) => ipcRenderer.invoke('project:readFile', filePath),
-    writeFile         : (filePath, content) => ipcRenderer.invoke('project:writeFile', filePath, content),
-    writeFileInFolder : (folderPath, fileName, content) => ipcRenderer.invoke('project:writeFile', folderPath, fileName, content),
-    createNewDiagram  : (folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', folderPath, diagram),
-    createNewFolder   : (parentPath, name) => ipcRenderer.invoke('project:createNewFolder', parentPath, name),
-    renameFolder      : (folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', folderPath, newFolderName),
-    renameDiagram     : (filePath, newName) => ipcRenderer.invoke('project:renameDiagram', filePath, newName),
-    moveFile          : (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
-    findDiagrams      : (query, page) => ipcRenderer.invoke('project:findDiagrams', query, page),
-    getDiagram        : (docId) => ipcRenderer.invoke('project:getDiagram', docId),
+    openProject         : () => ipcRenderer.invoke('project:open'),
+    selectProject       : (projectPath) => ipcRenderer.invoke('project:select', projectPath),
+    getProjectFileTree  : () =>  ipcRenderer.invoke('project:fileTree'),
+    readFile            : (filePath) => ipcRenderer.invoke('project:readFile', filePath),
+    writeDiagram        : (filePath, diagram) => ipcRenderer.invoke('project:writeDiagram', filePath, diagram),
+    createNewDiagram    : (folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', folderPath, diagram),
+    createNewFolder     : (parentPath, name) => ipcRenderer.invoke('project:createNewFolder', parentPath, name),
+    renameFolder        : (folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', folderPath, newFolderName),
+    renameDiagram       : (filePath, newName) => ipcRenderer.invoke('project:renameDiagram', filePath, newName),
+    moveFile            : (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
+    findDiagrams        : (query, page) => ipcRenderer.invoke('project:findDiagrams', query, page),
+    getDiagram          : (docId) => ipcRenderer.invoke('project:getDiagram', docId),
 
 
     createArt: (name, url) => ipcRenderer.invoke('art:create', name, url),

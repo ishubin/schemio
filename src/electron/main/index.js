@@ -6,7 +6,7 @@ const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState, setRecentProjectsInMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, writeProjectFile, writeProjectFileInFolder, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram, selectProjectInFocusedWindow } = require('./project');
+const { openProject, readProjectFile, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram, selectProjectInFocusedWindow, writeProjectDiagram } = require('./project');
 const { getLastOpenProjects, forgetLastOpenProject } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
@@ -45,15 +45,22 @@ protocol.registerSchemesAsPrivileged([{
 }]);
 
 const mediaUrlPrefix = `${mediaProtocolName}://local/`;
+const assetsUrlPrefix = `${mediaProtocolName}://assets/`;
 app.whenReady().then(() => {
     buildAppMenu();
     defaultMenuState = saveAppMenuState();
 
     protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
-        let url = request.url.startsWith(mediaUrlPrefix) ? request.url.substring(mediaUrlPrefix.length) : request.url.substring(mediaProtocolName.length + 3);
-        const projectPath = contextHolder.fromRequest(request).projectPath;
-        const fullPath = path.join(projectPath, '.media', url );
-        callback({ path: fullPath});
+        let fullPath = null;
+        if (request.url.startsWith(mediaUrlPrefix)) {
+            const projectPath = contextHolder.fromRequest(request).projectPath;
+            fullPath = path.join(projectPath, '.media', request.url.substring(mediaUrlPrefix.length));
+        } else if (request.url.startsWith(assetsUrlPrefix)) {
+            fullPath = path.join(__dirname, '..', 'renderer', 'assets', request.url.substring(assetsUrlPrefix.length));
+        } else {
+            fullPath = request.url.substring(mediaProtocolName.length + 3);
+        }
+        callback({path: fullPath});
     });
 
 
@@ -62,8 +69,7 @@ app.whenReady().then(() => {
     ipcMain.handle('project:select', selectProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));
     ipcMain.handle('project:readFile', readProjectFile(contextHolder));
-    ipcMain.handle('project:writeFile', writeProjectFile(contextHolder));
-    ipcMain.handle('project:writeFileInFolder', writeProjectFileInFolder(contextHolder));
+    ipcMain.handle('project:writeDiagram', writeProjectDiagram(contextHolder));
     ipcMain.handle('project:createNewDiagram', createNewDiagram(contextHolder));
     ipcMain.handle('project:createNewFolder', createNewFolder(contextHolder));
     ipcMain.handle('project:renameFolder', renameFolder(contextHolder));

@@ -215,7 +215,7 @@ export function fsSaveScheme(config, projectService) {
         scheme.modifiedTime = new Date();
         scheme.publicLink = `/docs/${schemeId}`;
 
-        projectService.writeFile(null, filePath, JSON.stringify(scheme))
+        projectService.writeDiagram(filePath, scheme)
         .then(() => {
             res.json(scheme);
         })

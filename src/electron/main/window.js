@@ -2,7 +2,7 @@ const { BrowserWindow, shell, Menu } = require('electron');
 const { generateUserAgent, ContextHolder } = require('./context');
 const URL = require('url');
 
-
+const devToolsEnabled = process.env.SCHEMIO_DEVTOOLS === 'true';
 /**
  *
  * @param {ContextHolder} contextHolder
@@ -17,7 +17,8 @@ export function createWindow(contextHolder) {
             nodeIntegration: true,
             contextIsolation: true,
             enableRemoteModule: true,
-            webSecurity: false
+            webSecurity: false,
+            devTools: devToolsEnabled
         },
     });
 
@@ -86,7 +87,8 @@ export function createWindow(contextHolder) {
         }
     });
 
-    // Open the DevTools.
-    window.webContents.openDevTools();
+    if (devToolsEnabled) {
+        window.webContents.openDevTools();
+    }
     return window;
 };

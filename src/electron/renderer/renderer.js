@@ -16,7 +16,7 @@ import { electronAPICLient } from './electronAPIClient';
 applyVueFilters(Vue);
 
 store.dispatch('setApiClient', electronAPICLient());
-store.dispatch('setAssetsPath', '../assets');
+store.dispatch('setAssetsPath', 'media://assets');
 
 new Vue(Vue.util.extend({
     store,

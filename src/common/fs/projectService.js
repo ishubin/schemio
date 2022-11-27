@@ -7,13 +7,24 @@ const fs = require('fs-extra');
 
 
 export class ProjectService {
-    constructor(projectPath, isElectron, mediaPrefixFrom, mediaPrefixTo) {
+    /**
+     *
+     * @param {string} projectPath
+     * @param {boolean} isElectron
+     * @param {Object} imagePrefixConversions
+     * @param {Object} persistentImageConversions
+     */
+    constructor(projectPath, isElectron, imagePrefixConversions, persistentImageConversions) {
         this.fileIndex = new FileIndex(projectPath, isElectron, (filePath) => this.readFile(filePath));
 
-        // uses the following two in order to convert all image references to project media
+        // uses the following map in order to convert all image references to project media
         // either from electron to fs or from fs to electron
-        this.mediaPrefixFrom = mediaPrefixFrom;
-        this.mediaPrefixTo = mediaPrefixTo;
+        this.imagePrefixConversions = imagePrefixConversions;
+
+        // the following image conversions are used when saving diagram.
+        // This is needed so that a diagram is always saved in the same format
+        // Only electron based version of Schemio will have this
+        this.persistentImageConversions = persistentImageConversions;
         this.projectPath = projectPath;
     }
 
@@ -46,8 +57,8 @@ export class ProjectService {
 
                 content = JSON.parse(content);
 
-                if (this.mediaPrefixFrom && this.mediaPrefixTo) {
-                    content = convertDiagram(content, this.mediaPrefixFrom, this.mediaPrefixTo);
+                if (this.imagePrefixConversions) {
+                    content = convertDiagram(content, this.imagePrefixConversions);
                 }
             }
             return {
@@ -63,22 +74,23 @@ export class ProjectService {
         return this.fileIndex.listFilesInFolder(folderPath);
     }
 
-    writeFile(folderPath, filePath, content) {
-        const relativePath = folderPath ? path.join(folderPath, filePath) : filePath;
-        const fullPath = path.join(this.projectPath, relativePath);
-        return fs.writeFile(fullPath, content, {encoding: 'utf-8'})
+    writeDiagram(filePath, diagram) {
+        const fullPath = path.join(this.projectPath, filePath);
+        return Promise.resolve()
         .then(() => {
-            let name = path.basename(filePath);
-            let kind = 'file';
-            if (name.endsWith(schemioExtension)) {
-                name = name.substring(0, name.length - schemioExtension.length);
-                kind = 'schemio:doc';
+            let updatedDiagram = diagram;
+            if (this.persistentImageConversions) {
+                updatedDiagram = convertDiagram(diagram, this.persistentImageConversions);
             }
+            return JSON.stringify(updatedDiagram);
+        })
+        .then(content => fs.writeFile(fullPath, content, {encoding: 'utf-8'}))
+        .then(() => {
             return {
-                name,
-                kind,
-                path: relativePath,
-                parent: path.dirname(relativePath)
+                name: diagram.name,
+                kind: 'schemio:doc',
+                path: filePath,
+                parent: path.dirname(filePath)
             };
         });
     }
@@ -88,13 +100,10 @@ export class ProjectService {
         diagram.id = id;
         diagram.modifiedTime = new Date();
 
-        return Promise.resolve()
-        .then(() => {
-            return JSON.stringify(diagram);
-        })
-        .then(content => {
-            return this.writeFile(folderPath, id + schemioExtension, content);
-        })
+        const fileName = id + schemioExtension;
+        let filePath = folderPath ? path.join(folderPath, fileName) : fileName;
+
+        return this.writeDiagram(filePath, diagram)
         .then(entry => {
             this.fileIndex.indexScheme(diagram.id, diagram, entry.path, null);
             entry.name = diagram.name;
