@@ -66,10 +66,11 @@
 }
 .elec-app-container .link {
     text-decoration: none;
+    color: rgb(68, 125, 183);
 }
 .elec-app-container .link:hover {
     text-decoration: none;
-    opacity: 0.8;
+    color: rgb(29, 110, 191);
 }
 
 .elec-navigator {
@@ -80,6 +81,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    background: var(--faint-weak);
 }
 
 .elec-tab-container {
@@ -154,6 +156,7 @@
     position: relative;
     padding-top: 1px;
     padding-bottom: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.0);
 }
 .elec-welcome-container .recent-projects .icon-delete {
     color: var(--critic-strong);
@@ -161,13 +164,12 @@
     position: absolute;
     top: 0;
     right: 2px;
-    background: var(--accent-weak-up);
     padding: 1px;
     border-radius: 1px;
     cursor: pointer;
 }
 .elec-welcome-container .recent-projects:hover {
-    background: var(--faint-weak-up);
+    border: 1px solid var(--faint-weak-down);
 }
 .elec-welcome-container .recent-projects:hover .icon-delete {
     display: inline-block;
