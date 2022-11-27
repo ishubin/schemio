@@ -1,8 +1,9 @@
 import { ProjectService } from '../../common/fs/projectService';
 import { ContextHolder } from './context';
 import { storeOpenProject } from './storage';
-const { dialog, BrowserWindow, ipcMain } = require('electron');
+const { dialog, BrowserWindow } = require('electron');
 import fs from 'fs-extra';
+import path from 'path';
 
 
 /**
@@ -83,6 +84,8 @@ function _selectProject(contextHolder, contextData, projectPath) {
     });
     contextData.projectService = projectService;
     contextData.projectPath = projectPath;
+
+    contextData.window.setTitle(path.basename(projectPath));
     return projectService.load(projectPath);
 }
 
