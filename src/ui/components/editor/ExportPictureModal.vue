@@ -13,10 +13,10 @@
                         <number-textfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
                     </td>
                     <td>
-                        <number-textfield :value="paddingRight" name="Width" @changed="paddingRight = arguments[0]"/>
+                        <number-textfield :value="paddingRight" name="Right" @changed="paddingRight = arguments[0]"/>
                     </td>
                     <td>
-                        <number-textfield :value="paddingBottom" name="Height" @changed="paddingBottom = arguments[0]"/>
+                        <number-textfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = arguments[0]"/>
                     </td>
                 </tr>
                 <tr>
