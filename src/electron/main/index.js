@@ -14,9 +14,9 @@ const { createWindow } = require('./window');
 
 getLastOpenProjects().then(projects => {
     if (Array.isArray(projects)) {
-        projects.forEach(project => {
-            app.addRecentDocument(project.path);
-        });
+        for (let i = projects.length - 1; i >= 0; i--) {
+            app.addRecentDocument(projects[i].path);
+        }
     }
 });
 

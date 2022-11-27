@@ -25,17 +25,22 @@
                         <h1>Schemio</h1>
                         <p class="welcome-caption">Building interactive diagrams</p>
 
-                        <span class="link" @click="openProject"><i class="fa-regular fa-folder-open"></i> Open Project...</span>
+                        <span class="link with-icon" @click="openProject"><i class="icon fa-regular fa-folder-open"></i> Open Project...</span>
 
                         <h3>Recent projects</h3>
 
                         <div class="recent-projects" v-for="(project, projectIdx) in lastOpenProjects">
-                            <span class="link" @click="selectProject(project.path)" :title="project.path"><i class="fa-regular fa-folder-open"></i> {{project.name}}</span>
+                            <span class="link" @click="selectProject(project.path)" :title="project.path">{{project.name}}</span>
                             <span class="icon-delete" @click="forgetRecentProject(projectIdx)"><i class="fas fa-times"></i></span>
                         </div>
                     </div>
                 </div>
-
+                <div v-else-if="files.length === 0" style="height: 100%" class="elec-no-editor-panel">
+                    <div class="elec-no-editor-container">
+                        <span class="link with-icon" @click="onNewDiagramRequested(null)"><i class="icon fa-solid fa-diagram-project"></i> Create diagram</span>
+                        <span class="link with-icon" @click="showNewFolderModal"><i class="icon fa-solid fa-folder"></i> Create folder</span>
+                    </div>
+                </div>
                 <div v-else style="height: 100%">
                     <div :key="file.path" v-for="(file, fileIdx) in files" style="height: 100%" :style="{display: fileIdx === currentOpenFileIdx ? 'block': 'none'}">
                         <SchemioEditorApp
@@ -115,6 +120,10 @@
             :height="exportPictureModal.height"
             :background-color="exportPictureModal.backgroundColor"
             @close="exportPictureModal.shown = false"/>
+
+        <Modal v-if="newFolderModal.shown" @close="newFolderModal.shown = false" title="New folder" primaryButton="Create" @primary-submit="newFolderSubmitted">
+            <input ref="newFolderName" type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
+        </Modal>
 
         <CreateNewSchemeModal v-if="newDiagramModal.shown" :name="newDiagramModal.name" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
     </div>
@@ -299,7 +308,12 @@ export default {
                 shown: false
             },
 
-            navigatorFolderToExpand: null
+            navigatorFolderToExpand: null,
+
+            newFolderModal: {
+                shown: false,
+                name: ''
+            },
         };
     },
 
@@ -833,7 +847,20 @@ export default {
             window.electronAPI.storage.forgetLastOpenProject(this.lastOpenProjects[idx].path).then(() => {
                 this.lastOpenProjects.splice(idx, 1);
             });
-        }
+        },
+
+        showNewFolderModal() {
+            this.newFolderModal.name = '';
+            this.newFolderModal.shown = true;
+        },
+
+        newFolderSubmitted() {
+            this.newFolderModal.shown = false;
+            window.electronAPI.createNewFolder(null, this.newFolderModal.name)
+            .then(entry => {
+                this.onFileTreeEntryAdded(null, entry);
+            });
+        },
     },
 
     watch: {
