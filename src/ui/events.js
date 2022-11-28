@@ -13,7 +13,7 @@ export const Keys = {
     CTRL_C: 'ctrl-c',
     CTRL_V: 'ctrl-v',
     CTRL_S: 'ctrl-s',
-    CTRL_X: 'ctrl-z',
+    CTRL_X: 'ctrl-x',
     CTRL_Z: 'ctrl-z',
     CTRL_ZERO: 'ctrl-0',
     CTRL_SHIFT_Z: 'ctrl-shift-z',
