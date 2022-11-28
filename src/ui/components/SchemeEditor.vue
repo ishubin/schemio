@@ -548,7 +548,11 @@ export default {
 
     created() {
         this.animationRegistry = createAnimationRegistry(this.editorId);
-        const onCancel = () => this.cancelCurrentState();
+        const onCancel = () => {
+            this.cancelCurrentState();
+            this.historyState.undoable = this.historyUndoable;
+            this.historyState.redoable = this.historyRedoable;
+        }
         const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
         const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
         const onScreenTransformUpdated = (screenTransform) => this.onScreenTransformUpdated(screenTransform);
