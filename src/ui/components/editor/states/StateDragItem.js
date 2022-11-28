@@ -585,7 +585,10 @@ class IdleState extends SubState {
 
     keyPressed(key, keyOptions) {
         if (key === Keys.SPACE) {
-            this.migrate(new DragScreenState(this.parentState));
+
+            if (!this.parentState.subState || this.parentState.subState.name !== 'drag-screen') {
+                this.migrate(new DragScreenState(this.parentState));
+            }
             return;
         }
 

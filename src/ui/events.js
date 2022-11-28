@@ -17,10 +17,10 @@ export const Keys = {
     CTRL_Z: 'ctrl-z',
     CTRL_ZERO: 'ctrl-0',
     CTRL_SHIFT_Z: 'ctrl-shift-z',
-    UP: 'up',
-    DOWN: 'down',
-    LEFT: 'left',
-    RIGHT: 'right',
+    UP: 'arrow-up',
+    DOWN: 'arrow-down',
+    LEFT: 'arrow-left',
+    RIGHT: 'arrow-right',
     SPACE: 'space',
     MINUS: 'minus',
     EQUALS: 'equals'
@@ -63,6 +63,8 @@ export function deregisterKeyPressHandler(callback) {
     keyEventBus.$off('key-press', callback);
 }
 
+let lastKeyPressed = null;
+
 function handleKeyPress(event, isDown) {
     event = event || window.event;
     if (event.target !== document.body) {
@@ -71,6 +73,15 @@ function handleKeyPress(event, isDown) {
     const key = identifyKeyPress(event);
     if (key) {
         event.preventDefault();
+        if (!isDown) {
+            lastKeyPressed = null;
+        } else {
+            // only arrow keys should be allowed to continuously invoke key press event
+            if (lastKeyPressed === key && !key.startsWith('arrow-')) {
+                return;
+            }
+            lastKeyPressed = key;
+        }
 
         keyEventBus.$emit('key-press', isDown, key, {
             ctrlCmdPressed: event.metaKey || event.ctrlKey

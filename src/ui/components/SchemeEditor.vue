@@ -1252,13 +1252,13 @@ export default {
             }
 
             if (isDown) {
-                this.onKeyDown(key, keyOptions);
+                this.onKeyPressed(key, keyOptions);
             } else {
                 this.onKeyUp(key, keyOptions);
             }
         },
 
-        onKeyDown(key, keyOptions) {
+        onKeyPressed(key, keyOptions) {
             if (this.mode === 'edit') {
                 if (this.state === 'dragItem') {
                     if (key === Keys.CTRL_C) {
@@ -1280,7 +1280,9 @@ export default {
                         this.deleteSelectedItems();
                     }
                 } else if (this.state === 'editPath') {
-                    this.states.editPath.deleteSelectedPoints();
+                    if (Keys.DELETE === key) {
+                        this.states.editPath.deleteSelectedPoints();
+                    }
                 }
             }
             if (key === Keys.ESCAPE) {

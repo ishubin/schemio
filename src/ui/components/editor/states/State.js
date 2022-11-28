@@ -430,7 +430,6 @@ export class DragScreenState extends SubState {
 
     mouseUp(x, y, mx, my, object, event) {
         this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
-        this.migrateToPreviousSubState();
     }
 }
 
