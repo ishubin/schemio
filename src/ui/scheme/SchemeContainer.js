@@ -1778,6 +1778,7 @@ class SchemeContainer {
     copySelectedItems() {
         const copyBuffer = [];
         forEach(this.selectedItems, item => {
+            // const itemCopy = utils.clone(item);
             copyBuffer.push(utils.clone(item));
         });
 
@@ -1841,7 +1842,7 @@ class SchemeContainer {
             // as we don't need to copy it twice
             if (!find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
                 copiedItemIds[item.id] = 1;
-                const worldPoint = this.worldPointOnItem(0, 0, item);
+                const worldPivotPoint = this.worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
                 const worldAngle = worldAngleOfItem(item);
 
                 const newItem = this.copyItem(item);
@@ -1850,9 +1851,23 @@ class SchemeContainer {
                 } else {
                     newItem.name = item.name;
                 }
-                newItem.area.x = worldPoint.x;
-                newItem.area.y = worldPoint.y;
+
                 newItem.area.r = worldAngle;
+
+                const translation = myMath.findTranslationMatchingWorldPoint(
+                    worldPivotPoint.x, worldPivotPoint.y,
+                    item.area.px * item.area.w, item.area.py * item.area.h,
+                    item.area, item.meta.transformMatrix
+                );
+
+                if (translation) {
+                    newItem.area.x = translation.x;
+                    newItem.area.y = translation.y;
+                } else {
+                    const worldPoint = this.worldPointOnItem(0, 0, item);
+                    newItem.area.x = worldPoint.x;
+                    newItem.area.y = worldPoint.y;
+                }
 
                 if (item.meta.componentRoot){
                     newItem.meta.componentRoot = true;
