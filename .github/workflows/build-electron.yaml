@@ -16,6 +16,7 @@ jobs:
           os: [ubuntu-latest, macOS-latest]
 
     runs-on: ${{ matrix.os }}
+    name: Build on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ github.events.inputs.node_version }}
@@ -26,3 +27,24 @@ jobs:
       - run: npm run package-electron
       - run: npm run make-electron
       - run: find out | grep -v .webpack/renderer/assets
+      - uses: actions/upload-artifact@v3
+        with:
+          name: electron-app
+          path: |
+            out/make/zip/darwin/schemio.*.zip
+            out/make/rpm/x64/schemio-*.rpm
+            out/make/deb/x64/schemio_*.deb
+
+  build-win:
+    name: Build Windows app
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.events.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.events.inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - run: dir /b /a /s
