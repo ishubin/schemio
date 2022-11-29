@@ -156,8 +156,10 @@ export default {
                     const img = new Image;
 
                     img.onload = () => {
-                        ctx.fillStyle = this.backgroundColor;
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        if (this.shouldExportBackground) {
+                            ctx.fillStyle = this.backgroundColor;
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        }
                         ctx.drawImage(img, this.paddingLeft, this.paddingTop);
                         this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, canvas.toDataURL('image/png'));
                     };
