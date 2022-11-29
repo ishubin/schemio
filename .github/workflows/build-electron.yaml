@@ -13,7 +13,7 @@ jobs:
   build-mac-and-linux:
     strategy:
         matrix:
-          os: [ubuntu-latest, windows-latest]
+          os: [ubuntu-latest, macOS-latest]
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -23,6 +23,6 @@ jobs:
         with:
           node-version: ${{ github.events.inputs.node_version }}
       - run: npm ci
-      - run: npm package-electron
-      - run: npm make-electron
+      - run: npm run package-electron
+      - run: npm run make-electron
       - run: find out | grep -v .webpack/renderer/assets
