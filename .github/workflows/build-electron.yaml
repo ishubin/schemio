@@ -1,0 +1,28 @@
+name: Build Electron app
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      node_version:
+        description: 'Node version'
+        type: string
+        default: 18.x
+
+jobs:
+  build-mac-and-linux:
+    strategy:
+        matrix:
+          os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.events.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.events.inputs.node_version }}
+      - run: npm ci
+      - run: npm package-electron
+      - run: npm make-electron
+      - run: find out | grep -v .webpack/renderer/assets
