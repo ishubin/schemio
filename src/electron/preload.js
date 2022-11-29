@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
+    appVersion          : () => ipcRenderer.invoke('app:version'),
     openProject         : () => ipcRenderer.invoke('project:open'),
     selectProject       : (projectPath) => ipcRenderer.invoke('project:select', projectPath),
     getProjectFileTree  : () =>  ipcRenderer.invoke('project:fileTree'),

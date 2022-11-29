@@ -23,7 +23,10 @@
                 <div v-if="!projectPath" class="elec-welcome-panel">
                     <div class="elec-welcome-container">
                         <h1>Schemio</h1>
-                        <p class="welcome-caption">Building interactive diagrams</p>
+                        <p class="welcome-caption">
+                            Building interactive diagrams
+                            <span class="app-version" v-if="appVersion">version {{appVersion}}</span>
+                        </p>
 
                         <span class="link with-icon" @click="openProject"><i class="icon fa-regular fa-folder-open"></i> Open Project...</span>
 
@@ -198,6 +201,7 @@ export default {
     },
 
     beforeMount() {
+        window.electronAPI.appVersion().then(version => this.appVersion = version);
         window.electronAPI.$on('navigator:entry-deleted', this.ipcOnFileTreeEntryDeleted);
         window.electronAPI.$on('navigator:open', this.ipcOnNavigatorOpen);
         window.electronAPI.$on('history:undo', this.undoHistoryForCurrentFile);
@@ -257,6 +261,7 @@ export default {
 
     data() {
         return {
+            appVersion: '',
             projectPath: null,
             projectName: null,
             fileTree: null,

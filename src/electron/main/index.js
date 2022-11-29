@@ -65,6 +65,7 @@ app.whenReady().then(() => {
 
 
     createWindow(contextHolder);
+    ipcMain.handle('app:version', () => app.getVersion());
     ipcMain.handle('project:open', openProject(contextHolder));
     ipcMain.handle('project:select', selectProject(contextHolder));
     ipcMain.handle('project:fileTree', projectFileTree(contextHolder));

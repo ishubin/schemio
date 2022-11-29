@@ -136,6 +136,11 @@
     margin-top: 5px;
     font-size: 22px;
 }
+.elec-welcome-container .welcome-caption .app-version {
+    display: block;
+    font-size: 16px;
+    margin-top: 5px;
+}
 .elec-welcome-container h1,
 .elec-welcome-container h3,
 .elec-welcome-container .welcome-caption {
