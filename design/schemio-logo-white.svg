@@ -1,8 +1,9 @@
-<svg width="310" height="300">
+<svg viewBox="-40 -40 350 260" preserveAspectRatio="xMidYMid" xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xlink="http://www.w3.org/1999/xlink" class="export-svg-preview">
+<!-- <svg width="310" height="300"> -->
 <g transform="translate(30 30)">
     <path d="M100 160 L50 80 L100 0 L200 0 L250 80" fill="none" stroke="#fff" stroke-width="24"/>
     <circle cx="100" cy="160" r="24" stroke="none" stroke-width="0" fill="#fff" />
-    <circle cx="250" cy="80" r="24" stroke="none" stroke-width="0" fill="#fff" />  
+    <circle cx="250" cy="80" r="24" stroke="none" stroke-width="0" fill="#fff" />
 
     <g style="opacity: 0.3">
         <path d="M150 80 L200 160 L150 240 L50 240 L0 160" fill="none" stroke="white" stroke-width="24"/>
