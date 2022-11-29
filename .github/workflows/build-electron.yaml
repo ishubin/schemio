@@ -47,4 +47,5 @@ jobs:
       - run: npm ci
       - run: npm run package-electron
       - run: npm run make-electron
-      - run: dir /b /a /s
+      - run: npm install -g tree-cli
+      - run: cd out && tree -l 8
