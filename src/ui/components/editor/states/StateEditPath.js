@@ -351,7 +351,7 @@ class CreatingPathState extends SubState {
 
     keyPressed(key, keyOptions) {
         if (key === Keys.SPACE) {
-            this.migrate(new DragScreenState(this.parentState));
+            this.migrate(new DragScreenState(this.parentState, false));
         }
     }
 
@@ -679,7 +679,7 @@ class IdleState extends SubState {
 
     keyPressed(key, keyOptions) {
         if (key === Keys.SPACE) {
-            this.migrate(new DragScreenState(this.parentState));
+            this.migrate(new DragScreenState(this.parentState, false));
         }
     }
 
@@ -691,7 +691,7 @@ class IdleState extends SubState {
 
     mouseDown(x, y, mx, my, object, event) {
         if (isEventMiddleClick(event)) {
-            this.migrate(new DragScreenState(this.parentState, {x, y, mx, my}));
+            this.migrate(new DragScreenState(this.parentState, true, {x, y, mx, my}));
             return;
         }
 

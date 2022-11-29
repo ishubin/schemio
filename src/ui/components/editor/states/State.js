@@ -399,10 +399,11 @@ export class SubState extends State {
 }
 
 export class DragScreenState extends SubState {
-    constructor(parentState, originalClickPoint) {
+    constructor(parentState, exitOnMouseUp, originalClickPoint) {
         super(parentState, 'drag-screen');
         this.schemeContainer = parentState.schemeContainer;
         this.originalClickPoint = originalClickPoint;
+        this.exitOnMouseUp = exitOnMouseUp;
         this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
     }
 
@@ -430,6 +431,9 @@ export class DragScreenState extends SubState {
 
     mouseUp(x, y, mx, my, object, event) {
         this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+        if (this.exitOnMouseUp) {
+            this.migrateToPreviousSubState();
+        }
     }
 }
 

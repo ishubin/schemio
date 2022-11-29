@@ -587,7 +587,7 @@ class IdleState extends SubState {
         if (key === Keys.SPACE) {
 
             if (!this.parentState.subState || this.parentState.subState.name !== 'drag-screen') {
-                this.migrate(new DragScreenState(this.parentState));
+                this.migrate(new DragScreenState(this.parentState, false));
             }
             return;
         }
@@ -615,7 +615,7 @@ class IdleState extends SubState {
 
     mouseDown(x, y, mx, my, object, event) {
         if (isEventMiddleClick(event)) {
-            this.migrate(new DragScreenState(this.parentState, {x, y, mx, my}));
+            this.migrate(new DragScreenState(this.parentState, true, {x, y, mx, my}));
             return;
         }
 
