@@ -618,15 +618,22 @@ class DragObjectState extends SubState {
 
         const localPoint = this.schemeContainer.localPointOnItem(x, y, this.item);
 
+        const snappedLocalPoint = this.snapCurvePoint(
+            -1,
+            -1,
+            localPoint.x,
+            localPoint.y,
+        );
+
         const p2 = convertCurvePointToItemScale(nextPoint, this.item.area.w, this.item.area.h);
         const p1 = convertCurvePointToItemScale(point, this.item.area.w, this.item.area.h);
 
         const chordLength = myMath.distanceBetweenPoints(p1.x, p1.y, p2.x, p2.y);
         const line = myMath.createLineEquation(p1.x, p1.y, p2.x, p2.y);
 
-        const H = myMath.distanceFromPointToLine(localPoint.x, localPoint.y, line);
+        const H = myMath.distanceFromPointToLine(snappedLocalPoint.x, snappedLocalPoint.y, line);
         if (!myMath.tooSmall(chordLength)) {
-            point.h = -H / chordLength * 100 * myMath.identifyPointSideAgainstLine(localPoint.x, localPoint.y, line);
+            point.h = -H / chordLength * 100 * myMath.identifyPointSideAgainstLine(snappedLocalPoint.x, snappedLocalPoint.y, line);
         }
 
         this.listener.onItemChanged(this.item.id);
