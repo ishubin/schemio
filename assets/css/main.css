@@ -388,29 +388,38 @@ input.textfield.missing-field-error {
     position: relative;
     display: inline-block;
     width: 100%;
+    height: 26px;
     padding: 0;
     overflow: hidden;
-}
-.number-textfield-container > input {
-    margin: 0;
-    width: 100%;
-    height: 26px;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    padding-right: 16px;
-    width: 100%;
-    font-size: 14px;
-    text-align: right;
+    background: var(--base-weak);
     border: 1px solid var(--faint-strong);
     border-radius: var(--control-border-radius);
 }
-.number-textfield-container.disabled > input {
+.number-textfield-container .wrapper {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+.number-textfield-container input {
+    flex: 1;
+    margin: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 2px;
+    font-size: 14px;
+    text-align: right;
+    background: none;
+    border: none;
+    outline: none;
+}
+.number-textfield-container.disabled {
     border: 1px solid var(--faint-strong-up);
 }
-.number-textfield-container.disabled > .step-controls {
+.number-textfield-container.disabled .step-controls {
     opacity: 0.5;
 }
-.number-textfield-container > .label {
+.number-textfield-container .label {
     position: absolute;
     display: inline-block;
     padding: 4px 6px;
@@ -419,11 +428,11 @@ input.textfield.missing-field-error {
     left: 0;
     color: var(--faint-strong);
 }
-.number-textfield-container > .step-controls {
-    position: absolute;
-    top: -1px;
-    right: 1px;
-    list-style: none;
+.number-textfield-container .step-controls {
+    display: flex;
+    flex-direction: column;
+    width: 12px;
+    height: 100%;
     margin: 0;
     padding: 0;
     -webkit-user-select: none;
@@ -432,35 +441,30 @@ input.textfield.missing-field-error {
     -ms-user-select: none;
     user-select: none;
 }
-.number-textfield-container > .step-controls li {
+.number-textfield-container .step-controls .step {
+    display: block;
     margin: 0;
     padding: 0;
-    width: 12px;
-    height: 12px;
-}
-.number-textfield-container > .step-controls li .step {
-    margin: 0;
-    padding: 0;
-    font-size: 12px;
+    font-size: 9px;
     display: inline-block;
     width: 12px;
-    height: 12px;
+    flex: 1;
     background: var(--faint-weak);
     color: var(--base-strong-up);
     cursor: pointer;
     overflow: hidden;
 }
-.number-textfield-container > .step-controls li .step:hover {
-    background: var(--faint-weak-up);
+.number-textfield-container .step-controls .step:hover {
+    background: var(--faint-weak-down);
 }
-.number-textfield-container > .step-controls > li .step.step-up {
+.number-textfield-container .step-controls .step.step-up {
     border-bottom: 1px solid var(--faint-strong);
     border-radius: 0 var(--control-border-radius) 0 0;
 }
-.number-textfield-container > .step-controls > li .step.step-down {
+.number-textfield-container .step-controls .step.step-down {
     border-radius: 0  0 var(--control-border-radius) 0;
 }
-.number-textfield-container > .step-controls li .step i {
+.number-textfield-container .step-controls .step i {
     margin: 0 2px 2px 2px;
     padding: 0;
 }
@@ -1973,6 +1977,7 @@ ul.links-editor .edit-link:hover {
 }
 .behavior-action-container .set-argument-editor .number-textfield-container {
     width: 50px;
+    height: 21px;
 }
 .behavior-action-container .icon-container .icon-delete:hover {
     opacity: 1.0;

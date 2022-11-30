@@ -3,18 +3,16 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="number-textfield-container" :class="{disabled: disabled}">
-        <input type="text" :style="{'padding-left': paddingLeft+'px'}" v-model="text" @input="onUserInput" :disabled="disabled"/>
         <div v-if="name" class="label" ref="label">{{name}}</div>
         <div v-if="!name && icon" class="label" ref="icon"><i :class="icon"></i></div>
+        <div class="wrapper">
+            <input type="text" v-model="text" @input="onUserInput" :disabled="disabled"/>
 
-        <ul class="step-controls">
-            <li>
+            <div class="step-controls">
                 <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
-            </li>
-            <li>
                 <span class="step step-down" @click="onStepClicked(-1)" @mousedown="onMouseDownDecrement"><i class="fas fa-caret-down"></i></span>
-            </li>
-        </ul>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -48,15 +46,6 @@ export default {
         incrementAcceleration: {type: Number, default: 0.15}
     },
 
-    mounted() {
-        if (this.$refs.label) {
-            this.paddingLeft = this.$refs.label.getBoundingClientRect().width;
-        }
-        if (this.$refs.icon) {
-            this.paddingLeft = this.$refs.icon.getBoundingClientRect().width;
-        }
-    },
-
     beforeDestroy() {
         document.body.removeEventListener('mouseup', this.onMouseUp);
     },
@@ -65,8 +54,6 @@ export default {
         return {
             text: numberToText(this.value),
             number: this.value,
-
-            paddingLeft: 4,
 
             autoIncrementDelayTimeoutId: -1,
             autoIncrementDirection: 1,
@@ -120,7 +107,7 @@ export default {
 
             let value = this.textToNumber(this.text);
             value = value + factor;
-            
+
             this.number = this.enforceLimits(value);
 
             this.$emit('changed', this.number);
@@ -170,7 +157,7 @@ export default {
                 clearInterval(this.autoIncrementIntervalId);
                 this.autoIncrementIntervalId = -1;
             }
-            
+
             if (this.autoIncrementDelayTimeoutId) {
                 clearTimeout(this.autoIncrementDelayTimeoutId);
                 this.autoIncrementDelayTimeoutId = -1;
