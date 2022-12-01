@@ -23,6 +23,9 @@ jobs:
       - run: npm run package-electron
       - run: npm run make-electron
       - run: find out | grep -v .webpack/renderer/assets
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-mac.zip
@@ -42,14 +45,17 @@ jobs:
       - run: npm run package-electron
       - run: npm run make-electron
       - run: find out | grep -v .webpack/renderer/assets
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-linux.rpm
-          path: out/make/rpm/x64/schemio-0.8.20-1.x86_64.rpm
+          path: out/make/rpm/x64/schemio-${{ steps.package-version.outputs.current-version }}-1.x86_64.rpm
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-linux.deb
-          path: out/make/deb/x64/schemio_0.8.20_amd64.deb
+          path: out/make/deb/x64/schemio_${{ steps.package-version.outputs.current-version }}_amd64.deb
 
   build-win:
     name: Build Windows app
@@ -65,7 +71,10 @@ jobs:
       - run: npm run make-electron
       - run: npm install -g tree-cli
       - run: cd out && tree -l 8
+      - name: get-npm-version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-win-setup.exe
-          path: out/make/squirrel.windows/x64/schemio-0.8.20 Setup.exe
+          path: out/make/squirrel.windows/x64/schemio-${{ steps.package-version.outputs.current-version }} Setup.exe
