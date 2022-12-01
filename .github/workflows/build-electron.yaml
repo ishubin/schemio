@@ -10,13 +10,9 @@ on:
         default: 18.x
 
 jobs:
-  build-mac-and-linux:
-    strategy:
-        matrix:
-          os: [ubuntu-latest, macOS-latest]
-
-    runs-on: ${{ matrix.os }}
-    name: Build on ${{ matrix.os }}
+  build-mac:
+    runs-on: macOS-latest
+    name: Build on MacOS
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ github.events.inputs.node_version }}
@@ -29,11 +25,31 @@ jobs:
       - run: find out | grep -v .webpack/renderer/assets
       - uses: actions/upload-artifact@v3
         with:
-          name: electron-app
-          path: |
-            out/make/zip/darwin/schemio.*.zip
-            out/make/rpm/x64/schemio-*.rpm
-            out/make/deb/x64/schemio_*.deb
+          name: schemio-electron-mac.zip
+          path: out/make/zip/darwin/x64/schemio-darwin-x64-0.8.20.zip
+
+
+  build-linux:
+    runs-on: ubuntu-latest
+    name: Build on Linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.events.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.events.inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - run: find out | grep -v .webpack/renderer/assets
+      - uses: actions/upload-artifact@v3
+        with:
+          name: schemio-electron-linux.rpm
+          path: out/make/rpm/x64/schemio-0.8.20-1.x86_64.rpm
+      - uses: actions/upload-artifact@v3
+        with:
+          name: schemio-electron-linux.rpm
+          path: out/make/deb/x64/schemio_0.8.20_amd64.deb
 
   build-win:
     name: Build Windows app
@@ -49,3 +65,7 @@ jobs:
       - run: npm run make-electron
       - run: npm install -g tree-cli
       - run: cd out && tree -l 8
+      - uses: actions/upload-artifact@v3
+        with:
+          name: schemio-electron-win-setup.exe
+          path: out/make/squirrel.windows/x64/schemio-0.8.20 Setup.exe
