@@ -48,7 +48,7 @@ jobs:
           path: out/make/rpm/x64/schemio-0.8.20-1.x86_64.rpm
       - uses: actions/upload-artifact@v3
         with:
-          name: schemio-electron-linux.rpm
+          name: schemio-electron-linux.deb
           path: out/make/deb/x64/schemio_0.8.20_amd64.deb
 
   build-win:
