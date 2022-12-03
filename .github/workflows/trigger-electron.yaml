@@ -1,0 +1,30 @@
+name: Build Electron app
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      node_version:
+        description: 'Node version'
+        type: string
+        default: 18.x
+
+jobs:
+  trigger-electron:
+    runs-on: ubuntu-latest
+    name: Trigger Electron build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.events.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.events.inputs.node_version }}
+      - name: Extract schemio version
+        id: schemio-version
+        run: |
+              export SCHEMIO_VERSION=$(node -pe "require('./package.json').version")
+              echo "SCHEMIO_VERSION=$SCHEMIO_VERSION" >> $GITHUB_OUTPUT
+      - uses: ./.github/workflows/build-electron.yaml
+        with:
+          node_version: ${{ github.events.inputs.node_version }}
+          schemio_version: ${{ steps.schemio-version.outputs.SCHEMIO_VERSION }}
