@@ -19,10 +19,10 @@ jobs:
     name: Build on MacOS
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ github.events.inputs.node_version }}
+      - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ github.events.inputs.node_version }}
+          node-version: ${{ inputs.node_version }}
       - run: npm ci
       - run: npm run package-electron
       - run: npm run make-electron
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-mac.zip
-          path: out/make/zip/darwin/x64/schemio-darwin-x64-${{ github.events.inputs.schemio_version }}.zip
+          path: out/make/zip/darwin/x64/schemio-darwin-x64-${{ inputs.schemio_version }}.zip
 
 
   build-linux:
@@ -38,10 +38,10 @@ jobs:
     name: Build on Linux
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ github.events.inputs.node_version }}
+      - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ github.events.inputs.node_version }}
+          node-version: ${{ inputs.node_version }}
       - run: npm ci
       - run: npm run package-electron
       - run: npm run make-electron
@@ -49,21 +49,21 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-linux.rpm
-          path: out/make/rpm/x64/schemio-${{ github.events.inputs.schemio_version }}-1.x86_64.rpm
+          path: out/make/rpm/x64/schemio-${{ inputs.schemio_version }}-1.x86_64.rpm
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-linux.deb
-          path: out/make/deb/x64/schemio_${{ github.events.inputs.schemio_version }}_amd64.deb
+          path: out/make/deb/x64/schemio_${{ inputs.schemio_version }}_amd64.deb
 
   build-win:
     name: Build Windows app
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ github.events.inputs.node_version }}
+      - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ github.events.inputs.node_version }}
+          node-version: ${{ inputs.node_version }}
       - run: npm ci
       - run: npm run package-electron
       - run: npm run make-electron
@@ -72,4 +72,4 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-win-setup.exe
-          path: out/make/squirrel.windows/x64/schemio-${{ github.events.inputs.schemio_version }} Setup.exe
+          path: out/make/squirrel.windows/x64/schemio-${{ inputs.schemio_version }} Setup.exe
