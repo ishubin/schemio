@@ -134,7 +134,7 @@
                 </div>
 
                 <div v-if="previewItem.gif">
-                    <img :src="`/assets/images/animations/${previewItem.gif}.gif`" style="max-width: 100%;"/>
+                    <img :src="`${assetsPath}/images/animations/${previewItem.gif}.gif`" style="max-width: 100%;"/>
                 </div>
 
                 <div v-if="previewItem.description" class="preview-item-description">{{previewItem.description}}</div>

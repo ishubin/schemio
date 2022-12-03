@@ -33,7 +33,7 @@
                         />
                 </li>
                 <li v-if="item.shape === 'path'">
-                    <span class="icon-button" @click="editPath" title="Edit path"><img src="/assets/images/icons/create-curve.svg"/></span>
+                    <span class="icon-button" @click="editPath" title="Edit path"><img :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
                 </li>
                 <li v-if="item.shape === 'image'">
                     <span @click="cropImage" class="icon-button" title="Crop image"><i class="fas fa-crop"></i></span>
@@ -214,6 +214,10 @@ export default {
     },
 
     computed: {
+        assetsPath() {
+            return this.$store.getters.assetsPath;
+        },
+
         filteredItemTags() {
             return this.existingItemTags.filter(i => new RegExp(this.itemTag, 'i').test(i.text));
         },

@@ -151,7 +151,7 @@
                 <ul class="button-group">
                     <li v-for="connectorType in connectorTypes">
                         <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
-                            <img :src="`/assets/images/helper-panel/connector-${connectorType}.svg`"/>
+                            <img :src="`${assetsPath}/images/helper-panel/connector-${connectorType}.svg`"/>
                         </span>
                     </li>
                 </ul>
@@ -161,12 +161,12 @@
                 <ul class="button-group">
                     <li v-if="firstSelectedPathEditPoint">
                         <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-path-points-to-simple')">
-                            <img src="/assets/images/helper-panel/path-point-simple.svg"/>
+                            <img :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
                         </span>
                     </li>
                     <li v-if="firstSelectedPathEditPoint">
                         <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-bezier')">
-                            <img src="/assets/images/helper-panel/path-point-bezier.svg"/>
+                            <img :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
                         </span>
                     </li>
                     <li>
