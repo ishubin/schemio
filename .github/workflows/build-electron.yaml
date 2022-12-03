@@ -73,8 +73,8 @@ jobs:
       - name: Extract schemio version
         id: schemio-version
         run: |
-              export SCHEMIO_VERSION=$(node -pe "require('./package.json').version")
-              echo "SCHEMIO_VERSION=$SCHEMIO_VERSION" >> $GITHUB_OUTPUT
+              $schemioVersion = node -pe "require('./package.json').version" | Out-String
+              "SCHEMIO_VERSION=$schemioVersion" >> $GITHUB_OUTPUT
       - run: npm ci
       - run: npm run package-electron
       - run: npm run make-electron
