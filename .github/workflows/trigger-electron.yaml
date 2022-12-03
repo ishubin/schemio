@@ -24,7 +24,7 @@ jobs:
         run: |
               export SCHEMIO_VERSION=$(node -pe "require('./package.json').version")
               echo "SCHEMIO_VERSION=$SCHEMIO_VERSION" >> $GITHUB_OUTPUT
-      - uses: ./.github/workflows/build-electron.yaml
+      - uses: ishubin/schemio/.github/workflows/build-electron.yaml
         with:
           node_version: ${{ github.events.inputs.node_version }}
           schemio_version: ${{ steps.schemio-version.outputs.SCHEMIO_VERSION }}
