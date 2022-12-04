@@ -445,7 +445,7 @@ input.textfield.missing-field-error {
     display: block;
     margin: 0;
     padding: 0;
-    font-size: 9px;
+    font-size: 10px;
     display: inline-block;
     width: 12px;
     flex: 1;
@@ -648,6 +648,17 @@ ul.pagination li a.current {
 }
 .quick-helper-panel .reset-search:hover {
     opacity: 0.7;
+}
+
+.quick-helper-panel .number-textfield-container {
+    height: 24px;
+    max-width: 120px;
+}
+.quick-helper-panel .number-textfield-container .label {
+    font-size: 12px;
+}
+.quick-helper-panel .number-textfield-container .text {
+    font-size: 13px;
 }
 
 

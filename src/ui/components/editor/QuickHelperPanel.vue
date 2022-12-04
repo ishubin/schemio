@@ -26,7 +26,7 @@
                             <span class="zoom-button zoom-in" @click="onZoomInClicked"><i class="fas fa-search-plus"></i></span>
                         </div>
                     </li>
-                    <li>
+                    <li v-if="shouldShowBaseControls">
                         <input class="textfield" style="width: 110px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                         <span v-if="searchKeyword" class="reset-search" @click="searchKeyword = ''" title="Reset search"><i class="fa-solid fa-circle-xmark"></i></span>
                     </li>
@@ -170,7 +170,7 @@
                         </span>
                     </li>
                     <li>
-                        <span @click="stopPathEdit" class="btn btn-small btn-secondary" title="Stop drawing">Stop</span>
+                        <span @click="stopPathEdit" class="btn btn-small btn-secondary" title="Stop drawing">Stop edit</span>
                     </li>
                 </ul>
             </div>
@@ -178,10 +178,14 @@
             <div v-if="(mode === 'edit' && isDrawing)" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <number-textfield :value="drawEpsilon" name="Optimization" @changed="onDrawEpsilonChanged" :min="1" :max="1000"/>
+                        <number-textfield :value="drawEpsilon" name="Smoothing" @changed="onDrawEpsilonChanged" :min="1" :max="1000"/>
                     </li>
+                </ul>
+            </div>
+            <div v-if="(mode === 'edit' && isDrawing)" class="quick-helper-panel-section">
+                <ul class="button-group">
                     <li>
-                        <span @click="stopDrawing" class="btn btn-small btn-secondary" title="Stop drawing">Stop</span>
+                        <span @click="stopDrawing" class="btn btn-small btn-secondary" title="Stop drawing">Stop drawing</span>
                     </li>
                 </ul>
             </div>
