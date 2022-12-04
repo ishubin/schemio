@@ -241,7 +241,7 @@ const ALL_TABS = [
     {name: 'description', displayName: 'Description',       icon: 'fas fa-paragraph'},
     {name: 'shape',       displayName: 'Shape Properties',  icon: 'fas fa-vector-square'},
     {name: 'behavior',    displayName: 'Behavior (Script)', icon: 'fas fa-running'},
-    {name: 'effects',     displayName: 'Effects',           icon: 'fas fa-magic'},
+    {name: 'effects',     displayName: 'Effects',           icon: 'fa-solid fa-wand-magic-sparkles'},
     {name: 'styles',      displayName: 'Style Palette',     icon: 'fas fa-palette'}
 ];
 

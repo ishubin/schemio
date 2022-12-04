@@ -188,12 +188,12 @@ const store = new Vuex.Store({
             state.apiClient = apiClient
         },
 
-        SET_AUTO_REMOUNT(state, autoRemount) {
-            state.autoRemount = autoRemount;
+        TOGGLE_AUTO_REMOUNT(state) {
+            state.autoRemount = !state.autoRemount;
         },
 
-        SET_SHOW_PIVOT(state, show) {
-            state.showPivot = show;
+        TOGGLE_PIVOT(state) {
+            state.showPivot = !state.showPivot;
         },
 
         SET_SHOW_CLICKABLE_MARKERS(state, show) {
@@ -574,12 +574,12 @@ const store = new Vuex.Store({
             commit('CLEAR_ITEM_SNAPPERS');
         },
 
-        setAutoRemount({commit}, autoRemount) {
-            commit('SET_AUTO_REMOUNT', autoRemount);
+        toggleAutoRemount({commit}) {
+            commit('TOGGLE_AUTO_REMOUNT');
         },
 
-        setShowPivot({commit}, show) {
-            commit('SET_SHOW_PIVOT', show);
+        togglePivot({commit}) {
+            commit('TOGGLE_PIVOT');
         },
 
         setShowClickableMarkers({commit}, show) {

@@ -74,12 +74,12 @@ export default {
         store.dispatch('clearItemSnappers');
     },
 
-    setAutoRemount(store, shouldAutoRemount) {
-        store.dispatch('setAutoRemount', shouldAutoRemount);
+    toggleAutoRemount(store) {
+        store.dispatch('toggleAutoRemount');
     },
 
-    setShowPivot(store, show) {
-        store.dispatch('setShowPivot', show);
+    togglePivot(store) {
+        store.dispatch('togglePivot');
     },
 
     setShowClickableMarkers(store, show) {

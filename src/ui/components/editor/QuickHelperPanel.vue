@@ -21,16 +21,16 @@
                         <div class="zoom-control">
                             <span class="zoom-button zoom-out" @click="onZoomOutClicked"><i class="fas fa-search-minus"></i></span>
                             <dropdown :options="zoomOptions" :inline="true" :hover-effect="false" :search-enabled="false" @selected="onZoomOptionSelected">
-                                <input :value="zoom" @keydown.enter="onZoomSubmit" style="min-width: 80px; padding-left: 1px; padding-right: 1px;"/>
+                                <input :value="zoom" @keydown.enter="onZoomSubmit" style="min-width: 45px; font-size: 12px; padding-left: 1px; padding-right: 1px;"/>
                             </dropdown>
                             <span class="zoom-button zoom-in" @click="onZoomInClicked"><i class="fas fa-search-plus"></i></span>
                         </div>
                     </li>
                     <li>
-                        <input class="textfield" style="width: 150px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
-                        <span v-if="searchKeyword" class="link" @click="searchKeyword = ''">Reset search</span>
+                        <input class="textfield" style="width: 110px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
+                        <span v-if="searchKeyword" class="reset-search" @click="searchKeyword = ''" title="Reset search"><i class="fa-solid fa-circle-xmark"></i></span>
                     </li>
-                    <li v-if="editAllowed">
+                    <li v-if="(editAllowed && shouldShowBaseControls)">
                         <div class="toggle-group">
                             <span v-for="knownMode in knownModes" class="toggle-button"
                                 :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
@@ -60,7 +60,7 @@
                 </ul>
             </div>
 
-            <div class="quick-helper-panel-section" v-if="mode === 'edit'">
+            <div class="quick-helper-panel-section" v-if="(mode === 'edit' && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li>
                         <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
@@ -81,7 +81,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="quick-helper-panel-section" v-if="mode === 'edit' && selectedItemsCount > 0">
+            <div class="quick-helper-panel-section" v-if="(mode === 'edit' && selectedItemsCount > 0 && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li>
                         <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
@@ -98,7 +98,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="quick-helper-panel-section" v-if="mode === 'edit' && selectedItemsCount > 0">
+            <div class="quick-helper-panel-section" v-if="(mode === 'edit' && selectedItemsCount > 0 && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li v-if="supportsFill">
                         <advanced-color-editor
@@ -157,7 +157,7 @@
                 </ul>
             </div>
 
-            <div v-if="mode === 'edit' && shouldShowPathHelpers" class="quick-helper-panel-section">
+            <div v-if="(mode === 'edit' && isEdittingPath)" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li v-if="firstSelectedPathEditPoint">
                         <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-path-points-to-simple')">
@@ -170,45 +170,31 @@
                         </span>
                     </li>
                     <li>
-                        <span @click="stopPathEdit" class="btn btn-small btn-primary">Stop Edit</span>
+                        <span @click="stopPathEdit" class="btn btn-small btn-secondary" title="Stop drawing">Stop</span>
                     </li>
                 </ul>
             </div>
 
-            <div v-if="mode === 'edit' && shouldShowDrawHelpers" class="quick-helper-panel-section">
+            <div v-if="(mode === 'edit' && isDrawing)" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
                         <number-textfield :value="drawEpsilon" name="Optimization" @changed="onDrawEpsilonChanged" :min="1" :max="1000"/>
                     </li>
                     <li>
-                        <span @click="stopDrawing" class="btn btn-small btn-primary">Stop Drawing</span>
+                        <span @click="stopDrawing" class="btn btn-small btn-secondary" title="Stop drawing">Stop</span>
                     </li>
                 </ul>
             </div>
 
-
-            <div v-if="mode === 'edit'" class="quick-helper-panel-section">
-                <ul class="button-group">
-                    <li>
-                        <input type="checkbox" title="Automatically mount items into other items"
-                            id="chk-auto-remount"
-                            :checked="autoRemount"
-                            :disabled="isRecording"
-                            @change="onAutoRemountChange"/>
-                        <label for="chk-auto-remount" title="Automatically mount items into other items">Auto mount</label>
-                    </li>
-                </ul>
-            </div>
-            <div v-if="mode === 'edit'" class="quick-helper-panel-section">
-                <ul class="button-group">
-                    <li>
-                        <input type="checkbox" title="Show pivot point handler"
-                            id="chk-show-pivot"
-                            :checked="showPivot"
-                            @change="onShowPivotChange"/>
-                        <label for="chk-show-pivot" title="Show pivot point handler">Pivot</label>
-                    </li>
-                </ul>
+            <div v-if="(mode === 'edit' && shouldShowBaseControls)" class="quick-helper-panel-section">
+                <div class="toggle-group">
+                    <span class="toggle-button" :class="{toggled: autoRemount}" @click="toggleAutoRemount" title="Automatically mount items into other items">
+                        <i class="fa-solid fa-person-arrow-down-to-line"></i>
+                    </span>
+                    <span class="toggle-button" :class="{toggled: showPivot}" @click="togglePivot" title="Pivot">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </span>
+                </div>
             </div>
             <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
@@ -455,12 +441,12 @@ export default {
             });
         },
 
-        onAutoRemountChange(event) {
-            StoreUtils.setAutoRemount(this.$store, event.target.checked);
+        toggleAutoRemount(event) {
+            StoreUtils.toggleAutoRemount(this.$store, event.target.checked);
         },
 
-        onShowPivotChange(event) {
-            StoreUtils.setShowPivot(this.$store, event.target.checked);
+        togglePivot() {
+            StoreUtils.togglePivot(this.$store);
         },
 
         toggleClickableMarkers(shown) {
@@ -613,11 +599,15 @@ export default {
             return this.$store.getters.shouldSnapToItems;
         },
 
-        shouldShowPathHelpers() {
+        shouldShowBaseControls() {
+            return this.state !== 'editPath' && this.state !== 'draw' && this.state !== 'connecting';
+        },
+
+        isEdittingPath() {
             return this.state === 'editPath';
         },
 
-        shouldShowDrawHelpers() {
+        isDrawing() {
             return this.state === 'draw';
         },
 

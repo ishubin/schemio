@@ -572,6 +572,7 @@ ul.pagination li a.current {
     display: table-cell;
     vertical-align: middle;
     overflow: hidden;
+    white-space: nowrap;
     height: 36px;
 }
 .quick-helper-panel-section {
@@ -635,6 +636,18 @@ ul.pagination li a.current {
 
 .quick-helper-panel .dropdown-container .dropdown-click-area {
     padding: 0;
+}
+
+.quick-helper-panel .reset-search {
+    position: absolute;
+    top: 3px;
+    right: 6px;
+    cursor: pointer;
+    color: var(--faint-strong-up);
+    opacity: 1;
+}
+.quick-helper-panel .reset-search:hover {
+    opacity: 0.7;
 }
 
 
@@ -1012,6 +1025,7 @@ ul.button-group {
     list-style: none;
 }
 ul.button-group > li {
+    position: relative;
     display: table-cell;
     margin: 0;
     padding: 0 2px 0 2px;

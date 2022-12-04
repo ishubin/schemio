@@ -35,7 +35,7 @@
             @path-edit-stopped="onPathEditStopped"
             @items-highlighted="onItemsHighlighted"
             >
-            <ul class="button-group" v-if="mode === 'edit' && (modified || statusMessage.message)">
+            <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && (modified || statusMessage.message)">
                 <li v-if="modified">
                     <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
                     <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
