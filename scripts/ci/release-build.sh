@@ -5,6 +5,11 @@ set -e
 NEW_VERSION=$1
 PROJECT_DIR=$(pwd)
 
+if [[ -z "$NEW_VERSION" ]]; then
+    >&2 echo "Missing version as a first argument"
+    exit 1
+fi
+
 git config --global user.name 'Ivan Shubin'
 git config --global user.email 'ivan.ishubin@gmail.com'
 
@@ -87,6 +92,9 @@ cd $PROJECT_DIR
 
 echo_section "Building drive app for prod"
 ./build-drive-app.sh
+
+echo Exiting
+exit 1
 
 cat package.json | jq ".version=\"$NEW_VERSION\"" > tmp && mv tmp package.json
 git add package.json

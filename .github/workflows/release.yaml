@@ -33,7 +33,7 @@ jobs:
 
       - run: npm ci
 
-      - run: ./scripts/ci/release-build.sh
+      - run: ./scripts/ci/release-build.sh ${{ inputs.schemio_version }}
 
       - run: ./scripts/ci/upload-drive-app-to-server.sh
         env:
@@ -70,8 +70,8 @@ jobs:
     needs: release
     uses: ./.github/workflows/build-electron.yaml
     with:
-      node_version: ${{ github.events.inputs.node_version }}
-      schemio_version: ${{ github.events.inputs.schemio_version }}
+      node_version: ${{ inputs.node_version }}
+      schemio_version: ${{ inputs.schemio_version }}
       attach_to_release: true
 
 
