@@ -15,7 +15,6 @@ on:
 
 jobs:
   call-electron-build:
-    needs: extract-version
     uses: ./.github/workflows/build-electron.yaml
     with:
       node_version: ${{ github.events.inputs.node_version }}
