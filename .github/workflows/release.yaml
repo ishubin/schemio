@@ -37,7 +37,9 @@ jobs:
 
       - run: ./scripts/ci/upload-drive-app-to-server.sh
         env:
-          DRIVE_SERVER_ENDPOINT: ${{ secrets.DRIVE_SERVER_ENDPOINT }}
+          DRIVE_SERVER_USER: ${{ secrets.DRIVE_SERVER_USER }}
+          DRIVE_SERVER_HOST: ${{ secrets.DRIVE_SERVER_HOST }}
+          DRIVE_SERVER_PATH: ${{ secrets.DRIVE_SERVER_PATH }}
           DRIVE_SERVER_KEY: ${{ secrets.DRIVE_SERVER_KEY }}
 
       - name: Release
