@@ -282,6 +282,9 @@ export function mergeAllItemPaths(mainItem, otherItems) {
                 const point = convertCurvePointToItemScale(relativePoint, otherItems[i].area.w, otherItems[i].area.h);
                 const p = localPointOnItemToLocalPointOnOtherItem(point.x, point.y, otherItems[i], mainItem);
                 p.t = point.t;
+                if (p.t === 'A') {
+                    p.h = point.h;
+                }
                 if (point.hasOwnProperty('x1')) {
                     const p1 = localPointOnItemToLocalPointOnOtherItem(point.x + point.x1, point.y + point.y1, otherItems[i], mainItem);
                     p.x1 = p1.x - p.x;
@@ -1057,8 +1060,9 @@ export default class StateEditPath extends State {
     }
 
     invertPath(pathId) {
-        this.item.shapeProps.paths[pathId].points.reverse();
-        this.item.shapeProps.paths[pathId].points.forEach(p => {
+        const points = this.item.shapeProps.paths[pathId].points;
+        points.reverse();
+        points.forEach(p => {
             if (p.t === 'B') {
                 const xt = p.x1;
                 const yt = p.y1;
@@ -1068,6 +1072,24 @@ export default class StateEditPath extends State {
                 p.y2 = yt;
             }
         });
+
+        const firstPoint = utils.clone(points[0]);
+
+        for (let i = 1; i < points.length; i++) {
+            if (points[i].t === 'A') {
+                if (points[i - 1].t !== 'A') {
+                    points[i].t = 'L';
+                }
+                points[i - 1].t = 'A';
+                points[i - 1].h = - points[i].h;
+            }
+        }
+
+        if (firstPoint.t === 'A') {
+            points[points.length - 1].t = 'A';
+            points[points.length - 1].h = -firstPoint.h;
+        }
+
         this.listener.onItemChanged(this.item.id);
         StoreUtils.updateAllCurveEditPoints(this.store, this.item);
         this.listener.onSchemeChangeCommitted();
