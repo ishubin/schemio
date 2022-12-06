@@ -60,7 +60,7 @@
                 </ul>
             </div>
 
-            <div class="quick-helper-panel-section" v-if="(mode === 'edit' && shouldShowBaseControls)">
+            <div class="quick-helper-panel-section" v-if="(mode === 'edit')">
                 <ul class="button-group">
                     <li>
                         <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
