@@ -31,6 +31,8 @@ jobs:
         with:
           node-version: ${{ inputs.node_version }}
 
+      - run: npm ci
+
       - run: ./scripts/ci/release-build.sh
 
       - run: ./scripts/ci/upload-drive-app-to-server.sh
