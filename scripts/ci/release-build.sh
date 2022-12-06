@@ -33,9 +33,12 @@ function copy_standard_assets() {
     copy_project_file dist/assets/schemio-standalone.js
     copy_project_file assets/schemio-standalone.html
     copy_project_file assets/schemio-standalone.css
-    copy_project_file assets/main.css
+    copy_project_file assets/art
     copy_project_file assets/css
+    copy_project_file assets/custom-fonts
     copy_project_file assets/images
+    copy_project_file assets/js
+    copy_project_file assets/shapes
     copy_project_file assets/webfonts
 }
 
@@ -92,9 +95,6 @@ cd $PROJECT_DIR
 
 echo_section "Building drive app for prod"
 ./build-drive-app.sh
-
-echo Exiting
-exit 1
 
 cat package.json | jq ".version=\"$NEW_VERSION\"" > tmp && mv tmp package.json
 git add package.json
