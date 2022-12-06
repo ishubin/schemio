@@ -1,0 +1,75 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      schemio_version:
+        description: 'Schemio version'
+        type: string
+        default: '0.1.1'
+      node_version:
+        description: 'Node version'
+        type: string
+        default: 18.x
+
+jobs:
+  release:
+    name: Build and release
+    permissions:
+      # write permission is required to create a github release
+      contents: write
+      # write permission is required for autolabeler
+      # otherwise, read permission is required at least
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+
+      - run: ./scripts/ci/release-build.sh
+
+      - run: ./scripts/ci/upload-drive-app-to-server.sh
+        env:
+          DRIVE_SERVER_ENDPOINT: ${{ secrets.DRIVE_SERVER_ENDPOINT }}
+          DRIVE_SERVER_KEY: ${{ secrets.DRIVE_SERVER_KEY }}
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.schemio_version }}
+          generate_release_notes: true
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/release/schemio-${{ inputs.schemio_version }}.zip
+            dist/release/schemio-static-${{ inputs.schemio_version }}.zip
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: |
+            binshu/schemio:latest
+            binshu/schemio:${{ inputs.schemio_version }}
+
+
+  build-electron-packages:
+    needs: release
+    uses: ./.github/workflows/build-electron.yaml
+    with:
+      node_version: ${{ github.events.inputs.node_version }}
+      schemio_version: ${{ github.events.inputs.schemio_version }}
+      attach_to_release: true
+
+
