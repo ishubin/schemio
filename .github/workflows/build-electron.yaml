@@ -35,6 +35,7 @@ jobs:
         with:
           name: schemio-electron-mac-zip
           path: out/make/zip/darwin/x64/schemio-darwin-x64-${{ inputs.schemio_version }}.zip
+      - run: find out | grep -v .webpack/renderer/assets
       - name: Upload to release asset
         if: ${{ inputs.attach_to_release == true }}
         uses: softprops/action-gh-release@v1
@@ -65,6 +66,7 @@ jobs:
         with:
           name: schemio-electron-linux-deb
           path: out/make/deb/x64/schemio_${{ inputs.schemio_version }}_amd64.deb
+      - run: find out | grep -v .webpack/renderer/assets
       - name: Upload to release asset
         if: ${{ inputs.attach_to_release == true }}
         uses: softprops/action-gh-release@v1
@@ -91,6 +93,8 @@ jobs:
         with:
           name: schemio-electron-win-setup
           path: out/make/squirrel.windows/x64/schemio-${{ inputs.schemio_version }} Setup.exe
+      - run: npm install -g tree-cli
+      - run: cd out && tree -l 8
       - name: Upload to release asset
         if: ${{ inputs.attach_to_release == true }}
         uses: softprops/action-gh-release@v1
