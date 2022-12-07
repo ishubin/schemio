@@ -78,7 +78,8 @@ jobs:
     name: Build on MacOS
     steps:
       - uses: actions/checkout@v3
-        ref: v${{ inputs.schemio_version }}
+        with:
+          ref: v${{ inputs.schemio_version }}
       - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
@@ -102,7 +103,8 @@ jobs:
     name: Build on Linux
     steps:
       - uses: actions/checkout@v3
-        ref: v${{ inputs.schemio_version }}
+        with:
+          ref: v${{ inputs.schemio_version }}
       - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
@@ -130,7 +132,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
-        ref: v${{ inputs.schemio_version }}
+        with:
+          ref: v${{ inputs.schemio_version }}
       - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
