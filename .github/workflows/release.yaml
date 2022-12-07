@@ -26,6 +26,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - run: git fetch --all
+
       - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
