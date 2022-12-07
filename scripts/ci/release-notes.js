@@ -108,7 +108,7 @@ execute('git tag | sort -V -r | head -n 1')
     if (!gitTag) {
         throw new Error('Missing git tag');
     }
-    return execute(`git log --pretty=format:"%s (%h)" HEAD...${gitTag}`);
+    return execute(`git log --pretty=format:"%s (%h)" master...${gitTag}`);
 })
 .then((stdout) => {
     const messages = stdout.split('\n');
