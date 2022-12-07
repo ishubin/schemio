@@ -35,8 +35,6 @@ jobs:
 
       - run: npm ci
 
-      - run: node scripts/ci/release-notes.js > ${{ github.workspace }}-CHANGELOG.txt
-
       - run: ./scripts/ci/release-build.sh ${{ inputs.schemio_version }}
 
       - run: ./scripts/ci/upload-drive-app-to-server.sh
@@ -50,8 +48,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ inputs.schemio_version }}
-          body_path: ${{ github.workspace }}-CHANGELOG.txt
-          draft: true
           fail_on_unmatched_files: true
           files: |
             dist/release/schemio-${{ inputs.schemio_version }}.zip
