@@ -78,10 +78,11 @@ jobs:
     name: Build on MacOS
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ github.event.inputs.node_version }}
+        ref: v${{ inputs.schemio_version }}
+      - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ github.event.inputs.node_version }}
+          node-version: ${{ inputs.node_version }}
       - run: npm ci
       - run: npm run package-electron
       - run: npm run make-electron
@@ -89,9 +90,9 @@ jobs:
       - name: Upload to release asset
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ github.event.inputs.schemio_version }}
+          tag_name: v${{ inputs.schemio_version }}
           fail_on_unmatched_files: true
-          files: out/make/zip/darwin/x64/schemio-darwin-x64-${{ github.event.inputs.schemio_version }}.zip
+          files: out/make/zip/darwin/x64/schemio-darwin-x64-${{ inputs.schemio_version }}.zip
 
 
 
@@ -101,6 +102,7 @@ jobs:
     name: Build on Linux
     steps:
       - uses: actions/checkout@v3
+        ref: v${{ inputs.schemio_version }}
       - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
@@ -128,6 +130,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+        ref: v${{ inputs.schemio_version }}
       - name: Use Node.js ${{ inputs.node_version }}
         uses: actions/setup-node@v3
         with:
