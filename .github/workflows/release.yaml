@@ -33,6 +33,8 @@ jobs:
 
       - run: npm ci
 
+      - run: node scripts/ci/release-notes.js > ${{ github.workspace }}-CHANGELOG.txt
+
       - run: ./scripts/ci/release-build.sh ${{ inputs.schemio_version }}
 
       - run: ./scripts/ci/upload-drive-app-to-server.sh
@@ -46,7 +48,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ inputs.schemio_version }}
-          generate_release_notes: true
+          body_path: ${{ github.workspace }}-CHANGELOG.txt
           draft: true
           fail_on_unmatched_files: true
           files: |
@@ -68,12 +70,77 @@ jobs:
             binshu/schemio:${{ inputs.schemio_version }}
 
 
-  build-electron-packages:
+  build-mac:
     needs: release
-    uses: ./.github/workflows/build-electron.yaml
-    with:
-      node_version: ${{ inputs.node_version }}
-      schemio_version: ${{ inputs.schemio_version }}
-      attach_to_release: true
+    runs-on: macOS-latest
+    name: Build on MacOS
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.event.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.event.inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - run: find out | grep -v .webpack/renderer/assets
+      - name: Upload to release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.event.inputs.schemio_version }}
+          fail_on_unmatched_files: true
+          files: out/make/zip/darwin/x64/schemio-darwin-x64-${{ github.event.inputs.schemio_version }}.zip
+
+
+
+  build-linux:
+    needs: release
+    runs-on: ubuntu-latest
+    name: Build on Linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - uses: actions/upload-artifact@v3
+        with:
+          name: schemio-electron-linux-rpm
+          path: out/make/rpm/x64/schemio-${{ inputs.schemio_version }}-1.x86_64.rpm
+      - run: find out | grep -v .webpack/renderer/assets
+      - name: Upload to release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.schemio_version }}
+          fail_on_unmatched_files: true
+          files: |
+            out/make/rpm/x64/schemio-${{ inputs.schemio_version }}-1.x86_64.rpm
+            out/make/deb/x64/schemio_${{ inputs.schemio_version }}_amd64.deb
+
+  build-win:
+    needs: release
+    name: Build Windows app
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - run: npm install -g tree-cli
+      - run: cd out && tree -l 8
+      - name: Upload to release asset
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.schemio_version }}
+          fail_on_unmatched_files: true
+          files: out/make/squirrel.windows/x64/schemio-${{ inputs.schemio_version }} Setup.exe
+
 
 
