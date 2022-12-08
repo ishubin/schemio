@@ -517,7 +517,7 @@ export default {
         },
 
         onBrowseClose() {
-            if (this.$store.getters.schemeModified) {
+            if (this.modified) {
                 return 'The changes were not saved';
             }
             return null;
