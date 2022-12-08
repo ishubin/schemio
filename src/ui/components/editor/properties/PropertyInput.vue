@@ -48,7 +48,7 @@
 
         <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue(arguments[0])"/>
 
-       <scheme-search-modal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefSelect"></scheme-search-modal>
+       <SchemeSearchModal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefSelect"/>
     </div>
 
 </template>

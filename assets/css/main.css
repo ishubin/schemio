@@ -1229,8 +1229,41 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .scheme-editor-component .bottom-panel .bottom-panel-content {
     flex: 1;
+    display: flex;
+    padding-left: 10px;
+    align-items: center;
 }
 
+.scheme-editor-component .bottom-panel .bottom-panel-content .label {
+    font-size: 12px;
+    padding-left: 10px;
+    white-space: nowrap;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content > .toggle-group {
+    margin: 5px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content > .toggle-group > .toggle-button {
+    font-size: 12px;
+    padding: 4px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content .element-picker .picked-element {
+    font-size: 12px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content .external-diagram-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content .external-diagram-controls input.textfield {
+    margin-left: 10px;
+    padding: 4px;
+    font-size: 12px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content .external-diagram-controls .btn {
+    font-size: 11px;
+    padding: 4px 8px;
+    margin-left: 2px;
+}
 
 
 /******************** Draw Side Panel Properties *********/
@@ -2503,6 +2536,7 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
 /************************ Frame Animator *************************/
 .frame-animator-panel {
     height: 100%;
+    flex: 1;
 }
 .frame-animator-panel .frame-animator-light {
     padding: 5px;

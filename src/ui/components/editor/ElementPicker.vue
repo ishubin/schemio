@@ -34,7 +34,7 @@ export default {
         editorId:           {type: String, required: true},
         element:            {type: String,  default: null},
         selfItem:           {type: Object,  default: null},
-        schemeContainer:    {type: Object},
+        schemeContainer:    {type: Object,  required: true},
         useSelf:            {type: Boolean, default: true},
         noneLabel:          {type: String,  default: 'None'},
         allowNone:          {type: Boolean, default: false},

@@ -173,7 +173,7 @@
             </div>
 
 
-            <div v-if="mode === 'edit' && (animatorPanel.framePlayer || currentAnimatorFramePlayer)"
+            <div v-if="mode === 'edit' && ((selectedItem && selectedItem.shape === 'frame_player') || currentAnimatorFramePlayer)"
                 class="bottom-panel"
                 :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
                 >
@@ -193,15 +193,49 @@
                             />
 
                         <FrameAnimatorPanel
-                            v-else-if="animatorPanel.framePlayer"
-                            :key="animatorPanel.framePlayer.id"
+                            v-else-if="selectedItem"
+                            :key="selectedItem.id"
                             :editorId="editorId"
                             :schemeContainer="schemeContainer"
-                            :framePlayer="animatorPanel.framePlayer"
+                            :framePlayer="selectedItem"
                             :light="true"
                             @animation-editor-opened="onAnimatiorEditorOpened"
                             @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
                             />
+                    </div>
+                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
+                </div>
+            </div>
+
+            <div v-else-if="mode === 'edit' && selectedItem && selectedItem.shape === 'component'"
+                class="bottom-panel"
+                :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
+                >
+                <div class="bottom-panel-body">
+                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
+                    <div class="bottom-panel-content">
+                        <div class="toggle-group">
+                            <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'external'}" @click="switchSelectedComponentKind('external')" title="Loads external diagram">
+                                External
+                            </span>
+                            <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'embedded'}" @click="switchSelectedComponentKind('embedded')" title="Use items in the same document">
+                                Embedded
+                            </span>
+                        </div>
+                        <div v-if="selectedItem.shapeProps.kind == 'external'" class="external-diagram-controls">
+                            <span class="label">External diagram: </span>
+                            <input type="text" class="textfield" :value="selectedItem.shapeProps.schemeId" @input="setSelectedComponentSchemeId(arguments[0].target.value)"/>
+                            <span class="btn btn-secondary btn-small" @click="toggleSchemeSearchForSelectedComponent()"><i class="fas fa-search"></i></span>
+                        </div>
+                        <div v-if="selectedItem.shapeProps.kind == 'embedded'">
+                            <span class="label">Reference Item: </span>
+                            <ElementPicker :editorId="editorId"
+                                :element="selectedItem.shapeProps.referenceItem"
+                                :schemeContainer="schemeContainer"
+                                :useSelf="false"
+                                @selected="setSelectedComponentReferenceItem"
+                                />
+                        </div>
                     </div>
                     <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
                 </div>
@@ -359,6 +393,8 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
+       <SchemeSearchModal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefForSelectedComponent"/>
+
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
                 <div v-if="loadingStep === 'load'">
@@ -405,8 +441,10 @@ import ItemDetails from './editor/ItemDetails.vue';
 import SchemeProperties from './editor/SchemeProperties.vue';
 import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
+import ElementPicker from './editor/ElementPicker.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
+import SchemeSearchModal from './editor/SchemeSearchModal.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
@@ -515,7 +553,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        Comments, MultiItemEditBox,
+        Comments, MultiItemEditBox, ElementPicker, SchemeSearchModal
     },
 
     props: {
@@ -544,6 +582,8 @@ export default {
             counter: 0,
             provider: null
         }},
+
+        schemeSearchModalShown: false
     },
 
     created() {
@@ -772,9 +812,7 @@ export default {
 
             drawColorPallete,
 
-            animatorPanel: {
-                framePlayer: null,
-            },
+            selectedItem: null,
 
             floatingHelperPanel: {
                 shown: false,
@@ -1498,11 +1536,10 @@ export default {
                 }
                 const textSlots = shape.getTextSlots(item);
 
-                if (this.schemeContainer.selectedItems.length === 1 && this.schemeContainer.selectedItems[0].shape === 'frame_player') {
-                    const item = this.schemeContainer.selectedItems[0];
-                    this.animatorPanel.framePlayer = item;
+                if (this.schemeContainer.selectedItems.length === 1) {
+                    this.selectedItem = this.schemeContainer.selectedItems[0];
                 } else {
-                    this.animatorPanel.framePlayer = null;
+                    this.selectedItem = null;
                 }
 
                 if (textSlots && textSlots.length > 0) {
@@ -1518,7 +1555,7 @@ export default {
                 }
             } else {
                 this.$emit('items-deselected');
-                this.animatorPanel.framePlayer = null;
+                this.selectedItem = null;
                 this.itemTextSlotsAvailable.length = 0;
             }
 
@@ -2319,6 +2356,60 @@ export default {
             } else {
                 this.states.dragItem.disableRecording();
             }
+        },
+
+        switchSelectedComponentKind(kind) {
+            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
+                return;
+            }
+            this.selectedItem.shapeProps.kind = kind;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.kind');
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.kind`);
+            this.updateSelectedComponent();
+            this.$forceUpdate();
+        },
+
+        setSelectedComponentReferenceItem(element) {
+            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
+                return;
+            }
+            this.selectedItem.shapeProps.referenceItem = element;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.referenceItem');
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.referenceItem`);
+            this.updateSelectedComponent();
+            this.$forceUpdate();
+        },
+
+        updateSelectedComponent() {
+            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
+                return;
+            }
+            if (this.selectedItem.shapeProps.kind !== 'embedded' && this.selectedItem._childItems) {
+                this.selectedItem._childItems = [];
+            }
+            this.schemeContainer.reindexSpecifiedItems([this.selectedItem]);
+            this.schemeContainer.reindexItems();
+        },
+
+        toggleSchemeSearchForSelectedComponent() {
+            this.schemeSearchModalShown = true;
+        },
+
+        setSelectedComponentSchemeId(schemeId) {
+            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
+                return;
+            }
+            this.selectedItem.shapeProps.schemeId = schemeId;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.schemeId`);
+        },
+
+        onSchemeRefForSelectedComponent(scheme) {
+            this.schemeSearchModalShown = false;
+            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
+                return;
+            }
+            this.setSelectedComponentSchemeId(scheme.id);
         },
 
         //calculates from world to screen
