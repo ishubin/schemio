@@ -1321,6 +1321,7 @@ ul.button-group > li.disabled > .icon-button:hover,
 }
 .vc-chrome-body {
     box-shadow: none !important;
+    background: var(--faint-weak) !important;
 }
 .vc-chrome, .vc-sketch {
     box-shadow: none !important;
@@ -1330,7 +1331,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     position: fixed;
     z-index: 1000;
     padding: 4px;
-    background: var(--base-weak);
+    background: var(--faint-weak);
     box-shadow: 0 0 5px var(--shadow-color);
 }
 

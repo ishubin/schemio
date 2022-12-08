@@ -49,7 +49,7 @@ export default {
         item: {type: Object, required: true},
     },
 
-    components: {'color-picker': VueColor.Sketch, NumberTextfield},
+    components: {'color-picker': VueColor.Chrome, NumberTextfield},
 
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);

@@ -60,7 +60,7 @@ export default {
         item: {type: Object, required: true},
     },
 
-    components: {'color-picker': VueColor.Sketch, NumberTextfield, Dropdown},
+    components: {'color-picker': VueColor.Chrome, NumberTextfield, Dropdown},
 
     beforeMount() {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChange);

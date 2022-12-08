@@ -32,7 +32,7 @@ export default {
         hint    : {type: String, default: ''}
     },
 
-    components: {'color-picker': VueColor.Sketch},
+    components: {'color-picker': VueColor.Chrome},
     data() {
         return {
             pickerColor: this.color,

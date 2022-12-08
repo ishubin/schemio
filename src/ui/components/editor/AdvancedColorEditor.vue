@@ -28,7 +28,7 @@
                     </p>
                 </div>
                 <div v-if="color.type === 'solid'">
-                    <color-picker v-model="modal.pickerColor" @input="updateSolidColor"/>
+                    <color-picker v-model="modal.pickerColor" @input="updateSolidColor" :palette="[]" :pressets="[]"/>
                 </div>
 
                 <div v-if="color.type === 'image'">
@@ -132,7 +132,7 @@ export default {
         disabled : {type: Boolean, default : false},
     },
 
-    components: {'color-picker': VueColor.Sketch, Modal, NumberTextfield},
+    components: {'color-picker': VueColor.Chrome, Modal, NumberTextfield},
 
     beforeMount() {
         this.updateCurrentColor(this.value);
