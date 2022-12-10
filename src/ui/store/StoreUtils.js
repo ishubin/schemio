@@ -33,26 +33,6 @@ export default {
         store.dispatch('clearItemControlPoints');
     },
 
-    updateAllCurveEditPoints(store, item) {
-        // the following action will reset all the curve eidt points in store
-        store.dispatch('setCurveEditItem', item);
-    },
-    updateCurveEditPoint(store, item, pathId, pointId, point) {
-        store.dispatch('updateCurveEditPoint', {item, pathId, pointId, point });
-    },
-    toggleCurveEditPointSelection(store, pathId, pointId, inclusive) {
-        store.dispatch('toggleCurveEditPointSelection', { pathId, pointId, inclusive });
-    },
-    resetCurveEditPointSelection(store) {
-        store.dispatch('resetCurveEditPointSelection');
-    },
-    selectCurveEditPoint(store, pathId, pointId, inclusive) {
-        store.dispatch('selectCurveEditPoint', {pathId, pointId, inclusive });
-    },
-    getCurveEditPaths(store) {
-        return store.state.curveEditing.paths;
-    },
-
     setMultiSelectBox(store, box) {
         store.dispatch('setMultiSelectBox', box);
     },

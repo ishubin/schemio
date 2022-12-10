@@ -90,6 +90,7 @@ function convertPathPointToWorld(p, item) {
 export default {
     props: {
         editorId           : {type: String, required: true},
+        curvePaths         : { type: Object, required: true},
         pathPointsUpdateKey: {type: Number, required: true},
         item               : {type: Object},
         zoom               : {type: Number},
@@ -153,9 +154,6 @@ export default {
             return Math.max(1, this.item.shapeProps.strokeSize) + 2;
         },
 
-        curvePaths() {
-            return this.$store.getters.curveEditPaths;
-        },
     },
 
     watch: {

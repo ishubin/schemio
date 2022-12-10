@@ -25,16 +25,30 @@
             @clicked-redo="historyRedo()"
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
-            @convert-path-points-to-simple="convertCurvePointToSimple()"
-            @convert-path-points-to-bezier="convertCurvePointToBezier()"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
-            @path-edit-stopped="onPathEditStopped"
             @items-highlighted="onItemsHighlighted"
             >
+
+            <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
+                <li v-if="curveEditing.selectedPoints.length > 0">
+                    <span class="icon-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
+                        <img :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
+                    </span>
+                </li>
+                <li v-if="curveEditing.selectedPoints.length > 0">
+                    <span class="icon-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
+                        <img :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
+                    </span>
+                </li>
+                <li>
+                    <span @click="onPathEditStopped" class="btn btn-small btn-secondary" title="Stop drawing">Stop edit</span>
+                </li>
+            </ul>
+
             <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && (modified || statusMessage.message)">
                 <li v-if="modified">
                     <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
@@ -92,11 +106,12 @@
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
 
-                        <g v-if="state === 'editPath' && curveEditItem && curveEditItem.meta">
+                        <g v-if="state === 'editPath' && curveEditing.item && curveEditing.item.meta">
                             <PathEditBox
-                                :key="`item-curve-edit-box-${curveEditItem.id}`"
+                                :key="`item-curve-edit-box-${curveEditing.item.id}`"
                                 :editorId="editorId"
-                                :item="curveEditItem"
+                                :item="curveEditing.item"
+                                :curvePaths="curveEditing.paths"
                                 :pathPointsUpdateKey="pathPointsUpdateKey"
                                 :zoom="schemeContainer.screenTransform.scale"
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
@@ -207,10 +222,7 @@
                 </div>
             </div>
 
-            <div v-else-if="mode === 'edit' && selectedItem && selectedItem.shape === 'component'"
-                class="bottom-panel"
-                :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
-                >
+            <div v-else-if="mode === 'edit' && selectedItem && selectedItem.shape === 'component'" class="bottom-panel">
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
@@ -235,6 +247,24 @@
                                 :useSelf="false"
                                 @selected="setSelectedComponentReferenceItem"
                                 />
+                        </div>
+                    </div>
+                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
+                </div>
+            </div>
+
+            <div v-else-if="(mode === 'edit' && state === 'editPath')" class="bottom-panel">
+                <div class="bottom-panel-body">
+                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
+                    <div class="bottom-panel-content">
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{cursorX | prettifyAxisValue(zoom)}}</span>
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{cursorY | prettifyAxisValue(zoom)}}</span>
+                        <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
+                            <span class="label">x: </span>
+                            <input type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)" @input="onCurveEditingPointInput($event.target.value, 'x')"/>
+
+                            <span class="label">y: </span>
+                            <input type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)" @input="onCurveEditingPointInput($event.target.value, 'y')"/>
                         </div>
                     </div>
                     <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
@@ -433,7 +463,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
-import SchemeContainer, { worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -477,6 +507,7 @@ import StateCropImage from './editor/states/StateCropImage.js';
 import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
+import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -486,6 +517,64 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     resized: false
 };
 
+function prettifyAxisValue(value, zoom) {
+    value = parseFloat(value);
+    if (zoom <= 100) {
+        return value.toFixed(0);
+    } else if (zoom < 500) {
+        return value.toFixed(1);
+    }
+    return value.toFixed(2);
+}
+
+function createCurvePointConverter(item) {
+    return (point)  => {
+        const convertedPoint = utils.clone(point);
+        const p = worldPointOnItem(point.x, point.y, item);
+
+        convertedPoint.x = p.x;
+        convertedPoint.y = p.y;
+
+        if (point.t === 'B') {
+            const p1 = worldPointOnItem(point.x + point.x1, point.y + point.y1, item);
+            convertedPoint.x1 = p1.x - p.x;
+            convertedPoint.y1 = p1.y - p.y;
+        }
+        if (point.t === 'B') {
+            const p2 = worldPointOnItem(point.x + point.x2, point.y + point.y2, item);
+            convertedPoint.x2 = p2.x - p.x;
+            convertedPoint.y2 = p2.y - p.y;
+        }
+        return convertedPoint;
+    }
+}
+
+function enrichCurvePoint(point) {
+    if (point.t === 'B') {
+        let length = Math.sqrt(point.x1*point.x1 + point.y1*point.y1);
+        let vx1 = 1, vy1 = 0;
+        if (length > 0.000001) {
+            vx1 = point.x1 / length;
+            vy1 = point.y1 / length;
+        }
+        length = Math.sqrt(point.x2*point.x2 + point.y2*point.y2);
+        let vx2 = 1, vy2 = 0;
+        if (length > 0.000001) {
+            vx2 = point.x2 / length;
+            vy2 = point.y2 / length;
+        }
+        point.vx1 = vx1;
+        point.vy1 = vy1;
+        point.vx2 = vx2;
+        point.vy2 = vy2;
+    }
+}
+
+
+function validatePointIds(pathId, pointId, curveEditing) {
+    return pathId >= 0 && pathId < curveEditing.paths.length
+        && pointId >= 0 && pointId < curveEditing.paths[pathId].points.length;
+}
 
 function imgPreload(imageUrl) {
     return new Promise((resolve, reject) => {
@@ -627,12 +716,21 @@ export default {
                     this.historyState.undoable = undoable;
                     this.historyState.redoable = redoable;
                 },
+                onCursorUpdated: (x, y) => {
+                    this.cursorX = x;
+                    this.cursorY = y;
+                },
                 onPathPointsUpdated: () => { this.pathPointsUpdateKey++; },
                 onContextMenuRequested: (mx, my, menuOptions) => this.onContextMenuRequested(mx, my, menuOptions),
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
+                onScreenTransformUpdated,
+                updateAllCurveEditPoints: (item) => this.setCurveEditItem(item),
+                updateCurveEditPoint: (item, pathId, pointId, point) => this.updateCurveEditPoint(item, pathId, pointId, point),
+                resetCurveEditPointSelection: () => this.resetCurveEditPointSelection(),
+                selectCurveEditPoint: (pathId, pointId, inclusive) => this.selectCurveEditPoint(pathId, pointId, inclusive),
+                getCurveEditPaths: () => this.curveEditing.paths,
             }),
             connecting: new StateConnecting(this.$store, {
                 onCancel,
@@ -726,6 +824,9 @@ export default {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file and if history is undone/redone
             editorRevision: 0,
+
+            cursorX: 0,
+            cursorY: 0,
 
             state: 'interact',
             userEventBus: new UserEventBus(this.editorId),
@@ -826,7 +927,14 @@ export default {
             // flag that is set when record button is pressed in frame animator panel
             isRecording: false,
 
-            currentAnimatorFramePlayer: null
+            currentAnimatorFramePlayer: null,
+
+            curveEditing: {
+                // item whose curve is currently edited
+                item: null,
+                paths: [],
+                selectedPoints: []
+            },
         }
     },
     methods: {
@@ -962,10 +1070,6 @@ export default {
             this.states[this.state].reset();
             this.states[this.state].setItem(item);
             this.updateFloatingHelperPanel();
-        },
-
-        setCurveEditItem(item) {
-            this.$store.dispatch('setCurveEditItem', item);
         },
 
         startPathEditing(item) {
@@ -1460,23 +1564,20 @@ export default {
         },
 
         restoreCurveEditing() {
-            if (this.$store.state.editorStateName === 'editPath') {
-                const storeItem = this.$store.state.curveEditing.item;
-                if (!storeItem) {
+            if (this.state === 'editPath') {
+                if (!this.curveEditing.item) {
                     return;
                 }
-                const existingItem = this.schemeContainer.findItemById(storeItem.id);
+                const existingItem = this.schemeContainer.findItemById(this.curveEditing.item.id);
                 if (existingItem) {
-                    this.$store.dispatch('setCurveEditItem', existingItem);
+                    this.setCurveEditItem(existingItem);
                     this.onEditPathRequested(existingItem);
                 } else {
-                    this.$store.dispatch('setCurveEditItem', null);
-                    if (this.$store.state.editorStateName === 'editPath') {
-                        this.onPathEditStopped();
-                    }
+                    this.setCurveEditItem(null);
+                    this.onPathEditStopped();
                 }
             } else {
-                this.$store.dispatch('setCurveEditItem', null);
+                this.setCurveEditItem(null);
             }
         },
 
@@ -2412,6 +2513,116 @@ export default {
             this.setSelectedComponentSchemeId(scheme.id);
         },
 
+        setCurveEditItem(item) {
+            this.curveEditing.item = item;
+            this.curveEditing.paths.length = 0;
+            const paths = [];
+            if (item) {
+                item.shapeProps.paths.forEach((path, pathId) => {
+                    const points = [];
+                    path.points.forEach((point, pointId) => {
+                        const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                        p.id = pointId;
+                        p.selected = false;
+                        enrichCurvePoint(p);
+                        points.push(p);
+                    });
+                    paths.push({ id: pathId, points });
+                });
+                const pointConverter = createCurvePointConverter(item);
+                paths.forEach((path, pathId) => {
+                    this.curveEditing.paths[pathId] = {id: path.id, points: path.points.map(pointConverter)};
+                });
+            }
+        },
+        updateCurveEditPoint(item, pathId, pointId, point, skipSelectedPointUpdate) {
+            if (!validatePointIds(pathId, pointId, this.curveEditing)) {
+                return;
+            }
+
+            const pointConverter = createCurvePointConverter(item);
+            const convertedPoint = pointConverter(convertCurvePointToItemScale(point, item.area.w, item.area.h));
+
+            forEach(convertedPoint, (value, field) => {
+                this.curveEditing.paths[pathId].points[pointId][field] = value;
+                enrichCurvePoint(this.curveEditing.paths[pathId].points[pointId]);
+            });
+            // skipping update of selected point is needed as when user types values in textfield
+            // textfield gets updated with rounded value and sometimes adds '0'
+            if (!skipSelectedPointUpdate) {
+                // this is dirty hack, but we only need to update selected points
+                // in case a single one is selected, as it gets displayed in the bottom panel
+                if (this.curveEditing.selectedPoints.length === 1
+                    && this.curveEditing.selectedPoints[0].pathId === pathId
+                    && this.curveEditing.selectedPoints[0].pointId === pointId) {
+                    this.curveEditing.selectedPoints[0].x = convertedPoint.x;
+                    this.curveEditing.selectedPoints[0].y = convertedPoint.y;
+                }
+            }
+        },
+        resetCurveEditPointSelection() {
+            this.curveEditing.selectedPoints = [];
+            this.curveEditing.paths.forEach(path => {
+                path.points.forEach(point => {
+                    point.selected = false;
+                });
+            });
+            this.pathPointsUpdateKey++;
+        },
+        selectCurveEditPoint(pathId, pointId, inclusive) {
+            if (!validatePointIds(pathId, pointId, this.curveEditing)) {
+                return;
+            }
+            if (inclusive) {
+                this.curveEditing.paths[pathId].points[pointId].selected = true;
+            } else {
+                this.curveEditing.paths.forEach((path, _pathIndex) => {
+                    path.points.forEach((point, _pointIndex) => {
+                        point.selected = _pathIndex === pathId && _pointIndex === pointId;
+                    });
+                });
+            }
+            this.updateSelectedCurveEditPoints();
+        },
+        updateSelectedCurveEditPoints() {
+            const selectedPoints = [];
+            this.curveEditing.paths.forEach((path, pathId) => {
+                path.points.forEach((point, pointId) => {
+                    if (point.selected) {
+                        selectedPoints.push({ ...point, pathId, pointId });
+                    }
+                });
+            });
+            this.curveEditing.selectedPoints = selectedPoints;
+        },
+
+        onCurveEditingPointInput(text, axis) {
+            const value = parseFloat(text);
+            if (isNaN(value) || this.curveEditing.selectedPoints.length !== 1 || !this.curveEditing.item) {
+                return;
+            }
+
+            const {pathId, pointId} = this.curveEditing.selectedPoints[0];
+            const point = this.curveEditing.item.shapeProps.paths[pathId].points[pointId];
+
+            let {x, y} = this.curveEditing.selectedPoints[0];
+            const worldPoint = {x, y};
+            worldPoint[axis] = value;
+
+            const localPoint = localPointOnItem(worldPoint.x, worldPoint.y, this.curveEditing.item);
+            const convertedPoint = convertCurvePointToRelative(localPoint, this.curveEditing.item.area.w, this.curveEditing.item.area.h);
+
+            point.x = convertedPoint.x;
+            point.y = convertedPoint.y;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
+            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point, true);
+        },
+
+        prettifyAxisValue(value, zoom) {
+            return prettifyAxisValue(value, zoom);
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
@@ -2424,8 +2635,8 @@ export default {
     },
 
     filters: {
-        capitalize(value) {
-            return value.substring(0, 1).toUpperCase() + value.substring(1, value.length);
+        prettifyAxisValue(value, zoom) {
+            return prettifyAxisValue(value, zoom);
         }
     },
 
@@ -2491,12 +2702,12 @@ export default {
             return this.$store.getters.apiClient;
         },
 
-        curveEditItem() {
-            return this.$store.state.curveEditing.item;
-        },
-
         editorSubStateName() {
             return this.$store.getters.editorSubStateName;
+        },
+
+        assetsPath() {
+            return this.$store.getters.assetsPath;
         },
     }
 }

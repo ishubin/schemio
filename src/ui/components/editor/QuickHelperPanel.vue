@@ -157,24 +157,6 @@
                 </ul>
             </div>
 
-            <div v-if="(mode === 'edit' && isEdittingPath)" class="quick-helper-panel-section">
-                <ul class="button-group">
-                    <li v-if="firstSelectedPathEditPoint">
-                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'L'}" title="Simple" @click="$emit('convert-path-points-to-simple')">
-                            <img :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
-                        </span>
-                    </li>
-                    <li v-if="firstSelectedPathEditPoint">
-                        <span class="icon-button" :class="{'dimmed': firstSelectedPathEditPoint.t != 'B'}" title="Simple" @click="$emit('convert-path-points-to-bezier')">
-                            <img :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
-                        </span>
-                    </li>
-                    <li>
-                        <span @click="stopPathEdit" class="btn btn-small btn-secondary" title="Stop drawing">Stop edit</span>
-                    </li>
-                </ul>
-            </div>
-
             <div v-if="(mode === 'edit' && isDrawing)" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
@@ -358,10 +340,6 @@ export default {
 
         isCreatingConnector() {
             return this.state === 'connecting' && this.$store.state.connecting.connectorItem;
-        },
-
-        stopPathEdit() {
-            this.$emit('path-edit-stopped');
         },
 
         stopDrawing() {
@@ -639,10 +617,6 @@ export default {
 
         showClickableMarkers() {
             return this.$store.getters.showClickableMarkers;
-        },
-
-        firstSelectedPathEditPoint() {
-            return this.$store.getters.firstSelectedCurveEditPoint;
         },
 
         drawEpsilon() {

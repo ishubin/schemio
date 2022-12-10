@@ -1264,6 +1264,16 @@ ul.button-group > li.disabled > .icon-button:hover,
     padding: 4px 8px;
     margin-left: 2px;
 }
+.scheme-editor-component .bottom-panel .bottom-panel-content .first-selected-point {
+    display:flex;
+    align-items: center;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content .first-selected-point input.textfield {
+    margin-left: 10px;
+    padding: 4px;
+    font-size: 12px;
+    width: 80px;
+}
 
 
 /******************** Draw Side Panel Properties *********/
