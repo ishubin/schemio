@@ -37,7 +37,7 @@
 
         <svg ref="svgContainer" class="export-svg-preview"
             width="100%" height="300px"
-            :viewBox="`${-paddingLeft - previewPadding} ${-paddingTop - previewPadding} ${viewBoxWidth + 2*previewPadding} ${viewBoxHeight + 2*previewPadding}`"
+            :viewBox="`${-paddingLeft - previewPadding} ${-paddingTop - previewPadding} ${viewBoxWidth + 4*previewPadding} ${viewBoxHeight + 4*previewPadding}`"
             :preserveAspectRatio="preserveAspectRatio"
             :style="svgStyle"
             xmlns="http://www.w3.org/2000/svg"
