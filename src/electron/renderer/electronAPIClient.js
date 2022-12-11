@@ -11,6 +11,10 @@ export function electronAPICLient() {
             return window.electronAPI.findDiagrams(query, page);
         },
 
+        getSchemeInfo(docId) {
+            return window.electronAPI.getDiagramInfo(docId);
+        },
+
         getScheme(docId) {
             return window.electronAPI.getDiagram(docId);
         },

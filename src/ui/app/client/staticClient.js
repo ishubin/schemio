@@ -84,6 +84,23 @@ export const staticClientProvider = {
                 });
             },
 
+            getSchemeInfo(schemeId) {
+                if (!schemeId) {
+                    return Promise.reject('Invalid empty document ID');
+                }
+                return getIndex().then(index => {
+                    const schemeEntry = index.schemeIndex[schemeId];
+                    if (!schemeEntry) {
+                        throw new Error('Scheme was not found');
+                    }
+
+                    return {
+                        id: schemeId,
+                        name: schemeEntry.name
+                    };
+                });
+            },
+
             getScheme(schemeId) {
                 if (!schemeId) {
                     return Promise.reject('Invalid empty document ID');

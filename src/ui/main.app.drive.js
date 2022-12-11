@@ -30,7 +30,7 @@ function route(name, path, component, props) {
     return { name, path, component, props };
 }
 
-
+store.dispatch('setDocsPath', '#/docs');
 
 const routes = [
     route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: googleDriveClientProvider, userStylesEnabled: false, projectArtEnabled: false}),

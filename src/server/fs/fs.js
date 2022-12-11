@@ -190,7 +190,27 @@ export function fsGetScheme(config, projectService) {
         })
         .catch(err => {
             console.error(err);
-            res.$apiNotFound('Scheme was not found');
+            res.$apiNotFound('Diagram was not found');
+        });
+    };
+}
+
+/**
+ *
+ * @param {*} config
+ * @param {ProjectService} projectService
+ */
+export function fsGetSchemeInfo(config, projectService) {
+    return (req, res) => {
+        const schemeId = req.params.docId;
+
+        projectService.getDiagramInfo(schemeId)
+        .then((info) => {
+            res.json(info);
+        })
+        .catch(err => {
+            console.error(err);
+            res.$apiNotFound('Diagram was not found');
         });
     };
 }
@@ -207,7 +227,7 @@ export function fsSaveScheme(config, projectService) {
 
         const filePath = projectService.getDiagramPath(schemeId);
         if (!filePath) {
-            res.$apiNotFound('Scheme was not found');
+            res.$apiNotFound('Diagram was not found');
         }
 
         const scheme = req.body;

@@ -247,6 +247,17 @@ export class ProjectService {
         return Promise.resolve(this.fileIndex.fileTree);
     }
 
+    getDiagramInfo(docId) {
+        const doc = this.fileIndex.getDocumentFromIndex(docId);
+        if (!doc) {
+            return Promise.reject(`Diagram with id "${docId}" does not exist`);
+        }
+        return Promise.resolve({
+            id: docId,
+            name: doc.name
+        });
+    }
+
     getDiagram(docId) {
         const doc = this.fileIndex.getDocumentFromIndex(docId);
         if (!doc) {

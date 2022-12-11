@@ -234,12 +234,20 @@
                                 Embedded
                             </span>
                         </div>
-                        <div v-if="selectedItem.shapeProps.kind == 'external'" class="external-diagram-controls">
+                        <div v-if="selectedItem.shapeProps.kind == 'external'" class="diagram-controls">
                             <span class="label">External diagram: </span>
-                            <input type="text" class="textfield" :value="selectedItem.shapeProps.schemeId" @input="setSelectedComponentSchemeId(arguments[0].target.value)"/>
-                            <span class="btn btn-secondary btn-small" @click="toggleSchemeSearchForSelectedComponent()"><i class="fas fa-search"></i></span>
+                            <DiagramPicker
+                                :key="`selected-component-diagram-picker-${selectedItem.id}-${selectedItem.shapeProps.schemeId}`"
+                                :diagramId="selectedItem.shapeProps.schemeId"
+                                @diagram-selected="onDiagramPickedForSelectedComponent"/>
+                            <a v-if="selectedItem.shapeProps.schemeId"
+                                :href="`${docsPath}/${selectedItem.shapeProps.schemeId}`"
+                                :target="docsLinkTarget"
+                                title="Open diagram new tab">
+                                <i class="fa-solid fa-up-right-from-square"></i>
+                            </a>
                         </div>
-                        <div v-if="selectedItem.shapeProps.kind == 'embedded'">
+                        <div v-if="selectedItem.shapeProps.kind == 'embedded'" class="diagram-controls">
                             <span class="label">Reference Item: </span>
                             <ElementPicker :editorId="editorId"
                                 :element="selectedItem.shapeProps.referenceItem"
@@ -426,7 +434,6 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
-       <SchemeSearchModal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefForSelectedComponent"/>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -475,9 +482,9 @@ import SchemeProperties from './editor/SchemeProperties.vue';
 import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
 import ElementPicker from './editor/ElementPicker.vue';
+import DiagramPicker from './editor/DiagramPicker.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
-import SchemeSearchModal from './editor/SchemeSearchModal.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
@@ -645,7 +652,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        Comments, MultiItemEditBox, ElementPicker, SchemeSearchModal
+        Comments, MultiItemEditBox, ElementPicker, DiagramPicker
     },
 
     props: {
@@ -675,7 +682,6 @@ export default {
             provider: null
         }},
 
-        schemeSearchModalShown: false
     },
 
     created() {
@@ -2495,27 +2501,6 @@ export default {
             this.schemeContainer.reindexItems();
         },
 
-        toggleSchemeSearchForSelectedComponent() {
-            this.schemeSearchModalShown = true;
-        },
-
-        setSelectedComponentSchemeId(schemeId) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.schemeId = schemeId;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id);
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.schemeId`);
-        },
-
-        onSchemeRefForSelectedComponent(scheme) {
-            this.schemeSearchModalShown = false;
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.setSelectedComponentSchemeId(scheme.id);
-        },
-
         setCurveEditItem(item) {
             this.curveEditing.item = item;
             this.curveEditing.paths.length = 0;
@@ -2646,6 +2631,14 @@ export default {
             return prettifyAxisValue(value, zoom);
         },
 
+        onDiagramPickedForSelectedComponent(diagram) {
+            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
+                return;
+            }
+            this.selectedItem.shapeProps.schemeId = diagram.id;
+            this.$forceUpdate();
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
@@ -2731,6 +2724,14 @@ export default {
 
         assetsPath() {
             return this.$store.getters.assetsPath;
+        },
+
+        docsPath() {
+            return this.$store.getters.docsPath;
+        },
+
+        docsLinkTarget() {
+            return this.$store.getters.docsLinkTarget;
         },
     }
 }

@@ -21,6 +21,8 @@ const store = new Vuex.Store({
         //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages the we cannot use '/' as root path
         rootPath: '/',
         assetsPath: '/assets',
+        docsPath: '/docs',
+        docsLinkTarget: '_blank',
 
         apiClient: null,
 
@@ -110,6 +112,14 @@ const store = new Vuex.Store({
     mutations: {
         SET_ROOT_PATH(state, path) {
             state.rootPath = path;
+        },
+
+        SET_DOCS_PATH(state, path) {
+            state.docsPath = path;
+        },
+
+        SET_DOCS_LINK_TARGET(state, target) {
+            state.docsLinkTarget = target;
         },
 
         SET_ASSESTS_PATH(state, path) {
@@ -353,6 +363,14 @@ const store = new Vuex.Store({
             commit('SET_ROOT_PATH', path);
         },
 
+        setDocsPath({commit}, path) {
+            commit('SET_DOCS_PATH', path);
+        },
+
+        setDocsLinkTarget({commit}, target) {
+            commit('SET_DOCS_LINK_TARGET', target);
+        },
+
         setAssetsPath({commit}, path) {
             commit('SET_ASSESTS_PATH', path);
         },
@@ -529,6 +547,8 @@ const store = new Vuex.Store({
         },
 
         rootPath: state => state.rootPath,
+        docsPath: state => state.docsPath,
+        docsLinkTarget: state => state.docsLinkTarget,
         assetsPath: state => state.assetsPath,
     }
 });

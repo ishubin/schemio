@@ -244,6 +244,25 @@ export const googleDriveClientProvider = {
                     });
                 },
 
+                getSchemeInfo(schemeId) {
+                    if (!schemeId) {
+                        return Promise.reject('Invalid empty document ID');
+                    }
+                    return gapi.client.drive.files.get({
+                        fileId: schemeId
+                    }).then(response => {
+                        const file = response.result;
+                        let title = file.title;
+                        if (title.endsWith(schemioExtension)) {
+                            title = title.substring(0, title.length - schemioExtension.length);
+                        }
+                        return {
+                            id: schemeId,
+                            name: title
+                        };
+                    });
+                },
+
                 getScheme(schemeId) {
                     if (!schemeId) {
                         return Promise.reject('Invalid empty document ID');

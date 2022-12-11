@@ -28,6 +28,7 @@ window.createSchemioStaticApp = function (options) {
 
     store.dispatch('setRootPath', './');
     store.dispatch('setAssetsPath', './assets');
+    store.dispatch('setDocsPath', '#/docs');
 
     Vue.use(VueRouter);
     applyVueFilters(Vue);

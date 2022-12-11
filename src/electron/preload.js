@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     moveFile            : (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
     findDiagrams        : (query, page) => ipcRenderer.invoke('project:findDiagrams', query, page),
     getDiagram          : (docId) => ipcRenderer.invoke('project:getDiagram', docId),
+    getDiagramInfo      : (docId) => ipcRenderer.invoke('project:getDiagramInfo', docId),
 
 
     createArt: (name, url) => ipcRenderer.invoke('art:create', name, url),

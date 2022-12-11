@@ -6,7 +6,7 @@ const { startElectronProjectExporter } = require('./exporter');
 const { copyFileToProjectMedia, uploadDiagramPreview } = require('./media');
 const { buildAppMenu, showContextMenu, saveAppMenuState, restoreAppMenuState, setRecentProjectsInMenu } = require('./menu');
 const { navigatorOpenContextMenuForFile } = require('./navigator');
-const { openProject, readProjectFile, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram, selectProjectInFocusedWindow, writeProjectDiagram } = require('./project');
+const { openProject, readProjectFile, createNewDiagram, createNewFolder, renameFolder, renameDiagram, moveFile, projectFileTree, findDiagrams, getDiagram, selectProject, importDiagram, selectProjectInFocusedWindow, writeProjectDiagram, getDiagramInfo } = require('./project');
 const { getLastOpenProjects, forgetLastOpenProject } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
@@ -79,6 +79,7 @@ app.whenReady().then(() => {
     ipcMain.handle('project:moveFile', moveFile(contextHolder));
     ipcMain.handle('project:findDiagrams', findDiagrams(contextHolder));
     ipcMain.handle('project:getDiagram', getDiagram(contextHolder));
+    ipcMain.handle('project:getDiagramInfo', getDiagramInfo(contextHolder));
     ipcMain.handle('media:copyFileToProject', copyFileToProjectMedia(contextHolder));
     ipcMain.handle('media:uploadDiagramPreview', uploadDiagramPreview(contextHolder))
 

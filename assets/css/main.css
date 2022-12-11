@@ -1249,20 +1249,20 @@ ul.button-group > li.disabled > .icon-button:hover,
 .scheme-editor-component .bottom-panel .bottom-panel-content .element-picker .picked-element {
     font-size: 12px;
 }
-.scheme-editor-component .bottom-panel .bottom-panel-content .external-diagram-controls {
+.scheme-editor-component .bottom-panel .bottom-panel-content .diagram-controls {
     display: flex;
     flex-direction: row;
     align-items: center;
 }
-.scheme-editor-component .bottom-panel .bottom-panel-content .external-diagram-controls input.textfield {
+.scheme-editor-component .bottom-panel .bottom-panel-content .diagram-controls .diagram-picker-wrapper,
+.scheme-editor-component .bottom-panel .bottom-panel-content .diagram-controls .element-picker {
+    display: inline-block;
+    width: 150px;
     margin-left: 10px;
-    padding: 4px;
-    font-size: 12px;
+    margin-right: 10px;
 }
-.scheme-editor-component .bottom-panel .bottom-panel-content .external-diagram-controls .btn {
-    font-size: 11px;
-    padding: 4px 8px;
-    margin-left: 2px;
+.scheme-editor-component .bottom-panel .bottom-panel-content .diagram-controls .diagram-picker .diagram-title {
+    font-size: 12px;
 }
 .scheme-editor-component .bottom-panel .bottom-panel-content .first-selected-point {
     display:flex;
@@ -2127,7 +2127,8 @@ ul.links-editor .edit-link:hover {
 
 /***************** Element Picker ****************/
 .element-picker {
-    display: inline-block;
+    display: block;
+    font-size: 14px;
 }
 .element-picker .picked-element.picked-element-type-item {
     color: var(--complement-strong);
@@ -2136,14 +2137,19 @@ ul.links-editor .edit-link:hover {
     color: var(--accent-strong);
 }
 .element-picker .picked-element.picked-element-type-none {
-    color: var(--faint-strong);
+    color: var(--base-strong-up);
     font-style: italic;
 }
 .element-picker .picked-element.picked-element-type-error {
     color: var(--critic-strong);
     font-weight: bold;
 }
-
+.element-picker.disabled .dropdown-container .dropdown-click-area {
+    background: var(--faint-weak-up);
+}
+.element-picker.disabled .picked-element {
+    opacity: 0.5;
+}
 /**************** Context Menu *****************/
 .context-menu {
     position: fixed;
@@ -3769,4 +3775,62 @@ ul.patch-field-list {
 }
 .external-shapes .external-shapes-list ul li:hover {
     background: var(--faint-strong-up-up);
+}
+
+/***************** Diagram picker **************/
+.diagram-picker-wrapper {
+    display: block;
+}
+.diagram-picker {
+    display: flex;
+    background: var(--base-weak);
+    border: 1px solid var(--faint-weak-down);
+    border-radius: var(--control-border-radius);
+}
+.diagram-picker:hover {
+    border: 1px solid var(--faint-strong);
+}
+.diagram-picker.disabled:hover {
+    border: 1px solid var(--faint-weak-down);
+}
+.diagram-picker > *{
+    /* display: inline-block; */
+    padding: 4px;
+    cursor: pointer;
+}
+.diagram-picker .diagram-title {
+    flex: 1;
+    font-size: 14px;
+    color: var(--base-strong-up-up);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.diagram-picker.disabled {
+    background: var(--faint-weak-up);
+}
+.diagram-picker.disabled .diagram-title {
+    color: var(--faint-strong);
+}
+.diagram-picker > .icon {
+    color: var(--faint-strong-down);
+}
+.diagram-picker .diagram-title .diagram-placeholder {
+    color: var(--faint-strong);
+    font-style: italic;
+}
+.diagram-picker .diagram-picker-button {
+    padding: 2px;
+    background: var(--accent-weak);
+    color: var(--accent-strong);
+    border-radius: 0 var(--control-border-radius) var(--control-border-radius) 0;
+}
+.diagram-picker.specified .diagram-picker-button {
+    display: none;
+}
+.diagram-picker.specified:hover .diagram-picker-button {
+    display: inline-block;
+}
+.diagram-picker.disabled.specified:hover .diagram-picker-button {
+    display: none;
 }

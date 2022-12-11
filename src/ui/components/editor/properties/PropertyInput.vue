@@ -41,14 +41,14 @@
             @selected="emitValue(arguments[0])"
             />
 
-        <div v-if="descriptor.type === 'scheme-ref'" class="scheme-ref-control">
-            <input type="text" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
-            <span class="btn btn-secondary" @click="toggleSchemeSearch()"><i class="fas fa-search"></i></span>
-        </div>
+        <DiagramPicker v-if="descriptor.type === 'scheme-ref'"
+            :key="`item-props-diagram-picker-${itemId}-${value}`"
+            :diagramId="value"
+            :disabled="disabled"
+            @diagram-selected="onDiagramPicked"
+            />
 
         <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue(arguments[0])"/>
-
-       <SchemeSearchModal v-if="schemeSearchModalShown" @close="schemeSearchModalShown = false" @selected-scheme="onSchemeRefSelect"/>
     </div>
 
 </template>
@@ -60,7 +60,7 @@ import AdvancedColorEditor from '../AdvancedColorEditor.vue';
 import StrokePatternDropdown from '../StrokePatternDropdown.vue';
 import PathCapDropdown from '../PathCapDropdown.vue';
 import ElementPicker from '../ElementPicker.vue';
-import SchemeSearchModal from '../SchemeSearchModal.vue';
+import DiagramPicker from '../DiagramPicker.vue';
 import ColorMatrix from './ColorMatrix.vue';
 
 export default {
@@ -77,13 +77,7 @@ export default {
 
     components: {
         NumberTextfield, ColorPicker, AdvancedColorEditor, StrokePatternDropdown,
-        PathCapDropdown, ElementPicker, SchemeSearchModal, ColorMatrix
-    },
-
-    data() {
-        return {
-            schemeSearchModalShown: false
-        };
+        PathCapDropdown, ElementPicker, ColorMatrix, DiagramPicker
     },
 
     methods: {
@@ -91,14 +85,9 @@ export default {
             this.$emit('input', value);
         },
 
-        onSchemeRefSelect(scheme) {
-            this.schemeSearchModalShown = false;
-            this.emitValue(scheme.id);
+        onDiagramPicked(diagram) {
+            this.emitValue(diagram.id);
         },
-
-        toggleSchemeSearch() {
-            this.schemeSearchModalShown = true;
-        }
     },
 
     computed: {

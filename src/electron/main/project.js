@@ -202,6 +202,19 @@ export function findDiagrams(contextHolder) {
  * @param {ContextHolder} contextHolder
  * @returns
  */
+export function getDiagramInfo(contextHolder) {
+    return (event, docId) => {
+        const projectService = contextHolder.from(event).projectService;
+        return projectService.getDiagramInfo(docId);
+    }
+}
+
+
+/**
+ *
+ * @param {ContextHolder} contextHolder
+ * @returns
+ */
 export function getDiagram(contextHolder) {
     return (event, docId) => {
         const projectService = contextHolder.from(event).projectService;

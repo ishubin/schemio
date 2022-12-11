@@ -34,6 +34,13 @@ export const fsClientProvider = {
                 return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}`, {name: newName}).then(unwrapAxios);
             },
 
+            getSchemeInfo(schemeId) {
+                if (!schemeId) {
+                    return Promise.reject('Invalid empty document ID');
+                }
+                return axios.get( `/v1/fs/docs/${schemeId}/info?_v=${new Date().getTime()}`).then(unwrapAxios);
+            },
+
             getScheme(schemeId) {
                 if (!schemeId) {
                     return Promise.reject('Invalid empty document ID');

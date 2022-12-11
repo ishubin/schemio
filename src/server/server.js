@@ -10,7 +10,7 @@ import {
     fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme,
     fsDeleteStyle,
     fsDownloadMediaFile, fsGetArt,
-    fsGetScheme, fsGetStyles, fsListFilesRoute,
+    fsGetScheme, fsGetSchemeInfo, fsGetStyles, fsListFilesRoute,
     fsMoveDirectory, fsMoveScheme, fsPatchDirectory,
     fsPatchScheme, fsSaveDeleteArt, fsSaveScheme,
     fsSaveStyle, fsSearchSchemes, fsUploadMediaFile
@@ -51,6 +51,7 @@ projectService.load().then(() => {
     app.get('/v1/fs/list',   fsListFilesRoute(config, projectService));
     app.get('/v1/fs/list/*', fsListFilesRoute(config, projectService));
     app.get('/v1/fs/docs/:docId', jsonBodyParser, fsGetScheme(config, projectService));
+    app.get('/v1/fs/docs/:docId/info', jsonBodyParser, fsGetSchemeInfo(config, projectService));
     app.get('/v1/fs/docs', jsonBodyParser, fsSearchSchemes(config, projectService));
 
     if (!config.viewOnlyMode) {
