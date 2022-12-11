@@ -1,3 +1,5 @@
+import { getCachedSchemeInfo, schemeSearchCacher } from "../../ui/app/client/clientCache";
+
 export function electronAPICLient() {
     return {
         uploadFile(file) {
@@ -8,11 +10,13 @@ export function electronAPICLient() {
             const query = filters.query || null;
             const page = filters.page || 0;
 
-            return window.electronAPI.findDiagrams(query, page);
+            return window.electronAPI.findDiagrams(query, page).then(schemeSearchCacher);
         },
 
         getSchemeInfo(docId) {
-            return window.electronAPI.getDiagramInfo(docId);
+            return getCachedSchemeInfo(docId, () => {
+                return window.electronAPI.getDiagramInfo(docId);
+            });
         },
 
         getScheme(docId) {

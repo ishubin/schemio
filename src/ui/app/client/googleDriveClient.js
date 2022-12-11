@@ -1,5 +1,7 @@
 import { getExportHTMLResources } from "./clientCommons";
 import forEach from "lodash/forEach";
+import map from "lodash/map";
+import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 
 export const googleDriveClientProvider = {
     type: 'drive',
@@ -248,18 +250,21 @@ export const googleDriveClientProvider = {
                     if (!schemeId) {
                         return Promise.reject('Invalid empty document ID');
                     }
-                    return gapi.client.drive.files.get({
-                        fileId: schemeId
-                    }).then(response => {
-                        const file = response.result;
-                        let title = file.title;
-                        if (title.endsWith(schemioExtension)) {
-                            title = title.substring(0, title.length - schemioExtension.length);
-                        }
-                        return {
-                            id: schemeId,
-                            name: title
-                        };
+
+                    return getCachedSchemeInfo(schemeId, () => {
+                        return gapi.client.drive.files.get({
+                            fileId: schemeId
+                        }).then(response => {
+                            const file = response.result;
+                            let title = file.title;
+                            if (title.endsWith(schemioExtension)) {
+                                title = title.substring(0, title.length - schemioExtension.length);
+                            }
+                            return {
+                                id: schemeId,
+                                name: title
+                            };
+                        });
                     });
                 },
 
@@ -355,7 +360,8 @@ export const googleDriveClientProvider = {
                         params.pageToken = filters.nextPageToken;
                     }
 
-                    return gapi.client.drive.files.list(params).then(response => {
+                    return gapi.client.drive.files.list(params)
+                    .then(response => {
                         return {
                             kind: 'chunk',
                             nextPageToken: response.result.nextPageToken,
@@ -368,7 +374,8 @@ export const googleDriveClientProvider = {
                                 };
                             })
                         };
-                    });
+                    })
+                    .then(schemeSearchCacher);
 
                 },
                 getExportHTMLResources,

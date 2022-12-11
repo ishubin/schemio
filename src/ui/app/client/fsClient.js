@@ -1,5 +1,6 @@
 import axios from "axios";
 import forEach from 'lodash/forEach';
+import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { getExportHTMLResources, unwrapAxios } from "./clientCommons";
 
 export const fsClientProvider = {
@@ -38,7 +39,9 @@ export const fsClientProvider = {
                 if (!schemeId) {
                     return Promise.reject('Invalid empty document ID');
                 }
-                return axios.get( `/v1/fs/docs/${schemeId}/info?_v=${new Date().getTime()}`).then(unwrapAxios);
+                return getCachedSchemeInfo(schemeId, () => {
+                    return axios.get(`/v1/fs/docs/${schemeId}/info?_v=${new Date().getTime()}`).then(unwrapAxios);
+                });
             },
 
             getScheme(schemeId) {
@@ -107,7 +110,7 @@ export const fsClientProvider = {
                     isFirst = false;
                 });
 
-                return axios.get(url).then(unwrapAxios);
+                return axios.get(url).then(unwrapAxios).then(schemeSearchCacher);
             },
 
             getTags() {
