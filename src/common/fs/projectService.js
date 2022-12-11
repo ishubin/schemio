@@ -5,6 +5,7 @@ import { findEntryInFileTree, traverseFileTree } from "./fileTree";
 import { convertDiagram } from "./diagramConverter";
 const fs = require('fs-extra');
 
+const resultsPerPage = 25;
 
 export class ProjectService {
     /**
@@ -281,7 +282,6 @@ export class ProjectService {
     }
 }
 
-const resultsPerPage = 25;
 function toPageNumber(text) {
     const page = parseInt(text);
     if (!isNaN(page) && page !== undefined) {

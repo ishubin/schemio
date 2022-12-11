@@ -1,6 +1,20 @@
 import axios from "axios";
 import { getExportHTMLResources, unwrapAxios } from "./clientCommons";
 
+const resultsPerPage = 25;
+
+function convertSchemeIndexToArray(index) {
+    const schemes = [];
+    for (let schemeId in index) {
+        if (index.hasOwnProperty(schemeId)) {
+            schemes.push({
+                ...index[schemeId],
+                id: schemeId
+            });
+        }
+    }
+    return schemes;
+}
 
 export const staticClientProvider = {
     type: 'static',
@@ -9,6 +23,7 @@ export const staticClientProvider = {
         const currentTimestamp = new Date().getTime();
 
         let cachedIndex = null;
+        let cachedDocs = null;
 
         function traverseEntries(entries, callback, parentEntry) {
             for (let i = 0; i < entries.length; i++) {
@@ -128,6 +143,45 @@ export const staticClientProvider = {
                         viewOnly: schemeEntry.viewOnly || false,
                         folderPath: folderPath,
                         scheme: scheme
+                    };
+                });
+            },
+
+
+            findSchemes(filters) {
+                const query = filters.query || '';
+                const page = filters.page || 1;
+
+                return Promise.resolve(cachedDocs).then(docs => {
+                    if (!docs) {
+                        return getIndex().then(index => {
+                            cachedDocs = convertSchemeIndexToArray(index.schemeIndex);
+                        }).then(() => {
+                            return cachedDocs;
+                        });
+                    }
+                    return docs;
+                }).then(docs => {
+                    const totalResults = docs.length;
+                    const results = [];
+                    const start = Math.max(0, page - 1) * resultsPerPage;
+
+                    for (let i = start; results.length < resultsPerPage && i < docs.length; i++) {
+                        if (query) {
+                            if (docs[i].name && docs[i].name.indexOf(query) >= 0) {
+                                results.push(docs[i]);
+                            }
+                        } else {
+                            results.push(docs[i]);
+                        }
+                    }
+
+                    return {
+                        kind: 'page',
+                        totalResults: totalResults,
+                        results,
+                        totalPages: Math.ceil(totalResults / resultsPerPage),
+                        page: page
                     };
                 });
             },

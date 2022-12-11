@@ -257,13 +257,15 @@ export function startStaticExporter(rootPath) {
                     });
                 }).then(({entry, scheme}) => {
                     parentDir.entries.push(entry);
-                    return fs.writeFile(path.join(exporterDataPath, filePath), JSON.stringify(scheme)).then(() => scheme);
+                    return fs.writeFile(path.join(exporterDataPath, filePath), JSON.stringify(scheme))
+                    .then(() => { return {entry, scheme};});
                 })
-                .then(scheme => {
+                .then(({entry, scheme}) => {
                     currentExporter.schemeIndex[scheme.id] = {
                         path: filePath,
                         name: scheme.name,
-                        modifiedTime: scheme.modifiedTime
+                        modifiedTime: scheme.modifiedTime,
+                        previewURL: entry.previewURL
                     };
                     return scheme;
                 })
