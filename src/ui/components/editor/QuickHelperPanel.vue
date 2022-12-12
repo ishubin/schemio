@@ -173,14 +173,18 @@
             </div>
 
             <div v-if="(mode === 'edit' && shouldShowBaseControls)" class="quick-helper-panel-section">
-                <div class="toggle-group">
-                    <span class="toggle-button" :class="{toggled: autoRemount}" @click="toggleAutoRemount" title="Automatically mount items into other items">
-                        <i class="fa-solid fa-person-arrow-down-to-line"></i>
-                    </span>
-                    <span class="toggle-button" :class="{toggled: showPivot}" @click="togglePivot" title="Pivot">
-                        <i class="fa-solid fa-crosshairs"></i>
-                    </span>
-                </div>
+                <ul class="button-group">
+                    <li>
+                        <div class="toggle-group">
+                            <span class="toggle-button" :class="{toggled: autoRemount}" @click="toggleAutoRemount" title="Automatically mount items into other items">
+                                <i class="fa-solid fa-person-arrow-down-to-line"></i>
+                            </span>
+                            <span class="toggle-button" :class="{toggled: showPivot}" @click="togglePivot" title="Pivot">
+                                <i class="fa-solid fa-crosshairs"></i>
+                            </span>
+                        </div>
+                    </li>
+                </ul>
             </div>
             <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
