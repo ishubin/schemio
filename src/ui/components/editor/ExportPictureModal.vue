@@ -32,6 +32,16 @@
                         <input type="checkbox" v-model="shouldExportBackground" id="chk-export-svg-background"/><label for="chk-export-svg-background"> Export SVG Background</label>
                     </td>
                 </tr>
+                <tr v-if="kind === 'png'">
+                    <td>
+                        <number-textfield :value="rasterWidth" name="Width" @changed="rasterWidth = arguments[0]"/>
+                    </td>
+                    <td>
+                        <number-textfield :value="rasterHeight" name="Height" @changed="rasterHeight = arguments[0]"/>
+                    </td>
+                    <td colspan="2">
+                    </td>
+                </tr>
             </tbody>
         </table>
 
@@ -108,7 +118,10 @@ export default {
             largestStrokeSize,
             placement: 'centered', // can be top-left, centered, stretched
             svgHtml: svgHtml,
-            previewPadding: 20
+            previewPadding: 20,
+
+            rasterWidth: this.width,
+            rasterHeight: this.height
         };
     },
 
@@ -135,11 +148,11 @@ export default {
                     svgDom.removeAttribute('width');
                     svgDom.removeAttribute('height');
                 } else {
-                    const viewBoxWidth = this.width + 2 * this.largestStrokeSize;
-                    const viewBoxHeight = this.height + 2 * this.largestStrokeSize;
-                    svgDom.setAttribute('viewBox', `${-this.largestStrokeSize} ${-this.largestStrokeSize} ${viewBoxWidth} ${viewBoxHeight}`);
-                    svgDom.setAttribute('width', `${viewBoxWidth}px`);
-                    svgDom.setAttribute('height', `${viewBoxHeight}px`);
+                    const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
+                    const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
+                    svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
+                    svgDom.setAttribute('width', `${this.rasterWidth}px`);
+                    svgDom.setAttribute('height', `${this.rasterHeight}px`);
                 }
 
                 const svgCode = svgDom.outerHTML;
@@ -149,8 +162,13 @@ export default {
                     this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);
                 } else {
                     const canvas = document.createElement('canvas');
-                    canvas.width = Math.max(1, this.width +  this.paddingLeft + this.paddingRight);
-                    canvas.height = Math.max(1, this.height + this.paddingTop + this.paddingBottom);
+                    if (this.kind === 'png') {
+                        canvas.width = this.rasterWidth;
+                        canvas.height = this.rasterHeight;
+                    } else {
+                        canvas.width = Math.max(1, this.width +  this.paddingLeft + this.paddingRight);
+                        canvas.height = Math.max(1, this.height + this.paddingTop + this.paddingBottom);
+                    }
 
                     const ctx = canvas.getContext('2d');
                     const img = new Image;

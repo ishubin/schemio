@@ -423,6 +423,7 @@ input.textfield.missing-field-error {
     position: absolute;
     display: inline-block;
     padding: 4px 6px;
+    font-size: 14px;
     margin: 0;
     top: 0;
     left: 0;
@@ -998,11 +999,9 @@ textarea.in-place-text-editor {
 .modal-footer {
     border-top: 1px solid var(--faint-strong);
     padding: 10px;
-    margin-top: 10px;
     min-height: 40px;
 }
 .modal-controls {
-    padding-top: 20px;
     text-align: right;
 }
 .modal-default-button {
