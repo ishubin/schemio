@@ -1120,11 +1120,15 @@ ul.button-group > li.disabled > .icon-button:hover,
 .toggle-group {
     display: inline-block;
     padding: 0;
-    font-size: 0px;
+    font-size: 0;
 }
 .toggle-group > .toggle-button {
     color: var(--faint-strong);
     margin: 0;
+    font-size: 12px;
+    border-top: 1px solid var(--faint-strong-up);
+    border-right: 1px solid var(--faint-strong-up);
+    border-bottom: 1px solid var(--faint-strong-up);
 }
 .toggle-group > .toggle-button:hover {
     color: var(--base-strong-up);
