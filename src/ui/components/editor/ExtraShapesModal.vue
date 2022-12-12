@@ -6,9 +6,9 @@
 
         <div v-if="errorMessage" class="msg msg-danger">{{errorMessage}}</div>
 
-        <div v-if="entries" class="external-shapes">
+        <div class="external-shapes">
             <div class="external-shapes-list">
-                <ul>
+                <ul v-if="entries">
                     <li v-for="(entry, entryIdx) in entries"
                         :class="{selected: selectedEntryIdx === entryIdx}"
                         @click="selectEntry(entry, entryIdx)">
@@ -16,6 +16,9 @@
                         <span v-if="entry.used" class="added">added</span>
                     </li>
                 </ul>
+                <div v-else class="missing-extra-shapes">
+                    No shapes available
+                </div>
             </div>
             <div class="external-shape-preview" v-if="selectedEntry">
                 <div class="title">{{selectedEntry.name}}</div>

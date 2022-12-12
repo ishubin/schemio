@@ -3724,6 +3724,10 @@ ul.patch-field-list {
     font-size: 12px;
     color: var(--faint-strong-down);
 }
+.external-shapes .external-shapes-list .missing-extra-shapes {
+    color: var(--faint-weak-down);
+    font-style: italic;
+}
 .external-shapes .external-shape-preview {
     padding: 10px;
     height: 100%;
