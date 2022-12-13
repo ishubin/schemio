@@ -56,7 +56,7 @@ export default class StateCreateItem extends State {
                 vertical: [{x, y}],
                 horizontal: [{x, y}]
             }, new Set(), 0, 0);
-            this.updateItemArea(x + newOffset.dx, y + newOffset.dy);
+            this.updateItemArea(x + newOffset.dx, y + newOffset.dy, event);
         }
     }
 
@@ -66,7 +66,7 @@ export default class StateCreateItem extends State {
                 vertical: [{x, y}],
                 horizontal: [{x, y}]
             }, new Set(), 0, 0);
-            this.updateItemArea(x + newOffset.dx, y + newOffset.dy);
+            this.updateItemArea(x + newOffset.dx, y + newOffset.dy, event);
             this.submitItemAndFinishCreating();
         } else {
             this.cancel();
@@ -92,7 +92,7 @@ export default class StateCreateItem extends State {
     }
 
 
-    updateItemArea(x, y) {
+    updateItemArea(x, y, event) {
         if (x > this.originalPoint.x) {
             this.item.area.w = this.round(x - this.originalPoint.x);
             this.item.area.x = this.round(this.originalPoint.x);
@@ -108,6 +108,12 @@ export default class StateCreateItem extends State {
             this.item.area.h = this.round(this.originalPoint.y - y);
             this.item.area.y = this.round(y);
         }
+
+        if (event.metaKey || event.ctrlKey) {
+            this.item.area.w = Math.max(this.item.area.w, this.item.area.h);
+            this.item.area.h = this.item.area.w;
+        }
+
         this.listener.onItemChanged(this.item.id);
     }
 }
