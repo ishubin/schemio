@@ -33,6 +33,7 @@ import StopRepeaterFunction from './StopRepeaterFunction';
 import CopyLinksFunction from './CopyLinksFunction';
 import CopyDescriptionFunction from './CopyDescriptionFunction';
 import TransformScreenFunction from './TransformScreenFunction';
+import DrawEffectFunction from './DrawEffectFunction';
 
 export default {
     main: {
@@ -43,6 +44,7 @@ export default {
         _transformScreen    : TransformScreenFunction,
         particleEffect      : ItemParticleEffectFunction,
         crawlEffect         : CrawlEffectFunction,
+        drawEffect          : DrawEffectFunction,
         blinkEffect         : BlinkEffectFunction,
         loadComponent       : LoadComponentFunction,
         destroyComponent    : DestroyComponentFunction,
