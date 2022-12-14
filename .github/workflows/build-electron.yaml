@@ -2,16 +2,12 @@ name: Electron app builder
 
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       node_version:
         description: 'Node version'
         type: string
         default: 18.x
-      schemio_version:
-        description: 'Schemio version'
-        type: string
-        required: true
 
 jobs:
   build-mac:
@@ -29,7 +25,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-mac-zip
-          path: out/make/zip/darwin/x64/schemio-darwin-x64-${{ github.event.inputs.schemio_version }}.zip
+          path: out/make/zip/darwin/x64/schemio-darwin-x64-*.zip
       - run: find out | grep -v .webpack/renderer/assets
 
 
@@ -49,11 +45,11 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-linux-rpm
-          path: out/make/rpm/x64/schemio-${{ github.event.inputs.schemio_version }}-1.x86_64.rpm
+          path: out/make/rpm/x64/schemio-*-1.x86_64.rpm
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-linux-deb
-          path: out/make/deb/x64/schemio_${{ github.event.inputs.schemio_version }}_amd64.deb
+          path: out/make/deb/x64/schemio_*_amd64.deb
       - run: find out | grep -v .webpack/renderer/assets
 
   build-win:
@@ -71,6 +67,6 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: schemio-electron-win-setup
-          path: out/make/squirrel.windows/x64/schemio-${{ github.event.inputs.schemio_version }} Setup.exe
+          path: out/make/squirrel.windows/x64/schemio-* Setup.exe
       - run: npm install -g tree-cli
       - run: cd out && tree -l 8
