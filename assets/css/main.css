@@ -15,6 +15,7 @@
     --base-strong: #111;
     --base-strong-up: #3b3b3b;
     --base-strong-up-up: #555;
+    --base-strong-up-up-up: #666;
     --base-weak: #fff;
 
     --faint-weak-down: #dddddd;
@@ -23,6 +24,7 @@
     --faint-weak-up: #f0f0f0;
 
     --faint-strong-down: #7f8081;
+    --faint-strong-down-down: #5d5e5e;
     --faint-strong: #9a9b9c;
     --faint-strong-up: #c0c0c0;
     --faint-strong-up-up: #d1d1d1;
@@ -294,13 +296,14 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
 .btn {
     display: inline-block;
     padding: 5px 10px 5px 10px;
-    font-size: 16px;
+    font-size: 14px;
     cursor: pointer;
     background: linear-gradient( 0deg , var(--faint-strong-up-up) 0%, var(--base-weak) 50%, var(--base-weak) 100%);
     color: var(--base-strong-up);
     border: 1px solid var(--faint-strong-down);
     border-radius: var(--control-border-radius);
     text-decoration: none;
+    transition: background-color 0.5s ease;
 }
 .btn:hover {
     background: var(--faint-weak);
@@ -326,31 +329,31 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary, .btn.btn-secondary.disabled:hover {
-    background: var(--accent-weak-up);
-    color: var(--accent-strong);
-    border: 1px solid var(--accent-strong-down);
+    background: var(--faint-strong-down);
+    color: var(--base-weak);
+    border: 1px solid var(--faint-strong-down);
 }
 .btn.btn-secondary:hover {
-    background: var(--accent-weak-down);
-    color: var(--accent-strong);
-    border: 1px solid var(--accent-strong-down);
+    background: var(--faint-strong);
+    color: var(--base-weak);
+    border: 1px solid var(--faint-strong-down);
 }
 .btn.btn-danger, .btn.btn-danger.disabled:hover {
-    background: linear-gradient( 0deg , var(--critic-strong) 0%, var(--critic-faint) 100%);
+    background: var(--critic-strong);
     color: var(--base-weak);
     border: 1px solid var(--critic-strong);
 }
 .btn.btn-danger:hover {
     background: var(--critic-faint);
     color: var(--base-weak);
-    border: 1px solid var(--critic-strong);
+    border: 1px solid var(--critic-faint);
 }
 
 .btn.disabled {
     opacity: 0.5;
 }
 .btn.btn-small {
-    padding: 1px 2px;
+    padding: 1px 5px;
     font-size: 13px;
 }
 
@@ -612,8 +615,9 @@ ul.pagination li a.current {
 }
 
 .quick-helper-panel .btn {
-    padding: 2px 5px;
-    font-size: 14px;
+    padding: 3px 8px;
+    font-size: 13px;
+    height: 24px;
 }
 
 .quick-helper-panel .msg {
@@ -1049,6 +1053,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     text-align: center;
     padding: 0;
     width: 24px;
+    height: 24px;
     height: 20px;
     cursor: pointer;
 }
@@ -1077,7 +1082,8 @@ ul.button-group > li.disabled > .icon-button:hover,
 
 .toggle-button {
     display: inline-block;
-    min-width: 25px;
+    min-width: 24px;
+    min-height: 24px;
     position: relative;
     text-align: center;
     padding: 10px;
