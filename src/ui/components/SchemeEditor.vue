@@ -93,6 +93,7 @@
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
+                            :cursor="{x: cursorX, y: cursorY}"
                             :edit-box="schemeContainer.multiItemEditBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
@@ -100,8 +101,9 @@
 
                         <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
                             :key="`crop-image-edit-box`"
-                            :edit-box="cropImage.editBox"
                             kind="crop-image"
+                            :cursor="{x: cursorX, y: cursorY}"
+                            :edit-box="cropImage.editBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
@@ -2291,6 +2293,10 @@ export default {
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
             if (this.active) {
                 this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
+                if (this.state === 'dragItem') {
+                    this.cursorX = worldX;
+                    this.cursorY = worldY;
+                }
             }
         },
         mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {

@@ -56,31 +56,33 @@
                 :ry="5/safeZoom"
             />
 
-            <g v-if="editBox.items.length === 1 && kind === 'regular'">
-                <path class="boundary-box-connector-starter"
-                    :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
-                    :data-connector-starter-item-id="editBox.items[0].id"
-                    :fill="boundaryBoxColor"
-                    d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+            <transition name="connection-starter">
+                <g v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+                    <path class="boundary-box-connector-starter"
+                        :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
+                        :data-connector-starter-item-id="editBox.items[0].id"
+                        :fill="boundaryBoxColor"
+                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
-                <path class="boundary-box-connector-starter"
-                    :transform="`translate(${editBox.area.w/2 - 3/safeZoom}  ${-30/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
-                    :data-connector-starter-item-id="editBox.items[0].id"
-                    :fill="boundaryBoxColor"
-                    d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+                    <path class="boundary-box-connector-starter"
+                        :transform="`translate(${editBox.area.w/2 - 3/safeZoom}  ${-30/safeZoom}) scale(${1/safeZoom}) rotate(270)`"
+                        :data-connector-starter-item-id="editBox.items[0].id"
+                        :fill="boundaryBoxColor"
+                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
-                <path class="boundary-box-connector-starter"
-                    :transform="`translate(${editBox.area.w + 30/safeZoom}  ${editBox.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
-                    :data-connector-starter-item-id="editBox.items[0].id"
-                    :fill="boundaryBoxColor"
-                    d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+                    <path class="boundary-box-connector-starter"
+                        :transform="`translate(${editBox.area.w + 30/safeZoom}  ${editBox.area.h/2 - 3/safeZoom}) scale(${1/safeZoom})`"
+                        :data-connector-starter-item-id="editBox.items[0].id"
+                        :fill="boundaryBoxColor"
+                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
 
-                <path class="boundary-box-connector-starter"
-                    :transform="`translate(${-30/safeZoom}  ${editBox.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
-                    :data-connector-starter-item-id="editBox.items[0].id"
-                    :fill="boundaryBoxColor"
-                    d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
-            </g>
+                    <path class="boundary-box-connector-starter"
+                        :transform="`translate(${-30/safeZoom}  ${editBox.area.h/2 + 3/safeZoom}) scale(${1/safeZoom}) rotate(180)`"
+                        :data-connector-starter-item-id="editBox.items[0].id"
+                        :fill="boundaryBoxColor"
+                        d="M 0 0  L 10 0  L 10 -3  L 20 3  L 10 9  L 10 6  L 0 6 Z"/>
+                </g>
+            </transition>
 
             <g v-if="kind === 'regular'">
                 <rect class="boundary-box-dragger"
@@ -285,7 +287,8 @@ function isItemConnector(items) {
 
 export default {
     props: {
-        editBox: {type: Object, required: true}, 
+        cursor: {type: Object},
+        editBox: {type: Object, required: true},
         zoom: {type: Number},
         boundaryBoxColor: {type: String},
         controlPointsColor: {type: String},
@@ -311,15 +314,57 @@ export default {
         }
     },
 
+    mounted() {
+        this.onCursorChange(this.cursor);
+    },
+
+    beforeDestroy() {
+        this.clearConnectionStarterTimeout();
+    },
+
     data() {
         return {
             draggerSize: 5,
+            connectionStarterDisplayed: false,
+            connectionStarterTimerId: null
         };
     },
 
     methods: {
         createStrokeDashArray(pattern, strokeSize) {
             return StrokePattern.createDashArray(pattern, strokeSize);
+        },
+
+        clearConnectionStarterTimeout() {
+            if (this.connectionStarterTimerId) {
+                clearTimeout(this.connectionStarterTimerId);
+            }
+        },
+
+        hideConnectionStarter() {
+            this.clearConnectionStarterTimeout();
+            this.connectionStarterTimerId = setTimeout(() => {
+                this.connectionStarterDisplayed = false;
+                this.connectionStarterTimerId = null;
+            }, 500);
+        },
+
+        onCursorChange(p) {
+            const localPoint = myMath.localPointInArea(p.x, p.y, this.editBox.area, null);
+            if (localPoint.x >= 0 && localPoint.x <= this.editBox.area.w
+                && localPoint.y >= 0 && localPoint.y <= this.editBox.area.h
+            ) {
+                this.connectionStarterDisplayed = true;
+                this.clearConnectionStarterTimeout();
+            } else {
+                this.hideConnectionStarter();
+            }
+        }
+    },
+
+    watch: {
+        cursor(p) {
+            this.onCursorChange(p);
         }
     },
 
