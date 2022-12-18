@@ -93,20 +93,24 @@
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
+                            :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :edit-box="schemeContainer.multiItemEditBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
 
                         <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
                             :key="`crop-image-edit-box`"
                             kind="crop-image"
+                            :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :edit-box="cropImage.editBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
 
                         <g v-if="state === 'editPath' && curveEditing.item && curveEditing.item.meta">
                             <PathEditBox
@@ -2647,6 +2651,12 @@ export default {
             }
             this.selectedItem.shapeProps.schemeId = diagram.id;
             this.$forceUpdate();
+        },
+
+        onMultiItemEditBoxCustomControlClicked(item) {
+            this.schemeContainer.reindexSpecifiedItems([item]);
+            this.schemeContainer.reindexItems();
+            this.schemeContainer.updateMultiItemEditBox();
         },
 
         //calculates from world to screen
