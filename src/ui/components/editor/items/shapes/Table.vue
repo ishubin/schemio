@@ -92,9 +92,14 @@ function onColumnNumberUpdate($store, item, columns, previousColumns) {
             columnWidths.push(lastColumnWidth);
             item.area.w += lastColumnWidth;
         }
-
-
-        //TODO text slot enrich
+        for (let i = previousColumns - 1 ; i < columns; i++) {
+            for (let j = 0; j < item.shapeProps.rows; j++) {
+                const key = `c_${j}_${i}`;
+                if (!item.textSlots.hasOwnProperty(key)) {
+                    item.textSlots[key] = {text: ''};
+                }
+            }
+        }
     }
 
     if (columns < previousColumns && columns > 0 && !myMath.tooSmall(item.area.w)) {
@@ -138,8 +143,14 @@ function onRowsNumberUpdate($store, item, rows, previousRows) {
             rowWidths.push(lastRowWidth);
             item.area.h += lastRowWidth;
         }
-
-        //TODO text slot enrich
+        for (let i = previousRows - 1 ; i < rows; i++) {
+            for (let j = 0; j < item.shapeProps.columns; j++) {
+                const key = `c_${i}_${j}`;
+                if (!item.textSlots.hasOwnProperty(key)) {
+                    item.textSlots[key] = {text: ''};
+                }
+            }
+        }
     }
 
     if (rows < previousRows && rows > 0 && !myMath.tooSmall(item.area.h)) {
@@ -170,7 +181,33 @@ function computeOutline(item) {
 }
 
 function getTextSlots(item) {
-    return [];
+    const textSlots = [];
+
+    let rowOffset = 0;
+    let remainingRowWidth = item.area.h;
+    for (let i = 0; i < item.shapeProps.rows; i++) {
+        const rowWidth = Math.min(remainingRowWidth, i < item.shapeProps.rows - 1 ? item.shapeProps.rowWidths[i] * item.area.h / 100 : remainingRowWidth);
+
+        let columnOffset = 0;
+        let remainingColumnWidth = item.area.w;
+        for (let j = 0; j < item.shapeProps.columns; j++) {
+            const columnWidth = Math.min(remainingColumnWidth, j < item.shapeProps.columns - 1 ? item.shapeProps.colWidths[j] * item.area.w / 100 : remainingColumnWidth);
+            textSlots.push({
+                name: `c_${i}_${j}`,
+                area: {
+                    x: columnOffset,
+                    y: rowOffset,
+                    w: columnWidth,
+                    h: rowWidth
+                }
+            });
+            columnOffset += columnWidth;
+            remainingColumnWidth -= columnWidth;
+        }
+        rowOffset += rowWidth;
+        remainingRowWidth -= rowWidth;
+    }
+    return textSlots;
 }
 
 
@@ -285,6 +322,8 @@ export default {
         },
 
         editorProps: {
+            textSlotTabsDisabled: true,
+
             // Is invoked from multi-item-edit-box for rendering addition controls
             editBoxControls: (editorId, item) => {
                 const controls = [];

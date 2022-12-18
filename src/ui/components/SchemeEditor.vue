@@ -1666,7 +1666,7 @@ export default {
                     this.selectedItem = null;
                 }
 
-                if (textSlots && textSlots.length > 0) {
+                if (textSlots && textSlots.length > 0 && !(shape.editorProps && shape.editorProps.textSlotTabsDisabled)) {
                     this.itemTextSlotsAvailable = map(textSlots, textSlot => {
                         return {
                             tabName: `Text: ${textSlot.name}`,

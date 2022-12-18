@@ -257,6 +257,10 @@ export default {
             }
         },
 
+        editorProps: {
+            textSlotTabsDisabled: true,
+        },
+
         controlPoints: {
             make(item) {
                 const cps = { };
@@ -297,7 +301,7 @@ export default {
                         const r = item.shapeProps[`colw${i}`];
                         offset += r * W / 100.0;
                     }
-                    
+
                     const width = Math.max(0, movement - offset);
 
                     const minWidth = 5 / columns;
