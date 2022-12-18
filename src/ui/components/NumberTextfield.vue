@@ -6,7 +6,7 @@
         <div v-if="name" class="label" ref="label">{{name}}</div>
         <div v-if="!name && icon" class="label" ref="icon"><i :class="icon"></i></div>
         <div class="wrapper">
-            <input type="text" v-model="text" @input="onUserInput" :disabled="disabled"/>
+            <input type="text" v-model="text" @blur="submitEvent" @keydown.enter="submitEvent" :disabled="disabled"/>
 
             <div class="step-controls">
                 <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
@@ -63,7 +63,6 @@ export default {
             autoIncrementSpeed: this.incrementSpeed,
             autoIncrementMaxSpeed: this.incrementMaxSpeed,
             autoIncrementAcceleration: this.incrementAcceleration,
-            isUserTyping: true
         }
     },
 
@@ -93,10 +92,8 @@ export default {
             }
         },
 
-        onUserInput(event) {
-            const text = event.target.value;
-            this.number = this.enforceLimits(this.textToNumber(text));
-            this.isUserTyping = true;
+        submitEvent() {
+            this.number = this.enforceLimits(this.textToNumber(this.text));
             this.$emit('changed', this.number);
         },
 
@@ -182,18 +179,6 @@ export default {
 
     watch: {
         value(newValue) {
-            // this weird piece of code is needed because of the side-effect of the number textfield reactivity
-            // when user types anything - it emits the changed value
-            // but it also watches the value (because this is needed when user mutates the value outside: e.g. dragging an item)
-            // all this causes it to update the text inside textfield and it erases different characters: e.g. dot at the end or turns '-0' to '0'
-            // All of this annoys users so we have to go for the trick:
-            // Each time when user types anything we store the information that the user was typing
-            // so on next watch update we reset this flag and do not update the text
-            if (this.isUserTyping) {
-                this.isUserTyping = false;
-                return;
-            }
-
             this.text = numberToText(newValue);
         }
     }

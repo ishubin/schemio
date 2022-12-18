@@ -271,10 +271,18 @@
                         <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{cursorY | prettifyAxisValue(zoom)}}</span>
                         <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
                             <span class="label">x: </span>
-                            <input type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)" @input="onCurveEditingPointInput($event.target.value, 'x')"/>
+                            <input type="text" class="textfield"
+                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
+                                @blur="onCurveEditingPointInput($event.target.value, 'x')"
+                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
+                                />
 
                             <span class="label">y: </span>
-                            <input type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)" @input="onCurveEditingPointInput($event.target.value, 'y')"/>
+                            <input type="text" class="textfield"
+                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
+                                @blur="onCurveEditingPointInput($event.target.value, 'y')"
+                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
+                                />
 
                             <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
                             <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
@@ -2529,7 +2537,7 @@ export default {
                 });
             }
         },
-        updateCurveEditPoint(item, pathId, pointId, point, skipSelectedPointUpdate) {
+        updateCurveEditPoint(item, pathId, pointId, point) {
             if (!validatePointIds(pathId, pointId, this.curveEditing)) {
                 return;
             }
@@ -2541,19 +2549,15 @@ export default {
                 this.curveEditing.paths[pathId].points[pointId][field] = value;
                 enrichCurvePoint(this.curveEditing.paths[pathId].points[pointId]);
             });
-            // skipping update of selected point is needed as when user types values in textfield
-            // textfield gets updated with rounded value and sometimes adds '0'
-            if (!skipSelectedPointUpdate) {
-                // this is dirty hack, but we only need to update selected points
-                // in case a single one is selected, as it gets displayed in the bottom panel
-                if (this.curveEditing.selectedPoints.length === 1
-                    && this.curveEditing.selectedPoints[0].pathId === pathId
-                    && this.curveEditing.selectedPoints[0].pointId === pointId) {
-                    this.curveEditing.selectedPoints[0] = {
-                        ...convertedPoint,
-                        pathId, pointId
-                    };
-                }
+            // this is dirty hack, but we only need to update selected points
+            // in case a single one is selected, as it gets displayed in the bottom panel
+            if (this.curveEditing.selectedPoints.length === 1
+                && this.curveEditing.selectedPoints[0].pathId === pathId
+                && this.curveEditing.selectedPoints[0].pointId === pointId) {
+                this.curveEditing.selectedPoints[0] = {
+                    ...convertedPoint,
+                    pathId, pointId
+                };
             }
             this.$forceUpdate();
         },
@@ -2613,7 +2617,7 @@ export default {
             point.y = convertedPoint.y;
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
-            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point, true);
+            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point);
         },
 
         onCurveEditingArcHeightInput(text) {
@@ -2630,7 +2634,7 @@ export default {
 
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
-            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point, true);
+            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point);
         },
 
         prettifyAxisValue(value, zoom) {
