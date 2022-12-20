@@ -4,18 +4,25 @@
 <template>
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-        <path :d="shapePath" stroke="none" :fill="svgFill"></path>
+        <advanced-fill :fillId="`fill-pattern-${item.id}-header`" :fill="item.shapeProps.headerFill" :area="item.area"/>
+        <advanced-fill :fillId="`fill-pattern-${item.id}-secondary-fill`" :fill="item.shapeProps.rowSecondaryFill" :area="item.area"/>
 
         <g v-if="item.shapeProps.style === 'simple'">
-            <path :d="shapePath" :stroke="item.shapeProps.stroke" fill="none"></path>
+            <path :d="shapePath" stroke="none" :fill="svgFill"/>
+            <path :d="shapePath" :stroke="item.shapeProps.stroke" fill="none" :stroke-width="`${item.shapeProps.strokeSize}px`" />
             <path v-for="r in rows"
                 :d="`M 0 ${r} l ${item.area.w} 0`"
                 :stroke="item.shapeProps.stroke"
+                :stroke-width="`${item.shapeProps.strokeSize}px`"
                 fill="none"/>
             <path v-for="c in columns"
                 :d="`M ${c} 0 l 0 ${item.area.h}`"
                 :stroke="item.shapeProps.stroke"
+                :stroke-width="`${item.shapeProps.strokeSize}px`"
                 fill="none"/>
+        </g>
+        <g v-if="item.shapeProps.style === 'flat'">
+            <rect v-for="c in cells" :x="c.area.x" :y="c.area.y" :width="c.area.w" :height="c.area.h" stroke="none" :fill="c.fill"/>
         </g>
     </g>
 </template>
@@ -180,9 +187,8 @@ function computeOutline(item) {
     return `M 0 0 L ${item.area.w} 0 L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`;
 }
 
-function getTextSlots(item) {
-    const textSlots = [];
-
+function generateCells(item) {
+    const cells = [];
     let rowOffset = 0;
     let remainingRowWidth = item.area.h;
     for (let i = 0; i < item.shapeProps.rows; i++) {
@@ -192,13 +198,27 @@ function getTextSlots(item) {
         let remainingColumnWidth = item.area.w;
         for (let j = 0; j < item.shapeProps.columns; j++) {
             const columnWidth = Math.min(remainingColumnWidth, j < item.shapeProps.columns - 1 ? item.shapeProps.colWidths[j] * item.area.w / 100 : remainingColumnWidth);
-            textSlots.push({
-                name: `c_${i}_${j}`,
+            let x1 = columnOffset;
+            let x2 = columnOffset + columnWidth;
+            let y1 = rowOffset;
+            let y2 = rowOffset + rowWidth;
+
+            let pad = 0;
+            if (item.shapeProps.style === 'flat') {
+                pad = item.shapeProps.cellPadding;
+            }
+
+            x1 = Math.min(x1 + pad, x2);
+            y1 = Math.min(y1 + pad, y2);
+
+            cells.push({
+                row: i,
+                col: j,
                 area: {
-                    x: columnOffset,
-                    y: rowOffset,
-                    w: columnWidth,
-                    h: rowWidth
+                    x: x1,
+                    y: y1,
+                    w: Math.max(0, x2 - pad - x1),
+                    h: Math.max(0, y2 - pad - y1)
                 }
             });
             columnOffset += columnWidth;
@@ -207,9 +227,17 @@ function getTextSlots(item) {
         rowOffset += rowWidth;
         remainingRowWidth -= rowWidth;
     }
-    return textSlots;
+    return cells;
 }
 
+function getTextSlots(item) {
+    return generateCells(item).map(cell => {
+        return {
+            name: `c_${cell.row}_${cell.col}`,
+            area: cell.area
+        };
+    });
+}
 
 export default {
     props: ['item'],
@@ -311,11 +339,22 @@ export default {
         },
 
         args: {
-            style: {type: 'choice', value: 'simple', options: ['simple', 'flat'], name: 'Style'},
+            style: {type: 'choice', value: 'simple', options: [
+                'simple', 'flat',
+            ], name: 'Style'},
+
             columns: {type: 'number', value: 3, name: 'Columns', min: minCells, max: maxCells, onUpdate: onColumnNumberUpdate },
             rows: {type: 'number', value: 3, name: 'Rows', min: minCells, max: maxCells, onUpdate: onRowsNumberUpdate },
             fill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(245, 245, 245, 1.0)'}, name: 'Fill'},
             stroke: {type: 'color', value: 'rgba(90, 90, 90, 1.0)', name: 'Stroke', depends: {style: 'simple'}},
+            strokeSize: {type: 'number', value: 1, name: 'Stroke size', depends: {style: 'simple'}},
+            cellPadding: {type: 'number', value: 2, name: 'Cell padding', depends: {style: 'flat'}},
+
+            header: {type: 'choice', value: 'none', options: ['none', 'columns', 'rows', 'both'], name: 'Header fill override'},
+            headerFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(245, 215, 145, 1.0)'}, name: 'Header fill'},
+
+            oddEvenFill: {type: 'boolean', value: false, name: 'Odd/even fill'},
+            rowSecondaryFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(225, 225, 225, 1.0)'}, name: 'Row secondary fill', depends: {oddEvenFill: true}},
 
             colWidths: {type: 'custom', value: [33.3, 33.3, 33.3], hidden: true},
             rowWidths: {type: 'custom', value: [33.3, 33.3, 33.3], hidden: true},
@@ -424,6 +463,24 @@ export default {
                 rows.push(Math.min(offset, this.item.area.h));
             }
             return rows;
+        },
+
+        cells() {
+            const fill = AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            const headerFill = AdvancedFill.computeSvgFill(this.item.shapeProps.headerFill, `fill-pattern-${this.item.id}-header`);
+            const secondaryFill = AdvancedFill.computeSvgFill(this.item.shapeProps.rowSecondaryFill, `fill-pattern-${this.item.id}-secondary-fill`);
+            return generateCells(this.item).map(cell => {
+                if (cell.row === 0 && (this.item.shapeProps.header === 'columns' || this.item.shapeProps.header === 'both')) {
+                    cell.fill = headerFill;
+                } else if (cell.col === 0 && (this.item.shapeProps.header === 'rows' || this.item.shapeProps.header === 'both')) {
+                    cell.fill = headerFill;
+                } else if (this.item.shapeProps.oddEvenFill && cell.row % 2 === 1) {
+                    cell.fill = secondaryFill;
+                } else {
+                    cell.fill = fill;
+                }
+                return cell;
+            });
         }
     }
 };

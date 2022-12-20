@@ -86,8 +86,8 @@
                 :ry="5/safeZoom"
             />
 
-            <transition name="connection-starter">
-                <g v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+            <transition name="edit-box-controls" v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+                <g>
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
                         :data-connector-starter-item-id="editBox.items[0].id"

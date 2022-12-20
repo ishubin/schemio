@@ -3850,16 +3850,16 @@ ul.patch-field-list {
 
 
 
-.connection-starter-enter-active,
-.connection-starter-leave-active {
+.edit-box-controls-enter-active,
+.edit-box-controls-leave-active {
     transition: opacity 0.2s ease;
 }
 
-.connection-starter-enter-from,
-.connection-starter-leave-to {
+.edit-box-controls-enter-from,
+.edit-box-controls-leave-to {
     opacity: 0;
 }
-.connection-starter-enter-to,
-.connection-starter-leave-from {
+.edit-box-controls-enter-to,
+.edit-box-controls-leave-from {
     opacity: 1.0;
 }
