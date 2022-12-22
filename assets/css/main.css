@@ -173,6 +173,11 @@ a:hover, .link:hover {
     padding: 10px;
 }
 
+
+.text-centered {
+    text-align: center;
+}
+
 /******************* Hints **********************/
 .hint {
     margin-top: 10px;
@@ -418,6 +423,7 @@ input.textfield.missing-field-error {
 }
 .number-textfield-container.disabled {
     border: 1px solid var(--faint-strong-up);
+    opacity: 0.7;
 }
 .number-textfield-container.disabled .step-controls {
     opacity: 0.5;
@@ -1093,6 +1099,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     cursor: pointer;
     cursor: hand;
     text-transform: capitalize;
+    border-radius: var(--control-border-radius);
 }
 .toggle-button.toggled {
     color: var(--base-strong);
@@ -3862,4 +3869,15 @@ ul.patch-field-list {
 .edit-box-controls-enter-to,
 .edit-box-controls-leave-from {
     opacity: 1.0;
+}
+
+
+.row {
+    display: flex;
+}
+.col-1 {
+    flex: 1;
+}
+.padded {
+    padding: 4px;
 }

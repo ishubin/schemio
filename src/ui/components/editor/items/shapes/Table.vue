@@ -7,22 +7,15 @@
         <advanced-fill :fillId="`fill-pattern-${item.id}-header`" :fill="item.shapeProps.headerFill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-${item.id}-secondary-fill`" :fill="item.shapeProps.rowSecondaryFill" :area="item.area"/>
 
-        <g v-if="item.shapeProps.style === 'simple'">
-            <path :d="shapePath" stroke="none" :fill="svgFill"/>
-            <path :d="shapePath" :stroke="item.shapeProps.stroke" fill="none" :stroke-width="`${item.shapeProps.strokeSize}px`" />
-            <path v-for="r in rows"
-                :d="`M 0 ${r} l ${item.area.w} 0`"
-                :stroke="item.shapeProps.stroke"
-                :stroke-width="`${item.shapeProps.strokeSize}px`"
-                fill="none"/>
-            <path v-for="c in columns"
-                :d="`M ${c} 0 l 0 ${item.area.h}`"
-                :stroke="item.shapeProps.stroke"
-                :stroke-width="`${item.shapeProps.strokeSize}px`"
-                fill="none"/>
-        </g>
-        <g v-if="item.shapeProps.style === 'flat'">
+        <g>
             <rect v-for="c in cells" :x="c.area.x" :y="c.area.y" :width="c.area.w" :height="c.area.h" stroke="none" :fill="c.fill"/>
+        </g>
+        <g v-if="item.shapeProps.style === 'simple'">
+            <line v-for="l in gridLines"
+                :stroke="item.shapeProps.stroke"
+                :stroke-width="`${item.shapeProps.strokeSize}px`"
+                :x1="l.x1" :y1="l.y1"
+                :x2="l.x2" :y2="l.y2"/>
         </g>
     </g>
 </template>
@@ -31,6 +24,7 @@
 import AdvancedFill from '../AdvancedFill.vue';
 import myMath from '../../../../myMath';
 import EditorEventBus from '../../EditorEventBus';
+import TablePropertiesEditor from './TablePropertiesEditor.vue';
 
 const minCells = 1;
 const maxCells = 100;
@@ -211,16 +205,19 @@ function generateCells(item) {
             x1 = Math.min(x1 + pad, x2);
             y1 = Math.min(y1 + pad, y2);
 
-            cells.push({
-                row: i,
-                col: j,
-                area: {
-                    x: x1,
-                    y: y1,
-                    w: Math.max(0, x2 - pad - x1),
-                    h: Math.max(0, y2 - pad - y1)
-                }
-            });
+
+            if (!(item.shapeProps.header === 'both' && item.shapeProps.cutCorner && i === 0 && j === 0)) {
+                cells.push({
+                    row: i,
+                    col: j,
+                    area: {
+                        x: x1,
+                        y: y1,
+                        w: Math.max(0, x2 - pad - x1),
+                        h: Math.max(0, y2 - pad - y1)
+                    }
+                });
+            }
             columnOffset += columnWidth;
             remainingColumnWidth -= columnWidth;
         }
@@ -346,15 +343,16 @@ export default {
             columns: {type: 'number', value: 3, name: 'Columns', min: minCells, max: maxCells, onUpdate: onColumnNumberUpdate },
             rows: {type: 'number', value: 3, name: 'Rows', min: minCells, max: maxCells, onUpdate: onRowsNumberUpdate },
             fill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(245, 245, 245, 1.0)'}, name: 'Fill'},
-            stroke: {type: 'color', value: 'rgba(90, 90, 90, 1.0)', name: 'Stroke', depends: {style: 'simple'}},
+            stroke: {type: 'color', value: 'rgba(145, 178, 196, 1.0)', name: 'Stroke', depends: {style: 'simple'}},
             strokeSize: {type: 'number', value: 1, name: 'Stroke size', depends: {style: 'simple'}},
             cellPadding: {type: 'number', value: 2, name: 'Cell padding', depends: {style: 'flat'}},
 
-            header: {type: 'choice', value: 'none', options: ['none', 'columns', 'rows', 'both'], name: 'Header fill override'},
-            headerFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(245, 215, 145, 1.0)'}, name: 'Header fill'},
+            header: {type: 'choice', value: 'columns', options: ['none', 'columns', 'rows', 'both'], name: 'Header fill override'},
+            headerFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(168, 193, 219, 1.0)'}, name: 'Header fill'},
+            cutCorner: {type: 'boolean', value: false, name: 'Cut corner', depends: {header: 'both'}},
 
             oddEvenFill: {type: 'boolean', value: false, name: 'Odd/even fill'},
-            rowSecondaryFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(225, 225, 225, 1.0)'}, name: 'Row secondary fill', depends: {oddEvenFill: true}},
+            rowSecondaryFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(234, 241, 246, 1.0)'}, name: 'Row secondary fill', depends: {oddEvenFill: true}},
 
             colWidths: {type: 'custom', value: [33.3, 33.3, 33.3], hidden: true},
             rowWidths: {type: 'custom', value: [33.3, 33.3, 33.3], hidden: true},
@@ -362,6 +360,10 @@ export default {
 
         editorProps: {
             textSlotTabsDisabled: true,
+
+            shapePropsEditor: {
+                component: TablePropertiesEditor
+            },
 
             // Is invoked from multi-item-edit-box for rendering addition controls
             editBoxControls: (editorId, item) => {
@@ -429,40 +431,60 @@ export default {
     },
 
     computed: {
-        shapePath() {
-            return computeOutline(this.item);
-        },
-
         svgFill() {
             return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
 
-        rowCount() {
-            return Math.max(1, this.item.shapeProps.rows);
-        },
-
-        colCount() {
-            return Math.max(1, this.item.shapeProps.columns);
-        },
-
-        columns() {
-            const cols = [];
+        gridLines() {
+            const lines = [];
             let offset = 0;
-            for (let i = 0; i < this.item.shapeProps.columns - 1; i++) {
-                offset += this.item.shapeProps.colWidths[i] * this.item.area.w / 100.0;
-                cols.push(Math.min(offset, this.item.area.w));
+            const cutCorner = this.item.shapeProps.header === 'both' && this.item.shapeProps.cutCorner;
+            lines.push({
+                x1: cutCorner? this.item.shapeProps.colWidths[0] * this.item.area.w / 100: 0,
+                x2: this.item.area.w,
+                y1: offset,
+                y2: offset,
+            });
+            for (let i = 1; i < this.item.shapeProps.rows; i++) {
+                offset += this.item.shapeProps.rowWidths[i-1] * this.item.area.h / 100;
+                lines.push({
+                    x1: 0,
+                    x2: this.item.area.w,
+                    y1: offset,
+                    y2: offset,
+                });
             }
-            return cols;
-        },
+            lines.push({
+                x1: 0,
+                x2: this.item.area.w,
+                y1: this.item.area.h,
+                y2: this.item.area.h,
+            });
 
-        rows() {
-            const rows = [];
-            let offset = 0;
-            for (let i = 0; i < this.item.shapeProps.rows - 1; i++) {
-                offset += this.item.shapeProps.rowWidths[i] * this.item.area.h / 100.0;
-                rows.push(Math.min(offset, this.item.area.h));
+            // vertical lines
+            offset = 0;
+            lines.push({
+                x1: offset,
+                x2: offset,
+                y1: cutCorner ? this.item.shapeProps.rowWidths[0] * this.item.area.h / 100: 0,
+                y2: this.item.area.h,
+            });
+            for (let i = 1; i < this.item.shapeProps.columns; i++) {
+                offset += this.item.shapeProps.colWidths[i-1] * this.item.area.w / 100;
+                lines.push({
+                    x1: offset,
+                    x2: offset,
+                    y1: 0,
+                    y2: this.item.area.h,
+                });
             }
-            return rows;
+            lines.push({
+                x1: this.item.area.w,
+                x2: this.item.area.w,
+                y1: 0,
+                y2: this.item.area.h,
+            });
+            return lines;
         },
 
         cells() {

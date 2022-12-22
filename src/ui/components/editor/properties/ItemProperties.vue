@@ -89,7 +89,17 @@
             </panel>
 
             <panel name="Shape Properties" v-if="hasShapeArgs">
-                <table class="properties-table">
+                <div v-if="shapeComponent.editorProps && shapeComponent.editorProps.shapePropsEditor &&  shapeComponent.editorProps.shapePropsEditor.component">
+                    <component
+                        :key="`shape-properties-editor-${item.shape}-${item.id}`"
+                        :is="shapeComponent.editorProps.shapePropsEditor.component"
+                        :item="item"
+                        :refreshKey="shapePropsEditorKey"
+                        @shape-prop-changed="onShapePropChange"
+                        @item-mutated="onItemMutated"
+                    />
+                </div>
+                <table v-else class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && !isArgumentHidden(arg)">
                             <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
@@ -308,17 +318,27 @@ export default {
                 shown: false,
                 currentEffectIndex: -1,
                 effectArgs: {}
-            }
+            },
+
+            shapePropsEditorKey: 1
         };
     },
 
     methods: {
         onItemChanged() {
+            this.shapePropsEditorKey += 1;
             this.$forceUpdate();
         },
 
         emitItemFieldChange(name, value) {
             this.$emit('item-field-changed', name, value);
+        },
+
+        onItemMutated() {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.updateShapePropsDependencies();
+            this.$forceUpdate();
         },
 
         onShapePropChange(name, type, value) {

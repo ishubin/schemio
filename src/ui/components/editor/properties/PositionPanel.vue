@@ -14,7 +14,7 @@
                 </span>
             </li>
         </ul>
-        <table>
+        <table style="width: 100%;">
             <tbody>
                 <tr>
                     <td>
