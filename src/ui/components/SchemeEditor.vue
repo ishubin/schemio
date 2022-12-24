@@ -93,20 +93,24 @@
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
+                            :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :edit-box="schemeContainer.multiItemEditBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
 
                         <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
                             :key="`crop-image-edit-box`"
                             kind="crop-image"
+                            :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :edit-box="cropImage.editBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
-                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"/>
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
 
                         <g v-if="state === 'editPath' && curveEditing.item && curveEditing.item.meta">
                             <PathEditBox
@@ -474,7 +478,7 @@ import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
 
-import {applyStyleFromAnotherItem, defaultItem } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
 import {enrichItemWithDefaults} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
@@ -1186,6 +1190,9 @@ export default {
 
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
+            if (item.textSlots[slotName]) {
+                item.textSlots[slotName] = utils.clone(defaultTextSlotProps);
+            }
             const itemTextSlot = item.textSlots[slotName];
             const p0 = worldPointOnItem(area.x, area.y, item);
             const p1 = worldPointOnItem(area.x + area.w, area.y, item);
@@ -1662,7 +1669,7 @@ export default {
                     this.selectedItem = null;
                 }
 
-                if (textSlots && textSlots.length > 0) {
+                if (textSlots && textSlots.length > 0 && !(shape.editorProps && shape.editorProps.textSlotTabsDisabled)) {
                     this.itemTextSlotsAvailable = map(textSlots, textSlot => {
                         return {
                             tabName: `Text: ${textSlot.name}`,
@@ -2001,6 +2008,12 @@ export default {
             }
 
             if (selectedOnlyOne) {
+                const shape = Shape.find(item.shape);
+
+                if (shape.editorProps && shape.editorProps.contextMenu) {
+                    const point = localPointOnItem(x, y, item);
+                    contextMenuOptions = contextMenuOptions.concat(this.convertEditorPropsContextMenuOptions(item, shape.editorProps.contextMenu(point.x, point.y, item)));
+                }
                 contextMenuOptions.push({
                     name: 'Create component from this item',
                     clicked: () => {this.createComponentFromItem(item);}
@@ -2102,6 +2115,29 @@ export default {
             }
 
             this.$emit('context-menu-requested', mouseX, mouseY, contextMenuOptions);
+        },
+
+        convertEditorPropsContextMenuOptions(item, options) {
+            options.forEach(option => {
+                if (option.clicked) {
+                    option.clicked = this.createEditorPropsMenuWrapperFunction(item, option.clicked);
+                }
+
+                if (option.subOptions) {
+                    this.convertEditorPropsContextMenuOptions(item, option.subOptions);
+                }
+            })
+            return options;
+        },
+
+        createEditorPropsMenuWrapperFunction(item, clickHandler) {
+            return () => {
+                if (clickHandler()) {
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                    this.schemeContainer.updateMultiItemEditBox();
+                }
+            };
         },
 
         onVoidRightClicked(mouseX, mouseY) {
@@ -2649,15 +2685,22 @@ export default {
             this.$forceUpdate();
         },
 
+        onMultiItemEditBoxCustomControlClicked(item) {
+            this.schemeContainer.reindexSpecifiedItems([item]);
+            this.schemeContainer.reindexItems();
+            this.schemeContainer.updateMultiItemEditBox();
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
-        _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
+        _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y },
         _z(v) { return v * this.schemeContainer.screenTransform.scale; },
 
         //calculates from screen to world
-        x_(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
-        y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
-        z_(v) { return v * this.schemeContainer.screenTransform.scale; },
+        x_(x) { return (x - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale },
+        y_(y) { return (y - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale },
+        z_(v) { return v / this.schemeContainer.screenTransform.scale; },
+
     },
 
     filters: {

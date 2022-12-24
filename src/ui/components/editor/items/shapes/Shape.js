@@ -32,6 +32,8 @@ let _shapes = [
     require('./StickyNote.vue').default,
     require('./Component.vue').default,
 
+    require('./Table.vue').default,
+
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
     require('./uml/UMLModule.js').default,

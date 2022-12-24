@@ -31,6 +31,7 @@ export const textWhiteSpaceOptions = [{
 
 export const textSlotProperties = [
     {field: 'color', name: 'Color', type: 'color'},
+    {field: 'bold', name: 'Bold', type: 'boolean'},
     {field: 'halign', name: 'Horizontal Align', type: 'choice', options: ['left', 'center', 'right']},
     {field: 'valign', name: 'Vertical Align', type: 'choice', options: ['top', 'middle', 'bottom']},
     {field: 'fontSize', name: 'Font Size', type: 'number'},

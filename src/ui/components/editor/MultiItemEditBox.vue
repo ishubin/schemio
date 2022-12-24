@@ -3,6 +3,13 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g data-preview-ignore="true">
+        <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
+            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            data-type="multi-item-edit-box"
+            :stroke-width="1/safeZoom"
+            fill="none"
+            :stroke="boundaryBoxColor"
+            style="opacity: 0.8;"/>
         <!-- rendering item custom control points -->
         <g v-if="editBox.items.length === 1 && kind === 'regular'">
             <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
@@ -26,8 +33,8 @@
                     fill="none"/>
             </g>
 
-            <g :transform="svgEditBoxTransform">
-                <circle v-if="shouldShowControlPoints" v-for="controlPoint in controlPoints"
+            <g :transform="svgEditBoxTransform" v-if="shouldShowControlPoints">
+                <circle v-for="controlPoint in controlPoints"
                     :key="`item-control-point-${controlPoint.id}`"
                     class="item-control-point"
                     :data-control-point-item-id="editBox.items[0].id"
@@ -36,17 +43,40 @@
                     :fill="controlPointsColor"
                     :r="6/safeZoom"
                     />
+
+                <g v-for="(control, idx) in customControls"
+                    :transform="`translate(${editBox.area.w * control.xAxis.widthFactor + control.xAxis.direction * (control.position.x * control.xAxis.scaleFactor / safeZoom + control.position.x * (1 - control.xAxis.scaleFactor))}, ${editBox.area.h * control.yAxis.widthFactor + control.yAxis.direction * (control.position.y * control.yAxis.scaleFactor / safeZoom + control.position.y * (1 - control.yAxis.scaleFactor))})`"
+                    >
+                    <circle class="item-control-point"
+                        :cx="0"
+                        :cy="0"
+                        :r="10/safeZoom"
+                        :fill="controlPointsColor"
+                        >
+                    </circle>
+                    <foreignObject :x="-10/safeZoom" :y="-10/safeZoom"  :width="20/safeZoom" :height="20/safeZoom">
+                        <div xmlns="http://www.w3.org/1999/xhtml"
+                            style="color: white; display: table-cell; text-align: center; vertical-align: middle"
+                            :style="{'font-size': `${12/safeZoom}px`,width: `${Math.round(20/safeZoom)}px`, height: `${Math.round(20/safeZoom)}px`}"
+                            >
+                            <i :class="control.iconClass"></i>
+                        </div>
+                    </foreignObject>
+                    <circle class="item-control-point"
+                        :cx="0"
+                        :cy="0"
+                        :r="10/safeZoom"
+                        fill="rgba(255, 255, 255, 0.0)"
+                        :title="control.name"
+                        data-type="multi-item-edit-box"
+                        @click="onCustomControlClick(idx)"
+                        >
+                    </circle>
+                </g>
             </g>
         </g>
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
-            <path :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
-                data-type="multi-item-edit-box"
-                :stroke-width="1/safeZoom"
-                fill="none"
-                :stroke="boundaryBoxColor"
-                style="opacity: 0.8;"/>
-
             <ellipse v-if="kind === 'regular'" class="boundary-box-dragger"
                 data-type="multi-item-edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
@@ -56,8 +86,8 @@
                 :ry="5/safeZoom"
             />
 
-            <transition name="connection-starter">
-                <g v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+            <transition name="edit-box-controls" v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+                <g>
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
                         :data-connector-starter-item-id="editBox.items[0].id"
@@ -166,19 +196,19 @@
                 />
                 <g class="boundary-box-pivot-dragger" v-if="showPivot">
                     <line 
-                        :x1="editBox.area.w * editBox.pivotPoint.x" 
-                        :y1="editBox.area.h * editBox.pivotPoint.y - 10/safeZoom" 
-                        :x2="editBox.area.w * editBox.pivotPoint.x" 
-                        :y2="editBox.area.h * editBox.pivotPoint.y + 10/safeZoom" 
-                        :stroke="boundaryBoxColor" 
+                        :x1="editBox.area.w * editBox.pivotPoint.x"
+                        :y1="editBox.area.h * editBox.pivotPoint.y - 10/safeZoom"
+                        :x2="editBox.area.w * editBox.pivotPoint.x"
+                        :y2="editBox.area.h * editBox.pivotPoint.y + 10/safeZoom"
+                        :stroke="boundaryBoxColor"
                         :stroke-width="1/safeZoom"
                     />
                     <line 
-                        :x1="editBox.area.w * editBox.pivotPoint.x - 10/safeZoom" 
-                        :y1="editBox.area.h * editBox.pivotPoint.y" 
-                        :x2="editBox.area.w * editBox.pivotPoint.x + 10/safeZoom" 
-                        :y2="editBox.area.h * editBox.pivotPoint.y" 
-                        :stroke="boundaryBoxColor" 
+                        :x1="editBox.area.w * editBox.pivotPoint.x - 10/safeZoom"
+                        :y1="editBox.area.h * editBox.pivotPoint.y"
+                        :x2="editBox.area.w * editBox.pivotPoint.x + 10/safeZoom"
+                        :y2="editBox.area.h * editBox.pivotPoint.y"
+                        :stroke="boundaryBoxColor"
                         :stroke-width="1/safeZoom"
                     />
 
@@ -285,8 +315,30 @@ function isItemConnector(items) {
     return items.length === 1 && items[0].shape === 'connector';
 }
 
+function createCustomControlAxis(place) {
+    if (place === 'right' || place === 'bottom') {
+        return {
+            widthFactor: 1,
+            direction: 1,
+            scaleFactor: 1
+        };
+    } else if (place === 'left' || place === 'top') {
+        return {
+            widthFactor: 0,
+            direction: -1,
+            scaleFactor: 1
+        };
+    }
+    return {
+        widthFactor: 0,
+        direction: 1,
+        scaleFactor: 0
+    };
+}
+
 export default {
     props: {
+        editorId: {type: String, required: true},
         cursor: {type: Object},
         editBox: {type: Object, required: true},
         zoom: {type: Number},
@@ -303,8 +355,11 @@ export default {
 
         if (this.editBox.items.length === 1) {
             const item = this.editBox.items[0];
+            const shape = Shape.find(item.shape);
+
+            this.configureCustomControls(item, shape.editorProps);
+
             if (item.shape === 'connector') {
-                const shape = Shape.find(item.shape);
                 StoreUtils.setSelectedConnectorPath(this.$store, shape.computeOutline(item));
             }
 
@@ -326,7 +381,9 @@ export default {
         return {
             draggerSize: 5,
             connectionStarterDisplayed: false,
-            connectionStarterTimerId: null
+            connectionStarterTimerId: null,
+
+            customControls: []
         };
     },
 
@@ -359,6 +416,25 @@ export default {
             } else {
                 this.hideConnectionStarter();
             }
+        },
+
+        configureCustomControls(item, editorProps) {
+            if (!editorProps || !editorProps.editBoxControls) {
+                return;
+            }
+
+            editorProps.editBoxControls(this.editorId, item).forEach(control => {
+                this.customControls.push({
+                    ...control,
+                    xAxis: createCustomControlAxis(control.hPlace),
+                    yAxis: createCustomControlAxis(control.vPlace),
+                });
+            });
+        },
+
+        onCustomControlClick(idx) {
+            this.customControls[idx].click();
+            this.$emit('custom-control-clicked', this.editBox.items[0]);
         }
     },
 

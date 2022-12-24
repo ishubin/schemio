@@ -89,6 +89,9 @@ export function defaultifyObject(obj, defaultObject) {
  * @param {*} defaultObj 
  */
 export function enrichObjectWithDefaults(obj, defaultObj) {
+    if (!obj) {
+        return;
+    }
     for (let field in defaultObj) {
         if (defaultObj.hasOwnProperty(field)) {
             if (field === '*') {

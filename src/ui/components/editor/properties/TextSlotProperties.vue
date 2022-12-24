@@ -51,6 +51,12 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="label" width="50%">Bold</td>
+                        <td class="value" width="50%">
+                            <input type="checkbox" :checked="textSlot.bold" @input="emitTextSlotPropertyChange('bold', arguments[0].target.checked)"/>
+                        </td>
+                    </tr>
+                    <tr>
                         <td class="label" width="50%">Font</td>
                         <td class="value" width="50%">
                             <dropdown :options="allFonts" :value="textSlot.font" @selected="emitTextSlotPropertyChange('font', arguments[0].name)"/>

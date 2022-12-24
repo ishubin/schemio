@@ -19,5 +19,9 @@ export function generateTextStyle(textSlot) {
         'box-sizing'      : 'border-box'
     };
 
+    if (textSlot.bold) {
+        style['font-weight'] = 'bold';
+    }
+
     return style;
 }
