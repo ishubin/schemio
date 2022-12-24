@@ -25,6 +25,8 @@ import AdvancedFill from '../AdvancedFill.vue';
 import myMath from '../../../../myMath';
 import EditorEventBus from '../../EditorEventBus';
 import TablePropertiesEditor from './TablePropertiesEditor.vue';
+import utils from '../../../../utils';
+import { defaultTextSlotProps } from '../../../../scheme/Item';
 
 const minCells = 1;
 const maxCells = 100;
@@ -148,7 +150,7 @@ function onRowsNumberUpdate($store, item, rows, previousRows) {
             for (let j = 0; j < item.shapeProps.columns; j++) {
                 const key = `c_${i}_${j}`;
                 if (!item.textSlots.hasOwnProperty(key)) {
-                    item.textSlots[key] = {text: ''};
+                    item.textSlots[key] = utils.clone(defaultTextSlotProps);
                 }
             }
         }
@@ -234,6 +236,121 @@ function getTextSlots(item) {
             area: cell.area
         };
     });
+}
+
+
+function identifyRowAndColumn(item, x, y) {
+    let row = 0, col = 0;
+    let offset = 0;
+    for (let i = 0; i < item.shapeProps.columns - 1; i++) {
+        col = i;
+        offset += item.shapeProps.colWidths[i] * item.area.w / 100.0;
+        if (x < offset) {
+            break;
+        }
+    }
+    if (x > offset) {
+        col += 1;
+    }
+
+    offset = 0;
+    for (let i = 0; i < item.shapeProps.rows - 1; i++) {
+        row = i;
+        offset += item.shapeProps.rowWidths[i] * item.area.h / 100.0;
+        if (y < offset) {
+            break;
+        }
+    }
+    if (y > offset) {
+        row += 1;
+    }
+    return {row, col};
+}
+
+function deleteColumn(item, col) {
+    if (item.shapeProps.columns < 2) {
+        return false;
+    }
+
+    const realColumnWidths = [];
+    let offset = 0;
+    for (let i = 0; i < item.shapeProps.columns - 1 && i < item.shapeProps.colWidths.length; i++) {
+        realColumnWidths[i] = item.shapeProps.colWidths[i] * item.area.w / 100;
+        offset += realColumnWidths[i];
+    }
+    const leftOverWidth = Math.max(0, item.area.w - offset);
+    if (leftOverWidth > 0) {
+        realColumnWidths.push(leftOverWidth);
+    }
+
+    item.shapeProps.columns -= 1;
+
+    if (col < item.shapeProps.colWidths.length) {
+        const columnWidth = item.area.w * item.shapeProps.colWidths[col] / 100;
+        item.area.w = Math.max(0, item.area.w - columnWidth);
+        item.shapeProps.colWidths.splice(col, 1);
+    } else if (col === item.shapeProps.colWidths.length) {
+        item.shapeProps.colWidths.length -= 1;
+        item.area.w = Math.max(0, item.area.w - leftOverWidth);
+    }
+
+    for (let i = 0; i < item.shapeProps.columns && i < item.shapeProps.colWidths.length; i++) {
+        const width = myMath.tooSmall(item.area.w) ? 1 : item.area.w;
+        item.shapeProps.colWidths[i] = 100 * realColumnWidths[i] / width;
+    }
+
+    for (let i = col; i < item.shapeProps.columns; i++) {
+        for (let j = 0; j < item.shapeProps.rows; j++) {
+            item.textSlots[`c_${j}_${i}`] = item.textSlots[`c_${j}_${i+1}`];
+        }
+    }
+    for (let j = 0; j < item.shapeProps.rows; j++) {
+        delete item.textSlots[`c_${j}_${item.shapeProps.columns}`];
+    }
+    return true;
+}
+
+function deleteRow(item, row) {
+    if (item.shapeProps.rows < 2) {
+        return false;
+    }
+
+    const realRowWidths = [];
+    let offset = 0;
+    for (let i = 0; i < item.shapeProps.rows - 1 && i < item.shapeProps.rowWidths.length; i++) {
+        realRowWidths[i] = item.shapeProps.rowWidths[i] * item.area.h / 100;
+        offset += realRowWidths[i];
+    }
+    const leftOverWidth = Math.max(0, item.area.h - offset);
+    if (leftOverWidth > 0) {
+        realRowWidths.push(leftOverWidth);
+    }
+
+    item.shapeProps.rows -= 1;
+
+    if (row < item.shapeProps.rowWidths.length) {
+        const rowWidth = item.area.h * item.shapeProps.rowWidths[row] / 100;
+        item.area.h = Math.max(0, item.area.h - rowWidth);
+        item.shapeProps.rowWidths.splice(row, 1);
+    } else if (row === item.shapeProps.rowWidths.length) {
+        item.shapeProps.rowWidths.length -= 1;
+        item.area.h = Math.max(0, item.area.h - leftOverWidth);
+    }
+
+    for (let i = 0; i < item.shapeProps.rows && i < item.shapeProps.rowWidths.length; i++) {
+        const width = myMath.tooSmall(item.area.h) ? 1 : item.area.h;
+        item.shapeProps.rowWidths[i] = 100 * realRowWidths[i] / width;
+    }
+
+    for (let i = row; i < item.shapeProps.rows && i < item.shapeProps.rowWidths.length; i++) {
+        for (let j = 0; j < item.shapeProps.columns; j++) {
+            item.textSlots[`c_${i}_${j}`] = item.textSlots[`c_${i}_${j+1}`];
+        }
+    }
+    for (let j = 0; j < item.shapeProps.columns; j++) {
+        delete item.textSlots[`c_${item.shapeProps.rows}_${j}`];
+    }
+    return true;
 }
 
 export default {
@@ -360,6 +477,25 @@ export default {
 
         editorProps: {
             textSlotTabsDisabled: true,
+
+            contextMenu(x, y, item) {
+                const {row, col} = identifyRowAndColumn(item, x, y);
+
+                const subOptions = [];
+
+                if (item.shapeProps.columns > 1) {
+                    subOptions.push({ name: `Delete column #${col+1}`, iconClass: 'fas fa-trash', clicked: () => deleteColumn(item, col) });
+                }
+                if (item.shapeProps.rows > 1) {
+                    subOptions.push({ name: `Delete row #${row+1}`, iconClass: 'fas fa-trash', clicked: () => deleteRow(item, row) });
+                }
+
+
+                return [{
+                    name: 'Table',
+                    subOptions
+                }];
+            },
 
             shapePropsEditor: {
                 component: TablePropertiesEditor
