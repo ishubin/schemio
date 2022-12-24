@@ -201,7 +201,7 @@ export default {
         id: 'uml_swim_lane',
 
         menuItems: [{
-            group: 'UML',
+            group: 'Tables',
             name: 'Swim Lane',
             iconUrl: '/assets/images/items/uml-swim-lane.svg',
             item: {
@@ -220,7 +220,7 @@ export default {
             previewArea: { x: 5, y: 5, w: 250, h: 100},
             size: {w: 800, h: 400}
         }, {
-            group: 'UML',
+            group: 'Tables',
             name: 'Swim Lane (Horizontal)',
             iconUrl: '/assets/images/items/uml-swim-lane-horizontal.svg',
             item: {

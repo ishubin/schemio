@@ -11,6 +11,7 @@
             <rect v-for="c in cells" :x="c.area.x" :y="c.area.y" :width="c.area.w" :height="c.area.h" stroke="none" :fill="c.fill"/>
         </g>
         <g v-if="item.shapeProps.style === 'simple'">
+            <path :d="outlinePath" :stroke="item.shapeProps.stroke" :stroke-width="`${item.shapeProps.strokeSize}px`" fill="none"/>
             <line v-for="l in gridLines"
                 :stroke="item.shapeProps.stroke"
                 :stroke-width="`${item.shapeProps.strokeSize}px`"
@@ -180,6 +181,12 @@ function onRowsNumberUpdate($store, item, rows, previousRows) {
 }
 
 function computeOutline(item) {
+    if (item.shapeProps.header === 'both' && item.shapeProps.cutCorner) {
+        const firstColumnWidth = item.area.w * item.shapeProps.colWidths[0] / 100;
+        const firstRowWidth = item.area.h * item.shapeProps.rowWidths[0] / 100;
+
+        return `M ${firstColumnWidth} 0 L ${item.area.w} 0 L ${item.area.w} ${item.area.h} L 0 ${item.area.h}  L 0 ${firstRowWidth} L ${firstColumnWidth} ${firstRowWidth} Z`;
+    }
     return `M 0 0 L ${item.area.w} 0 L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`;
 }
 
@@ -461,6 +468,18 @@ function copyTextStyleToAllCells(item, row, col) {
     return true;
 }
 
+function menuItem(name, iconFile, shapeProps) {
+    return {
+        group: 'Tables',
+        name: name,
+        iconUrl: `/assets/images/items/${iconFile}`,
+        item: {
+            shapeProps,
+        },
+        previewArea: { x: 5, y: 5, w: 200, h: 100},
+        size: {w: 200, h: 100}
+    };
+}
 
 export default {
     props: ['item'],
@@ -471,21 +490,35 @@ export default {
 
         id: 'uml_table',
 
-        menuItems: [{
-            group: 'table',
-            name: 'Table',
-            iconUrl: '/assets/images/items/uml-swim-lane.svg',
-            item: {
-                shapeProps: {
-                    columns: 3,
-                    rows: 3
-                },
-                textSlots: {
-                }
-            },
-            previewArea: { x: 5, y: 5, w: 200, h: 100},
-            size: {w: 200, h: 100}
-        }],
+        menuItems: [
+            menuItem('Table', 'table-simple.svg', {
+                columns: 3,
+                rows: 3,
+                header: 'none'
+            }),
+            menuItem('Table with header', 'table-h-header.svg', {
+                columns: 3,
+                rows: 3,
+                header: 'columns'
+            }),
+            menuItem('Table with vertical header', 'table-v-header.svg', {
+                columns: 3,
+                rows: 3,
+                header: 'rows'
+            }),
+            menuItem('Table with double header', 'table-dbl-header.svg', {
+                columns: 3,
+                rows: 3,
+                header: 'both',
+                cutCorner: false
+            }),
+            menuItem('Table with double header', 'table-dbl-header-2.svg', {
+                columns: 3,
+                rows: 3,
+                header: 'both',
+                cutCorner: true
+            }),
+        ],
 
         computeOutline,
 
@@ -697,55 +730,38 @@ export default {
             return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
 
+        outlinePath() {
+            return computeOutline(this.item);
+        },
+
         gridLines() {
             const lines = [];
             let offset = 0;
             const cutCorner = this.item.shapeProps.header === 'both' && this.item.shapeProps.cutCorner;
-            lines.push({
-                x1: cutCorner? this.item.shapeProps.colWidths[0] * this.item.area.w / 100: 0,
-                x2: this.item.area.w,
-                y1: offset,
-                y2: offset,
-            });
+
+            const firstColumnWidth = this.item.area.w * this.item.shapeProps.colWidths[0] / 100;
+            const firstRowWidth = this.item.area.h * this.item.shapeProps.rowWidths[0] / 100;
+
             for (let i = 1; i < this.item.shapeProps.rows; i++) {
                 offset += this.item.shapeProps.rowWidths[i-1] * this.item.area.h / 100;
                 lines.push({
-                    x1: 0,
+                    x1: i === 1  && cutCorner ? firstColumnWidth : 0,
                     x2: this.item.area.w,
                     y1: offset,
                     y2: offset,
                 });
             }
-            lines.push({
-                x1: 0,
-                x2: this.item.area.w,
-                y1: this.item.area.h,
-                y2: this.item.area.h,
-            });
-
             // vertical lines
             offset = 0;
-            lines.push({
-                x1: offset,
-                x2: offset,
-                y1: cutCorner ? this.item.shapeProps.rowWidths[0] * this.item.area.h / 100: 0,
-                y2: this.item.area.h,
-            });
             for (let i = 1; i < this.item.shapeProps.columns; i++) {
                 offset += this.item.shapeProps.colWidths[i-1] * this.item.area.w / 100;
                 lines.push({
                     x1: offset,
                     x2: offset,
-                    y1: 0,
+                    y1: i === 1 && cutCorner  ? firstRowWidth : 0,
                     y2: this.item.area.h,
                 });
             }
-            lines.push({
-                x1: this.item.area.w,
-                x2: this.item.area.w,
-                y1: 0,
-                y2: this.item.area.h,
-            });
             return lines;
         },
 

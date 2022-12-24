@@ -478,7 +478,7 @@ import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
 
-import {applyStyleFromAnotherItem, defaultItem } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
 import {enrichItemWithDefaults} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
@@ -1190,6 +1190,9 @@ export default {
 
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
+            if (item.textSlots[slotName]) {
+                item.textSlots[slotName] = utils.clone(defaultTextSlotProps);
+            }
             const itemTextSlot = item.textSlots[slotName];
             const p0 = worldPointOnItem(area.x, area.y, item);
             const p1 = worldPointOnItem(area.x + area.w, area.y, item);
