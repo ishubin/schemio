@@ -401,9 +401,9 @@ function deleteRow(item, row) {
 
     updateRowWidths(item, realRowWidths);
 
-    for (let i = row; i < item.shapeProps.rows && i < item.shapeProps.rowWidths.length; i++) {
+    for (let i = row; i < item.shapeProps.rows; i++) {
         for (let j = 0; j < item.shapeProps.columns; j++) {
-            item.textSlots[`c_${i}_${j}`] = item.textSlots[`c_${i}_${j+1}`];
+            item.textSlots[`c_${i}_${j}`] = item.textSlots[`c_${i+1}_${j}`];
         }
     }
     for (let j = 0; j < item.shapeProps.columns; j++) {
