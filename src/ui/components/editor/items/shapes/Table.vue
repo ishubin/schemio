@@ -412,6 +412,56 @@ function deleteRow(item, row) {
     return true;
 }
 
+function copyTextStyleToColumn(item, row, col) {
+    const textSlot = utils.clone(item.textSlots[`c_${row}_${col}`]);
+    for (let i = 0; i < item.shapeProps.rows; i++) {
+        if (i != row) {
+            const slotName = `c_${i}_${col}`;
+            const text = item.textSlots[slotName].text;
+            item.textSlots[slotName] = {
+                ...textSlot,
+                text
+            };
+        }
+    }
+    return true;
+}
+
+function copyTextStyleToRow(item, row, col) {
+    const textSlot = utils.clone(item.textSlots[`c_${row}_${col}`]);
+
+    for (let i = 0; i < item.shapeProps.columns; i++) {
+        if (i != col) {
+            const slotName = `c_${row}_${i}`;
+            const text = item.textSlots[slotName].text;
+            item.textSlots[slotName] = {
+                ...textSlot,
+                text
+            };
+        }
+    }
+    return true;
+}
+
+function copyTextStyleToAllCells(item, row, col) {
+    const textSlot = utils.clone(item.textSlots[`c_${row}_${col}`]);
+
+    for (let j = 0; j < item.shapeProps.rows; j++) {
+        for (let i = 0; i < item.shapeProps.columns; i++) {
+            if (!(i === col && j === row)) {
+                const slotName = `c_${j}_${i}`;
+                const text = item.textSlots[slotName].text;
+                item.textSlots[slotName] = {
+                    ...textSlot,
+                    text
+                };
+            }
+        }
+    }
+    return true;
+}
+
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -542,7 +592,7 @@ export default {
                 const rowNum = row + 1;
                 const colNum = col + 1;
 
-                const subOptions = [{
+                let subOptions = [{
                     name: `Insert column before #${colNum}`, clicked: () => insertColumn(item, col)
                 }, {
                     name: `Insert column after #${colNum}`, clicked: () => insertColumn(item, col+1)
@@ -559,6 +609,13 @@ export default {
                     subOptions.push({ name: `Delete row #${rowNum}`, iconClass: 'fas fa-trash', clicked: () => deleteRow(item, row) });
                 }
 
+                subOptions = subOptions.concat([{
+                    name: 'Copy text style to column', clicked: () => copyTextStyleToColumn(item, row, col),
+                }, {
+                    name: 'Copy text style to row', clicked: () => copyTextStyleToRow(item, row, col),
+                }, {
+                    name: 'Copy text style to all cells', clicked: () => copyTextStyleToAllCells(item, row, col),
+                }])
 
                 return [{
                     name: 'Table',
