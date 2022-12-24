@@ -287,6 +287,26 @@ function updateColWidths(item, realColumnWidths) {
     }
 }
 
+function calculateRealRowWidths(item) {
+    const realRowWidths = [];
+    let offset = 0;
+    for (let i = 0; i < item.shapeProps.rows - 1 && i < item.shapeProps.rowWidths.length; i++) {
+        realRowWidths[i] = item.shapeProps.rowWidths[i] * item.area.h / 100;
+        offset += realRowWidths[i];
+    }
+    const leftOverWidth = Math.max(0, item.area.h - offset);
+    realRowWidths.push(leftOverWidth);
+    return realRowWidths;
+}
+
+function updateRowWidths(item, realRowWidths) {
+    item.shapeProps.rowWidths = [];
+    for (let i = 0; i < item.shapeProps.rows - 1; i++) {
+        const width = myMath.tooSmall(item.area.h) ? 1 : item.area.h;
+        item.shapeProps.rowWidths[i] = 100 * realRowWidths[i] / width;
+    }
+}
+
 function deleteColumn(item, col) {
     if (item.shapeProps.columns < 2) {
         return false;
@@ -340,37 +360,46 @@ function insertColumn(item, idx) {
     return true;
 }
 
+function insertRow(item, idx) {
+    const realWidths = calculateRealRowWidths(item);
+
+    const newRowWidth = idx < realWidths.length ? realWidths[idx] : realWidths[realWidths.length - 1];
+    realWidths.splice(idx, 0, newRowWidth);
+
+    item.area.h += newRowWidth;
+    item.shapeProps.rows += 1;
+    updateRowWidths(item, realWidths);
+
+    for (let j = item.shapeProps.rows - 1; j >= idx; j--) {
+        for (let i = 0; i < item.shapeProps.columns; i++) {
+            item.textSlots[`c_${j}_${i}`] = item.textSlots[`c_${j-1}_${i}`];
+        }
+    }
+    for (let i = 0; i < item.shapeProps.columns; i++) {
+        item.textSlots[`c_${idx}_${i}`] = utils.clone(defaultTextSlotProps);
+    }
+
+    return true;
+}
+
 function deleteRow(item, row) {
     if (item.shapeProps.rows < 2) {
         return false;
     }
 
-    const realRowWidths = [];
-    let offset = 0;
-    for (let i = 0; i < item.shapeProps.rows - 1 && i < item.shapeProps.rowWidths.length; i++) {
-        realRowWidths[i] = item.shapeProps.rowWidths[i] * item.area.h / 100;
-        offset += realRowWidths[i];
-    }
-    const leftOverWidth = Math.max(0, item.area.h - offset);
-    if (leftOverWidth > 0) {
-        realRowWidths.push(leftOverWidth);
-    }
-
+    const realRowWidths = calculateRealRowWidths(item);
     item.shapeProps.rows -= 1;
 
     if (row < item.shapeProps.rowWidths.length) {
-        const rowWidth = item.area.h * item.shapeProps.rowWidths[row] / 100;
-        item.area.h = Math.max(0, item.area.h - rowWidth);
+        item.area.h = Math.max(0, item.area.h - realRowWidths[row]);
         item.shapeProps.rowWidths.splice(row, 1);
+        realRowWidths.splice(row, 1);
     } else if (row === item.shapeProps.rowWidths.length) {
         item.shapeProps.rowWidths.length -= 1;
-        item.area.h = Math.max(0, item.area.h - leftOverWidth);
+        item.area.h = Math.max(0, item.area.h - realRowWidths[realRowWidths.length - 1]);
     }
 
-    for (let i = 0; i < item.shapeProps.rows && i < item.shapeProps.rowWidths.length; i++) {
-        const width = myMath.tooSmall(item.area.h) ? 1 : item.area.h;
-        item.shapeProps.rowWidths[i] = 100 * realRowWidths[i] / width;
-    }
+    updateRowWidths(item, realRowWidths);
 
     for (let i = row; i < item.shapeProps.rows && i < item.shapeProps.rowWidths.length; i++) {
         for (let j = 0; j < item.shapeProps.columns; j++) {
@@ -510,19 +539,24 @@ export default {
 
             contextMenu(x, y, item) {
                 const {row, col} = identifyRowAndColumn(item, x, y);
+                const rowNum = row + 1;
                 const colNum = col + 1;
 
                 const subOptions = [{
                     name: `Insert column before #${colNum}`, clicked: () => insertColumn(item, col)
                 }, {
                     name: `Insert column after #${colNum}`, clicked: () => insertColumn(item, col+1)
+                }, {
+                    name: `Insert row before #${rowNum}`, clicked: () => insertRow(item, row)
+                }, {
+                    name: `Insert row after #${rowNum}`, clicked: () => insertRow(item, row+1)
                 }];
 
                 if (item.shapeProps.columns > 1) {
                     subOptions.push({ name: `Delete column #${colNum}`, iconClass: 'fas fa-trash', clicked: () => deleteColumn(item, col) });
                 }
                 if (item.shapeProps.rows > 1) {
-                    subOptions.push({ name: `Delete row #${colNum}`, iconClass: 'fas fa-trash', clicked: () => deleteRow(item, row) });
+                    subOptions.push({ name: `Delete row #${rowNum}`, iconClass: 'fas fa-trash', clicked: () => deleteRow(item, row) });
                 }
 
 
