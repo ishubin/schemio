@@ -1190,7 +1190,7 @@ export default {
 
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
-            if (item.textSlots[slotName]) {
+            if (!item.textSlots[slotName]) {
                 item.textSlots[slotName] = utils.clone(defaultTextSlotProps);
             }
             const itemTextSlot = item.textSlots[slotName];

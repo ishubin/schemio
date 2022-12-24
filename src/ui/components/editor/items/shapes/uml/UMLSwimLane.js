@@ -170,7 +170,8 @@ function onColumnNumberUpdate($store, item, columns, previousColumns) {
 
         if (!item.textSlots[`col${columns}`]) {
             item.textSlots[`col${columns}`] = {
-                text: `<b>Title ${columns}</b>`
+                text: `Title ${columns}`,
+                bold: true
             };
             enrichItemTextSlotWithDefaults(item.textSlots[`col${columns}`]);
         }
@@ -212,9 +213,9 @@ export default {
                     colw3: 33.33333,
                 },
                 textSlots: {
-                    col1: { text: '<b>Todo</b>'},
-                    col2: { text: '<b>In Progress</b>'},
-                    col3: { text: '<b>Done</b>'},
+                    col1: { text: 'Todo', bold: true},
+                    col2: { text: 'In Progress', bold: true},
+                    col3: { text: 'Done', bold: true},
                 }
             },
             previewArea: { x: 5, y: 5, w: 250, h: 100},
@@ -233,9 +234,9 @@ export default {
                     colw3: 33.33333,
                 },
                 textSlots: {
-                    col1: { text: '<b>Todo</b>'},
-                    col2: { text: '<b>In Progress</b>'},
-                    col3: { text: '<b>Done</b>'},
+                    col1: { text: 'Todo', bold: true},
+                    col2: { text: 'In Progress', bold: true},
+                    col3: { text: 'Done', bold: true},
                 }
             },
             previewArea: { x: 5, y: 5, w: 250, h: 100},

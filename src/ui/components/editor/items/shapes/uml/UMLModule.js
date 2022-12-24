@@ -15,7 +15,7 @@ export default {
             iconUrl: '/assets/images/items/uml-module.svg',
             item: {
                 textSlots: {
-                    title: {text: '<b>Module</b>', halign: 'center'},
+                    title: {text: 'Module', bold: true, halign: 'center'},
                     body: {text: '', halign: 'left'}
                 },
             },
