@@ -356,7 +356,7 @@
                         <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
                     </div>
                     <div v-else class="tabs-body">
-                        <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.item">
+                        <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.shown">
                             <SchemeProperties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 :editorId="editorId"
@@ -367,7 +367,7 @@
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
 
-                        <div v-if="currentTab === 'Item' && !inPlaceTextEditor.item">
+                        <div v-if="currentTab === 'Item' && !inPlaceTextEditor.shown">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
                                     <ItemSelector
@@ -401,7 +401,7 @@
                             <Comments :entityId="commentsEntityId" :comments="comments"/>
                         </div>
 
-                        <div v-if="inPlaceTextEditor.item && mode === 'edit'">
+                        <div v-if="inPlaceTextEditor.shown && mode === 'edit'">
                             <TextSlotProperties
                                 :editorId="editorId"
                                 :item="inPlaceTextEditor.item"
@@ -1266,9 +1266,7 @@ export default {
                 this.schemeContainer.reindexItems();
             }
             this.inPlaceTextEditor.shown = false;
-            this.inPlaceTextEditor.item = null;
             this.inPlaceTextEditor.markupDisabled = false;
-            this.inPlaceTextEditor.slotName = null;
         },
 
         updateInPlaceTextEditorStyle() {

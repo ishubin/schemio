@@ -128,7 +128,7 @@
                             </select>
                         </td>
                     </tr>
-                    <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot">
+                    <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot && !textSlotTabsDisabled">
                         <td colspan="2">
                             <span class="btn btn-secondary" style="width: 100%" @click="onMoveToSlotClicked(availableTextSlot)">Move to "{{availableTextSlot}}" slot</span>
                         </td>
@@ -168,6 +168,7 @@ export default {
 
         return {
             editor: null,
+            textSlotTabsDisabled: shape.editorProps && shape.editorProps.textSlotTabsDisabled,
             textSlot: this.item.textSlots[this.slotName],
             availableTextSlots: map(shape.getTextSlots(this.item), textSlot => textSlot.name),
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),

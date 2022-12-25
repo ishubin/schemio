@@ -452,10 +452,49 @@ function copyTextStyleToRow(item, row, col) {
 
 function copyTextStyleToAllCells(item, row, col) {
     const textSlot = utils.clone(item.textSlots[`c_${row}_${col}`]);
-
     for (let j = 0; j < item.shapeProps.rows; j++) {
         for (let i = 0; i < item.shapeProps.columns; i++) {
             if (!(i === col && j === row)) {
+                const slotName = `c_${j}_${i}`;
+                const text = item.textSlots[slotName].text;
+                item.textSlots[slotName] = {
+                    ...textSlot,
+                    text
+                };
+            }
+        }
+    }
+    return true;
+}
+
+function copyTextStyleToHeaderCells(item, row, col) {
+    const header = item.shapeProps.header;
+    const textSlot = utils.clone(item.textSlots[`c_${row}_${col}`]);
+    for (let j = 0; j < item.shapeProps.rows; j++) {
+        for (let i = 0; i < item.shapeProps.columns; i++) {
+            const isHeaderCell =((header === 'columns' || header === 'both') && j ===0)
+                || ((header === 'rows' || header === 'both') && i ===0);
+            if (isHeaderCell && !(i === col && j === row)) {
+                const slotName = `c_${j}_${i}`;
+                const text = item.textSlots[slotName].text;
+                item.textSlots[slotName] = {
+                    ...textSlot,
+                    text
+                };
+            }
+        }
+    }
+    return true;
+}
+
+function copyTextStyleToRegularCells(item, row, col) {
+    const header = item.shapeProps.header;
+    const textSlot = utils.clone(item.textSlots[`c_${row}_${col}`]);
+    for (let j = 0; j < item.shapeProps.rows; j++) {
+        for (let i = 0; i < item.shapeProps.columns; i++) {
+            const isHeaderCell =((header === 'columns' || header === 'both') && j ===0)
+                || ((header === 'rows' || header === 'both') && i ===0);
+            if (!isHeaderCell && !(i === col && j === row)) {
                 const slotName = `c_${j}_${i}`;
                 const text = item.textSlots[slotName].text;
                 item.textSlots[slotName] = {
@@ -648,7 +687,16 @@ export default {
                     name: 'Copy text style to row', clicked: () => copyTextStyleToRow(item, row, col),
                 }, {
                     name: 'Copy text style to all cells', clicked: () => copyTextStyleToAllCells(item, row, col),
-                }])
+                }]);
+
+                if (item.shapeProps.header !== 'none') {
+                    subOptions = subOptions.concat([{
+                        name: 'Copy text style to header cells', clicked: () => copyTextStyleToHeaderCells(item, row, col),
+                    }, {
+                        name: 'Copy text style to regular cells', clicked: () => copyTextStyleToRegularCells(item, row, col),
+                    }]);
+
+                }
 
                 return [{
                     name: 'Table',
