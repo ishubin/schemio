@@ -100,7 +100,14 @@ function onColumnNumberUpdate($store, item, columns, previousColumns) {
             for (let j = 0; j < item.shapeProps.rows; j++) {
                 const key = `c_${j}_${i}`;
                 if (!item.textSlots.hasOwnProperty(key)) {
-                    item.textSlots[key] = {text: ''};
+                    if (i > 0) {
+                        item.textSlots[key] = {
+                            ...utils.clone(item.textSlots[`c_${j}_${i-1}`]),
+                            text: ''
+                        };
+                    } else {
+                        item.textSlots[key] = utils.clone(defaultTextSlotProps);
+                    }
                 }
             }
         }
@@ -151,7 +158,14 @@ function onRowsNumberUpdate($store, item, rows, previousRows) {
             for (let j = 0; j < item.shapeProps.columns; j++) {
                 const key = `c_${i}_${j}`;
                 if (!item.textSlots.hasOwnProperty(key)) {
-                    item.textSlots[key] = utils.clone(defaultTextSlotProps);
+                    if (i > 0) {
+                        item.textSlots[key] = {
+                            ...utils.clone(item.textSlots[`c_${i-1}_${j}`]),
+                            text: ''
+                        };
+                    } else {
+                        item.textSlots[key] = utils.clone(defaultTextSlotProps);
+                    }
                 }
             }
         }
@@ -361,7 +375,19 @@ function insertColumn(item, idx) {
         }
     }
     for (let j = 0; j < item.shapeProps.rows; j++) {
-        item.textSlots[`c_${j}_${idx}`] = utils.clone(defaultTextSlotProps);
+        if (idx < item.shapeProps.columns - 1) {
+            item.textSlots[`c_${j}_${idx}`] = {
+                ...utils.clone(item.textSlots[`c_${j}_${idx+1}`]),
+                text: ''
+            };
+        } else if (idx > 0) {
+            item.textSlots[`c_${j}_${idx}`] = {
+                ...utils.clone(item.textSlots[`c_${j}_${idx-1}`]),
+                text: ''
+            };
+        } else {
+            item.textSlots[`c_${j}_${idx}`] = utils.clone(defaultTextSlotProps);
+        }
     }
 
     return true;
@@ -383,7 +409,19 @@ function insertRow(item, idx) {
         }
     }
     for (let i = 0; i < item.shapeProps.columns; i++) {
-        item.textSlots[`c_${idx}_${i}`] = utils.clone(defaultTextSlotProps);
+        if (idx < item.shapeProps.rows - 1) {
+            item.textSlots[`c_${idx}_${i}`] = {
+                ...utils.clone(item.textSlots[`c_${idx+1}_${i}`]),
+                text: ''
+            };
+        } else if (idx > 0) {
+            item.textSlots[`c_${idx}_${i}`] = {
+                ...utils.clone(item.textSlots[`c_${idx-1}_${i}`]),
+                text: ''
+            };
+        } else {
+            item.textSlots[`c_${idx}_${i}`] = utils.clone(defaultTextSlotProps);
+        }
     }
 
     return true;
