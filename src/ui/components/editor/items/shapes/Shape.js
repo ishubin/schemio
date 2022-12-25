@@ -178,6 +178,7 @@ function enrichShape(shapeComponent, shapeName) {
             beforeCreate        : shapeConfig.beforeCreate,
             mounted             : shapeConfig.mounted
         },
+        fixItem                 : shapeConfig.fixItem,
 
         // used for generating item snapers which are used for snapping dragged item to other items
         getSnappers             : shapeConfig.getSnappers || defaultGetSnappers,

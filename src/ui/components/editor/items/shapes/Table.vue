@@ -558,6 +558,61 @@ function menuItem(name, iconFile, shapeProps) {
     };
 }
 
+function fixItem(item) {
+    if (item.shapeProps.columns < 1) {
+        item.shapeProps.columns = 1;
+    }
+    if (item.shapeProps.rows < 1) {
+        item.shapeProps.rows = 1;
+    }
+
+    if (item.shapeProps.colWidths.length > item.shapeProps.columns - 1) {
+        item.shapeProps.colWidths = item.shapeProps.colWidths.slice(0, item.shapeProps.columns - 1);
+    } else if (item.shapeProps.colWidths.length < item.shapeProps.columns - 1) {
+        const missingColumns = item.shapeProps.columns - 1 - item.shapeProps.colWidths.length;
+
+        let sumWidth = 0;
+        for (let i = 0; i < item.shapeProps.colWidths.length; i++) {
+            sumWidth += item.shapeProps.colWidths[i] * item.area.w / 100;
+        }
+
+        const w = item.area.w;
+        if (myMath.tooSmall(w)) {
+            w = 1;
+        }
+
+        if (missingColumns > 0) {
+            const ratio = Math.max(0, item.area.w - sumWidth) * 100 / (w * (missingColumns + 1));
+            for (let i = 0; i < missingColumns; i++) {
+                item.shapeProps.colWidths.push(ratio);
+            }
+        }
+    }
+
+    if (item.shapeProps.rowWidths.length > item.shapeProps.rows - 1) {
+        item.shapeProps.rowWidths = item.shapeProps.rowWidths.slice(0, item.shapeProps.rows - 1);
+    } else if (item.shapeProps.rowWidths.length < item.shapeProps.rows - 1) {
+        const missingRows = item.shapeProps.rows - 1 - item.shapeProps.rowWidths.length;
+
+        let sumWidth = 0;
+        for (let i = 0; i < item.shapeProps.rowWidths.length; i++) {
+            sumWidth += item.shapeProps.rowWidths[i] * item.area.h / 100;
+        }
+
+        const h = item.area.h;
+        if (myMath.tooSmall(h)) {
+            h = 1;
+        }
+
+        if (missingRows > 0) {
+            const ratio = Math.max(0, item.area.h - sumWidth) * 100 / (h * (missingRows + 1));
+            for (let i = 0; i < missingRows; i++) {
+                item.shapeProps.rowWidths.push(ratio);
+            }
+        }
+    }
+}
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -600,6 +655,8 @@ export default {
         computeOutline,
 
         getTextSlots,
+
+        fixItem,
 
         controlPoints: {
             make(item) {
@@ -690,8 +747,8 @@ export default {
             oddEvenFill: {type: 'boolean', value: false, name: 'Odd/even fill'},
             rowSecondaryFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(234, 241, 246, 1.0)'}, name: 'Row secondary fill', depends: {oddEvenFill: true}},
 
-            colWidths: {type: 'custom', value: [33.3, 33.3, 33.3], hidden: true},
-            rowWidths: {type: 'custom', value: [33.3, 33.3, 33.3], hidden: true},
+            colWidths: {type: 'custom', value: [33.3, 33.3], hidden: true},
+            rowWidths: {type: 'custom', value: [33.3, 33.3], hidden: true},
         },
 
         editorProps: {

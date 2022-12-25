@@ -146,6 +146,10 @@ export function enrichItemWithDefaults(item) {
         enrichItemWithStandardShapeProps(item);
     }
 
+    if (shape.fixItem) {
+        shape.fixItem(item);
+    }
+
     // Some getTextSlots functions in some shapes rely on specific fields in shapeProps
     // that is why it is important to enrich all shapeProps before we call getTextSlots function
     const textSlots = shape.getTextSlots(item);
