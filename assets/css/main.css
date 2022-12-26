@@ -2262,6 +2262,14 @@ ul.links-editor .edit-link:hover {
     flex: 1;
 }
 
+@media (max-width: 1000px) {
+    .item-tooltip .item-tooltip-close {
+        top: -8px;
+        font-size: 35px;
+        right: 5px;
+    }
+}
+
 /***************** Item Selector *********************/
 .item-selector .item-selector-items {
     overflow: scroll;
@@ -3211,6 +3219,12 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 .header .current-user .user-profile .user-name {
     color: var(--base-weak);
+}
+
+@media (max-width: 900px) {
+    .header {
+        display: none;
+    }
 }
 
 

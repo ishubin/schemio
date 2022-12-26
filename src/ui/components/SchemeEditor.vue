@@ -366,7 +366,6 @@
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
-
                         <div v-if="currentTab === 'Item' && !inPlaceTextEditor.shown">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
@@ -840,6 +839,8 @@ export default {
 
     mounted() {
         this.init();
+        this.onWindowResize();
+        window.removeEventListener('resize', this.onWindowResize);
     },
 
     data() {
@@ -2448,16 +2449,16 @@ export default {
         onRightSidePanelExpanderMouseDown(originalEvent) {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
                 onValue: value => {
-                    this.sidePanelRightWidth = value;
-                    if (value > 0) {
-                        this.sidePanelRightWidthLastUsed = value;
+                    this.sidePanelRightWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
+                    if (sidePanelRightWidth > 0) {
+                        this.sidePanelRightWidthLastUsed = this.sidePanelRightWidth;
                     }
                 },
                 onToggle: () => {
                     if (this.sidePanelRightWidth > 0) {
                         this.sidePanelRightWidth = 0;
                     } else {
-                        this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
+                        this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
                     }
                 },
             });
@@ -2466,16 +2467,16 @@ export default {
         onLeftSidePanelExpanderMouseDown(originalEvent) {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
                 onValue: value => {
-                    this.sidePanelLeftWidth = value;
-                    if (value > 0) {
-                        this.sidePanelLeftWidthLastUsed = value;
+                    this.sidePanelLeftWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
+                    if (sidePanelLeftWidth > 0) {
+                        this.sidePanelLeftWidthLastUsed = this.sidePanelLeftWidth;
                     }
                 },
                 onToggle: () => {
                     if (this.sidePanelLeftWidth > 0) {
                         this.sidePanelLeftWidth = 0;
                     } else {
-                        this.sidePanelLeftWidth = this.sidePanelLeftWidthLastUsed;
+                        this.sidePanelLeftWidth = myMath.clamp(this.sidePanelLeftWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
                     }
                 },
             });
@@ -2687,6 +2688,16 @@ export default {
             this.schemeContainer.reindexSpecifiedItems([item]);
             this.schemeContainer.reindexItems();
             this.schemeContainer.updateMultiItemEditBox();
+        },
+
+        onWindowResize() {
+            const minExpectedGap = 20;
+            if (this.sidePanelRightWidth + minExpectedGap > window.innerWidth / 2) {
+                this.sidePanelRightWidth = Math.floor(window.innerWidth / 2 - minExpectedGap )
+            }
+            if (this.sidePanelLeftWidth + minExpectedGap > window.innerWidth / 2) {
+                this.sidePanelLeftWidth = Math.floor(window.innerWidth / 2 - minExpectedGap )
+            }
         },
 
         //calculates from world to screen

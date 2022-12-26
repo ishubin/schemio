@@ -9,6 +9,9 @@
             :class="cssClass"
             :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
+            @touchstart="touchStart"
+            @touchend="touchEnd"
+            @touchmove="touchMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
             @dblclick="mouseDoubleClick"
@@ -332,7 +335,16 @@ export default {
         },
 
         mouseCoordsFromEvent(event) {
-            return this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+            if (event.touches) {
+                if (event.touches.length > 0) {
+                    return this.mouseCoordsFromPageCoords(event.touches[0].pageX, event.touches[0].pageY);
+                } else if (event.changedTouches.length > 0) {
+                    return this.mouseCoordsFromPageCoords(event.changedTouches[0].pageX, event.changedTouches[0].pageY);
+                }
+            } else {
+                return this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+            }
+            return null;
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
@@ -441,40 +453,37 @@ export default {
             var p = this.toLocalPoint(coords.x, coords.y);
             this.$emit('mouse-wheel', p.x, p.y, coords.x, coords.y, event);
         },
-        mouseMove(event) {
-            if (this.mouseEventsEnabled) {
-                const coords = this.mouseCoordsFromEvent(event);
-                const p = this.toLocalPoint(coords.x, coords.y);
-                lastMousePosition.x = coords.x;
-                lastMousePosition.y = coords.y;
 
-                this.$emit('mouse-move', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
-            }
+        touchStart(event) {
+            this.mouseEvent('mouse-down', event);
+        },
+        touchEnd(event) {
+            this.mouseEvent('mouse-up', event);
+        },
+        touchMove(event) {
+            this.mouseEvent('mouse-move', event);
+        },
+
+        mouseMove(event) {
+            this.mouseEvent('mouse-move', event);
         },
         mouseDown(event) {
+            this.mouseEvent('mouse-down', event);
+        },
+        mouseUp(event) {
+            this.mouseEvent('mouse-up', event);
+        },
+        mouseDoubleClick(event) {
+            this.mouseEvent('mouse-double-click', event);
+        },
+
+        mouseEvent(eventName, event) {
             if (this.mouseEventsEnabled) {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
                 lastMousePosition.x = coords.x;
                 lastMousePosition.y = coords.y;
-
-                this.$emit('mouse-down', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
-            }
-        },
-        mouseUp(event) {
-            if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
-
-                this.$emit('mouse-up', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
-            }
-        },
-        mouseDoubleClick(event) {
-            if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
-
-                this.$emit('mouse-double-click', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+                this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
 
