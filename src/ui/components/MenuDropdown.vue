@@ -7,7 +7,7 @@
             <span v-if="iconClass" class="icon-button" @click="toggleMenu"><i :class="iconClass"></i> {{name}}</span>
             <span v-else class="link" @click="toggleMenu">{{name}} <i class="fas fa-caret-down"></i></span>
         </div>
-        <ul ref="menuList" v-if="menuDisplayed" :style="{'top': `${y}px`, 'left': `${x}px`}">
+        <ul ref="menuList" v-if="menuDisplayed" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-height': `${maxHeight}px`}">
             <li v-for="option in options" :class="{disabled: option.disabled}">
                 <a v-if="option.link" :href="option.link">{{option.name}}</a>
                 <span v-else @click="onOptionClicked(option)"><i v-if="option.iconClass" :class="option.iconClass"></i> {{option.name}}</span>
@@ -40,12 +40,15 @@ export default {
         return {
             uid: `menu-dropdown-${shortid.generate()}`,
             menuDisplayed: false,
-            x:0, y:0 // coords for the menu dropdown list, it will be calculated based on where the menu title is
+            x:0, y:0, // coords for the menu dropdown list, it will be calculated based on where the menu title is
+            maxHeight: window.innerHeight - 30
         };
     },
 
     methods: {
         toggleMenu() {
+            this.maxHeight = window.innerHeight - this.$refs.menuTitle.getBoundingClientRect().bottom - 10;
+
             if (this.menuDisplayed) {
                 // closing menu
                 this.menuDisplayed = false;

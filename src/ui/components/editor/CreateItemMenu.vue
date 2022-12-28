@@ -12,13 +12,13 @@
                     <img :src="`${assetsPath}/images/icons/select.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiatePathCreation()" title="Create Path"
-                    @mouseover="showPreviewGif('create-curve')"
+                    @mouseover="showPreviewGif($event, 'create-curve')"
                     @mouseleave="stopPreviewGif('create-curve')"
                     >
                     <img :src="`${assetsPath}/images/icons/create-curve.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiateDrawing()" title="Draw"
-                    @mouseover="showPreviewGif('draw')"
+                    @mouseover="showPreviewGif($event, 'draw')"
                     @mouseleave="stopPreviewGif('draw')"
                     >
                     <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
@@ -30,8 +30,8 @@
                     <div v-for="item in panel.items"
                         class="item-container"
                         :title="item.name"
-                        @mouseleave="stopPreviewItem(item)"
-                        @mouseover="showPreviewItem(item)"
+                        @mouseleave="stopPreviewItem($event, item)"
+                        @mouseover="showPreviewItem($event, item)"
                         @mousedown="onItemMouseDown($event, item)"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
@@ -369,7 +369,7 @@ export default {
             this.showPreviewItem(menuEntry);
         },
 
-        showPreviewItem(item) {
+        showPreviewItem(event, item) {
             enrichItemWithDefaults(item.item);
 
             this.previewItem.item = item;
@@ -378,7 +378,7 @@ export default {
             this.previewItem.description = item.description;
             this.previewItem.shown = true;
         },
-        stopPreviewItem(item) {
+        stopPreviewItem(event, item) {
             if (this.previewItem.item && this.previewItem.item.name === item.name) {
                 this.previewItem.shown = false;
             }
@@ -397,7 +397,7 @@ export default {
             }
         },
 
-        showPreviewGif(gifName) {
+        showPreviewGif(event, gifName) {
             this.previewItem.item = null;
             this.previewItem.artIcon = null;
             this.previewItem.gif = gifName;
@@ -491,10 +491,12 @@ export default {
         },
 
         initiateSelectAndDrag() {
+            this.previewItem.shown = false;
             this.$emit('state-drag-item-requested');
         },
 
         initiatePathCreation() {
+            this.previewItem.shown = false;
             const item = {
                 name: this.makeUniqueName('Path'),
                 area: {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5},
@@ -508,6 +510,7 @@ export default {
         },
 
         initiateDrawing(name) {
+            this.previewItem.shown = false;
             this.$emit('drawing-requested');
         },
 
@@ -544,6 +547,7 @@ export default {
         },
 
         onItemMouseDown(event, item, shouldIgnoreRecentProps) {
+            this.previewItem.shown = false;
             const that = this;
             const itemDragger = this.$refs.itemDragger;
             const itemClone = utils.clone(item.item);

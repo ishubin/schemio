@@ -31,6 +31,7 @@
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
             @items-highlighted="onItemsHighlighted"
+            @mobile-debugger-requested="toggleMobileDebugger"
             >
 
             <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
@@ -324,10 +325,10 @@
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelRightWidth > 0">
-                    <ul v-if="inPlaceTextEditor.item" class="tabs text-nonselectable">
+                    <ul v-if="inPlaceTextEditor.shown" class="tabs text-nonselectable">
                         <li><span class="tab active">Text</span></li>
                     </ul>
-                    <ul v-else-if="editorStateName === 'draw'" class="tabs text-nonselectable">
+                    <ul v-else-if="state === 'draw'" class="tabs text-nonselectable">
                         <li><span class="tab active">Draw</span></li>
                     </ul>
                     <ul v-else class="tabs">
@@ -352,7 +353,9 @@
                         </li>
                     </ul>
 
-                    <div class="tabs-body" v-if="editorStateName === 'draw'">
+                    <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
+
+                    <div class="tabs-body" v-if="state === 'draw'">
                         <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
                     </div>
                     <div v-else class="tabs-body">
@@ -447,6 +450,11 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
+        <modal title="hello" v-if="mobileDebuggerShown" @close="mobileDebuggerShown = false">
+            <ul class="mobile-debugger-log">
+                <li v-for="entry in mobileLogEntries" :class="[`log-level-${entry.level}`]">{{entry.text}}</li>
+            </ul>
+        </modal>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -531,6 +539,7 @@ import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
+import {MobileDebugger} from '../logger';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -835,12 +844,13 @@ export default {
         deregisterKeyPressHandler(this.keyPressHandler);
 
         destroyAnimationRegistry(this.editorId);
+        window.addEventListener('resize', this.onWindowResize);
     },
 
     mounted() {
         this.init();
         this.onWindowResize();
-        window.removeEventListener('resize', this.onWindowResize);
+        window.addEventListener('resize', this.onWindowResize);
     },
 
     data() {
@@ -959,9 +969,17 @@ export default {
                 paths: [],
                 selectedPoints: []
             },
+
+            mobileDebuggerShown: false,
+
+            mobileLogEntries: [],
         }
     },
     methods: {
+        toggleMobileDebugger() {
+            this.mobileLogEntries = MobileDebugger.getLogEntries();
+            this.mobileDebuggerShown = true;
+        },
         init() {
             this.initSchemeContainer(this.scheme);
         },
@@ -2450,7 +2468,7 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
                 onValue: value => {
                     this.sidePanelRightWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                    if (sidePanelRightWidth > 0) {
+                    if (this.sidePanelRightWidth > 0) {
                         this.sidePanelRightWidthLastUsed = this.sidePanelRightWidth;
                     }
                 },
@@ -2468,7 +2486,7 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
                 onValue: value => {
                     this.sidePanelLeftWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                    if (sidePanelLeftWidth > 0) {
+                    if (this.sidePanelLeftWidth > 0) {
                         this.sidePanelLeftWidthLastUsed = this.sidePanelLeftWidth;
                     }
                 },
@@ -2763,10 +2781,6 @@ export default {
 
         statusMessage() {
             return this.$store.getters.statusMessage;
-        },
-
-        editorStateName() {
-            return this.$store.getters.editorStateName;
         },
 
         commentsEntityId() {

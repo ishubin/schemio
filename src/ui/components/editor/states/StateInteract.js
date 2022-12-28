@@ -44,6 +44,7 @@ class StateInteract extends State {
     }
 
     mouseDown(x, y, mx, my, object, event){
+        super.mouseDown(x, y, mx, my, object, event);
         this.initScreenDrag(mx, my);
     }
 
@@ -84,6 +85,10 @@ class StateInteract extends State {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (event.touches && event.touches.length === 2) {
+            this.mobilePinchToZoom(event);
+            return;
+        }
         if (this.startedDragging && this.initialClickPoint) {
             event.preventDefault();
             if (event.buttons === 0) {

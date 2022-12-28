@@ -210,6 +210,7 @@ a:hover, .link:hover {
     background: var(--base-weak);
     list-style: none;
     box-shadow: 1px 1px 10px var(--shadow-color);
+    overflow: auto;;
 }
 .menu-dropdown > ul > li {
     padding: 0;
@@ -261,6 +262,11 @@ ul.tabs li .tab {
     text-transform: uppercase;
     font-weight: bold;
     cursor: pointer;
+}
+@media (max-width: 900px) {
+    ul.tabs li .tab {
+        padding: 6px 10px;
+    }
 }
 ul.tabs li .tab.active, ul.tabs li .tab.active:hover {
     background: var(--faint-weak);
@@ -579,11 +585,14 @@ ul.pagination li a.current {
     z-index: 21;
 }
 .quick-helper-panel {
+    position: fixed;
     display: table-cell;
     vertical-align: middle;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     white-space: nowrap;
     height: 36px;
+    max-width: 100%;
 }
 .quick-helper-panel-section {
     position: relative;
@@ -1141,6 +1150,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     border-top: 1px solid var(--faint-strong-up);
     border-right: 1px solid var(--faint-strong-up);
     border-bottom: 1px solid var(--faint-strong-up);
+    border-radius: 0;
 }
 .toggle-group > .toggle-button:hover {
     color: var(--base-strong-up);
@@ -1182,6 +1192,28 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 100%;
     width: 100%;
     overflow: auto;
+    position: relative;
+}
+.scheme-editor-component .side-panel .side-panel-close {
+    position: absolute;
+    z-index: 20;
+    display: none;
+    top: 3px;
+    right: 7px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    background: var(--faint-weak-down-down);
+    color: var(--faint-strong-down);
+    padding: 3px 5px;
+    border-radius: var(--control-border-radius);
+}
+@media (max-width: 900px) {
+    .scheme-editor-component .side-panel .side-panel-close {
+        display: inline-block;
+        padding: 4px 8px;
+    }
 }
 .scheme-editor-component .side-panel .side-panel-expander {
     display: inline-block;
@@ -2262,7 +2294,7 @@ ul.links-editor .edit-link:hover {
     flex: 1;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 900px) {
     .item-tooltip .item-tooltip-close {
         top: -8px;
         font-size: 35px;
@@ -3894,4 +3926,18 @@ ul.patch-field-list {
 }
 .padded {
     padding: 4px;
+}
+
+
+.mobile-debugger-log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.mobile-debugger-log > li {
+    background: var(--base-weak);
+    margin-bottom: 2px;
+    font-size: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 2px;
 }

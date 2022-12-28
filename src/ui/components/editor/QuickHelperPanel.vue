@@ -14,8 +14,23 @@
 
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
+                    <!-- <li>
+                        <span title="Logger" class="icon-button" @click="$emit('mobile-debugger-requested')"><i class="fa-solid fa-bug"></i></span>
+                    </li> -->
                     <li>
                         <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
+                    </li>
+                    <li v-if="(editAllowed && shouldShowBaseControls)">
+                        <div class="toggle-group">
+                            <span v-for="knownMode in knownModes" class="toggle-button"
+                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
+                                @click="$emit('mode-changed', knownMode)"
+                                >
+                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
+                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
+                                {{knownMode}}
+                            </span>
+                        </div>
                     </li>
                     <li>
                         <div class="zoom-control">
@@ -29,18 +44,6 @@
                     <li v-if="shouldShowBaseControls">
                         <input class="textfield" style="width: 110px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                         <span v-if="searchKeyword" class="reset-search" @click="searchKeyword = ''" title="Reset search"><i class="fa-solid fa-circle-xmark"></i></span>
-                    </li>
-                    <li v-if="(editAllowed && shouldShowBaseControls)">
-                        <div class="toggle-group">
-                            <span v-for="knownMode in knownModes" class="toggle-button"
-                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
-                                @click="$emit('mode-changed', knownMode)"
-                                >
-                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
-                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
-                                {{knownMode}}
-                            </span>
-                        </div>
                     </li>
                 </ul>
             </div>
@@ -60,7 +63,7 @@
                 </ul>
             </div>
 
-            <div class="quick-helper-panel-section" v-if="(mode === 'edit')">
+            <div class="quick-helper-panel-section" v-if="(mode === 'edit' && state !== 'draw')">
                 <ul class="button-group">
                     <li>
                         <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
@@ -196,6 +199,7 @@
             <div class="quick-helper-panel-section">
                 <slot></slot>
             </div>
+
         </div>
     </div>
 </template>
@@ -293,10 +297,13 @@ export default {
                 item: null,
                 childItemOriginalPositions: {}
             },
+
         };
     },
 
     methods: {
+        toggleLoggerModal() {
+        },
         toggleSnapToGrid(enabled) {
             this.$store.dispatch('setGridSnap', enabled);
         },

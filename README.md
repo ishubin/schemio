@@ -70,17 +70,129 @@ docker run -v "$(pwd):/opt/schemio" \
 Don't forget to pull latest changes as Schemio is frequently updated.
 
 
+```
 
-Desktop version
-------------------------
+        * B
+       /
+      * A    x1,y1 - world point
+
+   * C  x2,y2 - world point
+  /
+ * D
 
 
-TODO:
+Fsw = Fscreen_to_world(mx, my) = {x: mx * s + x0, y: my * s + y0}
+Fws = Fworld_to_screen(x, y) = {mx: (x - x0)/s, my: (y - y0)/s}
 
-- [ ] handle prevention of closing the window in Electron
-- [ ] refactor the apiClient in such a way that each distribution of Schemio has its own version of client (Initiate client in the main and pass it to all components)
-- [ ] Introduce a concept of projects
-- [ ] Open multiple documents in separate tabs
+
+
+x1,y1 = Fsw(Ax, Ay)
+x2,y2 = Fsw(Cx, Cy)
+
+x1 = Ax * s + x0
+y1 = Ay * s + y0
+
+x2 = Cx * s + x0
+y2 = Cy * s + y0
+
+x1 = Bx * s' + x0'
+y1 = By * s' + y0'
+
+x2 = Dx * s' + x0'
+y2 = Dy * s' + y0'
+
+
+Ax * s + x0 = Bx * s' + x0'
+Ay * s + y0 = By * s' + y0'
+
+Cx * s + x0 = Dx * s' + x0'
+Cy * s + y0 = Dy * s' + y0'
+
+
+Ax * s + x0 = Bx * s' + x0'
+Cx * s + x0 = Dx * s' + x0'
+Ay * s + y0 = By * s' + y0'
+Cy * s + y0 = Dy * s' + y0'
+
+Ax * s - Cx * s = Bx * s' - Dx * s'
+Ay * s - Cy * s = By * s' - Dy * s'
+
+(Ax - Cx)*s = (Bx - Dx)*s'
+
+         (Ax - Cx)*s
+s'(1) =  -----------
+         (Bx - Dx)
+
+         (Ay - Cy)*s
+s'(2) =  -----------
+         (By - Dy)
+
+# choose s' that was calculdated with biggest denominator
+# once we know s', we can calculate x0'
+
+
+x0'(1) = Ax * s + x0 - Bx * s'
+x0'(2) = Cx * s + x0 - Dx * s'
+
+y0'(1) = Ay * s + y0 - By * s'
+y0'(2) = Cy * s + y0 - Dy * s'
+
+# the final solution will be average of the two
+
+x0' = (x0'(1) + x'(2)) / 2
+y0' = (y0'(1) + y'(2)) / 2
+
+```
+
+p1 = (126, 421)
+p2 = (238, 412)
+P1 = (54, 418)
+P2 = (307, 396)
+
+const denomX = (p1.x - P1.x) = 126 - 54 = 72;
+const denomY = (p2.y - P2.y) = 412 - 396 = 16;
+
+
+Different way
+
+
+let wp1 and wp2 - the initial two touches from two fingers in world transform
+let P1 and P2 - moved positions of two touches from two fingers in screen transform
+
+  / P1.x = (wp1.x - x0') / s'
+ /  P1.y = (wp1.y - y0') / s'
+ \  P2.x = (wp2.x - x0') / s'
+  \ P2.y = (wp2.y - y0') / s'
+
+  / P1.x * s' = wp1.x - x0'
+ /  P1.y * s' = wp1.y - y0'
+ \  P2.x * s' = wp2.x - x0'
+  \ P2.y * s' = wp2.y - y0'
+
+P1.x * s' - P2.x * s' = wp1.x - wp2.x
+s'(1) = (wp1.x - wp2.x) / (P1.x - P2.x)
+s'(2) = (wp1.y - wp2.y) / (P1.y - P2.y)
+
+x0' = wp1.x - P1.x * s'
+y0' = wp1.y - P1.y * s'
+
+
+
+wp1.x = (p1.x - x0) / s
+wp1.y = (p1.y - y0) / s
+
+wp1.x = (P1.x - x0') / s'
+
+wp1.x * s' = P1.x - x0'
+wp2.x * s' = P2.x - x0'
+
+(wp1.x - wp2.x) * s' = P1.x - P2.x
+
+s' = (P1.x - P2.x)/ (wp1.x - wp2.x)
+x0' = wp1.x * s' - P1.x
+
+
+
 
 License
 ---------

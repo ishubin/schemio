@@ -40,6 +40,17 @@ class State {
         this.subState = null;
         this.previousSubStates = [];
         this.listener = listener;
+        
+        // used to track the beginning of new pinch to zoom event
+        this.pinchToZoomId = 0;
+        this.pinchToZoom = {
+            id: 0,
+            wp1: {x: 0, y: 0},
+            wp2: {x: 0, y: 0},
+            x0: 0,
+            y0: 0,
+            scale: 1
+        }
     }
 
     migrateSubState(newSubState) {
@@ -93,6 +104,7 @@ class State {
     }
 
     mouseDown(x, y, mx, my, object, event) {
+        this.pinchToZoomId += 1;
         if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event);
     }
 
@@ -102,6 +114,68 @@ class State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.subState) this.subState.mouseUp(x, y, mx, my, object, event);
+    }
+
+    mobilePinchToZoom(event) {
+        event.preventDefault();
+        if (this.pinchToZoom.id !== this.pinchToZoomId) {
+            this.initPinchToZoom(event);
+            return;
+        }
+        if (event.touches.length !== 2) {
+            return;
+        }
+
+        const wp1 = this.pinchToZoom.wp1;
+        const wp2 = this.pinchToZoom.wp2;
+        const P1 = { x: event.touches[0].pageX, y: event.touches[0].pageY};
+        const P2 = { x: event.touches[1].pageX, y: event.touches[1].pageY};
+        const denomX = (wp1.x - wp2.x);
+        const denomY = (wp1.y - wp2.y);
+        if (Math.abs(denomX) > Math.abs(denomY)) {
+            if (myMath.tooSmall(denomX)) {
+                return;
+            }
+            this.schemeContainer.screenTransform.scale = myMath.clamp(Math.abs((P1.x - P2.x)/denomX), 0.0005, 100000.0);
+        } else {
+            if (myMath.tooSmall(denomY)) {
+                return;
+            }
+            this.schemeContainer.screenTransform.scale = myMath.clamp(Math.abs((P1.y - P2.y)/denomY), 0.0005, 100000.0);
+        }
+
+
+        const xa = P1.x - wp1.x * this.schemeContainer.screenTransform.scale;
+        const xb = P2.x - wp2.x * this.schemeContainer.screenTransform.scale;
+        const ya = P1.y - wp1.y * this.schemeContainer.screenTransform.scale;
+        const yb = P2.y - wp2.y * this.schemeContainer.screenTransform.scale;
+        this.schemeContainer.screenTransform.x = (xa + xb) / 2;
+        this.schemeContainer.screenTransform.y = (ya + yb) / 2;
+
+        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+    }
+
+    initPinchToZoom(event) {
+        if (event.touches.length !== 2) {
+            return;
+        }
+        const x0 = this.schemeContainer.screenTransform.x;
+        const y0 = this.schemeContainer.screenTransform.y;
+        const s = this.schemeContainer.screenTransform.scale;
+
+        this.pinchToZoom.id = this.pinchToZoomId;
+        this.pinchToZoom.wp1 = {
+            x: (event.touches[0].pageX - x0) / s,
+            y: (event.touches[0].pageY - y0) / s,
+        };
+        this.pinchToZoom.wp2 = {
+            x: (event.touches[1].pageX - x0) / s,
+            y: (event.touches[1].pageY - y0) / s,
+        };
+
+        this.pinchToZoom.scale = this.schemeContainer.screenTransform.scale;
+        this.pinchToZoom.x0 = this.schemeContainer.screenTransform.x;
+        this.pinchToZoom.y0 = this.schemeContainer.screenTransform.y;
     }
 
 

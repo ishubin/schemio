@@ -56,7 +56,7 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="linksAnimated ? '#' : link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
                         <text class="item-link-icon" :class="['link-icon-' + link.type]"
                             :x="link.x - 6"
@@ -305,6 +305,9 @@ export default {
             height: window.innerHeight,
 
             selectedItemLinks: [],
+            // this flag is used in order to make links non-clickable while they are animated.
+            // in mobile devices a click is registered when links are rendered under the thumb.
+            linksAnimated: false,
             lastHoveredItem: null,
 
             // ids of items that have subscribed for Init event
@@ -688,7 +691,7 @@ export default {
 
 
         onSvgItemLinkClick(url, event) {
-            if (url.startsWith('/')) {
+            if (url.startsWith('/') && !this.linksAnimated) {
                 window.location = url;
                 event.preventDefault();
             }
@@ -805,6 +808,7 @@ export default {
         },
 
         startLinksAnimation() {
+            this.linksAnimated = true;
             playInAnimationRegistry(this.editorId, new ValueAnimation({
                 durationMillis: 300,
 
@@ -813,6 +817,10 @@ export default {
                         link.x = link.startX * (1.0 - t) + link.destinationX * t;
                         link.y = link.startY * (1.0 - t) + link.destinationY * t;
                     });
+                },
+
+                destroy: () => {
+                    this.linksAnimated = false;
                 }
             }), 'screen', 'links-animation');
         },
@@ -829,16 +837,12 @@ export default {
                     cy = this.height / 4;
                 }
 
-                let step = 40;
+                let step = Math.max(20, Math.min(40, this.height / (item.links.length + 1)));
                 let y0 = cy - item.links.length * step / 2;
                 const worldPointRight = this.schemeContainer.worldPointOnItem(item.area.w, 0, item);
                 let destinationX = this._x(worldPointRight.x) + 10;
-
-                // taking side panel into account
-                if (destinationX > this.width - 500) {
-                    let maxLinkLength = max(map(item.links, link => link.title ? link.title.length : link.url.length));
-                    const leftX = this._x(this.schemeContainer.worldPointOnItem(0, 0, item).x);
-                    destinationX = leftX - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
+                if (this.width - destinationX < 300) {
+                    destinationX = Math.max(10, this.width - 300);
                 }
 
                 // perhaps not the best way to handle this, but for now this trick should do

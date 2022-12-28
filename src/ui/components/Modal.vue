@@ -6,14 +6,12 @@
     <div>
         <div v-if="useMask" class="modal-mask"></div>
         <div ref="modalContainer" class="modal-container text-nonselectable" :style="{width: actualWidth + 'px', top: `${y}px`, left: `${x}px`}">
-            <div class="modal-header" v-if="showHeader" @mousedown="initModalDrag" :class="{dragging: dragging}">
+            <div class="modal-header" v-if="showHeader" @touchstart="initModalDrag" @mousedown="initModalDrag" :class="{dragging: dragging}">
                 <h3>{{title}}</h3>
                 <span class="modal-close" v-if="closable" @click="$emit('close')"><i class="fas fa-times"/></span>
             </div>
-            <div class="modal-body">
-                <div :style="modalBodyStyles">
-                    <slot></slot>
-                </div>
+            <div class="modal-body" :style="modalBodyStyles">
+                <slot></slot>
             </div>
             <div class="modal-footer" v-if="showFooter">
                 <div class="modal-controls">
@@ -27,6 +25,7 @@
 </template>
 
 <script>
+import { dragAndDropBuilder } from '../dragndrop';
 
 
 /**
@@ -74,8 +73,6 @@ export default {
             }
         }
         document.addEventListener('keydown', this.onKeyPress);
-        document.addEventListener('mousemove', this.onMouseMove);
-        document.addEventListener('mouseup', this.cancleModalDrag);
     },
 
     mounted() {
@@ -97,7 +94,6 @@ export default {
 
     beforeDestroy() {
         document.removeEventListener('keydown', this.onKeyPress);
-        document.removeEventListener('mouseup', this.cancleModalDrag);
     },
 
     data() {
@@ -105,11 +101,7 @@ export default {
             x: 100,
             y: 100,
 
-            actualWidth: this.width,
-
-            originalPoint: { x: 0, y: 0 },
-            clickPoint: { x: 0, y: 0 },
-
+            actualWidth: Math.min(this.width, window.innerWidth - 20),
             dragging: false
         };
     },
@@ -121,42 +113,38 @@ export default {
             }
         },
 
-        initModalDrag(event) {
-            this.originalPoint.x = this.x;
-            this.originalPoint.y = this.y;
-            this.clickPoint.x = event.clientX;
-            this.clickPoint.y = event.clientY;
-            this.dragging = true;
-        },
+        initModalDrag(originalEvent) {
+            console.log(originalEvent);
+            let originalModalX = this.x;
+            let originalModalY = this.y;
+            const modalRect = this.$refs.modalContainer.getBoundingClientRect();
 
-        cancleModalDrag(event) {
-            this.dragging = false;
-        },
+            dragAndDropBuilder(originalEvent)
+            .onDragStart(() => {
+                this.dragging = true;
+            })
+            .onDrag((event, x, y, originalX, originalY) => {
+                const dx = x - originalX;
+                const dy = y - originalY;
 
-        onMouseMove(event) {
-            if (this.dragging) {
-                const modalRect = this.$refs.modalContainer.getBoundingClientRect();
-
-                if (event.buttons === 0) {
-                    // no buttons are pressed so it should cancel the dragging state
-                    this.dragging = false;
-                    return;
-                }
-
-                this.x = clampModalPosition(this.originalPoint.x + event.clientX - this.clickPoint.x, modalRect.width, window.innerWidth, MIN_OVERLAP);
-                this.y = clampModalPosition(this.originalPoint.y + event.clientY - this.clickPoint.y, 40, window.innerHeight, MIN_OVERLAP);
+                this.x = clampModalPosition(originalModalX + dx, modalRect.width, window.innerWidth, MIN_OVERLAP);
+                this.y = clampModalPosition(originalModalY + dy, 40, window.innerHeight, MIN_OVERLAP);
 
                 recordedModalPositions[this.title] = {x: this.x, y: this.y};
-            }
-        }
+            })
+            .onDone(() => {
+                this.dragging = false;
+            })
+            .build();
+        },
     },
     computed: {
         modalBodyStyles() {
             const styles = {};
             if (this.maxHeight > 0) {
-                styles['max-height'] = this.maxHeight + 'px';
+                styles['max-height'] = `${Math.min(this.maxHeight, window.innerHeight - 120)}px`;
             } else {
-                styles['max-height'] = window.innerHeight - 80;
+                styles['max-height'] = `${window.innerHeight - 120}px`;
             }
             return styles;
         }
