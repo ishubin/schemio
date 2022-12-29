@@ -1702,9 +1702,10 @@ ul.links-editor .edit-link:hover {
 }
 
 .create-item-menu .preview-item {
-    position: absolute;
+    position: fixed;
     padding: 5px;
     min-width: 160px;
+    max-width: 230px;
     background: var(--faint-weak);
     left: 230px;
     top: 100px;

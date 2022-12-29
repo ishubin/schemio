@@ -1,9 +1,27 @@
+function getPageCoordsFromEvent(event) {
+    if (event.changedTouches && event.changedTouches.length > 0) {
+        return {
+            pageX: event.changedTouches[0].pageX,
+            pageY: event.changedTouches[0].pageY,
+        }
+    } else if (event.touches && event.touches.length > 0) {
+        return {
+            pageX: event.touches[0].pageX,
+            pageY: event.touches[0].pageY,
+        }
+    }
+    return {
+        pageX: event.pageX,
+        pageY: event.pageY,
+    };
+}
 
 export function dragAndDropBuilder(originalEvent) {
+    const originalCoords = getPageCoordsFromEvent(originalEvent);
     return {
         originalEvent,
-        originalPageX: originalEvent.touches? originalEvent.touches[0].pageX : originalEvent.pageX,
-        originalPageY: originalEvent.touches? originalEvent.touches[0].pageY : originalEvent.pageY,
+        originalPageX: originalCoords.pageX,
+        originalPageY: originalCoords.pageY,
         draggedElement: null,
         droppableClass: null,
         scrollableElemet: null,
@@ -106,8 +124,9 @@ export function dragAndDropBuilder(originalEvent) {
                 }
             }
 
-            const originalClickX = originalEvent.touches ? originalEvent.touches[0].pageX: originalEvent.pageX;
-            const originalClickY = originalEvent.touches ? originalEvent.touches[0].pageY: originalEvent.pageY;
+            const coords = getPageCoordsFromEvent(event)
+            const originalClickX = coords.pageX;
+            const originalClickY = coords.pageY;
 
             const onMouseMove = (event) => {
                 if (event.buttons === 0) {
@@ -115,24 +134,23 @@ export function dragAndDropBuilder(originalEvent) {
                     return;
                 }
 
-                let eventPageX = event.touches ? event.touches[0].pageX : event.pageX;
-                let eventPageY = event.touches ? event.touches[0].pageY : event.pageY;
+                const {pageX, pageY} = getPageCoordsFromEvent(event);
 
-                pixelsMoved += Math.abs(eventPageX - this.originalPageX) + Math.abs(eventPageY - this.originalPageY);
+                pixelsMoved += Math.abs(pageX - this.originalPageX) + Math.abs(pageY - this.originalPageY);
 
                 if (startedDragging) {
                     if (this.draggedElement) {
-                        this.draggedElement.style.left = `${eventPageX + 4}px`;
-                        this.draggedElement.style.top = `${eventPageY + 4}px`;
+                        this.draggedElement.style.left = `${pageX + 4}px`;
+                        this.draggedElement.style.top = `${pageY + 4}px`;
                     }
-                    this.callbacks.onDrag(event, eventPageX, eventPageY, originalClickX, originalClickY);
+                    this.callbacks.onDrag(event, pageX, pageY, originalClickX, originalClickY);
                     withDroppableElement(event , element => this.callbacks.onDragOver(event, element));
 
                     if (this.scrollableElemet) {
                         const rootBbox = this.scrollableElemet.getBoundingClientRect();
-                        if (rootBbox.bottom - eventPageY < scrollMargin) {
+                        if (rootBbox.bottom - pageY < scrollMargin) {
                             startScrolling(2);
-                        } else if (rootBbox.top - eventPageY > -scrollMargin) {
+                        } else if (rootBbox.top - pageY > -scrollMargin) {
                             startScrolling(-2);
                         } else {
                             stopScrolling();
@@ -148,10 +166,11 @@ export function dragAndDropBuilder(originalEvent) {
             };
 
             const onMouseUp = (event) => {
+                const {pageX, pageY} = getPageCoordsFromEvent(event);
                 stopScrolling();
                 try {
                     if (startedDragging) {
-                        withDroppableElement(event , element => this.callbacks.onDrop(event, element, eventPageX, eventPageY));
+                        withDroppableElement(event , element => this.callbacks.onDrop(event, element, pageX, pageY));
                     }
                 } catch (err) {
                     console.error(err);
