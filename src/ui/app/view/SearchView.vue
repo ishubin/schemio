@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="search-view web-view">
         <schemio-header>
             <div slot="loader">
                 <div v-if="isLoading" class="loader">
@@ -32,16 +32,20 @@
                 <table class="entries-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Modified</th>
+                            <th colspan="2">Name</th>
+                            <th class="time-column">Modified</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="(entry, entryIdx) in searchResult.results">
-                            <td>
+                            <td class="icon-column">
                                 <router-link class="entry-link" :to="`/docs/${entry.id}`">
                                     <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
+                                </router-link>
+                            </td>
+                            <td class="name-column">
+                                <router-link class="entry-link" :to="`/docs/${entry.id}`">
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
                             </td>

@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div>
+    <div class="folder-view web-view">
         <schemio-header>
             <div slot="loader">
                 <div v-if="isLoading" class="loader">
@@ -40,20 +40,27 @@
                 <table class="entries-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Modified</th>
+                            <th colspan="2">Name</th>
+                            <th class="time-column">Modified</th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr v-for="(entry, entryIdx) in entries">
-                            <td>
+                            <td class="icon-column">
                                 <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
-                                    <i class="icon fas fa-folder fa-2x"></i> <span class="entry-link-text">{{entry.name}}</span>
+                                    <i class="icon fas fa-folder fa-2x"></i>
                                 </router-link>
                                 <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`/docs/${entry.id}`">
                                     <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
+                                </router-link>
+                            </td>
+                            <td class="name-column">
+                                <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
+                                    <span class="entry-link-text">{{entry.name}}</span>
+                                </router-link>
+                                <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`/docs/${entry.id}`">
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
                             </td>

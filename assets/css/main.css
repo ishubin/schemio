@@ -597,7 +597,7 @@ ul.pagination li a.current {
 .quick-helper-panel-section {
     position: relative;
     display: inline-block;
-    margin-top: 4px;
+    margin-top: 2px;
     margin-left: 5px;
     padding-left: 5px;
     height: 28px;
@@ -651,6 +651,25 @@ ul.pagination li a.current {
     top: 0;
     right: 2px;
     cursor: pointer;
+}
+
+.quick-helper-panel .schemio-logo {
+    display: none;
+    font-weight: normal;
+    background: var(--faint-strong);
+    text-decoration: none;
+    padding: 2px 4px;
+    height: 24px;
+    border-radius: var(--control-border-radius);
+}
+.quick-helper-panel .schemio-logo img {
+    height: 20px;
+}
+
+@media (max-width: 900px) {
+    .quick-helper-panel .schemio-logo {
+        display: inline-block;
+    }
 }
 
 
@@ -1759,10 +1778,13 @@ ul.links-editor .edit-link:hover {
     width: 100%;
     height: 100%;
     z-index: 101;
-    background: var(--faint-strong-up);
+    background: var(--faint-weak);
 }
 .textarea-enlarged-container .textarea-enlarged-top-panel {
     width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 10px;
 }
 .textarea-enlarged-container .editor-frame {
     width: 100%;
@@ -3060,7 +3082,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     color: var(--base-weak);
     margin-top: auto;
     padding: 20px;
-    padding-bottom: 50px;
+    padding-bottom: 20px;
 }
 
 .footer .footer-body {
@@ -3254,7 +3276,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 
 @media (max-width: 900px) {
-    .header {
+    .scheme-editor-view .header {
         display: none;
     }
 }
@@ -3272,19 +3294,21 @@ table.entries-table thead th {
     text-align: left;
     font-weight: bold;
 }
+table.entries-table tbody .icon-column {
+    width: 60px;
+}
 table.entries-table tbody .entry-link {
-    display: flex;
-    width: 100%;
+    display: block;
+    padding: 4px;
+    text-align: left;
     align-items: center;
     height: 40px;
-
-    padding: 5px;
     color: var(--accent-strong-down);
     text-decoration: none;
 }
-table.entries-table tbody .entry-link .entry-link-text {
-    margin-left: 10px;
-    white-space: nowrap;
+table.entries-table tbody .entry-link span {
+    display: block;
+    padding-top: 5px;
 }
 table.entries-table tbody .entry-link > .icon {
     width: 50px;
@@ -3311,6 +3335,14 @@ table.entries-table tbody td.time-column {
     white-space: nowrap;
     font-size: 14px;
 }
+@media (max-width: 900px) {
+    table.entries-table tbody td.time-column,
+    table.entries-table thead th.time-column {
+        display: none;
+    }
+}
+
+
 
 
 .entries-container {
@@ -3392,13 +3424,15 @@ ul.breadcrumbs li .breadcrumb-separator {
     margin-right: 5px;
 }
 
+.web-view .middle-content {
+    padding: 10px;
 
-.fs-toolbar {
-    margin-top: 10px;
-    margin-bottom: 10px;
 }
 .fs-toolbar input[type='text'] {
     max-width: 250px;
+}
+.fs-toolbar > *{
+    margin-top: 10px;
 }
 
 

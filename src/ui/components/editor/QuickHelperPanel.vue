@@ -7,6 +7,11 @@
             <div v-if="menuOptions && menuOptions.length > 0" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
+                        <a :href="rootPath" class="schemio-logo">
+                            <img :src="`${assetsPath}/images/schemio-logo-white.small.png`"/>
+                        </a>
+                    </li>
+                    <li>
                         <menu-dropdown name="" icon-class="fas fa-bars" :options="menuOptions" />
                     </li>
                 </ul>
@@ -580,6 +585,10 @@ export default {
     },
 
     computed: {
+        rootPath() {
+            return this.$store.getters.rootPath;
+        },
+
         assetsPath() {
             return this.$store.getters.assetsPath;
         },

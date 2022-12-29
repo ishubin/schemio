@@ -770,7 +770,7 @@ export default {
 
         onBringToView(area, animated) {
             let newZoom = 1.0;
-            if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
+            if (area.w > 0 && area.h > 0 && this.width > 0 && this.height > 0) {
                 newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height)/area.h)) / 100.0;
                 newZoom = Math.max(0.0001, newZoom);
             }
