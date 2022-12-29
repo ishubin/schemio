@@ -18,6 +18,7 @@
             :historyUndoable="historyState.undoable"
             :historyRedoable="historyState.redoable"
             :isRecording="isRecording"
+            :isScreenGrabbing="isScreenGrabbing"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
@@ -25,6 +26,7 @@
             @clicked-redo="historyRedo()"
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
+            @clicked-grab-screen="toggleGrabScreen()"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
@@ -772,7 +774,10 @@ export default {
                 onScreenTransformUpdated
             }),
             dragItem: new StateDragItem(this.$store, {
-                onCancel,
+                onCancel: () => {
+                    onCancel();
+                    this.isScreenGrabbing = false;
+                },
                 onSchemeChangeCommitted,
                 onStartConnecting: (item, point) => this.startConnecting(item, point),
                 onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
@@ -973,6 +978,7 @@ export default {
             mobileDebuggerShown: false,
 
             mobileLogEntries: [],
+            isScreenGrabbing: false,
         }
     },
     methods: {
@@ -1652,6 +1658,13 @@ export default {
             this.schemeContainer.reindexItems();
             this.commitHistory();
             this.updateRevision();
+        },
+
+        toggleGrabScreen() {
+            if (this.state === 'dragItem') {
+                this.isScreenGrabbing = !this.isScreenGrabbing;
+                this.states[this.state].toggleGrabScreen(this.isScreenGrabbing);
+            }
         },
 
         onScreenTransformUpdated(screenTransform) {

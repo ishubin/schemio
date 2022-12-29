@@ -852,6 +852,14 @@ export default class StateDragItem extends State {
         this.isRecording= false;
     }
 
+    toggleGrabScreen(isEnabled) {
+        if (isEnabled) {
+            this.migrateSubState(new DragScreenState(this, false, null));
+        } else {
+            this.migrateSubState(new IdleState(this, this.listener));
+        }
+    }
+
     migrateSubState(subState) {
         super.migrateSubState(subState);
     }

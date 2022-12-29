@@ -70,6 +70,9 @@
 
             <div class="quick-helper-panel-section" v-if="(mode === 'edit' && state !== 'draw')">
                 <ul class="button-group">
+                    <li v-if="state === 'dragItem'">
+                        <span title="Grab screen" class="toggle-button" :class="{toggled: isScreenGrabbing}" @click="$emit('clicked-grab-screen')"><i class="fa-solid fa-hand"></i></span>
+                    </li>
                     <li>
                         <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
                     </li>
@@ -239,6 +242,7 @@ export default {
         historyUndoable     : { type: Boolean, required: true},
         historyRedoable     : { type: Boolean, required: true},
         isRecording         : { type: Boolean, required: true},
+        isScreenGrabbing    : { type: Boolean, required: true},
     },
 
     components: {

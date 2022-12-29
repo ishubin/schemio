@@ -954,11 +954,11 @@ textarea.in-place-text-editor {
 .state-editPath.sub-state-creating-path * {
     cursor: crosshair !important;
 }
-.state-editPath.sub-state-drag-screen * {
-    cursor: grab !important;
-}
 .state-editPath.sub-state-drag-object * {
     cursor: grabbing !important;
+}
+.sub-state-drag-screen * {
+    cursor: grab !important;
 }
 
 [data-type='path-segment'],
@@ -1149,6 +1149,12 @@ ul.button-group > li.disabled > .icon-button:hover,
     bottom: 0;
     right: 1px;
     font-size: 8px;
+}
+
+@media (max-width: 900px) {
+    .toggle-button:hover {
+        background: none;
+    }
 }
 
 .quick-helper-panel .toggle-button {
