@@ -458,16 +458,20 @@ export default {
         },
 
         touchStart(event) {
+            event.preventDefault();
             this.mouseEvent('mouse-down', event);
         },
         touchEnd(event) {
+            event.preventDefault();
             this.mouseEvent('mouse-up', event);
         },
         touchMove(event) {
+            event.preventDefault();
             this.mouseEvent('mouse-move', event);
         },
 
         mouseMove(event) {
+            event.preventDefault();
             this.mouseEvent('mouse-move', event);
         },
         mouseDown(event) {

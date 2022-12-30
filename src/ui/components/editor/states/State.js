@@ -81,6 +81,9 @@ class State {
     }
 
     initScreenInertia() {
+        if (this.inertiaDrag.on) {
+            return;
+        }
         const positions = this.inertiaDrag.positionTracker.positions;
         if (positions.length > 2) {
             positions.sort((a, b) => {
@@ -571,6 +574,7 @@ export class DragScreenState extends SubState {
         this.originalClickPoint = originalClickPoint;
         this.exitOnMouseUp = exitOnMouseUp;
         this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+        this.parentState.resetInertiaDrag();
     }
 
     keyUp(key, keyOptions) {
@@ -581,21 +585,24 @@ export class DragScreenState extends SubState {
     mouseDown(x, y, mx, my, object, event) {
         this.originalClickPoint = {x, y, mx, my};
         this.originalScreenOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
+        this.parentState.resetInertiaDrag();
     }
 
     mouseMove(x, y, mx, my, object, event) {
-        if (event.buttons === 0) {
-            this.mouseUp(x, y, mx, my, object, event);
-            return;
-        }
-
         if (this.originalClickPoint) {
+            if (event.buttons === 0) {
+                this.mouseUp(x, y, mx, my, object, event);
+                return;
+            }
+            this.parentState.registerInertiaPositions(mx, my);
             this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx);
             this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my);
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.originalClickPoint = null;
+        this.parentState.initScreenInertia();
         this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
         if (this.exitOnMouseUp) {
             this.migrateToPreviousSubState();
