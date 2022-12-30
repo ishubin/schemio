@@ -12,6 +12,8 @@ const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
 const CLICKED = Events.standardEvents.clicked.id;
 
+const MAX_TRACK_MOUSE_POSITIONS = 5;
+
 /*
 This state works as dragging the screen, zooming, selecting elements
 */
@@ -31,6 +33,14 @@ class StateInteract extends State {
         this.currentHoveredItem = null;
         this.hoveredItemIds = new Set();
         this.userEventBus = userEventBus;
+        this.inertiaDrag = {
+            speed: 0,
+            direction: {x: 0, y: 0},
+            positionTracker: {
+                idx: 0,
+                positions: []
+            }
+        };
     }
 
     softReset() {
@@ -53,6 +63,9 @@ class StateInteract extends State {
         this.initialClickPoint = {x, y};
         this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
         this.originalZoom = this.schemeContainer.screenTransform.scale;
+        this.inertiaDrag.positionTracker.idx = 0;
+        this.inertiaDrag.positionTracker.positions = [];
+        this.inertiaDrag.speed = 0;
     }
 
     keyPressed(key, keyOptions) {
@@ -67,6 +80,8 @@ class StateInteract extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
+            this.initScreenInertia();
+
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item) {
                     this.listener.onItemClicked(object.item);
@@ -174,6 +189,8 @@ class StateInteract extends State {
     }
 
     dragScreen(x, y) {
+        this.registerInertiaPositions(x, y);
+
         if (!this.schemeContainer.scheme.settings.screen.draggable) {
             return;
         }
@@ -181,6 +198,73 @@ class StateInteract extends State {
             Math.floor(this.originalOffset.x + x - this.initialClickPoint.x),
             Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
         );
+    }
+
+    registerInertiaPositions(x, y) {
+        if (this.inertiaDrag.positionTracker.positions.length < MAX_TRACK_MOUSE_POSITIONS) {
+            this.inertiaDrag.positionTracker.positions.push({x, y, time: performance.now()});
+        } else {
+            this.inertiaDrag.positionTracker.positions[this.inertiaDrag.positionTracker.idx] = {x, y, time: performance.now()};
+        }
+        this.inertiaDrag.positionTracker.idx = (this.inertiaDrag.positionTracker.idx + 1) % MAX_TRACK_MOUSE_POSITIONS;
+    }
+
+    initScreenInertia() {
+        const positions = this.inertiaDrag.positionTracker.positions;
+        if (positions.length > 2) {
+            positions.sort((a, b) => {
+                return b.time - a.time
+            });
+
+            let nx = 0, ny = 0;
+            let speed = 0;
+
+            const movingWeights = [1.0, 0.5, 0.3, 0.1, 0.05];
+            let totalWeights = 0;
+
+            for (let i = 0; i < positions.length - 1; i++) {
+                const p2 = positions[i+1];
+                const p1 = positions[i];
+                const d = Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
+                if (d > 0.01) {
+                    nx += (p1.x - p2.x) / d;
+                    ny += (p1.y - p2.y) / d;
+                }
+
+                const timeDelta = p1.time - p2.time;
+                if (timeDelta > 0.01) {
+                    const currentSpeed = d / timeDelta;
+                    if (i === 0 && currentSpeed < 0.5) {
+                        this.inertiaDrag.speed = 0;
+                        return;
+                    }
+
+                    speed += currentSpeed * movingWeights[i];
+                    totalWeights += movingWeights[i];
+                }
+            }
+
+            nx = nx / (positions.length - 1);
+            ny = ny / (positions.length - 1);
+            this.inertiaDrag.direction.x = nx;
+            this.inertiaDrag.direction.y = ny;
+            if (totalWeights > 0) {
+                this.inertiaDrag.speed = Math.min(10, speed / totalWeights);
+            } else {
+                this.inertiaDrag.speed = 0;
+            }
+        } else {
+            this.inertiaDrag.speed = 0;
+        }
+    }
+
+    loop(deltaTime) {
+        if (!this.startedDragging && this.inertiaDrag.speed > 0) {
+            const sx = this.schemeContainer.screenTransform.x + this.inertiaDrag.speed * deltaTime * this.inertiaDrag.direction.x / 2;
+            const sy = this.schemeContainer.screenTransform.y + this.inertiaDrag.speed * deltaTime * this.inertiaDrag.direction.y / 2;
+            this.dragScreenTo(sx, sy);
+            this.inertiaDrag.speed = Math.max(0, this.inertiaDrag.speed - deltaTime / 200);
+        }
     }
 }
 

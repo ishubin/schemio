@@ -850,12 +850,14 @@ export default {
 
         destroyAnimationRegistry(this.editorId);
         window.addEventListener('resize', this.onWindowResize);
+        this.stopStateLoop();
     },
 
     mounted() {
         this.init();
         this.onWindowResize();
         window.addEventListener('resize', this.onWindowResize);
+        this.startStateLoop();
     },
 
     data() {
@@ -979,6 +981,8 @@ export default {
 
             mobileLogEntries: [],
             isScreenGrabbing: false,
+
+            isStateLooping: false
         }
     },
     methods: {
@@ -2729,6 +2733,25 @@ export default {
             if (this.sidePanelLeftWidth + minExpectedGap > window.innerWidth / 2) {
                 this.sidePanelLeftWidth = Math.floor(window.innerWidth / 2 - minExpectedGap )
             }
+        },
+
+        startStateLoop() {
+            this.isStateLooping = true;
+            this.stateLoop(0);
+        },
+
+        stateLoop(deltaTime) {
+            const oldTime = performance.now();
+            this.states[this.state].loop(deltaTime);
+            if (this.isStateLooping) {
+                window.requestAnimationFrame(() => {
+                    this.stateLoop(performance.now() - oldTime);
+                });
+            }
+        },
+
+        stopStateLoop() {
+            this.isStateLooping = false;
         },
 
         //calculates from world to screen

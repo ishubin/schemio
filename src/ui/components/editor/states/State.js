@@ -40,7 +40,7 @@ class State {
         this.subState = null;
         this.previousSubStates = [];
         this.listener = listener;
-        
+
         // used to track the beginning of new pinch to zoom event
         this.pinchToZoomId = 0;
         this.pinchToZoom = {
@@ -51,6 +51,9 @@ class State {
             y0: 0,
             scale: 1
         }
+    }
+
+    loop(deltaTime) {
     }
 
     migrateSubState(newSubState) {
@@ -551,7 +554,6 @@ export class MultiSelectState extends SubState {
         StoreUtils.setMultiSelectBox(this.store, null);
         this.migrateToPreviousSubState();
     }
-
 }
 
 export default State;
