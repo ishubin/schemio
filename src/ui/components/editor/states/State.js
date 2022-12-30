@@ -11,6 +11,7 @@ import { Keys } from '../../../events';
 const SUB_STATE_STACK_LIMIT = 10;
 
 const zoomOptions = [ 0.1, 0.25, 0.35, 0.5, 0.75, 1, 1.25, 1.5, 2, 3, 4, 5, 7.5, 10 ];
+const MAX_TRACK_MOUSE_POSITIONS = 5;
 
 /**
  * Checkes whether keys like shift, meta (mac), ctrl were pressed during the mouse event
@@ -50,10 +51,98 @@ class State {
             x0: 0,
             y0: 0,
             scale: 1
+        };
+
+        this.inertiaDrag = {
+            on: false,
+            speed: 0,
+            direction: {x: 0, y: 0},
+            positionTracker: {
+                idx: 0,
+                positions: []
+            }
+        };
+    }
+
+    resetInertiaDrag() {
+        this.inertiaDrag.positionTracker.idx = 0;
+        this.inertiaDrag.positionTracker.positions = [];
+        this.inertiaDrag.speed = 0;
+        this.inertiaDrag.on = false;
+    }
+
+    registerInertiaPositions(x, y) {
+        if (this.inertiaDrag.positionTracker.positions.length < MAX_TRACK_MOUSE_POSITIONS) {
+            this.inertiaDrag.positionTracker.positions.push({x, y, time: performance.now()});
+        } else {
+            this.inertiaDrag.positionTracker.positions[this.inertiaDrag.positionTracker.idx] = {x, y, time: performance.now()};
+        }
+        this.inertiaDrag.positionTracker.idx = (this.inertiaDrag.positionTracker.idx + 1) % MAX_TRACK_MOUSE_POSITIONS;
+    }
+
+    initScreenInertia() {
+        const positions = this.inertiaDrag.positionTracker.positions;
+        if (positions.length > 2) {
+            positions.sort((a, b) => {
+                return b.time - a.time
+            });
+
+            let nx = 0, ny = 0;
+            let speed = 0;
+
+            const movingWeights = [1.0, 0.5, 0.3, 0.1, 0.05];
+            let totalWeights = 0;
+
+            for (let i = 0; i < positions.length - 1; i++) {
+                const p2 = positions[i+1];
+                const p1 = positions[i];
+                const d = Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
+                if (d > 0.01) {
+                    nx += (p1.x - p2.x) / d;
+                    ny += (p1.y - p2.y) / d;
+                }
+
+                const timeDelta = p1.time - p2.time;
+                if (timeDelta > 0.01) {
+                    const currentSpeed = d / timeDelta;
+                    if (i === 0 && currentSpeed < 0.5) {
+                        this.inertiaDrag.speed = 0;
+                        return;
+                    }
+
+                    speed += currentSpeed * movingWeights[i];
+                    totalWeights += movingWeights[i];
+                }
+            }
+
+            nx = nx / (positions.length - 1);
+            ny = ny / (positions.length - 1);
+            this.inertiaDrag.direction.x = nx;
+            this.inertiaDrag.direction.y = ny;
+            if (totalWeights > 0) {
+                this.inertiaDrag.speed = Math.min(10, speed / totalWeights);
+                this.inertiaDrag.on = true;
+            } else {
+                this.inertiaDrag.speed = 0;
+                this.inertiaDrag.on = false;
+            }
+        } else {
+            this.inertiaDrag.speed = 0;
+            this.inertiaDrag.on = false;
         }
     }
 
     loop(deltaTime) {
+        if (this.inertiaDrag.on) {
+            if  (this.inertiaDrag.speed > 0.05) {
+                const sx = this.schemeContainer.screenTransform.x + this.inertiaDrag.speed * deltaTime * this.inertiaDrag.direction.x / 2;
+                const sy = this.schemeContainer.screenTransform.y + this.inertiaDrag.speed * deltaTime * this.inertiaDrag.direction.y / 2;
+                this.dragScreenTo(sx, sy);
+                this.inertiaDrag.speed = Math.max(0, this.inertiaDrag.speed - deltaTime / 200);
+            } else {
+                this.inertiaDrag.on = false;
+            }
+        }
     }
 
     migrateSubState(newSubState) {
