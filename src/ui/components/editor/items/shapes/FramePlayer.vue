@@ -5,6 +5,7 @@
     <g>
         <g v-for="(button,buttonIndex) in buttons"
             @click="onClickedButton(buttonIndex)"
+            @touchstart="onClickedButton(buttonIndex)"
             @mouseover="onMouseOverButton(buttonIndex)"
             @mouseout="onMouseOutButton(buttonIndex)"
             >

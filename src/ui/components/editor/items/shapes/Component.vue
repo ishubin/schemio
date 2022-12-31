@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g @click="$emit('custom-event', 'clicked')"
+    <g @click="$emit('custom-event', 'clicked')" @touchstart="$emit('custom-event', 'clicked')"
        @mouseover="$emit('custom-event', 'mousein')"
        @mouseleave="$emit('custom-event', 'mouseout')"
        >
@@ -48,6 +48,7 @@
                 :rx="item.shapeProps.buttonCornerRadius"
                 :width="buttonArea.w" :height="buttonArea.h"
                 @click="onLoadSchemeClick"
+                @touchstart="onLoadSchemeClick"
                 @mouseover="onButtonMouseOver"
                 @mouseleave="onButtonMouseLeave"
                 />
@@ -57,7 +58,7 @@
             <div class="progress-bar" :style="progressBarStyle"></div>
         </foreignObject>
 
-        <g @click="resetFailureMessage" v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
+        <g @click="resetFailureMessage" @touchstart="resetFailureMessage" v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
             <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
             <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
                 <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Loading failed</b></div>
