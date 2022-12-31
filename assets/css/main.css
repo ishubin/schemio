@@ -1238,23 +1238,25 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     border-bottom: 1px solid var(--faint-strong);
     color: var(--base-strong-up);
     height: 40px;
-    width: 12px;
+    width: 16px;
     user-select: none;
 }
 .scheme-editor-component .side-panel-right .side-panel-expander {
     border-left: 1px solid var(--faint-strong);
-    left: -12px;
+    left: -16px;
+    border-radius:  3px 0 0 3px;
 }
 .scheme-editor-component .side-panel-left .side-panel-expander {
     border-right: 1px solid var(--faint-strong);
-    right: -12px;
+    right: -16px;
+    border-radius: 0 3px 3px 0;
 }
 .scheme-editor-component .side-panel .side-panel-expander:hover {
     color: var(--faint-strong-down);
 }
 .scheme-editor-component .side-panel .side-panel-expander i {
     margin-top: 10px;
-    margin-left: 1px;
+    margin-left: 3px;
 }
 
 /**************** Bottom Panel ***********************/
