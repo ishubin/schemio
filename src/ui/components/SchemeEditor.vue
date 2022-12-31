@@ -187,6 +187,7 @@
                     :creating-new-item="inPlaceTextEditor.creatingNewItem"
                     :scalingVector="inPlaceTextEditor.scalingVector"
                     :zoom="schemeContainer.screenTransform.scale"
+                    :mouseDownId="mouseDownId"
                     @close="closeItemTextEditor"
                     @updated="onInPlaceTextEditorUpdate"
                     @item-renamed="onInPlaceTextEditorItemRenamed"
@@ -906,9 +907,13 @@ export default {
                 text: '',
                 creatingNewItem: false,
                 scalingVector: {x: 1, y: 1},
-                style: {}
+                style: {},
             },
 
+            // used to propate the update to vue component
+            // signifying that use has clicked something in svg plot
+            // This is used so that user can stop editting text slot of an item
+            mouseDownId: 0,
 
             // a reference to an item that was clicked in view mode
             // this is used when the side panel for item is being requested
@@ -2358,6 +2363,8 @@ export default {
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
+            this.mouseDownId++;
+
             if (this.active) {
                 this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
             }

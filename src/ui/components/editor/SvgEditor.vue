@@ -317,7 +317,8 @@ export default {
             clickableItemMarkers: [],
 
             worldHighlightedItems: [ ],
-
+            lastTouchStartTime: 0,
+            lastTouchStartCoords: {x: -1000, y: -1000},
         };
     },
     methods: {
@@ -453,14 +454,25 @@ export default {
         },
 
         mouseWheel(event) {
-            var coords = this.mouseCoordsFromEvent(event);
-            var p = this.toLocalPoint(coords.x, coords.y);
+            const coords = this.mouseCoordsFromEvent(event);
+            const p = this.toLocalPoint(coords.x, coords.y);
             this.$emit('mouse-wheel', p.x, p.y, coords.x, coords.y, event);
         },
 
         touchStart(event) {
             event.preventDefault();
-            this.mouseEvent('mouse-down', event);
+            const coords = this.mouseCoordsFromEvent(event);
+            const now = performance.now();
+
+            const d = (coords.x - this.lastTouchStartCoords.x) * (coords.x - this.lastTouchStartCoords.x)
+                + (coords.y - this.lastTouchStartCoords.y) * (coords.y - this.lastTouchStartCoords.y);
+            if (now - this.lastTouchStartTime < 500 && d < 50) {
+                this.mouseEvent('mouse-double-click', event);
+            } else {
+                this.mouseEvent('mouse-down', event);
+            }
+            this.lastTouchStartTime = now;
+            this.lastTouchStartCoords = coords;
         },
         touchEnd(event) {
             event.preventDefault();
