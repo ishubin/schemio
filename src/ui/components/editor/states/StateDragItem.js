@@ -634,6 +634,10 @@ class IdleState extends SubState {
             } else if (object.connectorStarter) {
                 this.listener.onStartConnecting(object.connectorStarter.item, object.connectorStarter.point)
                 return;
+            } else if (object.type === 'multi-item-edit-box-context-menu-button') {
+                if (this.schemeContainer.selectedItems.length > 0) {
+                    this.listener.onItemRightClick(this.schemeContainer.selectedItems[0], mx, my);
+                }
             }
         } else {
             if (!isMultiSelectKey(event)) {

@@ -20,10 +20,10 @@
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
                     <!-- <li>
-                        <span title="Logger" class="icon-button" @click="$emit('mobile-debugger-requested')"><i class="fa-solid fa-bug"></i></span>
+                        <span title="Logger" class="toggle-button" @click="$emit('mobile-debugger-requested')"><i class="fa-solid fa-bug"></i></span>
                     </li> -->
                     <li>
-                        <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
+                        <span title="Zoom to Selection" class="toggle-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
                     </li>
                     <li v-if="(editAllowed && shouldShowBaseControls)">
                         <div class="toggle-group">
@@ -74,10 +74,10 @@
                         <span title="Grab screen" class="toggle-button" :class="{toggled: isScreenGrabbing}" @click="$emit('clicked-grab-screen')"><i class="fa-solid fa-hand"></i></span>
                     </li>
                     <li>
-                        <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
+                        <span title="Undo" class="toggle-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
                     </li>
                     <li>
-                        <span title="Redo" class="icon-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
+                        <span title="Redo" class="toggle-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
                     </li>
                     <li>
                         <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="toggleSnapToGrid(!shouldSnapToGrid)">
@@ -95,15 +95,15 @@
             <div class="quick-helper-panel-section" v-if="(mode === 'edit' && selectedItemsCount > 0 && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li>
-                        <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
+                        <span class="toggle-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
                     </li>
                     <li>
-                        <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
+                        <span class="toggle-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
                             <img :src="`${assetsPath}/images/helper-panel/bring-to-front.svg`"/>
                         </span>
                     </li>
                     <li>
-                        <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
+                        <span class="toggle-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
                             <img :src="`${assetsPath}/images/helper-panel/bring-to-back.svg`"/>
                         </span>
                     </li>
@@ -161,7 +161,7 @@
             <div class="quick-helper-panel-section" v-if="mode === 'edit' && shouldShowConnectorControls">
                 <ul class="button-group">
                     <li v-for="connectorType in connectorTypes">
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
+                        <span class="toggle-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
                             <img :src="`${assetsPath}/images/helper-panel/connector-${connectorType}.svg`"/>
                         </span>
                     </li>

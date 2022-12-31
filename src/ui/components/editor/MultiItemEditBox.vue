@@ -15,7 +15,7 @@
             <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
                :transform="svgItemCompleteTransform"
                >
-                <path :d="selectedConnectorPath" 
+                <path :d="selectedConnectorPath"
                     :stroke-width="`${editBox.items[0].shapeProps.strokeSize + 3}px`"
                     :stroke="boundaryBoxColor"
                     style="stroke-linejoin: round;opacity: 0.6;"
@@ -23,7 +23,7 @@
                     :data-item-id="editBox.items[0].id"
                     fill="none"/>
 
-                <path :d="selectedConnectorPath" 
+                <path :d="selectedConnectorPath"
                     :stroke-width="`${editBox.items[0].shapeProps.strokeSize}px`"
                     :stroke="editBox.items[0].shapeProps.strokeColor"
                     style="stroke-linejoin: round;"
@@ -222,6 +222,60 @@
                         :r="10/safeZoom"
                     />
                 </g>
+
+                <g class="boundary-box-context-menu-button">
+                    <rect
+                        data-type="multi-item-edit-box-context-menu-button"
+                        data-dragger-edges="top,right"
+                        :fill="boundaryBoxColor"
+                        :x="editBox.area.w + 6 * draggerSize / safeZoom"
+                        :y="-10 * draggerSize / safeZoom"
+                        :width="draggerSize * 4 / safeZoom"
+                        :height="draggerSize * 4 / safeZoom"
+                        :rx="2 / safeZoom"
+                    />
+                    <rect
+                        data-type="multi-item-edit-box-context-menu-button"
+                        data-dragger-edges="top,right"
+                        fill="#ffffff"
+                        :x="editBox.area.w + 6 * draggerSize / safeZoom + 3.5 / safeZoom"
+                        :y="-10 * draggerSize / safeZoom + 4/safeZoom"
+                        :width="draggerSize * 2.5 / safeZoom"
+                        :height="2 / safeZoom"
+                        :rx="1 / safeZoom"
+                    />
+                    <rect
+                        data-type="multi-item-edit-box-context-menu-button"
+                        data-dragger-edges="top,right"
+                        fill="#ffffff"
+                        :x="editBox.area.w + 6 * draggerSize / safeZoom + 3.5 / safeZoom"
+                        :y="-10 * draggerSize / safeZoom + 9/safeZoom"
+                        :width="draggerSize * 2.5 / safeZoom"
+                        :height="2 / safeZoom"
+                        :rx="1 / safeZoom"
+                    />
+                    <rect
+                        data-type="multi-item-edit-box-context-menu-button"
+                        data-dragger-edges="top,right"
+                        fill="#ffffff"
+                        :x="editBox.area.w + 6 * draggerSize / safeZoom + 3.5 / safeZoom"
+                        :y="-10 * draggerSize / safeZoom + 14/safeZoom"
+                        :width="draggerSize * 2.5 / safeZoom"
+                        :height="2 / safeZoom"
+                        :rx="1 / safeZoom"
+                    />
+                    <rect
+                        data-type="multi-item-edit-box-context-menu-button"
+                        data-dragger-edges="top,right"
+                        fill="rgba(255,255,255,0.0)"
+                        :x="editBox.area.w + 6 * draggerSize / safeZoom"
+                        :y="-10 * draggerSize / safeZoom"
+                        :width="draggerSize * 4 / safeZoom"
+                        :height="draggerSize * 4 / safeZoom"
+                        :rx="2 / safeZoom"
+                    />
+                </g>
+
             </g>
             <g v-else-if="kind === 'crop-image'">
                 <g :transform="`translate(${10/safeZoom}, ${-20/safeZoom}) scale(${1/safeZoom})`">

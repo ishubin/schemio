@@ -38,12 +38,12 @@
 
             <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
                 <li v-if="curveEditing.selectedPoints.length > 0">
-                    <span class="icon-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
+                    <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
                         <img :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
                     </span>
                 </li>
                 <li v-if="curveEditing.selectedPoints.length > 0">
-                    <span class="icon-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
+                    <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
                         <img :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
                     </span>
                 </li>
@@ -2000,10 +2000,6 @@ export default {
                 name: 'Bring to Back',
                 clicked: () => {this.bringSelectedItemsToBack();}
             }, {
-                name: 'Connect',
-                iconClass: 'fas fa-network-wired',
-                clicked: () => {this.onClickedStartConnecting(item, x, y);}
-            }, {
                 name: 'Add link',
                 iconClass: 'fas fa-link',
                 clicked: () => {this.onClickedAddItemLink(item);}
@@ -2080,13 +2076,16 @@ export default {
                 name: 'Surround items',
                 clicked: () => { this.surroundSelectedItems(); }
             }, {
-                name: 'Export as SVG ...',
-                iconsClass: 'fas fa-file-export',
-                clicked: () => { this.exportSelectedItemsAsSVG(); }
-            }, {
-                name: 'Export as PNG ...',
-                iconsClass: 'fas fa-file-export',
-                clicked: () => { this.exportSelectedItemsAsPNG(); }
+                name: 'Export',
+                subOptions: [{
+                    name: 'Export as SVG ...',
+                    iconsClass: 'fas fa-file-export',
+                    clicked: () => { this.exportSelectedItemsAsSVG(); }
+                }, {
+                    name: 'Export as PNG ...',
+                    iconsClass: 'fas fa-file-export',
+                    clicked: () => { this.exportSelectedItemsAsPNG(); }
+                }]
             }]);
 
 

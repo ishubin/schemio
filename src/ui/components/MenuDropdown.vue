@@ -4,7 +4,7 @@
 <template>
     <div class="menu-dropdown" :id="uid">
         <div ref="menuTitle" class="menu-dropdown-title">
-            <span v-if="iconClass" class="icon-button" @click="toggleMenu"><i :class="iconClass"></i> {{name}}</span>
+            <span v-if="iconClass" class="toggle-button" @click="toggleMenu"><i :class="iconClass"></i> {{name}}</span>
             <span v-else class="link" @click="toggleMenu">{{name}} <i class="fas fa-caret-down"></i></span>
         </div>
         <ul ref="menuList" v-if="menuDisplayed" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-height': `${maxHeight}px`}">

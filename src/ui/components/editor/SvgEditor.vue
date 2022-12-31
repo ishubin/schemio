@@ -386,7 +386,8 @@ export default {
                 } else if (elementType === 'multi-item-edit-box'
                         || elementType === 'multi-item-edit-box-rotational-dragger'
                         || elementType === 'multi-item-edit-box-pivot-dragger'
-                        || elementType === 'multi-item-edit-box-reset-image-crop-link') {
+                        || elementType === 'multi-item-edit-box-reset-image-crop-link'
+                        || elementType === 'multi-item-edit-box-context-menu-button') {
                     return {
                         type: elementType,
                         multiItemEditBox: this.schemeContainer.multiItemEditBox

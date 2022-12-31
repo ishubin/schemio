@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="context-menu" oncontextmenu="return false;">
+    <div class="context-menu" oncontextmenu="return false;" :style="{'max-height': `${maxHeight}px`}">
         <ul ref="rootContextMenu" :style="{'top': `${y}px`, 'left': `${x}px`}">
             <li v-for="(option, optionIndex) in options" @click="onOptionSelected(option)">
                 <span class="context-menu-suboptions-icon">
@@ -33,6 +33,8 @@ export default {
 
     mounted() {
         document.body.addEventListener('mousedown', this.onDocumentClick);
+        document.body.addEventListener('touchmove', this.onDocumentClick);
+        document.body.addEventListener('touchstart', this.onDocumentClick);
 
         const rect = this.$refs.rootContextMenu.getBoundingClientRect();
         const overlapX = rect.right - window.innerWidth;
@@ -51,6 +53,8 @@ export default {
 
     beforeDestroy() {
         document.body.removeEventListener('mousedown', this.onDocumentClick);
+        document.body.removeEventListener('touchmove', this.onDocumentClick);
+        document.body.removeEventListener('touchstart', this.onDocumentClick);
     },
 
     data() {
@@ -60,6 +64,7 @@ export default {
             y: this.mouseY,
             menuWidth: 100,
             menuHeight: 100,
+            maxHeight: window.innerHeight - 30,
             mountTime: new Date().getTime()
         }
     },
