@@ -85,7 +85,7 @@
                 />
         </g>
 
-        <path v-if="itemSvgOutlinePath && shouldDrawEventLayer && !textSelectionEnabled"
+        <path v-if="itemSvgOutlinePath && !textSelectionEnabled"
             class="svg-event-layer"
             data-preview-ignore="true"
             :id="`item-svg-path-${item.id}`"
@@ -96,7 +96,7 @@
             stroke="rgba(255, 255, 255, 0)"
             :fill="hoverPathFill" />
 
-        <g v-if="mode === 'view'">
+        <g v-if="mode === 'view' && !textSelectionEnabled">
             <path v-for="customArea in customAreas"
                 class="svg-event-layer"
                 data-preview-ignore="true"
@@ -268,7 +268,6 @@ export default {
             oldShape              : this.item.shape,
             itemStandardCurves    : [],
             itemSvgOutlinePath    : null,
-            shouldDrawEventLayer  : true,
             shouldRenderText      : true,
 
             // using revision in order to trigger full re-render of item component
@@ -325,9 +324,6 @@ export default {
             this.supportsStrokeSize = hasStrokeSizeProp(shape);
 
             this.customAreas = shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [];
-            if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view' || (this.mode === 'view' && this.textSelectionEnabled)) {
-                this.shouldDrawEventLayer = false;
-            }
             if (shape.vueComponent) {
                 this.shapeComponent = shape.vueComponent;
             } else {

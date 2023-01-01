@@ -140,7 +140,7 @@ class StateInteract extends State {
     }
 
     handleItemHoverEvents(object) {
-        if (object && object.type === 'item' && object.item) {
+        if (object && (object.type === 'item' || object.type === 'custom-item-area') && object.item) {
             if (!this.currentHoveredItem) {
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
                     this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
@@ -163,7 +163,7 @@ class StateInteract extends State {
                 this.hoveredItemIds.forEach(itemId => {
                     if (!allNewIds.has(itemId)) {
                         this.hoveredItemIds.delete(itemId);
-                        this.sendItemEventById(itemId, MOUSE_OUT);
+                        this.sendMouseOutEvent(itemId);
                     }
                 });
 
@@ -177,11 +177,24 @@ class StateInteract extends State {
             }
         } else {
             this.hoveredItemIds.forEach(itemId => {
-                this.sendItemEventById(itemId, MOUSE_OUT);
+                this.sendMouseOutEvent(itemId);
             });
             this.hoveredItemIds.clear();
             this.currentHoveredItem = null;
         }
+    }
+
+    sendMouseOutEvent(itemId) {
+        this.sendItemEventById(itemId, MOUSE_OUT);
+        const item = this.schemeContainer.findItemById(itemId);
+        if (!item) {
+            return;
+        }
+        const shape = Shape.find(item.shape);
+        if (!shape || !shape.onMouseOut) {
+            return;
+        }
+        shape.onMouseOut(this.editorId, item);
     }
 
     emit(element, eventName) {

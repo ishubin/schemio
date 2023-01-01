@@ -65,7 +65,6 @@ function defaultGetEventsFunc(item) {
 const defaultEditorProps = {
     description: 'rich',
     onlyEditMode: false,
-    ignoreEventLayer: false,
     customTextRendering: false
 };
 
@@ -186,6 +185,7 @@ function enrichShape(shapeComponent, shapeName) {
         menuItems               : shapeConfig.menuItems || [],
         onMouseDown             : shapeConfig.onMouseDown,
         onMouseMove             : shapeConfig.onMouseMove,
+        onMouseOut              : shapeConfig.onMouseOut,
         computeCustomAreas      : shapeConfig.computeCustomAreas,
 
         argType(argName) {
