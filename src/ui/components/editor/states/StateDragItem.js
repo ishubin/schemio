@@ -849,8 +849,8 @@ class IdleState extends SubState {
 }
 
 export default class StateDragItem extends State {
-    constructor(store, listener) {
-        super(store,  'drag-item', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store,  'drag-item', listener);
         this.subState = null;
         this.listener = listener;
         this.isRecording= false;

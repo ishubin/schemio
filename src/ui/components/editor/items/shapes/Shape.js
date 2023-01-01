@@ -183,8 +183,10 @@ function enrichShape(shapeComponent, shapeName) {
         // used for generating item snapers which are used for snapping dragged item to other items
         getSnappers             : shapeConfig.getSnappers || defaultGetSnappers,
         vueComponent            : shapeConfig.shapeType === 'vue'? shapeComponent: null,
-
         menuItems               : shapeConfig.menuItems || [],
+        onMouseDown             : shapeConfig.onMouseDown,
+        onMouseMove             : shapeConfig.onMouseMove,
+        computeCustomAreas      : shapeConfig.computeCustomAreas,
 
         argType(argName) {
             if (this.args && this.args[argName]) {

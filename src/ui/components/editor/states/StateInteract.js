@@ -7,6 +7,8 @@ import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
+import Shape from '../items/shapes/Shape.js';
+import { localPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -20,8 +22,8 @@ class StateInteract extends State {
      *
      * @param {UserEventBus} userEventBus
      */
-    constructor(store, userEventBus, listener) {
-        super(store,  'interact', listener);
+    constructor(editorId, store, userEventBus, listener) {
+        super(editorId, store,  'interact', listener);
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
@@ -72,7 +74,12 @@ class StateInteract extends State {
 
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item) {
-                    this.listener.onItemClicked(object.item);
+                    this.listener.onItemClicked(object.item, x, y);
+                    const shape = Shape.find(object.item.shape);
+                    if (shape && shape.onMouseDown) {
+                        const localPoint = localPointOnItem(x, y, object.item);
+                        shape.onMouseDown(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
+                    }
                     this.emit(object.item, CLICKED);
                     this.handleItemClick(object.item, mx, my);
                 } else {
@@ -101,6 +108,13 @@ class StateInteract extends State {
                 this.dragScreen(mx, my);
             }
         } else {
+            if (object.item) {
+                const shape = Shape.find(object.item.shape);
+                if (shape && shape.onMouseMove) {
+                    const localPoint = localPointOnItem(x, y, object.item);
+                    shape.onMouseMove(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
+                }
+            }
             this.handleItemHoverEvents(object);
         }
     }

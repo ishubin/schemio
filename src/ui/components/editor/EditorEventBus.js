@@ -42,6 +42,11 @@ const EditorEventBus = {
     },
 
     item: {
+        custom: {
+            $on: (eventName, editorId, itemId, callback) => $on(editorId, eventName, [itemId], callback),
+            $off: (eventName, editorId, itemId, callback) => $off(editorId, eventName, [itemId], callback),
+            $emit: (eventName, editorId, itemId, ...args) => $emit(editorId, eventName, [itemId], ...args),
+        },
         selected: {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-item-selected', [], callback),

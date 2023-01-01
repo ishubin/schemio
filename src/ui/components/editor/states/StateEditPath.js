@@ -796,8 +796,8 @@ class IdleState extends SubState {
 }
 
 export default class StateEditPath extends State {
-    constructor(store, listener) {
-        super(store,  'editPath', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store,  'editPath', listener);
         this.item = null;
         this.history = new History();
     }

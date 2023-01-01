@@ -723,7 +723,7 @@ export default {
         const onSubStateMigrated = () => {};
 
         this.states = {
-            interact: new StateInteract(this.$store, this.userEventBus, {
+            interact: new StateInteract(this.editorId, this.$store, this.userEventBus, {
                 onCancel,
                 onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
                 onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
@@ -735,7 +735,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            createItem: new StateCreateItem(this.$store, {
+            createItem: new StateCreateItem(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -743,7 +743,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            editPath: new StateEditPath(this.$store, {
+            editPath: new StateEditPath(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onHistoryStateChange: (undoable, redoable) => {
@@ -766,7 +766,7 @@ export default {
                 selectCurveEditPoint: (pathId, pointId, inclusive) => this.selectCurveEditPoint(pathId, pointId, inclusive),
                 getCurveEditPaths: () => this.curveEditing.paths,
             }),
-            connecting: new StateConnecting(this.$store, {
+            connecting: new StateConnecting(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -774,7 +774,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            dragItem: new StateDragItem(this.$store, {
+            dragItem: new StateDragItem(this.editorId, this.$store, {
                 onCancel: () => {
                     onCancel();
                     this.isScreenGrabbing = false;
@@ -794,14 +794,14 @@ export default {
                 onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
                 onScreenTransformUpdated
             }),
-            pickElement: new StatePickElement(this.$store, {
+            pickElement: new StatePickElement(this.editorId, this.$store, {
                 onCancel,
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            cropImage: new StateCropImage(this.$store, {
+            cropImage: new StateCropImage(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -809,7 +809,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            draw: new StateDraw(this.$store, {
+            draw: new StateDraw(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,

@@ -33,10 +33,11 @@ class State {
     /**
      * @param {Vuex.Store} store - a Vuex store object
      */
-    constructor(store, name, listener) {
+    constructor(editorId, store, name, listener) {
         this.schemeContainer = null;
         this.name = name || '';
         this.store = store;
+        this.editorId = editorId;
 
         this.subState = null;
         this.previousSubStates = [];
@@ -541,7 +542,7 @@ class State {
 
 export class SubState extends State {
     constructor(parentState, name) {
-        super(parentState.store, name);
+        super(parentState.editorId, parentState.store, name);
         this.schemeContainer = parentState.schemeContainer;
         this.parentState = parentState;
     }

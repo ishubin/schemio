@@ -8,8 +8,8 @@ const IS_SOFT = true;
 const IS_NOT_SOFT = false;
 
 export default class StateCropImage extends State {
-    constructor(store, listener) {
-        super(store, 'crop-image', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store, 'crop-image', listener);
         this.item = null;
         this.editBox = null;
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};

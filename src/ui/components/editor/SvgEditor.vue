@@ -33,7 +33,6 @@
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
-                            @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -84,7 +83,6 @@
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
-                            @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
@@ -398,6 +396,12 @@ export default {
                         type: elementType,
                         multiItemEditBox: this.schemeContainer.multiItemEditBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
+                    };
+                } else if (elementType === 'custom-item-area') {
+                    return {
+                        type: elementType,
+                        item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
+                        areaId: element.getAttribute('data-custom-area-id'),
                     };
                 }
 
@@ -913,27 +917,6 @@ export default {
                 x: (mouseX - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale,
                 y: (mouseY - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale
             };
-        },
-
-        onItemCustomEvent(event) {
-            if (event.eventName === 'clicked') {
-                // handling links and toolip/side-panel appearance
-                const item = this.schemeContainer.findItemById(event.itemId);
-                if (item.links && item.links.length > 0) {
-                    this.onShowItemLinks(item);
-                }
-                if (item.description.trim().length > 8) {
-                    if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                        this.$emit('item-side-panel-requested', item);
-                    } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                        this.$emit('item-tooltip-requested', item, lastMousePosition.x, lastMousePosition.y);
-                    }
-                }
-            }
-
-            if (this.userEventBus) {
-                this.userEventBus.emitItemEvent(event.itemId, event.eventName);
-            }
         },
 
         /**

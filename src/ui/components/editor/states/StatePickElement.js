@@ -5,8 +5,8 @@
 import State from './State.js';
 
 export default class StatePickElement extends State {
-    constructor(store, listener) {
-        super(store, 'connecting', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store, 'connecting', listener);
         this.elementPickCallback = null;
         this.highlightedItemId = null;
     }

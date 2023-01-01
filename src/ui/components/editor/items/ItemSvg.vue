@@ -22,7 +22,6 @@
                 :editorId="editorId"
                 :mode="mode"
                 :style="{'opacity': item.selfOpacity/100.0}"
-                @custom-event="onShapeCustomEvent"
                 @frame-animator="onFrameAnimatorEvent">
             </component>
 
@@ -82,7 +81,6 @@
                 :editorId="editorId"
                 :patchIndex="patchIndex"
                 :mode="mode"
-                @custom-event="$emit('custom-event', arguments[0])"
                 @frame-animator="onFrameAnimatorEvent"
                 />
         </g>
@@ -97,6 +95,22 @@
             :style="{'cursor': item.cursor}"
             stroke="rgba(255, 255, 255, 0)"
             :fill="hoverPathFill" />
+
+        <g v-if="mode === 'view'">
+            <path v-for="customArea in customAreas"
+                class="svg-event-layer"
+                data-preview-ignore="true"
+                :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
+                :id="`item-svg-path-${item.id}`"
+                :d="customArea.path"
+                data-type="custom-item-area"
+                :data-item-id="item.id"
+                :data-custom-area-id="customArea.id"
+                :stroke-width="hoverPathStrokeWidth"
+                stroke="rgba(255, 255, 255, 0)"
+                :fill="hoverPathFill" />
+        </g>
+
 
         <rect v-if="shapeType === 'missing'"
             class="svg-event-layer"
@@ -141,7 +155,6 @@
                 :textSelectionEnabled="textSelectionEnabled"
                 :patchIndex="patchIndex"
                 :mode="mode"
-                @custom-event="$emit('custom-event', arguments[0])"
                 @frame-animator="onFrameAnimatorEvent"
                 />
         </g>
@@ -156,7 +169,6 @@
                 :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"
                 :mode="mode"
-                @custom-event="$emit('custom-event', arguments[0])"
                 @frame-animator="onFrameAnimatorEvent"
                 />
         </g>
@@ -276,7 +288,8 @@ export default {
             filterUrl             : '',
             backgroundEffects     : [],
             foregroundEffects     : [],
-            svgItemTransform      : this.calculateSVGItemTransform()
+            svgItemTransform      : this.calculateSVGItemTransform(),
+            customAreas           : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : []
         };
 
         if (shape) {
@@ -311,6 +324,7 @@ export default {
             this.shapeType = shape.shapeType;
             this.supportsStrokeSize = hasStrokeSizeProp(shape);
 
+            this.customAreas = shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [];
             if (shape.editorProps && shape.editorProps.ignoreEventLayer && this.mode === 'view' || (this.mode === 'view' && this.textSelectionEnabled)) {
                 this.shouldDrawEventLayer = false;
             }
@@ -345,6 +359,7 @@ export default {
                     this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
                 }
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
+                this.customAreas = shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [];
             }
 
             if (!shape.editorProps || !shape.editorProps.customTextRendering) {
@@ -360,14 +375,6 @@ export default {
 
             this.revision += 1;
             this.$forceUpdate();
-        },
-
-        onShapeCustomEvent(eventName, ...args) {
-            this.$emit('custom-event', {
-                itemId: this.item.id,
-                eventName: eventName,
-                args: arguments
-            });
         },
 
         onFrameAnimatorEvent(args) {

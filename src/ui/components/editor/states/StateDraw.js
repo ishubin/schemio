@@ -19,8 +19,8 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
 };
 
 export default class StateDraw extends State {
-    constructor(store, listener) {
-        super(store, 'draw', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store, 'draw', listener);
         this.item = null;
         this.isDrawing = false;
         this.strokeColor = null;
