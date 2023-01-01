@@ -332,7 +332,6 @@ export default {
 
         editorProps: {
             customTextRendering: true,
-            // ignoreEventLayer   : true   // tells not to draw a layer for events handling, as this shape will handle everything itself
         },
 
         /**
