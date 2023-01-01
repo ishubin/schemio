@@ -182,6 +182,13 @@
                     </li>
                 </ul>
             </div>
+            <div v-if="(mode === 'edit' && state === 'connecting')" class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <span @click="stopConnecting" class="btn btn-small btn-secondary" title="Stop connecting">Stop</span>
+                    </li>
+                </ul>
+            </div>
 
             <div v-if="(mode === 'edit' && shouldShowBaseControls)" class="quick-helper-panel-section">
                 <ul class="button-group">
@@ -364,6 +371,10 @@ export default {
 
         stopDrawing() {
             this.$emit('stop-drawing-requested');
+        },
+
+        stopConnecting() {
+            this.$emit('stop-connecting-requested');
         },
 
         removeSelectedItems() {

@@ -32,6 +32,7 @@
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
+            @stop-connecting-requested="stopConnecting"
             @items-highlighted="onItemsHighlighted"
             @mobile-debugger-requested="toggleMobileDebugger"
             >
@@ -48,11 +49,11 @@
                     </span>
                 </li>
                 <li>
-                    <span @click="onPathEditStopped" class="btn btn-small btn-secondary" title="Stop drawing">Stop edit</span>
+                    <span @click="onPathEditStopped" class="btn btn-small btn-secondary">Stop edit</span>
                 </li>
             </ul>
 
-            <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && (modified || statusMessage.message)">
+            <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && state !== 'connecting' && (modified || statusMessage.message)">
                 <li v-if="modified">
                     <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
                     <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
@@ -1161,6 +1162,13 @@ export default {
         stopDrawing() {
             if (this.state === 'draw') {
                 this.states.draw.cancel();
+            }
+            this.updateFloatingHelperPanel();
+        },
+
+        stopConnecting() {
+            if (this.state === 'connecting') {
+                this.states.connecting.cancel();
             }
             this.updateFloatingHelperPanel();
         },
