@@ -48,7 +48,7 @@
                 </foreignObject>
             </g>
 
-            <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName">
+            <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName" :style="{'opacity': item.selfOpacity/100.0}">
                 <foreignObject
                     ref="textSlots"
                     :data-text-slot-name="slot.name"

@@ -202,7 +202,7 @@
                 class="bottom-panel"
                 :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
                 >
-                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
+                <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
@@ -301,7 +301,7 @@
             </div>
 
             <div class="side-panel side-panel-left" ref="sidePanelLeft" v-if="mode === 'edit' && schemeContainer" :style="{width: `${sidePanelLeftWidth}px`}">
-                <span class="side-panel-expander" @mousedown="onLeftSidePanelExpanderMouseDown">
+                <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                     <i v-if="sidePanelLeftWidth > 0" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
                 </span>
@@ -323,7 +323,7 @@
             </div>
 
             <div class="side-panel side-panel-right" ref="sidePanelRight" v-if="schemeContainer" :style="{width: `${sidePanelRightWidth}px`}">
-                <span class="side-panel-expander" @mousedown="onRightSidePanelExpanderMouseDown">
+                <span class="side-panel-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
                     <i v-if="sidePanelRightWidth > 0" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
@@ -2468,8 +2468,8 @@ export default {
 
         onBottomPanelMouseDown(originalEvent) {
             dragAndDropBuilder(originalEvent)
-            .onDrag(event => {
-                this.bottomPanelHeight = myMath.clamp(window.innerHeight - event.pageY, 100, window.innerHeight - 100);
+            .onDrag((event, pageX, pageY) => {
+                this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 100, window.innerHeight - 100);
             })
             .build();
         },
@@ -2526,11 +2526,10 @@ export default {
         onSidePanelExpanderMouseDown(originalEvent, element, direction, callbacks) {
             const minWidth = 80;
             const originalWidth = element.getBoundingClientRect().width;
-            const originalPageX = originalEvent.pageX;
 
             dragAndDropBuilder(originalEvent)
-            .onDrag(event => {
-                const dx = event.pageX - originalPageX;
+            .onDrag((event, pageX, pageY, originalPageX, originalPageY) => {
+                const dx = pageX - originalPageX;
 
                 const newWidth = myMath.clamp(originalWidth - dx * direction, 0, window.innerWidth/2.5);
                 if (newWidth < minWidth) {
