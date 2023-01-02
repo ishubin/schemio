@@ -33,7 +33,7 @@ export default {
         document.body.addEventListener('click', this.onBodyClick);
         document.body.addEventListener('keydown', this.onGlobalKeydown);
 
-    
+
         const rect = this.$refs.panelContainer.getBoundingClientRect();
 
         if (rect.bottom > window.innerHeight) {
@@ -53,7 +53,7 @@ export default {
         const itemEntries = [];
 
         forEach(Shape.getRegistry(), (shape, shapeId) => {
-            if (shape.menuItems) {
+            if (shape.menuItems && shapeId !== 'sticky_note') {
                 forEach(shape.menuItems, (menuEntry) => {
                     if (!menuEntry.imageProperty) {
                         const entry = utils.clone(menuEntry);

@@ -99,12 +99,12 @@
                     </li>
                     <li>
                         <span class="toggle-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
-                            <img :src="`${assetsPath}/images/helper-panel/bring-to-front.svg`"/>
+                            <img :src="`${assetsPath}/images/helper-panel/bring-to-front.svg`" width="18px"/>
                         </span>
                     </li>
                     <li>
                         <span class="toggle-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
-                            <img :src="`${assetsPath}/images/helper-panel/bring-to-back.svg`"/>
+                            <img :src="`${assetsPath}/images/helper-panel/bring-to-back.svg`" width="18px"/>
                         </span>
                     </li>
                 </ul>
