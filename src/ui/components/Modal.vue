@@ -63,6 +63,12 @@ export default {
         showFooter           : { type: Boolean, default: true },
         closable             : { type: Boolean, default: true},
         closeName            : { type: String, default: 'Close'},
+        // this property is used by the parent component
+        // to notify that the modal position should be readjusted on screen
+        // this happens because often the modal's content is dynamically loaded
+        // and when it is mounted it's size maybe different from the one, when the
+        // content is finally loaded
+        repositionId         : { type: Number, default: 0}
     },
 
     beforeMount() {
@@ -114,7 +120,6 @@ export default {
         },
 
         initModalDrag(originalEvent) {
-            console.log(originalEvent);
             let originalModalX = this.x;
             let originalModalY = this.y;
             const modalRect = this.$refs.modalContainer.getBoundingClientRect();
@@ -137,6 +142,18 @@ export default {
             })
             .build();
         },
+
+        repositionModal() {
+            const modalRect = this.$refs.modalContainer.getBoundingClientRect();
+            if (modalRect.right > window.innerWidth) {
+                const newX = modalRect.left - modalRect.right + window.innerWidth;
+                this.x = clampModalPosition(newX, modalRect.width, window.innerWidth, MIN_OVERLAP);
+            }
+            if (modalRect.bottom > window.innerHeight) {
+                const newY = modalRect.top - modalRect.bottom + window.innerHeight;
+                this.y = clampModalPosition(newY, 40, window.innerHeight, MIN_OVERLAP);
+            }
+        }
     },
     computed: {
         modalBodyStyles() {
@@ -147,6 +164,14 @@ export default {
                 styles['max-height'] = `${window.innerHeight - 120}px`;
             }
             return styles;
+        }
+    },
+
+    watch: {
+        repositionId() {
+            this.$nextTick(() => {
+                this.repositionModal();
+            });
         }
     }
 }

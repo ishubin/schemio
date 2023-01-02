@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="color-picker" :style="{width: width, height: height}" :title="hint">
+    <div class="color-picker" :style="{width: width, height: height}" :title="hint" :class="[`color-picker-uid-${uid}`]">
         <div ref="toggleButton" class="color-picker-toggle-button" :class="{disabled: disabled}">
             <span class="color-picker-toggle-button-background"></span>
 
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import shortid from 'shortid';
 import VueColor from 'vue-color';
 
 export default {
@@ -33,8 +34,15 @@ export default {
     },
 
     components: {'color-picker': VueColor.Chrome},
+    beforeMount() {
+        document.body.addEventListener('click', this.onGlobalClick);
+    },
+    beforeDestroy() {
+        document.body.removeEventListener('click', this.onGlobalClick);
+    },
     data() {
         return {
+            uid: shortid.generate(),
             pickerColor: this.color,
             vuePickerColor: {hex: this.color},
             showColorPicker: false,
@@ -43,7 +51,6 @@ export default {
                 x: 0,
                 y: 0
             },
-            clickAwayRegistered: false,
             oldColor: null,
             oldAlpha: 1
         }
@@ -53,10 +60,15 @@ export default {
             if (this.disabled) {
                 return;
             }
+
+            if (this.tooltip.shown) {
+                this.tooltip.shown = false;
+                return;
+            }
+
             this.oldColor = this.color;
             this.vuePickerColor = {hex: this.color};
             this.tooltip.shown = true;
-            this.registerClickAwayHandler();
             this.$nextTick(() => {
                 this.readjustTooltipPosition();
             });
@@ -76,36 +88,41 @@ export default {
             const buttonRect = domButton.getBoundingClientRect();
             const windowWidth = window.innerWidth;
             const windowHeight = window.innerHeight;
+
+
+            let x = 0;
+            let y = 0;
             if (buttonRect.left < windowWidth / 2) {
-                this.tooltip.x = buttonRect.right;
+                x = buttonRect.right;
             } else {
-                this.tooltip.x = buttonRect.left - tooltipRect.width;
+                x = buttonRect.left - tooltipRect.width;
             }
-            
+
             if (buttonRect.top < windowHeight / 2) {
-                this.tooltip.y = buttonRect.top;
+                y = buttonRect.top;
             } else {
-                this.tooltip.y = buttonRect.bottom - tooltipRect.height;
+                y = buttonRect.bottom - tooltipRect.height;
             }
-        },
-        registerClickAwayHandler() {
-            if (!this.clickAwayRegistered) {
-                document.body.addEventListener('click', this.onGlobalClick);
-                this.clickAwayRegistered = true;
+
+            if (x + tooltipRect.width > window.innerWidth) {
+                x -= x + tooltipRect.width - window.innerWidth
             }
+            x = Math.max(0, x);
+
+            if (y + tooltipRect.height > window.innerHeight) {
+                y -= y + tooltipRect.height - window.innerHeight
+            }
+            y = Math.max(60, y);
+
+
+            this.tooltip.x = x;
+            this.tooltip.y = y;
         },
         onGlobalClick(event) {
-            if (!event.target || !event.target.closest('.color-picker')) {
-                this.closeTooltip();
+            if (!event.target || !event.target.closest(`.color-picker-uid-${this.uid}`)) {
+                this.tooltip.shown = false;
             }
         },
-        closeTooltip() {
-            this.tooltip.shown = false;
-            if (this.clickAwayRegistered) {
-                document.body.removeEventListener('click', this.onGlobalClick);
-                this.clickAwayRegistered = false;
-            }
-        }
     },
     watch: {
         color(newColor) {
