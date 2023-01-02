@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <modal title="Search Diagrams" @close="$emit('close')" :height="600">
+    <modal title="Search Diagrams" @close="$emit('close')" :height="600" :repositionId="repositionId">
         <div style="position: relative; margin-bottom: 5px;">
             <div v-if="isLoading" class="loader">
                 <div class="loader-element"></div>
@@ -62,7 +62,8 @@ export default {
             resultsPerPage: 20,
             isLoading: false,
             nextPageToken: null,
-            errorMessage: null
+            errorMessage: null,
+            repositionId: 0,
         };
     },
     methods: {
@@ -104,11 +105,13 @@ export default {
                 if (searchResponse.kind === 'chunk') {
                     this.nextPageToken = searchResponse.nextPageToken;
                 }
+                this.repositionId += 1;
             })
             .catch(err => {
                 console.error(err);
                 this.isLoading = false;
                 this.errorMessage = 'Something went wrong, failed to search diagrams';
+                this.repositionId += 1;
             });
         },
 
@@ -127,6 +130,7 @@ export default {
                 this.isLoading = false;
                 this.searchResult.results = this.searchResult.results.concat(searchResponse.results);
                 this.nextPageToken = searchResponse.nextPageToken;
+                this.repositionId += 1;
             })
             .catch(err => {
                 console.error(err);

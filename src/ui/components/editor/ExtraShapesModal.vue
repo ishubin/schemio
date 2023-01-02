@@ -1,5 +1,5 @@
 <template>
-    <modal title="Additional shapes" @close="$emit('close')" :width="900">
+    <modal title="Additional shapes" @close="$emit('close')" :width="900" :repositionId="repositionId">
         <div v-if="isLoading" class="loader">
             <div class="loader-element"></div>
         </div>
@@ -103,6 +103,7 @@ export default {
                 return 0;
             });
             this.entries = entries;
+            this.repositionId++;
         })
         .catch(err => {
             this.isLoading = false;
@@ -117,7 +118,8 @@ export default {
             entries: null,
             selectedEntry: null,
             selectedEntryIdx: -1,
-            errorMessage: null
+            errorMessage: null,
+            repositionId: 0
         };
     },
 
