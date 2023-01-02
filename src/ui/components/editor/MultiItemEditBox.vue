@@ -41,7 +41,7 @@
                     :data-control-point-id="controlPoint.id"
                     :cx="controlPoint.point.x" :cy="controlPoint.point.y"
                     :fill="controlPointsColor"
-                    :r="6/safeZoom"
+                    :r="controlPointSize/safeZoom"
                     />
 
                 <g v-for="(control, idx) in customControls"
@@ -82,8 +82,8 @@
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
                 :cy="-60/safeZoom"
-                :rx="5/safeZoom"
-                :ry="5/safeZoom"
+                :rx="controlPointSize/safeZoom"
+                :ry="controlPointSize/safeZoom"
             />
 
             <transition name="edit-box-controls" v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
@@ -119,8 +119,8 @@
                     data-type="multi-item-edit-box-resize-dragger"
                     data-dragger-edges="top,left"
                     :fill="boundaryBoxColor"
-                    :x="-4 * draggerSize / safeZoom"
-                    :y="-4 * draggerSize / safeZoom"
+                    :x="-(draggerSize*2 + 10) / safeZoom"
+                    :y="-(draggerSize*2 + 10)/ safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
                 />
@@ -130,7 +130,7 @@
                     data-dragger-edges="top"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w / 2 - draggerSize / safeZoom"
-                    :y="-4 * draggerSize / safeZoom"
+                    :y="-(draggerSize*2 + 10)/ safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
                 />
@@ -139,8 +139,8 @@
                     data-type="multi-item-edit-box-resize-dragger"
                     data-dragger-edges="top,right"
                     :fill="boundaryBoxColor"
-                    :x="editBox.area.w + 2 * draggerSize / safeZoom"
-                    :y="-4 * draggerSize / safeZoom"
+                    :x="editBox.area.w + 10 / safeZoom"
+                    :y="-(draggerSize*2 + 10)/ safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
                 />
@@ -149,7 +149,7 @@
                     data-type="multi-item-edit-box-resize-dragger"
                     data-dragger-edges="left"
                     :fill="boundaryBoxColor"
-                    :x="-4 * draggerSize / safeZoom"
+                    :x="-(draggerSize*2 + 10) / safeZoom"
                     :y="editBox.area.h / 2 - draggerSize / safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
@@ -159,7 +159,7 @@
                     data-type="multi-item-edit-box-resize-dragger"
                     data-dragger-edges="right"
                     :fill="boundaryBoxColor"
-                    :x="editBox.area.w + 2 * draggerSize / safeZoom"
+                    :x="editBox.area.w + 10 / safeZoom"
                     :y="editBox.area.h / 2 - draggerSize / safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
@@ -169,8 +169,8 @@
                     data-type="multi-item-edit-box-resize-dragger"
                     data-dragger-edges="bottom,left"
                     :fill="boundaryBoxColor"
-                    :x="-4 * draggerSize / safeZoom"
-                    :y="editBox.area.h + 2 * draggerSize / safeZoom"
+                    :x="-(draggerSize*2 + 10) / safeZoom"
+                    :y="editBox.area.h + 10 / safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
                 />
@@ -180,7 +180,7 @@
                     data-dragger-edges="bottom"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w / 2 - draggerSize / safeZoom"
-                    :y="editBox.area.h + 2 * draggerSize / safeZoom"
+                    :y="editBox.area.h + 10 / safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
                 />
@@ -189,13 +189,13 @@
                     data-type="multi-item-edit-box-resize-dragger"
                     data-dragger-edges="bottom,right"
                     :fill="boundaryBoxColor"
-                    :x="editBox.area.w + 2 * draggerSize / safeZoom"
-                    :y="editBox.area.h + 2 * draggerSize / safeZoom"
+                    :x="editBox.area.w + 10 / safeZoom"
+                    :y="editBox.area.h + 10 / safeZoom"
                     :width="draggerSize * 2 / safeZoom"
                     :height="draggerSize * 2 / safeZoom"
                 />
                 <g class="boundary-box-pivot-dragger" v-if="showPivot">
-                    <line 
+                    <line
                         :x1="editBox.area.w * editBox.pivotPoint.x"
                         :y1="editBox.area.h * editBox.pivotPoint.y - 10/safeZoom"
                         :x2="editBox.area.w * editBox.pivotPoint.x"
@@ -203,7 +203,7 @@
                         :stroke="boundaryBoxColor"
                         :stroke-width="1/safeZoom"
                     />
-                    <line 
+                    <line
                         :x1="editBox.area.w * editBox.pivotPoint.x - 10/safeZoom"
                         :y1="editBox.area.h * editBox.pivotPoint.y"
                         :x2="editBox.area.w * editBox.pivotPoint.x + 10/safeZoom"
@@ -226,52 +226,47 @@
                 <g class="boundary-box-context-menu-button">
                     <rect
                         data-type="multi-item-edit-box-context-menu-button"
-                        data-dragger-edges="top,right"
                         :fill="boundaryBoxColor"
-                        :x="editBox.area.w + 6 * draggerSize / safeZoom"
-                        :y="-10 * draggerSize / safeZoom"
-                        :width="draggerSize * 4 / safeZoom"
-                        :height="draggerSize * 4 / safeZoom"
+                        :x="editBox.area.w + 6 * 5 / safeZoom"
+                        :y="-10 * 5 / safeZoom"
+                        :width="5 * 4 / safeZoom"
+                        :height="5 * 4 / safeZoom"
                         :rx="2 / safeZoom"
                     />
                     <rect
                         data-type="multi-item-edit-box-context-menu-button"
-                        data-dragger-edges="top,right"
                         fill="#ffffff"
-                        :x="editBox.area.w + 6 * draggerSize / safeZoom + 3.5 / safeZoom"
-                        :y="-10 * draggerSize / safeZoom + 4/safeZoom"
-                        :width="draggerSize * 2.5 / safeZoom"
+                        :x="editBox.area.w + 6 * 5 / safeZoom + 3.5 / safeZoom"
+                        :y="-10 * 5 / safeZoom + 4/safeZoom"
+                        :width="5 * 2.5 / safeZoom"
                         :height="2 / safeZoom"
                         :rx="1 / safeZoom"
                     />
                     <rect
                         data-type="multi-item-edit-box-context-menu-button"
-                        data-dragger-edges="top,right"
                         fill="#ffffff"
-                        :x="editBox.area.w + 6 * draggerSize / safeZoom + 3.5 / safeZoom"
-                        :y="-10 * draggerSize / safeZoom + 9/safeZoom"
-                        :width="draggerSize * 2.5 / safeZoom"
+                        :x="editBox.area.w + 6 * 5 / safeZoom + 3.5 / safeZoom"
+                        :y="-10 * 5 / safeZoom + 9/safeZoom"
+                        :width="5 * 2.5 / safeZoom"
                         :height="2 / safeZoom"
                         :rx="1 / safeZoom"
                     />
                     <rect
                         data-type="multi-item-edit-box-context-menu-button"
-                        data-dragger-edges="top,right"
                         fill="#ffffff"
-                        :x="editBox.area.w + 6 * draggerSize / safeZoom + 3.5 / safeZoom"
-                        :y="-10 * draggerSize / safeZoom + 14/safeZoom"
-                        :width="draggerSize * 2.5 / safeZoom"
+                        :x="editBox.area.w + 6 * 5 / safeZoom + 3.5 / safeZoom"
+                        :y="-10 * 5 / safeZoom + 14/safeZoom"
+                        :width="5 * 2.5 / safeZoom"
                         :height="2 / safeZoom"
                         :rx="1 / safeZoom"
                     />
                     <rect
                         data-type="multi-item-edit-box-context-menu-button"
-                        data-dragger-edges="top,right"
                         fill="rgba(255,255,255,0.0)"
-                        :x="editBox.area.w + 6 * draggerSize / safeZoom"
-                        :y="-10 * draggerSize / safeZoom"
-                        :width="draggerSize * 4 / safeZoom"
-                        :height="draggerSize * 4 / safeZoom"
+                        :x="editBox.area.w + 6 * 5 / safeZoom"
+                        :y="-10 * 5 / safeZoom"
+                        :width="5 * 4 / safeZoom"
+                        :height="5 * 4 / safeZoom"
                         :rx="2 / safeZoom"
                     />
                 </g>
@@ -433,7 +428,8 @@ export default {
 
     data() {
         return {
-            draggerSize: 5,
+            draggerSize: window.innerWidth > 900 ? 5 : 8,
+            controlPointSize: window.innerWidth > 900 ? 6 : 10,
             connectionStarterDisplayed: false,
             connectionStarterTimerId: null,
 
