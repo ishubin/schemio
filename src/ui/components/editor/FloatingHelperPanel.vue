@@ -33,7 +33,7 @@
                         />
                 </li>
                 <li v-if="item.shape === 'path'">
-                    <span class="toggle-button" @click="editPath" title="Edit path"><img :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
+                    <span class="toggle-button" @click="editPath" title="Edit path"><img width="20px" :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
                 </li>
                 <li v-if="item.shape === 'image'">
                     <span @click="cropImage" class="toggle-button" title="Crop image"><i class="fas fa-crop"></i></span>

@@ -24,7 +24,7 @@
                     :data-path-point-index="pointId"
                     :data-path-index="pathId"
                     :cx="point.x" :cy="point.y"
-                    :r="5/safeZoom"
+                    :r="controlPointSize/safeZoom"
                     :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
 
 
@@ -35,7 +35,7 @@
                         :data-path-index="pathId"
                         data-path-control-point-index="1"
                         :transform="`translate(${point.x1+point.x} ${point.y1+point.y})`"
-                        :d="`M ${5*(point.vx1 + point.vy1)/safeZoom} ${5*(point.vy1 - point.vx1)/safeZoom}  l ${-10*point.vx1/safeZoom} ${-10*point.vy1/safeZoom}  l ${-10*point.vy1/safeZoom} ${10*point.vx1/safeZoom} l ${10*point.vx1/safeZoom} ${10*point.vy1/safeZoom} z`"
+                        :d="`M ${rectSize*(point.vx1 + point.vy1)/safeZoom} ${rectSize*(point.vy1 - point.vx1)/safeZoom}  l ${-rectSize*2*point.vx1/safeZoom} ${-rectSize*2*point.vy1/safeZoom}  l ${-rectSize*2*point.vy1/safeZoom} ${rectSize*2*point.vx1/safeZoom} l ${rectSize*2*point.vx1/safeZoom} ${rectSize*2*point.vy1/safeZoom} z`"
                         :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
                     <path
                         data-type="path-control-point"
@@ -43,7 +43,7 @@
                         :data-path-index="pathId"
                         data-path-control-point-index="2"
                         :transform="`translate(${point.x2+point.x} ${point.y2+point.y})`"
-                        :d="`M ${5*(point.vx2 + point.vy2)/safeZoom} ${5*(point.vy2 - point.vx2)/safeZoom}  l ${-10*point.vx2/safeZoom} ${-10*point.vy2/safeZoom}  l ${-10*point.vy2/safeZoom} ${10*point.vx2/safeZoom} l ${10*point.vx2/safeZoom} ${10*point.vy2/safeZoom} z`"
+                        :d="`M ${rectSize*(point.vx2 + point.vy2)/safeZoom} ${rectSize*(point.vy2 - point.vx2)/safeZoom}  l ${-rectSize*2*point.vx2/safeZoom} ${-rectSize*2*point.vy2/safeZoom}  l ${-rectSize*2*point.vy2/safeZoom} ${rectSize*2*point.vx2/safeZoom} l ${rectSize*2*point.vx2/safeZoom} ${rectSize*2*point.vy2/safeZoom} z`"
                         :fill="point.selected ? controlPointsColor : boundaryBoxColor" stroke="none"/>
                 </g>
 
@@ -55,7 +55,7 @@
                         data-path-control-point-index="1"
                         :cx="point.h * (path.points[(pointId+1)%path.points.length].y - point.y) / 100 + (path.points[(pointId+1)%path.points.length].x + point.x) / 2"
                         :cy="point.h * (point.x - path.points[(pointId+1)%path.points.length].x) / 100 + (path.points[(pointId+1)%path.points.length].y + point.y) / 2"
-                        :r="5/safeZoom"
+                        :r="controlPointSize/safeZoom"
                         fill="rgba(255, 255, 255, 0.1)" :stroke="point.selected ? controlPointsColor : boundaryBoxColor" :stroke-width="3/safeZoom"/>
                 </g>
             </g>
@@ -106,7 +106,9 @@ export default {
 
     data() {
         return {
-            pathSegments: this.buildPathSegments()
+            pathSegments: this.buildPathSegments(),
+            controlPointSize: window.innerWidth > 900 ? 5 : 10,
+            rectSize: window.innerWidth > 900 ? 5 : 10,
         }
     },
 
