@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g>
-        <a class="item-link" v-if="!hideTextSlot" @click="onLinkClick" :xlink:href="item.shapeProps.url" :target="target">
+        <a class="item-link" v-if="!hideTextSlot" :xlink:href="item.shapeProps.url" :target="target">
             <foreignObject v-if="item.shapeProps.showIcon" x="0" y="0" :width="textOffset" :height="item.area.h"
                 :style="iconStyle">
                 <div xmlns="http://www.w3.org/1999/xhtml">
@@ -40,6 +40,7 @@ export default {
                 textSlots: {
                     link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
                 },
+                cursor: 'pointer'
             }
         }],
 
@@ -51,7 +52,6 @@ export default {
         },
 
         editorProps: {
-            ignoreEventLayer: true,
             customTextRendering: true
         },
 
@@ -59,6 +59,10 @@ export default {
             return [{
                 name: 'link', area: {x: 0, y: 0, w: item.area.w, h: item.area.h}
             }];
+        },
+
+        onMouseDown(editorId, item) {
+            EditorEventBus.item.custom.$emit('mouse-down', editorId, item.id);
         },
 
         args: {
@@ -72,11 +76,13 @@ export default {
     },
 
     beforeMount() {
+        EditorEventBus.item.custom.$on('mouse-down', this.editorId, this.item.id, this.onLinkClick);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy() {
+        EditorEventBus.item.custom.$off('mouse-down', this.editorId, this.item.id, this.onLinkClick);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
@@ -95,12 +101,8 @@ export default {
             style['text-decoration'] = this.item.shapeProps.underline ? 'underline' : 'none';
             return style;
         },
-        onLinkClick(event) {
-            if (this.item.shapeProps.url.startsWith('/')) {
-                window.location = this.item.shapeProps.url;
-                event.preventDefault();
-            }
-            return false;
+        onLinkClick() {
+            window.location = this.item.shapeProps.url;
         },
         calculateTextOffset() {
             if (this.item.shapeProps.showIcon) {

@@ -38,19 +38,18 @@ export default {
         zoom           : {type: Number},
         creatingNewItem: {type: Boolean},
         scalingVector  : {type: Object},
-        markupDisabled : {type: Boolean, default: false}
+        markupDisabled : {type: Boolean, default: false},
+        mouseDownId    : {type: Number},
     },
     components: {RichTextEditor, EditorContent},
 
     beforeMount() {
-        document.addEventListener('mousedown', this.outsideClickListener);
         document.addEventListener('keydown', this.onKeyDown);
         EditorEventBus.textSlot.moved.$on(this.editorId, this.closeEditBox);
         this.init();
     },
 
     beforeDestroy() {
-        document.removeEventListener('mousedown', this.outsideClickListener);
         document.removeEventListener('keydown', this.onKeyDown);
         EditorEventBus.textSlot.moved.$off(this.editorId, this.closeEditBox);
     },
@@ -116,12 +115,6 @@ export default {
             return editor;
         },
 
-        outsideClickListener(event) {
-            if (!utils.domHasParentNode(event.target, domElement => domElement.getAttribute('data-type') === 'item-in-place-text-editor' || domElement.classList.contains('side-panel-right'))) {
-                this.closeEditBox();
-            }
-        },
-
         onKeyDown(event) {
             if (identifyKeyPress(event) === Keys.ESCAPE) {
                 this.closeEditBox();
@@ -185,6 +178,9 @@ export default {
     watch: {
         cssStyle(newStyle) {
             this.editorCssStyle = this.generateStyle(newStyle);
+        },
+        mouseDownId() {
+            this.closeEditBox();
         }
     }
 

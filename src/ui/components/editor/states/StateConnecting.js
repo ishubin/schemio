@@ -28,8 +28,8 @@ function isEventRightClick(event) {
 }
 
 export default class StateConnecting extends State {
-    constructor(store, listener) {
-        super(store, 'connecting', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store, 'connecting', listener);
         this.item = null;
         this.parentItem = null;
         this.addedToScheme = false;

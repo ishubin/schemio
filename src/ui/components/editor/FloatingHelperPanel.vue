@@ -10,7 +10,7 @@
                     </div>
                 </li>
                 <li>
-                    <span class="icon-button" @click="descriptionEditorShown = true" title="Description">
+                    <span class="toggle-button" @click="descriptionEditorShown = true" title="Description">
                         <i class="fas fa-paragraph"></i>
                     </span>
                 </li>
@@ -33,16 +33,16 @@
                         />
                 </li>
                 <li v-if="item.shape === 'path'">
-                    <span class="icon-button" @click="editPath" title="Edit path"><img :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
+                    <span class="toggle-button" @click="editPath" title="Edit path"><img width="20px" :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
                 </li>
                 <li v-if="item.shape === 'image'">
-                    <span @click="cropImage" class="icon-button" title="Crop image"><i class="fas fa-crop"></i></span>
+                    <span @click="cropImage" class="toggle-button" title="Crop image"><i class="fas fa-crop"></i></span>
                 </li>
                 <li v-if="supportsFill && item.shape !== 'connector'">
-                    <span class="icon-button" title="Styles" @click="toggleStylesPopup()"> <i class="fas fa-palette"></i> </span>
+                    <span class="toggle-button" title="Styles" @click="toggleStylesPopup()"> <i class="fas fa-palette"></i> </span>
                 </li>
                 <li>
-                    <span class="icon-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>
+                    <span class="toggle-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>
                 </li>
             </ul>
 

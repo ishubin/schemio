@@ -18,6 +18,7 @@
             :historyUndoable="historyState.undoable"
             :historyRedoable="historyState.redoable"
             :isRecording="isRecording"
+            :isScreenGrabbing="isScreenGrabbing"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
@@ -25,31 +26,34 @@
             @clicked-redo="historyRedo()"
             @clicked-bring-to-front="bringSelectedItemsToFront()"
             @clicked-bring-to-back="bringSelectedItemsToBack()"
+            @clicked-grab-screen="toggleGrabScreen()"
             @zoom-changed="onZoomChanged"
             @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
+            @stop-connecting-requested="stopConnecting"
             @items-highlighted="onItemsHighlighted"
+            @mobile-debugger-requested="toggleMobileDebugger"
             >
 
             <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
                 <li v-if="curveEditing.selectedPoints.length > 0">
-                    <span class="icon-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
-                        <img :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
+                    <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
+                        <img width="16px" :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
                     </span>
                 </li>
                 <li v-if="curveEditing.selectedPoints.length > 0">
-                    <span class="icon-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
-                        <img :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
+                    <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
+                        <img width="20px" :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
                     </span>
                 </li>
                 <li>
-                    <span @click="onPathEditStopped" class="btn btn-small btn-secondary" title="Stop drawing">Stop edit</span>
+                    <span @click="onPathEditStopped" class="btn btn-small btn-secondary">Stop edit</span>
                 </li>
             </ul>
 
-            <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && (modified || statusMessage.message)">
+            <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && state !== 'connecting' && (modified || statusMessage.message)">
                 <li v-if="modified">
                     <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
                     <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
@@ -184,6 +188,7 @@
                     :creating-new-item="inPlaceTextEditor.creatingNewItem"
                     :scalingVector="inPlaceTextEditor.scalingVector"
                     :zoom="schemeContainer.screenTransform.scale"
+                    :mouseDownId="mouseDownId"
                     @close="closeItemTextEditor"
                     @updated="onInPlaceTextEditorUpdate"
                     @item-renamed="onInPlaceTextEditorItemRenamed"
@@ -198,7 +203,7 @@
                 class="bottom-panel"
                 :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
                 >
-                <div class="bottom-panel-dragger" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
+                <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
@@ -297,7 +302,7 @@
             </div>
 
             <div class="side-panel side-panel-left" ref="sidePanelLeft" v-if="mode === 'edit' && schemeContainer" :style="{width: `${sidePanelLeftWidth}px`}">
-                <span class="side-panel-expander" @mousedown="onLeftSidePanelExpanderMouseDown">
+                <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                     <i v-if="sidePanelLeftWidth > 0" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
                 </span>
@@ -319,15 +324,15 @@
             </div>
 
             <div class="side-panel side-panel-right" ref="sidePanelRight" v-if="schemeContainer" :style="{width: `${sidePanelRightWidth}px`}">
-                <span class="side-panel-expander" @mousedown="onRightSidePanelExpanderMouseDown">
+                <span class="side-panel-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
                     <i v-if="sidePanelRightWidth > 0" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelRightWidth > 0">
-                    <ul v-if="inPlaceTextEditor.item" class="tabs text-nonselectable">
+                    <ul v-if="inPlaceTextEditor.shown" class="tabs text-nonselectable">
                         <li><span class="tab active">Text</span></li>
                     </ul>
-                    <ul v-else-if="editorStateName === 'draw'" class="tabs text-nonselectable">
+                    <ul v-else-if="state === 'draw'" class="tabs text-nonselectable">
                         <li><span class="tab active">Draw</span></li>
                     </ul>
                     <ul v-else class="tabs">
@@ -352,7 +357,9 @@
                         </li>
                     </ul>
 
-                    <div class="tabs-body" v-if="editorStateName === 'draw'">
+                    <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
+
+                    <div class="tabs-body" v-if="state === 'draw'">
                         <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
                     </div>
                     <div v-else class="tabs-body">
@@ -366,7 +373,6 @@
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
-
                         <div v-if="currentTab === 'Item' && !inPlaceTextEditor.shown">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
@@ -448,6 +454,11 @@
 
         <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
 
+        <modal title="hello" v-if="mobileDebuggerShown" @close="mobileDebuggerShown = false">
+            <ul class="mobile-debugger-log">
+                <li v-for="entry in mobileLogEntries" :class="[`log-level-${entry.level}`]">{{entry.text}}</li>
+            </ul>
+        </modal>
 
         <modal v-if="isLoading" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
             <div class="scheme-loading-icon">
@@ -532,6 +543,7 @@ import UserEventBus from '../userevents/UserEventBus.js';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
+import {MobileDebugger} from '../logger';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -712,7 +724,7 @@ export default {
         const onSubStateMigrated = () => {};
 
         this.states = {
-            interact: new StateInteract(this.$store, this.userEventBus, {
+            interact: new StateInteract(this.editorId, this.$store, this.userEventBus, {
                 onCancel,
                 onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
                 onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
@@ -724,7 +736,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            createItem: new StateCreateItem(this.$store, {
+            createItem: new StateCreateItem(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -732,7 +744,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            editPath: new StateEditPath(this.$store, {
+            editPath: new StateEditPath(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onHistoryStateChange: (undoable, redoable) => {
@@ -755,7 +767,7 @@ export default {
                 selectCurveEditPoint: (pathId, pointId, inclusive) => this.selectCurveEditPoint(pathId, pointId, inclusive),
                 getCurveEditPaths: () => this.curveEditing.paths,
             }),
-            connecting: new StateConnecting(this.$store, {
+            connecting: new StateConnecting(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -763,8 +775,11 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            dragItem: new StateDragItem(this.$store, {
-                onCancel,
+            dragItem: new StateDragItem(this.editorId, this.$store, {
+                onCancel: () => {
+                    onCancel();
+                    this.isScreenGrabbing = false;
+                },
                 onSchemeChangeCommitted,
                 onStartConnecting: (item, point) => this.startConnecting(item, point),
                 onVoidRightClicked: (mx, my) => this.onVoidRightClicked(mx, my),
@@ -780,14 +795,14 @@ export default {
                 onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
                 onScreenTransformUpdated
             }),
-            pickElement: new StatePickElement(this.$store, {
+            pickElement: new StatePickElement(this.editorId, this.$store, {
                 onCancel,
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            cropImage: new StateCropImage(this.$store, {
+            cropImage: new StateCropImage(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -795,7 +810,7 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
-            draw: new StateDraw(this.$store, {
+            draw: new StateDraw(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
                 onItemChanged,
@@ -836,10 +851,15 @@ export default {
         deregisterKeyPressHandler(this.keyPressHandler);
 
         destroyAnimationRegistry(this.editorId);
+        window.addEventListener('resize', this.onWindowResize);
+        this.stopStateLoop();
     },
 
     mounted() {
         this.init();
+        this.onWindowResize();
+        window.addEventListener('resize', this.onWindowResize);
+        this.startStateLoop();
     },
 
     data() {
@@ -888,9 +908,13 @@ export default {
                 text: '',
                 creatingNewItem: false,
                 scalingVector: {x: 1, y: 1},
-                style: {}
+                style: {},
             },
 
+            // used to propate the update to vue component
+            // signifying that use has clicked something in svg plot
+            // This is used so that user can stop editting text slot of an item
+            mouseDownId: 0,
 
             // a reference to an item that was clicked in view mode
             // this is used when the side panel for item is being requested
@@ -958,9 +982,20 @@ export default {
                 paths: [],
                 selectedPoints: []
             },
+
+            mobileDebuggerShown: false,
+
+            mobileLogEntries: [],
+            isScreenGrabbing: false,
+
+            isStateLooping: false
         }
     },
     methods: {
+        toggleMobileDebugger() {
+            this.mobileLogEntries = MobileDebugger.getLogEntries();
+            this.mobileDebuggerShown = true;
+        },
         init() {
             this.initSchemeContainer(this.scheme);
         },
@@ -1127,6 +1162,13 @@ export default {
         stopDrawing() {
             if (this.state === 'draw') {
                 this.states.draw.cancel();
+            }
+            this.updateFloatingHelperPanel();
+        },
+
+        stopConnecting() {
+            if (this.state === 'connecting') {
+                this.states.connecting.cancel();
             }
             this.updateFloatingHelperPanel();
         },
@@ -1635,6 +1677,13 @@ export default {
             this.updateRevision();
         },
 
+        toggleGrabScreen() {
+            if (this.state === 'dragItem') {
+                this.isScreenGrabbing = !this.isScreenGrabbing;
+                this.states[this.state].toggleGrabScreen(this.isScreenGrabbing);
+            }
+        },
+
         onScreenTransformUpdated(screenTransform) {
             if (screenTransform) {
                 this.zoom = Math.round(screenTransform.scale * 10000) / 100;
@@ -1964,10 +2013,6 @@ export default {
                 name: 'Bring to Back',
                 clicked: () => {this.bringSelectedItemsToBack();}
             }, {
-                name: 'Connect',
-                iconClass: 'fas fa-network-wired',
-                clicked: () => {this.onClickedStartConnecting(item, x, y);}
-            }, {
                 name: 'Add link',
                 iconClass: 'fas fa-link',
                 clicked: () => {this.onClickedAddItemLink(item);}
@@ -2044,13 +2089,16 @@ export default {
                 name: 'Surround items',
                 clicked: () => { this.surroundSelectedItems(); }
             }, {
-                name: 'Export as SVG ...',
-                iconsClass: 'fas fa-file-export',
-                clicked: () => { this.exportSelectedItemsAsSVG(); }
-            }, {
-                name: 'Export as PNG ...',
-                iconsClass: 'fas fa-file-export',
-                clicked: () => { this.exportSelectedItemsAsPNG(); }
+                name: 'Export',
+                subOptions: [{
+                    name: 'Export as SVG ...',
+                    iconsClass: 'fas fa-file-export',
+                    clicked: () => { this.exportSelectedItemsAsSVG(); }
+                }, {
+                    name: 'Export as PNG ...',
+                    iconsClass: 'fas fa-file-export',
+                    clicked: () => { this.exportSelectedItemsAsPNG(); }
+                }]
             }]);
 
 
@@ -2323,6 +2371,8 @@ export default {
         },
 
         mouseDown(worldX, worldY, screenX, screenY, object, event) {
+            this.mouseDownId++;
+
             if (this.active) {
                 this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
             }
@@ -2426,8 +2476,8 @@ export default {
 
         onBottomPanelMouseDown(originalEvent) {
             dragAndDropBuilder(originalEvent)
-            .onDrag(event => {
-                this.bottomPanelHeight = myMath.clamp(window.innerHeight - event.pageY, 100, window.innerHeight - 100);
+            .onDrag((event, pageX, pageY) => {
+                this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 100, window.innerHeight - 100);
             })
             .build();
         },
@@ -2448,16 +2498,16 @@ export default {
         onRightSidePanelExpanderMouseDown(originalEvent) {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
                 onValue: value => {
-                    this.sidePanelRightWidth = value;
-                    if (value > 0) {
-                        this.sidePanelRightWidthLastUsed = value;
+                    this.sidePanelRightWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
+                    if (this.sidePanelRightWidth > 0) {
+                        this.sidePanelRightWidthLastUsed = this.sidePanelRightWidth;
                     }
                 },
                 onToggle: () => {
                     if (this.sidePanelRightWidth > 0) {
                         this.sidePanelRightWidth = 0;
                     } else {
-                        this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
+                        this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
                     }
                 },
             });
@@ -2466,16 +2516,16 @@ export default {
         onLeftSidePanelExpanderMouseDown(originalEvent) {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
                 onValue: value => {
-                    this.sidePanelLeftWidth = value;
-                    if (value > 0) {
-                        this.sidePanelLeftWidthLastUsed = value;
+                    this.sidePanelLeftWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
+                    if (this.sidePanelLeftWidth > 0) {
+                        this.sidePanelLeftWidthLastUsed = this.sidePanelLeftWidth;
                     }
                 },
                 onToggle: () => {
                     if (this.sidePanelLeftWidth > 0) {
                         this.sidePanelLeftWidth = 0;
                     } else {
-                        this.sidePanelLeftWidth = this.sidePanelLeftWidthLastUsed;
+                        this.sidePanelLeftWidth = myMath.clamp(this.sidePanelLeftWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
                     }
                 },
             });
@@ -2484,11 +2534,10 @@ export default {
         onSidePanelExpanderMouseDown(originalEvent, element, direction, callbacks) {
             const minWidth = 80;
             const originalWidth = element.getBoundingClientRect().width;
-            const originalPageX = originalEvent.pageX;
 
             dragAndDropBuilder(originalEvent)
-            .onDrag(event => {
-                const dx = event.pageX - originalPageX;
+            .onDrag((event, pageX, pageY, originalPageX, originalPageY) => {
+                const dx = pageX - originalPageX;
 
                 const newWidth = myMath.clamp(originalWidth - dx * direction, 0, window.innerWidth/2.5);
                 if (newWidth < minWidth) {
@@ -2689,6 +2738,35 @@ export default {
             this.schemeContainer.updateMultiItemEditBox();
         },
 
+        onWindowResize() {
+            const minExpectedGap = 20;
+            if (this.sidePanelRightWidth + minExpectedGap > window.innerWidth / 2) {
+                this.sidePanelRightWidth = Math.floor(window.innerWidth / 2 - minExpectedGap )
+            }
+            if (this.sidePanelLeftWidth + minExpectedGap > window.innerWidth / 2) {
+                this.sidePanelLeftWidth = Math.floor(window.innerWidth / 2 - minExpectedGap )
+            }
+        },
+
+        startStateLoop() {
+            this.isStateLooping = true;
+            this.stateLoop(0);
+        },
+
+        stateLoop(deltaTime) {
+            const oldTime = performance.now();
+            this.states[this.state].loop(deltaTime);
+            if (this.isStateLooping) {
+                window.requestAnimationFrame(() => {
+                    this.stateLoop(performance.now() - oldTime);
+                });
+            }
+        },
+
+        stopStateLoop() {
+            this.isStateLooping = false;
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y },
@@ -2752,10 +2830,6 @@ export default {
 
         statusMessage() {
             return this.$store.getters.statusMessage;
-        },
-
-        editorStateName() {
-            return this.$store.getters.editorStateName;
         },
 
         commentsEntityId() {

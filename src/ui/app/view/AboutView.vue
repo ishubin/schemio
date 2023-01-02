@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="about-view web-view">
         <schemio-header/>
 
         <div class="middle-content page-content">

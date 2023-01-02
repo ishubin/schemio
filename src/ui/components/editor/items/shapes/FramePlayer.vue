@@ -3,38 +3,22 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g>
-        <g v-for="(button,buttonIndex) in buttons"
-            @click="onClickedButton(buttonIndex)"
-            @mouseover="onMouseOverButton(buttonIndex)"
-            @mouseout="onMouseOutButton(buttonIndex)"
-            >
-            <circle
-                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
-                :cy="buttonSize/2 + topOffset"
-                :r="buttonSize/2"
-                :fill="button.fillColor"
+        <g v-for="button in buttons">
+            <path
+                :d="button.path"
+                :fill="hoveredButtonId === button.id ? item.shapeProps.hoverFillColor : item.shapeProps.fillColor"
                 :stroke="item.shapeProps.strokeColor"
                 style="-webkit-transition: fill 200ms linear; -ms-transition: fill 200ms linear; transition: fill 200ms linear;"
                 stroke-width="1"/>
-
             <foreignObject
-                :x="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize)"
-                :y="topOffset"
-                :width="buttonSize"
-                :height="buttonSize">
-                <div style="width: 100%; height: 100%; text-align: center; vertical-align: middle;" xmlns="http://www.w3.org/1999/xhtml">
-                    <i :class="[isPlaying?button.iconPlaying:button.icon]" :style="{'font-size':buttonFontSize, 'color': item.shapeProps.strokeColor}"></i>
+                :x="button.x"
+                :y="button.y"
+                :width="button.size"
+                :height="button.size">
+                <div style="display: flex; align-items: center; height: 100%; text-align: center; vertical-align: middle;" xmlns="http://www.w3.org/1999/xhtml">
+                    <i :class="[isPlaying?button.iconPlaying:button.icon]" :style="{display: 'inline-block', width: '100%', 'text-align': 'center', 'font-size':buttonFontSize, 'color': item.shapeProps.strokeColor}"></i>
                 </div>
             </foreignObject>
-
-            <circle
-                :cx="leftOffset + buttonIndex * (buttonSize + buttonSpaceSize) + buttonSize / 2"
-                :cy="buttonSize/2 + topOffset"
-                :r="buttonSize/2"
-                fill="rgba(255, 255, 255, 0)"
-                stroke="rgba(255, 255, 255, 0)"
-                stroke-width="1"
-                style="cursor: pointer"/>
         </g>
 
         <foreignObject v-if="currentSection" x="0" :y="buttonSize + 6 + topOffset"
@@ -50,6 +34,39 @@
 <script>
 import forEach from 'lodash/forEach';
 import EditorEventBus from '../../EditorEventBus';
+
+const buttonSize = 20;
+const buttonSpaceSize = 4;
+
+function computeButtons(item) {
+    const buttonsCount = item.shapeProps.sections.length > 0 ? 5 : 1;
+    const leftOffset = item.area.w / 2 - (buttonSize * (buttonsCount/ 2) + buttonSpaceSize * (buttonsCount - 1) / 2);
+    const topOffset = Math.max(0, item.area.h - 60);
+
+    const r = buttonSize / 2;
+
+    const generateButton = (i, id, icon, iconPlaying) => {
+        return {
+            id, icon, iconPlaying,
+            path: `M ${leftOffset + i * (buttonSize + buttonSpaceSize)} ${topOffset + r} a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 ${-r * 2},0 z`,
+            x: leftOffset + i * (buttonSize + buttonSpaceSize),
+            y: topOffset,
+            size: buttonSize
+        };
+    };
+
+    if (item.shapeProps.sections.length > 0) {
+        return [
+            generateButton(0, 'fast-backward',  'fas fa-fast-backward', 'fas fa-fast-backward'),
+            generateButton(1, 'step-backward',  'fas fa-step-backward', 'fas fa-step-backward'),
+            generateButton(2, 'play-stop',      'fas fa-play', 'fas fa-pause'),
+            generateButton(3, 'step-forward',   'fas fa-step-forward', 'fas fa-step-forward'),
+            generateButton(4, 'fast-forward',   'fas fa-fast-forward', 'fas fa-fast-forward'),
+        ];
+    } else {
+        return [generateButton(0, 'fas fa-play', 'fas fa-pause')];
+    }
+}
 
 export default {
     props: ['item', 'editorId'],
@@ -92,8 +109,25 @@ export default {
             return `M 0 0   L ${w} 0  L ${w} ${h}  L 0 ${h} z`;
         },
 
-        editorProps: {
-            ignoreEventLayer: true
+        onMouseMove(editorId, item, areaId) {
+            EditorEventBus.item.custom.$emit('mouse-move', editorId, item.id, areaId);
+        },
+        onMouseOut(editorId, item) {
+            EditorEventBus.item.custom.$emit('mouse-out', editorId, item.id);
+        },
+        onMouseDown(editorId, item, areaId) {
+            EditorEventBus.item.custom.$emit('mouse-down', editorId, item.id, areaId);
+        },
+
+        computeCustomAreas(item) {
+            const buttons = computeButtons(item);
+            return buttons.map(button => {
+                return {
+                    id: button.id,
+                    cursor: 'pointer',
+                    path: button.path
+                }
+            });
         },
 
         args: {
@@ -110,6 +144,15 @@ export default {
 
     beforeMount() {
         EditorEventBus.framePlayer.prepared.$emit(this.editorId, this.item, this.createFrameCallbacks());
+        EditorEventBus.item.custom.$on('mouse-move', this.editorId, this.item.id, this.onMouseMove);
+        EditorEventBus.item.custom.$on('mouse-down', this.editorId, this.item.id, this.onMouseDown);
+        EditorEventBus.item.custom.$on('mouse-out', this.editorId, this.item.id, this.onMouseOut);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.item.custom.$off('mouse-move', this.editorId, this.item.id, this.onMouseMove);
+        EditorEventBus.item.custom.$off('mouse-down', this.editorId, this.item.id, this.onMouseDown);
+        EditorEventBus.item.custom.$off('mouse-out', this.editorId, this.item.id, this.onMouseOut);
     },
 
     data() {
@@ -142,56 +185,44 @@ export default {
             sectionsMapping[i] = currentSection;
         }
 
-        let buttons = [{
-            icon: 'fas fa-play',
-            iconPlaying: 'fas fa-pause',
-            click: () => {this.onClickedTogglePlay()}
-        }];
-
-        if (this.item.shapeProps.sections.length > 0) {
-            buttons = [{
-                icon: 'fas fa-fast-backward',
-                iconPlaying: 'fas fa-fast-backward',
-                click: () => {this.onClickedToBegin()}
-            }, {
-                icon: 'fas fa-step-backward',
-                iconPlaying: 'fas fa-step-backward',
-                click: () => {this.onClickedLeft()}
-            }].concat(buttons).concat([{
-                icon: 'fas fa-step-forward',
-                iconPlaying: 'fas fa-step-forward',
-                click: () => {this.onClickPlayToNext()}
-            }, {
-                icon: 'fas fa-fast-forward',
-                iconPlaying: 'fas fa-fast-forward',
-                click: () => {this.onClickFastRight()}
-            }]);
-        };
-
-        buttons.forEach(button => {
-            button.fillColor = this.item.shapeProps.fillColor;
-        });
-
         return {
             currentFrame: 1,
             isPlaying: false,
             intervalId: null,
 
-            buttonSize: 20,
-            buttonSpaceSize: 4,
             buttonFontSize: '10px',
             sectionsMapping,
             sectionsByNumber,
             currentSection: firstSection,
             totalSections: this.item.shapeProps.sections.length,
 
-            buttons
+            hoveredButtonId: null,
+            buttons: computeButtons(this.item),
+            buttonSize
         };
     },
 
     methods: {
-        onClickedButton(buttonIndex) {
-            this.buttons[buttonIndex].click();
+        onMouseMove(areaId) {
+            this.hoveredButtonId = areaId;
+        },
+
+        onMouseOut() {
+            this.hoveredButtonId = null;
+        },
+
+        onMouseDown(areaId) {
+            if (areaId === 'fast-backward') {
+                this.onClickedToBegin();
+            } else if (areaId === 'step-backward') {
+                this.onClickedLeft();
+            } else if (areaId === 'play-stop') {
+                this.onClickedTogglePlay();
+            } else if (areaId === 'step-forward') {
+                this.onClickPlayToNext();
+            } else if (areaId === 'fast-forward') {
+                this.onClickFastRight();
+            }
         },
 
         onClickedToBegin() {
@@ -297,26 +328,9 @@ export default {
                 frame: this.currentFrame
             });
         },
-
-        onMouseOverButton(idx) {
-            forEach(this.buttons, (button, i) => {
-                if (i === idx) {
-                    button.fillColor = this.item.shapeProps.hoverFillColor;
-                } else {
-                    button.fillColor = this.item.shapeProps.fillColor;
-                }
-            });
-        },
-
-        onMouseOutButton(idx) {
-            this.buttons[idx].fillColor = this.item.shapeProps.fillColor;
-        },
     },
 
     computed: {
-        leftOffset() {
-            return this.item.area.w / 2 - (this.buttonSize* (this.buttons.length / 2) + this.buttonSpaceSize * (this.buttons.length - 1) / 2);
-        },
         framesTextStyle() {
             return {
                 'color': this.item.textSlots.title.color,

@@ -9,6 +9,9 @@
             :class="cssClass"
             :style="{background: schemeContainer.scheme.style.backgroundColor}"
             @mousemove="mouseMove"
+            @touchstart="touchStart"
+            @touchend="touchEnd"
+            @touchmove="touchMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
             @dblclick="mouseDoubleClick"
@@ -30,7 +33,6 @@
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
-                            @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -53,7 +55,7 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="link.url">
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="linksAnimated ? '#' : link.url">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
                         <text class="item-link-icon" :class="['link-icon-' + link.type]"
                             :x="link.x - 6"
@@ -81,7 +83,6 @@
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
-                            @custom-event="onItemCustomEvent"
                             @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
@@ -302,6 +303,9 @@ export default {
             height: window.innerHeight,
 
             selectedItemLinks: [],
+            // this flag is used in order to make links non-clickable while they are animated.
+            // in mobile devices a click is registered when links are rendered under the thumb.
+            linksAnimated: false,
             lastHoveredItem: null,
 
             // ids of items that have subscribed for Init event
@@ -311,7 +315,8 @@ export default {
             clickableItemMarkers: [],
 
             worldHighlightedItems: [ ],
-
+            lastTouchStartTime: 0,
+            lastTouchStartCoords: {x: -1000, y: -1000},
         };
     },
     methods: {
@@ -332,7 +337,16 @@ export default {
         },
 
         mouseCoordsFromEvent(event) {
-            return this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+            if (event.touches) {
+                if (event.touches.length > 0) {
+                    return this.mouseCoordsFromPageCoords(event.touches[0].pageX, event.touches[0].pageY);
+                } else if (event.changedTouches.length > 0) {
+                    return this.mouseCoordsFromPageCoords(event.changedTouches[0].pageX, event.changedTouches[0].pageY);
+                }
+            } else {
+                return this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+            }
+            return null;
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
@@ -371,7 +385,8 @@ export default {
                 } else if (elementType === 'multi-item-edit-box'
                         || elementType === 'multi-item-edit-box-rotational-dragger'
                         || elementType === 'multi-item-edit-box-pivot-dragger'
-                        || elementType === 'multi-item-edit-box-reset-image-crop-link') {
+                        || elementType === 'multi-item-edit-box-reset-image-crop-link'
+                        || elementType === 'multi-item-edit-box-context-menu-button') {
                     return {
                         type: elementType,
                         multiItemEditBox: this.schemeContainer.multiItemEditBox
@@ -381,6 +396,12 @@ export default {
                         type: elementType,
                         multiItemEditBox: this.schemeContainer.multiItemEditBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
+                    };
+                } else if (elementType === 'custom-item-area') {
+                    return {
+                        type: elementType,
+                        item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
+                        areaId: element.getAttribute('data-custom-area-id'),
                     };
                 }
 
@@ -437,44 +458,56 @@ export default {
         },
 
         mouseWheel(event) {
-            var coords = this.mouseCoordsFromEvent(event);
-            var p = this.toLocalPoint(coords.x, coords.y);
+            const coords = this.mouseCoordsFromEvent(event);
+            const p = this.toLocalPoint(coords.x, coords.y);
             this.$emit('mouse-wheel', p.x, p.y, coords.x, coords.y, event);
         },
-        mouseMove(event) {
-            if (this.mouseEventsEnabled) {
-                const coords = this.mouseCoordsFromEvent(event);
-                const p = this.toLocalPoint(coords.x, coords.y);
-                lastMousePosition.x = coords.x;
-                lastMousePosition.y = coords.y;
 
-                this.$emit('mouse-move', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+        touchStart(event) {
+            event.preventDefault();
+            const coords = this.mouseCoordsFromEvent(event);
+            const now = performance.now();
+
+            const d = (coords.x - this.lastTouchStartCoords.x) * (coords.x - this.lastTouchStartCoords.x)
+                + (coords.y - this.lastTouchStartCoords.y) * (coords.y - this.lastTouchStartCoords.y);
+            if (now - this.lastTouchStartTime < 500 && d < 50) {
+                this.mouseEvent('mouse-double-click', event);
+            } else {
+                this.mouseEvent('mouse-down', event);
             }
+            this.lastTouchStartTime = now;
+            this.lastTouchStartCoords = coords;
+        },
+        touchEnd(event) {
+            event.preventDefault();
+            this.mouseEvent('mouse-up', event);
+        },
+        touchMove(event) {
+            event.preventDefault();
+            this.mouseEvent('mouse-move', event);
+        },
+
+        mouseMove(event) {
+            event.preventDefault();
+            this.mouseEvent('mouse-move', event);
         },
         mouseDown(event) {
+            this.mouseEvent('mouse-down', event);
+        },
+        mouseUp(event) {
+            this.mouseEvent('mouse-up', event);
+        },
+        mouseDoubleClick(event) {
+            this.mouseEvent('mouse-double-click', event);
+        },
+
+        mouseEvent(eventName, event) {
             if (this.mouseEventsEnabled) {
                 var coords = this.mouseCoordsFromEvent(event);
                 var p = this.toLocalPoint(coords.x, coords.y);
                 lastMousePosition.x = coords.x;
                 lastMousePosition.y = coords.y;
-
-                this.$emit('mouse-down', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
-            }
-        },
-        mouseUp(event) {
-            if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
-
-                this.$emit('mouse-up', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
-            }
-        },
-        mouseDoubleClick(event) {
-            if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
-
-                this.$emit('mouse-double-click', p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+                this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
             }
         },
 
@@ -679,7 +712,7 @@ export default {
 
 
         onSvgItemLinkClick(url, event) {
-            if (url.startsWith('/')) {
+            if (url.startsWith('/') && !this.linksAnimated) {
                 window.location = url;
                 event.preventDefault();
             }
@@ -758,7 +791,7 @@ export default {
 
         onBringToView(area, animated) {
             let newZoom = 1.0;
-            if (area.w > 0 && area.h > 0 && this.width - 400 > 0 && this.height > 0) {
+            if (area.w > 0 && area.h > 0 && this.width > 0 && this.height > 0) {
                 newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height)/area.h)) / 100.0;
                 newZoom = Math.max(0.0001, newZoom);
             }
@@ -796,6 +829,7 @@ export default {
         },
 
         startLinksAnimation() {
+            this.linksAnimated = true;
             playInAnimationRegistry(this.editorId, new ValueAnimation({
                 durationMillis: 300,
 
@@ -804,6 +838,10 @@ export default {
                         link.x = link.startX * (1.0 - t) + link.destinationX * t;
                         link.y = link.startY * (1.0 - t) + link.destinationY * t;
                     });
+                },
+
+                destroy: () => {
+                    this.linksAnimated = false;
                 }
             }), 'screen', 'links-animation');
         },
@@ -820,16 +858,12 @@ export default {
                     cy = this.height / 4;
                 }
 
-                let step = 40;
+                let step = Math.max(20, Math.min(40, this.height / (item.links.length + 1)));
                 let y0 = cy - item.links.length * step / 2;
                 const worldPointRight = this.schemeContainer.worldPointOnItem(item.area.w, 0, item);
                 let destinationX = this._x(worldPointRight.x) + 10;
-
-                // taking side panel into account
-                if (destinationX > this.width - 500) {
-                    let maxLinkLength = max(map(item.links, link => link.title ? link.title.length : link.url.length));
-                    const leftX = this._x(this.schemeContainer.worldPointOnItem(0, 0, item).x);
-                    destinationX = leftX - maxLinkLength * LINK_FONT_SYMBOL_SIZE;
+                if (this.width - destinationX < 300) {
+                    destinationX = Math.max(10, this.width - 300);
                 }
 
                 // perhaps not the best way to handle this, but for now this trick should do
@@ -883,27 +917,6 @@ export default {
                 x: (mouseX - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale,
                 y: (mouseY - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale
             };
-        },
-
-        onItemCustomEvent(event) {
-            if (event.eventName === 'clicked') {
-                // handling links and toolip/side-panel appearance
-                const item = this.schemeContainer.findItemById(event.itemId);
-                if (item.links && item.links.length > 0) {
-                    this.onShowItemLinks(item);
-                }
-                if (item.description.trim().length > 8) {
-                    if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                        this.$emit('item-side-panel-requested', item);
-                    } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                        this.$emit('item-tooltip-requested', item, lastMousePosition.x, lastMousePosition.y);
-                    }
-                }
-            }
-
-            if (this.userEventBus) {
-                this.userEventBus.emitItemEvent(event.itemId, event.eventName);
-            }
         },
 
         /**

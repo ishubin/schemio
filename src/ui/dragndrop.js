@@ -1,9 +1,27 @@
+function getPageCoordsFromEvent(event) {
+    if (event.changedTouches && event.changedTouches.length > 0) {
+        return {
+            pageX: event.changedTouches[0].pageX,
+            pageY: event.changedTouches[0].pageY,
+        }
+    } else if (event.touches && event.touches.length > 0) {
+        return {
+            pageX: event.touches[0].pageX,
+            pageY: event.touches[0].pageY,
+        }
+    }
+    return {
+        pageX: event.pageX,
+        pageY: event.pageY,
+    };
+}
 
 export function dragAndDropBuilder(originalEvent) {
+    const originalCoords = getPageCoordsFromEvent(originalEvent);
     return {
         originalEvent,
-        originalPageX: originalEvent.pageX,
-        originalPageY: originalEvent.pageY,
+        originalPageX: originalCoords.pageX,
+        originalPageY: originalCoords.pageY,
         draggedElement: null,
         droppableClass: null,
         scrollableElemet: null,
@@ -62,9 +80,12 @@ export function dragAndDropBuilder(originalEvent) {
             const pixelMoveThreshold = 5;
             let startedDragging = false;
 
+            let mouseMoveEventName = originalEvent.touches ? 'touchmove' : 'mousemove';
+            let mouseUpEventName = originalEvent.touches ? 'touchend' : 'mouseup';
+
             const reset = (event) => {
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
+                document.removeEventListener(mouseMoveEventName, onMouseMove);
+                document.removeEventListener(mouseUpEventName, onMouseUp);
 
                 // making sure that it was not right click
                 if (!startedDragging && originalEvent.button !== 2) {
@@ -103,27 +124,33 @@ export function dragAndDropBuilder(originalEvent) {
                 }
             }
 
+            const coords = getPageCoordsFromEvent(event)
+            const originalClickX = coords.pageX;
+            const originalClickY = coords.pageY;
+
             const onMouseMove = (event) => {
                 if (event.buttons === 0) {
                     reset(event);
                     return;
                 }
 
-                pixelsMoved += Math.abs(event.pageX - this.originalPageX) + Math.abs(event.pageY - this.originalPageY);
+                const {pageX, pageY} = getPageCoordsFromEvent(event);
+
+                pixelsMoved += Math.abs(pageX - this.originalPageX) + Math.abs(pageY - this.originalPageY);
 
                 if (startedDragging) {
                     if (this.draggedElement) {
-                        this.draggedElement.style.left = `${event.pageX + 4}px`;
-                        this.draggedElement.style.top = `${event.pageY + 4}px`;
+                        this.draggedElement.style.left = `${pageX + 4}px`;
+                        this.draggedElement.style.top = `${pageY + 4}px`;
                     }
-                    this.callbacks.onDrag(event);
+                    this.callbacks.onDrag(event, pageX, pageY, originalClickX, originalClickY);
                     withDroppableElement(event , element => this.callbacks.onDragOver(event, element));
 
                     if (this.scrollableElemet) {
                         const rootBbox = this.scrollableElemet.getBoundingClientRect();
-                        if (rootBbox.bottom - event.pageY < scrollMargin) {
+                        if (rootBbox.bottom - pageY < scrollMargin) {
                             startScrolling(2);
-                        } else if (rootBbox.top - event.pageY > -scrollMargin) {
+                        } else if (rootBbox.top - pageY > -scrollMargin) {
                             startScrolling(-2);
                         } else {
                             stopScrolling();
@@ -133,16 +160,17 @@ export function dragAndDropBuilder(originalEvent) {
                 } else {
                     if (pixelsMoved > pixelMoveThreshold) {
                         startedDragging = true;
-                        this.callbacks.onDragStart(event);
+                        this.callbacks.onDragStart(event, originalClickX, originalClickY);
                     }
                 }
             };
 
             const onMouseUp = (event) => {
+                const {pageX, pageY} = getPageCoordsFromEvent(event);
                 stopScrolling();
                 try {
                     if (startedDragging) {
-                        withDroppableElement(event , element => this.callbacks.onDrop(event, element));
+                        withDroppableElement(event , element => this.callbacks.onDrop(event, element, pageX, pageY));
                     }
                 } catch (err) {
                     console.error(err);
@@ -150,8 +178,8 @@ export function dragAndDropBuilder(originalEvent) {
                 reset(event);
             };
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+            document.addEventListener(mouseMoveEventName, onMouseMove);
+            document.addEventListener(mouseUpEventName, onMouseUp);
         }
     }
 }

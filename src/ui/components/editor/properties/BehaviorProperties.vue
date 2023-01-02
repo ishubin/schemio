@@ -30,7 +30,6 @@
                     >
                     <span class="icon-event"><i class="fas fa-bell"></i></span>
                     <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
-                    <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
                 </dropdown>
             </div>
 

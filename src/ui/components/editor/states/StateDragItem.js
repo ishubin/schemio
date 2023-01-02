@@ -634,6 +634,10 @@ class IdleState extends SubState {
             } else if (object.connectorStarter) {
                 this.listener.onStartConnecting(object.connectorStarter.item, object.connectorStarter.point)
                 return;
+            } else if (object.type === 'multi-item-edit-box-context-menu-button') {
+                if (this.schemeContainer.selectedItems.length > 0) {
+                    this.listener.onItemRightClick(this.schemeContainer.selectedItems[0], mx, my);
+                }
             }
         } else {
             if (!isMultiSelectKey(event)) {
@@ -845,11 +849,19 @@ class IdleState extends SubState {
 }
 
 export default class StateDragItem extends State {
-    constructor(store, listener) {
-        super(store,  'drag-item', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store,  'drag-item', listener);
         this.subState = null;
         this.listener = listener;
         this.isRecording= false;
+    }
+
+    toggleGrabScreen(isEnabled) {
+        if (isEnabled) {
+            this.migrateSubState(new DragScreenState(this, false, null));
+        } else {
+            this.migrateSubState(new IdleState(this, this.listener));
+        }
     }
 
     migrateSubState(subState) {

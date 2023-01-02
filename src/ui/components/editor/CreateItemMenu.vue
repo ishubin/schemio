@@ -12,13 +12,13 @@
                     <img :src="`${assetsPath}/images/icons/select.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiatePathCreation()" title="Create Path"
-                    @mouseover="showPreviewGif('create-curve')"
+                    @mouseover="showPreviewGif($event, 'create-curve')"
                     @mouseleave="stopPreviewGif('create-curve')"
                     >
                     <img :src="`${assetsPath}/images/icons/create-curve.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiateDrawing()" title="Draw"
-                    @mouseover="showPreviewGif('draw')"
+                    @mouseover="showPreviewGif($event, 'draw')"
                     @mouseleave="stopPreviewGif('draw')"
                     >
                     <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
@@ -30,8 +30,8 @@
                     <div v-for="item in panel.items"
                         class="item-container"
                         :title="item.name"
-                        @mouseleave="stopPreviewItem(item)"
-                        @mouseover="showPreviewItem(item)"
+                        @mouseleave="stopPreviewItem($event, item)"
+                        @mouseover="showPreviewItem($event, item)"
                         @mousedown="onItemMouseDown($event, item)"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
@@ -171,6 +171,7 @@ import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../sch
 import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
+import { dragAndDropBuilder } from '../../dragndrop';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -369,7 +370,7 @@ export default {
             this.showPreviewItem(menuEntry);
         },
 
-        showPreviewItem(item) {
+        showPreviewItem(event, item) {
             enrichItemWithDefaults(item.item);
 
             this.previewItem.item = item;
@@ -378,7 +379,7 @@ export default {
             this.previewItem.description = item.description;
             this.previewItem.shown = true;
         },
-        stopPreviewItem(item) {
+        stopPreviewItem(event, item) {
             if (this.previewItem.item && this.previewItem.item.name === item.name) {
                 this.previewItem.shown = false;
             }
@@ -397,7 +398,7 @@ export default {
             }
         },
 
-        showPreviewGif(gifName) {
+        showPreviewGif(event, gifName) {
             this.previewItem.item = null;
             this.previewItem.artIcon = null;
             this.previewItem.gif = gifName;
@@ -491,10 +492,12 @@ export default {
         },
 
         initiateSelectAndDrag() {
+            this.previewItem.shown = false;
             this.$emit('state-drag-item-requested');
         },
 
         initiatePathCreation() {
+            this.previewItem.shown = false;
             const item = {
                 name: this.makeUniqueName('Path'),
                 area: {x: 0, y: 0, w: 100, h: 100, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5},
@@ -508,6 +511,7 @@ export default {
         },
 
         initiateDrawing(name) {
+            this.previewItem.shown = false;
             this.$emit('drawing-requested');
         },
 
@@ -543,104 +547,72 @@ export default {
             }, true);
         },
 
-        onItemMouseDown(event, item, shouldIgnoreRecentProps) {
-            const that = this;
-            const itemDragger = this.$refs.itemDragger;
+        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps) {
+            this.previewItem.shown = false;
+
             const itemClone = utils.clone(item.item);
 
-            if (!shouldIgnoreRecentProps && itemClone.shape !== 'sticky_note') {
-                recentPropsChanges.applyItemProps(itemClone);
-            }
-
-            let pixelsMoved = 0;
-
-            if (item.previewArea) {
-                itemClone.area.w = item.previewArea.w;
-                itemClone.area.h = item.previewArea.h;
-            } else {
-                itemClone.area.w = 100;
-                itemClone.area.h = 60;
-            }
-
-            // each item might have different size defined in its menu
-            if (item.size) {
-                itemClone.area.w = item.size.w;
-                itemClone.area.h = item.size.h;
-            }
-
-            this.itemCreationDragged.item = itemClone;
-            this.itemCreationDragged.startedDragging = false;
-
-            if (item.imageProperty) {
-                this.itemCreationDragged.imageProperty = item.imageProperty;
-            } else {
-                this.itemCreationDragged.imageProperty = null;
-            }
-
-            const originalPageX = event.pageX;
-            const originalPageY = event.pageY;
-
-            function moveAt(pageX, pageY) {
-                pixelsMoved += Math.abs(pageX - originalPageX) + Math.abs(pageY - originalPageY);
-
-                if (!that.itemCreationDragged.startedDragging && pixelsMoved > 10) {
-                    that.itemCreationDragged.startedDragging = true;
+            dragAndDropBuilder(originalEvent)
+            .withDroppableClass('svg-editor-plot')
+            .withDraggedElement(this.$refs.itemDragger)
+            .onDragStart(() => {
+                if (!shouldIgnoreRecentProps && itemClone.shape !== 'sticky_note') {
+                    recentPropsChanges.applyItemProps(itemClone);
                 }
-                itemDragger.style.left = `${pageX + mouseOffset}px`;
-                itemDragger.style.top = `${pageY + mouseOffset}px`;
-                that.itemCreationDragged.pageX = pageX;
-                that.itemCreationDragged.pageY = pageY;
-            }
 
-            function onMouseMove(event) {
-                if (event.buttons === 0) {
-                    reset();
+                if (item.previewArea) {
+                    itemClone.area.w = item.previewArea.w;
+                    itemClone.area.h = item.previewArea.h;
+                } else {
+                    itemClone.area.w = 100;
+                    itemClone.area.h = 60;
                 }
-                moveAt(event.pageX, event.pageY);
-            }
 
-            function onMouseUp(event) {
-                reset();
-                if (utils.domHasParentNode(event.target, el => el.id === `svg-plot-${that.editorId}`)) {
-                    submitItem(event.pageX, event.pageY);
-                } else if (pixelsMoved < 10) {
-                    that.onItemPicked(item);
+                // each item might have different size defined in its menu
+                if (item.size) {
+                    itemClone.area.w = item.size.w;
+                    itemClone.area.h = item.size.h;
                 }
-            }
 
+                this.itemCreationDragged.item = itemClone;
+                this.itemCreationDragged.startedDragging = true;
 
-            function reset() {
-                that.itemCreationDragged.startedDragging = false;
-                that.itemCreationDragged.item = null;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
-
-            function submitItem(pageX, pageY) {
-                that.itemCreationDragged.pageX = pageX;
-                that.itemCreationDragged.pageY = pageY;
+                if (item.imageProperty) {
+                    this.itemCreationDragged.imageProperty = item.imageProperty;
+                } else {
+                    this.itemCreationDragged.imageProperty = null;
+                }
+            })
+            .onDone(() => {
+                this.itemCreationDragged.item = null;
+                this.itemCreationDragged.startedDragging = false;
+            })
+            .onSimpleClick(() => {
+                this.onItemPicked(item);
+            })
+            .onDrop((event, element, pageX, pageY) => {
+                this.itemCreationDragged.pageX = pageX;
+                this.itemCreationDragged.pageY = pageY;
 
                 if (item.item.shape === 'link') {
-                    that.linkCreation.item = itemClone;
-                    that.linkCreation.withMouse = false;
-                    that.linkCreation.popupShown = true;
+                    this.linkCreation.item = itemClone;
+                    this.linkCreation.withMouse = false;
+                    this.linkCreation.popupShown = true;
                     return;
                 } else if (item.imageProperty) {
-                    that.itemCreationDragged.imageProperty = item.imageProperty;
-                    that.imageCreation.item = itemClone;
-                    that.imageCreation.withMouse = false;
-                    that.imageCreation.popupShown = true;
+                    this.itemCreationDragged.imageProperty = item.imageProperty;
+                    this.imageCreation.item = itemClone;
+                    this.imageCreation.withMouse = false;
+                    this.imageCreation.popupShown = true;
                     return;
                 }
 
                 itemClone.id = shortid.generate();
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
-                itemClone.name = that.makeUniqueName(item.name);
-                that.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
-            }
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
+                itemClone.name = this.makeUniqueName(item.name);
+                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
+            })
+            .build();
         },
 
         closeArtPack(artPack) {

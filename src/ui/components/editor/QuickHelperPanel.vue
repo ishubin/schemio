@@ -7,6 +7,11 @@
             <div v-if="menuOptions && menuOptions.length > 0" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
+                        <a :href="rootPath" class="schemio-logo">
+                            <img :src="`${assetsPath}/images/schemio-logo-white.small.png`"/>
+                        </a>
+                    </li>
+                    <li>
                         <menu-dropdown name="" icon-class="fas fa-bars" :options="menuOptions" />
                     </li>
                 </ul>
@@ -14,8 +19,23 @@
 
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
+                    <!-- <li>
+                        <span title="Logger" class="toggle-button" @click="$emit('mobile-debugger-requested')"><i class="fa-solid fa-bug"></i></span>
+                    </li> -->
                     <li>
-                        <span title="Zoom to Selection" class="icon-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
+                        <span title="Zoom to Selection" class="toggle-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
+                    </li>
+                    <li v-if="(editAllowed && shouldShowBaseControls)">
+                        <div class="toggle-group">
+                            <span v-for="knownMode in knownModes" class="toggle-button"
+                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
+                                @click="$emit('mode-changed', knownMode)"
+                                >
+                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
+                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
+                                {{knownMode}}
+                            </span>
+                        </div>
                     </li>
                     <li>
                         <div class="zoom-control">
@@ -29,18 +49,6 @@
                     <li v-if="shouldShowBaseControls">
                         <input class="textfield" style="width: 110px;" type="text" v-model="searchKeyword" placeholder="Search..."  v-on:keydown.enter="toggleSearchedItems"/>
                         <span v-if="searchKeyword" class="reset-search" @click="searchKeyword = ''" title="Reset search"><i class="fa-solid fa-circle-xmark"></i></span>
-                    </li>
-                    <li v-if="(editAllowed && shouldShowBaseControls)">
-                        <div class="toggle-group">
-                            <span v-for="knownMode in knownModes" class="toggle-button"
-                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
-                                @click="$emit('mode-changed', knownMode)"
-                                >
-                                <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
-                                <i v-if="knownMode === 'view'" class="fas fa-eye"></i>
-                                {{knownMode}}
-                            </span>
-                        </div>
                     </li>
                 </ul>
             </div>
@@ -60,13 +68,16 @@
                 </ul>
             </div>
 
-            <div class="quick-helper-panel-section" v-if="(mode === 'edit')">
+            <div class="quick-helper-panel-section" v-if="(mode === 'edit' && state !== 'draw')">
                 <ul class="button-group">
-                    <li>
-                        <span title="Undo" class="icon-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
+                    <li v-if="state === 'dragItem'">
+                        <span title="Grab screen" class="toggle-button" :class="{toggled: isScreenGrabbing}" @click="$emit('clicked-grab-screen')"><i class="fa-solid fa-hand"></i></span>
                     </li>
                     <li>
-                        <span title="Redo" class="icon-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
+                        <span title="Undo" class="toggle-button" :class="{'disabled': !historyUndoable}" @click="$emit('clicked-undo')"><i class="fas fa-undo"></i></span>
+                    </li>
+                    <li>
+                        <span title="Redo" class="toggle-button" :class="{'disabled': !historyRedoable}" @click="$emit('clicked-redo')"><i class="fas fa-redo"></i></span>
                     </li>
                     <li>
                         <span title="Snap to Grid" class="toggle-button" :class="{toggled: shouldSnapToGrid}" @click="toggleSnapToGrid(!shouldSnapToGrid)">
@@ -84,15 +95,15 @@
             <div class="quick-helper-panel-section" v-if="(mode === 'edit' && selectedItemsCount > 0 && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li>
-                        <span class="icon-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
+                        <span class="toggle-button" title="Remove" @click="removeSelectedItems()"> <i class="fas fa-trash"></i> </span>
                     </li>
                     <li>
-                        <span class="icon-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
+                        <span class="toggle-button" title="Bring To Front" @click="$emit('clicked-bring-to-front')">
                             <img :src="`${assetsPath}/images/helper-panel/bring-to-front.svg`"/>
                         </span>
                     </li>
                     <li>
-                        <span class="icon-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
+                        <span class="toggle-button" title="Bring To Back" @click="$emit('clicked-bring-to-back')">
                             <img :src="`${assetsPath}/images/helper-panel/bring-to-back.svg`"/>
                         </span>
                     </li>
@@ -150,7 +161,7 @@
             <div class="quick-helper-panel-section" v-if="mode === 'edit' && shouldShowConnectorControls">
                 <ul class="button-group">
                     <li v-for="connectorType in connectorTypes">
-                        <span class="icon-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
+                        <span class="toggle-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
                             <img :src="`${assetsPath}/images/helper-panel/connector-${connectorType}.svg`"/>
                         </span>
                     </li>
@@ -168,6 +179,13 @@
                 <ul class="button-group">
                     <li>
                         <span @click="stopDrawing" class="btn btn-small btn-secondary" title="Stop drawing">Stop drawing</span>
+                    </li>
+                </ul>
+            </div>
+            <div v-if="(mode === 'edit' && state === 'connecting')" class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <span @click="stopConnecting" class="btn btn-small btn-secondary" title="Stop connecting">Stop</span>
                     </li>
                 </ul>
             </div>
@@ -196,6 +214,7 @@
             <div class="quick-helper-panel-section">
                 <slot></slot>
             </div>
+
         </div>
     </div>
 </template>
@@ -230,6 +249,7 @@ export default {
         historyUndoable     : { type: Boolean, required: true},
         historyRedoable     : { type: Boolean, required: true},
         isRecording         : { type: Boolean, required: true},
+        isScreenGrabbing    : { type: Boolean, required: true},
     },
 
     components: {
@@ -293,10 +313,13 @@ export default {
                 item: null,
                 childItemOriginalPositions: {}
             },
+
         };
     },
 
     methods: {
+        toggleLoggerModal() {
+        },
         toggleSnapToGrid(enabled) {
             this.$store.dispatch('setGridSnap', enabled);
         },
@@ -348,6 +371,10 @@ export default {
 
         stopDrawing() {
             this.$emit('stop-drawing-requested');
+        },
+
+        stopConnecting() {
+            this.$emit('stop-connecting-requested');
         },
 
         removeSelectedItems() {
@@ -573,6 +600,10 @@ export default {
     },
 
     computed: {
+        rootPath() {
+            return this.$store.getters.rootPath;
+        },
+
         assetsPath() {
             return this.$store.getters.assetsPath;
         },

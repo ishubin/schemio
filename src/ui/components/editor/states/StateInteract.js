@@ -7,6 +7,8 @@ import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
+import Shape from '../items/shapes/Shape.js';
+import { localPointOnItem } from '../../../scheme/SchemeContainer.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -20,8 +22,8 @@ class StateInteract extends State {
      *
      * @param {UserEventBus} userEventBus
      */
-    constructor(store, userEventBus, listener) {
-        super(store,  'interact', listener);
+    constructor(editorId, store, userEventBus, listener) {
+        super(editorId, store,  'interact', listener);
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
@@ -44,6 +46,7 @@ class StateInteract extends State {
     }
 
     mouseDown(x, y, mx, my, object, event){
+        super.mouseDown(x, y, mx, my, object, event);
         this.initScreenDrag(mx, my);
     }
 
@@ -52,6 +55,7 @@ class StateInteract extends State {
         this.initialClickPoint = {x, y};
         this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
         this.originalZoom = this.schemeContainer.screenTransform.scale;
+        this.resetInertiaDrag();
     }
 
     keyPressed(key, keyOptions) {
@@ -66,9 +70,16 @@ class StateInteract extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         if (this.startedDragging && this.initialClickPoint) {
+            this.initScreenInertia();
+
             if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
                 if (object && object.item) {
-                    this.listener.onItemClicked(object.item);
+                    this.listener.onItemClicked(object.item, x, y);
+                    const shape = Shape.find(object.item.shape);
+                    if (shape && shape.onMouseDown) {
+                        const localPoint = localPointOnItem(x, y, object.item);
+                        shape.onMouseDown(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
+                    }
                     this.emit(object.item, CLICKED);
                     this.handleItemClick(object.item, mx, my);
                 } else {
@@ -84,6 +95,10 @@ class StateInteract extends State {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (event.touches && event.touches.length === 2) {
+            this.mobilePinchToZoom(event);
+            return;
+        }
         if (this.startedDragging && this.initialClickPoint) {
             event.preventDefault();
             if (event.buttons === 0) {
@@ -93,6 +108,13 @@ class StateInteract extends State {
                 this.dragScreen(mx, my);
             }
         } else {
+            if (object.item) {
+                const shape = Shape.find(object.item.shape);
+                if (shape && shape.onMouseMove) {
+                    const localPoint = localPointOnItem(x, y, object.item);
+                    shape.onMouseMove(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
+                }
+            }
             this.handleItemHoverEvents(object);
         }
     }
@@ -118,7 +140,7 @@ class StateInteract extends State {
     }
 
     handleItemHoverEvents(object) {
-        if (object && object.type === 'item' && object.item) {
+        if (object && (object.type === 'item' || object.type === 'custom-item-area') && object.item) {
             if (!this.currentHoveredItem) {
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
                     this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
@@ -141,7 +163,7 @@ class StateInteract extends State {
                 this.hoveredItemIds.forEach(itemId => {
                     if (!allNewIds.has(itemId)) {
                         this.hoveredItemIds.delete(itemId);
-                        this.sendItemEventById(itemId, MOUSE_OUT);
+                        this.sendMouseOutEvent(itemId);
                     }
                 });
 
@@ -155,11 +177,24 @@ class StateInteract extends State {
             }
         } else {
             this.hoveredItemIds.forEach(itemId => {
-                this.sendItemEventById(itemId, MOUSE_OUT);
+                this.sendMouseOutEvent(itemId);
             });
             this.hoveredItemIds.clear();
             this.currentHoveredItem = null;
         }
+    }
+
+    sendMouseOutEvent(itemId) {
+        this.sendItemEventById(itemId, MOUSE_OUT);
+        const item = this.schemeContainer.findItemById(itemId);
+        if (!item) {
+            return;
+        }
+        const shape = Shape.find(item.shape);
+        if (!shape || !shape.onMouseOut) {
+            return;
+        }
+        shape.onMouseOut(this.editorId, item);
     }
 
     emit(element, eventName) {
@@ -169,6 +204,8 @@ class StateInteract extends State {
     }
 
     dragScreen(x, y) {
+        this.registerInertiaPositions(x, y);
+
         if (!this.schemeContainer.scheme.settings.screen.draggable) {
             return;
         }
@@ -177,6 +214,7 @@ class StateInteract extends State {
             Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
         );
     }
+
 }
 
 export default StateInteract;

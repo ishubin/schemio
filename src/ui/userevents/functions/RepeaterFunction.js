@@ -15,11 +15,17 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName) {
+        if (!subscribedItem) {
+            // this happens in case this repeater function was executed in a component diagram
+            // which got destroyed
+            resultCallback();
+            return;
+        }
         const suffix = args.name ? args.name : eventName;
-        const startedField = `repeaterStarted_${suffix}`
-        const stoppedField = `repeaterStopped_${suffix}`
-        const counterField = `repeaterCounter_${suffix}`; 
-        const timeField = `repeaterStartTime_${suffix}`; 
+        const startedField = `repeaterStarted_${suffix}`;
+        const stoppedField = `repeaterStopped_${suffix}`;
+        const counterField = `repeaterCounter_${suffix}`;
+        const timeField = `repeaterStartTime_${suffix}`;
 
         const reset = () => {
             delete subscribedItem.meta[counterField];

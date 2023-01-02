@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div style="height: 100%; display: flex; flex-direction: column">
+    <div style="height: 100%; display: flex; flex-direction: column" class="scheme-editor-view">
         <schemio-header>
             <div slot="middle-section">
                 <ul class="header-breadcrumbs">

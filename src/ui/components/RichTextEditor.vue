@@ -54,7 +54,7 @@
 
 
         <div class="textarea-enlarged-container" v-if="enlarged">
-            <div class="textarea-enlarged-top-panel">
+            <div class="rich-text-editor-menubar">
                 <editor-menu-bar :editor="editorLarge" v-slot="{ commands, isActive, getMarkAttrs }">
                     <div class="editor-menubar">
                         <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">

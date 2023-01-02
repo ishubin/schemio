@@ -2,10 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g @click="$emit('custom-event', 'clicked')"
-       @mouseover="$emit('custom-event', 'mousein')"
-       @mouseleave="$emit('custom-event', 'mouseout')"
-       >
+    <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-button-${item.id}`" :fill="item.shapeProps.buttonFill" :area="item.area"/>
         <advanced-fill :fillId="`fill-pattern-button-hovered-${item.id}`" :fill="item.shapeProps.buttonHoverFill" :area="item.area"/>
@@ -22,42 +19,28 @@
 
         <g style="cursor: pointer;" v-if="!(isLoading && item.shapeProps.showProgressBar) && buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
 
-            <rect v-if="buttonHovered"
+            <path v-if="buttonHovered"
                 :fill="svgButtonHoverFill"
-                :x="buttonArea.x" :y="buttonArea.y"
-                :rx="item.shapeProps.buttonCornerRadius"
-                :width="buttonArea.w" :height="buttonArea.h"
                 :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
                 :stroke="item.shapeProps.buttonStrokeColor"
+                :d="buttonPath"
                 />
-            <rect v-else :fill="svgButtonFill"
-                :x="buttonArea.x" :y="buttonArea.y"
-                :rx="item.shapeProps.buttonCornerRadius"
-                :width="buttonArea.w" :height="buttonArea.h"
+            <path v-else :fill="svgButtonFill"
                 :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
                 :stroke="item.shapeProps.buttonHoverStrokeColor"
+                :d="buttonPath"
                 />
 
             <foreignObject v-if="hideTextSlot !== 'button'" :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
                 <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
             </foreignObject>
-            <rect
-                data-preview-ignore="true"
-                fill="rgba(255,255,255,0)"
-                :x="buttonArea.x" :y="buttonArea.y"
-                :rx="item.shapeProps.buttonCornerRadius"
-                :width="buttonArea.w" :height="buttonArea.h"
-                @click="onLoadSchemeClick"
-                @mouseover="onButtonMouseOver"
-                @mouseleave="onButtonMouseLeave"
-                />
         </g>
 
         <foreignObject v-if="isLoading && item.shapeProps.showProgressBar && progressBar.w > 0 && progressBar.h > 0" :x="progressBar.x" :y="progressBar.y" :width="progressBar.w" :height="progressBar.h" >
             <div class="progress-bar" :style="progressBarStyle"></div>
         </foreignObject>
 
-        <g @click="resetFailureMessage" v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
+        <g @click="resetFailureMessage" @touchstart="resetFailureMessage" v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
             <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
             <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
                 <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Loading failed</b></div>
@@ -106,6 +89,14 @@ function calculateButtonArea(item, maxWidth, maxHeight) {
     const y = Math.max(minPadding, item.area.h - h - 10);
 
     return { x, y, w, h };
+}
+
+function computeButtonPath(item) {
+    const area = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
+    const R = Math.min(item.shapeProps.buttonCornerRadius, area.w/2, area.h/2);
+    const W = area.w;
+    const H = area.h;
+    return `M ${area.w + W-R} ${area.y + H}  L ${area.x + R} ${area.y + H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L ${area.x} ${area.y+R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${area.x+W-R} ${area.y}   a ${R} ${R} 0 0 1 ${R} ${R}  L ${area.x+W} ${area.y+H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 }
 
 export const COMPONENT_LOADED_EVENT = 'Component Loaded';
@@ -261,6 +252,22 @@ export default {
             return textSlots;
         },
 
+        onMouseDown(editorId, item, customAreaId, x, y) {
+            EditorEventBus.item.custom.$emit('mouse-down', editorId, item.id, customAreaId);
+        },
+
+        onMouseMove(editorId, item, customAreaId, x, y) {
+            EditorEventBus.item.custom.$emit('mouse-move', editorId, item.id, customAreaId);
+        },
+
+        computeCustomAreas(item) {
+            return [{
+                id: 'load-button',
+                cursor: 'pointer',
+                path: computeButtonPath(item)
+            }];
+        },
+
         computePath,
 
         controlPoints: {
@@ -325,7 +332,6 @@ export default {
 
         editorProps: {
             customTextRendering: true,
-            ignoreEventLayer   : true   // tells not to draw a layer for events handling, as this shape will handle everything itself
         },
 
         /**
@@ -345,6 +351,8 @@ export default {
     },
 
     beforeMount() {
+        EditorEventBus.item.custom.$on('mouse-move', this.editorId, this.item.id, this.onMouseMove);
+        EditorEventBus.item.custom.$on('mouse-down', this.editorId, this.item.id, this.onMouseDown);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
@@ -355,6 +363,8 @@ export default {
     },
 
     beforeDestroy() {
+        EditorEventBus.item.custom.$off('mouse-move', this.editorId, this.item.id, this.onMouseMove);
+        EditorEventBus.item.custom.$off('mouse-down', this.editorId, this.item.id, this.onMouseDown);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
@@ -378,6 +388,18 @@ export default {
     },
 
     methods: {
+        onMouseMove(customAreaId) {
+            if (customAreaId === 'load-button') {
+                this.onButtonMouseOver();
+            } else {
+                this.onButtonMouseLeave();
+            }
+        },
+        onMouseDown(customAreaId) {
+            if (customAreaId === 'load-button') {
+                this.onLoadSchemeClick();
+            }
+        },
         onLoadSchemeClick() {
             this.isLoading = true;
             EditorEventBus.component.loadRequested.specific.$emit(this.editorId, this.item.id, this.item);
@@ -447,6 +469,9 @@ export default {
     },
 
     computed: {
+        buttonPath() {
+            return computeButtonPath(this.item);
+        },
         shapePath() {
             return computePath(this.item);
         },

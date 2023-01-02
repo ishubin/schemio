@@ -7,8 +7,8 @@ import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 
 export default class StateCreateItem extends State {
-    constructor(store, listener) {
-        super(store, 'create-item', listener);
+    constructor(editorId, store, listener) {
+        super(editorId, store, 'create-item', listener);
         this.item = null;
         this.addedToScheme = false;
         this.originalPoint = null;

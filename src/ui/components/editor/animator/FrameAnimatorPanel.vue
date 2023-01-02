@@ -102,8 +102,8 @@
                                 </div>
 
                                 <div class="frame-property-operations">
-                                    <span v-if="track.kind === 'function-header'" class="icon-button" title="Edit function" @click="toggleEditFunctionArgumentsForTrack(track)"><i class="fas fa-cog"></i></span>
-                                    <span v-if="track.kind !== 'sections' && track.kind !== 'function'" class="icon-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
+                                    <span v-if="track.kind === 'function-header'" class="toggle-button" title="Edit function" @click="toggleEditFunctionArgumentsForTrack(track)"><i class="fas fa-cog"></i></span>
+                                    <span v-if="track.kind !== 'sections' && track.kind !== 'function'" class="toggle-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
                                 </div>
                             </td>
                             <td v-for="(frame, frameIdx) in track.frames"

@@ -56,7 +56,6 @@
 
 
     --section-delimiter-color: #b3b5b9;
-    --icon-button-hover-background: #d4d4d6;
 
     --control-border-radius: 3px;
     --middle-border-radius: 5px;
@@ -210,6 +209,7 @@ a:hover, .link:hover {
     background: var(--base-weak);
     list-style: none;
     box-shadow: 1px 1px 10px var(--shadow-color);
+    overflow: auto;;
 }
 .menu-dropdown > ul > li {
     padding: 0;
@@ -261,6 +261,11 @@ ul.tabs li .tab {
     text-transform: uppercase;
     font-weight: bold;
     cursor: pointer;
+}
+@media (max-width: 900px) {
+    ul.tabs li .tab {
+        padding: 6px 10px;
+    }
 }
 ul.tabs li .tab.active, ul.tabs li .tab.active:hover {
     background: var(--faint-weak);
@@ -579,16 +584,19 @@ ul.pagination li a.current {
     z-index: 21;
 }
 .quick-helper-panel {
+    position: fixed;
     display: table-cell;
     vertical-align: middle;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     white-space: nowrap;
     height: 36px;
+    max-width: 100%;
 }
 .quick-helper-panel-section {
     position: relative;
     display: inline-block;
-    margin-top: 4px;
+    margin-top: 2px;
     margin-left: 5px;
     padding-left: 5px;
     height: 28px;
@@ -642,6 +650,25 @@ ul.pagination li a.current {
     top: 0;
     right: 2px;
     cursor: pointer;
+}
+
+.quick-helper-panel .schemio-logo {
+    display: none;
+    font-weight: normal;
+    background: var(--faint-strong);
+    text-decoration: none;
+    padding: 2px 4px;
+    height: 24px;
+    border-radius: var(--control-border-radius);
+}
+.quick-helper-panel .schemio-logo img {
+    height: 20px;
+}
+
+@media (max-width: 900px) {
+    .quick-helper-panel .schemio-logo {
+        display: inline-block;
+    }
 }
 
 
@@ -794,6 +821,14 @@ ul.pagination li a.current {
     opacity: 1;
 }
 
+.boundary-box-context-menu-button {
+    display: none;
+}
+@media (max-width: 900px) {
+    .boundary-box-context-menu-button {
+        display: block;
+    }
+}
 
 .svg-editor-plot .missing-shape rect {
     stroke-width: 2px;
@@ -926,11 +961,11 @@ textarea.in-place-text-editor {
 .state-editPath.sub-state-creating-path * {
     cursor: crosshair !important;
 }
-.state-editPath.sub-state-drag-screen * {
-    cursor: grab !important;
-}
 .state-editPath.sub-state-drag-object * {
     cursor: grabbing !important;
+}
+.sub-state-drag-screen * {
+    cursor: grab !important;
 }
 
 [data-type='path-segment'],
@@ -1054,35 +1089,6 @@ ul.button-group > li {
 ul.button-group.disabled > li, ul.button-group > li.disabled {
     opacity: 0.2;
 }
-.icon-button {
-    display: inline-block;
-    text-align: center;
-    padding: 0;
-    width: 24px;
-    height: 24px;
-    height: 20px;
-    cursor: pointer;
-}
-.icon-button.disabled {
-    opacity: 0.2;
-}
-.icon-button.dimmed {
-    opacity: 0.4;
-}
-.icon-button:hover {
-    background: var(--icon-button-hover-background);
-}
-
-.icon-button img {
-    max-width: 24px;
-    max-height: 20px;
-}
-ul.button-group.disabled > li > .icon-button:hover,
-ul.button-group > li.disabled > .icon-button:hover,
-.icon-button.disabled:hover {
-    background: none;
-}
-
 
 /************* Toggle Button *****************/
 
@@ -1107,11 +1113,16 @@ ul.button-group > li.disabled > .icon-button:hover,
     cursor: pointer;
     cursor: hand;
 }
+.toggle-button.disabled {
+    opacity: 0.2;
+}
+.toggle-button.dimmed {
+    opacity: 0.4;
+}
 .toggle-button:hover {
     background: var(--faint-strong-up-up);
 }
 .toggle-button.disabled:hover, ul.button-group > li > .toggle-button.disabled {
-    color: var(--base-weak) !important;
     opacity: 0.2;
     background: none;
     cursor: default;
@@ -1121,6 +1132,15 @@ ul.button-group > li.disabled > .icon-button:hover,
     bottom: 0;
     right: 1px;
     font-size: 8px;
+}
+
+@media (max-width: 900px) {
+    .toggle-button:hover {
+        background: none;
+    }
+    .toggle-button.toggled {
+        background: var(--faint-strong-up);
+    }
 }
 
 .quick-helper-panel .toggle-button {
@@ -1141,6 +1161,7 @@ ul.button-group > li.disabled > .icon-button:hover,
     border-top: 1px solid var(--faint-strong-up);
     border-right: 1px solid var(--faint-strong-up);
     border-bottom: 1px solid var(--faint-strong-up);
+    border-radius: 0;
 }
 .toggle-group > .toggle-button:hover {
     color: var(--base-strong-up);
@@ -1182,6 +1203,28 @@ ul.button-group > li.disabled > .icon-button:hover,
     height: 100%;
     width: 100%;
     overflow: auto;
+    position: relative;
+}
+.scheme-editor-component .side-panel .side-panel-close {
+    position: absolute;
+    z-index: 20;
+    display: none;
+    top: 3px;
+    right: 7px;
+    font-size: 10px;
+    text-transform: uppercase;
+    font-weight: bold;
+    cursor: pointer;
+    background: var(--faint-weak-down-down);
+    color: var(--faint-strong-down);
+    padding: 3px 5px;
+    border-radius: var(--control-border-radius);
+}
+@media (max-width: 900px) {
+    .scheme-editor-component .side-panel .side-panel-close {
+        display: inline-block;
+        padding: 4px 8px;
+    }
 }
 .scheme-editor-component .side-panel .side-panel-expander {
     display: inline-block;
@@ -1195,23 +1238,25 @@ ul.button-group > li.disabled > .icon-button:hover,
     border-bottom: 1px solid var(--faint-strong);
     color: var(--base-strong-up);
     height: 40px;
-    width: 12px;
+    width: 16px;
     user-select: none;
 }
 .scheme-editor-component .side-panel-right .side-panel-expander {
     border-left: 1px solid var(--faint-strong);
-    left: -12px;
+    left: -16px;
+    border-radius:  3px 0 0 3px;
 }
 .scheme-editor-component .side-panel-left .side-panel-expander {
     border-right: 1px solid var(--faint-strong);
-    right: -12px;
+    right: -16px;
+    border-radius: 0 3px 3px 0;
 }
 .scheme-editor-component .side-panel .side-panel-expander:hover {
     color: var(--faint-strong-down);
 }
 .scheme-editor-component .side-panel .side-panel-expander i {
     margin-top: 10px;
-    margin-left: 1px;
+    margin-left: 3px;
 }
 
 /**************** Bottom Panel ***********************/
@@ -1645,9 +1690,10 @@ ul.links-editor .edit-link:hover {
 }
 
 .create-item-menu .preview-item {
-    position: absolute;
+    position: fixed;
     padding: 5px;
     min-width: 160px;
+    max-width: 230px;
     background: var(--faint-weak);
     left: 230px;
     top: 100px;
@@ -1727,10 +1773,13 @@ ul.links-editor .edit-link:hover {
     width: 100%;
     height: 100%;
     z-index: 101;
-    background: var(--faint-strong-up);
+    background: var(--faint-weak);
 }
 .textarea-enlarged-container .textarea-enlarged-top-panel {
     width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 10px;
 }
 .textarea-enlarged-container .editor-frame {
     width: 100%;
@@ -2172,6 +2221,7 @@ ul.links-editor .edit-link:hover {
     top: 0;
     left: 0;
     z-index: 998;
+    /* overflow: auto; */
 }
 .context-menu ul {
     position: absolute;
@@ -2260,6 +2310,14 @@ ul.links-editor .edit-link:hover {
 .item-tooltip .item-tooltip-body {
     overflow: auto;
     flex: 1;
+}
+
+@media (max-width: 900px) {
+    .item-tooltip .item-tooltip-close {
+        top: -8px;
+        font-size: 35px;
+        right: 5px;
+    }
 }
 
 /***************** Item Selector *********************/
@@ -3020,7 +3078,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     color: var(--base-weak);
     margin-top: auto;
     padding: 20px;
-    padding-bottom: 50px;
+    padding-bottom: 20px;
 }
 
 .footer .footer-body {
@@ -3213,6 +3271,12 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     color: var(--base-weak);
 }
 
+@media (max-width: 900px) {
+    .scheme-editor-view .header {
+        display: none;
+    }
+}
+
 
 table.entries-table {
     margin-top: 20px;
@@ -3226,19 +3290,21 @@ table.entries-table thead th {
     text-align: left;
     font-weight: bold;
 }
+table.entries-table tbody .icon-column {
+    width: 60px;
+}
 table.entries-table tbody .entry-link {
-    display: flex;
-    width: 100%;
+    display: block;
+    padding: 4px;
+    text-align: left;
     align-items: center;
     height: 40px;
-
-    padding: 5px;
     color: var(--accent-strong-down);
     text-decoration: none;
 }
-table.entries-table tbody .entry-link .entry-link-text {
-    margin-left: 10px;
-    white-space: nowrap;
+table.entries-table tbody .entry-link span {
+    display: block;
+    padding-top: 5px;
 }
 table.entries-table tbody .entry-link > .icon {
     width: 50px;
@@ -3265,6 +3331,14 @@ table.entries-table tbody td.time-column {
     white-space: nowrap;
     font-size: 14px;
 }
+@media (max-width: 900px) {
+    table.entries-table tbody td.time-column,
+    table.entries-table thead th.time-column {
+        display: none;
+    }
+}
+
+
 
 
 .entries-container {
@@ -3346,13 +3420,15 @@ ul.breadcrumbs li .breadcrumb-separator {
     margin-right: 5px;
 }
 
+.web-view .middle-content {
+    padding: 10px;
 
-.fs-toolbar {
-    margin-top: 10px;
-    margin-bottom: 10px;
 }
 .fs-toolbar input[type='text'] {
     max-width: 250px;
+}
+.fs-toolbar > *{
+    margin-top: 10px;
 }
 
 
@@ -3620,6 +3696,9 @@ ul.patch-field-list {
     border: 1px solid var(--faint-strong);
     border-radius: var(--control-border-radius);
 }
+.floating-helper-panel .toggle-button {
+    padding: 3px 5px;
+}
 
 .floating-helper-panel .styles-popup {
     position: absolute;
@@ -3880,4 +3959,18 @@ ul.patch-field-list {
 }
 .padded {
     padding: 4px;
+}
+
+
+.mobile-debugger-log {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.mobile-debugger-log > li {
+    background: var(--base-weak);
+    margin-bottom: 2px;
+    font-size: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    border-radius: 2px;
 }

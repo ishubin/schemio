@@ -207,4 +207,34 @@ if (typeof window !== 'undefined') {
 function registerDebuggerInitiation(callback) {
     debuggerInitiationCallback = callback;
 }
-export {LogConfig, Logger, Debugger, registerDebuggerInitiation};
+
+const logEntries = [];
+
+const MobileDebugger = {
+    log(...args) {
+        this.write('info', args);
+    },
+
+    error(...args) {
+        this.write('error', args);
+    },
+
+    write(level, ...args) {
+        if (logEntries.length > 1000) {
+            logEntries.shift();
+        }
+
+        let text = '';
+        args.forEach((arg, i) => {
+            const prefix = i === 0 ? '': ' ';
+            text += prefix + arg;
+        });
+        logEntries.push({ level, text });
+    },
+
+    getLogEntries() {
+        return logEntries;
+    }
+};
+
+export {LogConfig, Logger, MobileDebugger, Debugger, registerDebuggerInitiation};
