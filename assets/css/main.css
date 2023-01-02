@@ -1695,8 +1695,6 @@ ul.links-editor .edit-link:hover {
     min-width: 160px;
     max-width: 230px;
     background: var(--faint-weak);
-    left: 230px;
-    top: 100px;
     box-shadow: 1px 1px 8px var(--shadow-color);
 }
 .create-item-menu .preview-item h4 {

@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="create-item-menu">
+    <div class="create-item-menu" ref="createItemMenu">
         <div>
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
@@ -119,7 +119,7 @@
 
         <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
-        <div v-if="previewItem.shown" class="preview-item">
+        <div v-if="previewItem.shown" class="preview-item" :style="{left: `${previewItem.x}px`, top: `${previewItem.y}px`}">
             <div  class="item-container">
                 <div v-if="previewItem.item">
                     <h4>{{previewItem.item.name}}</h4>
@@ -224,6 +224,8 @@ export default {
             },
             previewItem: {
                 shown         : false,
+                x             : 0,
+                y             : 0,
                 item          : null,
                 artIcon       : null,
                 gif           : null,
@@ -377,7 +379,7 @@ export default {
             this.previewItem.artIcon = null;
             this.previewItem.gif = null;
             this.previewItem.description = item.description;
-            this.previewItem.shown = true;
+            this.displayPreviewItemTooltip();
         },
         stopPreviewItem(event, item) {
             if (this.previewItem.item && this.previewItem.item.name === item.name) {
@@ -390,7 +392,7 @@ export default {
             this.previewItem.artIcon = artIcon;
             this.previewItem.gif = null;
             this.previewItem.description = artIcon.description;
-            this.previewItem.shown = true;
+            this.displayPreviewItemTooltip();
         },
         stopPreviewArt(artIcon) {
             if (this.previewItem.artIcon &&this.previewItem.artIcon.name === artIcon.name) {
@@ -407,6 +409,13 @@ export default {
             } else {
                 this.previewItem.description = null;
             }
+            this.displayPreviewItemTooltip();
+        },
+
+        displayPreviewItemTooltip() {
+            const rect = this.$refs.createItemMenu.getBoundingClientRect();
+            this.previewItem.x = rect.right + 20;
+            this.previewItem.y = 100;
             this.previewItem.shown = true;
         },
 
