@@ -590,7 +590,10 @@ export default class StateConnecting extends State {
         const p0 = worldPointOnItem(lp0.x, lp0.y, this.item);
         const p1 = worldPointOnItem(lp1.x, lp1.y, this.item);
 
-        const N = myMath.normalizedVector(p1.x - p0.x, p1.y - p0.y);
+        let N = myMath.normalizedVector(p1.x - p0.x, p1.y - p0.y);
+        if (!N) {
+            N = {x: 1, y: 0};
+        }
 
         // this is a bit non-intuitive but this formula works in such a way
         // that based on the normal we identify which side (width or height) of the item

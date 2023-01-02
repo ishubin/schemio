@@ -6,6 +6,23 @@ import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import myMath from '../../myMath';
 
+/**
+ *
+ * @param {string} path
+ * @returns
+ */
+function breakPaths(path) {
+    const paths = path.split('M');
+
+    const result = [];
+    paths.forEach(p => {
+        p = p.trim();
+        if (p) {
+            result.push('M ' + p);
+        }
+    });
+    return result;
+}
 class DrawEffectAnimation extends Animation {
     constructor(item, args, resultCallback) {
         super();
@@ -13,48 +30,52 @@ class DrawEffectAnimation extends Animation {
         this.args = args;
         this.resultCallback = resultCallback;
         this.domContainer = null;
-        this.domPath = null;
         this.time = 0.0;
 
-        this.backupOpacity = 1.0;
-        this.domAnimationPath = null;
-        this.pathLength = 0;
+        this.paths = [];
+        this.totalPathsLength = 0;
     }
 
     init() {
         this.domContainer = document.getElementById(`animation-container-${this.item.id}`);
-
-        const shape = Shape.find(this.item.shape);
-        if (shape) {
-            const path = shape.computeOutline(this.item);
-            if (path) {
-                this.domPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                this.domPath.setAttribute('d', path);
-                this.pathLength = this.domPath.getTotalLength();
-            }
-        }
-
-        if (!this.domContainer || !this.domPath) {
+        if (!this.domContainer) {
             return false;
         }
 
-        this.domAnimationPath = this.svg('path', {
-            'd': this.domPath.getAttribute('d'),
-            'stroke-dasharray': this.pathLength,
-            'stroke-dashoffset': this.pathLength,
-            'stroke-width': this.args.strokeSize || 1,
-            'stroke': this.args.color,
-            'fill': 'none',
-            'stroke-linejoin': 'round',
-        });
-        this.domContainer.appendChild(this.domAnimationPath);
-
-        let opacity = window.getComputedStyle(this.domPath).opacity;
-        if (opacity && opacity > 0.0) {
-            this.backupOpacity = opacity;
+        const shape = Shape.find(this.item.shape);
+        if (!shape) {
+            return false;
         }
 
-        this.domPath.style.opacity = 0.0;
+        const path = shape.computePath(this.item);
+        if (!path) {
+            return false;
+        }
+
+        this.paths = [];
+        this.totalPathsLength = 0;
+
+        let offset = 0;
+        breakPaths(path).forEach(subPath => {
+            const domPath = this.svg('path', {
+                'd': subPath,
+                'stroke-width': this.args.strokeSize || 1,
+                'stroke': this.args.color,
+                'fill': 'none',
+                'stroke-linejoin': 'round',
+            });
+            const length = domPath.getTotalLength();
+            this.paths.push({
+                domPath,
+                length,
+                offset
+            });
+            this.totalPathsLength += length;
+            this.domContainer.appendChild(domPath);
+            domPath.setAttribute('stroke-dasharray', length);
+            domPath.setAttribute('stroke-dashoffset', length);
+            offset += length;
+        });
         return true;
     }
 
@@ -65,14 +86,25 @@ class DrawEffectAnimation extends Animation {
         if (!myMath.tooSmall(this.args.duration)) {
             t = this.time / (this.args.duration * 1000.0);
         }
-        this.domAnimationPath.setAttribute('stroke-dashoffset', Math.floor(this.pathLength * (1 - t)));
 
+        const firstWay = t < 1;
+        let currentLength =  firstWay ? this.totalPathsLength * t : this.totalPathsLength * (t - 1);
+        for (let i = 0; i < this.paths.length; i++) {
+            const diffLength = this.paths[i].offset + this.paths[i].length - currentLength;
+            if (diffLength > 0) {
+                this.paths[i].domPath.setAttribute('stroke-dashoffset', Math.floor(firstWay ? diffLength : this.paths[i].length + diffLength));
+                if (i > 0) {
+                    this.paths[i-1].domPath.setAttribute('stroke-dashoffset', firstWay ? 0 : this.paths[i - 1].length);
+                }
+                break;
+            }
+        }
         if (this.args.twoWay) {
-            if (this.time > 2 * this.args.duration * 1000.0) {
+            if (t > 2) {
                 return false;
             }
         } else {
-            if (this.time > this.args.duration * 1000.0) {
+            if (t > 1) {
                 return false;
             }
         }
@@ -83,13 +115,9 @@ class DrawEffectAnimation extends Animation {
         if (!this.args.inBackground) {
             this.resultCallback();
         }
-        if (this.domAnimationPath) {
-            this.domContainer.removeChild(this.domAnimationPath);
-        }
-
-        if (this.domPath) {
-            this.domPath.style.opacity = this.backupOpacity;
-        }
+        this.paths.forEach(path => {
+            this.domContainer.removeChild(path.domPath);
+        });
     }
 }
 
