@@ -11,14 +11,6 @@
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
             :fill="fill"></path>
-
-        <path v-for="cap in caps" :d="cap.path"
-            :data-item-id="item.id"
-            :stroke="item.shapeProps.strokeColor"
-            :stroke-width="item.shapeProps.strokeSize"
-            :fill="cap.fill"
-            stroke-linejoin="round"
-        />
     </g>
 </template>
 
@@ -27,7 +19,6 @@ import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
-import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 import { computeCurvePath } from './StandardCurves';
 import EditorEventBus from '../../EditorEventBus';
@@ -170,12 +161,6 @@ export default {
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             paths             : {type: 'path-array',   value: [], name: 'Paths', hidden: true},
-            sourceCap         : {type: 'path-cap',     value: 'empty', name: 'Source Cap'},
-            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
-            sourceCapFill     : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Source Cap Fill'},
-            destinationCap    : {type: 'path-cap',     value: 'empty', name: 'Destination Cap'},
-            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
-            destinationCapFill: {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Destination Cap Fill'},
         },
     },
 
@@ -190,7 +175,6 @@ export default {
         const shapePath = computePath(this.item);
         return {
             shapePath: shapePath,
-            caps: this.computeCaps(shapePath),
         }
     },
 
@@ -199,54 +183,8 @@ export default {
             log.info('onItemChange', this.item.id, this.item.name, this.item);
 
             this.shapePath = computePath(this.item);
-            this.caps = this.computeCaps(this.shapePath);
-            log.info('computed path and caps', this.item.id, this.item.name, this.shapePath, this.caps);
             this.$forceUpdate();
         },
-
-        computeCaps(svgPath) {
-            const caps = [];
-
-            let sourceCap         = this.item.shapeProps.sourceCap || 'empty';
-            let destinationCap    = this.item.shapeProps.destinationCap || 'empty';
-
-            if (sourceCap === 'empty' && destinationCap === 'empty') {
-                return caps;
-            }
-
-            const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-            shadowSvgPath.setAttribute('d', svgPath);
-
-            const totalLength = shadowSvgPath.getTotalLength();
-            if (totalLength < 3)  {
-                return caps;
-            }
-
-            let cap = this.computeCapByPosition(shadowSvgPath, 0, this.item.shapeProps.sourceCapSize, sourceCap, this.item.shapeProps.sourceCapFill);
-            if (cap) {
-                caps.push(cap);
-            }
-
-            cap = this.computeCapByPosition(shadowSvgPath, totalLength, totalLength - this.item.shapeProps.destinationCapSize, destinationCap, this.item.shapeProps.destinationCapFill);
-            if (cap) {
-                caps.push(cap);
-            }
-
-            return caps;
-        },
-
-        computeCapByPosition(shadowSvgPath, d1, d2, capType, capFill) {
-            if (capType !== 'empty') {
-                const p1 = shadowSvgPath.getPointAtLength(d1);
-                const p2 = shadowSvgPath.getPointAtLength(d2);
-
-                const squaredD = (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
-                if (squaredD > 0.01) {
-                    return createConnectorCap(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y, capType, capFill);
-                }
-            }
-            return null;
-        }
     },
 
     computed: {
