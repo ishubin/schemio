@@ -1076,21 +1076,22 @@ export default class StateEditPath extends State {
             }
         });
 
-        const firstPoint = utils.clone(points[0]);
-
-        for (let i = 1; i < points.length; i++) {
+        let firstPointForSwap = null;
+        for (let i = 0; i < points.length; i++) {
             if (points[i].t === 'A') {
-                if (points[i - 1].t !== 'A') {
-                    points[i].t = 'L';
+                if (i === 0) {
+                    firstPointForSwap = utils.clone(points[0]);
+                } else {
+                    points[i-1].t = 'A';
+                    points[i-1].h = -points[i].h;
                 }
-                points[i - 1].t = 'A';
-                points[i - 1].h = - points[i].h;
+                points[i] = {t: 'L', x: points[i].x, y: points[i].y};
             }
         }
 
-        if (firstPoint.t === 'A') {
+        if (firstPointForSwap) {
             points[points.length - 1].t = 'A';
-            points[points.length - 1].h = -firstPoint.h;
+            points[points.length - 1].h = -firstPointForSwap.h;
         }
 
         this.listener.onItemChanged(this.item.id);
