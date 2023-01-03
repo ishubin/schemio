@@ -8,18 +8,36 @@ let fallbackCopyBuffer = null;
 
 
 export function copyToClipboard(text) {
-    return navigator.clipboard.writeText(text).catch(err => {
-        fallbackCopyBuffer = text;
-    });
+    fallbackCopyBuffer = text;
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        textArea.style.top = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        return new Promise((resolve, reject) => {
+            document.execCommand('copy') ? resolve() : reject();
+            textArea.remove();
+        });
+    }
 }
 
 /**
  * Returns promise with text as a first argument
  */
 export function getTextFromClipboard() {
-    return navigator.clipboard.readText().catch(err => {
-        return fallbackCopyBuffer;
-    });
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.readText().catch(err => {
+            return fallbackCopyBuffer;
+        });
+    } else {
+        return Promise.resolve(fallbackCopyBuffer);
+    }
 }
 
 /**
