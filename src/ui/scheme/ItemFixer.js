@@ -26,6 +26,10 @@ function enrichItemWithStandardShapeProps(item) {
 function fixAndEnrichBehaviorAction(action) {
     idFixer(action);
 
+    if (!action.hasOwnProperty('on')) {
+        action.on = true;
+    }
+
     const func = Functions.main[action.method];
     if (!func) {
         return false;

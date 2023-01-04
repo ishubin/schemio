@@ -47,13 +47,17 @@
                     <div class="behavior-action-container"
                         :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
                         @dragover="onDragOverToAction(eventIndex, actionIndex, arguments[0])"
-                        :class="{'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
+                        :class="{'disabled': !action.on, 'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
                         >
                         <div class="icon-container">
                             <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
                             <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
+                            <span class="link icon-check" @click="toggleActionOnOff(eventIndex, actionIndex)">
+                                <i v-if="action.on" class="fa-regular fa-square-check"></i>
+                                <i v-else class="fa-regular fa-square"></i>
+                            </span>
                         </div>
-                        <div>
+                        <div class="action-item">
                             <ElementPicker
                                 :editorId="editorId"
                                 :element="action.element"
@@ -65,7 +69,7 @@
                                 />
                         </div>
                         <div class="behavior-goto-element" title="Double click to jump to element" @dblclick="jumpToElement(action.element)">: </div>
-                        <div>
+                        <div class="action-method">
                             <dropdown
                                 :key="action.element.item"
                                 :options="createMethodSuggestionsForElement(action.element)"
@@ -490,6 +494,7 @@ export default {
                 id: shortid.generate(),
                 element,
                 method: 'show',
+                on: true,
                 args: mapValues(Functions.main.show.args, arg => arg.value)
             });
             this.emitChangeCommited();
@@ -710,6 +715,12 @@ export default {
             if (item) {
                 this.$emit('jumped-to-item', item);
             }
+        },
+
+        toggleActionOnOff(eventIndex, actionIndex) {
+            const action = this.item.behavior.events[eventIndex].actions[actionIndex];
+            action.on = !action.on;
+            this.$forceUpdate();
         }
     },
 

@@ -18,15 +18,18 @@ function enrichFuncArgs(args, funcDef) {
 export default class Compiler {
 
     /**
-     * 
-     * @param {SchemeContainer} schemeContainer 
-     * @param {SchemeItem} selfItem 
-     * @param {Array} actions 
+     *
+     * @param {SchemeContainer} schemeContainer
+     * @param {SchemeItem} selfItem
+     * @param {Array} actions
      */
     compileActions(schemeContainer, selfItem, actions) {
-        
+
         const funcs = [];
         forEach(actions, action => {
+            if (!action.on) {
+                return;
+            }
             if (knownFunctions.main.hasOwnProperty(action.method)) {
                 if (action.element) {
                     const elements = schemeContainer.findElementsBySelector(action.element, selfItem);

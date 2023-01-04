@@ -38,14 +38,17 @@ describe('UserEvents Compiler', () => {
         const action = compiler.compileActions(schemeContainer, selfItem, [{
             element: 'self',
             method: 'set',
+            on: true,
             args: { field: 'opacity', value: 0.5}
         }, {
             element: '#abc',
             method: 'set',
+            on: true,
             args: { field: 'shapeProps.strokeSize', value: 2}
         }, {
             element: '#abc',
             method: 'set',
+            on: true,
             args: {field: 'shapeProps.text', value: 'Blah'}
         }]);
 
@@ -97,10 +100,12 @@ describe('UserEvents Compiler', () => {
         const action = compiler.compileActions(schemeContainer, selfItem, [{
             element: 'tag: my-group',
             method: 'set',
+            on: true,
             args: { field: 'opacity', value: 0.5}
         }, {
             element: 'tag: another-group',
             method: 'set',
+            on: true,
             args: { field: 'someField', value: 'blah'}
         }]);
 

@@ -2043,8 +2043,15 @@ ul.links-editor .edit-link:hover {
 
 .behavior-action-container {
     position: relative;
-    padding-left: 40px;
+    padding-left: 60px;
     margin-top: 5px;
+}
+.behavior-action-container.disabled .action-item .picked-element,
+.behavior-action-container.disabled .action-method .hover-effect,
+.behavior-action-container.disabled .behavior-function
+{
+    text-decoration: line-through;
+    opacity: 0.4;
 }
 .behavior-action-container > div {
     display: inline-block;
@@ -2065,13 +2072,6 @@ ul.links-editor .edit-link:hover {
     left: 5px;
     top: 3px;
 }
-.behavior-action-container .icon-container .icon-action {
-    display: inline-block;
-    position: relative;
-    left: 15px;
-    font-size: 8px;
-    opacity: 0.3;
-}
 .behavior-action-container .icon-container .icon-delete {
     display: none;
     opacity: 0.6;
@@ -2081,13 +2081,18 @@ ul.links-editor .edit-link:hover {
     display: none;
     cursor: grab;
 }
-.behavior-action-container:hover .icon-container .icon-action {
+.behavior-action-container .icon-container .icon-check {
     display: none;
+    color: var(--faint-strong-down);
+    cursor: pointer;
 }
 .behavior-action-container:hover .icon-container .icon-delete {
     display: inline-block;
 }
 .behavior-action-container:hover .icon-container .icon-move {
+    display: inline-block;
+}
+.behavior-action-container:hover .icon-container .icon-check {
     display: inline-block;
 }
 .behavior-action-container .set-argument-editor,
