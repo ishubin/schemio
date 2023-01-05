@@ -144,7 +144,7 @@ export function dragAndDropBuilder(originalEvent) {
                         this.draggedElement.style.top = `${pageY + 4}px`;
                     }
                     this.callbacks.onDrag(event, pageX, pageY, originalClickX, originalClickY);
-                    withDroppableElement(event , element => this.callbacks.onDragOver(event, element));
+                    withDroppableElement(event , element => this.callbacks.onDragOver(event, element, pageX, pageY));
 
                     if (this.scrollableElemet) {
                         const rootBbox = this.scrollableElemet.getBoundingClientRect();

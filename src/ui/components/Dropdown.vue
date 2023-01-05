@@ -16,7 +16,7 @@
         </div>
 
         <div ref="dropdownPopup" class="dropdown-popup" v-if="shown" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-width': `${maxWidth}px`}">
-            <input 
+            <input
                 ref="searchTextfield"
                 class="dropdown-search"
                 v-if="searchEnabled"
@@ -26,7 +26,7 @@
                 @keydown.enter="pickFirstOption(filteredOptions)"
                 data-input-type="dropdown-search"/>
 
-            <div :style="{'max-width': `${maxWidth}px`,'height': `${maxHeight}px`, 'overflow': 'auto'}">
+            <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
                     <li v-for="option in filteredOptions" 
                         @click="onOptionClicked(option)" @mouseover="onOptionMouseOver(option)" @mouseleave="onOptionMouseLeave()"
@@ -90,6 +90,7 @@ export default {
             searchKeyword: '',
             x: 0, y: 0,
             maxHeight: 300,
+            maxPopupHieght: Math.max(100, Math.min(300, window.innerHeight - 100)),
             searchTextfieldHeight: 30,
             maxWidth: 400,
             elementRect: null,
@@ -135,7 +136,7 @@ export default {
         emitHidden() {
             this.$emit('dropdown-hidden');
         },
-        
+
         readjustDropdownPopup() {
             const popup = this.$refs.dropdownPopup;
             if (!popup || !this.elementRect) {
@@ -155,7 +156,13 @@ export default {
             }
 
             if (bottomSide > window.innerHeight) {
-                this.y = this.elementRect.top - height;
+                if (window.innerHeight - originalY - this.searchTextfieldHeight > originalY) {
+                    this.y = originalY;
+                    this.maxHeight = window.innerHeight - originalY - this.searchTextfieldHeight;
+                } else {
+                    this.y = Math.max(5, originalY - height);
+                    this.maxHeight = Math.max(100 ,Math.min(300, originalY - this.y - this.searchTextfieldHeight - 5));
+                }
             } else {
                 this.y = originalY;
             }

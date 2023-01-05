@@ -2066,11 +2066,15 @@ ul.links-editor .edit-link:hover {
 .behavior-action-container .element-picker .dropdown-click-area span.element-name {
     white-space: nowrap;
 }
+.actions-being-dragged .behavior-action-container .icon-container {
+    display: none;
+}
 .behavior-action-container .icon-container {
     white-space: nowrap;
     position: absolute;
     left: 5px;
     top: 3px;
+    user-select: none;
 }
 .behavior-action-container .icon-container .icon-delete {
     display: none;
@@ -2095,9 +2099,15 @@ ul.links-editor .edit-link:hover {
 .behavior-action-container:hover .icon-container .icon-check {
     display: inline-block;
 }
-.behavior-action-container .set-argument-editor,
-.behavior-action-container .set-argument-editor > div {
+.behavior-action-container .set-argument-editor {
     display: inline-block;
+}
+.behavior-action-container .set-argument-editor .set-argument-wrapper {
+    display: flex;
+    align-items: center;
+}
+.behavior-action-container .set-argument-editor .set-argument-control {
+    display: inherit;
 }
 .behavior-action-container .set-argument-editor .set-argument-options > span {
     display: inline-block;
@@ -2118,6 +2128,28 @@ ul.links-editor .edit-link:hover {
 }
 .behavior-action-container .icon-container .icon-delete:hover {
     opacity: 1.0;
+}
+.behavior-action-drag-preview {
+    font-size: 14px;
+    display:none;
+    position: fixed;
+    background: var(--base-weak);
+    padding: 2px 5px 2px 30px;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    border-radius: var(--control-border-radius);
+    opacity: 0.6;
+}
+.behavior-action-drag-preview .action-name-separator {
+    margin-left: 6px;
+    margin-right: 6px;
+}
+.behavior-action-drag-preview .icon-container {
+    display: none;
+}
+.actions-being-dragged .behavior-action-drag-preview {
+    display: inline-block;
 }
 
 .behavior-event-operations {

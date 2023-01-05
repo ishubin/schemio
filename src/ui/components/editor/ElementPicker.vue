@@ -29,6 +29,46 @@ import EditorEventBus from './EditorEventBus';
 
 const maxNameSymbols = 20;
 
+export function generateEnrichedElement(element, schemeContainer) {
+    if (!element) {
+        return {
+            name: 'None',
+            type: 'none',
+            iconClass: ''
+        };
+    }
+    if (element.startsWith('tag:')) {
+        return {
+            name: element.substr(5).trim(),
+            type: 'item-tag',
+            iconClass: 'fas fa-cubes'
+        };
+    }
+    if (element === 'self') {
+        return {
+            name: 'self',
+            iconClass: 'fas fa-cube',
+            type: 'item'
+        };
+    }
+
+    const elementItem = schemeContainer.findFirstElementBySelector(element);
+    if (elementItem) {
+        return {
+            name: elementItem.name || elementItem.id,
+            iconClass: 'fas fa-cube',
+            type: 'item'
+        };
+    }
+
+    return {
+        name: 'no item',
+        type: 'error',
+        iconClass: 'fas fa-exclamation-triangle'
+    };
+
+}
+
 export default {
     props: {
         editorId:           {type: String, required: true},
@@ -36,7 +76,6 @@ export default {
         selfItem:           {type: Object,  default: null},
         schemeContainer:    {type: Object,  required: true},
         useSelf:            {type: Boolean, default: true},
-        noneLabel:          {type: String,  default: 'None'},
         allowNone:          {type: Boolean, default: false},
         allowTags:          {type: Boolean, default: true},
         excludedItemIds:    {type: Array,   default: () => []}, // array of items that should be excluded from options
@@ -141,42 +180,7 @@ export default {
 
     computed: {
         enrichedElement() {
-            if (!this.element) {
-                return {
-                    name: this.noneLabel,
-                    type: 'none',
-                    iconClass: ''
-                };
-            }
-            if (this.element.startsWith('tag:')) {
-                return {
-                    name: this.element.substr(5).trim(),
-                    type: 'item-tag',
-                    iconClass: 'fas fa-cubes'
-                };
-            }
-            if (this.element === 'self') {
-                return {
-                    name: 'self',
-                    iconClass: 'fas fa-cube',
-                    type: 'item'
-                };
-            }
-
-            const element = this.schemeContainer.findFirstElementBySelector(this.element, this.selfItem);
-            if (element) {
-                return {
-                    name: element.name || element.id,
-                    iconClass: 'fas fa-cube',
-                    type: 'item'
-                };
-            }
-
-            return {
-                name: 'no item',
-                type: 'error',
-                iconClass: 'fas fa-exclamation-triangle'
-            };
+            return generateEnrichedElement(this.element, this.schemeContainer);
         }
     },
 

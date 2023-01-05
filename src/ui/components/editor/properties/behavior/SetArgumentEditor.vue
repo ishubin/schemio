@@ -3,25 +3,27 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="set-argument-editor">
-        <div class="set-argument-control">
-            <input v-if="argumentType === 'string'  || argumentType === 'image'"
-                style="width: 100px" :value="argumentValue" @input="onInputValue"/>
+        <div class="set-argument-wrapper">
+            <div class="set-argument-control">
+                <input v-if="argumentType === 'string'  || argumentType === 'image'"
+                    style="width: 100px" :value="argumentValue" @input="onInputValue"/>
 
-            <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
+                <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
 
-            <color-picker v-if="argumentType === 'color'" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
+                <color-picker v-if="argumentType === 'color'" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
 
-            <advanced-color-editor v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
+                <advanced-color-editor v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
 
-            <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
+                <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
-            <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
-                <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{option | toPrettyOptionName}}</option>
-            </select>
-        </div>
-        <div class="set-argument-options" v-if="supportsAnimation">
-            <span class="set-animated" @click="animationEditorShown = true" v-if="args.animated" title="Animated"><i class="fa-solid fa-video"></i></span>
-            <span class="set-instant" @click="animationEditorShown = true" v-else title="Instant"><i class="fa-solid fa-video-slash"></i></span>
+                <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
+                    <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{option | toPrettyOptionName}}</option>
+                </select>
+            </div>
+            <div class="set-argument-options" v-if="supportsAnimation">
+                <span class="set-animated" @click="animationEditorShown = true" v-if="args.animated" title="Animated"><i class="fa-solid fa-video"></i></span>
+                <span class="set-instant" @click="animationEditorShown = true" v-else title="Instant"><i class="fa-solid fa-video-slash"></i></span>
+            </div>
         </div>
 
         <modal v-if="animationEditorShown" title="Animation" @close="animationEditorShown = false">

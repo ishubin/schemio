@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div @dragend="onDragEnd">
+    <div :class="{'actions-being-dragged': dragging.eventIndex >= 0}">
         <panel v-if="!extended" uid="behavior-tags" name="Tags">
             <vue-tags-input v-model="itemTag"
                 :tags="itemTags"
@@ -14,7 +14,9 @@
         <div class="hint" v-if="item.behavior.events.length === 0">There are no events defined for this item yet. Start by adding an event</div>
 
         <div class="behavior-container" :class="{extended: extended}" v-for="(event, eventIndex) in item.behavior.events">
-            <div class="behavior-event" @dragover="onDragOverToEvent(eventIndex)">
+            <div class="behavior-event behavior-action-droppable"
+                :data-event-index="eventIndex"
+                >
                 <div class="behavior-menu">
                     <span class="link icon-collapse" @click="toggleBehaviorCollapse(eventIndex)">
                         <i class="fas" :class="[eventMetas[eventIndex] && eventMetas[eventIndex].collapsed?'fa-caret-right':'fa-caret-down']"/>
@@ -40,18 +42,21 @@
                 <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === 0 && (!event.actions || event.actions.length === 0)"
                     v-html="dragging.action">
                 </div>
-                <div v-for="(action, actionIndex) in event.actions">
+                <div v-for="(action, actionIndex) in event.actions"
+                    class="behavior-action-droppable"
+                    :data-event-index="eventIndex"
+                    :data-action-index="actionIndex"
+                    >
                     <div class="behavior-action-container behavior-drop-highlight" v-if="dragging.readyToDrop && dragging.dropTo.eventIndex === eventIndex && dragging.dropTo.actionIndex === actionIndex"
                         v-html="dragging.action">
                     </div>
                     <div class="behavior-action-container"
                         :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
-                        @dragover="onDragOverToAction(eventIndex, actionIndex, arguments[0])"
                         :class="{'disabled': !action.on, 'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
                         >
                         <div class="icon-container">
                             <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
-                            <span class="link icon-move" draggable="true" @dragstart="onActionDragStarted(eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
+                            <span class="link icon-move" @mousedown="onActionDraggerMouseDown($event, eventIndex, actionIndex)"><i class="fas fa-arrows-alt"/></span>
                             <span class="link icon-check" @click="toggleActionOnOff(eventIndex, actionIndex)">
                                 <i v-if="action.on" class="fa-regular fa-square-check"></i>
                                 <i v-else class="fa-regular fa-square"></i>
@@ -127,6 +132,14 @@
             @close="functionArgumentsEditor.shown = false"
             @argument-changed="onFunctionArgumentsEditorChange"
         />
+
+        <div ref="dragPreview" class="behavior-action-drag-preview">
+            <i v-if="dragging.preview.elementIcon" :class="dragging.preview.elementIcon"></i>
+            {{dragging.preview.elementName}} <span class="action-name-separator">:</span>
+            <span v-if="dragging.preview.method">{{dragging.preview.method}}</span>
+            <i class="fas fa-cog" v-if="dragging.preview.propertyName"></i>
+            <span v-if="dragging.preview.propertyName">{{dragging.preview.propertyName}}</span>
+        </div>
     </div>
 </template>
 
@@ -151,6 +164,7 @@ import Functions from '../../../userevents/functions/Functions.js';
 import {supportsAnimationForSetFunction} from '../../../userevents/functions/SetFunction';
 import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
+import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
@@ -159,6 +173,7 @@ import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboar
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
 import EditorEventBus from '../EditorEventBus.js';
+import { dragAndDropBuilder } from '../../../dragndrop';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
@@ -177,6 +192,41 @@ function sanitizeEvent(event) {
     };
 }
 
+function createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
+    //TODO cache all item properties instead of fetching them over and over again
+    if (propertyPath === 'opacity') {
+        return 'Opacity';
+    } else if (propertyPath === 'selfOpacity') {
+        return 'Self opacity';
+    } else if (propertyPath.indexOf('shapeProps.') === 0) {
+        let item = null;
+        if (element === 'self') {
+            item = selfItem;
+        } else {
+            item = schemeContainer.findFirstElementBySelector(element);
+        }
+        if (item && item.shape) {
+            const shape = Shape.find(item.shape);
+            const shapeArgName = propertyPath.substr('shapeProps.'.length);
+            if (shape && shape.args && shape.args.hasOwnProperty(shapeArgName)) {
+                return shape.args[shapeArgName].name;
+            } else if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
+                return Shape.standardShapeProps[shapeArgName].name;
+            }
+        }
+    } else if (propertyPath.indexOf('textSlots.') === 0) {
+        const firstDotIdx = propertyPath.indexOf('.');
+        const secondDotIdx = propertyPath.indexOf('.', firstDotIdx + 1);
+        const textSlotName = propertyPath.substring(firstDotIdx + 1, secondDotIdx);
+        const textSlotField = propertyPath.substring(secondDotIdx + 1);
+        const fieldDescription = find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
+        if (fieldDescription) {
+            return `Text / ${textSlotName} / ${fieldDescription.name}`;
+        }
+    }
+    return propertyPath;
+}
+
 export default {
     props: {
         editorId       : {type: String, required: true},
@@ -186,13 +236,6 @@ export default {
     },
 
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
-
-    mounted() {
-        document.body.addEventListener('mouseup', this.onMouseUp);
-    },
-    beforeDestroy() {
-        document.body.removeEventListener('mouseup', this.onMouseUp);
-    },
 
     data() {
         const items = sortBy(
@@ -228,6 +271,12 @@ export default {
                 eventIndex: -1,
                 actionIndex: -1,
                 readyToDrop: false,
+                preview: {
+                    elementName: '',
+                    elementIcon: '',
+                    method: '',
+                    propertyName: ''
+                },
                 dropTo: {
                     eventIndex: -1,
                     actionIndex: -1,
@@ -625,6 +674,57 @@ export default {
             }
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
         },
+        prettyMethodName(method) {
+            if (Functions.main[method]) {
+                return Functions.main[method].name;
+            }
+            return method;
+        },
+        onActionDraggerMouseDown(originalEvent, eventIndex, actionIndex) {
+            dragAndDropBuilder(originalEvent)
+            .withDroppableClass('behavior-action-droppable')
+            .withDraggedElement(this.$refs.dragPreview)
+            .onDragStart(() => {
+                let name = 'Drop here';
+                // TODO refactor to use $ref
+                const domActionContainer = document.getElementById(`behavior-action-container-${this.item.id}-${eventIndex}-${actionIndex}`);
+                if (domActionContainer) {
+                    name = domActionContainer.innerHTML;
+                }
+                this.dragging.action = name;
+
+                const action = this.item.behavior.events[eventIndex].actions[actionIndex];
+                const enrichedElement = generateEnrichedElement(action.element, this.schemeContainer);
+                this.dragging.preview.elementName = enrichedElement.name;
+                this.dragging.preview.elementIcon = enrichedElement.iconClass;
+
+                if (action.method === 'set') {
+                    this.dragging.preview.method = null;
+                    this.dragging.preview.propertyName = createPrettyPropertyName(action.args.field, action.element, this.item, this.schemeContainer);
+                } else {
+                    this.dragging.preview.propertyName = null;
+                    this.dragging.preview.method = this.prettyMethodName(action.method);
+                }
+                this.dragging.eventIndex = eventIndex;
+                this.dragging.actionIndex = actionIndex;
+                this.dragging.dropTo.eventIndex = -1;
+                this.dragging.dropTo.actionIndex = -1;
+            })
+            .onDragOver((event, element, pageX, pageY) => {
+                const dstEventIndex = parseInt(element.getAttribute('data-event-index'));
+                const actionIndexAttr = element.getAttribute('data-action-index')
+                if (!actionIndexAttr) {
+                    this.onDragOverToEvent(dstEventIndex);
+                } else {
+                    const dstActionIndex = parseInt(actionIndexAttr);
+                    this.onDragOverToAction(dstEventIndex, dstActionIndex, element, pageY);
+                }
+            })
+            .onDone(() => {
+                this.onDragEnd();
+            })
+            .build();
+        },
 
         onActionDragStarted(eventIndex, actionIndex) {
             let name = 'Drop here';
@@ -648,18 +748,15 @@ export default {
             this.dragging.readyToDrop = !(this.dragging.eventIndex === eventIndex && this.dragging.actionIndex === 0);
         },
 
-        onDragOverToAction(eventIndex, actionIndex, event) {
+        onDragOverToAction(eventIndex, actionIndex, element, pageY) {
             this.dragging.dropTo.eventIndex = eventIndex;
             this.dragging.dropTo.actionIndex = actionIndex;
 
-            const domActionContainer = event.target.closest('.behavior-action-container');
-            if (domActionContainer) {
-                const containerRect = domActionContainer.getBoundingClientRect();
-                const midLine = containerRect.top + containerRect.height / 2;
-                const offsetToMid = event.clientY - midLine;
-                if (offsetToMid > 0) {
-                    this.dragging.dropTo.actionIndex = actionIndex + 1;
-                }
+            const containerRect = element.getBoundingClientRect();
+            const midLine = containerRect.top + containerRect.height / 2;
+            const offsetToMid = pageY - midLine;
+            if (offsetToMid > 0) {
+                this.dragging.dropTo.actionIndex = actionIndex + 1;
             }
             let readyToDrop = true;
 
@@ -669,14 +766,6 @@ export default {
                 }
             }
             this.dragging.readyToDrop = readyToDrop;
-        },
-
-        onMouseUp() {
-            if (this.dragging.action) {
-                this.$nextTick(() => {
-                    this.resetDragging();
-                });
-            }
         },
 
         onDragEnd() {
@@ -752,36 +841,7 @@ export default {
         },
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
-            //TODO cache all item properties instead of fetching them over and over again
-            if (propertyPath === 'opacity') {
-                return 'Opacity';
-            } else if (propertyPath.indexOf('shapeProps.') === 0) {
-                let item = null;
-                if (element === 'self') {
-                    item = selfItem;
-                } else {
-                    item = schemeContainer.findFirstElementBySelector(element);
-                }
-                if (item && item.shape) {
-                    const shape = Shape.find(item.shape);
-                    const shapeArgName = propertyPath.substr('shapeProps.'.length);
-                    if (shape && shape.args && shape.args.hasOwnProperty(shapeArgName)) {
-                        return shape.args[shapeArgName].name;
-                    } else if (shape.shapeType === 'standard' && Shape.standardShapeProps.hasOwnProperty(shapeArgName)) {
-                        return Shape.standardShapeProps[shapeArgName].name;
-                    }
-                }
-            } else if (propertyPath.indexOf('textSlots.') === 0) {
-                const firstDotIdx = propertyPath.indexOf('.');
-                const secondDotIdx = propertyPath.indexOf('.', firstDotIdx + 1);
-                const textSlotName = propertyPath.substring(firstDotIdx + 1, secondDotIdx);
-                const textSlotField = propertyPath.substring(secondDotIdx + 1);
-                const fieldDescription = find(textSlotProperties, textSlotProperty => textSlotProperty.field === textSlotField);
-                if (fieldDescription) {
-                    return `Text / ${textSlotName} / ${fieldDescription.name}`;
-                }
-            }
-            return propertyPath;
+            return createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer);
         }
     },
 
