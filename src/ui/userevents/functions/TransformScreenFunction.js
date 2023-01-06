@@ -14,6 +14,7 @@ export default {
         x    : {name: 'x', type: 'number', value: 0},
         y    : {name: 'y', type: 'number', value: 0},
         scale: {name: 'scale', type: 'number', value: 0},
+        inBackground : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
     argsToShortString(args) {
@@ -24,7 +25,9 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-
+        if (args.inBackground) {
+            resultCallback();
+        }
         const oldX = schemeContainer.screenTransform.x;
         const oldY = schemeContainer.screenTransform.y;
         const oldZoom = schemeContainer.screenTransform.scale;
@@ -39,7 +42,9 @@ export default {
             },
             destroy: () => {
                 EditorEventBus.screenTransformUpdated.$emit(schemeContainer.editorId, schemeContainer.screenTransform);
-                resultCallback();
+                if (!args.inBackground) {
+                    resultCallback();
+                }
             }
         }), 'screen', 'screen-transform');
     }

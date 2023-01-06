@@ -4,6 +4,7 @@
 
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import {COMPONENT_DESTROYED} from '../../components/editor/items/shapes/Component.vue';
+import { traverseItems } from "../../scheme/Item";
 
 export default {
     name: 'Destroy component',
@@ -15,7 +16,14 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         try {
-            item._childItems = {};
+            if (Array.isArray(item._childItems)) {
+                item._childItems.forEach(childItem => {
+                    traverseItems(childItem, subItem => {
+                        userEventBus.clearEventsForItem(subItem.id);
+                    });
+                });
+            }
+            item._childItems = [];
             schemeContainer.reindexItems();
             userEventBus.emitItemEvent(item.id, COMPONENT_DESTROYED);
             EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);

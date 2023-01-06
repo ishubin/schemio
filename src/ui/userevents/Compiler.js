@@ -3,7 +3,10 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import forEach from 'lodash/forEach';
+import { Logger } from '../logger.js';
 import knownFunctions from './functions/Functions.js';
+
+const log = new Logger('Compiler');
 
 function enrichFuncArgs(args, funcDef) {
     forEach(funcDef.args, (argDef, argName) => {
@@ -59,6 +62,7 @@ export default class Compiler {
                 }
             }
         });
+        log.info('Compiling functions for item', selfItem? `${selfItem.id}/${selfItem.name}` : '');
 
         return (userEventBus, revision, subscribedItemId, eventName) => {
             const subscribedItem = schemeContainer.findItemById(subscribedItemId);
@@ -75,11 +79,12 @@ export default class Compiler {
 
                 let f = funcs[index];
                 if (userEventBus.isActionAllowed(revision)) {
+                    log.info('Executing', f.func.name, 'function');
                     f.func.execute(f.element, f.args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName);
-                } else {
                 }
             };
             if (userEventBus.isActionAllowed(revision)) {
+                log.info('Executing', funcs[0].func.name, 'function');
                 funcs[0].func.execute(funcs[0].element, funcs[0].args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName);
             }
         };

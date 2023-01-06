@@ -51,6 +51,12 @@ export default class UserEventBus {
         this.revision = shortid.generate();
     }
 
+    clearEventsForItem(itemId) {
+        if (this.itemEventSubscribers.hasOwnProperty(itemId)) {
+            delete this.itemEventSubscribers[itemId];
+        }
+    }
+
 
     isActionAllowed(revision) {
         return this.revision === revision;

@@ -96,27 +96,30 @@ function computeButtonPath(item) {
     const R = Math.min(item.shapeProps.buttonCornerRadius, area.w/2, area.h/2);
     const W = area.w;
     const H = area.h;
-    return `M ${area.w + W-R} ${area.y + H}  L ${area.x + R} ${area.y + H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L ${area.x} ${area.y+R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${area.x+W-R} ${area.y}   a ${R} ${R} 0 0 1 ${R} ${R}  L ${area.x+W} ${area.y+H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+    return `M ${W-R} ${area.y + H}  L ${area.x + R} ${area.y + H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L ${area.x} ${area.y+R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${area.x+W-R} ${area.y}   a ${R} ${R} 0 0 1 ${R} ${R}  L ${area.x+W} ${area.y+H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 }
 
 export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
 export const COMPONENT_DESTROYED = 'Component Destroyed';
 
-export function generateComponentGoBackButton(componentItem, containerArea, currentScreenTransform) {
+export function generateComponentGoBackButton(componentItem, containerItem, currentScreenTransform, screenWidth, screenHeight, scaleX, scaleY) {
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
     const btnWidth = 95;
     const btnHeight = 30;
+
+    const sx = componentItem.shapeProps.backButtonScale / (scaleX * 6);
+    const sy = componentItem.shapeProps.backButtonScale / (scaleY * 6);
     return {
         id: componentItem.id + '-go-back-btn',
         shape: 'rect',
         area: {
-            x: containerArea.w - btnWidth - componentItem.shapeProps.backButtonHPad,
-            y: componentItem.shapeProps.backButtonVPad,
+            x: containerItem.area.w - btnWidth - componentItem.shapeProps.backButtonHPad * sx,
+            y: componentItem.shapeProps.backButtonVPad * sy,
             w: btnWidth, h: btnHeight,
-            sx: 1, sy: 1, r: 0, px: 0.5, py: 0.5
+            sx, sy, r: 0, px: 1, py: 0
         },
         textSlots: {
             body: {
@@ -124,7 +127,7 @@ export function generateComponentGoBackButton(componentItem, containerArea, curr
                 color: componentItem.shapeProps.backButtonTextColor
             }
         },
-        opacity: 70,
+        selfOpacity: 50,
         visibile: true,
         cursor: 'pointer',
         shapeProps: {
@@ -144,7 +147,13 @@ export function generateComponentGoBackButton(componentItem, containerArea, curr
                         x: currentScreenTransform.x,
                         y: currentScreenTransform.y,
                         scale: currentScreenTransform.scale,
+                        inBackground: true
                     }
+                }, {
+                    id: shortid.generate(),
+                    element: '#' + containerItem.id,
+                    method: 'hide',
+                    args: { }
                 }, {
                     id: shortid.generate(),
                     element: '#' + componentItem.id,
@@ -176,7 +185,7 @@ export function generateComponentGoBackButton(componentItem, containerArea, curr
                     method: 'set',
                     args: {
                         field: 'selfOpacity',
-                        value: 70,
+                        value: 50,
                         animated: true,
                         animationDuration: 0.2,
                         transition: 'ease-in-out',
@@ -326,8 +335,9 @@ export default {
             showBackButton        : {type: 'boolean', value: true, name: 'Show back button', depends: {kind: 'external'}},
             backButtonFill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(102,102,102,1.0)'}, name: 'Button Fill', depends: {showBackButton: true, kind: 'external'}},
             backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
-            backButtonVPad        : {type: 'number', value: 20, name: 'Back Button Vertical Padding', depends: {showBackButton: true, kind: 'external'}},
-            backButtonHPad        : {type: 'number', value: 20, name: 'Back Button Horizontal Padding', depends: {showBackButton: true, kind: 'external'}},
+            backButtonVPad        : {type: 'number', value: 20, name: 'Back button vertical padding', depends: {showBackButton: true, kind: 'external'}},
+            backButtonHPad        : {type: 'number', value: 20, name: 'Back button horizontal padding', depends: {showBackButton: true, kind: 'external'}},
+            backButtonScale       : {type: 'number', value: 1.0, name: 'Back button scale', depends: {showBackButton: true, kind: 'external'}}
         },
 
         editorProps: {

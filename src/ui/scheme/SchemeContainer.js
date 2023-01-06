@@ -518,7 +518,7 @@ class SchemeContainer {
 
         rectItem._childItems = childItems;
         if (componentItem.shapeProps.kind === 'external') {
-            const backButton = generateComponentGoBackButton(componentItem, rectItem.area, this.screenTransform);
+            const backButton = generateComponentGoBackButton(componentItem, rectItem, this.screenTransform, this.screenSettings.width, this.screenSettings.height, sx, sy);
             if (backButton) {
                 rectItem._childItems.push(backButton);
             }
