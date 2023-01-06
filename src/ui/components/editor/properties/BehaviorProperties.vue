@@ -32,6 +32,7 @@
                     >
                     <span class="icon-event"><i class="fas fa-bell"></i></span>
                     <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
+                    <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
                 </dropdown>
             </div>
 
@@ -252,6 +253,12 @@ export default {
             meta.collapsed = collapsed === 1 ? true: false;
         });
 
+        const shape = Shape.find(this.item.shape);
+        let shapeEvents = [];
+        if (shape.getEvents) {
+            shapeEvents = shape.getEvents(this.item).map(shapeEvent => shapeEvent.name);
+        }
+
         return {
             items: items,
             eventOptions: this.createEventOptions(),
@@ -266,6 +273,7 @@ export default {
             itemTag: '',
             existingItemTags: map(this.schemeContainer.itemTags, tag => {return {text: tag}}),
 
+            shapeEvents,
             dragging: {
                 action: null,
                 eventIndex: -1,
@@ -458,7 +466,7 @@ export default {
         },
 
         isStandardEvent(event) {
-            return indexOf(standardItemEventIds, event) >= 0;
+            return indexOf(standardItemEventIds, event) >= 0 || indexOf(this.shapeEvents, event) >= 0;
         },
 
         addBehaviorEvent() {
