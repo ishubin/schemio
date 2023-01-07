@@ -565,17 +565,21 @@ class SchemeContainer {
         }
 
         const overlayRect = createDefaultRectItem();
+        overlayRect.id = shortid.generate();
         overlayRect.area.x = 0;
         overlayRect.area.y = 0;
         overlayRect.area.w = componentItem.area.w;
         overlayRect.area.h = componentItem.area.h;
         overlayRect.selfOpacity = 0;
+        overlayRect.meta = {isComponentContainer: true};
+        overlayRect.name = 'Overlay container';
 
         const rectItem = createDefaultRectItem();
         rectItem.shape = 'dummy';
         rectItem.selfOpacity = 0;
         rectItem.id = shortid.generate();
         rectItem.meta = {isComponentContainer: true};
+        rectItem.name = 'Scaled container';
         rectItem.area.x = dx;
         rectItem.area.y = dy;
         rectItem.area.w = w;
