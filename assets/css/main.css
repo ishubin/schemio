@@ -3310,6 +3310,12 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     .scheme-editor-view .header {
         display: none;
     }
+    .scheme-editor-view.diagram-404-view .header {
+        display: block;
+    }
+    .scheme-editor-view.diagram-404-view .middle-content {
+        padding-left: 40px;
+    }
 }
 
 
