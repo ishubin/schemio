@@ -110,14 +110,14 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
     const btnWidth = 95;
     const btnHeight = 30;
 
-    const sx = componentItem.shapeProps.backButtonScale / (scaleX * 6);
-    const sy = componentItem.shapeProps.backButtonScale / (scaleY * 6);
+    const sx = componentItem.shapeProps.backButtonScale / Math.max(0.001, (scaleX * 6));
+    const sy = componentItem.shapeProps.backButtonScale / Math.max(0.001, (scaleY * 6));
     return {
         id: componentItem.id + '-go-back-btn',
         shape: 'rect',
         area: {
-            x: containerItem.area.w - btnWidth - componentItem.shapeProps.backButtonHPad * sx,
-            y: componentItem.shapeProps.backButtonVPad * sy,
+            x: containerItem.area.w - btnWidth - componentItem.shapeProps.backButtonHPad * sx + containerItem.area.x / Math.max(0.001, scaleX),
+            y: componentItem.shapeProps.backButtonVPad * sy - containerItem.area.y / Math.max(0.001, scaleY),
             w: btnWidth, h: btnHeight,
             sx, sy, r: 0, px: 1, py: 0
         },
