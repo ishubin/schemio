@@ -255,7 +255,7 @@ export default {
                 }
 
                 this.dragging.items.forEach(draggedItem => {
-                    traverseItems(draggedItem, item => {
+                    traverseItems([draggedItem], item => {
                         draggedItemIds.add(item.id);
                     });
                 });

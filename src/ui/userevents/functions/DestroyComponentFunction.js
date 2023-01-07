@@ -16,13 +16,9 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         try {
-            if (Array.isArray(item._childItems)) {
-                item._childItems.forEach(childItem => {
-                    traverseItems(childItem, subItem => {
-                        userEventBus.clearEventsForItem(subItem.id);
-                    });
-                });
-            }
+            traverseItems(item._childItems, subItem => {
+                userEventBus.clearEventsForItem(subItem.id);
+            });
             item._childItems = [];
             schemeContainer.reindexItems();
             userEventBus.emitItemEvent(item.id, COMPONENT_DESTROYED);

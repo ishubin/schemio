@@ -137,7 +137,7 @@ export function convertShapeToStandardCurves(rootItem) {
 
     const w = rootItem.area.w;
     const h = rootItem.area.h;
-    
+
     if (Math.abs(w) < 0.01 || Math.abs(h) < 0.01) {
         throw new Error('Root item should have proper area');
     }
@@ -146,8 +146,8 @@ export function convertShapeToStandardCurves(rootItem) {
 
     // storing text slot names in hashtable so that there are no overlapping names
     const textSlotNames = new Set();
-    
-    traverseItems(rootItem, item => {
+
+    traverseItems([rootItem], item => {
         const worldPoint = worldPointOnItem(0, 0, item);
 
         if (item.name === 'outline' || (item.tags && indexOf(item.tags, 'outline') >= 0)) {

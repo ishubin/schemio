@@ -71,6 +71,4 @@ export default {
         repeater            : RepeaterFunction,
         stopRepeater        : StopRepeaterFunction
     },
-    scheme: {
-    }
 };

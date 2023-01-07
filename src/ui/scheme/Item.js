@@ -173,18 +173,20 @@ export function defaultifyItem(item) {
     return resultedItem;
 }
 
-export function traverseItems(rootItem, callback) {
-    callback(rootItem);
-    if (rootItem.childItems) {
-        forEach(rootItem.childItems, item => {
-            traverseItems(item, callback);
-        });
+export function traverseItems(items, callback) {
+    if (!Array.isArray(items)) {
+        return;
     }
-    if (rootItem._childItems) {
-        forEach(rootItem._childItems, item => {
-            traverseItems(item, callback);
-        });
-    }
+
+    items.forEach(item => {
+        callback(item);
+        if (item.childItems) {
+            traverseItems(item.childItems, callback);
+        }
+        if (item._childItems) {
+            traverseItems(item._childItems, callback);
+        }
+    });
 }
 
 /**

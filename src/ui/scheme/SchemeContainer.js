@@ -462,6 +462,66 @@ class SchemeContainer {
         });
     }
 
+    /*
+        Traverses all items and makes their tags and tag selectors unique.
+        This is needed so that behavior actions defined inside components affects only items within itself
+    */
+    isolateItemTags(items) {
+        const tagConversions = new Map();
+        traverseItems(items, item => {
+            if (!Array.isArray(item.tags)) {
+                return;
+            }
+            item.tags = item.tags.map(tag => {
+                if (tagConversions.has(tag)) {
+                    return tagConversions.get(tag);
+                }
+                const convertedTag = `${tag}-${shortid.generate()}`;
+                tagConversions.set(tag, convertedTag);
+                return convertedTag;
+            });
+        });
+
+        const replaceSelector = (selector) => {
+            if (!selector) {
+                return selector;
+            }
+            const colonIndex = selector.indexOf(':');
+            if (colonIndex > 0) {
+                const expression = selector.substring(0, colonIndex).trim();
+                if (expression === 'tag') {
+                    const tag = selector.substr(colonIndex + 1).trim();
+                    if (tagConversions.has(tag)) {
+                        return `tag: ${tagConversions.get(tag)}`;
+                    }
+                }
+            }
+            return selector;
+        };
+
+        traverseItems(items, item => {
+            if (!item.behavior || !Array.isArray(item.behavior.events)) {
+                return;
+            }
+            item.behavior.events.forEach(event => {
+                if (!Array.isArray(event.actions)) {
+                    return;
+                }
+                event.actions.forEach(action => {
+                    action.element = replaceSelector(action.element);
+                    if (action.args && Functions.main.hasOwnProperty(action.method)) {
+                        const argDefs = Functions.main[action.method].args;
+                        forEach(argDefs, (argDef, argName) => {
+                            if (argDef.type === 'element') {
+                                action.args[argName] = replaceSelector(action.args[argName]);
+                            }
+                        });
+                    }
+                });
+            })
+        });
+    }
+
     attachItemsToComponentItem(componentItem, referenceItems) {
         if (!referenceItems) {
             return;
@@ -470,6 +530,8 @@ class SchemeContainer {
         const shouldIndexClones = true;
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
+
+        this.isolateItemTags(childItems);
 
         const bBox = this.getBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
@@ -1766,7 +1828,7 @@ class SchemeContainer {
         } else {
             const colonIndex = selector.indexOf(':');
             if (colonIndex > 0) {
-                const expression = selector.substring(0, colonIndex);
+                const expression = selector.substring(0, colonIndex).trim();
                 if (expression === 'tag') {
                     return this.findItemsByTag(selector.substr(colonIndex + 1).trim());
                 }
@@ -1879,14 +1941,12 @@ class SchemeContainer {
 
         // collecting id conversions so that later it could be used for converting attached connectors
         const idOldToNewConversions = new Map();
-        forEach(copiedItems, copiedItem => {
-            traverseItems(copiedItem, item => {
-                idOldToNewConversions.set(item.meta.oldId, item.id);
+        traverseItems(copiedItems, item => {
+            idOldToNewConversions.set(item.meta.oldId, item.id);
 
-                if (shouldIndexClones) {
-                    this.indexSingleCloneItem(item.meta.oldId, item.id);
-                }
-            });
+            if (shouldIndexClones) {
+                this.indexSingleCloneItem(item.meta.oldId, item.id);
+            }
         });
 
         //TODO OPTIMIZE: we don't need to execute code below for a scheme container in edit mode
@@ -1902,47 +1962,45 @@ class SchemeContainer {
             return elementSelector;
         };
 
-        forEach(copiedItems, copiedItem => {
-            traverseItems(copiedItem, item => {
-                if (item.shape === 'connector') {
-                    item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
-                    item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
-                }
+        traverseItems(copiedItems, item => {
+            if (item.shape === 'connector') {
+                item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
+                item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
+            }
 
-                if (item.shape === 'frame_player') {
-                    forEach(item.shapeProps.animations, animation => {
-                        if (animation.kind === 'item') {
-                            animation.id = idOldToNewConversions.get(animation.id);
+            if (item.shape === 'frame_player') {
+                forEach(item.shapeProps.animations, animation => {
+                    if (animation.kind === 'item') {
+                        animation.id = idOldToNewConversions.get(animation.id);
+                    }
+                });
+                forEach(item.shapeProps.functions, animationFunction => {
+                    const funcDef = AnimationFunctions[animationFunction.functionId];
+                    if (!funcDef) {
+                        return;
+                    }
+                    forEach(funcDef.args, (argDef, argName) => {
+                        if (argDef.type === 'element') {
+                            animationFunction.args[argName] = rebuildElementSelector(animationFunction.args[argName]);
                         }
                     });
-                    forEach(item.shapeProps.functions, animationFunction => {
-                        const funcDef = AnimationFunctions[animationFunction.functionId];
-                        if (!funcDef) {
-                            return;
-                        }
-                        forEach(funcDef.args, (argDef, argName) => {
-                            if (argDef.type === 'element') {
-                                animationFunction.args[argName] = rebuildElementSelector(animationFunction.args[argName]);
+                });
+            }
+
+
+            // converting behavior events as well
+            forEach(item.behavior.events, behaviorEvent => {
+                forEach(behaviorEvent.actions, action => {
+                    action.element = rebuildElementSelector(action.element);
+
+                    // converting element args of the function calls (e.g. path in "move" function)
+                    if (Functions.main[action.method]) {
+                        forEach(Functions.main[action.method].args, (argConfig, argName) => {
+                            if (argConfig.type === 'element' && action.args[argName]) {
+                                action.args[argName] = rebuildElementSelector(action.args[argName]);
                             }
                         });
-                    });
-                }
-
-
-                // converting behavior events as well
-                forEach(item.behavior.events, behaviorEvent => {
-                    forEach(behaviorEvent.actions, action => {
-                        action.element = rebuildElementSelector(action.element);
-
-                        // converting element args of the function calls (e.g. path in "move" function)
-                        if (Functions.main[action.method]) {
-                            forEach(Functions.main[action.method].args, (argConfig, argName) => {
-                                if (argConfig.type === 'element' && action.args[argName]) {
-                                    action.args[argName] = rebuildElementSelector(action.args[argName]);
-                                }
-                            });
-                        }
-                    });
+                    }
                 });
             });
         });

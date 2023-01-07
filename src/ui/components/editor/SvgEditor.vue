@@ -627,19 +627,17 @@ export default {
          * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
          */
         indexUserEventsInItems(items, itemsForInit) {
-            forEach(items, rootItem => {
-                traverseItems(rootItem, item => {
-                    if (item.behavior && item.behavior.events) {
-                        forEach(item.behavior.events, event => {
-                            const eventCallback = behaviorCompiler.compileActions(this.schemeContainer, item, event.actions);
+            traverseItems(items, item => {
+                if (item.behavior && item.behavior.events) {
+                    forEach(item.behavior.events, event => {
+                        const eventCallback = behaviorCompiler.compileActions(this.schemeContainer, item, event.actions);
 
-                            if (event.event === Events.standardEvents.init.id) {
-                                itemsForInit[item.id] = 1;
-                            }
-                            this.userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
-                        });
-                    }
-                });
+                        if (event.event === Events.standardEvents.init.id) {
+                            itemsForInit[item.id] = 1;
+                        }
+                        this.userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
+                    });
+                }
             });
         },
 

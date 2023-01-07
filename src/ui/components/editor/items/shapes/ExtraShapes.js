@@ -35,15 +35,11 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
 
 function collectMissingShapes(items) {
     const missingShapes = new Set();
-    if (Array.isArray(items)) {
-        items.forEach(rootItem => {
-            traverseItems(rootItem, item => {
-                if (item.shape && !Shape.find(item.shape)) {
-                    missingShapes.add(item.shape);
-                }
-            });
-        })
-    }
+    traverseItems(items, item => {
+        if (item.shape && !Shape.find(item.shape)) {
+            missingShapes.add(item.shape);
+        }
+    });
 
     return Array.from(missingShapes);
 }

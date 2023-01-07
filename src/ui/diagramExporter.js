@@ -82,7 +82,7 @@ export function prepareDiagramForPictureExport(items) {
  */
 function calculateBoundingBoxOfAllSubItems(parentItem) {
     const items = [];
-    traverseItems(parentItem, item => {
+    traverseItems([parentItem], item => {
         if (item.visible && item.opacity > 0.0001) {
             // we don't want dummy shapes to effect the view area as these shapes are not supposed to be visible
             if (item.shape !== 'dummy' && item.selfOpacity > 0.0001) {
