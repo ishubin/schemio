@@ -132,7 +132,7 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
         visibile: true,
         cursor: 'pointer',
         shapeProps: {
-            cornerRadius: 15,
+            cornerRadius: componentItem.shapeProps.backButtonCornerRadius,
             strokeSize: 0,
             fill: componentItem.shapeProps.backButtonFill
         },
@@ -341,6 +341,7 @@ export default {
             backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
             backButtonVPad        : {type: 'number', value: 20, name: 'Back button vertical padding', depends: {showBackButton: true, kind: 'external'}},
             backButtonHPad        : {type: 'number', value: 20, name: 'Back button horizontal padding', depends: {showBackButton: true, kind: 'external'}},
+            backButtonCornerRadius: {type: 'number', value: 15, name: 'Back button corner radius', depends: {showBackButton: true, kind: 'external'}},
             backButtonScale       : {type: 'number', value: 1.0, name: 'Back button scale', depends: {showBackButton: true, kind: 'external'}}
         },
 
