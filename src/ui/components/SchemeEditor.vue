@@ -1929,6 +1929,9 @@ export default {
             this.interactiveSchemeContainer = null;
             this.animationRegistry.stopAllAnimations();
             this.switchStateDragItem();
+            if (this.sidePanelRightWidth === 0) {
+                this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
+            }
         },
 
         onDrawColorPicked(color) {
