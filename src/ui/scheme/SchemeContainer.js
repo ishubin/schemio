@@ -564,6 +564,13 @@ class SchemeContainer {
             dy = (componentItem.area.h - h * sy) / 2;
         }
 
+        const overlayRect = createDefaultRectItem();
+        overlayRect.area.x = 0;
+        overlayRect.area.y = 0;
+        overlayRect.area.w = componentItem.area.w;
+        overlayRect.area.h = componentItem.area.h;
+        overlayRect.selfOpacity = 0;
+
         const rectItem = createDefaultRectItem();
         rectItem.shape = 'dummy';
         rectItem.selfOpacity = 0;
@@ -579,14 +586,16 @@ class SchemeContainer {
         rectItem.area.sy = sy;
 
         rectItem._childItems = childItems;
+        overlayRect._childItems = [rectItem];
+
         if (componentItem.shapeProps.kind === 'external') {
-            const backButton = generateComponentGoBackButton(componentItem, rectItem, this.screenTransform, this.screenSettings.width, this.screenSettings.height, sx, sy);
+            const backButton = generateComponentGoBackButton(componentItem, overlayRect, this.screenTransform, this.screenSettings.width, this.screenSettings.height);
             if (backButton) {
-                rectItem._childItems.push(backButton);
+                overlayRect._childItems.push(backButton);
             }
         }
 
-        componentItem._childItems = [rectItem];
+        componentItem._childItems = [overlayRect];
 
         const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
         const nonIndexable = false;

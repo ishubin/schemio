@@ -37,6 +37,11 @@ function sendEventToItems(items, event, userEventBus) {
         return;
     }
     items.forEach(item => {
-        userEventBus.emitItemEvent(item.id, event);
+        if (item.meta.isComponentContainer) {
+            sendEventToItems(item.childItems, event, userEventBus);
+            sendEventToItems(item._childItems, event, userEventBus);
+        } else {
+            userEventBus.emitItemEvent(item.id, event);
+        }
     });
 }

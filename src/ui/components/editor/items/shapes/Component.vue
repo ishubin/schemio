@@ -103,23 +103,24 @@ export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
 export const COMPONENT_DESTROYED = 'Component Destroyed';
 
-export function generateComponentGoBackButton(componentItem, containerItem, currentScreenTransform, screenWidth, screenHeight, scaleX, scaleY) {
+export function generateComponentGoBackButton(componentItem, containerItem, currentScreenTransform, screenWidth, screenHeight) {
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
     const btnWidth = 95;
     const btnHeight = 30;
 
-    const sx = componentItem.shapeProps.backButtonScale / Math.max(0.001, (scaleX * 6));
-    const sy = componentItem.shapeProps.backButtonScale / Math.max(0.001, (scaleY * 6));
+    const sx = componentItem.area.w / (20 * btnWidth);
+    const sy = componentItem.area.h / (20 * btnHeight);
+    const scale = Math.max(sx, sy) * componentItem.shapeProps.backButtonScale;
     return {
         id: componentItem.id + '-go-back-btn',
         shape: 'rect',
         area: {
-            x: containerItem.area.w - btnWidth - componentItem.shapeProps.backButtonHPad * sx + containerItem.area.x / Math.max(0.001, scaleX),
-            y: componentItem.shapeProps.backButtonVPad * sy - containerItem.area.y / Math.max(0.001, scaleY),
+            x: 0 + componentItem.area.w - (btnWidth + componentItem.shapeProps.backButtonHPad) * scale,
+            y: (btnHeight - componentItem.shapeProps.backButtonVPad) * scale,
             w: btnWidth, h: btnHeight,
-            sx, sy, r: 0, px: 1, py: 0
+            sx: scale, sy: scale, r: 0, px: 0, py: 0
         },
         textSlots: {
             body: {

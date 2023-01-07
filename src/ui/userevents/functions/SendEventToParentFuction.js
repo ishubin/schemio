@@ -16,17 +16,21 @@ It can be used for cross-component communication`,
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item.meta && item.meta.parentId) {
-            userEventBus.emitItemEvent(item.meta.parentId, args.event);
-
-            const parent = schemeContainer.findItemById(item.meta.parentId);
-            if (!parent) {
-                return;
-            }
-            // retransmitting event to component holder
-            if (parent.meta.isComponentContainer && parent.meta.parentId) {
-                userEventBus.emitItemEvent(parent.meta.parentId, args.event);
-            }
+            sentEventToParent(item, args.event, userEventBus, schemeContainer);
         }
         resultCallback();
+    }
+}
+
+function sentEventToParent(item, event, userEventBus, schemeContainer) {
+    userEventBus.emitItemEvent(item.meta.parentId, event);
+
+    const parent = schemeContainer.findItemById(item.meta.parentId);
+    if (!parent) {
+        return;
+    }
+    // retransmitting event to component holder
+    if (parent.meta.isComponentContainer && parent.meta.parentId) {
+        sentEventToParent(parent, event, userEventBus, schemeContainer)
     }
 }
