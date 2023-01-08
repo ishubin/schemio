@@ -41,7 +41,8 @@ const buttonSpaceSize = 4;
 function computeButtons(item) {
     const buttonsCount = item.shapeProps.sections.length > 0 ? 5 : 1;
     const leftOffset = item.area.w / 2 - (buttonSize * (buttonsCount/ 2) + buttonSpaceSize * (buttonsCount - 1) / 2);
-    const topOffset = Math.max(0, item.area.h - 60);
+    const buttonBottomPadding = item.shapeProps.sections.length > 0 ? 60 : 30;
+    const topOffset = Math.max(0, item.area.h - buttonBottomPadding);
 
     const r = buttonSize / 2;
 
@@ -64,7 +65,7 @@ function computeButtons(item) {
             generateButton(4, 'fast-forward',   'fas fa-fast-forward', 'fas fa-fast-forward'),
         ];
     } else {
-        return [generateButton(0, 'fas fa-play', 'fas fa-pause')];
+        return [generateButton(0, 'play-stop', 'fas fa-play', 'fas fa-pause')];
     }
 }
 
@@ -97,8 +98,9 @@ export default {
         },
 
         getTextSlots(item) {
+            const buttonBottomPadding = item.shapeProps.sections.length > 0 ? 60 : 30;
             return [{
-                name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - 60)}
+                name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.area.h - buttonBottomPadding)}
             }];
         },
 
