@@ -311,6 +311,8 @@ export default {
                     this.navigatorWidth = 30;
                     this.collapsed = true;
                 }
+
+                this.$emit('navigator-resized');
             })
             .build();
         },

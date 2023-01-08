@@ -250,6 +250,8 @@ export default {
 
         EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.updateClickableMarkers);
+
+        EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
     },
     mounted() {
         this.updateSvgSize();
@@ -285,6 +287,8 @@ export default {
 
         EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.updateClickableMarkers);
+
+        EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
 
         if (this.useMouseWheel) {
             const svgElement = this.$refs.svgDomElement;

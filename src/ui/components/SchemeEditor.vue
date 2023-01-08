@@ -833,6 +833,7 @@ export default {
         EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
         EditorEventBus.elementPick.canceled.$on(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
+        EditorEventBus.editorResized.$on(this.editorId, this.onWindowResize);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -848,6 +849,7 @@ export default {
         EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
         EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
+        EditorEventBus.editorResized.$off(this.editorId, this.onWindowResize);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         destroyAnimationRegistry(this.editorId);

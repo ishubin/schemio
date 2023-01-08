@@ -14,6 +14,7 @@
             @renamed-diagram="onDiagramRenamed"
             @moved-entries="onFileTreeEntriesMoved"
             @new-diagram-requested="onNewDiagramRequested"
+            @navigator-resized="onNavigatorResized"
             />
         <div class="elec-main-body">
             <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
@@ -758,6 +759,16 @@ export default {
                 this.contextMenu.options.get(label).clicked();
             }
         },
+
+        onNavigatorResized() {
+            if (this.currentOpenFileIdx < 0 || this.currentOpenFileIdx >= this.files.length) {
+                return;
+            }
+
+            const file = this.files[this.currentOpenFileIdx];
+            EditorEventBus.editorResized.$emit(file.editorId);
+        },
+
 
         onNewDiagramRequested(folderPath) {
             this.newDiagramModal.folderPath = folderPath;

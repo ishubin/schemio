@@ -281,6 +281,12 @@ const EditorEventBus = {
             $off: (editorId, callback) => $off(editorId, 'clickable-markers-toggled', [], callback),
             $emit: (editorId) => $emit(editorId, 'clickable-markers-toggled', []),
         }
+    },
+
+    editorResized: {
+        $on: (editorId, callback) => $on(editorId, 'editor-resized', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'editor-resized', [], callback),
+        $emit: (editorId) => $emit(editorId, 'editor-resized', []),
     }
 };
 
