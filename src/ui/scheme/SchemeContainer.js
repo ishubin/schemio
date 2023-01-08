@@ -581,9 +581,10 @@ class SchemeContainer {
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
 
-        this.isolateItemTags(childItems);
+        if (componentItem.shapeProps.kind === 'external') {
+            this.isolateItemTags(childItems);
+        }
 
-        // const bBox = getBoundingBoxOfItems(referenceItems);
         const bBox = getLocalBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
             item.area.x -= bBox.x;
