@@ -464,7 +464,11 @@ export default {
         },
 
         touchStart(event) {
-            event.preventDefault();
+            if (this.mouseEventsEnabled) {
+                event.preventDefault();
+            } else {
+                return;
+            }
             const coords = this.mouseCoordsFromEvent(event);
             const now = performance.now();
 
@@ -479,16 +483,28 @@ export default {
             this.lastTouchStartCoords = coords;
         },
         touchEnd(event) {
-            event.preventDefault();
+            if (this.mouseEventsEnabled) {
+                event.preventDefault();
+            } else {
+                return;
+            }
             this.mouseEvent('mouse-up', event);
         },
         touchMove(event) {
-            event.preventDefault();
+            if (this.mouseEventsEnabled) {
+                event.preventDefault();
+            } else {
+                return;
+            }
             this.mouseEvent('mouse-move', event);
         },
 
         mouseMove(event) {
-            event.preventDefault();
+            if (this.mouseEventsEnabled) {
+                event.preventDefault();
+            } else {
+                return;
+            }
             this.mouseEvent('mouse-move', event);
         },
         mouseDown(event) {

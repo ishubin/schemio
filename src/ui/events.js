@@ -72,7 +72,6 @@ function handleKeyPress(event, isDown) {
     }
     const key = identifyKeyPress(event);
     if (key) {
-        event.preventDefault();
         if (!isDown) {
             lastKeyPressed = null;
         } else {
