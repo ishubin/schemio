@@ -16,6 +16,7 @@ Features of Schemio:
 - Various animation functions: you can have smooth transitions like fade in or fade out, move items, render particle effect etc.
 - Export entire diagram or only selected objects as SVG
 - Generate static version of all of your diagrams so that you can host it anywhere, even on GitHub pages
+- Desktop version
 
 
 ![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot.png?raw=true)
@@ -37,10 +38,10 @@ Introduction to interactive diagrams with Schemio (Youtube video)
 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/NM2RS1JhRkk/0.jpg)](http://www.youtube.com/watch?v=NM2RS1JhRkk "Introduction to interactive diagrams with Schemio")
 
-Configuration
----------------
+Configuration of server-based version of Schemio
+--------------------------------------------------
 
-You can configure Schemio via the following environent variables
+You can configure Schemio via the following environment variables
 
 | Env var                | Default value  | Description |
 | ---------------------- | -------------- | ----------- |
@@ -68,6 +69,20 @@ docker run -v "$(pwd):/opt/schemio" \
 ```
 
 Don't forget to pull latest changes as Schemio is frequently updated.
+
+
+Desktop version
+------------------
+
+From version 0.9.0 Schemio is also distributed as a desktop application on Linux, Mac and Windows. You can download a binary for your OS from the release page https://github.com/ishubin/schemio/releases/tag/v0.9.0.
+
+* Mac: [schemio-darwin-x64-0.9.0.zip](https://github.com/ishubin/schemio/releases/download/v0.9.0/schemio-darwin-x64-0.9.0.zip)
+* Windows: [schemio-0.9.0.Setup.exe](https://github.com/ishubin/schemio/releases/download/v0.9.0/schemio-0.9.0.Setup.exe)
+* Linux:
+    * RPM: [schemio-0.9.0-1.x86_64.rpm](https://github.com/ishubin/schemio/releases/download/v0.9.0/schemio-0.9.0-1.x86_64.rpm)
+    * DEB: [schemio_0.9.0_amd64.deb](https://github.com/ishubin/schemio/releases/download/v0.9.0/schemio_0.9.0_amd64.deb)
+
+
 
 
 License
