@@ -84,6 +84,56 @@ export function worldVectorOnItem(x, y, item) {
     };
 }
 
+export function getLocalBoundingBoxOfItems(items) {
+    if (!items || items.length === 0) {
+        return {x: 0, y: 0, w: 0, h: 0};
+    }
+
+    let range = null;
+
+    forEach(items, item => {
+        const points = [
+            {x: item.area.x, y: item.area.y},
+            {x: item.area.x + item.area.w, y: item.area.y},
+            {x: item.area.x + item.area.w, y: item.area.y + item.area.h},
+            {x: item.area.x, y: item.area.y + item.area.h},
+        ];
+
+        forEach(points, point => {
+            if (!range) {
+                range = {
+                    x1: point.x,
+                    x2: point.x,
+                    y1: point.y,
+                    y2: point.y,
+                }
+            } else {
+                if (range.x1 > point.x) {
+                    range.x1 = point.x;
+                }
+                if (range.x2 < point.x) {
+                    range.x2 = point.x;
+                }
+                if (range.y1 > point.y) {
+                    range.y1 = point.y;
+                }
+                if (range.y2 < point.y) {
+                    range.y2 = point.y;
+                }
+            }
+        });
+    });
+
+    const schemeBoundaryBox = {
+        x: range.x1,
+        y: range.y1,
+        w: range.x2 - range.x1,
+        h: range.y2 - range.y1,
+    };
+
+    return schemeBoundaryBox;
+}
+
 export function getBoundingBoxOfItems(items) {
     if (!items || items.length === 0) {
         return {x: 0, y: 0, w: 0, h: 0};
@@ -533,10 +583,12 @@ class SchemeContainer {
 
         this.isolateItemTags(childItems);
 
-        const bBox = this.getBoundingBoxOfItems(referenceItems);
+        // const bBox = getBoundingBoxOfItems(referenceItems);
+        const bBox = getLocalBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
             item.area.x -= bBox.x;
             item.area.y -= bBox.y;
+
             // resetting the visiblity of component root items
             // so that the reference item can be hidden and not effect the component
             item.opacity = 100;
@@ -624,7 +676,7 @@ class SchemeContainer {
             }
         });
 
-        const bBox = this.getBoundingBoxOfItems(referenceItems);
+        const bBox = getBoundingBoxOfItems(referenceItems);
         let scale = 1.0, dx = 0, dy = 0;
         let w = Math.max(bBox.w, 0.00001);
         let h = Math.max(bBox.h, 0.00001);
