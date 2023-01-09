@@ -668,16 +668,21 @@ class SchemeContainer {
             return;
         }
 
+        const componentContainer = componentItem._childItems[0]._childItems[0];
+        if (componentContainer._childItems.length === 0) {
+            return;
+        }
+
         //TODO optimize this code. It is executed only during resizing of edit box. The following data can be cached since there is only one edit box at a time.
         const referenceItems = [];
-        componentItem._childItems[0]._childItems.forEach(cloneItem => {
+        componentContainer._childItems.forEach(cloneItem => {
             const referenceItemId = this.itemCloneReferenceIds.get(cloneItem.id);
             if (referenceItemId) {
                 referenceItems.push(this.findItemById(referenceItemId));
             }
         });
 
-        const bBox = getBoundingBoxOfItems(referenceItems);
+        const bBox = getLocalBoundingBoxOfItems(referenceItems);
         let scale = 1.0, dx = 0, dy = 0;
         let w = Math.max(bBox.w, 0.00001);
         let h = Math.max(bBox.h, 0.00001);
@@ -692,12 +697,12 @@ class SchemeContainer {
             dy = (componentItem.area.h - h * sy) / 2;
         }
 
-        componentItem._childItems[0].area.x = dx;
-        componentItem._childItems[0].area.y = dy;
-        componentItem._childItems[0].area.w = w;
-        componentItem._childItems[0].area.h = h;
-        componentItem._childItems[0].area.sx = sx;
-        componentItem._childItems[0].area.sy = sy;
+        componentContainer.area.x = dx;
+        componentContainer.area.y = dy;
+        componentContainer.area.w = w;
+        componentContainer.area.h = h;
+        componentContainer.area.sx = sx;
+        componentContainer.area.sy = sy;
     }
 
     reindexChildItems(mainItem) {
@@ -2218,10 +2223,10 @@ class SchemeContainer {
                     const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
                     item.area.w = Math.max(0, localBottomRight.x);
                     item.area.h = Math.max(0, localBottomRight.y);
-                }
 
-                if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
-                    this.readjustComponentContainerRect(item);
+                    if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
+                        this.readjustComponentContainerRect(item);
+                    }
                 }
 
                 this.updateChildTransforms(item);
