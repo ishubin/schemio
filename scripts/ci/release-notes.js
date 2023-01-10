@@ -29,7 +29,7 @@ classMappings[FIXED] = new Set([ 'fixed', 'fix' ]);
 classMappings[REMOVED] = new Set([ 'removed' ]);
 classMappings[IMPROVEMENTS] = new Set([ 'optimized', 'improved' ]);
 
-const ignorePrefixes = ['ci:', 'update readme', 'updated version', 'chore:', 'revert'];
+const ignorePrefixes = ['ci:', 'update readme', 'updated readme', 'updated version', 'chore:', 'revert'];
 
 /**
  *
@@ -93,7 +93,8 @@ function generateReleaseNotes(commitMessages) {
             result += `### ${section}\n\n`;
 
             sections.get(section).forEach(message => {
-                result += `* ${message}\n`
+                const commitText = message.substring(0, 1).toUpperCase() + message.substring(1);
+                result += `* ${commitText}\n`
             });
             isFirstSection = false;
         }
@@ -101,10 +102,9 @@ function generateReleaseNotes(commitMessages) {
     return result;
 }
 
+const chain = process.argv.length > 2 ? Promise.resolve(process.argv[2]) : execute('git tag | sort -V -r | head -n 1');
 
-
-execute('git tag | sort -V -r | head -n 1')
-.then((gitTag) => {
+chain.then((gitTag) => {
     if (!gitTag) {
         throw new Error('Missing git tag');
     }
