@@ -4,12 +4,16 @@
 
 import Vue from 'vue';
 import store from './store/Store.js';
+import {createHasher} from './url/hasher.js';
 import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 
 window.Schemio = {
-    components: { Vue, Modal, CreateNewSchemeModal},
+    components: { Vue, Modal, CreateNewSchemeModal },
+    utils: {
+        createHasher,
+    },
     /**
      *
      * @param {*} querySelector
@@ -30,14 +34,24 @@ window.Schemio = {
         new Vue({
             el: querySelector,
             components: { appComponent },
-            render: h => h('appComponent', {props: {
-                editorId         : options.editorId || 'default',
-                scheme           : options.scheme || null,
-                editAllowed      : options.editAllowed || false,
-                userStylesEnabled: options.userStylesEnabled || false,
-                menuOptions      : options.menuOptions || [],
-                comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
-            }})
+            render: h => h('appComponent', {
+                props: {
+                    editorId         : options.editorId || 'default',
+                    scheme           : options.scheme || null,
+                    editorMode       : options.editorMode || 'view',
+                    editAllowed      : options.editAllowed || false,
+                    userStylesEnabled: options.userStylesEnabled || false,
+                    menuOptions      : options.menuOptions || [],
+                    comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
+                },
+                on: {
+                    'mode-changed': (mode) => {
+                        if (options.onModeChanged) {
+                            options.onModeChanged(mode);
+                        }
+                    }
+                }
+            })
         });
     }
 }
