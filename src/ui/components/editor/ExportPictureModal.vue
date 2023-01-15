@@ -69,6 +69,7 @@ import NumberTextfield from '../NumberTextfield.vue';
 import map from 'lodash/map';
 import forEach from 'lodash/forEach';
 import {rasterizeAllImagesToDataURL} from '../../svgPreview';
+import { encode } from 'js-base64';
 
 
 
@@ -156,7 +157,7 @@ export default {
                 }
 
                 const svgCode = svgDom.outerHTML;
-                const svgDataUrl = `data:image/svg+xml;base64,${btoa(svgCode)}`;
+                const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
 
                 if (this.kind === 'svg') {
                     this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);

@@ -1,6 +1,8 @@
+import { encode } from 'js-base64';
+
 export function downloadContent(fileName, mimeType, content) {
     fileName = fileName.replace(/[^a-zA-Z0-9\-\_\.]/g, '-').replace(/\s/g, '-');
-    const dataUrl = `data:${mimeType};base64,${btoa(content)}`;
+    const dataUrl = `data:${mimeType};base64,${encode(content)}`;
 
     const link = document.createElement('a');
     document.body.appendChild(link);

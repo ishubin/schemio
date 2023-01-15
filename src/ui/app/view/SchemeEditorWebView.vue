@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div style="height: 100%; display: flex; flex-direction: column" class="scheme-editor-view" :class="{'diagram-404-view': is404}">
+    <div class="scheme-editor-view" :class="{'diagram-404-view': is404}">
         <schemio-header>
             <div slot="middle-section">
                 <ul class="header-breadcrumbs">
@@ -33,7 +33,7 @@
         <div v-else-if="errorMessage" class="middle-content">
             <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
         </div>
-        <SchemioEditorApp v-else-if="clientProvider.type === 'offline'"
+        <!-- <SchemioEditorApp v-else-if="clientProvider.type === 'offline'"
             :key="`offline-scheme-${appReloadKey}`"
             :editorId="`offline-scheme-${appReloadKey}`"
             :scheme="scheme"
@@ -83,34 +83,28 @@
             @export-picture-requested="openExportPictureModal"
             @context-menu-requested="onContextMenuRequested"
             @new-diagram-requested-for-item="onNewDiagramRequestedForItem(arguments[0], arguments[1])"
+        /> -->
+
+        <SchemioEditorWebApp v-if="scheme"
+            :key="`scheme-${appReloadKey}`"
+            :editorId="`scheme-${appReloadKey}`"
+            :scheme="scheme"
+            :userStylesEnabled="userStylesEnabled"
+            :projectArtEnabled="projectArtEnabled"
+            :editorMode="editorMode"
+            :editAllowed="editAllowed"
+            :menuOptions="menuOptions"
+            :isStaticEditor="isStaticEditor"
+            :isOfflineEditor="isOfflineEditor"
+            @mode-changed="onSchemeEditorModeChanged"
         />
-
-        <ContextMenu v-if="customContextMenu.show"
-            :key="customContextMenu.id"
-            :mouse-x="customContextMenu.mouseX"
-            :mouse-y="customContextMenu.mouseY"
-            :options="customContextMenu.menuOptions"
-            @close="customContextMenu.show = false"
-            @selected="onCustomContextMenuOptionSelected"
-        />
-
-
-        <CreatePatchModal v-if="createPatchModalShown" :key="`create-patch-modal-${appReloadKey}`" :editorId="`scheme-${appReloadKey}`" :originScheme="originSchemeForPatch" :scheme="modifiedScheme" @close="createPatchModalShown = false"/>
 
         <CreateNewSchemeModal v-if="newSchemePopup.show"
             :name="newSchemePopup.name"
             :description="newSchemePopup.description"
             @close="newSchemePopup.show = false"
             @scheme-submitted="submitNewScheme"
-        />
-
-        <div v-if="importSchemeFileShown" style="display: none">
-            <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
-        </div>
-
-        <ImportSchemeModal v-if="importSchemeModal.shown" :scheme="importSchemeModal.scheme"
-            @close="importSchemeModal.shown = false"
-            @import-scheme-submitted="importScheme"/>
+            />
 
         <modal v-if="duplicateDiagramModal.shown" title="Duplicate diagram" @close="duplicateDiagramModal.shown = false" @primary-submit="duplicateDiagram()" primaryButton="Create copy">
             <p>
@@ -126,52 +120,24 @@
             Are you sure you want to delete <b>{{scheme.name}}</b> scheme?
         </modal>
 
-        <div v-if="loadPatchFileShown" style="display: none">
-            <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
-        </div>
-
-        <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
-
-        <export-picture-modal v-if="exportPictureModal.shown"
-            :exported-items="exportPictureModal.exportedItems"
-            :kind="exportPictureModal.kind"
-            :width="exportPictureModal.width"
-            :height="exportPictureModal.height"
-            :background-color="exportPictureModal.backgroundColor"
-            @close="exportPictureModal.shown = false"/>
-
         <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="scheme" @close="exportAsLinkModalShown = false"/>
-
-        <export-html-modal v-if="exportHTMLModalShown" :scheme="scheme" @close="exportHTMLModalShown = false"/>
-
-
     </div>
 </template>
 <script>
 import JSZip from 'jszip';
-import SchemioEditorApp from '../../SchemioEditorApp.vue';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
-import CreatePatchModal from '../../components/patch/CreatePatchModal.vue';
 import utils from '../../utils';
-import {prepareSchemeForSaving, enrichSchemeWithDefaults } from '../../scheme/Scheme';
+import { enrichSchemeWithDefaults } from '../../scheme/Scheme';
 import shortid from 'shortid';
 import { createHasher } from '../../url/hasher';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
-import ImportSchemeModal from '../../components/editor/ImportSchemeModal.vue';
-import ContextMenu from '../../components/editor/ContextMenu.vue';
-import ExportJSONModal from '../../components/editor/ExportJSONModal.vue';
-import ExportPictureModal from '../../components/editor/ExportPictureModal.vue';
 import ExportAsLinkModal from '../../components/editor/ExportAsLinkModal.vue';
-import ExportHTMLModal from '../../components/editor/ExportHTMLModal.vue';
-import History from '../../history/History.js';
-import { prepareDiagramForPictureExport } from '../../diagramExporter';
 import {stripAllHtml} from '../../../htmlSanitize';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
-
-const defaultHistorySize = 30;
+import SchemioEditorWebApp from '../../components/SchemioEditorWebApp.vue';
 
 function loadOfflineScheme() {
     const offlineSchemeEncoded = window.localStorage.getItem('offlineScheme');
@@ -186,11 +152,9 @@ function loadOfflineScheme() {
 
 export default {
     components: {
-        SchemioEditorApp, Modal, CreatePatchModal, CreateNewSchemeModal, ImportSchemeModal,
-        ExportPictureModal, ContextMenu,
-        'export-json-modal': ExportJSONModal,
+        Modal, CreateNewSchemeModal,
         'export-as-link-modal': ExportAsLinkModal,
-        'export-html-modal': ExportHTMLModal,
+        SchemioEditorWebApp
     },
 
     props: {
@@ -202,13 +166,11 @@ export default {
     },
 
     beforeMount() {
-        window.onbeforeunload = this.onBrowseClose;
-
         const pageParams = this.hasher.decodeURLHash(window.location.hash);
         if (this.editAllowed && pageParams.m && pageParams.m === 'edit') {
-            this.mode = 'edit';
+            this.editorMode = 'edit';
         } else {
-            this.mode = 'view';
+            this.editorMode = 'view';
         }
 
         this.isLoading = true;
@@ -237,12 +199,6 @@ export default {
                 this.scheme = schemeDetails.scheme;
                 enrichSchemeWithDefaults(this.scheme);
 
-                this.history = new History({size: defaultHistorySize});
-                this.history.commit(this.scheme);
-                this.modified = false;
-
-                this.originScheme = utils.clone(schemeDetails.scheme);
-                enrichSchemeWithDefaults(this.originScheme);
                 if (schemeDetails.viewOnly) {
                     this.shouldAllowEdit = false;
                 }
@@ -260,36 +216,21 @@ export default {
         });
     },
 
-    beforeDestroy() {
-    },
-
-    created() {
-        //history object does not have to be reactive
-        this.history = new History({size: defaultHistorySize});
-    },
-
     data() {
         const schemeId = this.$route.params.schemeId;
 
         return {
-            schemeId: schemeId,
             hasher: createHasher(this.$router ? this.$router.mode : 'history'),
+            schemeId: schemeId,
             path: '',
             breadcrumbs: [],
-            shouldAllowEdit: this.editAllowed,
             isStaticEditor: false,
             scheme: this.isOfflineEditor ? loadOfflineScheme() : null,
-            modified: false,
-            mode: 'view',
             apiClient: null,
             is404: false,
             errorMessage: null,
             isLoading: false,
-            isSaving: false,
-
-            originScheme: null,
-            modifiedScheme: null,
-            createPatchModalShown: false,
+            editorMode: 'view',
 
             appReloadKey: shortid.generate(),
 
@@ -312,56 +253,14 @@ export default {
                     this.newSchemePopup.item = null;
                     this.newSchemePopup.show = true;
                 },  iconClass: 'fas fa-file', disabled: !this.editAllowed || this.isOfflineEditor || this.clientProvider.type === 'static'},
-                {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
-                {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor},
-                {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor},
-                {name: 'Create patch',      callback: () => this.openSchemePatchModal(this.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor},
-                {name: 'Apply patch',       callback: () => this.triggerApplyPatchUpload(), iconClass: 'fas fa-file-import'},
-                {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
-                {name: 'Export as SVG',     callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'},
-                {name: 'Export as PNG',     callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'},
+                {name: 'Duplicate diagram', callback: () => this.showDuplicateDiagramModal(), iconClass: 'fas fa-copy', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
+                {name: 'Delete diagram',    callback: () => {this.deleteSchemeWarningShown = true}, iconClass: 'fas fa-trash', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
                 {name: 'Export as link',    callback: () => {this.exportAsLinkModalShown = true}, iconClass: 'fas fa-file-export'},
-                {name: 'Export as HTML',    callback: () => {this.exportHTMLModalShown = true}, iconClass: 'fas fa-file-export'}
             ],
 
             exportAsLinkModalShown: false,
-            exportJSONModalShown: false,
-            importSchemeFileShown: false,
-
-            importSchemeModal: {
-                sheme: null,
-                shown: false
-            },
 
             deleteSchemeWarningShown: false,
-            loadPatchFileShown: false,
-
-            schemePatch: null,
-
-            exportPictureModal: {
-                kind: 'svg',
-                width: 100,
-                height: 100,
-                shown: false,
-                exportedItems: [],
-                backgroundColor: 'rgba(255,255,255,1.0)'
-            },
-
-            exportHTMLModalShown: false,
-
-            // used to trigger update of SchemeContainer inside of SchemeEditor component
-            schemeReloadKey: shortid.generate(),
-
-            historyUndoable: false,
-            historyRedoable: false,
-
-            customContextMenu: {
-                id: shortid.generate(),
-                show: false,
-                mouseX: 0, mouseY: 0,
-                menuOptions: []
-            },
-
         };
     },
 
@@ -401,10 +300,6 @@ export default {
             this.breadcrumbs = breadcrumbs;
         },
 
-        onModeChangeRequested(mode) {
-            this.mode = mode;
-        },
-
         submitNewScheme(scheme) {
             this.newSchemePopup.show = false;
             return this.apiClient.createNewScheme(this.path, scheme)
@@ -440,17 +335,6 @@ export default {
             });
         },
 
-        openSchemePatchModal(modifiedScheme) {
-            this.modifiedScheme = modifiedScheme;
-            this.createPatchModalShown = true;
-        },
-
-        onPatchApplied(patchedScheme) {
-            this.scheme = patchedScheme;
-            this.schemePatch = null;
-            this.appReloadKey = shortid.generate();
-        },
-
         loadSchemeFromLink() {
             const mode = this.$router ? this.$router.mode : 'history';
             const chars = {'.': '+', '_': '/', '-': '='};
@@ -469,134 +353,12 @@ export default {
                 })
                 .then(text => {
                     this.scheme = JSON.parse(text);
-                    this.history = new History({size: defaultHistorySize});
-                    this.history.commit(this.scheme);
-                    this.modified = false;
                     this.appReloadKey = shortid.generate();
                 })
                 .catch(err => {
                     console.log(err);
                     StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load document from URL', 'link-loader');
                 });
-            }
-        },
-
-        saveScheme(scheme, preview) {
-            if (this.isStaticEditor) {
-                this.openSchemePatchModal(scheme);
-                return;
-            }
-
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
-                return;
-            }
-
-            this.$store.dispatch('clearStatusMessage');
-            this.isSaving = true;
-            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
-            .then(() => {
-                this.modified = false;
-
-                // it is not a big deal if it fails to save preview
-                if (this.schemeId && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
-                    this.$store.state.apiClient.uploadSchemeSvgPreview(this.schemeId, preview);
-                }
-                this.isSaving = false;
-            })
-            .catch(err => {
-                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
-                this.modified = true;
-                this.isSaving = false;
-            });
-        },
-
-        saveOfflineScheme(scheme) {
-            window.localStorage.setItem('offlineScheme', JSON.stringify(scheme));
-            StoreUtils.addInfoSystemMessage(this.$store, 'Saved diagram to local storage', 'offline-save');
-            this.modified = false;
-        },
-
-        onBrowseClose() {
-            if (this.modified) {
-                return 'The changes were not saved';
-            }
-            return null;
-        },
-
-        showImportJSONModal() {
-            this.importSchemeFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.importSchemeFileInput.click();
-            });
-        },
-
-        onImportSchemeFileInputChanged(event) {
-            this.loadSchemeFile(event.target.files[0]);
-        },
-
-        loadSchemeFile(file) {
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                this.importSchemeFileShown = false;
-                try {
-                    const scheme = JSON.parse(event.target.result);
-                    //TODO verify if it is correct scheme file
-                    this.importSchemeModal.scheme = scheme;
-                    this.importSchemeModal.shown = true;
-                } catch(err) {
-                    alert('Not able to import scheme. Malformed json');
-                }
-            };
-
-            reader.readAsText(file);
-        },
-
-        importScheme(scheme) {
-            scheme.id = this.scheme.id;
-            enrichSchemeWithDefaults(scheme);
-            this.scheme = scheme;
-            this.history.commit(this.scheme);
-            this.modified = true;
-            this.updateHistoryState();
-            this.appReloadKey = shortid.generate();
-            this.schemeReloadKey = shortid.generate();
-        },
-
-        updateHistoryState() {
-            this.historyUndoable = this.history.undoable();
-            this.historyRedoable = this.history.redoable();
-        },
-
-        onHistoryCommitted(scheme, affinityId) {
-            this.history.commit(scheme, affinityId);
-            this.modified = true;
-            this.updateHistoryState();
-        },
-
-        undoHistory() {
-            const scheme = this.history.undo();
-            if (scheme) {
-                this.scheme = scheme;
-                this.schemeReloadKey = shortid.generate();
-            }
-            this.modified = true;
-            this.updateHistoryState();
-        },
-
-        redoHistory() {
-            const scheme = this.history.redo();
-            if (scheme) {
-                this.scheme = scheme;
-                this.schemeReloadKey = shortid.generate();
-            }
-            this.modified = true;
-            this.updateHistoryState();
-        },
-
-        onEditorStateChanged(state) {
-            if (state !== 'editPath') {
-                this.updateHistoryState();
             }
         },
 
@@ -630,74 +392,6 @@ export default {
             });
         },
 
-        triggerApplyPatchUpload() {
-            this.loadPatchFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.loadPatchFileInput.click();
-            });
-        },
-
-        onLoadPatchFileInputChanged(fileEvent) {
-            const file = fileEvent.target.files[0];
-            const reader = new FileReader();
-
-            reader.onload = (event) => {
-                this.loadPatchFileShown = false;
-                try {
-                    const patch = JSON.parse(event.target.result);
-                    //TODO verify that it is correct patch file
-                    this.schemePatch = patch;
-                    this.appReloadKey = shortid.generate();
-                } catch(err) {
-                    alert('Not able to load patch. Malformed json');
-                }
-            };
-
-            reader.readAsText(file);
-        },
-
-
-        exportAsSVG() {
-            this.openExportPictureModal(this.scheme.items, 'svg');
-        },
-
-        exportAsPNG() {
-            this.openExportPictureModal(this.scheme.items, 'png');
-        },
-
-        openExportPictureModal(items, kind) {
-            if (!Array.isArray(items) || items.length === 0) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
-                return;
-            }
-            const result = prepareDiagramForPictureExport(items);
-            if (!result) {
-                return;
-            }
-
-            this.exportPictureModal.exportedItems = result.exportedItems;
-            this.exportPictureModal.width = result.width;
-            this.exportPictureModal.height = result.height;
-            this.exportPictureModal.backgroundColor = this.scheme.style.backgroundColor;
-            this.exportPictureModal.kind = kind;
-            this.exportPictureModal.shown = true;
-        },
-
-        onCustomContextMenuOptionSelected(option) {
-            if (!option.subOptions) {
-                option.clicked();
-            }
-            this.customContextMenu.show = false;
-        },
-
-        onContextMenuRequested(x, y, menuOptions) {
-            this.customContextMenu.id = shortid.generate();
-            this.customContextMenu.mouseX = x;
-            this.customContextMenu.mouseY = y;
-            this.customContextMenu.menuOptions = menuOptions;
-            this.customContextMenu.show = true;
-        },
-
         onNewDiagramRequestedForItem(item, isExternalComponent) {
             this.newSchemePopup.name = item.name;
             this.newSchemePopup.description = item.description;
@@ -709,28 +403,19 @@ export default {
             }
             this.newSchemePopup.item = item;
             this.newSchemePopup.show = true;
+        },
 
+        onSchemeEditorModeChanged(mode) {
+            const pageParams = this.hasher.decodeURLHash(window.location.hash);
+            pageParams.m = mode;
+            this.hasher.changeURLHash(pageParams);
         }
     },
     computed: {
-        originSchemeForPatch() {
-            if (this.clientProvider.type === 'static') {
-                return this.originScheme;
-            }
-            return null;
-        },
-
         assetsPath() {
             return this.$store.getters.assetsPath;
         }
     },
 
-    watch: {
-        mode(value) {
-            const pageParams = this.hasher.decodeURLHash(window.location.hash);
-            pageParams.m = value;
-            this.hasher.changeURLHash(pageParams);
-        }
-    }
 }
 </script>

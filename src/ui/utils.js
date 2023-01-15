@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
+import { encode } from 'js-base64';
 
 function leadingZero(number) {
     if (number < 10) {
@@ -205,7 +206,7 @@ function domFindAncestorByClassUntil(domElement, cssClass, stopCallback) {
 
 
 function forceDownload(fileName, contentType, content) {
-    const dataUrl = `data:${contentType};base64,${btoa(content)}`;
+    const dataUrl = `data:${contentType};base64,${encode(content)}`;
 
     const link = document.createElement('a');
     document.body.appendChild(link);

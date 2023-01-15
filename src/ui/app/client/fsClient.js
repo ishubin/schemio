@@ -60,7 +60,7 @@ export const fsClientProvider = {
             },
 
             createNewScheme(path, scheme) {
-                return axios.post(`/v1/fs/docs?path=${encodeURIComponent(path)}`, scheme).then(unwrapAxios);
+                return axios.post(`/v1/fs/docs?path=${encodeURIComponent(path || '')}`, scheme).then(unwrapAxios);
             },
 
 

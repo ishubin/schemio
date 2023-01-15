@@ -4,7 +4,7 @@
 
 import Vue from 'vue';
 import store from './store/Store.js';
-import SchemioEditorApp from './SchemioEditorApp.vue';
+import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 
@@ -25,12 +25,13 @@ window.Schemio = {
         if (options.apiClient) {
             store.dispatch('setApiClient', options.apiClient);
         }
-        const appComponent = Vue.component('SchemioEditorApp', Vue.util.extend({store}, SchemioEditorApp));
+        const appComponent = Vue.component('SchemioEditorWebApp', Vue.util.extend({store}, SchemioEditorWebApp));
 
         new Vue({
             el: querySelector,
             components: { appComponent },
             render: h => h('appComponent', {props: {
+                editorId         : options.editorId || 'default',
                 scheme           : options.scheme || null,
                 editAllowed      : options.editAllowed || false,
                 userStylesEnabled: options.userStylesEnabled || false,

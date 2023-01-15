@@ -2,6 +2,7 @@ import { getExportHTMLResources } from "./clientCommons";
 import forEach from "lodash/forEach";
 import map from "lodash/map";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
+import { encode } from 'js-base64';
 
 export const googleDriveClientProvider = {
     type: 'drive',
@@ -219,7 +220,7 @@ export const googleDriveClientProvider = {
                         metadata.parents = [{id: parentId}];
                     }
 
-                    const base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(scheme))))
+                    const base64Data = encode(JSON.stringify(scheme))
                     const multipartRequestBody =
                         delimiter +
                         'Content-Type: application/json\r\n\r\n' +
@@ -313,7 +314,7 @@ export const googleDriveClientProvider = {
                     const close_delim = "\r\n--" + boundary + "--";
 
                     var contentType = 'application/json';
-                    var base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(scheme))))
+                    var base64Data = encode(JSON.stringify(scheme));
 
                     const metadata = {
                         title:  `${scheme.name}${schemioExtension}`,

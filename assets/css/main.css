@@ -70,6 +70,7 @@ html, body, .app-container {
     margin: 0;
     padding: 0;
     overscroll-behavior-x: none;
+    overscroll-behavior-y: none;
     min-height: 100vh;
 }
 
@@ -84,6 +85,10 @@ body {
 .app-container {
     display: flex;
     flex-direction: column;
+}
+.scheme-editor-webapp {
+    flex: 1;
+    height: 100%;
 }
 .scheme-editor-app {
     height: 100%;
@@ -1056,12 +1061,12 @@ textarea.in-place-text-editor {
 
 
 
-.header .top-right-panel {
-    position: absolute;
-    right: 15px;
-    top: 14px;
+.header .right-section {
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
 }
-.header .top-right-panel a, .header .top-right-panel span.link {
+.header .right-section a, .header .right-section span.link {
     color: var(--accent-weak-down);
 }
 
@@ -3152,6 +3157,8 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 /******************** Header *********************/
 .header {
     position: relative;
+    display: flex;
+    align-items: center;
     width: 100%;
     height: 48px;
     background: var(--header-background);
@@ -3161,8 +3168,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 .header .header-body {
     display: flex;
-    width: 100%;
-    height: 48px;
+    flex: 1;
 }
 .header .header-loader-container {
     position: absolute;
@@ -3175,6 +3181,10 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     display: inline-block;
     overflow: hidden;
 }
+.header .header-middle-section > div {
+    display: flex;
+    align-items: center;
+}
 .header > a, .header > .link {
     margin-left: 10px;
     margin-right: 10px;
@@ -3184,20 +3194,17 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     text-decoration: none;
 }
 .header a.header-caption {
-    display: inline-block;
+    display: flex;
+    align-items: center;
     position: relative;
     color: var(--header-text-color);
     font-weight: normal;
     font-size: 18px;
     text-decoration: none;
-    display: inline-block;
-    padding: 10px 4px 4px 38px;
-    height: 36px;
 }
 .header a.header-caption img {
-    position: absolute;
-    left: 8px;
-    top: 8px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 .header .modal-container a, .header .modal-container .link {
     color: var(--accent-strong);
@@ -3205,21 +3212,16 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 
 .header .scheme-title {
     position: relative;
-    display: inline-block;
-    height: 25px;
-    margin-left: 20px;
-    padding-left: 20px;
+    display: flex;
+    align-items: center;
+    margin-left: 40px;
     color: var(--base-weak);
 }
 .header .scheme-title .icon {
-    position: absolute;
-    top: -1px;
-    left: 0px;
+    padding-right: 5px;
 }
 .header .scheme-title span {
     display: inline-block;
-    height: 25px;
-    padding: 0 5px;
     margin: 0;
     min-width: 40px;
 }
@@ -3228,7 +3230,6 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     display: inline-block;
     list-style: none;
     margin: 0;
-    padding-left: 20px;
 }
 .header .header-breadcrumbs li {
     display: inline-block;
@@ -3294,10 +3295,6 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 
 .header .current-user .user-profile {
-    margin-top: 8px;
-    margin-right: 10px;
-}
-.header .current-user .user-profile {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3310,6 +3307,12 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 .header .current-user .user-profile .user-name {
     color: var(--base-weak);
+}
+
+.scheme-editor-view {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 @media (max-width: 900px) {

@@ -102,15 +102,15 @@
 </template>
 
 <script>
-import {registerDebuggerInitiation} from './logger';
-import Debugger from './components/Debugger.vue';
-import SystemMessagePanel from './components/SystemMessagePanel.vue';
-import SchemeEditor from './components/SchemeEditor.vue';
-import { applySchemePatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch';
-import ColorPicker from './components/editor/ColorPicker.vue';
-import Modal from './components/Modal.vue';
-import PatchDetails from './components/patch/PatchDetails.vue';
-import SchemeContainer from './scheme/SchemeContainer';
+import {registerDebuggerInitiation} from '../logger';
+import Debugger from './Debugger.vue';
+import SystemMessagePanel from './SystemMessagePanel.vue';
+import SchemeEditor from './SchemeEditor.vue';
+import { applySchemePatch, generatePatchIndex, generatePatchStatistic } from '../scheme/SchemePatch';
+import ColorPicker from './editor/ColorPicker.vue';
+import Modal from './Modal.vue';
+import PatchDetails from './patch/PatchDetails.vue';
+import SchemeContainer from '../scheme/SchemeContainer';
 
 export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor, ColorPicker, Modal, PatchDetails},

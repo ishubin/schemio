@@ -8,7 +8,7 @@
                 <img :src="`${assetsPath}/images/schemio-logo-white.small.png`" height="25"/> <span>Schemio</span>
             </a>
             <div class="header-middle-section">
-                <slot name="middle-section"></slot>
+                <slot name="middle-section" class="header-middle-section-container"></slot>
             </div>
             <div v-if="staticExportAllowed" class="right-section">
                 <div class="current-user">

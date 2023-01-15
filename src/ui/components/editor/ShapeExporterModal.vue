@@ -32,7 +32,7 @@
                             </td>
                         </tr>
                     </tbody>
-                </table>                
+                </table>
             </div>
         </div>
     </modal>
@@ -45,6 +45,7 @@ import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/sh
 import utils from '../../utils';
 import { convertRawShapeForRender } from './items/shapes/StandardCurves';
 import myMath from '../../myMath';
+import { encode } from 'js-base64';
 
 function createWidthAndHeight(w, h, widthToHeightRatio) {
     if (widthToHeightRatio > 1) {
@@ -106,7 +107,7 @@ function generateShapeConfigForItem(item, shapeGroupName) {
     }
     const convertedShape = convertShapeToStandardCurves(item);
     const svgPreview = buildSvgPreview(convertedShape, widthToHeightRatio);
-    const svgPreviewBase64 = btoa(svgPreview);
+    const svgPreviewBase64 = encode(svgPreview);
     const creationSize = createWidthAndHeight(80, 80, widthToHeightRatio);
     const previewSize = createWidthAndHeight(150, 150, widthToHeightRatio);
 
@@ -159,7 +160,7 @@ function generateShapeGroupPreview(shapeGroup) {
     const totalRows = Math.min(row + 1, maxRows);
     const svgWidth = totalCols * (width + margin) + 10;
     const svgHeight = totalRows * (height + margin) + 10;
-    return 'data:image/svg+xml;base64,' + btoa(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="-10 -10 ${svgWidth+10} ${svgHeight+10}" xml:space="preserve" width="${svgWidth+20}px" height="${svgHeight+20}px">${svg}</svg>`);
+    return 'data:image/svg+xml;base64,' + encode(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="-10 -10 ${svgWidth+10} ${svgHeight+10}" xml:space="preserve" width="${svgWidth+20}px" height="${svgHeight+20}px">${svg}</svg>`);
 }
 
 
