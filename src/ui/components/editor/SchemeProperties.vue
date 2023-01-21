@@ -7,7 +7,7 @@
         <div v-if="schemeContainer.scheme">
             <panel name="General">
                 <h5 class="section">Name</h5>
-                <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Scheme name ..." @change="onPropertyChange('name')"/>
+                <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Title ..." @change="onPropertyChange('name')"/>
 
                 <h5 class="section">Tags</h5>
                 <vue-tags-input v-model="schemeTag"

@@ -330,7 +330,7 @@ export default {
                 })
                 .catch(err => {
                     if (err.response  && err.response.status === 400) {
-                        this.renameEntryModal.errorMessage = 'Such scheme name is not allowed';
+                        this.renameEntryModal.errorMessage = 'Such document is not allowed';
                     } else {
                         this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this scheme';
                     }

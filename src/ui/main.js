@@ -8,9 +8,10 @@ import {createHasher} from './url/hasher.js';
 import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
+import EditorEventBus from './components/editor/EditorEventBus';
 
 window.Schemio = {
-    components: { Vue, Modal, CreateNewSchemeModal },
+    components: { Vue, Modal, CreateNewSchemeModal, EditorEventBus },
     utils: {
         createHasher,
     },
@@ -36,13 +37,13 @@ window.Schemio = {
             components: { appComponent },
             render: h => h('appComponent', {
                 props: {
-                    editorId         : options.editorId || 'default',
-                    scheme           : options.scheme || null,
-                    editorMode       : options.editorMode || 'view',
-                    editAllowed      : options.editAllowed || false,
-                    userStylesEnabled: options.userStylesEnabled || false,
-                    menuOptions      : options.menuOptions || [],
-                    comments         : options.comments || {enabled: false, allowed: false, isAdmin: false, provider: null},
+                    editorId          : options.editorId || 'default',
+                    scheme            : options.scheme || null,
+                    editorMode        : options.editorMode || 'view',
+                    editAllowed       : options.editAllowed || false,
+                    userStylesEnabled : options.userStylesEnabled || false,
+                    menuOptions       : options.menuOptions || [],
+                    detectBrowserClose: options.detectBrowserClose || false,
                 },
                 on: {
                     'mode-changed': (mode) => {

@@ -79,6 +79,7 @@ import ExportPictureModal from './editor/ExportPictureModal.vue';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import History from '../history/History.js';
 import { prepareDiagramForPictureExport } from '../diagramExporter';
+import EditorEventBus from './editor/EditorEventBus';
 
 const defaultHistorySize = 30;
 
@@ -89,23 +90,31 @@ export default {
         'export-html-modal': ExportHTMLModal,
     },
     props: {
-        editorId: {type: String, default: 'default'},
-        scheme: {type: Object, required: true},
-        editorMode: {type: String, default: 'view'},
-        menuOptions: {type: Array, default: () => []},
-        userStylesEnabled: {type: Boolean, default: false},
-        projectArtEnabled: {type: Boolean, default: true},
-        editAllowed: {type: Boolean, default: false},
-        isStaticEditor: {type: Boolean, default: false},
-        isOfflineEditor  : {type: Boolean, default: false},
+        editorId          : {type: String, default: 'default'},
+        scheme            : {type: Object, required: true},
+        detectBrowserClose: {type: Boolean, default: true},
+        editorMode        : {type: String, default: 'view'},
+        menuOptions       : {type: Array, default: () => []},
+        userStylesEnabled : {type: Boolean, default: false},
+        projectArtEnabled : {type: Boolean, default: true},
+        editAllowed       : {type: Boolean, default: false},
+        isStaticEditor    : {type: Boolean, default: false},
+        isOfflineEditor   : {type: Boolean, default: false},
     },
 
     beforeMount() {
-        window.onbeforeunload = this.onBrowseClose;
+        if (this.detectBrowserClose) {
+            window.onbeforeunload = this.onBrowseClose;
+        }
         if (this.isStaticEditor) {
             this.originScheme = utils.clone(this.scheme);
             enrichSchemeWithDefaults(this.originScheme);
         }
+        EditorEventBus.silentSchemeChangeCommitted.$on(this.editorId, this.onSilentSchemeChangeCommitted);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.silentSchemeChangeCommitted.$off(this.editorId, this.onSilentSchemeChangeCommitted);
     },
 
     created() {
@@ -366,6 +375,10 @@ export default {
                 this.isSaving = false;
             });
         },
+
+        onSilentSchemeChangeCommitted() {
+            this.modified = true;
+        }
     },
 
     watch: {
