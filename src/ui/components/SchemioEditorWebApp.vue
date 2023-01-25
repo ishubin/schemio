@@ -59,6 +59,10 @@
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="scheme" @close="exportHTMLModalShown = false"/>
 
+        <Modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
+            Are you sure you want to delete <b>{{scheme.name}}</b> scheme?
+        </Modal>
+
         <div v-if="loadPatchFileShown" style="display: none">
             <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
         </div>
@@ -72,6 +76,7 @@ import CreatePatchModal from './patch/CreatePatchModal.vue';
 import utils from '../utils';
 import {prepareSchemeForSaving, enrichSchemeWithDefaults } from '../scheme/Scheme';
 import shortid from 'shortid';
+import Modal from './Modal.vue';
 import ImportSchemeModal from './editor/ImportSchemeModal.vue';
 import ContextMenu from './editor/ContextMenu.vue';
 import ExportJSONModal from './editor/ExportJSONModal.vue';
@@ -85,7 +90,7 @@ const defaultHistorySize = 30;
 
 export default {
     components: {
-        SchemioEditorApp, CreatePatchModal, ImportSchemeModal, ContextMenu, ExportPictureModal,
+        SchemioEditorApp, CreatePatchModal, ImportSchemeModal, ContextMenu, ExportPictureModal, Modal,
         'export-json-modal': ExportJSONModal,
         'export-html-modal': ExportHTMLModal,
     },
@@ -177,6 +182,8 @@ export default {
 
             historyUndoable: false,
             historyRedoable: false,
+
+            deleteSchemeWarningShown: false,
         }
     },
 
@@ -378,7 +385,13 @@ export default {
 
         onSilentSchemeChangeCommitted() {
             this.modified = true;
-        }
+        },
+
+        deleteScheme() {
+            this.$store.state.apiClient.deleteScheme(this.scheme.id).then(() => {
+                this.$router.push('/');
+            });
+        },
     },
 
     watch: {
