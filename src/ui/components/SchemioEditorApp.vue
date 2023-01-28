@@ -21,6 +21,7 @@
             :historyRedoable="historyRedoable"
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
+            :saveControlEnabled="saveControlEnabled"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
@@ -53,6 +54,7 @@
             :historyRedoable="historyRedoable"
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
+            :saveControlEnabled="saveControlEnabled"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
@@ -135,6 +137,7 @@ export default{
         isSaving         : { type: Boolean, required: true},
         // allows to switch between edit and view modes from quick helper panel
         modeControlEnabled  : { type: Boolean, default: true},
+        saveControlEnabled  : { type: Boolean, default: true},
     },
 
     beforeMount() {

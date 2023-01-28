@@ -171,14 +171,13 @@
 
 <script>
 import map from 'lodash/map';
-import max from 'lodash/max';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {ItemInteractionMode, defaultItem, traverseItems, hasItemDescription} from '../../scheme/Item';
+import {defaultItem, traverseItems, hasItemDescription} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';

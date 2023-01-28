@@ -54,7 +54,7 @@
                 </li>
             </ul>
 
-            <ul class="button-group" v-if="mode === 'edit' && state !== 'editPath' && state !== 'draw' && state !== 'connecting' && (modified || statusMessage.message)">
+            <ul class="button-group" v-if="saveControlEnabled && mode === 'edit' && state !== 'editPath' && state !== 'draw' && state !== 'connecting' && (modified || statusMessage.message)">
                 <li v-if="modified">
                     <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
                     <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
@@ -701,6 +701,7 @@ export default {
 
         // allows to switch between edit and view modes from quick helper panel
         modeControlEnabled  : { type: Boolean, default: true},
+        saveControlEnabled  : { type: Boolean, default: true},
 
         //Used to signify that SchemeContainer needs to be recreted and item selection needs to be restored
         schemeReloadKey : {type: String, default: null},

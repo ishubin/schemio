@@ -44,8 +44,11 @@
             :menuOptions="menuOptions"
             :isStaticEditor="isStaticEditor"
             :isOfflineEditor="isOfflineEditor"
+            :isSaving="isSaving"
+            :modificationKey="modificationKey"
             @mode-changed="onSchemeEditorModeChanged"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
+            @scheme-save-requested="onSaveSchemeRequested"
         />
 
         <CreateNewSchemeModal v-if="newSchemePopup.show"
@@ -77,7 +80,7 @@ import JSZip from 'jszip';
 import forEach from 'lodash/forEach';
 import StoreUtils from '../../store/StoreUtils';
 import utils from '../../utils';
-import { enrichSchemeWithDefaults } from '../../scheme/Scheme';
+import { enrichSchemeWithDefaults, prepareSchemeForSaving } from '../../scheme/Scheme';
 import shortid from 'shortid';
 import { createHasher } from '../../url/hasher';
 import Modal from '../../components/Modal.vue';
@@ -179,6 +182,8 @@ export default {
             is404: false,
             errorMessage: null,
             isLoading: false,
+            isSaving: false,
+            modificationKey: '',
             editorMode: 'view',
 
             appReloadKey: shortid.generate(),
@@ -358,6 +363,29 @@ export default {
             const pageParams = this.hasher.decodeURLHash(window.location.hash);
             pageParams.m = mode;
             this.hasher.changeURLHash(pageParams);
+        },
+
+        onSaveSchemeRequested(scheme, preview) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
+                return;
+            }
+
+            this.$store.dispatch('clearStatusMessage');
+            this.isSaving = true;
+            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
+            .then(() => {
+                this.modificationKey = shortid.generate();
+
+                // it is not a big deal if it fails to save preview
+                if (this.scheme.id && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
+                    this.$store.state.apiClient.uploadSchemeSvgPreview(this.scheme.id, preview);
+                }
+                this.isSaving = false;
+            })
+            .catch(err => {
+                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
+                this.isSaving = false;
+            });
         }
     },
     computed: {

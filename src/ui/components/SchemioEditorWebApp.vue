@@ -15,6 +15,7 @@
             :historyRedoable="historyRedoable"
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
+            :saveControlEnabled="saveControlEnabled"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
@@ -71,7 +72,7 @@ import SchemioEditorApp from './SchemioEditorApp.vue';
 import StoreUtils from '../store/StoreUtils';
 import CreatePatchModal from './patch/CreatePatchModal.vue';
 import utils from '../utils';
-import {prepareSchemeForSaving, enrichSchemeWithDefaults } from '../scheme/Scheme';
+import {enrichSchemeWithDefaults } from '../scheme/Scheme';
 import shortid from 'shortid';
 import Modal from './Modal.vue';
 import ImportSchemeModal from './editor/ImportSchemeModal.vue';
@@ -104,6 +105,9 @@ export default {
         isOfflineEditor   : {type: Boolean, default: false},
         // allows to switch between edit and view modes from quick helper panel
         modeControlEnabled: {type: Boolean, default: true},
+        saveControlEnabled: { type: Boolean, default: true},
+        isSaving          : {type: Boolean, default: false},
+        modificationKey   : {type: String, default: ''},
     },
 
     beforeMount() {
@@ -130,9 +134,8 @@ export default {
     data() {
         return {
             schemeReloadKey: null,
-            modified: false,
+            modified: this.isModified,
             mode: this.editorMode,
-            isSaving: false,
             originScheme: null,
 
             customContextMenu: {
@@ -357,27 +360,7 @@ export default {
                 return;
             }
 
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
-                return;
-            }
-
-            this.$store.dispatch('clearStatusMessage');
-            this.isSaving = true;
-            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
-            .then(() => {
-                this.modified = false;
-
-                // it is not a big deal if it fails to save preview
-                if (this.scheme.id && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
-                    this.$store.state.apiClient.uploadSchemeSvgPreview(this.scheme.id, preview);
-                }
-                this.isSaving = false;
-            })
-            .catch(err => {
-                this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
-                this.modified = true;
-                this.isSaving = false;
-            });
+            this.$emit('scheme-save-requested', scheme, preview);
         },
 
         onSilentSchemeChangeCommitted() {
@@ -396,6 +379,10 @@ export default {
 
         editorMode(value) {
             this.mode = value;
+        },
+
+        modificationKey(value) {
+            this.modified = false;
         }
     }
 }
