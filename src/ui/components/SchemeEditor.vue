@@ -19,6 +19,7 @@
             :historyRedoable="historyState.redoable"
             :isRecording="isRecording"
             :isScreenGrabbing="isScreenGrabbing"
+            :modeControlEnabled="modeControlEnabled"
             @shape-prop-changed="onItemShapePropChanged"
             @text-style-prop-change="onItemGenericTextSlotPropChanged"
             @clicked-zoom-to-selection="zoomToSelection()"
@@ -697,6 +698,9 @@ export default {
         menuOptions      : {type: Array, default: []},
         historyUndoable  : { type: Boolean, required: true},
         historyRedoable  : { type: Boolean, required: true},
+
+        // allows to switch between edit and view modes from quick helper panel
+        modeControlEnabled  : { type: Boolean, default: true},
 
         //Used to signify that SchemeContainer needs to be recreted and item selection needs to be restored
         schemeReloadKey : {type: String, default: null},

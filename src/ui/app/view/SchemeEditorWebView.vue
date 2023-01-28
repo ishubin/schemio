@@ -45,6 +45,7 @@
             :isStaticEditor="isStaticEditor"
             :isOfflineEditor="isOfflineEditor"
             @mode-changed="onSchemeEditorModeChanged"
+            @delete-diagram-requested="deleteSchemeWarningShown = true"
         />
 
         <CreateNewSchemeModal v-if="newSchemePopup.show"

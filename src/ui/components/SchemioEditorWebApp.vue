@@ -14,6 +14,7 @@
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
             :isSaving="isSaving"
+            :modeControlEnabled="modeControlEnabled"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
@@ -21,7 +22,7 @@
             @undo-history-requested="undoHistory"
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
-            @delete-diagram-requested="deleteSchemeWarningShown = true"
+            @delete-diagram-requested="deleteDiagram"
             @export-picture-requested="openExportPictureModal"
             @context-menu-requested="onContextMenuRequested"
             @new-diagram-requested-for-item="onNewDiagramRequestedForItem(arguments[0], arguments[1])"
@@ -58,10 +59,6 @@
             @close="exportPictureModal.shown = false"/>
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="scheme" @close="exportHTMLModalShown = false"/>
-
-        <Modal v-if="deleteSchemeWarningShown" title="Delete diagram" primaryButton="Delete" @close="deleteSchemeWarningShown = false" @primary-submit="deleteScheme()">
-            Are you sure you want to delete <b>{{scheme.name}}</b> scheme?
-        </Modal>
 
         <div v-if="loadPatchFileShown" style="display: none">
             <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
@@ -105,6 +102,8 @@ export default {
         editAllowed       : {type: Boolean, default: false},
         isStaticEditor    : {type: Boolean, default: false},
         isOfflineEditor   : {type: Boolean, default: false},
+        // allows to switch between edit and view modes from quick helper panel
+        modeControlEnabled: {type: Boolean, default: true},
     },
 
     beforeMount() {
@@ -182,8 +181,6 @@ export default {
 
             historyUndoable: false,
             historyRedoable: false,
-
-            deleteSchemeWarningShown: false,
         }
     },
 
@@ -387,16 +384,18 @@ export default {
             this.modified = true;
         },
 
-        deleteScheme() {
-            this.$store.state.apiClient.deleteScheme(this.scheme.id).then(() => {
-                this.$router.push('/');
-            });
+        deleteDiagram() {
+            this.$emit('delete-diagram-requested', this.scheme.id);
         },
     },
 
     watch: {
         mode(value) {
             this.$emit('mode-changed', value);
+        },
+
+        editorMode(value) {
+            this.mode = value;
         }
     }
 }

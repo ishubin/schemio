@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Vue from 'vue';
+import Vuex from 'vuex';
 import store from './store/Store.js';
 import {createHasher} from './url/hasher.js';
 import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
@@ -11,7 +12,7 @@ import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import EditorEventBus from './components/editor/EditorEventBus';
 
 window.Schemio = {
-    components: { Vue, Modal, CreateNewSchemeModal, EditorEventBus },
+    components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store },
     utils: {
         createHasher,
     },
@@ -49,6 +50,11 @@ window.Schemio = {
                     'mode-changed': (mode) => {
                         if (options.onModeChanged) {
                             options.onModeChanged(mode);
+                        }
+                    },
+                    'delete-diagram-requested': (docId) => {
+                        if (options.onDeleteDiagram) {
+                            options.onDeleteDiagram(docId);
                         }
                     }
                 }

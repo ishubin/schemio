@@ -25,7 +25,7 @@
                     <li>
                         <span title="Zoom to Selection" class="toggle-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
                     </li>
-                    <li v-if="(editAllowed && shouldShowBaseControls)">
+                    <li v-if="(editAllowed && shouldShowBaseControls && modeControlEnabled)">
                         <div class="toggle-group">
                             <span v-for="knownMode in knownModes" class="toggle-button"
                                 :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
@@ -250,6 +250,7 @@ export default {
         historyRedoable     : { type: Boolean, required: true},
         isRecording         : { type: Boolean, required: true},
         isScreenGrabbing    : { type: Boolean, required: true},
+        modeControlEnabled  : { type: Boolean, default: true}
     },
 
     components: {
