@@ -134,6 +134,8 @@ export default {
             .then(() => {
                 this.schemeContainer = new SchemeContainer(this.scheme, this.editorId);
                 this.stateInteract.schemeContainer = this.schemeContainer;
+                const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
+                this.schemeContainer.screenSettings.boundingBox = boundingBox;
                 this.stateInteract.reset();
                 this.initialized = true;
                 if (this.autoZoom) {
