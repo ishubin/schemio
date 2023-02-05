@@ -7,7 +7,7 @@
         <div class="ssc-header">
             <div class="ssc-header-search">
                 Zoom:
-                <input class="ssc-zoom" type="text" v-model="textZoom" @keydown.enter="onZoomSubmitted"/>
+                <input class="ssc-zoom" type="text" v-model="textZoom" @blur="onZoomSubmitted" @keydown.enter="onZoomSubmitted"/>
                 <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
             <div class="ssc-header-right">
@@ -63,7 +63,14 @@ import shortid from 'shortid';
 
 
 export default {
-    props: ['scheme', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
+    props: {
+        scheme        : {type: Object},
+        zoom          : {type: Number, default: 100},
+        autoZoom      : {type: Boolean, default: true},
+        sidePanelWidth: {type: Number, default: 400},
+        useMouseWheel : {type: Boolean, default: true},
+        homeLink      : {type: String, default: 'https://github.com/ishubin/schemio'}
+    },
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
 

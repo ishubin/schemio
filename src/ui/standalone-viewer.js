@@ -27,11 +27,11 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         data() {
             return {
                 scheme,
-                zoom: Math.max(0.00005, parseFloat(options.zoom) || 100),
-                autoZoom: objProperty(options, 'autoZoom', true),
+                zoom          : Math.max(0.00005, parseFloat(options.zoom) || 100),
+                autoZoom      : objProperty(options, 'autoZoom', true),
                 sidePanelWidth: parseInt(options.sidePanelWidth) || 400,
-                useMouseWheel: objProperty(options, 'useMouseWheel', true),
-                homeLink: 'https://github.com/ishubin/schemio'
+                useMouseWheel : objProperty(options, 'useMouseWheel', true),
+                homeLink      : objProperty(options, 'homeLink', 'https://github.com/ishubin/schemio')
             };
         },
         template: '<standalone-scheme-view :scheme="scheme" :zoom="zoom" :auto-zoom="autoZoom" :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'

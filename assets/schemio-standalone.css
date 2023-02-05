@@ -29,6 +29,10 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
 .ssc-container .ssc-header .ssc-header-search {
     flex: 1;
 }
+.ssc-container .ssc-header .ssc-zoom {
+    width: 60px;
+    padding: 2px;
+}
 
 .ssc-container .ssc-header .ssc-search {
     display: inline-block;
