@@ -13,7 +13,7 @@
     "package-electron": "electron-forge package",
     "make-electron": "electron-forge make",
     "build-playground": "babel src/server/server-playground.js -d dist/server",
-    "start-playground": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-dev; npm run build-playground && node dist/server/server-playground.js'",
+    "start-playground": "NODE_ENV=development nodemon --watch src/  -e 'js, html, vue' --exec 'npm run build-standalone && npm run build-playground && node dist/server/server-playground.js'",
     "build-app-dev": "webpack --config webpack.build.app.dev.js; cp dist/assets/schemio.app.js assets/",
     "build-app-prod": "NODE_ENV=production webpack --config webpack.build.app.prod.js; cp dist/assets/schemio.app.js assets/; npm run build-standalone-prod",
     "build-component-dev": "webpack --config webpack.build.dev.js; npm run build-standalone",

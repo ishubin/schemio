@@ -19,8 +19,6 @@
                 v-if="schemeContainer"
                 :editorId="editorId"
                 :scheme-container="schemeContainer"
-                :offset-x="offsetX"
-                :offset-y="offsetY"
                 :zoom="vZoom"
                 :use-mouse-wheel="useMouseWheel"
                 mode="view"
@@ -59,12 +57,13 @@ import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
 import StateInteract from '../components/editor/states/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
+import {createAnimationRegistry, destroyAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
 
 
 
 export default {
-    props: ['scheme', 'offsetX', 'offsetY', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
+    props: ['scheme', 'zoom', 'autoZoom', 'sidePanelWidth', 'useMouseWheel', 'homeLink'],
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
 
@@ -78,10 +77,12 @@ export default {
     beforeDestroy() {
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+        destroyAnimationRegistry(this.editorId);
     },
     created() {
+        this.animationRegistry = createAnimationRegistry(this.editorId);
         this.userEventBus = new UserEventBus();
-        this.stateInteract = new StateInteract(store, this.userEventBus, {
+        this.stateInteract = new StateInteract(this.editorId, store, this.userEventBus, {
             onCancel: () => {},
             onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
             onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
@@ -96,7 +97,7 @@ export default {
     },
     data() {
         return {
-            editorId: 'standalone-' + shortid.generate,
+            editorId: 'standalone-' + shortid.generate(),
             schemeContainer: null,
             initialized: false,
             textZoom: "" + this.zoom,

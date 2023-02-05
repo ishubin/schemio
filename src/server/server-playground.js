@@ -6,17 +6,6 @@
 
 
 import express  from  'express';
-import fs from 'fs-extra';
-import yaml from 'js-yaml';
-
-const globalArt = [];
-// Loading global art from config
-fs.readdir('conf/art', function (err, files) {
-    files.forEach(function (file) {
-        const artContent = yaml.load(fs.readFileSync(`conf/art/${file}`, 'utf8'));
-        globalArt.push(artContent);
-    });
-});
 
 const app = express();
 
@@ -34,10 +23,10 @@ const cwd = process.cwd();
 
 
 app.get('/offline-scheme-editor', (req, res) => {
-    res.sendFile(`${cwd}/src/html/offline-editor.html`)
+    res.sendFile(`${cwd}/html/offline-editor.html`)
 });
 app.get('/standalone', (req, res) => {
-    res.sendFile(`${cwd}/src/html/standalone-example.html`)
+    res.sendFile(`${cwd}/html/standalone-example.html`)
 });
 
 app.get('/v1/art', (req, res) => {

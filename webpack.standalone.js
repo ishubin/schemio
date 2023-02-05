@@ -12,13 +12,14 @@ module.exports = {
         publicPath: 'dist/assets/schemio-standalone.js',
         filename: 'schemio-standalone.js'
     },
-    resolve: {
-        alias: {
-            vue: 'vue/dist/vue.js'
-        }
-    },
+    devtool: false,
     optimization: {
         minimize: false
+    },
+    resolve: {
+        alias: {
+            vue: 'vue/dist/vue.min.js'
+        }
     },
     module: {
         // Special compilation rules
