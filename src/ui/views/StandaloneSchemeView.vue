@@ -73,11 +73,13 @@ export default {
 
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+        this.startStateLoop();
     },
     beforeDestroy() {
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         destroyAnimationRegistry(this.editorId);
+        this.stopStateLoop();
     },
     created() {
         this.animationRegistry = createAnimationRegistry(this.editorId);
@@ -117,7 +119,9 @@ export default {
 
             sidePanel: {
                 item: null
-            }
+            },
+
+            isStateLooping: false
         }
     },
 
@@ -229,6 +233,25 @@ export default {
                 }
             });
             return area;
+        },
+
+        startStateLoop() {
+            this.isStateLooping = true;
+            this.stateLoop(0);
+        },
+
+        stateLoop(deltaTime) {
+            const oldTime = performance.now();
+            this.stateInteract.loop(deltaTime);
+            if (this.isStateLooping) {
+                window.requestAnimationFrame(() => {
+                    this.stateLoop(performance.now() - oldTime);
+                });
+            }
+        },
+
+        stopStateLoop() {
+            this.isStateLooping = false;
         },
     }
 }
