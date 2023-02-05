@@ -30,7 +30,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
                 zoom: Math.max(0.00005, parseFloat(options.zoom) || 100),
                 autoZoom: objProperty(options, 'autoZoom', true),
                 sidePanelWidth: parseInt(options.sidePanelWidth) || 400,
-                useMouseWheel: objProperty(options, 'useMouseWheel', false),
+                useMouseWheel: objProperty(options, 'useMouseWheel', true),
                 homeLink: 'https://github.com/ishubin/schemio'
             };
         },
