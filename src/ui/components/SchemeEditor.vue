@@ -84,6 +84,8 @@
                     :mode="mode"
                     :zoom="zoom"
                     :highlightedItems="highlightedItems"
+                    :zoomedItems="zoomedItems"
+                    :zoomToItemsTrigger="zoomToItemsTrigger"
                     :stateLayerShown="state === 'draw' || state === 'createItem'"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
@@ -157,6 +159,8 @@
                     :zoom="zoom"
                     :userEventBus="userEventBus"
                     :highlightedItems="highlightedItems"
+                    :zoomedItems="zoomedItems"
+                    :zoomToItemsTrigger="zoomToItemsTrigger"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
                     @mouse-down="mouseDown"
@@ -524,7 +528,6 @@ import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
 import forEach from 'lodash/forEach';
-import filter from 'lodash/filter';
 import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';
@@ -832,7 +835,6 @@ export default {
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
         EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionUpdated);
         EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionUpdated);
-        EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
         EditorEventBus.textSlot.triggered.any.$on(this.editorId, this.onItemTextSlotEditTriggered);
         EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
@@ -848,7 +850,6 @@ export default {
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionUpdated);
         EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionUpdated);
-        EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         EditorEventBus.textSlot.triggered.any.$off(this.editorId, this.onItemTextSlotEditTriggered);
         EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
@@ -892,6 +893,9 @@ export default {
                 itemIds: [],
                 showPins: false
             },
+
+            zoomedItems: null,
+            zoomToItemsTrigger: "",
 
             cropImage: {
                 editBox: null,
@@ -1359,33 +1363,8 @@ export default {
         },
 
         zoomToItems(items) {
-            if (items.length === 0) {
-                return;
-            }
-            const area = this.calculateZoomingAreaForItems(items);
-            if (area) {
-                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, true);
-            }
-        },
-
-        calculateZoomingAreaForItems(items) {
-            if (this.mode === 'view') {
-                //filtering HUD items out as they are always shown in the viewport  in view mode
-                items = this.interactiveSchemeContainer.filterNonHUDItems(items);
-            }
-
-            if (!items || items.length === 0) {
-                return null;
-            }
-
-            let filteredItems = filter(items, item => item.visible && item.meta.calculatedVisibility);
-
-            if (filteredItems.length === 0 && items.length > 0) {
-                // this check is needed because in edit mode a user might select an item that is not visible
-                // (e.g. in item selector componnent) and click 'zoom to it'
-                filteredItems = items;
-            }
-            return this.schemeContainer.getBoundingBoxOfItems(filteredItems);
+            this.zoomedItems = items;
+            this.zoomToItemsTrigger = shortid.generate();
         },
 
         onClickedAddItemLink(item) {
@@ -1960,54 +1939,6 @@ export default {
 
         closeAnimatorEditor() {
             this.currentAnimatorFramePlayer = null;
-        },
-
-        onComponentLoadRequested(item) {
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
-                return;
-            }
-            if (item._childItems && item._childItems.length > 0) {
-                item._childItems = [];
-            }
-            item.meta.componentLoadFailed = false;
-
-            this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
-            .then(schemeDetails => {
-                if (!schemeDetails || !schemeDetails.scheme) {
-                    return Promise.reject('Empty document');
-                }
-                return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
-                .catch(err => {
-                    console.error(err);
-                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
-                })
-                .then(() => {
-                    return schemeDetails;
-                });
-            })
-            .then(schemeDetails => {
-                const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, {
-                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
-                });
-                this.interactiveSchemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
-                this.interactiveSchemeContainer.prepareFrameAnimationsForItems();
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
-
-                if (item.shape === 'component' && item.shapeProps.autoZoom) {
-                    this.zoomToItems([item]);
-                }
-
-                this.$nextTick(() => {
-                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item);
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
-                item.meta.componentLoadFailed = true;
-                EditorEventBus.component.loadFailed.specific.$emit(this.editorId, item.id, item);
-            });
         },
 
         onItemRightClick(item, mouseX, mouseY) {

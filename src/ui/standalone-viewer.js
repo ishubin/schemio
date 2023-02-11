@@ -20,6 +20,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
     if (options.apiClient) {
         store.dispatch('setApiClient', options.apiClient);
     }
+    store.dispatch('setAssetsPath', options.assetsPath || '/');
 
     new Vue({
         components: {StandaloneSchemeView},

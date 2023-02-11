@@ -75,7 +75,6 @@ export default {
     components: {SvgEditor, ItemTooltip, ItemDetails},
 
     beforeMount() {
-        this.$store.dispatch('setAssetsPath', '/');
         this.initSchemeContainer();
 
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);

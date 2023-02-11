@@ -171,6 +171,7 @@
 
 <script>
 import map from 'lodash/map';
+import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import find from 'lodash/find';
 
@@ -191,6 +192,7 @@ import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
 import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
+import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -218,6 +220,9 @@ export default {
         userEventBus        : { type: Object, default: null},
         patchIndex          : { type: Object, default: null},
         highlightedItems    : { type: Object, default: null},
+        zoomedItems         : { type: Array, default: null},
+        // hack that is used in order to trigger zooming of items from parent component without using event bus
+        zoomToItemsTrigger  : { type: String, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -251,6 +256,7 @@ export default {
         EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.updateClickableMarkers);
 
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
+        EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
     },
     mounted() {
         this.updateSvgSize();
@@ -288,6 +294,7 @@ export default {
         EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.updateClickableMarkers);
 
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
+        EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
 
         if (this.useMouseWheel) {
             const svgElement = this.$refs.svgDomElement;
@@ -323,6 +330,84 @@ export default {
         };
     },
     methods: {
+        onComponentLoadRequested(item) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
+                return;
+            }
+            if (item._childItems && item._childItems.length > 0) {
+                item._childItems = [];
+            }
+            item.meta.componentLoadFailed = false;
+
+            this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
+            .then(schemeDetails => {
+                if (!schemeDetails || !schemeDetails.scheme) {
+                    return Promise.reject('Empty document');
+                }
+                return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
+                .catch(err => {
+                    console.error(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                })
+                .then(() => {
+                    return schemeDetails;
+                });
+            })
+            .then(schemeDetails => {
+                const scheme = schemeDetails.scheme;
+                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, {
+                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+                });
+                this.schemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
+                this.schemeContainer.prepareFrameAnimationsForItems();
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+
+                if (item.shape === 'component' && item.shapeProps.autoZoom) {
+                    this.zoomToItems([item]);
+                }
+
+                this.$nextTick(() => {
+                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item);
+                });
+            })
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
+                item.meta.componentLoadFailed = true;
+                EditorEventBus.component.loadFailed.specific.$emit(this.editorId, item.id, item);
+            });
+        },
+
+        zoomToItems(items) {
+            if (items.length === 0) {
+                return;
+            }
+            const area = this.calculateZoomingAreaForItems(items);
+            if (area) {
+                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, true);
+            }
+        },
+
+        calculateZoomingAreaForItems(items) {
+            if (this.mode === 'view') {
+                //filtering HUD items out as they are always shown in the viewport  in view mode
+                items = this.schemeContainer.filterNonHUDItems(items);
+            }
+
+            if (!items || items.length === 0) {
+                return null;
+            }
+
+            let filteredItems = filter(items, item => item.visible && item.meta.calculatedVisibility);
+
+            if (filteredItems.length === 0 && items.length > 0) {
+                // this check is needed because in edit mode a user might select an item that is not visible
+                // (e.g. in item selector componnent) and click 'zoom to it'
+                filteredItems = items;
+            }
+            return this.schemeContainer.getBoundingBoxOfItems(filteredItems);
+        },
+
         updateSvgSize() {
             if (!this.$refs.svgDomElement) {
                 return;
@@ -1075,6 +1160,10 @@ export default {
 
         highlightedItems(value) {
             this.highlightItems(value.itemIds, value.showPins);
+        },
+
+        zoomToItemsTrigger() {
+            this.zoomToItems(this.zoomedItems);
         }
     }
 }

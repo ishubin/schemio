@@ -10,11 +10,17 @@ import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
 import Modal from './components/Modal.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import EditorEventBus from './components/editor/EditorEventBus';
+import { snapshotSvg } from './svgPreview.js';
+import { getBoundingBoxOfItems } from './scheme/SchemeContainer.js';
+import { traverseItems } from './scheme/Item.js';
 
 window.Schemio = {
-    components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store },
+    components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store},
     utils: {
         createHasher,
+        snapshotSvg,
+        getBoundingBoxOfItems,
+        traverseItems
     },
     /**
      *
