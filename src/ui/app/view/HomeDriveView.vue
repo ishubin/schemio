@@ -17,7 +17,7 @@
             </p>
             <p v-else class="home-buttons">
                 <span class="btn btn-primary btn-large" @click="loginModalShown = true">Sign in</span> or
-                <router-link class="btn btn-secondary btn-large" to="/offline-editor/">Edit diagram offline</router-link>
+                <router-link class="btn btn-secondary btn-large" to="/offline-editor/?m=edit">Edit diagram offline</router-link>
             </p>
 
             <a href="assets/images/schemio-screenshot.png" class="home-screenshot">
@@ -30,20 +30,20 @@
 
 <script>
 import LoginModal from '../components/LoginModal.vue';
-import { getGoogleAuth, getGoogleCurrentUserSession } from '../../googleApi';
+import { googleIsSignedIn } from '../../googleApi';
 
 export default {
     components: {LoginModal},
 
     beforeMount() {
-        getGoogleAuth().then(googleAuth => {
-            this.isSignedIn = googleAuth.isSignedIn.get();
-        });
+        googleIsSignedIn().then(isSignedIn => {
+            this.isSignedIn = isSignedIn;
+        })
     },
 
     data() {
         return {
-            isSignedIn: getGoogleCurrentUserSession().isSignedIn,
+            isSignedIn: false,
             loginModalShown: false
         };
     },

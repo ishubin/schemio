@@ -1,66 +1,93 @@
 
-const GA_CURRENT_USER = 'gaCurrentUser';
+const CLIENT_ID       = '49605926377-f8pu3773fiu5opmimvnndp29i3vmjpbr';
+const API_KEY         = 'AIzaSyDg6DmXsMjAWPRW7HEDD2hEZU9wgcCQYm4';
+const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
+
+let tokenClient = null;
 
 
-export function getGoogleCurrentUserSession() {
-    const encodedUser = window.localStorage.getItem(GA_CURRENT_USER);
-    if (encodedUser) {
+const gapiInitCallbacks = [];
+const signinCallbacks = [];
+
+function invokeAllCallbacks(callbacks, ...args) {
+    const _callbacks = [...callbacks];
+    callbacks.length = 0;
+    _callbacks.forEach(callback => {
         try {
-            return JSON.parse(encodedUser);
-        } catch (error) {
-        }
-    }
-    return {
-        isSignedIn: false,
-        user: null
-    };
-}
-
-function storeUserSessionInLocalStorage(googleAuth) {
-    const isSignedIn = googleAuth.isSignedIn.get();
-    let currentUserSession = {
-        isSignedIn,
-        user: null
-    };
-    if (isSignedIn) {
-        const user = googleAuth.currentUser.get();
-        if (user) {
-            const profile = user.getBasicProfile();
-            currentUserSession = {
-                isSignedIn,
-                user: {
-                    name: profile.getName(),
-                    image: profile.getImageUrl()
-                }
-            };
-        }
-    }
-
-    window.localStorage.setItem(GA_CURRENT_USER, JSON.stringify(currentUserSession));
-}
-
-export function getGoogleAuth() {
-    return window.getGoogleAuth().then(googleAuth => {
-        storeUserSessionInLocalStorage(googleAuth);
-        return googleAuth;
+            callback(...args);
+        } catch(err) { }
     });
 }
 
+export function whenGAPILoaded() {
+    if (gapi.client && tokenClient) {
+        return Promise.resolve();
+    }
+    else {
+        return new Promise(resolve => {
+            gapiInitCallbacks.push(() => {
+                resolve();
+            })
+        });
+    }
+}
+
+
+export function googleIsSignedIn() {
+    return whenGAPILoaded().then(() => {
+        return gapi.client.getToken() !== null;
+    });
+}
 
 export function googleSignOut() {
-    return getGoogleAuth().then(googleAuth => {
-        return googleAuth.signOut();
-    }).then(() => {
-        window.localStorage.removeItem(GA_CURRENT_USER);
+    return whenGAPILoaded().then(() => {
+        const token = gapi.client.getToken();
+        if (token !== null) {
+            google.accounts.oauth2.revoke(token.access_token);
+            gapi.client.setToken('');
+        }
     });
 }
 
-
-
 export function googleSignIn() {
-    return window.getGoogleAuth().then(googleAuth => {
-        return googleAuth.signIn().then(() => {
-            storeUserSessionInLocalStorage(googleAuth);
+    return whenGAPILoaded().then(() => {
+        return new Promise(resolve => {
+            signinCallbacks.push(() => {
+                resolve();
+            });
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({
+                    prompt: 'consent'
+                });
+            } else {
+                tokenClient.requestAccessToken({
+                    prompt: ''
+                });
+            }
         });
+    });
+}
+
+function googleTokenCallback(resp) {
+    invokeAllCallbacks(signinCallbacks, resp);
+}
+
+export function initGoogleAPI() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        prompt: '',
+        callback: googleTokenCallback,
+    });
+
+    gapi.load('client', () => {
+        console.log('GAPI Client is loaded');
+        gapi.client.init({
+            apiKey: API_KEY,
+            discoveryDocs: [ DISCOVERY_DOC ],
+        });
+
+        invokeAllCallbacks(gapiInitCallbacks);
     });
 }

@@ -19,6 +19,10 @@ import Footer from './app/components/Footer.vue';
 import HomeDriveView from './app/view/HomeDriveView.vue';
 import { googleDriveClientProvider } from './app/client/googleDriveClient';
 import { offlineClientProvider } from './app/client/offlineClient';
+import { initGoogleAPI } from './googleApi';
+
+
+initGoogleAPI();
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);

@@ -4,9 +4,9 @@
 <template>
     <div class="header">
         <div class="header-body">
-            <a href="/" class="header-caption">
+            <router-link to="/" class="header-caption">
                 <img src="/assets/images/schemio-logo-white.small.png" height="25"/> <span>Schemio</span>
-            </a>
+            </router-link>
             <div class="header-middle-section">
                 <ul class="header-menu">
                     <li v-if="isSignedIn">
@@ -41,42 +41,24 @@
 
 <script>
 import LoginModal from './LoginModal.vue';
-import { getGoogleCurrentUserSession, getGoogleAuth, googleSignOut } from '../../googleApi';
 
 export default {
 
     components: {LoginModal},
 
     beforeMount() {
-        getGoogleAuth().then(googleAuth => {
-            const currentUserSession = getGoogleCurrentUserSession();
-            if (currentUserSession) {
-                this.isSignedIn = currentUserSession.isSignedIn;
-                this.currentUser = currentUserSession.user
-            } else {
-                this.isSignedIn = false;
-                this.currentUser = null;
-            }
-        });
     },
-    
+
     data() {
-        const currentUserSession = getGoogleCurrentUserSession();
         return {
-            isSignedIn: currentUserSession.isSignedIn,
-            currentUser: currentUserSession.user,
+            isSignedIn: false,
+            currentUser: null,
             loginModalShown: false
         };
     },
 
     methods: {
         logout() {
-            googleSignOut().then(() => {
-                this.isSignedIn = false;
-                this.currentUser = null;
-                this.$emit('user-logged-out');
-                this.$router.push({path: '/'});
-            });
         }
     }
 }

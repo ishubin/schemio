@@ -3,6 +3,7 @@ import forEach from "lodash/forEach";
 import map from "lodash/map";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
+import { whenGAPILoaded } from "../../googleApi";
 
 export const googleDriveClientProvider = {
     type: 'drive',
@@ -26,8 +27,7 @@ export const googleDriveClientProvider = {
             return title;
         }
 
-        return window.getGoogleAuth().then(() => {
-
+        return whenGAPILoaded().then(() => {
             function buildFileBreadCrumbs(fileId, ancestors, counter) {
                 if (!counter) {
                     counter = 0;
@@ -40,11 +40,11 @@ export const googleDriveClientProvider = {
                 }
 
                 if (fileId) {
-                    return gapi.client.drive.files.get( { fileId: fileId, fields: 'id, title, parents(id,isRoot)'}).then(response => {
+                    return gapi.client.drive.files.get( { fileId: fileId, fields: 'id, name, parents(id,isRoot)'}).then(response => {
 
                         ancestors.splice(0, 0, {
                             path: response.result.id,
-                            name: response.result.title
+                            name: response.result.name
                         });
 
                         if (response.result.parents.length > 0) {
@@ -76,7 +76,7 @@ export const googleDriveClientProvider = {
 
                     const params = {
                         q: query,
-                        fields: 'nextPageToken, items(id, title, mimeType, modifiedDate)'
+                        fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)'
                     };
 
                     if (filters && filters.nextPageToken) {
@@ -95,20 +95,20 @@ export const googleDriveClientProvider = {
                                 });
                             }
 
-                            forEach(results.result.items, file => {
+                            forEach(results.result.files, file => {
                                 if (file.mimeType === 'application/vnd.google-apps.folder') {
                                     entries.push({
                                         kind: 'dir',
                                         path: file.id,
-                                        name: file.title,
-                                        modifiedTime: file.modifiedDate
+                                        name: file.name,
+                                        modifiedTime: file.modifiedTime
                                     });
-                                } else if (file.mimeType === 'application/json' && file.title.endsWith(schemioExtension)) {
+                                } else if (file.mimeType === 'application/json' && file.name.endsWith(schemioExtension)) {
                                     entries.push({
                                         kind: 'schemio:doc',
                                         id: file.id,
-                                        name: convertSchemioFileTitle(file.title),
-                                        modifiedTime: file.modifiedDate
+                                        name: convertSchemioFileTitle(file.name),
+                                        modifiedTime: file.modifiedTime
                                     });
                                 }
                             });
@@ -125,7 +125,7 @@ export const googleDriveClientProvider = {
 
                 createDirectory(parentId, name) {
                     const resource = {
-                        title: name,
+                        name: name,
                         mimeType: 'application/vnd.google-apps.folder'
                     };
 
@@ -133,7 +133,7 @@ export const googleDriveClientProvider = {
                         resource.parents = [{id: parentId}];
                     }
 
-                    return gapi.client.drive.files.insert({ resource }).then(() => {
+                    return gapi.client.drive.files.create({ resource }).then(() => {
                         return {
                             kind: 'dir',
                             name: name,
@@ -154,7 +154,7 @@ export const googleDriveClientProvider = {
                         parents.push({ id: 'root' });
                     }
 
-                    return gapi.client.drive.files.patch({
+                    return gapi.client.drive.files.update({
                         fileId: fileId,
                         resource: { parents }
                     });
@@ -169,10 +169,10 @@ export const googleDriveClientProvider = {
                 },
 
                 renameGoogleFile(fileId, newName) {
-                    return gapi.client.drive.files.patch({
+                    return gapi.client.drive.files.update({
                         fileId: fileId,
                         resource: {
-                            title: newName
+                            name: newName
                         }
                     }).then(() => {
                         return {
@@ -212,7 +212,7 @@ export const googleDriveClientProvider = {
 
                     const contentType = 'application/json';
                     const metadata = {
-                        title:  `${scheme.name}${schemioExtension}`,
+                        name:  `${scheme.name}${schemioExtension}`,
                         mimeType: 'application/json'
                     };
 
@@ -233,7 +233,7 @@ export const googleDriveClientProvider = {
                         close_delim;
 
                     const request = gapi.client.request({
-                        'path': '/upload/drive/v2/files',
+                        'path': '/upload/drive/v3/files',
                         'method': 'POST',
                         'params': {'uploadType': 'multipart'},
                         'headers': {
@@ -257,7 +257,7 @@ export const googleDriveClientProvider = {
                             fileId: schemeId
                         }).then(response => {
                             const file = response.result;
-                            let title = file.title;
+                            let title = file.name;
                             if (title.endsWith(schemioExtension)) {
                                 title = title.substring(0, title.length - schemioExtension.length);
                             }
@@ -317,7 +317,7 @@ export const googleDriveClientProvider = {
                     var base64Data = encode(JSON.stringify(scheme));
 
                     const metadata = {
-                        title:  `${scheme.name}${schemioExtension}`,
+                        name:  `${scheme.name}${schemioExtension}`,
                         mimeType: 'application/json'
                     };
                     var multipartRequestBody =
@@ -332,7 +332,7 @@ export const googleDriveClientProvider = {
                         close_delim;
 
                     return gapi.client.request({
-                        'path': '/upload/drive/v2/files/' + scheme.id,
+                        'path': '/upload/drive/v3/files/' + scheme.id,
                         'method': 'PUT',
                         'params': {'uploadType': 'multipart', 'alt': 'json'},
                         'headers': {
@@ -348,13 +348,13 @@ export const googleDriveClientProvider = {
                     let query = "trashed = false and mimeType = 'application/json'";
 
                     if (filters.query) {
-                        query += ` and title contains '${escapeDriveQuery(filters.query)}'`;
+                        query += ` and name contains '${escapeDriveQuery(filters.query)}'`;
                     }
 
                     const params = {
                         q: query,
                         maxResults: 100,
-                        fields: 'nextPageToken, items(mimeType, title, id, modifiedDate)'
+                        fields: 'nextPageToken, files(mimeType, name, id, modifiedTime)'
                     };
 
                     if (filters.nextPageToken) {
@@ -366,10 +366,10 @@ export const googleDriveClientProvider = {
                         return {
                             kind: 'chunk',
                             nextPageToken: response.result.nextPageToken,
-                            results: map(response.result.items, file => {
+                            results: map(response.result.files, file => {
                                 return {
                                     id: file.id,
-                                    name: convertSchemioFileTitle(file.title),
+                                    name: convertSchemioFileTitle(file.name),
                                     modifiedTime: file.modifiedDate,
                                     publicLink: `/docs/${file.id}`
                                 };

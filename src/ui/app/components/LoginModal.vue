@@ -10,7 +10,7 @@
 
                     <div class="login-alternative-caption">Or check out offline editor</div>
 
-                    <router-link class="btn btn-login btn-login-alt" to="/offline-editor/">Edit diagrams offline</router-link>
+                    <router-link class="btn btn-login btn-login-alt" to="/offline-editor/?m=edit">Edit diagrams offline</router-link>
 
                 </div>
             </div>
