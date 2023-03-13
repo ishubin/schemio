@@ -263,7 +263,23 @@ export default {
 
             this.apiClient.createDirectory(this.path, name)
             .then(entry => {
-                this.entries.push(entry);
+                this.entries.push({
+                    ...entry,
+                    // TODO this is ugly duplication, menuOptions do not differ between entries
+                    menuOptions: [{
+                        name: 'Delete',
+                        iconClass: 'fas fa-trash',
+                        event: 'delete'
+                    }, {
+                        name: 'Rename',
+                        iconClass: 'fas fa-edit',
+                        event: 'rename'
+                    }, {
+                        name: 'Move',
+                        iconClass: 'fas fa-share',
+                        event: 'move'
+                    }]
+                });
                 this.entries.sort(entriesSorter);
                 this.newDirectoryModal.shown = false;
             })
@@ -303,6 +319,7 @@ export default {
             if (entry.kind === 'dir') {
                 this.apiClient.deleteDir(entry.path, entry.name).then(() => {
                     deleteEntry(e => e.path === entry.path);
+                    this.deleteEntryModal.shown = false;
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete directory';
@@ -310,6 +327,7 @@ export default {
             } else if (entry.kind === 'schemio:doc') {
                 this.apiClient.deleteScheme(entry.id).then(() => {
                     deleteEntry(e => e.id === entry.id);
+                    this.deleteEntryModal.shown = false;
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete diagram';

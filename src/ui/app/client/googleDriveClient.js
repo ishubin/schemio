@@ -215,7 +215,7 @@ export const googleDriveClientProvider = {
                     };
 
                     if (parentId) {
-                        metadata.parents = [{id: parentId}];
+                        metadata.parents = [parentId];
                     }
 
                     const base64Data = encode(JSON.stringify(scheme))
