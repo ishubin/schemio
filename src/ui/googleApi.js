@@ -5,10 +5,10 @@ const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/r
 const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
 
 let tokenClient = null;
+let _$router = null;
 
 
 const gapiInitCallbacks = [];
-const signinCallbacks = [];
 
 function invokeAllCallbacks(callbacks, ...args) {
     const _callbacks = [...callbacks];
@@ -50,27 +50,26 @@ export function googleSignOut() {
     });
 }
 
-export function googleSignIn() {
+
+export function googleSignIn($router) {
+    _$router = $router;
     return whenGAPILoaded().then(() => {
-        return new Promise(resolve => {
-            signinCallbacks.push(() => {
-                resolve();
+        if (gapi.client.getToken() === null) {
+            tokenClient.requestAccessToken({
+                prompt: 'consent'
             });
-            if (gapi.client.getToken() === null) {
-                tokenClient.requestAccessToken({
-                    prompt: 'consent'
-                });
-            } else {
-                tokenClient.requestAccessToken({
-                    prompt: ''
-                });
-            }
-        });
+        } else {
+            tokenClient.requestAccessToken({
+                prompt: ''
+            });
+        }
     });
 }
 
 function googleTokenCallback(resp) {
-    invokeAllCallbacks(signinCallbacks, resp);
+    if (_$router) {
+        _$router.push({path: '/f/'});
+    }
 }
 
 export function initGoogleAPI() {
@@ -82,7 +81,6 @@ export function initGoogleAPI() {
     });
 
     gapi.load('client', () => {
-        console.log('GAPI Client is loaded');
         gapi.client.init({
             apiKey: API_KEY,
             discoveryDocs: [ DISCOVERY_DOC ],

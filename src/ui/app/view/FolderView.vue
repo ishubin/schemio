@@ -210,6 +210,18 @@ export default {
     },
 
     methods: {
+        reload() {
+            // window.location.reload();
+            this.nextPageToken = null;
+            this.entries = [];
+            this.loadNextPage();
+            this.newDirectoryModal.shown = false;
+            this.renameEntryModal.shown = false;
+            this.moveEntryModal.shown = false;
+            this.deleteEntryModal.shown = false;
+            this.newSchemeModal.shown = false;
+        },
+
         showNewSchemeModel() {
             this.newSchemeModal.shown = true;
         },
@@ -240,7 +252,7 @@ export default {
 
             this.apiClient.createDirectory(this.path, name)
             .then(() => {
-                window.location.reload();
+                this.reload();
             })
             .catch(err => {
                 this.newDirectoryModal.errorMessage = 'Failed to create new directory';
@@ -270,14 +282,14 @@ export default {
         confirmDeleteEntry(entry) {
             if (entry.kind === 'dir') {
                 this.apiClient.deleteDir(entry.path, entry.name).then(() => {
-                    window.location.reload();
+                    this.reload();
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete directory';
                 });
             } else if (entry.kind === 'schemio:doc') {
                 this.apiClient.deleteScheme(entry.id).then(() => {
-                    window.location.reload();
+                    this.reload();
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete diagram';
@@ -414,7 +426,6 @@ export default {
                 this.entries = this.entries.concat(result.entries);
                 this.viewOnly = result.viewOnly;
                 this.isLoading = false;
-
             }).catch(err => {
                 console.error(err);
                 this.isLoading = false;

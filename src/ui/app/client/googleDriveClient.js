@@ -40,22 +40,20 @@ export const googleDriveClientProvider = {
                 }
 
                 if (fileId) {
-                    return gapi.client.drive.files.get( { fileId: fileId, fields: 'id, name, parents(id,isRoot)'}).then(response => {
+                    return gapi.client.drive.files.get( { fileId: fileId, fields: 'name, mimeType, parents'}).then(response => {
+                        if (response.result.parents && response.result.parents.length > 0) {
+                            // Skipping the root parent which is "My Drive"
+                            ancestors.splice(0, 0, {
+                                path: fileId,
+                                name: response.result.name
+                            });
 
-                        ancestors.splice(0, 0, {
-                            path: response.result.id,
-                            name: response.result.name
-                        });
-
-                        if (response.result.parents.length > 0) {
-                            if (!response.result.parents[0].isRoot) {
-                                return buildFileBreadCrumbs(response.result.parents[0].id, ancestors, counter + 1);
-                            } else {
-                                ancestors.splice(0, 0, {
-                                    path: '',
-                                    name: 'Home'
-                                });
-                            }
+                            return buildFileBreadCrumbs(response.result.parents[0], ancestors, counter + 1);
+                        } else {
+                            ancestors.splice(0, 0, {
+                                path: '',
+                                name: 'Home'
+                            });
                         }
                         return Promise.resolve(ancestors);
                     });
@@ -130,7 +128,7 @@ export const googleDriveClientProvider = {
                     };
 
                     if (parentId) {
-                        resource.parents = [{id: parentId}];
+                        resource.parents = [parentId];
                     }
 
                     return gapi.client.drive.files.create({ resource }).then(() => {
@@ -274,31 +272,10 @@ export const googleDriveClientProvider = {
                         return Promise.reject('Invalid empty document ID');
                     }
                     return gapi.client.drive.files.get({
-                        fileId: schemeId
+                        fileId: schemeId,
+                        alt: 'media'
                     }).then(response => {
-                        const file = response.result;
-                        if (file.downloadUrl) {
-                            var accessToken = gapi.auth.getToken().access_token;
-                            var xhr = new XMLHttpRequest();
-                            // For some reason google API returns a "lockedDomainCreationFailure" error even though the code is completelly copied from Google API documentation
-                            // Followed the advice here https://stackoverflow.com/questions/68016649/google-drive-api-download-file-gives-lockeddomaincreationfailure-error
-                            // and it worked. For some reason we need to replace "content" subdomain with "www"
-                            xhr.open('GET', file.downloadUrl.replace('https://content.googleapis.com', 'https://www.googleapis.com'));
-                            xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-                            return new Promise((resolve, reject) => {
-                                xhr.onload = function() {
-                                    resolve(xhr.responseText);
-                                };
-                                xhr.onerror = function() {
-                                    reject();
-                                };
-                                xhr.send();
-                            });
-                        } else {
-                            throw new Error('File is missing downloadUrl');
-                        }
-                    }).then(content => {
-                        const scheme = JSON.parse(content);
+                        const scheme = response.result;
                         scheme.id = schemeId;
                         return {
                             scheme: scheme,
@@ -309,37 +286,14 @@ export const googleDriveClientProvider = {
                 },
 
                 saveScheme(scheme) {
-                    const boundary = '-------314159265358979323846';
-                    const delimiter = "\r\n--" + boundary + "\r\n";
-                    const close_delim = "\r\n--" + boundary + "--";
-
-                    var contentType = 'application/json';
-                    var base64Data = encode(JSON.stringify(scheme));
-
-                    const metadata = {
-                        name:  `${scheme.name}${schemioExtension}`,
-                        mimeType: 'application/json'
-                    };
-                    var multipartRequestBody =
-                        delimiter +
-                        'Content-Type: application/json\r\n\r\n' +
-                        JSON.stringify(metadata) +
-                        delimiter +
-                        'Content-Type: ' + contentType + '\r\n' +
-                        'Content-Transfer-Encoding: base64\r\n' +
-                        '\r\n' +
-                        base64Data +
-                        close_delim;
-
                     return gapi.client.request({
-                        'path': '/upload/drive/v3/files/' + scheme.id,
-                        'method': 'PUT',
-                        'params': {'uploadType': 'multipart', 'alt': 'json'},
-                        'headers': {
-                            'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+                        path: '/upload/drive/v3/files/' + scheme.id,
+                        method: 'PATCH',
+                        params: {
+                            uploadType: 'media'
                         },
-                        'body': multipartRequestBody
-                    }).then(() => {
+                        body: JSON.stringify(scheme)
+                    }).then(() =>{
                         return scheme;
                     });
                 },
