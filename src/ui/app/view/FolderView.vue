@@ -130,6 +130,17 @@ import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
 
+const _kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
+function entriesSorter(a, b) {
+    const name1 = _kindPrefix(a.kind) + a.name.toLowerCase();
+    const name2 = _kindPrefix(b.kind) + b.name.toLowerCase();
+    if (name1 < name2) {
+        return -1;
+    } else {
+        return 1;
+    }
+}
+
 
 function isValidCharCode(code) {
     return (code >= 48 && code <= 57)
@@ -251,8 +262,10 @@ export default {
             }
 
             this.apiClient.createDirectory(this.path, name)
-            .then(() => {
-                this.reload();
+            .then(entry => {
+                this.entries.push(entry);
+                this.entries.sort(entriesSorter);
+                this.newDirectoryModal.shown = false;
             })
             .catch(err => {
                 this.newDirectoryModal.errorMessage = 'Failed to create new directory';
@@ -262,7 +275,7 @@ export default {
         onSchemeSubmitted(scheme) {
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 if (this.$router.mode === 'history') {
-                    this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
+                        this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
                 } else {
                     this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
                 }
@@ -280,16 +293,23 @@ export default {
         },
 
         confirmDeleteEntry(entry) {
+            const deleteEntry = (checker) => {
+                for (let i = this.entries.length - 1; i >= 0; i--) {
+                    if (checker(this.entries[i])) {
+                        this.entries.splice(i, 1);
+                    }
+                }
+            };
             if (entry.kind === 'dir') {
                 this.apiClient.deleteDir(entry.path, entry.name).then(() => {
-                    this.reload();
+                    deleteEntry(e => e.path === entry.path);
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete directory';
                 });
             } else if (entry.kind === 'schemio:doc') {
                 this.apiClient.deleteScheme(entry.id).then(() => {
-                    this.reload();
+                    deleteEntry(e => e.id === entry.id);
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete diagram';
@@ -394,16 +414,7 @@ export default {
                     };
                 });
 
-                const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
-                result.entries.sort((a, b) => {
-                    const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
-                    const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
-                    if (name1 < name2) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                });
+                result.entries.sort(entriesSorter);
                 forEach(result.entries, entry => {
                     entry.menuOptions = [{
                         name: 'Delete',

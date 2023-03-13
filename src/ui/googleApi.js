@@ -1,6 +1,5 @@
 
 const CLIENT_ID       = '49605926377-f8pu3773fiu5opmimvnndp29i3vmjpbr';
-const API_KEY         = 'AIzaSyDg6DmXsMjAWPRW7HEDD2hEZU9wgcCQYm4';
 const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
 
@@ -28,7 +27,7 @@ export function whenGAPILoaded() {
         return new Promise(resolve => {
             gapiInitCallbacks.push(() => {
                 resolve();
-            })
+            });
         });
     }
 }
@@ -82,7 +81,6 @@ export function initGoogleAPI() {
 
     gapi.load('client', () => {
         gapi.client.init({
-            apiKey: API_KEY,
             discoveryDocs: [ DISCOVERY_DOC ],
         });
 
