@@ -24,7 +24,9 @@ import { googleSignIn } from '../../googleApi';
 export default {
     methods: {
         loginGoogleDrive() {
-            googleSignIn(this.$router);
+            googleSignIn().then(() => {
+                this.$router.push({path: '/f/'});
+            });
         }
     }
 }

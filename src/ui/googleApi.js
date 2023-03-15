@@ -1,34 +1,59 @@
 
-const CLIENT_ID       = '49605926377-f8pu3773fiu5opmimvnndp29i3vmjpbr';
+const CLIENT_ID       = '49605926377-mcb27jl2eakpbb9sqdh8pduq0l266vq3';
 const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
 
 let tokenClient = null;
-let _$router = null;
+let _signedIn = false
 
 
-const gapiInitCallbacks = [];
+class Notifier {
+    constructor() {
+        this.callbacks = [];
+    }
 
-function invokeAllCallbacks(callbacks, ...args) {
-    const _callbacks = [...callbacks];
-    callbacks.length = 0;
-    _callbacks.forEach(callback => {
-        try {
-            callback(...args);
-        } catch(err) { }
-    });
+    /**
+     *
+     * @param {Function} callback
+     * @param {Number} ttl - timeout in milliseconds within which this callback is valid
+     */
+    subscribe(callback, ttl) {
+        this.callbacks.push({callback, ttl, registeredAt: Date.now() });
+    }
+
+    notifyAll(...args) {
+        const _callbacks = [...this.callbacks];
+        this.callbacks.length = 0;
+        const now = Date.now();
+        _callbacks.forEach(callback => {
+            try {
+                if (!callback.ttl || now - callback.registeredAt > callback.ttl) {
+                    callback(...args);
+                }
+            } catch(err) { }
+        });
+    }
+
+    createSubscriberPromise(ttl) {
+        return new Promise(resolve => {
+            this.callbacks.push(() => {
+                resolve();
+            }, ttl);
+        });
+    }
 }
+
+
+const gapiInitNotifier = new Notifier();
+const signInNotifier = new Notifier();
+
 
 export function whenGAPILoaded() {
     if (gapi.client && tokenClient) {
         return Promise.resolve();
     }
     else {
-        return new Promise(resolve => {
-            gapiInitCallbacks.push(() => {
-                resolve();
-            });
-        });
+        return gapiInitNotifier.createSubscriberPromise();
     }
 }
 
@@ -49,26 +74,32 @@ export function googleSignOut() {
     });
 }
 
-
-export function googleSignIn($router) {
-    _$router = $router;
+export function googleEnsureSignedIn() {
     return whenGAPILoaded().then(() => {
-        if (gapi.client.getToken() === null) {
-            tokenClient.requestAccessToken({
-                prompt: 'consent'
-            });
-        } else {
-            tokenClient.requestAccessToken({
-                prompt: ''
-            });
+        if (_signedIn) {
+            return;
         }
+
+        const promise = signInNotifier.createSubscriberPromise();
+
+        tokenClient.requestAccessToken({
+            prompt: ''
+        });
+        return promise;
+    });
+}
+
+export function googleSignIn() {
+    return whenGAPILoaded().then(() => {
+        tokenClient.requestAccessToken({
+            prompt: 'consent'
+        });
     });
 }
 
 function googleTokenCallback(resp) {
-    if (_$router) {
-        _$router.push({path: '/f/'});
-    }
+    _signedIn = true;
+    signInNotifier.notifyAll(resp);
 }
 
 export function initGoogleAPI() {
@@ -83,7 +114,6 @@ export function initGoogleAPI() {
         gapi.client.init({
             discoveryDocs: [ DISCOVERY_DOC ],
         });
-
-        invokeAllCallbacks(gapiInitCallbacks);
+        gapiInitNotifier.notifyAll();
     });
 }

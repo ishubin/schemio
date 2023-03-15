@@ -223,6 +223,14 @@ export default {
             if (!path) {
                 path = '';
             }
+
+            // checking whether breadcrumbs were already genereated
+            // TODO rewrite all clients to generate breadcrumbs upfront so that we don't have to rely on this inconsistency
+            if (Array.isArray(path)) {
+                this.breadcrumbs = path;
+                return;
+            }
+
             const folders = path.split('/');
 
             const breadcrumbs = [];

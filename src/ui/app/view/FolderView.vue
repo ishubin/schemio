@@ -222,7 +222,6 @@ export default {
 
     methods: {
         reload() {
-            // window.location.reload();
             this.nextPageToken = null;
             this.entries = [];
             this.loadNextPage();

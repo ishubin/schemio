@@ -3,7 +3,7 @@ import forEach from "lodash/forEach";
 import map from "lodash/map";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
-import { whenGAPILoaded } from "../../googleApi";
+import { googleEnsureSignedIn, whenGAPILoaded } from "../../googleApi";
 
 export const googleDriveClientProvider = {
     type: 'drive',
@@ -27,7 +27,7 @@ export const googleDriveClientProvider = {
             return title;
         }
 
-        return whenGAPILoaded().then(() => {
+        return googleEnsureSignedIn().then(() => {
             function buildFileBreadCrumbs(fileId, ancestors, counter) {
                 if (!counter) {
                     counter = 0;
@@ -45,14 +45,16 @@ export const googleDriveClientProvider = {
                             // Skipping the root parent which is "My Drive"
                             ancestors.splice(0, 0, {
                                 path: fileId,
-                                name: response.result.name
+                                name: response.result.name,
+                                kind: 'dir'
                             });
 
                             return buildFileBreadCrumbs(response.result.parents[0], ancestors, counter + 1);
                         } else {
                             ancestors.splice(0, 0, {
                                 path: '',
-                                name: 'Home'
+                                name: 'Home',
+                                kind: 'dir'
                             });
                         }
                         return Promise.resolve(ancestors);
@@ -74,7 +76,8 @@ export const googleDriveClientProvider = {
 
                     const params = {
                         q: query,
-                        fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)'
+                        fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)',
+                        pageSize: 1000
                     };
 
                     if (filters && filters.nextPageToken) {
@@ -145,16 +148,17 @@ export const googleDriveClientProvider = {
                 },
 
                 moveGoogleFile(fileId, parentId) {
-                    const parents = [];
-                    if (parentId && parentId.length > 0) {
-                        parents.push({ id: parentId });
-                    } else {
-                        parents.push({ id: 'root' });
-                    }
+                    return gapi.client.drive.files.get({fileId: fileId, fields: 'parents'})
+                    .then(response => {
+                        const file = response.result;
+                        const previousParents = file.parents.join(',');
 
-                    return gapi.client.drive.files.update({
-                        fileId: fileId,
-                        resource: { parents }
+                        return gapi.client.drive.files.update({
+                            fileId: fileId,
+                            addParents: parentId,
+                            removeParents: previousParents,
+                            fields: 'id, parents',
+                        });
                     });
                 },
 
@@ -271,15 +275,20 @@ export const googleDriveClientProvider = {
                     if (!schemeId) {
                         return Promise.reject('Invalid empty document ID');
                     }
-                    return gapi.client.drive.files.get({
-                        fileId: schemeId,
-                        alt: 'media'
-                    }).then(response => {
-                        const scheme = response.result;
+                    return Promise.all([
+                        gapi.client.drive.files.get({
+                            fileId: schemeId,
+                            alt: 'media'
+                        }),
+                        buildFileBreadCrumbs(schemeId)
+                    ])
+                    .then(([schemeResponse, breadcrumbs]) => {
+                        breadcrumbs.pop();
+                        const scheme = schemeResponse.result;
                         scheme.id = schemeId;
                         return {
                             scheme: scheme,
-                            folderPath: '',
+                            folderPath: breadcrumbs,
                             viewOnly: false
                         };
                     });
