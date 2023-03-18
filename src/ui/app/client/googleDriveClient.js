@@ -173,11 +173,11 @@ export const googleDriveClientProvider = {
                         resource.parents = [parentId];
                     }
 
-                    return customGAPI.driveFilesCreate({ resource }).then(() => {
+                    return customGAPI.driveFilesCreate({ resource }).then(response => {
                         return {
                             kind: 'dir',
                             name: name,
-                            path: parentId
+                            path: response.result.id
                         }
                     });
                 },
