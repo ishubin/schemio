@@ -92,12 +92,11 @@ export const googleDriveClientProvider = {
                         }
                         return Promise.resolve(ancestors);
                     }).catch(err => {
-                        console.error(err);
-                        return Promise.resolve([{
+                        return [{
                             path: '',
                             name: 'Home',
                             kind: 'dir'
-                        }]);
+                        }].concat(ancestors);
                     });
                 }
                 return Promise.resolve(ancestors);
