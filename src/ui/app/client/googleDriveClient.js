@@ -91,6 +91,13 @@ export const googleDriveClientProvider = {
                             });
                         }
                         return Promise.resolve(ancestors);
+                    }).catch(err => {
+                        console.error(err);
+                        return Promise.resolve([{
+                            path: '',
+                            name: 'Home',
+                            kind: 'dir'
+                        }]);
                     });
                 }
                 return Promise.resolve(ancestors);
