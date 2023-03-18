@@ -11,6 +11,9 @@
                 <slot name="middle-section"></slot>
             </div>
             <div class="right-section">
+                <div v-if="isSignedIn">
+                    <span class="link" @click="logout">Logout</span>
+                </div>
             </div>
         </div>
         <div class="header-loader-container">
@@ -20,18 +23,31 @@
 </template>
 
 <script>
+import {googleIsSignedIn, googleSignOut} from '../../googleApi';
 
 export default {
 
     beforeMount() {
+        googleIsSignedIn().then(isSignedIn => {
+            this.isSignedIn = isSignedIn;
+        })
     },
 
     data() {
         return {
+            isSignedIn: false,
+            loginModalShown: false
         };
     },
 
     methods: {
+        logout() {
+            googleSignOut().then(() => {
+                this.isSignedIn = false;
+                this.$emit('user-logged-out');
+                this.$router.push({path: '/'});
+            });
+        }
     }
 }
 </script>

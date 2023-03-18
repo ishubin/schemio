@@ -3,7 +3,8 @@ const CLIENT_ID       = '49605926377-mcb27jl2eakpbb9sqdh8pduq0l266vq3';
 const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
 const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
 
-let tokenClient = null;
+let _tokenClient = null;
+let _isInitialized = false;
 
 
 class Notifier {
@@ -48,7 +49,7 @@ const signInNotifier = new Notifier();
 
 
 export function whenGAPILoaded() {
-    if (gapi.client && tokenClient) {
+    if (_isInitialized) {
         return Promise.resolve();
     }
     else {
@@ -70,13 +71,14 @@ export function googleSignOut() {
             google.accounts.oauth2.revoke(token.access_token);
             gapi.client.setToken('');
         }
+        document.cookie = 'googleAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     });
 }
 
 export function googleRefreshToken() {
     return whenGAPILoaded().then(() => {
         const promise = signInNotifier.createSubscriberPromise();
-        tokenClient.requestAccessToken({
+        _tokenClient.requestAccessToken({
             prompt: ''
         });
         return promise;
@@ -86,9 +88,11 @@ export function googleRefreshToken() {
 
 export function googleSignIn() {
     return whenGAPILoaded().then(() => {
-        tokenClient.requestAccessToken({
+        const promise = signInNotifier.createSubscriberPromise();
+        _tokenClient.requestAccessToken({
             prompt: 'consent'
         });
+        return promise;
     });
 }
 
@@ -108,7 +112,7 @@ function googleTokenCallback(resp) {
 }
 
 export function initGoogleAPI() {
-    tokenClient = google.accounts.oauth2.initTokenClient({
+    _tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
         prompt: '',
@@ -128,6 +132,7 @@ export function initGoogleAPI() {
                     console.error(err);
                 }
             }
+            _isInitialized = true;
             gapiInitNotifier.notifyAll();
         });
     });
