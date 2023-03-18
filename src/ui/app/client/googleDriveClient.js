@@ -3,7 +3,40 @@ import forEach from "lodash/forEach";
 import map from "lodash/map";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
-import { googleEnsureSignedIn, whenGAPILoaded } from "../../googleApi";
+import { googleRefreshToken, whenGAPILoaded } from "../../googleApi";
+
+const customGAPI = {
+    _exec(method, params) {
+        return gapi.client.drive.files[method](params).then((response) => response).catch(errResponse => {
+            if (errResponse.status === 401) {
+                return googleRefreshToken().then(() => gapi.client.drive.files[method](params));
+            } else {
+                throw errResponse;
+            }
+        });
+
+    },
+
+    driveFilesList(params) {
+        return this._exec('list', params);
+    },
+
+    driveFilesGet(params) {
+        return this._exec('get', params);
+    },
+
+    driveFilesCreate(params) {
+        return this._exec('create', params);
+    },
+
+    driveFilesUpdate(params) {
+        return this._exec('update', params);
+    },
+
+    driveFilesDelete(params) {
+        return this._exec('delete', params);
+    },
+}
 
 export const googleDriveClientProvider = {
     type: 'drive',
@@ -27,7 +60,7 @@ export const googleDriveClientProvider = {
             return title;
         }
 
-        return googleEnsureSignedIn().then(() => {
+        return whenGAPILoaded().then(() => {
             function buildFileBreadCrumbs(fileId, ancestors, counter) {
                 if (!counter) {
                     counter = 0;
@@ -40,7 +73,7 @@ export const googleDriveClientProvider = {
                 }
 
                 if (fileId) {
-                    return gapi.client.drive.files.get( { fileId: fileId, fields: 'name, mimeType, parents'}).then(response => {
+                    return customGAPI.driveFilesGet({ fileId: fileId, fields: 'name, mimeType, parents'}).then(response => {
                         if (response.result.parents && response.result.parents.length > 0) {
                             // Skipping the root parent which is "My Drive"
                             ancestors.splice(0, 0, {
@@ -85,7 +118,7 @@ export const googleDriveClientProvider = {
                     }
 
                     return buildFileBreadCrumbs(path).then(breadcrumbs => {
-                        return gapi.client.drive.files.list(params).then(results => {
+                        return customGAPI.driveFilesList(params).then(response => {
                             const entries = [  ];
 
                             if (breadcrumbs.length > 1) {
@@ -96,7 +129,7 @@ export const googleDriveClientProvider = {
                                 });
                             }
 
-                            forEach(results.result.files, file => {
+                            forEach(response.result.files, file => {
                                 if (file.mimeType === 'application/vnd.google-apps.folder') {
                                     entries.push({
                                         kind: 'dir',
@@ -118,7 +151,7 @@ export const googleDriveClientProvider = {
                                 path: path,
                                 viewOnly: false,
                                 entries,
-                                nextPageToken: results.result.nextPageToken
+                                nextPageToken: response.result.nextPageToken
                             };
                         });
                     });
@@ -134,7 +167,7 @@ export const googleDriveClientProvider = {
                         resource.parents = [parentId];
                     }
 
-                    return gapi.client.drive.files.create({ resource }).then(() => {
+                    return customGAPI.driveFilesCreate({ resource }).then(() => {
                         return {
                             kind: 'dir',
                             name: name,
@@ -148,12 +181,12 @@ export const googleDriveClientProvider = {
                 },
 
                 moveGoogleFile(fileId, parentId) {
-                    return gapi.client.drive.files.get({fileId: fileId, fields: 'parents'})
+                    return customGAPI.driveFilesGet({fileId: fileId, fields: 'parents'})
                     .then(response => {
                         const file = response.result;
                         const previousParents = file.parents.join(',');
 
-                        return gapi.client.drive.files.update({
+                        return customGAPI.driveFilesUpdate({
                             fileId: fileId,
                             addParents: parentId,
                             removeParents: previousParents,
@@ -171,7 +204,7 @@ export const googleDriveClientProvider = {
                 },
 
                 renameGoogleFile(fileId, newName) {
-                    return gapi.client.drive.files.update({
+                    return customGAPI.driveFilesUpdate({
                         fileId: fileId,
                         resource: {
                             name: newName
@@ -186,7 +219,7 @@ export const googleDriveClientProvider = {
                 },
 
                 deleteGoogleFile(fileId) {
-                    return gapi.client.drive.files.delete({
+                    return customGAPI.driveFilesDelete({
                         'fileId': fileId
                     }).then(() => {
                         return {
@@ -255,7 +288,7 @@ export const googleDriveClientProvider = {
                     }
 
                     return getCachedSchemeInfo(schemeId, () => {
-                        return gapi.client.drive.files.get({
+                        return customGAPI.driveFilesGet({
                             fileId: schemeId
                         }).then(response => {
                             const file = response.result;
@@ -276,7 +309,7 @@ export const googleDriveClientProvider = {
                         return Promise.reject('Invalid empty document ID');
                     }
                     return Promise.all([
-                        gapi.client.drive.files.get({
+                        customGAPI.driveFilesGet({
                             fileId: schemeId,
                             alt: 'media'
                         }),
@@ -324,7 +357,7 @@ export const googleDriveClientProvider = {
                         params.pageToken = filters.nextPageToken;
                     }
 
-                    return gapi.client.drive.files.list(params)
+                    return customGAPI.driveFilesList(params)
                     .then(response => {
                         return {
                             kind: 'chunk',

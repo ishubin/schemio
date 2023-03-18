@@ -4,7 +4,6 @@ const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/r
 const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
 
 let tokenClient = null;
-let _signedIn = false
 
 
 class Notifier {
@@ -74,20 +73,16 @@ export function googleSignOut() {
     });
 }
 
-export function googleEnsureSignedIn() {
+export function googleRefreshToken() {
     return whenGAPILoaded().then(() => {
-        if (_signedIn) {
-            return;
-        }
-
         const promise = signInNotifier.createSubscriberPromise();
-
         tokenClient.requestAccessToken({
             prompt: ''
         });
         return promise;
     });
 }
+
 
 export function googleSignIn() {
     return whenGAPILoaded().then(() => {
@@ -97,8 +92,18 @@ export function googleSignIn() {
     });
 }
 
+function getCookies() {
+    const cookies = {};
+    document.cookie.split(';').forEach(x => {
+        const parts = x.trim().split('=');
+        cookies[parts[0]] = parts[1];
+    });
+    return cookies;
+}
+
 function googleTokenCallback(resp) {
-    _signedIn = true;
+    const encodedToken = window.btoa(JSON.stringify(resp));
+    document.cookie = `googleAccessToken=${encodedToken}; max-age=3580; path=/;`;
     signInNotifier.notifyAll(resp);
 }
 
@@ -113,7 +118,17 @@ export function initGoogleAPI() {
     gapi.load('client', () => {
         gapi.client.init({
             discoveryDocs: [ DISCOVERY_DOC ],
+        }).then(() => {
+            const cookies = getCookies();
+            if (cookies.googleAccessToken) {
+                try {
+                    const token = JSON.parse(window.atob(cookies.googleAccessToken))
+                    gapi.auth.setToken(token);
+                } catch(err) {
+                    console.error(err);
+                }
+            }
+            gapiInitNotifier.notifyAll();
         });
-        gapiInitNotifier.notifyAll();
     });
 }
