@@ -3,6 +3,42 @@ import forEach from "lodash/forEach";
 import map from "lodash/map";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
+import { googleRefreshToken, whenGAPILoaded } from "../../googleApi";
+
+const customGAPI = {
+    _exec(method, params) {
+        return gapi.client.drive.files[method](params).then((response) => response).catch(errResponse => {
+            if (errResponse.status === 401) {
+                return googleRefreshToken().then(() => gapi.client.drive.files[method](params));
+            } else if (errResponse.status === 403) {
+                window.location = '/';
+            } else {
+                throw errResponse;
+            }
+        });
+
+    },
+
+    driveFilesList(params) {
+        return this._exec('list', params);
+    },
+
+    driveFilesGet(params) {
+        return this._exec('get', params);
+    },
+
+    driveFilesCreate(params) {
+        return this._exec('create', params);
+    },
+
+    driveFilesUpdate(params) {
+        return this._exec('update', params);
+    },
+
+    driveFilesDelete(params) {
+        return this._exec('delete', params);
+    },
+}
 
 export const googleDriveClientProvider = {
     type: 'drive',
@@ -26,8 +62,7 @@ export const googleDriveClientProvider = {
             return title;
         }
 
-        return window.getGoogleAuth().then(() => {
-
+        return whenGAPILoaded().then(() => {
             function buildFileBreadCrumbs(fileId, ancestors, counter) {
                 if (!counter) {
                     counter = 0;
@@ -40,24 +75,30 @@ export const googleDriveClientProvider = {
                 }
 
                 if (fileId) {
-                    return gapi.client.drive.files.get( { fileId: fileId, fields: 'id, title, parents(id,isRoot)'}).then(response => {
+                    return customGAPI.driveFilesGet({ fileId: fileId, fields: 'name, mimeType, parents'}).then(response => {
+                        if (response.result.parents && response.result.parents.length > 0) {
+                            // Skipping the root parent which is "My Drive"
+                            ancestors.splice(0, 0, {
+                                path: fileId,
+                                name: response.result.name,
+                                kind: 'dir'
+                            });
 
-                        ancestors.splice(0, 0, {
-                            path: response.result.id,
-                            name: response.result.title
-                        });
-
-                        if (response.result.parents.length > 0) {
-                            if (!response.result.parents[0].isRoot) {
-                                return buildFileBreadCrumbs(response.result.parents[0].id, ancestors, counter + 1);
-                            } else {
-                                ancestors.splice(0, 0, {
-                                    path: '',
-                                    name: 'Home'
-                                });
-                            }
+                            return buildFileBreadCrumbs(response.result.parents[0], ancestors, counter + 1);
+                        } else {
+                            ancestors.splice(0, 0, {
+                                path: '',
+                                name: 'Home',
+                                kind: 'dir'
+                            });
                         }
                         return Promise.resolve(ancestors);
+                    }).catch(err => {
+                        return [{
+                            path: '',
+                            name: 'Home',
+                            kind: 'dir'
+                        }].concat(ancestors);
                     });
                 }
                 return Promise.resolve(ancestors);
@@ -76,7 +117,8 @@ export const googleDriveClientProvider = {
 
                     const params = {
                         q: query,
-                        fields: 'nextPageToken, items(id, title, mimeType, modifiedDate)'
+                        fields: 'nextPageToken, files(id, name, mimeType, modifiedTime)',
+                        pageSize: 1000
                     };
 
                     if (filters && filters.nextPageToken) {
@@ -84,7 +126,7 @@ export const googleDriveClientProvider = {
                     }
 
                     return buildFileBreadCrumbs(path).then(breadcrumbs => {
-                        return gapi.client.drive.files.list(params).then(results => {
+                        return customGAPI.driveFilesList(params).then(response => {
                             const entries = [  ];
 
                             if (breadcrumbs.length > 1) {
@@ -95,20 +137,20 @@ export const googleDriveClientProvider = {
                                 });
                             }
 
-                            forEach(results.result.items, file => {
+                            forEach(response.result.files, file => {
                                 if (file.mimeType === 'application/vnd.google-apps.folder') {
                                     entries.push({
                                         kind: 'dir',
                                         path: file.id,
-                                        name: file.title,
-                                        modifiedTime: file.modifiedDate
+                                        name: file.name,
+                                        modifiedTime: file.modifiedTime
                                     });
-                                } else if (file.mimeType === 'application/json' && file.title.endsWith(schemioExtension)) {
+                                } else if (file.mimeType === 'application/json' && file.name.endsWith(schemioExtension)) {
                                     entries.push({
                                         kind: 'schemio:doc',
                                         id: file.id,
-                                        name: convertSchemioFileTitle(file.title),
-                                        modifiedTime: file.modifiedDate
+                                        name: convertSchemioFileTitle(file.name),
+                                        modifiedTime: file.modifiedTime
                                     });
                                 }
                             });
@@ -117,7 +159,7 @@ export const googleDriveClientProvider = {
                                 path: path,
                                 viewOnly: false,
                                 entries,
-                                nextPageToken: results.result.nextPageToken
+                                nextPageToken: response.result.nextPageToken
                             };
                         });
                     });
@@ -125,19 +167,19 @@ export const googleDriveClientProvider = {
 
                 createDirectory(parentId, name) {
                     const resource = {
-                        title: name,
+                        name: name,
                         mimeType: 'application/vnd.google-apps.folder'
                     };
 
                     if (parentId) {
-                        resource.parents = [{id: parentId}];
+                        resource.parents = [parentId];
                     }
 
-                    return gapi.client.drive.files.insert({ resource }).then(() => {
+                    return customGAPI.driveFilesCreate({ resource }).then(response => {
                         return {
                             kind: 'dir',
                             name: name,
-                            path: parentId
+                            path: response.result.id
                         }
                     });
                 },
@@ -147,16 +189,17 @@ export const googleDriveClientProvider = {
                 },
 
                 moveGoogleFile(fileId, parentId) {
-                    const parents = [];
-                    if (parentId && parentId.length > 0) {
-                        parents.push({ id: parentId });
-                    } else {
-                        parents.push({ id: 'root' });
-                    }
+                    return customGAPI.driveFilesGet({fileId: fileId, fields: 'parents'})
+                    .then(response => {
+                        const file = response.result;
+                        const previousParents = file.parents.join(',');
 
-                    return gapi.client.drive.files.patch({
-                        fileId: fileId,
-                        resource: { parents }
+                        return customGAPI.driveFilesUpdate({
+                            fileId: fileId,
+                            addParents: parentId,
+                            removeParents: previousParents,
+                            fields: 'id, parents',
+                        });
                     });
                 },
 
@@ -169,10 +212,10 @@ export const googleDriveClientProvider = {
                 },
 
                 renameGoogleFile(fileId, newName) {
-                    return gapi.client.drive.files.patch({
+                    return customGAPI.driveFilesUpdate({
                         fileId: fileId,
                         resource: {
-                            title: newName
+                            name: newName
                         }
                     }).then(() => {
                         return {
@@ -184,7 +227,7 @@ export const googleDriveClientProvider = {
                 },
 
                 deleteGoogleFile(fileId) {
-                    return gapi.client.drive.files.delete({
+                    return customGAPI.driveFilesDelete({
                         'fileId': fileId
                     }).then(() => {
                         return {
@@ -212,12 +255,12 @@ export const googleDriveClientProvider = {
 
                     const contentType = 'application/json';
                     const metadata = {
-                        title:  `${scheme.name}${schemioExtension}`,
+                        name:  `${scheme.name}${schemioExtension}`,
                         mimeType: 'application/json'
                     };
 
                     if (parentId) {
-                        metadata.parents = [{id: parentId}];
+                        metadata.parents = [parentId];
                     }
 
                     const base64Data = encode(JSON.stringify(scheme))
@@ -233,7 +276,7 @@ export const googleDriveClientProvider = {
                         close_delim;
 
                     const request = gapi.client.request({
-                        'path': '/upload/drive/v2/files',
+                        'path': '/upload/drive/v3/files',
                         'method': 'POST',
                         'params': {'uploadType': 'multipart'},
                         'headers': {
@@ -253,11 +296,11 @@ export const googleDriveClientProvider = {
                     }
 
                     return getCachedSchemeInfo(schemeId, () => {
-                        return gapi.client.drive.files.get({
+                        return customGAPI.driveFilesGet({
                             fileId: schemeId
                         }).then(response => {
                             const file = response.result;
-                            let title = file.title;
+                            let title = file.name;
                             if (title.endsWith(schemioExtension)) {
                                 title = title.substring(0, title.length - schemioExtension.length);
                             }
@@ -273,73 +316,34 @@ export const googleDriveClientProvider = {
                     if (!schemeId) {
                         return Promise.reject('Invalid empty document ID');
                     }
-                    return gapi.client.drive.files.get({
-                        fileId: schemeId
-                    }).then(response => {
-                        const file = response.result;
-                        if (file.downloadUrl) {
-                            var accessToken = gapi.auth.getToken().access_token;
-                            var xhr = new XMLHttpRequest();
-                            // For some reason google API returns a "lockedDomainCreationFailure" error even though the code is completelly copied from Google API documentation
-                            // Followed the advice here https://stackoverflow.com/questions/68016649/google-drive-api-download-file-gives-lockeddomaincreationfailure-error
-                            // and it worked. For some reason we need to replace "content" subdomain with "www"
-                            xhr.open('GET', file.downloadUrl.replace('https://content.googleapis.com', 'https://www.googleapis.com'));
-                            xhr.setRequestHeader('Authorization', 'Bearer ' + accessToken);
-                            return new Promise((resolve, reject) => {
-                                xhr.onload = function() {
-                                    resolve(xhr.responseText);
-                                };
-                                xhr.onerror = function() {
-                                    reject();
-                                };
-                                xhr.send();
-                            });
-                        } else {
-                            throw new Error('File is missing downloadUrl');
-                        }
-                    }).then(content => {
-                        const scheme = JSON.parse(content);
+                    return Promise.all([
+                        customGAPI.driveFilesGet({
+                            fileId: schemeId,
+                            alt: 'media'
+                        }),
+                        buildFileBreadCrumbs(schemeId)
+                    ])
+                    .then(([schemeResponse, breadcrumbs]) => {
+                        breadcrumbs.pop();
+                        const scheme = schemeResponse.result;
                         scheme.id = schemeId;
                         return {
                             scheme: scheme,
-                            folderPath: '',
+                            folderPath: breadcrumbs,
                             viewOnly: false
                         };
                     });
                 },
 
                 saveScheme(scheme) {
-                    const boundary = '-------314159265358979323846';
-                    const delimiter = "\r\n--" + boundary + "\r\n";
-                    const close_delim = "\r\n--" + boundary + "--";
-
-                    var contentType = 'application/json';
-                    var base64Data = encode(JSON.stringify(scheme));
-
-                    const metadata = {
-                        title:  `${scheme.name}${schemioExtension}`,
-                        mimeType: 'application/json'
-                    };
-                    var multipartRequestBody =
-                        delimiter +
-                        'Content-Type: application/json\r\n\r\n' +
-                        JSON.stringify(metadata) +
-                        delimiter +
-                        'Content-Type: ' + contentType + '\r\n' +
-                        'Content-Transfer-Encoding: base64\r\n' +
-                        '\r\n' +
-                        base64Data +
-                        close_delim;
-
                     return gapi.client.request({
-                        'path': '/upload/drive/v2/files/' + scheme.id,
-                        'method': 'PUT',
-                        'params': {'uploadType': 'multipart', 'alt': 'json'},
-                        'headers': {
-                            'Content-Type': 'multipart/mixed; boundary="' + boundary + '"'
+                        path: '/upload/drive/v3/files/' + scheme.id,
+                        method: 'PATCH',
+                        params: {
+                            uploadType: 'media'
                         },
-                        'body': multipartRequestBody
-                    }).then(() => {
+                        body: JSON.stringify(scheme)
+                    }).then(() =>{
                         return scheme;
                     });
                 },
@@ -348,28 +352,28 @@ export const googleDriveClientProvider = {
                     let query = "trashed = false and mimeType = 'application/json'";
 
                     if (filters.query) {
-                        query += ` and title contains '${escapeDriveQuery(filters.query)}'`;
+                        query += ` and name contains '${escapeDriveQuery(filters.query)}'`;
                     }
 
                     const params = {
                         q: query,
                         maxResults: 100,
-                        fields: 'nextPageToken, items(mimeType, title, id, modifiedDate)'
+                        fields: 'nextPageToken, files(mimeType, name, id, modifiedTime)'
                     };
 
                     if (filters.nextPageToken) {
                         params.pageToken = filters.nextPageToken;
                     }
 
-                    return gapi.client.drive.files.list(params)
+                    return customGAPI.driveFilesList(params)
                     .then(response => {
                         return {
                             kind: 'chunk',
                             nextPageToken: response.result.nextPageToken,
-                            results: map(response.result.items, file => {
+                            results: map(response.result.files, file => {
                                 return {
                                     id: file.id,
-                                    name: convertSchemioFileTitle(file.title),
+                                    name: convertSchemioFileTitle(file.name),
                                     modifiedTime: file.modifiedDate,
                                     publicLink: `/docs/${file.id}`
                                 };

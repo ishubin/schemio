@@ -1,66 +1,139 @@
 
-const GA_CURRENT_USER = 'gaCurrentUser';
+const CLIENT_ID       = '49605926377-mcb27jl2eakpbb9sqdh8pduq0l266vq3';
+const DISCOVERY_DOC   = 'https://www.googleapis.com/discovery/v1/apis/drive/v3/rest';
+const SCOPES          = 'https://www.googleapis.com/auth/drive.file';
+
+let _tokenClient = null;
+let _isInitialized = false;
 
 
-export function getGoogleCurrentUserSession() {
-    const encodedUser = window.localStorage.getItem(GA_CURRENT_USER);
-    if (encodedUser) {
-        try {
-            return JSON.parse(encodedUser);
-        } catch (error) {
-        }
+class Notifier {
+    constructor() {
+        this.callbacks = [];
     }
-    return {
-        isSignedIn: false,
-        user: null
-    };
-}
 
-function storeUserSessionInLocalStorage(googleAuth) {
-    const isSignedIn = googleAuth.isSignedIn.get();
-    let currentUserSession = {
-        isSignedIn,
-        user: null
-    };
-    if (isSignedIn) {
-        const user = googleAuth.currentUser.get();
-        if (user) {
-            const profile = user.getBasicProfile();
-            currentUserSession = {
-                isSignedIn,
-                user: {
-                    name: profile.getName(),
-                    image: profile.getImageUrl()
+    /**
+     *
+     * @param {Function} callback
+     * @param {Number} ttl - timeout in milliseconds within which this callback is valid
+     */
+    subscribe(callback, ttl) {
+        this.callbacks.push({callback, ttl, registeredAt: Date.now() });
+    }
+
+    notifyAll(...args) {
+        const _callbacks = [...this.callbacks];
+        this.callbacks.length = 0;
+        const now = Date.now();
+        _callbacks.forEach(callback => {
+            try {
+                if (!callback.ttl || now - callback.registeredAt > callback.ttl) {
+                    callback(...args);
                 }
-            };
-        }
+            } catch(err) { }
+        });
     }
 
-    window.localStorage.setItem(GA_CURRENT_USER, JSON.stringify(currentUserSession));
+    createSubscriberPromise(ttl) {
+        return new Promise(resolve => {
+            this.callbacks.push(() => {
+                resolve();
+            }, ttl);
+        });
+    }
 }
 
-export function getGoogleAuth() {
-    return window.getGoogleAuth().then(googleAuth => {
-        storeUserSessionInLocalStorage(googleAuth);
-        return googleAuth;
+
+const gapiInitNotifier = new Notifier();
+const signInNotifier = new Notifier();
+
+
+export function whenGAPILoaded() {
+    if (_isInitialized) {
+        return Promise.resolve();
+    }
+    else {
+        return gapiInitNotifier.createSubscriberPromise();
+    }
+}
+
+
+export function googleIsSignedIn() {
+    return whenGAPILoaded().then(() => {
+        return gapi.client.getToken() !== null;
     });
 }
-
 
 export function googleSignOut() {
-    return getGoogleAuth().then(googleAuth => {
-        return googleAuth.signOut();
-    }).then(() => {
-        window.localStorage.removeItem(GA_CURRENT_USER);
+    return whenGAPILoaded().then(() => {
+        const token = gapi.client.getToken();
+        if (token !== null) {
+            google.accounts.oauth2.revoke(token.access_token);
+            gapi.client.setToken('');
+        }
+        document.cookie = 'googleAccessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     });
 }
 
+export function googleRefreshToken() {
+    return whenGAPILoaded().then(() => {
+        const promise = signInNotifier.createSubscriberPromise();
+        _tokenClient.requestAccessToken({
+            prompt: ''
+        });
+        return promise;
+    });
+}
 
 
 export function googleSignIn() {
-    return window.getGoogleAuth().then(googleAuth => {
-        return googleAuth.signIn().then(() => {
-            storeUserSessionInLocalStorage(googleAuth);
+    return whenGAPILoaded().then(() => {
+        const promise = signInNotifier.createSubscriberPromise();
+        _tokenClient.requestAccessToken({
+            prompt: 'consent'
+        });
+        return promise;
+    });
+}
+
+function getCookies() {
+    const cookies = {};
+    document.cookie.split(';').forEach(x => {
+        const parts = x.trim().split('=');
+        cookies[parts[0]] = parts[1];
+    });
+    return cookies;
+}
+
+function googleTokenCallback(resp) {
+    const encodedToken = window.btoa(JSON.stringify(resp));
+    document.cookie = `googleAccessToken=${encodedToken}; max-age=3580; path=/;`;
+    signInNotifier.notifyAll(resp);
+}
+
+export function initGoogleAPI() {
+    _tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        prompt: '',
+        callback: googleTokenCallback,
+    });
+
+    gapi.load('client', () => {
+        gapi.client.init({
+            discoveryDocs: [ DISCOVERY_DOC ],
+        }).then(() => {
+            const cookies = getCookies();
+            if (cookies.googleAccessToken) {
+                try {
+                    const token = JSON.parse(window.atob(cookies.googleAccessToken))
+                    gapi.auth.setToken(token);
+                } catch(err) {
+                    console.error(err);
+                }
+            }
+            _isInitialized = true;
+            gapiInitNotifier.notifyAll();
         });
     });
 }

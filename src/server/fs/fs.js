@@ -138,16 +138,6 @@ export function fsDeleteScheme(config, projectService) {
     };
 }
 
-const resultsPerPage = 25;
-
-function toPageNumber(text) {
-    const page = parseInt(text);
-    if (!isNaN(page) && page !== undefined) {
-        return Math.max(1, page);
-    }
-    return 1;
-}
-
 /**
  *
  * @param {*} config

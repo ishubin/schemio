@@ -118,6 +118,11 @@
                 :path="path"
                 @close="moveEntryModal.shown = false"
                 @moved="onEntryMoved"/>
+
+            <modal v-if="progressModal.shown" :title="progressModal.title" @close="progressModal.shown = false">
+                <i class="fas fa-spinner fa-spin fa-1x"></i>
+                <span>{{ progressModal.text }}</span>
+            </modal>
         </div>
     </div>
 </template>
@@ -129,6 +134,17 @@ import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
+
+const _kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
+function entriesSorter(a, b) {
+    const name1 = _kindPrefix(a.kind) + a.name.toLowerCase();
+    const name2 = _kindPrefix(b.kind) + b.name.toLowerCase();
+    if (name1 < name2) {
+        return -1;
+    } else {
+        return 1;
+    }
+}
 
 
 function isValidCharCode(code) {
@@ -205,11 +221,34 @@ export default {
                 source: null
             },
 
+            progressModal: {
+                title: '',
+                text: '',
+                shown: false,
+            },
+
             apiClient: null,
         };
     },
 
     methods: {
+        reload() {
+            this.nextPageToken = null;
+            this.entries = [];
+            this.loadNextPage();
+            this.newDirectoryModal.shown = false;
+            this.renameEntryModal.shown = false;
+            this.moveEntryModal.shown = false;
+            this.deleteEntryModal.shown = false;
+            this.newSchemeModal.shown = false;
+        },
+
+        showProgressModal(title, text) {
+            this.progressModal.shown = true;
+            this.progressModal.title = title;
+            this.progressModal.text = text;
+        },
+
         showNewSchemeModel() {
             this.newSchemeModal.shown = true;
         },
@@ -238,19 +277,42 @@ export default {
                 }
             }
 
+            this.showProgressModal('Creating directory', `Creating directory "${name}"`);
             this.apiClient.createDirectory(this.path, name)
-            .then(() => {
-                window.location.reload();
+            .then(entry => {
+                this.entries.push({
+                    ...entry,
+                    // TODO this is ugly duplication, menuOptions do not differ between entries
+                    menuOptions: [{
+                        name: 'Delete',
+                        iconClass: 'fas fa-trash',
+                        event: 'delete'
+                    }, {
+                        name: 'Rename',
+                        iconClass: 'fas fa-edit',
+                        event: 'rename'
+                    }, {
+                        name: 'Move',
+                        iconClass: 'fas fa-share',
+                        event: 'move'
+                    }]
+                });
+                this.entries.sort(entriesSorter);
+                this.newDirectoryModal.shown = false;
+                this.progressModal.shown = false;
             })
             .catch(err => {
                 this.newDirectoryModal.errorMessage = 'Failed to create new directory';
+                this.progressModal.shown = false;
             });
         },
 
         onSchemeSubmitted(scheme) {
+            this.showProgressModal('Creating diagram', `Creating diagram "${scheme.name}"`);
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
+                this.progressModal.shown = false;
                 if (this.$router.mode === 'history') {
-                    this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
+                        this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
                 } else {
                     this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
                 }
@@ -258,6 +320,7 @@ export default {
             .catch(err => {
                 console.error('Failed to create diagram', err);
                 this.errorMessage = 'Failed to create diagram';
+                this.progressModal.shown = false;
             });
         },
 
@@ -268,19 +331,34 @@ export default {
         },
 
         confirmDeleteEntry(entry) {
+            const deleteEntry = (checker) => {
+                for (let i = this.entries.length - 1; i >= 0; i--) {
+                    if (checker(this.entries[i])) {
+                        this.entries.splice(i, 1);
+                    }
+                }
+            };
             if (entry.kind === 'dir') {
+                this.showProgressModal('Deleting directory', `Deleting directory "${entry.name}"`);
                 this.apiClient.deleteDir(entry.path, entry.name).then(() => {
-                    window.location.reload();
+                    deleteEntry(e => e.path === entry.path);
+                    this.deleteEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete directory';
+                    this.progressModal.shown = false;
                 });
             } else if (entry.kind === 'schemio:doc') {
+                this.showProgressModal('Deleting diagram', `Deleting diagram "${entry.name}"`);
                 this.apiClient.deleteScheme(entry.id).then(() => {
-                    window.location.reload();
+                    deleteEntry(e => e.id === entry.id);
+                    this.deleteEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete diagram';
+                    this.progressModal.shown = false;
                 });
             }
         },
@@ -311,10 +389,12 @@ export default {
                 return;
             }
             if (this.renameEntryModal.kind === 'dir') {
+                this.showProgressModal('Renaming directory', `Renaming directory "${this.renameEntryModal.name}"`);
                 this.apiClient.renameDirectory(path, this.renameEntryModal.name).then(changedEntry => {
                     this.entries[this.renameEntryModal.entryIdx].name = changedEntry.name;
                     this.entries[this.renameEntryModal.entryIdx].path = changedEntry.path;
                     this.renameEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     if (err.response  && err.response.status === 400) {
@@ -322,11 +402,14 @@ export default {
                     } else {
                         this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this directory';
                     }
+                    this.progressModal.shown = false;
                 });
             } else if (this.renameEntryModal.kind === 'schemio:doc') {
+                this.showProgressModal('Renaming diagram', `Renaming diagram "${this.renameEntryModal.name}"`);
                 this.apiClient.renameScheme(this.entries[this.renameEntryModal.entryIdx].id, this.renameEntryModal.name).then(() => {
                     this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
                     this.renameEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     if (err.response  && err.response.status === 400) {
@@ -334,6 +417,7 @@ export default {
                     } else {
                         this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this scheme';
                     }
+                    this.progressModal.shown = false;
                 });
             }
         },
@@ -382,16 +466,7 @@ export default {
                     };
                 });
 
-                const kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
-                result.entries.sort((a, b) => {
-                    const name1 = kindPrefix(a.kind) + a.name.toLowerCase();
-                    const name2 = kindPrefix(b.kind) + b.name.toLowerCase();
-                    if (name1 < name2) {
-                        return -1;
-                    } else {
-                        return 1;
-                    }
-                });
+                result.entries.sort(entriesSorter);
                 forEach(result.entries, entry => {
                     entry.menuOptions = [{
                         name: 'Delete',
@@ -414,7 +489,6 @@ export default {
                 this.entries = this.entries.concat(result.entries);
                 this.viewOnly = result.viewOnly;
                 this.isLoading = false;
-
             }).catch(err => {
                 console.error(err);
                 this.isLoading = false;
