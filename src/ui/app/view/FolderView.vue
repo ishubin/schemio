@@ -118,6 +118,11 @@
                 :path="path"
                 @close="moveEntryModal.shown = false"
                 @moved="onEntryMoved"/>
+
+            <modal v-if="progressModal.shown" :title="progressModal.title" @close="progressModal.shown = false">
+                <i class="fas fa-spinner fa-spin fa-1x"></i>
+                <span>{{ progressModal.text }}</span>
+            </modal>
         </div>
     </div>
 </template>
@@ -216,6 +221,12 @@ export default {
                 source: null
             },
 
+            progressModal: {
+                title: '',
+                text: '',
+                shown: false,
+            },
+
             apiClient: null,
         };
     },
@@ -230,6 +241,12 @@ export default {
             this.moveEntryModal.shown = false;
             this.deleteEntryModal.shown = false;
             this.newSchemeModal.shown = false;
+        },
+
+        showProgressModal(title, text) {
+            this.progressModal.shown = true;
+            this.progressModal.title = title;
+            this.progressModal.text = text;
         },
 
         showNewSchemeModel() {
@@ -260,6 +277,7 @@ export default {
                 }
             }
 
+            this.showProgressModal('Creating directory', `Creating directory "${name}"`);
             this.apiClient.createDirectory(this.path, name)
             .then(entry => {
                 this.entries.push({
@@ -281,14 +299,18 @@ export default {
                 });
                 this.entries.sort(entriesSorter);
                 this.newDirectoryModal.shown = false;
+                this.progressModal.shown = false;
             })
             .catch(err => {
                 this.newDirectoryModal.errorMessage = 'Failed to create new directory';
+                this.progressModal.shown = false;
             });
         },
 
         onSchemeSubmitted(scheme) {
+            this.showProgressModal('Creating diagram', `Creating diagram "${scheme.name}"`);
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
+                this.progressModal.shown = false;
                 if (this.$router.mode === 'history') {
                         this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
                 } else {
@@ -298,6 +320,7 @@ export default {
             .catch(err => {
                 console.error('Failed to create diagram', err);
                 this.errorMessage = 'Failed to create diagram';
+                this.progressModal.shown = false;
             });
         },
 
@@ -316,20 +339,26 @@ export default {
                 }
             };
             if (entry.kind === 'dir') {
+                this.showProgressModal('Deleting directory', `Deleting directory "${entry.name}"`);
                 this.apiClient.deleteDir(entry.path, entry.name).then(() => {
                     deleteEntry(e => e.path === entry.path);
                     this.deleteEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete directory';
+                    this.progressModal.shown = false;
                 });
             } else if (entry.kind === 'schemio:doc') {
+                this.showProgressModal('Deleting diagram', `Deleting diagram "${entry.name}"`);
                 this.apiClient.deleteScheme(entry.id).then(() => {
                     deleteEntry(e => e.id === entry.id);
                     this.deleteEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     this.deleteEntryModal.errorMessage = 'Failed to delete diagram';
+                    this.progressModal.shown = false;
                 });
             }
         },
@@ -360,10 +389,12 @@ export default {
                 return;
             }
             if (this.renameEntryModal.kind === 'dir') {
+                this.showProgressModal('Renaming directory', `Renaming directory "${this.renameEntryModal.name}"`);
                 this.apiClient.renameDirectory(path, this.renameEntryModal.name).then(changedEntry => {
                     this.entries[this.renameEntryModal.entryIdx].name = changedEntry.name;
                     this.entries[this.renameEntryModal.entryIdx].path = changedEntry.path;
                     this.renameEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     if (err.response  && err.response.status === 400) {
@@ -371,11 +402,14 @@ export default {
                     } else {
                         this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this directory';
                     }
+                    this.progressModal.shown = false;
                 });
             } else if (this.renameEntryModal.kind === 'schemio:doc') {
+                this.showProgressModal('Renaming diagram', `Renaming diagram "${this.renameEntryModal.name}"`);
                 this.apiClient.renameScheme(this.entries[this.renameEntryModal.entryIdx].id, this.renameEntryModal.name).then(() => {
                     this.entries[this.renameEntryModal.entryIdx].name = this.renameEntryModal.name;
                     this.renameEntryModal.shown = false;
+                    this.progressModal.shown = false;
                 })
                 .catch(err => {
                     if (err.response  && err.response.status === 400) {
@@ -383,6 +417,7 @@ export default {
                     } else {
                         this.renameEntryModal.errorMessage = 'Sorry, something went wrong. Was not able to rename this scheme';
                     }
+                    this.progressModal.shown = false;
                 });
             }
         },
