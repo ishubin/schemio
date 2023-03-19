@@ -10,6 +10,8 @@ const customGAPI = {
         return gapi.client.drive.files[method](params).then((response) => response).catch(errResponse => {
             if (errResponse.status === 401) {
                 return googleRefreshToken().then(() => gapi.client.drive.files[method](params));
+            } else if (errResponse.status === 403) {
+                window.location = '/';
             } else {
                 throw errResponse;
             }
