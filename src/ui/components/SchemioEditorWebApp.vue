@@ -10,6 +10,7 @@
             :modified="modified"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
+            :schemeTagsEnabled="schemeTagsEnabled"
             :menuOptions="editorMenuOptions"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
@@ -100,6 +101,7 @@ export default {
         menuOptions       : {type: Array, default: () => []},
         userStylesEnabled : {type: Boolean, default: false},
         projectArtEnabled : {type: Boolean, default: true},
+        schemeTagsEnabled: {type: Boolean, default: true},
         editAllowed       : {type: Boolean, default: false},
         isStaticEditor    : {type: Boolean, default: false},
         isOfflineEditor   : {type: Boolean, default: false},

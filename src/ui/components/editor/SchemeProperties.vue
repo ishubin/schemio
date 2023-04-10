@@ -9,8 +9,8 @@
                 <h5 class="section">Name</h5>
                 <input class="textfield" type="text" v-model="schemeContainer.scheme.name" placeholder="Title ..." @change="onPropertyChange('name')"/>
 
-                <h5 class="section">Tags</h5>
-                <vue-tags-input v-model="schemeTag"
+                <h5 class="section" v-if="schemeTagsEnabled">Tags</h5>
+                <vue-tags-input v-if="schemeTagsEnabled" v-model="schemeTag"
                     :tags="schemeTags"
                     :autocomplete-items="filteredSchemeTags"
                     @tags-changed="onSchemeTagChange"
@@ -109,8 +109,9 @@ import EditorEventBus from './EditorEventBus.js';
 
 export default {
     props: {
-        editorId: {type: String, required: true},
-        schemeContainer: { type: Object },
+        editorId         : {type: String, required: true},
+        schemeContainer  : { type: Object },
+        schemeTagsEnabled: { type: Boolean, default: true },
     },
     components: {VueTagsInput, RichTextEditor, ColorPicker, Panel, Tooltip},
     mounted() {

@@ -372,6 +372,7 @@
                             <SchemeProperties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 :editorId="editorId"
+                                :schemeTagsEnabled="schemeTagsEnabled"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 @export-all-shapes="openExportAllShapesModal"
                                 @delete-diagram-requested="$emit('delete-diagram-requested')"/>
@@ -698,6 +699,7 @@ export default {
         modified         : {type: Boolean, default: false},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
+        schemeTagsEnabled: { type: Boolean, default: true},
         menuOptions      : {type: Array, default: []},
         historyUndoable  : { type: Boolean, required: true},
         historyRedoable  : { type: Boolean, required: true},

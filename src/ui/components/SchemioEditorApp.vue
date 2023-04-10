@@ -15,6 +15,7 @@
             :editAllowed="editAllowed"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
+            :schemeTagsEnabled="schemeTagsEnabled"
             :menuOptions="menuOptions"
             :comments="comments"
             :historyUndoable="historyUndoable"
@@ -48,6 +49,7 @@
             :patchIndex="patch.index"
             :userStylesEnabled="userStylesEnabled"
             :projectArtEnabled="projectArtEnabled"
+            :schemeTagsEnabled="schemeTagsEnabled"
             :menuOptions="menuOptions"
             :comments="comments"
             :historyUndoable="historyUndoable"
@@ -128,6 +130,7 @@ export default{
         active           : {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: false},
         projectArtEnabled: {type: Boolean, default: true},
+        schemeTagsEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
         schemeReloadKey  : {type: String, default: null},
         comments         : {type: Object, default: () => null},
