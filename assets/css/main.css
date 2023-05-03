@@ -1922,7 +1922,7 @@ ul.links-editor .edit-link:hover {
     margin: 0;
     padding: 0;
     list-style: none;
-    font-size: 12px;
+    font-size: 14px;
     min-width: 100px;
 }
 .dropdown-container .dropdown-popup ul li {
@@ -1947,6 +1947,13 @@ ul.links-editor .edit-link:hover {
     border-top: none;
     border-left: none;
     border-right: none;
+    font-size: 14px;
+    border-radius: 0;
+    padding: 4px;
+    outline: none;
+}
+.dropdown-container .dropdown-popup .dropdown-search::placeholder {
+    opacity: 0.3;
 }
 .dropdown-container .dropdown-option-tooltip {
     position: fixed;

@@ -13,9 +13,11 @@ import EditorEventBus from './components/editor/EditorEventBus';
 import { snapshotSvg } from './svgPreview.js';
 import { getBoundingBoxOfItems } from './scheme/SchemeContainer.js';
 import { traverseItems } from './scheme/Item.js';
+import Dropdown from './components/Dropdown.vue';
+import MenuDropdown from './components/MenuDropdown.vue';
 
 window.Schemio = {
-    components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store},
+    components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store, Dropdown, MenuDropdown},
     utils: {
         createHasher,
         snapshotSvg,

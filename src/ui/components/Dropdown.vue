@@ -106,6 +106,7 @@ export default {
     },
     methods: {
         toggleDropdown(event) {
+            this.searchKeyword = '';
             if (this.disabled) {
                 return;
             }
