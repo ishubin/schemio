@@ -1,5 +1,4 @@
 import forEach from "lodash/forEach";
-import map from "lodash/map";
 import utils from "../utils";
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
@@ -1033,8 +1032,8 @@ export function applyStringPatch(origin, patch) {
         }
     }
 
-    if (patch.add.length > 0) {
-        forEach(patch.add, addition => {
+    if (Array.isArray(patch.add)) {
+        patch.add.forEach(addition => {
             const i = addition[0];
             const value = addition[1];
             result = result.substring(0, i) + value + result.substring(i);

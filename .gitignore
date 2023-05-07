@@ -18,3 +18,4 @@ assets/index-static.html
 .release-notes
 .webpack
 out/
+.exported-patcher-schema/

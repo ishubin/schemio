@@ -26,12 +26,12 @@ export function jsonDiff(originObject, modifiedObject, settings) {
 
 
 /**
- * 
- * @param {Object} originObject 
- * @param {Object} modifiedObject 
- * @param {Array} currentPath 
+ *
+ * @param {Object} originObject
+ * @param {Object} modifiedObject
+ * @param {Array} currentPath
  * @param {Function} fieldCheckCallback
- * @returns 
+ * @returns
  */
 function _jsonDiff(originObject, modifiedObject, currentPath, fieldCheckCallback) {
     let changes = [];
@@ -59,12 +59,12 @@ function _jsonDiff(originObject, modifiedObject, currentPath, fieldCheckCallback
 }
 
 /**
- * 
- * @param {Object} originObject 
- * @param {Object} modifiedObject 
- * @param {Array} currentPath 
+ *
+ * @param {Object} originObject
+ * @param {Object} modifiedObject
+ * @param {Array} currentPath
  * @param {Function} fieldCheckCallback
- * @returns 
+ * @returns
  */
 function _jsonDiffObject(originObject, modifiedObject, currentPath, fieldCheckCallback) {
 
@@ -77,7 +77,7 @@ function _jsonDiffObject(originObject, modifiedObject, currentPath, fieldCheckCa
     }
 
     let changes = [];
-    
+
     forEach(originObject, (value, name) => {
         const path = currentPath.concat([name]);
 
@@ -97,12 +97,12 @@ function _jsonDiffObject(originObject, modifiedObject, currentPath, fieldCheckCa
 }
 
 /**
- * 
- * @param {Array} origin 
- * @param {Array} modified 
- * @param {Array} currentPath 
+ *
+ * @param {Array} origin
+ * @param {Array} modified
+ * @param {Array} currentPath
  * @param {Function} fieldCheckCallback
- * @returns 
+ * @returns
  */
 function _jsonDiffArray(origin, modified, currentPath, fieldCheckCallback) {
     if (!isArray(modifiedObject)) {
@@ -114,7 +114,7 @@ function _jsonDiffArray(origin, modified, currentPath, fieldCheckCallback) {
     }
 
     let changes = [];
-    
+
     forEach(origin, (value, i) => {
         const path = currentPath.concat([i]);
 
