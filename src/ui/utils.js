@@ -136,7 +136,7 @@ function setObjectProperty(obj, propertyPath, value) {
             } else {
                 // this is the lowest nested property
                 field[fieldName] = value;
-                return;   
+                return;
             }
         } else {
             //Probably an error, so return and don't do anything.

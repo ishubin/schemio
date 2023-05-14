@@ -1042,4 +1042,47 @@ export const patchTestData = [{
             modified: {count: 0, items: []},
         }
     }
+}, {
+    name: 'adding new item to item without children',
+    origin: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1'},
+        ]
+    }),
+    modified: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1', childItems: [
+                {id: 'sub1.1', name: 'sub1.1'},
+            ]},
+        ]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'sub1.1',
+                op: 'add',
+                parentId: 'qwe1',
+                sortOrder: 0,
+                value: {id: 'sub1.1', name: 'sub1.1'}
+            } ]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 1, items: [
+                'sub1.1'
+            ]},
+            deleted: {count: 0, items: []},
+            modified: {count: 0, items: []},
+        }
+    }
 }];
