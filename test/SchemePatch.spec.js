@@ -1,4 +1,4 @@
-import { applyArrayPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
+import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from 'lodash';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -211,5 +211,78 @@ describe('SchemaPatch.generateMapPatch', () => {
                 }
             }
         }]);
+    });
+});
+
+describe('SchemaPatch.applyMapPatch', () => {
+    it('should apply patch for maps', () => {
+        const origin = {
+            "qwe": {
+                functionId: 'show',
+                args: {
+                    animated: true,
+                    duration: 1.2
+                }
+            },
+            "zxc": {
+                functionId: 'somefunc',
+                args: {
+                    animated: false,
+                    oldProperty: 'qwe'
+                }
+            }
+        };
+        const expectedModified = {
+            "asd": {
+                functionId: 'somefunc',
+                args: {
+                    someValue: 'blah'
+                }
+            },
+            "zxc": {
+                functionId: 'hide',
+                args: {
+                    animated: true,
+                    duration: 0.4,
+                    oldProperty: null
+                }
+            }
+        };
+        const patch = [{
+            id: 'qwe',
+            op: 'delete'
+        }, {
+            id: 'zxc',
+            op: 'modify',
+            changes: [{
+                path: ['functionId'],
+                op: 'replace',
+                value: 'hide'
+            }, {
+                path: ['args', 'animated'],
+                op: 'replace',
+                value: true
+            }, {
+                path: ['args', 'oldProperty'],
+                op: 'replace',
+                value: null
+            }, {
+                path: ['args', 'duration'],
+                op: 'replace',
+                value: 0.4
+            }]
+        }, {
+            id: 'asd',
+            op: 'add',
+            value: {
+                functionId: 'somefunc',
+                args: {
+                    someValue: 'blah'
+                }
+            }
+        }];
+
+        const realModified = applyMapPatch(origin, patch, [], null);
+        expect(realModified).toStrictEqual(expectedModified);
     });
 });

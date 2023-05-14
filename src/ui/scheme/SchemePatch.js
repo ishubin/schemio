@@ -621,7 +621,7 @@ export function generateSchemePatch(originScheme, modifiedScheme) {
 }
 
 export function applySchemePatch(origin, patch) {
-    return applyPatch(origin, patch, createSchemaIndex(PatchSchema));
+    return applyPatch(origin, patch, [], createSchemaIndex(PatchSchema));
 }
 
 /**
@@ -630,10 +630,10 @@ export function applySchemePatch(origin, patch) {
  * @param {Patch} patch
  * @param {SchemaIndex} schemaIndex
  */
-export function applyPatch(origin, patch, schemaIndex) {
+function applyPatch(origin, patch, fieldPath, schemaIndex) {
     const modifiedObject = utils.clone(origin);
     forEach(patch.changes, change => {
-        applyChange(modifiedObject, change, [], schemaIndex);
+        applyChange(modifiedObject, change, fieldPath, schemaIndex);
     });
     return modifiedObject;
 }
@@ -680,6 +680,31 @@ function applySetPatch(obj, setPatchChange) {
     utils.setObjectProperty(obj, setPatchChange.path, arr);
 }
 
+export function applyMapPatch(origin, changes, fieldPath, schemaIndex) {
+    if (origin === null || origin === undefined) {
+        return null;
+    }
+
+    if (!Array.isArray(changes)) {
+        return origin;
+    }
+
+    const modified = utils.clone(origin);
+
+    changes.forEach(change => {
+        if (change.op === 'delete' && modified.hasOwnProperty(change.id)) {
+            delete modified[change.id];
+        }
+        if (change.op === 'modify' && modified.hasOwnProperty(change.id)) {
+            modified[change.id] = applyPatch(modified[change.id], change, fieldPath, schemaIndex);
+        }
+        if (change.op === 'add' && !modified.hasOwnProperty(change.id)) {
+            modified[change.id] = change.value;
+        }
+    });
+
+    return modified;
+}
 
 /**
  *
