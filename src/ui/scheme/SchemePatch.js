@@ -654,6 +654,9 @@ function applyChange(obj, change, rootPath, schemaIndex) {
         case 'patch-id-array':
             applyIdArrayPatch(obj, change, rootPath.concat(change.path), schemaIndex);
             break;
+        case 'patch-array':
+            applyArrayPatch(obj, change);
+            break;
     }
 }
 
@@ -1111,7 +1114,14 @@ export function generateArrayPatch(originItems, modifiedItems) {
  * @returns {String} modified string that is a result of applying specified string patch to the origin string
  */
 export function applyStringPatch(origin, patch) {
+    return applySequencePatch(origin, patch, false);
+}
+
+function applySequencePatch(origin, patch, isArray) {
     let result = origin;
+    if (isArray) {
+        result = utils.clone(origin);
+    }
 
     if (patch.delete.length > 0) {
         const buffer = [];
@@ -1129,9 +1139,17 @@ export function applyStringPatch(origin, patch) {
             }
             i++;
         }
-        result = buffer.join('');
+        if (isArray) {
+            result = buffer;
+        } else {
+            result = buffer.join('');
+        }
         if (i < origin.length) {
-            result += origin.substring(i+1);
+            if (isArray) {
+                result = result.concat(origin.slice(i+1))
+            } else {
+                result += origin.substring(i+1);
+            }
         }
     }
 
@@ -1139,11 +1157,19 @@ export function applyStringPatch(origin, patch) {
         patch.add.forEach(addition => {
             const i = addition[0];
             const value = addition[1];
-            result = result.substring(0, i) + value + result.substring(i);
+            if (isArray) {
+                result = result.slice(0, i).concat(value).concat(result.slice(i));
+            } else {
+                result = result.substring(0, i) + value + result.substring(i);
+            }
         });
     }
 
     return result;
+}
+
+export function applyArrayPatch(origin, patch) {
+    return applySequencePatch(origin, patch, true)
 }
 
 

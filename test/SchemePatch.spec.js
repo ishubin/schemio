@@ -1,4 +1,4 @@
-import { applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
+import { applyArrayPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from 'lodash';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -122,7 +122,20 @@ describe('SchemaPatch.generateArrayPatch', () => {
     })
 });
 
-//TODO applyArrayPatch
+describe('SchemaPatch.applyArrayPatch', () => {
+    it('should patch array', () => {
+        const origin = [{x:1, y:3}, {x:2, y:3},  {x:0, y:2}, {x:6, y:9}, {x:-1, y:0.0002}, {x:7, y:1}];
+        const expected = [{x:2, y:3}, {x:10, y:6}, {x:0, y:2}, {x:7, y:1}, {x:11, y:11}, {x: 20, y:0}];
+        const patch = {
+            delete: [[0, 1], [3, 2]],
+            add: [[1, [{x:10, y:6}]], [4, [{x:11, y:11}, {x:20, y:0}]]],
+        };
+
+        const real = applyArrayPatch(origin, patch);
+        expect(real).toStrictEqual(expected);
+    })
+});
+
 
 
 describe('SchemaPatch.generateMapPatch', () => {
