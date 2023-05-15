@@ -1042,4 +1042,331 @@ export const patchTestData = [{
             modified: {count: 0, items: []},
         }
     }
+}, {
+    name: 'adding new item to item without children',
+    origin: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1'},
+        ]
+    }),
+    modified: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1', childItems: [
+                {id: 'sub1.1', name: 'sub1.1'},
+            ]},
+        ]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'sub1.1',
+                op: 'add',
+                parentId: 'qwe1',
+                sortOrder: 0,
+                value: {id: 'sub1.1', name: 'sub1.1'}
+            } ]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 1, items: [
+                'sub1.1'
+            ]},
+            deleted: {count: 0, items: []},
+            modified: {count: 0, items: []},
+        }
+    }
+}, {
+    name: 'conditional patching of shapeProps for path item',
+    origin: $.doc({
+        items: [ {
+            shape: "path",
+            shapeProps: {
+                paths: [ {
+                    id: "wj01kbt4X8",
+                    closed: false,
+                    points: [ {
+                        t: "L",
+                        x: 0,
+                        y: 100
+                    }, {
+                        t: "L",
+                        x: 60,
+                        y: 0
+                    }, {
+                        t: "L",
+                        x: 100,
+                        y: 101
+                    } ],
+                    pos: "relative"
+                } ],
+                fill: {
+                    type: "none"
+                },
+            },
+            id: "NanyKSwPI"
+        }, ]
+    }),
+    modified: $.doc({
+        items: [ {
+            shape: "path",
+            shapeProps: {
+                paths: [ {
+                    id: "wj01kbt4X8",
+                    closed: true,
+                    points: [ {
+                        t: "L",
+                        x: 0,
+                        y: 100
+                    }, {
+                        t: "L",
+                        x: 20,
+                        y: 33.3
+                    }, {
+                        t: "L",
+                        x: 60,
+                        y: 0
+                    }, {
+                        t: "L",
+                        x: 100,
+                        y: 100
+                    } ],
+                    pos: "relative"
+                } ],
+                fill: {
+                    type: "none"
+                },
+            },
+            id: "NanyKSwPI"
+        }, ]
+    }),
+    patch: {
+        version: "1",
+        protocol: "schemio/patch",
+        changes: [ {
+            path: [ "items" ],
+            op: "patch-id-array",
+            changes: [ {
+                id: "NanyKSwPI",
+                op: "modify",
+                changes: [ {
+                    path: [ "shapeProps", "paths" ],
+                    op: "patch-id-array",
+                    changes: [ {
+                        id: "wj01kbt4X8",
+                        op: "modify",
+                        changes: [ {
+                            path: ['closed'],
+                            op: 'replace',
+                            value: true
+                        }, {
+                            path: [ "points" ],
+                            op: "patch-array",
+                            patch: {
+                                delete: [ [2, 1]],
+                                add: [
+                                    [ 1,
+                                        [ {
+                                            t: "L",
+                                            x: 20,
+                                            y: 33.3
+                                        } ]
+                                    ],
+                                    [ 3,
+                                        [ {
+                                            t: "L",
+                                            x: 100,
+                                            y: 100
+                                        } ]
+                                    ]
+                                ]
+                            }
+                        } ]
+                    } ]
+                } ]
+            } ]
+        } ]
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 2, items: [{
+                id: 'NanyKSwPI',
+                fields: [
+                    'shapeProps.paths.wj01kbt4X8.closed',
+                    'shapeProps.paths.wj01kbt4X8.points'
+                ]
+            }]},
+        }
+    }
+}, {
+    name: 'patching frame player',
+    origin: $.doc({
+        items: [ {
+            shape: "frame_player",
+            shapeProps: {
+                totalFrames: 5,
+                fps: 1,
+                fillColor: "rgba(220, 220, 220, 1.0)",
+                hoverFillColor: "rgba(190, 190, 190, 1.0)",
+                strokeColor: "rgba(30,30,30,1.0)",
+                animations: [ {
+                    kind: "function",
+                    id: "5Vv41hELi",
+                    property: "distance",
+                    frames: [ {
+                        frame: 1,
+                        kind: "linear",
+                        value: 0
+                    }, {
+                        frame: 5,
+                        kind: "linear",
+                        value: 100
+                    } ]
+                } ],
+                functions: {
+                    "5Vv41hELi": {
+                        functionId: "moveAlongPath",
+                        args: {
+                            item: "#XSNfyTgGc",
+                            path: "#32yLBPYak",
+                            rotateItem: true,
+                            rotationOffset: 45
+                        }
+                    }
+                },
+                sections: [ {
+                    frame: 1,
+                    value: "start",
+                    kind: "step"
+                } ]
+            },
+            id: "F1M_g-8-n"
+        } ]
+    }),
+    modified: $.doc({
+        items: [ {
+            shape: "frame_player",
+            shapeProps: {
+                totalFrames: 5,
+                fps: 1,
+                fillColor: "rgba(220, 220, 220, 1.0)",
+                hoverFillColor: "rgba(190, 190, 190, 1.0)",
+                strokeColor: "rgba(30,30,30,1.0)",
+                animations: [ {
+                    kind: "function",
+                    id: "5Vv41hELi",
+                    property: "distance",
+                    frames: [ {
+                        frame: 1,
+                        kind: "linear",
+                        value: 0
+                    }, {
+                        frame: 5,
+                        kind: "linear",
+                        value: 100
+                    } ]
+                } ],
+                functions: {
+                    "5Vv41hELi": {
+                        functionId: "moveAlongPath",
+                        args: {
+                            item: "#XSNfyTgGc",
+                            path: "#32yLBPYak",
+                            rotateItem: false,
+                            rotationOffset: 40
+                        }
+                    }
+                },
+                sections: [ {
+                    frame: 1,
+                    value: "start",
+                    kind: "step"
+                }, {
+                    frame: 3,
+                    value: "stop",
+                    kind: "step"
+                } ]
+            },
+            id: "F1M_g-8-n"
+        }
+        ]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: [ "items" ],
+            op: "patch-id-array",
+            changes: [ {
+                id: "F1M_g-8-n",
+                op: "modify",
+                changes: [ {
+                    path: [ "shapeProps", "sections" ],
+                    op: "patch-array",
+                    patch: {
+                        delete: [ ],
+                        add: [ [
+                            1,
+                            [ {
+                                frame: 3,
+                                value: "stop",
+                                kind: "step"
+                            } ]
+                        ] ]
+                    }
+                  },
+                  {
+                    path: [ "shapeProps", "functions" ],
+                    op: "patch-map",
+                    changes: [ {
+                        id: "5Vv41hELi",
+                        op: "modify",
+                        changes: [ {
+                            path: [ "args", "rotateItem" ],
+                            op: "replace",
+                            value: false
+                          }, {
+                            path: [ "args", "rotationOffset" ],
+                            op: "replace",
+                            value: 40
+                        } ]
+                    } ]
+                } ]
+            } ]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: [ ]},
+            deleted: {count: 0, items: []},
+            modified: {count: 3, items: [{
+                id: 'F1M_g-8-n',
+                fields: [
+                    "shapeProps.sections",
+                    "shapeProps.functions.5Vv41hELi.args.rotateItem",
+                    "shapeProps.functions.5Vv41hELi.args.rotationOffset"
+                ]
+            }]},
+        }
+    }
 }];

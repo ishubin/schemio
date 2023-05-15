@@ -105,13 +105,25 @@ function getObjectProperty(item, propertyPath) {
 }
 
 /**
- * 
- * @param {Object} obj 
+ *
+ * @param {Object} obj
  * @param {String|Array} propertyPath either encoded property path in string or an array of fields
- * @param {*} value 
- * @returns 
+ * @param {*} value
+ * @returns
  */
 function setObjectProperty(obj, propertyPath, value) {
+    changeObjectProperty(obj, propertyPath, value, false);
+}
+
+/**
+ *
+ * @param {Object} obj
+ * @param {String|Array} propertyPath
+ * @param {*} value
+ * @param {Boolean} shouldDelete
+ * @returns
+ */
+function changeObjectProperty(obj, propertyPath, value, shouldDelete) {
     let objectPath = null;
     if (Array.isArray(propertyPath)) {
         objectPath = propertyPath;
@@ -135,8 +147,12 @@ function setObjectProperty(obj, propertyPath, value) {
                 }
             } else {
                 // this is the lowest nested property
-                field[fieldName] = value;
-                return;   
+                if (shouldDelete && field.hasOwnProperty(fieldName)) {
+                    delete field[fieldName];
+                } else {
+                    field[fieldName] = value;
+                }
+                return;
             }
         } else {
             //Probably an error, so return and don't do anything.
@@ -144,6 +160,10 @@ function setObjectProperty(obj, propertyPath, value) {
         }
         i += 1;
     }
+}
+
+function deleteObjectProperty(obj, propertyPath) {
+    changeObjectProperty(obj, propertyPath, null, true);
 }
 
 function rotatePointAroundCenter(px, py, angle, cx, cy) {
@@ -288,6 +308,7 @@ export default {
     sanitizeScheme,
     getObjectProperty,
     setObjectProperty,
+    deleteObjectProperty,
     rotateVector,
     rotatePointAroundCenter,
     enumerateConstants,
