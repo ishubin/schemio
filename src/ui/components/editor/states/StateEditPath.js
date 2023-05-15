@@ -11,6 +11,7 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 import History from '../../../history/History.js';
+import shortid from 'shortid';
 
 const IS_SOFT = true;
 
@@ -274,6 +275,7 @@ export function mergeAllItemPaths(mainItem, otherItems) {
         ensureCorrectAreaOfPathItem(otherItems[i]);
         otherItems[i].shapeProps.paths.forEach(path => {
             const newPath = {
+                id: shortid.generate(),
                 pos: 'relative',
                 closed: path.closed,
                 points: []
@@ -365,6 +367,7 @@ class CreatingPathState extends SubState {
 
         if (this.pathId >= this.item.shapeProps.paths.length) {
             this.item.shapeProps.paths.push({
+                id: shortid.generate(),
                 closed: false,
                 points: [],
                 pos: 'relative'
@@ -1105,6 +1108,7 @@ export default class StateEditPath extends State {
             p.x += 10;
             p.y += 10;
         });
+        newPath.id = shortid.generate();
         this.item.shapeProps.paths.push(newPath);
         this.listener.onItemChanged(this.item.id);
         this.listener.updateAllCurveEditPoints(this.item);
@@ -1249,6 +1253,7 @@ export default class StateEditPath extends State {
             path.points.splice(pointIndex, 2);
         } else {
             const secondPath = {
+                id: shortid.generate(),
                 pos: 'relative',
                 closed: false,
                 points: path.points.splice(pointIndex+1, path.points.length - pointIndex - 1)

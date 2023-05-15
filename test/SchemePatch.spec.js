@@ -8,6 +8,9 @@ describe('SchemePatch.generateSchemePatch', () => {
     forEach(patchTestData, testData => {
         it(`should recognize ${testData.name}`, () => {
             const patch = generateSchemePatch(testData.origin, testData.modified);
+            if (testData.name === 'patching frame player') {
+                console.log(JSON.stringify(patch, null, 4));
+            }
             expect(patch).toStrictEqual(testData.patch);
         });
     });
@@ -194,8 +197,7 @@ describe('SchemaPatch.generateMapPatch', () => {
                 value: true
             }, {
                 path: ['args', 'oldProperty'],
-                op: 'replace',
-                value: null
+                op: 'delete',
             }, {
                 path: ['args', 'duration'],
                 op: 'replace',
@@ -244,7 +246,6 @@ describe('SchemaPatch.applyMapPatch', () => {
                 args: {
                     animated: true,
                     duration: 0.4,
-                    oldProperty: null
                 }
             }
         };
@@ -264,8 +265,7 @@ describe('SchemaPatch.applyMapPatch', () => {
                 value: true
             }, {
                 path: ['args', 'oldProperty'],
-                op: 'replace',
-                value: null
+                op: 'delete',
             }, {
                 path: ['args', 'duration'],
                 op: 'replace',

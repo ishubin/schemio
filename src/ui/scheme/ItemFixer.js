@@ -81,9 +81,12 @@ function fixOldCurveItem(item) {
 }
 
 
-function fixPathToRelativePlacement(item) {
+function fixPath(item) {
     if (Array.isArray(item.shapeProps.paths)) {
         item.shapeProps.paths.forEach(path => {
+            if (!path.id) {
+                path.id = shortid.generate();
+            }
             if (path.pos !== 'relative') {
                 path.pos = 'relative';
                 if (Array.isArray(path.points)) {
@@ -124,7 +127,7 @@ export function enrichItemWithDefaults(item) {
         fixOldCurveItem(item);
     }
     if (item.shape === 'path') {
-        fixPathToRelativePlacement(item);
+        fixPath(item);
     }
 
     enrichObjectWithDefaults(item, defaultItemDefinition);

@@ -77,7 +77,6 @@ describe('SchemeContainer', () => {
         }]});
 
         const point = schemeContainer.localPointOnItem(40, 10, schemeContainer.findItemById('asd'));
-        console.log('Local p', point);
 
         expect(Math.round(point.x)).toBe(30);
         expect(Math.round(point.y)).toBe(20);

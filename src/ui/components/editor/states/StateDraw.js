@@ -7,6 +7,7 @@ import State from './State.js';
 import {simplifyPathPoints} from '../items/shapes/Path.vue';
 import { readjustItemAreaAndPoints } from './StateEditPath.js';
 import { convertCurvePointToRelative } from '../items/shapes/StandardCurves.js';
+import shortid from 'shortid';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -38,6 +39,7 @@ export default class StateDraw extends State {
             this.initFirstClick(x, y);
         } else {
             this.item.shapeProps.paths.push({
+                id: shortid.generate(),
                 pos: 'relative',
                 closed: false,
                 points: [ convertCurvePointToRelative({
@@ -60,6 +62,7 @@ export default class StateDraw extends State {
             shape: 'path',
             shapeProps: {
                 paths: [{
+                    id: shortid.generate(),
                     pos: 'relative',
                     closed: false,
                     points: []

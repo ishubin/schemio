@@ -107,7 +107,7 @@ export const PatchSchema = [{
     }, {
         name: 'description', type: 'string', op: 'patch-text'
     }, {
-        name: 'shapeProps', type: 'object', op: 'conditional', conditionalProperty: 'shape', vars: [
+        name: 'shapeProps', type: 'object', op: 'conditional', sourceField: ['shape'], defs: [
             {on: 'frame_player', op: 'modify', fields: [
                 {names: ['totalFrames', 'fps', 'fillColor', 'hoverFillColor', 'strokeColor'], op: 'replace'},
                 {name: 'animations', op: 'patch-id-array', childrenField: null, fields: [
@@ -126,6 +126,15 @@ export const PatchSchema = [{
                     {name: 'closed', op: 'replace'},
                     {name: 'points', op: 'patch-array'}
                 ]}
+            ]},
+            {on: 'connector', op: 'modify', fields: [
+                {names: [
+                    'fat', 'sourceCap', 'destinationCap', 'strokeColor', 'strokeSize',
+                    'strokePattern', 'sourceCapSize', 'destinationCapSize', 'smoothing',
+                    'stepSize', 'fill', 'fatWidth', 'sourceItem', 'destinationItem',
+                    'sourceItemPosition', 'destinationItemPosition'
+                ], op: 'replace'},
+                {name: 'points', op: 'patch-array'}
             ]},
             {op: 'modify', fields: [{op: 'replace'}]}
         ]
@@ -555,7 +564,16 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
     });
 
     const generatePatchForField = (fieldSchema, field) => {
-        if (fieldSchema.op === 'replace') {
+        if (originObject.hasOwnProperty(field) && !modifiedObject.hasOwnProperty(field)) {
+            ops.push({
+                path: fieldPath.concat([field]),
+                op: 'delete',
+            });
+        } else if (fieldSchema.op === 'conditional') {
+            if (modifiedObject.hasOwnProperty(field)) {
+                ops = ops.concat(generateConditionalPatch(originObject, modifiedObject, originObject[field], modifiedObject[field], fieldPath.concat([field]), fieldSchema));
+            }
+        } else if (fieldSchema.op === 'replace') {
             if (!valueEquals(originObject[field], modifiedObject[field])) {
                 ops.push({
                     path: fieldPath.concat([field]),
@@ -591,6 +609,15 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                     changes: changes
                 });
             }
+        } else if (fieldSchema.op === 'patch-map') {
+            const changes = generateMapPatch(originObject[field], modifiedObject[field], fieldSchema);
+            if (changes && changes.length > 0) {
+                ops.push({
+                    path: fieldPath.concat([field]),
+                    op: 'patch-map',
+                    changes: changes
+                });
+            }
         } else if (fieldSchema.op === 'patch-array') {
             const arrayPatch = generateArrayPatch(originObject[field], modifiedObject[field]);
             if (arrayPatch && (arrayPatch.delete.length > 0 || arrayPatch.add.length > 0)) {
@@ -613,6 +640,25 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
     }
 
     return ops;
+}
+
+function generateConditionalPatch(originParent, modifiedParent, originObject, modifiedObject, fieldPath, fieldSchema) {
+    if (!fieldSchema || !fieldSchema.sourceField || !fieldSchema.defs) {
+        return [];
+    }
+
+    const propertyValue = utils.getObjectProperty(modifiedParent, fieldSchema.sourceField);
+    let selectedSchema = null;
+
+    for (let i = 0; i < fieldSchema.defs.length; i++) {
+        if (fieldSchema.defs[i].on === propertyValue || (!selectedSchema && !fieldSchema.defs[i].hasOwnProperty('on'))) {
+            selectedSchema = fieldSchema.defs[i];
+        }
+    }
+    if (!selectedSchema) {
+        return [];
+    }
+    return _generatePatch(originObject, modifiedObject, selectedSchema.fields, fieldPath);
 }
 
 
@@ -641,6 +687,9 @@ function applyPatch(origin, patch, fieldPath, schemaIndex) {
 
 function applyChange(obj, change, rootPath, schemaIndex) {
     switch(change.op) {
+        case 'delete':
+            utils.deleteObjectProperty(obj, change.path, change.value);
+            break;
         case 'replace':
             utils.setObjectProperty(obj, change.path, change.value);
             break;
@@ -654,8 +703,21 @@ function applyChange(obj, change, rootPath, schemaIndex) {
         case 'patch-id-array':
             applyIdArrayPatch(obj, change, rootPath.concat(change.path), schemaIndex);
             break;
+        case 'patch-map':
+            const originMap = utils.getObjectProperty(obj, change.path);
+            if (originMap !== null && typeof originMap !== 'undefined') {
+                const modifiedMap = applyMapPatch(originMap, change.changes, rootPath.concat(change.path), schemaIndex);
+                utils.setObjectProperty(obj, change.path, modifiedMap);
+            }
+            break;
         case 'patch-array':
-            applyArrayPatch(obj, change);
+            if (change.patch) {
+                const originArray = utils.getObjectProperty(obj, change.path);
+                if (Array.isArray(originArray)) {
+                    const modifiedArray = applyArrayPatch(originArray, change.patch);
+                    utils.setObjectProperty(obj, change.path, modifiedArray);
+                }
+            }
             break;
     }
 }
@@ -1183,6 +1245,9 @@ function applySequencePatch(origin, patch, isArray) {
             const i = addition[0];
             const value = addition[1];
             if (isArray) {
+                if (!result.slice) {
+                    console.log('BASDSADASDSADSADASDAS not slice', JSON.stringify(result, null, 2))
+                }
                 result = result.slice(0, i).concat(value).concat(result.slice(i));
             } else {
                 result = result.substring(0, i) + value + result.substring(i);
