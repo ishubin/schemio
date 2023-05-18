@@ -117,8 +117,10 @@ function buildConditionsForAnimationFunctions() {
 
 const schemaForShapeArgType = {
     string          : {type: 'string', patching: ['replace']},
+    text            : {type: 'string', patching: ['replace']},
     image           : {type: 'string', patching: ['replace']},
     color           : {type: 'string', patching: ['replace']},
+    object          : {type: 'object', patching: ['replace']},
     'advanced-color': {type: 'object', patching: ['replace']},
     boolean         : {type: 'boolean', patching: ['replace']},
     number          : {type: 'number', patching: ['replace']},
@@ -128,6 +130,13 @@ const schemaForShapeArgType = {
     'scheme-ref'    : {type: 'string', patching: ['replace']},
     'color-matrix'  : {type: 'array', patching: ['replace']},
     element         : {type: 'string', patching: ['replace']},
+    'crop-area'     : {type: 'object', patching: ['modify'], fields: {
+        x: {type: 'number', patching: ['replace']},
+        y: {type: 'number', patching: ['replace']},
+        w: {type: 'number', patching: ['replace']},
+        h: {type: 'number', patching: ['replace']}
+    }},
+    'custom'        : {type: 'any', patching: ['replace']},
 };
 
 function createFieldSchemaForArg(argDef) {
@@ -172,6 +181,12 @@ function createFieldSchemaForArg(argDef) {
                 h : {type: 'number'},
             }},
             pos: {type: 'string', patching: ['replace']}
+        }};
+    }
+    if (argDef.type === 'path-points') {
+        schema = {type: 'array', of: 'object', patching: ['patch-array'], fields: {
+            x : {type: 'number'},
+            y : {type: 'number'},
         }};
     }
     if (argDef.type === 'animations') {
