@@ -128,7 +128,7 @@ export default {
 
     args: {
         field               : {name: 'Field', type: 'text', value: ''},
-        value               : {name: 'Value', type: 'object', value: null},
+        value               : {name: 'Value', type: 'any', value: null},
         animated            : {name: 'Animated', type: 'boolean', value: false},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
         transition          : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},

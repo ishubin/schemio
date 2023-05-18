@@ -1,6 +1,6 @@
 import forEach from "lodash/forEach";
 import utils from "../utils";
-import { getSchemioDocSchema } from "./SchemioDocSchema";
+import { fieldTypeMatchesSchema, getSchemioDocSchema } from "./SchemioDocSchema";
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
 //
@@ -310,16 +310,17 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
                 if (modEntry.parentId === itemEntry.parentId) {
                     entries.push(itemEntry);
 
-                    // also checking for field changes for items that were not removed
-                    const itemSchema = {type: 'object', patching: ['modify'], fields: patchSchemaEntry.fields};
-                    const fieldChanges = _generatePatch(item, modEntry.item, itemSchema, []);
-                    if (fieldChanges.length > 0) {
-                        registerScopedOperation(item.parentId, {
-                            id     : item.id,
-                            op     : 'modify',
-                            changes: fieldChanges
-                        })
-                    }
+                }
+
+                // also checking for field changes for items that were not removed
+                const itemSchema = {type: 'object', patching: ['modify'], fields: patchSchemaEntry.fields};
+                const fieldChanges = generatePatchForObject(item, modEntry.item, itemSchema, []);
+                if (fieldChanges.length > 0) {
+                    registerScopedOperation(item.parentId, {
+                        id     : item.id,
+                        op     : 'modify',
+                        changes: fieldChanges
+                    })
                 }
             } else {
                 const originEntry = originIndex.get(item.id);
@@ -449,7 +450,7 @@ function generatePatch(originObject, modifiedObject, schema) {
     return {
         version: '1',
         protocol: 'schemio/patch',
-        changes: _generatePatch(originObject, modifiedObject, schema, [])
+        changes: generatePatchForObject(originObject, modifiedObject, schema, [])
     };
 }
 
@@ -461,7 +462,7 @@ function generatePatch(originObject, modifiedObject, schema) {
  * @param {Array<String>} fieldPath
  * @returns
  */
-function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
+function generatePatchForObject(originObject, modifiedObject, patchSchema, fieldPath) {
     let ops = [];
     const fieldNames = new Set();
     forEach(originObject, (value, name) => fieldNames.add(name));
@@ -487,7 +488,6 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
             if (modifiedObject.hasOwnProperty(field)) {
                 ops = ops.concat(generateConditionalPatch(originObject, modifiedObject, originObject[field], modifiedObject[field], fieldPath.concat([field]), fieldSchema));
             }
-
             return;
         }
 
@@ -501,7 +501,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                 op: 'delete',
             });
         } else if (op === 'replace') {
-            if (!valueEquals(originObject[field], modifiedObject[field])) {
+            if (!valueEquals(originObject[field], modifiedObject[field]) && fieldTypeMatchesSchema(modifiedObject[field], fieldSchema)) {
                 ops.push({
                     path: fieldPath.concat([field]),
                     op: 'replace',
@@ -517,7 +517,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                 })
             }
         } else if (op === 'modify' && originObject[field] && modifiedObject[field]) {
-            ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldSchema, fieldPath.concat([field])));
+            ops = ops.concat(generatePatchForObject(originObject[field], modifiedObject[field], fieldSchema, fieldPath.concat([field])));
         } else if (op === 'patch-set') {
             const changes = generateSetPatchOperations(originObject[field], modifiedObject[field]);
             if (changes && changes.length > 0) {
@@ -546,13 +546,15 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                 });
             }
         } else if (op === 'patch-array') {
-            const arrayPatch = generateArrayPatch(originObject[field], modifiedObject[field]);
-            if (arrayPatch && (arrayPatch.delete.length > 0 || arrayPatch.add.length > 0)) {
-                ops.push({
-                    path: fieldPath.concat([field]),
-                    op: 'patch-array',
-                    patch: arrayPatch
-                });
+            if (fieldTypeMatchesSchema(modifiedObject[field], fieldSchema)) {
+                const arrayPatch = generateArrayPatch(originObject[field], modifiedObject[field]);
+                if (arrayPatch && (arrayPatch.delete.length > 0 || arrayPatch.add.length > 0)) {
+                    ops.push({
+                        path: fieldPath.concat([field]),
+                        op: 'patch-array',
+                        patch: arrayPatch
+                    });
+                }
             }
         }
         fieldNames.delete(field);
@@ -600,7 +602,7 @@ function generateConditionalPatch(originParent, modifiedParent, originObject, mo
     if (!selectedSchema) {
         return [];
     }
-    return _generatePatch(originObject, modifiedObject, selectedSchema, fieldPath);
+    return generatePatchForObject(originObject, modifiedObject, selectedSchema, fieldPath);
 }
 
 
@@ -1232,7 +1234,7 @@ export function generateMapPatch(origin, modified, patchSchemaEntry) {
                 op: 'delete'
             });
         } else if (oHas && mHas) {
-            const subChanges = _generatePatch(origin[key], modified[key], valuePatchSchema, []);
+            const subChanges = generatePatchForObject(origin[key], modified[key], valuePatchSchema, []);
             if (subChanges.length > 0) {
                 changes.push({
                     id: key,

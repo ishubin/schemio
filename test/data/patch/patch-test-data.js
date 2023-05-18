@@ -317,6 +317,85 @@ export const patchTestData = [{
         }
     }
 }, {
+    name: 'item remounting to different parent and changing item property',
+    origin: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1',
+                childItems: [
+                    {id: 'sub1.1', name: 'sub1.1'},
+                    {id: 'sub1.2', name: 'sub1.2'},
+                    {id: 'sub1.3', name: 'sub1.3'},
+                ]
+            },
+            { id: 'qwe2', name: 'item2'},
+            { id: 'qwe3', name: 'item3',
+                childItems: [
+                    {id: 'sub3.1', name: 'sub3.1'},
+                    {id: 'sub3.2', name: 'sub3.2'},
+                    {id: 'sub3.3', name: 'sub3.3'},
+                ]
+            }]
+    }),
+    modified: $.doc({
+        items: [
+            { id: 'qwe1', name: 'item1',
+                childItems: [
+                    {id: 'sub1.1', name: 'sub1.1'},
+                    {id: 'sub3.2', name: 'sub3.2 modified'},
+                    {id: 'sub1.2', name: 'sub1.2'},
+                    {id: 'sub1.3', name: 'sub1.3'},
+                ]
+            },
+            { id: 'qwe2', name: 'item2'},
+            { id: 'qwe3', name: 'item3',
+                childItems: [
+                    {id: 'sub3.1', name: 'sub3.1'},
+                    {id: 'sub3.3', name: 'sub3.3'},
+                ]
+            }]
+    }),
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'sub3.2',
+                op: 'mount',
+                parentId: 'qwe1',
+                sortOrder: 1
+            }, {
+                id: 'sub3.2',
+                op: 'demount',
+                parentId: 'qwe3'
+            }, {
+                id: 'sub3.2',
+                op: 'modify',
+                changes: [{
+                    path: ['name'],
+                    op: 'patch-text',
+                    patch: {delete: [], add: [[6, ' modified']]}
+                }]
+            }]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 2, items: [{
+                id: 'sub3.2',
+                fields: ['name']
+            }]},
+        }
+    }
+}, {
     name: 'item remounting to different parent',
     origin: $.doc({
         items: [

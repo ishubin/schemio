@@ -6,6 +6,17 @@ import StrokePattern from "../components/editor/items/StrokePattern";
 import { getEffects } from "../components/effects/Effects";
 import Functions from "../userevents/functions/Functions";
 
+
+const T = {
+    ANY    : 'any',
+    STRING : 'string',
+    ARRAY  : 'array',
+    OBJECT : 'object',
+    BOOLEAN: 'boolean',
+    MAP    : 'map',
+    NUMBER : 'number',
+};
+
 const baseSchema = {
     type: 'object',
     patching: ['modify'],
@@ -256,4 +267,45 @@ export function getSchemioDocSchema() {
 
     _schemioDocSchema = baseSchema;
     return _schemioDocSchema;
+}
+
+
+/**
+ *
+ * @param {*} value
+ * @param {FieldSchema} schema
+ */
+export function fieldTypeMatchesSchema(value, schema) {
+    if (!schema.type || schema.type ===  'any') {
+        return true;
+    }
+    const type = typeof value;
+
+    if (schema.type === 'array' && Array.isArray(value)) {
+        return arrayTypeMatchesSchema(value, schema);
+    }
+    if (schema.type === type) {
+        return true;
+    }
+    if (schema.type === 'map' && type === 'object') {
+        return true;
+    }
+    return false;
+}
+
+/**
+ *
+ * @param {Array} arr
+ * @param {FieldSchema} schema
+ */
+function arrayTypeMatchesSchema(arr, schema) {
+    if (!schema.of) {
+        return true;
+    }
+    let matches = true;
+    const itemSchema = {type: schema.of, fields: schema.fields};
+    for (let i = 0; i < arr.length && matches; i++) {
+        matches = fieldTypeMatchesSchema(arr[0], itemSchema);
+    }
+    return matches;
 }

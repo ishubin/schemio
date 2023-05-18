@@ -11,6 +11,68 @@ describe('SchemePatch.generateSchemePatch', () => {
             expect(patch).toStrictEqual(testData.patch);
         });
     });
+
+    it('it should ignore field changes for values that don\'t match type in schema', () => {
+        const origin = {
+            name: 'doc name',
+            description: 'doc description',
+            items: [{
+                id: 'qwe',
+                name: 'item qwe',
+                shape: 'connector',
+                shapeProps: {
+                    strokeColor: 'rgba(255, 255, 255, 0.5)',
+                    strokeSize: 12,
+                    points: []
+                },
+            }, {
+                id: 'zxc',
+                shape: 'connector',
+                shapeProps: {
+                    points: []
+                }
+            }]
+        };
+
+        const modified = {
+            name: 'doc name',
+            description: 'doc description',
+            items: [{
+                id: 'qwe',
+                name: 'item qwe modified',
+                shape: 'connector',
+                shapeProps: {
+                    strokeColor: 45,
+                    strokeSize: '14',
+                    points: ['invalid point']
+                }
+            }, {
+                id: 'zxc',
+                shape: 'connector',
+                shapeProps: {
+                    points: [{x: 1, y: 5}]
+                }
+            }]
+        };
+
+        const patch = generateSchemePatch(origin, modified);
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+            changes: [{
+                path: ['items'],
+                op: 'patch-id-array',
+                changes: [{
+                    id: 'qwe', op: 'modify',
+                    changes: [{ path: ['name'], op: 'patch-text', patch: {delete: [], add: [[8, ' modified']]} }]
+                }, {
+                    id: 'zxc', op: 'modify',
+                    changes: [{path: ['shapeProps', 'points'], op: 'patch-array', patch: {delete: [], add: [[0, [{x: 1, y: 5}]]]}}]
+                }]
+            }]
+        });
+    });
 });
 
 describe('SchemePatch.applySchemePatch', () => {
