@@ -6,14 +6,10 @@ import { patchTestData } from './data/patch/patch-test-data';
 
 describe('SchemePatch.generateSchemePatch', () => {
     forEach(patchTestData, testData => {
-            it(`should recognize ${testData.name}`, () => {
-                const patch = generateSchemePatch(testData.origin, testData.modified);
-        if (testData.name === 'patching frame player') {
-            console.log(JSON.stringify(patch));
-        }
-                expect(patch).toStrictEqual(testData.patch);
-            });
-        // }
+        it(`should recognize ${testData.name}`, () => {
+            const patch = generateSchemePatch(testData.origin, testData.modified);
+            expect(patch).toStrictEqual(testData.patch);
+        });
     });
 });
 
