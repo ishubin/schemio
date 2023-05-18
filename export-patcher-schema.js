@@ -21,28 +21,30 @@ global.performance = {
 
 const { patchTestData } = require("./test/data/patch/patch-test-data");
 const fs = require('fs-extra');
-const { PatchSchema } = require("./src/ui/scheme/SchemePatch");
+const { getSchemioDocSchema } = require("./src/ui/scheme/SchemioDocSchema");
 
 const exportFolder = '.exported-patcher-schema'
 const patcherTestDataPath = `${exportFolder}/schemio-patcher-test-data.json`;
 const patcherSchemaPath = `${exportFolder}/schemio-patcher-schema.json`
 
 
-function exportObject(filePath, obj) {
-    return fs.writeFile(filePath, JSON.stringify(obj, null, 2))
-    .then(() => {
-        console.log('Exported', filePath);
-    })
-}
+console.log(JSON.stringify(getSchemioDocSchema()));
 
-fs.mkdir(exportFolder, {recursive: true})
-.then(() => {
-    return exportObject(patcherTestDataPath, patchTestData);
-})
-.then(() => {
-    return exportObject(patcherSchemaPath, PatchSchema);
-})
-.catch(err => {
-    console.error(err);
-    process.exit(2);
-});
+// function exportObject(filePath, obj) {
+//     return fs.writeFile(filePath, JSON.stringify(obj, null, 2))
+//     .then(() => {
+//         console.log('Exported', filePath);
+//     })
+// }
+
+// fs.mkdir(exportFolder, {recursive: true})
+// .then(() => {
+//     return exportObject(patcherTestDataPath, patchTestData);
+// })
+// .then(() => {
+//     return exportObject(patcherSchemaPath, getSchemioDocSchema());
+// })
+// .catch(err => {
+//     console.error(err);
+//     process.exit(2);
+// });

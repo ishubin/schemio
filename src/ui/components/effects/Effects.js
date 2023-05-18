@@ -269,8 +269,8 @@ const effects = {
 
 /**
  * Generates args with default values for specified effect
- * @param {Effect} effect 
- * @returns 
+ * @param {Effect} effect
+ * @returns
  */
 export function generateEffectArgs(effect) {
     if (!effect) {

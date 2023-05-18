@@ -1,5 +1,6 @@
 import forEach from "lodash/forEach";
 import utils from "../utils";
+import { getSchemioDocSchema } from "./SchemioDocSchema";
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
 //
@@ -94,115 +95,6 @@ import utils from "../utils";
 //
 // Result: only single record of moving item a7 to position 2
 
-export const PatchSchema = [{
-    name: 'items',
-    op: 'patch-id-array',
-    childrenField: 'childItems',
-
-    fields: [{
-        names: ['name', 'opacity', 'selfOpacity', 'visible', 'blendMode', 'cursor', 'shape', 'clip', 'interactionMode', ],
-        op: 'replace'
-    }, {
-        name: 'area', type: 'object', op: 'modify', fields: [{op: 'replace'}]
-    }, {
-        name: 'description', type: 'string', op: 'patch-text'
-    }, {
-        name: 'shapeProps', type: 'object', op: 'conditional', sourceField: ['shape'], defs: [
-            {on: 'frame_player', op: 'modify', fields: [
-                {names: ['totalFrames', 'fps', 'fillColor', 'hoverFillColor', 'strokeColor'], op: 'replace'},
-                {name: 'animations', op: 'patch-id-array', childrenField: null, fields: [
-                    {names: ['kind', 'property'], op: 'replace'},
-                    {name: 'frames', op: 'patch-array'}
-                ]},
-                {name: 'sections', op: 'patch-array'},
-                {name: 'functions', op: 'patch-map', fields: [
-                    {name: 'functionId', op: 'replace'},
-                    {name: 'args', op: 'modify', fields: [{op: 'replace'}]}
-                ]}
-            ]},
-            {on: 'path', op: 'modify', fields: [
-                {names: ['fill', 'strokeColor', 'strokeSize', 'strokePattern', 'closed'], op: 'replace'},
-                {name: 'paths', op: 'patch-id-array', childField: null, fields: [
-                    {name: 'closed', op: 'replace'},
-                    {name: 'points', op: 'patch-array'}
-                ]}
-            ]},
-            {on: 'connector', op: 'modify', fields: [
-                {names: [
-                    'fat', 'sourceCap', 'destinationCap', 'strokeColor', 'strokeSize',
-                    'strokePattern', 'sourceCapSize', 'destinationCapSize', 'smoothing',
-                    'stepSize', 'fill', 'fatWidth', 'sourceItem', 'destinationItem',
-                    'sourceItemPosition', 'destinationItemPosition'
-                ], op: 'replace'},
-                {name: 'points', op: 'patch-array'}
-            ]},
-            {op: 'modify', fields: [{op: 'replace'}]}
-        ]
-    }, {
-        names: ['tags'], op: 'patch-set'
-    }, {
-        name: 'textSlots',
-        op: 'modify',
-        fields: [{
-            op: 'modify',
-            fields: [{
-                name: 'text', op: 'patch-text'
-            }, {
-                // catching the rest of the text slot fields
-                op: 'replace'
-            }]
-        }]
-    }, {
-        name: 'behavior',
-        op: 'modify',
-        fields: [{
-            name: 'events',
-            op: 'patch-id-array',
-            childrenField: null,
-            fields: [{
-                name: 'event', op: 'replace'
-            }, {
-                name: 'actions', op: 'patch-id-array',
-                childrenField: null,
-                fields: [{
-                    names: ['element', 'method'], op: 'replace'
-                }, {
-                    name: 'args', op: 'modify', fields: [{op: 'replace'}]
-                }]
-            }]
-        }]
-    }, {
-        name: 'links', op: 'patch-id-array', childrenField: null, fields: [{ names: ['title', 'url', 'type'], op: 'replace' }]
-    }, {
-        name: 'effects',
-        op: 'patch-id-array',
-        childrenField: null,
-        fields: [{
-            names: ['effect', 'name'], op: 'replace'
-        }, {
-            name: 'args', op: 'modify', fields: [{op: 'replace'}]
-        }]
-    }]
-}, {
-    name: 'name',
-    op: 'replace'
-}, {
-    name: 'description',
-    op: 'patch-text'
-}, {
-    name: 'settings',
-    op: 'modify',
-    fields: [{
-        name: 'screen',
-        op: 'modify',
-        fields: [{op: 'replace'}]
-    }]
-}, {
-    name: 'style', op: 'modify', fields: [{op: 'replace'}]
-}, {
-    name: 'tags', op: 'patch-set'
-}];
-
 
 class SchemaIndexNode {
     constructor(name, fieldSchema) {
@@ -214,10 +106,10 @@ class SchemaIndexNode {
 
     indexFieldEntry(name, fieldSchema) {
         const childField = new SchemaIndexNode(name, fieldSchema);
-        if (name) {
-            this.fields.set(name, childField);
-        } else {
+        if (name === '*') {
             this.defaultField = childField;
+        } else {
+            this.fields.set(name, childField);
         }
 
         if (fieldSchema.fields) {
@@ -226,14 +118,8 @@ class SchemaIndexNode {
     }
 
     indexFieldEntries(fieldSchemas) {
-        forEach(fieldSchemas, fieldSchema => {
-            if (fieldSchema.names) {
-                forEach(fieldSchema.names, name => {
-                    this.indexFieldEntry(name, fieldSchema);
-                })
-            } else {
-                this.indexFieldEntry(fieldSchema.name, fieldSchema);
-            }
+        forEach(fieldSchemas, (fieldSchema, name) => {
+            this.indexFieldEntry(name, fieldSchema);
         });
     }
 
@@ -256,7 +142,7 @@ class SchemaIndexNode {
 
 function createSchemaIndex(schema) {
     const rootNode = new SchemaIndexNode();
-    rootNode.indexFieldEntries(schema);
+    rootNode.indexFieldEntries(schema.fields);
     return rootNode;
 }
 
@@ -425,7 +311,8 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
                     entries.push(itemEntry);
 
                     // also checking for field changes for items that were not removed
-                    const fieldChanges = _generatePatch(item, modEntry.item, patchSchemaEntry.fields, []);
+                    const itemSchema = {type: 'object', patching: ['modify'], fields: patchSchemaEntry.fields};
+                    const fieldChanges = _generatePatch(item, modEntry.item, itemSchema, []);
                     if (fieldChanges.length > 0) {
                         registerScopedOperation(item.parentId, {
                             id     : item.id,
@@ -538,13 +425,42 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
     return operations;
 }
 
-function generatePatch(originObject, modifiedObject, patchSchema) {
+/**
+ * @typedef {Object} FieldSchema
+ * @property {String} type
+ * @property {String} of
+ * @property {String} on
+ * @property {String} childrenField
+ * @property {Array<String>} patching
+ * @property {String} contidionalParentField
+ * @property {Array<FieldSchema>} conditions
+ * @property {Object} fields
+ */
+
+/**
+ *
+ * @param {*} originObject
+ * @param {*} modifiedObject
+ * @param {FieldSchema} schema
+ * @param {SchemaIndexNode} index
+ * @returns
+ */
+function generatePatch(originObject, modifiedObject, schema) {
     return {
         version: '1',
         protocol: 'schemio/patch',
-        changes: _generatePatch(originObject, modifiedObject, patchSchema, [])
+        changes: _generatePatch(originObject, modifiedObject, schema, [])
     };
 }
+
+/**
+ *
+ * @param {Object} originObject
+ * @param {Object} modifiedObject
+ * @param {FieldSchema} patchSchema
+ * @param {Array<String>} fieldPath
+ * @returns
+ */
 function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
     let ops = [];
     const fieldNames = new Set();
@@ -553,27 +469,38 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
 
     const fieldSchemas = new Map();
     let defaultFieldEntry = null;
-    forEach(patchSchema, schemaFieldEntry => {
-        if (schemaFieldEntry.name) {
-            fieldSchemas.set(schemaFieldEntry.name, schemaFieldEntry);
-        } else if (schemaFieldEntry.names) {
-            forEach(schemaFieldEntry.names, name => fieldSchemas.set(name, schemaFieldEntry));
-        } else if (!defaultFieldEntry) {
+    forEach(patchSchema.fields, (schemaFieldEntry, name) => {
+        if (name === '*') {
             defaultFieldEntry = schemaFieldEntry;
+        } else {
+            fieldSchemas.set(name, schemaFieldEntry);
         }
     });
 
+    /**
+     *
+     * @param {FieldSchema} fieldSchema
+     * @param {*} field
+     */
     const generatePatchForField = (fieldSchema, field) => {
+        if (fieldSchema.type === 'conditional') {
+            if (modifiedObject.hasOwnProperty(field)) {
+                ops = ops.concat(generateConditionalPatch(originObject, modifiedObject, originObject[field], modifiedObject[field], fieldPath.concat([field]), fieldSchema));
+            }
+
+            return;
+        }
+
+        if (!Array.isArray(fieldSchema.patching) || fieldSchema.patching.length === 0) {
+            return;
+        }
+        const op = fieldSchema.patching[0];
         if (originObject.hasOwnProperty(field) && !modifiedObject.hasOwnProperty(field)) {
             ops.push({
                 path: fieldPath.concat([field]),
                 op: 'delete',
             });
-        } else if (fieldSchema.op === 'conditional') {
-            if (modifiedObject.hasOwnProperty(field)) {
-                ops = ops.concat(generateConditionalPatch(originObject, modifiedObject, originObject[field], modifiedObject[field], fieldPath.concat([field]), fieldSchema));
-            }
-        } else if (fieldSchema.op === 'replace') {
+        } else if (op === 'replace') {
             if (!valueEquals(originObject[field], modifiedObject[field])) {
                 ops.push({
                     path: fieldPath.concat([field]),
@@ -581,7 +508,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                     value: utils.clone(modifiedObject[field])
                 })
             }
-        } else if (fieldSchema.op === 'patch-text') {
+        } else if (op === 'patch-text') {
             if (!valueEquals(originObject[field], modifiedObject[field])) {
                 ops.push({
                     path: fieldPath.concat([field]),
@@ -589,9 +516,9 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                     patch: generateStringPatch(originObject[field], modifiedObject[field])
                 })
             }
-        } else if (fieldSchema.op === 'modify' && originObject[field] && modifiedObject[field]) {
-            ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldSchema.fields, fieldPath.concat([field])));
-        } else if (fieldSchema.op === 'patch-set') {
+        } else if (op === 'modify' && originObject[field] && modifiedObject[field]) {
+            ops = ops.concat(_generatePatch(originObject[field], modifiedObject[field], fieldSchema, fieldPath.concat([field])));
+        } else if (op === 'patch-set') {
             const changes = generateSetPatchOperations(originObject[field], modifiedObject[field]);
             if (changes && changes.length > 0) {
                 ops.push({
@@ -600,7 +527,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                     changes: changes
                 });
             }
-        } else if (fieldSchema.op === 'patch-id-array') {
+        } else if (op === 'patch-id-array') {
             const changes = generateIdArrayPatch(originObject[field], modifiedObject[field], fieldSchema);
             if (changes && changes.length > 0) {
                 ops.push({
@@ -609,7 +536,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                     changes: changes
                 });
             }
-        } else if (fieldSchema.op === 'patch-map') {
+        } else if (op === 'patch-map') {
             const changes = generateMapPatch(originObject[field], modifiedObject[field], fieldSchema);
             if (changes && changes.length > 0) {
                 ops.push({
@@ -618,7 +545,7 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
                     changes: changes
                 });
             }
-        } else if (fieldSchema.op === 'patch-array') {
+        } else if (op === 'patch-array') {
             const arrayPatch = generateArrayPatch(originObject[field], modifiedObject[field]);
             if (arrayPatch && (arrayPatch.delete.length > 0 || arrayPatch.add.length > 0)) {
                 ops.push({
@@ -642,32 +569,47 @@ function _generatePatch(originObject, modifiedObject, patchSchema, fieldPath) {
     return ops;
 }
 
+/**
+ *
+ * @param {*} originParent
+ * @param {*} modifiedParent
+ * @param {*} originObject
+ * @param {*} modifiedObject
+ * @param {Array<String>} fieldPath
+ * @param {FieldSchema} fieldSchema
+ * @returns
+ */
 function generateConditionalPatch(originParent, modifiedParent, originObject, modifiedObject, fieldPath, fieldSchema) {
-    if (!fieldSchema || !fieldSchema.sourceField || !fieldSchema.defs) {
+    if (!fieldSchema || !fieldSchema.contidionalParentField || !Array.isArray(fieldSchema.conditions)) {
         return [];
     }
 
-    const propertyValue = utils.getObjectProperty(modifiedParent, fieldSchema.sourceField);
+    const propertyValue = utils.getObjectProperty(modifiedParent, fieldSchema.contidionalParentField);
     let selectedSchema = null;
 
-    for (let i = 0; i < fieldSchema.defs.length; i++) {
-        if (fieldSchema.defs[i].on === propertyValue || (!selectedSchema && !fieldSchema.defs[i].hasOwnProperty('on'))) {
-            selectedSchema = fieldSchema.defs[i];
+
+    for (let i = 0; i < fieldSchema.conditions.length; i++) {
+        if (!selectedSchema && fieldSchema.conditions[i].on === null) {
+            selectedSchema = fieldSchema.conditions[i];
+        }
+        if (fieldSchema.conditions[i].on === propertyValue) {
+            selectedSchema = fieldSchema.conditions[i];
+            break;
         }
     }
     if (!selectedSchema) {
         return [];
     }
-    return _generatePatch(originObject, modifiedObject, selectedSchema.fields, fieldPath);
+    return _generatePatch(originObject, modifiedObject, selectedSchema, fieldPath);
 }
 
 
 export function generateSchemePatch(originScheme, modifiedScheme) {
-    return generatePatch(originScheme, modifiedScheme, PatchSchema);
+    return generatePatch(originScheme, modifiedScheme, getSchemioDocSchema());
 }
 
 export function applySchemePatch(origin, patch) {
-    return applyPatch(origin, patch, [], createSchemaIndex(PatchSchema));
+    return applyPatch(origin, patch, [], createSchemaIndex(getSchemioDocSchema()));
 }
 
 /**
@@ -1268,12 +1210,16 @@ export function applyArrayPatch(origin, patch) {
  *
  * @param {Object} origin
  * @param {Object} modified
- * @param {Object} patchSchemaEntry
+ * @param {FieldSchema} patchSchemaEntry
  */
 export function generateMapPatch(origin, modified, patchSchemaEntry) {
     if (!origin || !modified) {
         return [];
     }
+
+    const valuePatchSchema = utils.clone(patchSchemaEntry);
+    valuePatchSchema.type = 'object';
+    valuePatchSchema.patching = ['modify'];
 
     const changes = []
 
@@ -1285,9 +1231,8 @@ export function generateMapPatch(origin, modified, patchSchemaEntry) {
                 id: key,
                 op: 'delete'
             });
-        }
-        if (patchSchemaEntry.fields && patchSchemaEntry.fields.length > 0 && oHas && mHas) {
-            const subChanges = _generatePatch(origin[key], modified[key], patchSchemaEntry.fields, []);
+        } else if (oHas && mHas) {
+            const subChanges = _generatePatch(origin[key], modified[key], valuePatchSchema, []);
             if (subChanges.length > 0) {
                 changes.push({
                     id: key,

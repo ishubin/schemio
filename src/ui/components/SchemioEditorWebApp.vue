@@ -84,6 +84,7 @@ import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import History from '../history/History.js';
 import { prepareDiagramForPictureExport } from '../diagramExporter';
 import EditorEventBus from './editor/EditorEventBus';
+import { generateMapPatch, generateSchemePatch } from '../scheme/SchemePatch';
 
 const defaultHistorySize = 30;
 
@@ -316,10 +317,105 @@ export default {
         },
 
         triggerApplyPatchUpload() {
-            this.loadPatchFileShown = true;
-            this.$nextTick(() => {
-                this.$refs.loadPatchFileInput.click();
-            });
+            const defaultArea = {x: 0, y: 0, w: 0, h: 0, sx: 1, sy: 1, px: 0, py: 0, r: 0};
+            const origin = {
+                items: [ {
+                    shape: "frame_player",
+                    shapeProps: {
+                        totalFrames: 5,
+                        fps: 1,
+                        fillColor: "rgba(220, 220, 220, 1.0)",
+                        hoverFillColor: "rgba(190, 190, 190, 1.0)",
+                        strokeColor: "rgba(30,30,30,1.0)",
+                        animations: [ {
+                            kind: "function",
+                            id: "5Vv41hELi",
+                            property: "distance",
+                            frames: [ {
+                                frame: 1,
+                                kind: "linear",
+                                value: 0
+                            }, {
+                                frame: 5,
+                                kind: "linear",
+                                value: 100
+                            } ]
+                        } ],
+                        functions: {
+                            "5Vv41hELi": {
+                                functionId: "moveAlongPath",
+                                args: {
+                                    item: "#XSNfyTgGc",
+                                    path: "#32yLBPYak",
+                                    rotateItem: true,
+                                    rotationOffset: 45
+                                }
+                            }
+                        },
+                        sections: [ {
+                            frame: 1,
+                            value: "start",
+                            kind: "step"
+                        } ]
+                    },
+                    id: "F1M_g-8-n"
+                } ]
+            };
+            const modified = {
+                items: [ {
+                    shape: "frame_player",
+                    shapeProps: {
+                        totalFrames: 5,
+                        fps: 1,
+                        fillColor: "rgba(220, 220, 220, 1.0)",
+                        hoverFillColor: "rgba(190, 190, 190, 1.0)",
+                        strokeColor: "rgba(30,30,30,1.0)",
+                        animations: [ {
+                            kind: "function",
+                            id: "5Vv41hELi",
+                            property: "distance",
+                            frames: [ {
+                                frame: 1,
+                                kind: "linear",
+                                value: 0
+                            }, {
+                                frame: 5,
+                                kind: "linear",
+                                value: 100
+                            } ]
+                        } ],
+                        functions: {
+                            "5Vv41hELi": {
+                                functionId: "moveAlongPath",
+                                args: {
+                                    item: "#XSNfyTgGc",
+                                    path: "#32yLBPYak",
+                                    rotateItem: false,
+                                    rotationOffset: 40
+                                }
+                            }
+                        },
+                        sections: [ {
+                            frame: 1,
+                            value: "start",
+                            kind: "step"
+                        }, {
+                            frame: 3,
+                            value: "stop",
+                            kind: "step"
+                        } ]
+                    },
+                    id: "F1M_g-8-n"
+                }
+                ]
+            };
+            const patch = generateSchemePatch(origin, modified);
+
+            console.log(patch);
+            // this.loadPatchFileShown = true;
+            // this.$nextTick(() => {
+            //     this.$refs.loadPatchFileInput.click();
+            // });
         },
 
         onLoadPatchFileInputChanged(fileEvent) {
@@ -329,11 +425,15 @@ export default {
             reader.onload = (event) => {
                 this.loadPatchFileShown = false;
                 try {
-                    const patch = JSON.parse(event.target.result);
-                    //TODO verify that it is correct patch file
-                    this.schemePatch = patch;
-                    this.appReloadKey = shortid.generate();
+                    const modified = JSON.parse(event.target.result);
+                    const patch = generateSchemePatch(this.scheme, modified);
+                    console.log('Patch', patch);
+                    // const patch = JSON.parse(event.target.result);
+                    // //TODO verify that it is correct patch file
+                    // this.schemePatch = patch;
+                    // this.appReloadKey = shortid.generate();
                 } catch(err) {
+                    console.error(err);
                     alert('Not able to load patch. Malformed json');
                 }
             };

@@ -6,13 +6,14 @@ import { patchTestData } from './data/patch/patch-test-data';
 
 describe('SchemePatch.generateSchemePatch', () => {
     forEach(patchTestData, testData => {
-        it(`should recognize ${testData.name}`, () => {
-            const patch = generateSchemePatch(testData.origin, testData.modified);
-            if (testData.name === 'patching frame player') {
-                console.log(JSON.stringify(patch, null, 4));
-            }
-            expect(patch).toStrictEqual(testData.patch);
-        });
+            it(`should recognize ${testData.name}`, () => {
+                const patch = generateSchemePatch(testData.origin, testData.modified);
+        if (testData.name === 'patching frame player') {
+            console.log(JSON.stringify(patch));
+        }
+                expect(patch).toStrictEqual(testData.patch);
+            });
+        // }
     });
 });
 
@@ -143,10 +144,10 @@ describe('SchemaPatch.applyArrayPatch', () => {
 
 describe('SchemaPatch.generateMapPatch', () => {
     it('should generate patch for maps', () => {
-        const schema = {name: 'functions', op: 'patch-map', fields: [
-            {name: 'functionId', op: 'replace'},
-            {name: 'args', op: 'modify', fields: [{op: 'replace'}]}
-        ]};
+        const schema = {patching: ['patch-map'], fields: {
+            functionId: {type: 'string', patching: ['replace']},
+            args: {type: 'object', patching: ['modify'], fields: {'*': {patching: ['replace']}}}
+        }};
 
         const origin = {
             "qwe": {

@@ -30,7 +30,7 @@ export default {
             + `<path d="M0 ${y} l ${w} 0" fill="none" stroke="#111111" stroke-width="${strokeWidth}" stroke-dasharray="${dashArray}"/>`
             + '</svg>';
     },
-    
+
     patterns: keys(patterns),
 
     SOLID: 'solid',

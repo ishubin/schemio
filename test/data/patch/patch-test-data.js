@@ -52,16 +52,10 @@ export const patchTestData = [{
 
         changes: [{
             path: ['name'],
-            op: 'replace',
-            value: 'qwe'
-        }, {
-            path: ['settings', 'screen', 'draggable'],
-            op: 'replace',
-            value: false
-        }, {
-            path: ['style', 'boundaryBoxColor'],
-            op: 'replace',
-            value: '#fff'
+            op: 'patch-text',
+            patch: {
+                delete: [], add: [[0, 'qwe']]
+            }
         }, {
             path: ['tags'],
             op: 'patch-set',
@@ -72,12 +66,20 @@ export const patchTestData = [{
                 op: 'delete',
                 value: 'b'
             }]
+        }, {
+            path: ['style', 'boundaryBoxColor'],
+            op: 'replace',
+            value: '#fff'
+        }, {
+            path: ['settings', 'screen', 'draggable'],
+            op: 'replace',
+            value: false
         }],
     },
     stats: {
         document: {
             fieldChanges: 4,
-            fields: ['name', 'settings.screen.draggable', 'style.boundaryBoxColor', 'tags']
+            fields: ['name', 'tags', 'style.boundaryBoxColor', 'settings.screen.draggable']
         },
         items: {
             added: {count: 0, items: []},
@@ -110,8 +112,8 @@ export const patchTestData = [{
                 op: 'modify',
                 changes: [{
                     path: ['name'],
-                    op: 'replace',
-                    value: 'item1-changed'
+                    op: 'patch-text',
+                    patch: {delete: [], add: [[5, '-changed']]}
                 }]
             }]
         }],
@@ -478,21 +480,29 @@ export const patchTestData = [{
                 id: 'qwe1',
                 op: 'modify',
                 changes: [{
-                    path: ['textSlots', 'body', 'text'],
-                    op: 'patch-text',
-                    patch: {
-                        delete: [[0, 4]],
-                        add: [[0, 'G'], [2, 'odbye']]
-                    }
-                }, {
-                    path: ['textSlots', 'body', 'valign'],
-                    op: 'replace',
-                    value: 'top'
-                }, {
-                    path: ['textSlots', 'body', 'fontSize'],
-                    op: 'replace',
-                    value: 16
-                }]
+                    path: ['textSlots'],
+                    op: 'patch-map',
+                    changes: [{
+                        id: 'body',
+                        op: 'modify',
+                        changes: [{
+                            path: ['text'],
+                            op: 'patch-text',
+                            patch: {
+                                delete: [[0, 4]],
+                                add: [[0, 'G'], [2, 'odbye']]
+                            }
+                        }, {
+                            path: ['valign'],
+                            op: 'replace',
+                            value: 'top'
+                        }, {
+                            path: ['fontSize'],
+                            op: 'replace',
+                            value: 16
+                        }]
+                    }]
+                }],
             }]
         }],
     },
@@ -900,8 +910,8 @@ export const patchTestData = [{
                         op: 'modify',
                         changes: [{
                             path: ['name'],
-                            op: 'replace',
-                            value: 'Drop shadow 3 edited'
+                            op: 'patch-text',
+                            patch: {delete: [], add: [[13, ' edited']]}
                         }, {
                             path: ['args', 'color'],
                             op: 'replace',
@@ -1316,21 +1326,7 @@ export const patchTestData = [{
             changes: [ {
                 id: "F1M_g-8-n",
                 op: "modify",
-                changes: [ {
-                    path: [ "shapeProps", "sections" ],
-                    op: "patch-array",
-                    patch: {
-                        delete: [ ],
-                        add: [ [
-                            1,
-                            [ {
-                                frame: 3,
-                                value: "stop",
-                                kind: "step"
-                            } ]
-                        ] ]
-                    }
-                  },
+                changes: [
                   {
                     path: [ "shapeProps", "functions" ],
                     op: "patch-map",
@@ -1347,6 +1343,20 @@ export const patchTestData = [{
                             value: 40
                         } ]
                     } ]
+                }, {
+                    path: [ "shapeProps", "sections" ],
+                    op: "patch-array",
+                    patch: {
+                        delete: [ ],
+                        add: [ [
+                            1,
+                            [ {
+                                frame: 3,
+                                value: "stop",
+                                kind: "step"
+                            } ]
+                        ] ]
+                    }
                 } ]
             } ]
         }],
@@ -1362,9 +1372,9 @@ export const patchTestData = [{
             modified: {count: 3, items: [{
                 id: 'F1M_g-8-n',
                 fields: [
-                    "shapeProps.sections",
                     "shapeProps.functions.5Vv41hELi.args.rotateItem",
-                    "shapeProps.functions.5Vv41hELi.args.rotationOffset"
+                    "shapeProps.functions.5Vv41hELi.args.rotationOffset",
+                    "shapeProps.sections"
                 ]
             }]},
         }
