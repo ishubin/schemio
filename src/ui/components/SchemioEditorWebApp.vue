@@ -84,7 +84,6 @@ import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import History from '../history/History.js';
 import { prepareDiagramForPictureExport } from '../diagramExporter';
 import EditorEventBus from './editor/EditorEventBus';
-import { generateMapPatch, generateSchemePatch } from '../scheme/SchemePatch';
 
 const defaultHistorySize = 30;
 

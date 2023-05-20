@@ -10,7 +10,6 @@ const defaultScheme = {
     name: '',
     description: '',
     tags: [],
-    categoryId: null,
     items: [],
     settings: {
         screen: {

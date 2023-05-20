@@ -16,8 +16,7 @@ import { traverseItems } from './scheme/Item.js';
 import Dropdown from './components/Dropdown.vue';
 import MenuDropdown from './components/MenuDropdown.vue';
 import {  applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic  } from './scheme/SchemePatch.js';
-
-
+import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
 
 window.Schemio = {
     components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store, Dropdown, MenuDropdown},
@@ -25,7 +24,8 @@ window.Schemio = {
         createHasher,
         snapshotSvg,
         getBoundingBoxOfItems,
-        traverseItems
+        traverseItems,
+        enrichSchemeWithDefaults
     },
     patcher: { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic },
     /**
