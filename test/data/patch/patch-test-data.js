@@ -26,12 +26,6 @@ const defaultScheme = {
 
 const defaultArea = {x: 0, y: 0, w: 100, h: 50, r: 100, px: 0.5, py: 0.5, sx: 1, sy: 1};
 
-const $ = {
-    doc(doc) {
-        return defaultifyScheme(doc);
-    }
-};
-
 function createDocFieldChanges() {
     const modifiedScheme = utils.clone(defaultScheme);
     modifiedScheme.name = 'qwe';
@@ -90,16 +84,16 @@ export const patchTestData = [{
 }, {
     //TODO test for more field changes to make sure every field is covered
     name: 'item field changes',
-    origin: $.doc({
-            items: [
-                { id: 'qwe1', name: 'item1'},
-                { id: 'qwe2', name: 'item2'}]
-        }),
-    modified: $.doc({
-            items: [
-                { id: 'qwe1', name: 'item1-changed'},
-                { id: 'qwe2', name: 'item2'}]
-    }),
+    origin: {
+        items: [
+            { id: 'qwe1', name: 'item1'},
+            { id: 'qwe2', name: 'item2'}]
+    },
+    modified: {
+        items: [
+            { id: 'qwe1', name: 'item1-changed'},
+            { id: 'qwe2', name: 'item2'}]
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -136,18 +130,18 @@ export const patchTestData = [{
     }
 }, {
     name: 'sort order change. moving last item to head',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2'},
             { id: 'qwe3', name: 'item3'}]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe3', name: 'item3'},
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2'}]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -179,17 +173,17 @@ export const patchTestData = [{
     }
 }, {
     name: 'item deletion',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2'},
             { id: 'qwe3', name: 'item3'}]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe3', name: 'item3'}]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -216,19 +210,19 @@ export const patchTestData = [{
     }
 }, {
     name: 'item addition',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2'},
             { id: 'qwe3', name: 'item3'}]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2'},
             { id: 'qwe2.5', name: 'item2.5'},
             { id: 'qwe3', name: 'item3'}]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -261,20 +255,20 @@ export const patchTestData = [{
     }
 }, {
     name: 'item deletion, addition and order change',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2'},
             { id: 'qwe3', name: 'item3'},
             { id: 'qwe4', name: 'item4'}]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe5', name: 'item5'},
             { id: 'qwe4', name: 'item4'},
             { id: 'qwe3', name: 'item3'}]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -318,7 +312,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'item remounting to different parent and changing item property',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1',
                 childItems: [
@@ -335,8 +329,8 @@ export const patchTestData = [{
                     {id: 'sub3.3', name: 'sub3.3'},
                 ]
             }]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1',
                 childItems: [
@@ -353,7 +347,7 @@ export const patchTestData = [{
                     {id: 'sub3.3', name: 'sub3.3'},
                 ]
             }]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -397,7 +391,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'item remounting to different parent',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1',
                 childItems: [
@@ -414,8 +408,8 @@ export const patchTestData = [{
                     {id: 'sub3.3', name: 'sub3.3'},
                 ]
             }]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1',
                 childItems: [
@@ -432,7 +426,7 @@ export const patchTestData = [{
                     {id: 'sub3.3', name: 'sub3.3'},
                 ]
             }]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -468,18 +462,18 @@ export const patchTestData = [{
     }
 }, {
     name: 'item shapeProps change',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {strokeColor: '#fff'} },
             { id: 'qwe2', name: 'item2', area: defaultArea },
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {strokeColor: '#000'} },
             { id: 'qwe2', name: 'item2' , area: defaultArea},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -508,7 +502,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'textSlot change',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {}, textSlots: {
                 body: {
@@ -527,8 +521,8 @@ export const patchTestData = [{
             } },
             { id: 'qwe2', name: 'item2' },
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', shape: 'rect', area: defaultArea, shapeProps: {}, textSlots: {
                 body: {
@@ -547,7 +541,7 @@ export const patchTestData = [{
             } },
             { id: 'qwe2', name: 'item2' },
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -595,16 +589,16 @@ export const patchTestData = [{
     }
 }, {
     name: 'item tags changes',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', tags: ['a', 'b', 'c', 'd']},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', tags: ['a', 'c', 'd', 'g', 'e']},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -642,7 +636,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'behavior events addition, deletion, reorder and modification',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', behavior: {
                 events: [
@@ -653,8 +647,8 @@ export const patchTestData = [{
                 ]
             }},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', behavior: {
                 events: [
@@ -665,7 +659,7 @@ export const patchTestData = [{
                 ]
             }},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -714,7 +708,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'behavior actions addition, deletion, reorder and modification',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', behavior: {
                 events: [
@@ -755,8 +749,8 @@ export const patchTestData = [{
                 ]
             }},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', behavior: {
                 events: [
@@ -797,7 +791,7 @@ export const patchTestData = [{
                 ]
             }},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -863,7 +857,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'item links addition, deletion, reorder and modification',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', links: [
                 { id: 'l1', title: 'Link 1', url: 'http://link-1', type: 'default' },
@@ -872,8 +866,8 @@ export const patchTestData = [{
                 { id: 'l4', title: 'Link 4', url: 'http://link-4', type: 'default' },
             ]},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', links: [
                 { id: 'l1', title: 'Link 1', url: 'http://link-1', type: 'default' },
@@ -882,7 +876,7 @@ export const patchTestData = [{
                 { id: 'l5', title: 'Link 5', url: 'http://link-5', type: 'default' },
             ]},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -939,7 +933,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'item effects addition, deletion, reorder and modification',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1', effects: [
                 { id: 'e1', effect: 'drop-shadow', name: 'Drop shadow 1', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
@@ -948,8 +942,8 @@ export const patchTestData = [{
                 { id: 'e4', effect: 'drop-shadow', name: 'Drop shadow 4', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
             ]},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', effects: [
                 { id: 'e1', effect: 'drop-shadow', name: 'Drop shadow 1', args: {color: 'red', dx: 4, dy: 5, blur: 10, opacity: 50, inside: false} },
@@ -958,7 +952,7 @@ export const patchTestData = [{
                 { id: 'e5', effect: 'blur', name: 'Blur', args: { size: 50} },
             ]},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -1019,16 +1013,16 @@ export const patchTestData = [{
     }
 }, {
     name: 'item description string patch',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', description: 'Hello world!'},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', description: 'Hi my world'},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -1068,12 +1062,12 @@ export const patchTestData = [{
     }
 }, {
     name: 'adding new item with children',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1'},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1'},
             { id: 'qwe2', name: 'item2', childItems: [
@@ -1083,7 +1077,7 @@ export const patchTestData = [{
                 ] },
             ]},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -1133,18 +1127,18 @@ export const patchTestData = [{
     }
 }, {
     name: 'adding new item to item without children',
-    origin: $.doc({
+    origin: {
         items: [
             { id: 'qwe1', name: 'item1'},
         ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [
             { id: 'qwe1', name: 'item1', childItems: [
                 {id: 'sub1.1', name: 'sub1.1'},
             ]},
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -1176,7 +1170,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'conditional patching of shapeProps for path item',
-    origin: $.doc({
+    origin: {
         items: [ {
             shape: "path",
             shapeProps: {
@@ -1204,8 +1198,8 @@ export const patchTestData = [{
             },
             id: "NanyKSwPI"
         }, ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [ {
             shape: "path",
             shapeProps: {
@@ -1237,7 +1231,7 @@ export const patchTestData = [{
             },
             id: "NanyKSwPI"
         }, ]
-    }),
+    },
     patch: {
         version: "1",
         protocol: "schemio/patch",
@@ -1304,7 +1298,7 @@ export const patchTestData = [{
     }
 }, {
     name: 'patching frame player',
-    origin: $.doc({
+    origin: {
         items: [ {
             shape: "frame_player",
             shapeProps: {
@@ -1346,8 +1340,8 @@ export const patchTestData = [{
             },
             id: "F1M_g-8-n"
         } ]
-    }),
-    modified: $.doc({
+    },
+    modified: {
         items: [ {
             shape: "frame_player",
             shapeProps: {
@@ -1394,7 +1388,7 @@ export const patchTestData = [{
             id: "F1M_g-8-n"
         }
         ]
-    }),
+    },
     patch: {
         version: '1',
         protocol: 'schemio/patch',
@@ -1454,6 +1448,116 @@ export const patchTestData = [{
                     "shapeProps.functions.5Vv41hELi.args.rotateItem",
                     "shapeProps.functions.5Vv41hELi.args.rotationOffset",
                     "shapeProps.sections"
+                ]
+            }]},
+        }
+    }
+}, {
+    name: 'switching shapeProps and deleting old props',
+    origin: {
+        items: [ {
+            shape: "frame_player",
+            shapeProps: {
+                totalFrames: 5,
+                fps: 1,
+                fillColor: "rgba(220, 220, 220, 1.0)",
+                hoverFillColor: "rgba(190, 190, 190, 1.0)",
+                strokeColor: "rgba(30,30,30,1.0)",
+                animations: [ {
+                    kind: "function",
+                    id: "5Vv41hELi",
+                    property: "distance",
+                    frames: [ {
+                        frame: 1,
+                        kind: "linear",
+                        value: 0
+                    }  ]
+                } ],
+                functions: {
+                    "5Vv41hELi": {
+                        functionId: "moveAlongPath",
+                        args: {
+                            item: "#XSNfyTgGc",
+                            path: "#32yLBPYak",
+                            rotateItem: true,
+                            rotationOffset: 45
+                        }
+                    }
+                },
+                sections: [ {
+                    frame: 1,
+                    value: "start",
+                    kind: "step"
+                } ]
+            },
+            id: "F1M_g-8-n"
+        } ]
+    },
+    modified: {
+        items: [ {
+            shape: "rect",
+            shapeProps: {
+                fill          : {
+                    color: 'rgba(220, 220, 220, 1.0)',
+                    'type': 'solid'
+                },
+                strokeColor   : "rgba(30,30,30,1.0)",
+            },
+            id: "F1M_g-8-n"
+        } ]
+    },
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: [ "items" ],
+            op: "patch-id-array",
+            changes: [ {
+                id: "F1M_g-8-n",
+                op: "modify",
+                changes: [ {
+                    path: ["shape"], op: 'replace', value: 'rect'
+                }, {
+                    path: [ "shapeProps", "totalFrames" ], op: "delete",
+                }, {
+                    path: [ "shapeProps", "fps" ], op: "delete",
+                }, {
+                    path: [ "shapeProps", "fillColor" ], op: "delete",
+                }, {
+                    path: [ "shapeProps", "hoverFillColor" ], op: "delete",
+                }, {
+                    path: [ "shapeProps", "animations" ], op: "delete",
+                }, {
+                    path: [ "shapeProps", "functions" ], op: "delete",
+                }, {
+                    path: [ "shapeProps", "sections" ], op: "delete",
+                }, {
+                    path: ["shapeProps", "fill"], op: 'replace', value: {type: 'solid', color: 'rgba(220, 220, 220, 1.0)'}
+                } ]
+            } ]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: [ ]},
+            deleted: {count: 0, items: []},
+            modified: {count: 9, items: [{
+                id: 'F1M_g-8-n',
+                fields: [
+                    "shape",
+                    "shapeProps.totalFrames",
+                    "shapeProps.fps",
+                    "shapeProps.fillColor",
+                    "shapeProps.hoverFillColor",
+                    "shapeProps.animations",
+                    "shapeProps.functions",
+                    "shapeProps.sections",
+                    "shapeProps.fill",
                 ]
             }]},
         }

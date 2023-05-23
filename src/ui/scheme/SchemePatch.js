@@ -465,7 +465,13 @@ function generatePatch(originObject, modifiedObject, schema) {
 function generatePatchForObject(originObject, modifiedObject, patchSchema, fieldPath) {
     let ops = [];
     const fieldNames = new Set();
-    forEach(originObject, (value, name) => fieldNames.add(name));
+    forEach(originObject, (value, name) => {
+        if (modifiedObject.hasOwnProperty(name)) {
+            fieldNames.add(name)
+        } else {
+            ops.push({op: 'delete', path: fieldPath.concat(name)})
+        }
+    });
     forEach(modifiedObject, (value, name) => fieldNames.add(name));
 
     const fieldSchemas = new Map();

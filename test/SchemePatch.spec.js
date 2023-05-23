@@ -251,12 +251,12 @@ describe('SchemaPatch.generateMapPatch', () => {
                 op: 'replace',
                 value: 'hide'
             }, {
+                path: ['args', 'oldProperty'],
+                op: 'delete',
+            }, {
                 path: ['args', 'animated'],
                 op: 'replace',
                 value: true
-            }, {
-                path: ['args', 'oldProperty'],
-                op: 'delete',
             }, {
                 path: ['args', 'duration'],
                 op: 'replace',
