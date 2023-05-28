@@ -362,10 +362,6 @@ export const patchTestData = [{
                 sortOrder: 1
             }, {
                 id: 'sub3.2',
-                op: 'demount',
-                parentId: 'qwe3'
-            }, {
-                id: 'sub3.2',
                 op: 'modify',
                 changes: [{
                     path: ['name'],
@@ -439,10 +435,6 @@ export const patchTestData = [{
                 op: 'mount',
                 parentId: 'qwe1',
                 sortOrder: 1
-            }, {
-                id: 'sub3.2',
-                op: 'demount',
-                parentId: 'qwe3'
             }]
         }],
     },

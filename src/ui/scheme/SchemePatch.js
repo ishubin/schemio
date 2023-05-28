@@ -287,12 +287,6 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
                     parentId: itemEntry.parentId,
                     sortOrder: itemEntry.sortOrder,
                 });
-                registerScopedOperation(originEntry.parentId, {
-                    id: itemId,
-                    op: 'demount',
-                    parentId: originEntry.parentId,
-                    sortOrder: originEntry.sortOrder,
-                });
             }
         }
     });
@@ -408,9 +402,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
         });
 
         ops.forEach(op => {
-            if (op.op === 'demount')  {
-                delete op.sortOrder;
-            } else if (op.op === 'delete') {
+            if (op.op === 'delete') {
                 delete op.sortOrder;
                 delete op.parentId;
             }
@@ -741,8 +733,10 @@ function applyIdArrayPatch(obj, arrChange, rootPath, schemaIndex) {
     }
 
     const itemMap = new Map();
-    traverseItems(arr, childrenField, item => {
+    const parentMap = new Map();
+    traverseItems(arr, childrenField, (item, parentItem) => {
         itemMap.set(item.id, item);
+        parentMap.set(item.id, parentItem);
     });
 
     forEach(arrChange.changes, change => {
@@ -754,16 +748,13 @@ function applyIdArrayPatch(obj, arrChange, rootPath, schemaIndex) {
                 idArrayPatch.reorder(itemMap, arr, change, rootPath, schemaIndex, fieldSchema);
                 break;
             case 'delete':
-                idArrayPatch.delete(itemMap, arr, change, rootPath, schemaIndex, fieldSchema);
+                idArrayPatch.delete(itemMap, arr, change, rootPath, schemaIndex, fieldSchema, parentMap);
                 break;
             case 'add':
                 idArrayPatch.add(itemMap, arr, change, rootPath, schemaIndex, fieldSchema);
                 break;
             case 'mount':
-                idArrayPatch.mount(itemMap, arr, change, rootPath, schemaIndex, fieldSchema);
-                break;
-            case 'demount':
-                idArrayPatch.demount(itemMap, arr, change, rootPath, schemaIndex, fieldSchema);
+                idArrayPatch.mount(itemMap, arr, change, rootPath, schemaIndex, fieldSchema, parentMap);
                 break;
         }
     });
@@ -793,27 +784,31 @@ const idArrayPatch = {
         }
     },
 
-    delete(itemMap, array, change, rootPath, schemaIndex, fieldSchema) {
-        idArrayPatch.demount(itemMap, array, change);
+    delete(itemMap, array, change, rootPath, schemaIndex, fieldSchema, parentMap) {
+        idArrayPatch.demount(array, change.id, parentMap);
         itemMap.delete(change.id);
     },
 
-    demount(itemMap, array, change, rootPath, schemaIndex, fieldSchema) {
-        const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId, fieldSchema);
-        if (!Array.isArray(parrentArray)) {
-            return;
+    demount(array, itemId, parentMap) {
+        const parentItem = parentMap.get(itemId);
+        if (parentItem) {
+            array = parentItem.childItems;
         }
 
-        const foundIdx = idArrayPatch.findItemIndexInParrent(parrentArray, change.id);
-        if (foundIdx >= 0) {
-            parrentArray.splice(foundIdx, 1);
+        for (let i = 0; i < array.length; i++) {
+            if (array[i].id === itemId) {
+                array.splice(i, 1);
+                return;
+            }
         }
     },
 
-    mount(itemMap, array, change, rootPath, schemaIndex, fieldSchema) {
+    mount(itemMap, array, change, rootPath, schemaIndex, fieldSchema, parentMap) {
         if (!itemMap.has(change.id)) {
             return;
         }
+
+        idArrayPatch.demount(array, change.id, parentMap);
         const item = itemMap.get(change.id);
 
         const parrentArray = idArrayPatch.findParentItem(itemMap, array, change.parentId, fieldSchema);
