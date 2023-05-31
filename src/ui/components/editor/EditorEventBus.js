@@ -49,6 +49,12 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'silent-scheme-change-committed', [], affinityId),
     },
 
+    schemeRebased: {
+        $on: (editorId, callback) => $on(editorId, 'scheme-rebased', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'scheme-rebased', [], callback),
+        $emit: (editorId, scheme) => $emit(editorId, 'scheme-rebased', [], scheme),
+    },
+
     item: {
         custom: {
             $on: (eventName, editorId, itemId, callback) => $on(editorId, eventName, [itemId], callback),

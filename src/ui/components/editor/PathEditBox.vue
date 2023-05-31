@@ -90,7 +90,7 @@ function convertPathPointToWorld(p, item) {
 export default {
     props: {
         editorId           : {type: String, required: true},
-        curvePaths         : { type: Object, required: true},
+        curvePaths         : {type: Array, required: true},
         pathPointsUpdateKey: {type: Number, required: true},
         item               : {type: Object},
         zoom               : {type: Number},

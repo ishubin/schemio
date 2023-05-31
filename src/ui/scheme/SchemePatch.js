@@ -1,6 +1,7 @@
 import forEach from "lodash/forEach";
 import utils from "../utils";
 import { fieldTypeMatchesSchema, getSchemioDocSchema } from "./SchemioDocSchema";
+import { tokenizeText } from "./tokenize";
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
 //
@@ -981,9 +982,10 @@ export function generatePatchIndex(patchStats) {
  * @param {Number} m
  * @param {Map} cache
  * @param {Boolean} isArray - specifies whether it should treat s1, s2 and result as arrays
+ * @param {Function} equalityOperator - function that compares the two elements
  * @returns {String|Array}
  */
-function _lcs(s1, s2, i, j, cache, isArray) {
+function _lcs(s1, s2, i, j, cache, isArray, equalityOperator) {
     const cacheKey = `${i}-${j}`;
     if (cache.has(cacheKey)) {
         return cache.get(cacheKey);
@@ -993,19 +995,19 @@ function _lcs(s1, s2, i, j, cache, isArray) {
             return [];
         }
         return '';
-    } else if (s1[i] === s2[j]) {
-        let result = _lcs(s1, s2, i-1, j-1, cache, isArray);
+    } else if (equalityOperator(s1[i], s2[j])) {
+        let result = _lcs(s1, s2, i-1, j-1, cache, isArray, equalityOperator);
         if (isArray) {
-            result.push(s1[i])
+            result = result.concat([s1[i]]);
         } else {
             result += s1[i];
         }
         cache.set(cacheKey, result);
         return result;
     } else {
-        const a = _lcs(s1, s2, i-1, j, cache, isArray);
+        const a = _lcs(s1, s2, i-1, j, cache, isArray, equalityOperator);
         cache.set(`${i-1}-${j}`, a);
-        const b = _lcs(s1, s2, i, j-1, cache, isArray);
+        const b = _lcs(s1, s2, i, j-1, cache, isArray, equalityOperator);
         cache.set(`${i}-${j-1}`, b);
         if (a.length > b.length) {
             return a;
@@ -1015,23 +1017,36 @@ function _lcs(s1, s2, i, j, cache, isArray) {
 }
 
 /**
- * Finds longest common subsequence in two strings
+ * Finds longest common tokenized subsequence in two strings.
+ * It only keeps complete tokens (words, html tags and html escape symbols) in subsequence
+ * If the word only partially matches, it will be ingored.
+ * This is needed to make it easier to resolve conflicts when multiple users
+ * are making text changes to the same fields.
  * @param {String} s1
  * @param {String} s2
  * @returns {String} Longest common subsequence in two strings
  */
 export function stringLCS(s1, s2) {
-    return _lcs(s1, s2, s1.length-1, s2.length-1, new Map(), false);
+    const tokens1 = tokenizeText(s1);
+    const tokens2 = tokenizeText(s2);
+    const tokensLCS = arrayLCS(tokens1, tokens2, (a, b) => a.text === b.text);
+
+    let result = '';
+    tokensLCS.forEach(token => {
+        result += token.text;
+    });
+    return result;
 }
 
 /**
  * Finds longest common subsequence in two arrays of string
- * @param {Array<String>} s1
- * @param {Array<String>} s2
- * @returns {Array<String>} Longest common subsequence in two string arrays
+ * @param {Array} s1
+ * @param {Array} s2
+ * @param {Function} equalityOperator
+ * @returns {Array} Longest common subsequence in two string arrays
  */
-export function arrayLCS(s1, s2) {
-    return _lcs(s1, s2, s1.length-1, s2.length-1, new Map(), true);
+export function arrayLCS(s1, s2, equalityOperator) {
+    return _lcs(s1, s2, s1.length-1, s2.length-1, new Map(), true, equalityOperator);
 }
 
 
@@ -1040,17 +1055,21 @@ export function arrayLCS(s1, s2) {
  * @param {String|Array<String>} origin
  * @param {String|Array<String>} modified
  * @param {boolean} isArray
+ * @param {Function} equalityOperator - function that compares two elements of array. Used only for arrays
  * @returns {Object}
  */
-export function generateLCSPatch(origin, modified, isArray) {
-    const lcs =  isArray ? arrayLCS(origin, modified) : stringLCS(origin, modified);
+export function generateLCSPatch(origin, modified, isArray, equalityOperator) {
+    if (!equalityOperator) {
+        equalityOperator = (a, b) => a === b;
+    }
+    const lcs =  isArray ? arrayLCS(origin, modified, equalityOperator) : stringLCS(origin, modified);
 
     const deletions = [];
 
     let currentOp = null;
     let i = 0, j = 0;
     while(i < origin.length && j < lcs.length) {
-        if (origin[i] !== lcs[j]) {
+        if (!equalityOperator(origin[i], lcs[j])) {
             if (!currentOp) {
                 currentOp = [i, 1];
                 deletions.push(currentOp);
@@ -1072,7 +1091,7 @@ export function generateLCSPatch(origin, modified, isArray) {
     i = 0;
     j = 0;
     while(i < modified.length && j <  lcs.length) {
-        if (modified[i] !== lcs[j]) {
+        if (!equalityOperator(modified[i], lcs[j])) {
             if (!currentOp) {
                 if (isArray) {
                     currentOp = [i, [modified[i]]];
@@ -1131,7 +1150,7 @@ export function generateArrayPatch(originItems, modifiedItems) {
 
     const origin = originItems.map(JSON.stringify);
     const modified = modifiedItems.map(JSON.stringify);
-    const result = generateLCSPatch(origin, modified, true);
+    const result = generateLCSPatch(origin, modified, true, (a, b) => a === b);
 
     const add = result.add.map(addition => [addition[0], addition[1].map(JSON.parse)]);
     result.add = add;
@@ -1190,9 +1209,6 @@ function applySequencePatch(origin, patch, isArray) {
             const i = addition[0];
             const value = addition[1];
             if (isArray) {
-                if (!result.slice) {
-                    console.log('BASDSADASDSADSADASDAS not slice', JSON.stringify(result, null, 2))
-                }
                 result = result.slice(0, i).concat(value).concat(result.slice(i));
             } else {
                 result = result.substring(0, i) + value + result.substring(i);

@@ -7,16 +7,6 @@ import { getEffects } from "../components/effects/Effects";
 import Functions from "../userevents/functions/Functions";
 
 
-const T = {
-    ANY    : 'any',
-    STRING : 'string',
-    ARRAY  : 'array',
-    OBJECT : 'object',
-    BOOLEAN: 'boolean',
-    MAP    : 'map',
-    NUMBER : 'number',
-};
-
 const baseSchema = {
     type: 'object',
     patching: ['modify'],

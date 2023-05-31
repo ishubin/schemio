@@ -97,7 +97,7 @@ describe('SchemePatch.generatePatchStatistic', () => {
 describe('SchemePatch.stringLCS', () => {
     it('should generate longest common subsequence for strings', () => {
         const lcs = stringLCS('Hello world!', 'Hi world ?');
-        expect(lcs).toEqual('H world');
+        expect(lcs).toEqual(' world');
     });
 });
 
@@ -105,7 +105,9 @@ describe('SchemePatch.arrayLCS', () => {
     it('should generate longest common subsequence for arrays', () => {
         const lcs = arrayLCS(
             ['should','generate','longest','common','subsequence','for','arrays'],
-            ['it','should','generate','common','subsequence','string', 'arrays']);
+            ['it','should','generate','common','subsequence','string', 'arrays'],
+            (a,b) => a === b
+        );
         expect(lcs).toEqual(['should','generate','common','subsequence','arrays']);
     });
 });
@@ -114,8 +116,8 @@ describe('SchemePatch.generateStringPatch', () => {
     it('should generate patch for string', () => {
         const patch = generateStringPatch('Hello world!', 'Hi my world ?');
         expect(patch).toStrictEqual({
-            delete: [[1, 4], [11, 1]], // the first number is start pos and the last number is the length of removed chars
-            add: [[1, 'i'], [3, 'my '], [11, ' ?']],
+            delete: [[0, 5], [11, 1]],
+            add: [[0, 'Hi'], [3, 'my '], [11, ' ?']],
         });
     });
 });

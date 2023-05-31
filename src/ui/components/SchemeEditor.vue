@@ -99,7 +99,7 @@
                     >
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
-                            :key="`multi-item-edit-box-${schemeContainer.multiItemEditBox.id}`"
+                            :key="`multi-item-edit-box-${editorRevision}-${schemeContainer.multiItemEditBox.id}`"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :edit-box="schemeContainer.multiItemEditBox"
@@ -109,7 +109,7 @@
                             @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
 
                         <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
-                            :key="`crop-image-edit-box`"
+                            :key="`crop-image-edit-box-${editorRevision}`"
                             kind="crop-image"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
@@ -121,7 +121,7 @@
 
                         <g v-if="state === 'editPath' && curveEditing.item && curveEditing.item.meta">
                             <PathEditBox
-                                :key="`item-curve-edit-box-${curveEditing.item.id}`"
+                                :key="`item-curve-edit-box-${editorRevision}-${curveEditing.item.id}`"
                                 :editorId="editorId"
                                 :item="curveEditing.item"
                                 :curvePaths="curveEditing.paths"
@@ -136,7 +136,7 @@
                         <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
 
                         <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
-                            :key="`floating-helper-panel-${floatingHelperPanel.item.id}`"
+                            :key="`floating-helper-panel-${editorRevision}-${floatingHelperPanel.item.id}`"
                             :editorId="editorId"
                             :x="floatingHelperPanel.x"
                             :y="floatingHelperPanel.y"
@@ -505,6 +505,7 @@ import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
@@ -708,7 +709,7 @@ export default {
         modeControlEnabled  : { type: Boolean, default: true},
         saveControlEnabled  : { type: Boolean, default: true},
 
-        //Used to signify that SchemeContainer needs to be recreted and item selection needs to be restored
+        //Used to signify that SchemeContainer needs to be recreated and item selection needs to be restored
         schemeReloadKey : {type: String, default: null},
         comments         : {type: Object, default: {
             enabled: false,
@@ -843,6 +844,7 @@ export default {
         EditorEventBus.elementPick.canceled.$on(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.editorResized.$on(this.editorId, this.onWindowResize);
+        EditorEventBus.schemeRebased.$on(this.editorId, this.rebaseScheme);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -858,6 +860,7 @@ export default {
         EditorEventBus.elementPick.canceled.$off(this.editorId, this.onElementPickCanceled);
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.editorResized.$off(this.editorId, this.onWindowResize);
+        EditorEventBus.schemeRebased.$off(this.editorId, this.rebaseScheme);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         destroyAnimationRegistry(this.editorId);
@@ -2708,6 +2711,14 @@ export default {
 
         stopStateLoop() {
             this.isStateLooping = false;
+        },
+
+        rebaseScheme(latestScheme) {
+            rebaseScheme(this.schemeContainer.scheme, latestScheme);
+            this.schemeContainer.reindexItems();
+            this.schemeContainer.reselectItems();
+            this.editorRevision++;
+            this.updateRevision();
         },
 
         //calculates from world to screen

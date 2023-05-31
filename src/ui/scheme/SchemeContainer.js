@@ -1701,6 +1701,22 @@ class SchemeContainer {
         return this.selectedItemsMap[item.id] || false;
     }
 
+    /*
+        Updates selection of items. This is needed if all items were replaced (e.g. document was rebased)
+    */
+    reselectItems() {
+        const itemsForSelection = [];
+
+        forEach(this.selectedItems, previouslySelectedItem => {
+            const item = this.findItemById(previouslySelectedItem.id);
+            if (item) {
+                itemsForSelection.push(item);
+            }
+        });
+
+        this.selectMultipleItems(itemsForSelection, false);
+    }
+
 
     /**
      * Selects a specified item and deselects any other items that were selected previously

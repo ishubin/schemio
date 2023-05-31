@@ -554,8 +554,8 @@ export const patchTestData = [{
                             path: ['text'],
                             op: 'patch-text',
                             patch: {
-                                delete: [[0, 4]],
-                                add: [[0, 'G'], [2, 'odbye']]
+                                delete: [[0, 5]],
+                                add: [[0, 'Goodbye']]
                             }
                         }, {
                             path: ['valign'],
@@ -1029,8 +1029,8 @@ export const patchTestData = [{
                     path: ['description'],
                     op: 'patch-text',
                     patch: {
-                        delete: [[1, 4], [11, 1]],
-                        add: [[1, 'i'], [3, 'my ']]
+                        delete: [[0, 5], [11, 1]],
+                        add: [[0, 'Hi'], [3, 'my ']]
                     }
                 }]
             }]

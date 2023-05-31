@@ -17,7 +17,7 @@
                     ></vue-tags-input>
 
                 <h5 class="section">Description</h5>
-                <rich-text-editor v-model="schemeContainer.scheme.description"
+                <rich-text-editor :key="descriptionReloadKey" v-model="schemeContainer.scheme.description"
                     @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
                     ></rich-text-editor>
             </panel>
@@ -122,10 +122,16 @@ export default {
                 });
             });
         }
+        EditorEventBus.schemeRebased.$on(this.editorId, this.onSchemeRebased);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.schemeRebased.$off(this.editorId, this.onSchemeRebased);
     },
     data() {
         return {
             schemeTag: '',
+            descriptionReloadKey: 1,
             existingSchemeTags: [],
             showDeleteSchemeWarning: false,
 
@@ -149,6 +155,10 @@ export default {
         onPropertyChange(propertyName) {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scheme.${propertyName}`);
         },
+
+        onSchemeRebased() {
+            this.descriptionReloadKey++;
+        }
     },
 
     computed: {
