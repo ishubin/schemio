@@ -1247,7 +1247,15 @@ export const patchTestData = [{
                             path: [ "points" ],
                             op: "patch-array",
                             patch: {
-                                delete: [ [2, 1]],
+                                replace: [
+                                    [ 2,
+                                        {
+                                            t: "L",
+                                            x: 100,
+                                            y: 100
+                                        }
+                                    ]
+                                ],
                                 add: [
                                     [ 1,
                                         [ {
@@ -1256,13 +1264,6 @@ export const patchTestData = [{
                                             y: 33.3
                                         } ]
                                     ],
-                                    [ 3,
-                                        [ {
-                                            t: "L",
-                                            x: 100,
-                                            y: 100
-                                        } ]
-                                    ]
                                 ]
                             }
                         } ]
@@ -1412,7 +1413,6 @@ export const patchTestData = [{
                     path: [ "shapeProps", "sections" ],
                     op: "patch-array",
                     patch: {
-                        delete: [ ],
                         add: [ [
                             1,
                             [ {
@@ -1420,7 +1420,7 @@ export const patchTestData = [{
                                 value: "stop",
                                 kind: "step"
                             } ]
-                        ] ]
+                        ] ],
                     }
                 } ]
             } ]

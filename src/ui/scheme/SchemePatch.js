@@ -547,7 +547,10 @@ function generatePatchForObject(originObject, modifiedObject, patchSchema, field
         } else if (op === 'patch-array') {
             if (fieldTypeMatchesSchema(modifiedObject[field], fieldSchema)) {
                 const arrayPatch = generateArrayPatch(originObject[field], modifiedObject[field]);
-                if (arrayPatch && (arrayPatch.delete.length > 0 || arrayPatch.add.length > 0)) {
+                if (arrayPatch && (
+                    (arrayPatch.delete && arrayPatch.delete.length > 0) ||
+                    (arrayPatch.add && arrayPatch.add.length > 0)) ||
+                    (arrayPatch.replace && arrayPatch.replace.length > 0)) {
                     ops.push({
                         path: fieldPath.concat([field]),
                         op: 'patch-array',
@@ -990,7 +993,7 @@ function _lcs(s1, s2, i, j, cache, isArray, equalityOperator) {
     if (cache.has(cacheKey)) {
         return cache.get(cacheKey);
     }
-    if (i <0 || j < 0) {
+    if (i < 0 || j < 0) {
         if (isArray) {
             return [];
         }
@@ -1015,6 +1018,73 @@ function _lcs(s1, s2, i, j, cache, isArray, equalityOperator) {
         return b;
     }
 }
+
+const MUTATION_DELETE = 0;
+const MUTATION_REPLACE = 1;
+const MUTATION_ADD = 2;
+
+/**
+ *
+ * @param {Array<String>} origin
+ * @param {Array<String>} modified
+ * @param {Function} equalityOperator - function that compares the two elements
+ * @return {Array<Array>} array of modifications in which every modification is of the [pos, operation, value],
+ *  where operation can be 0 (delete), 1 (replace), 2 (add)
+ */
+export function leastMutationsForArray(origin, modified, equalityOperator) {
+    return _lma(origin, modified, 0, 0, new Map(), equalityOperator)
+}
+
+function _lma(s1, s2, i, j, cache, equalityOperator) {
+    const cacheKey = `${i}-${j}`;
+    if (cache.has(cacheKey)) {
+        return cache.get(cacheKey);
+    }
+    if (i >= s1.length) {
+        const result = [];
+        for (let k = j; k < s2.length; k++) {
+            result.push([i + k - j, MUTATION_ADD, s2[k]]);
+        }
+        cache.set(cacheKey, result);
+        return result;
+
+    } else if (j >= s2.length) {
+        const result = [];
+        for (let k = i; k < s1.length; k++) {
+            result.push([k, MUTATION_DELETE]);
+        }
+        cache.set(cacheKey, result);
+        return result;
+
+    } else if (equalityOperator(s1[i], s2[j])) {
+        const result = _lma(s1, s2, i+1, j+1, cache, equalityOperator);
+        cache.set(cacheKey, result);
+        return result;
+
+    } else {
+        const results = [
+            // deletion
+            [[i, MUTATION_DELETE]].concat(_lma(s1, s2, i+1, j, cache, equalityOperator)),
+            // replace
+            [[i, MUTATION_REPLACE, s2[j]]].concat(_lma(s1, s2, i+1, j+1, cache, equalityOperator)),
+            // addition
+            [[i, MUTATION_ADD, s2[j]]].concat(_lma(s1, s2, i, j+1, cache, equalityOperator))
+        ];
+
+        let finalResult = results[0];
+        for (let i = 0; i < results.length; i++) {
+            if (finalResult.length > results[i].length) {
+                finalResult = results[i];
+            }
+        }
+
+        cache.set(cacheKey, finalResult);
+        return finalResult;
+    }
+}
+
+
+
 
 /**
  * Finds longest common tokenized subsequence in two strings.
@@ -1148,12 +1218,66 @@ export function generateArrayPatch(originItems, modifiedItems) {
         return null;
     }
 
-    const origin = originItems.map(JSON.stringify);
-    const modified = modifiedItems.map(JSON.stringify);
-    const result = generateLCSPatch(origin, modified, true, (a, b) => a === b);
+    const mutations = leastMutationsForArray(originItems, modifiedItems, objectEqualityOperator);
 
-    const add = result.add.map(addition => [addition[0], addition[1].map(JSON.parse)]);
-    result.add = add;
+    const additions = [];
+    const replacements = [];
+    const deletions = [];
+
+    let currentDeletion = null;
+
+    let deletionCorrection = 0;
+    let additionCorrection = 0;
+
+    mutations.forEach(mutation => {
+        let idx = mutation[0];
+        const op = mutation[1];
+        if (op === MUTATION_DELETE) {
+            deletionCorrection++;
+            if (!currentDeletion) {
+                currentDeletion = [idx, 0];
+                deletions.push(currentDeletion);
+            }
+            if (idx === currentDeletion[0] + currentDeletion[1]) {
+                currentDeletion[1]++;
+            } else {
+                currentDeletion = [idx, 1];
+                deletions.push(currentDeletion);
+            }
+        } else if (op === MUTATION_REPLACE) {
+            replacements.push([idx, mutation[2]]);
+        } else if (op === MUTATION_ADD) {
+            idx = idx - deletionCorrection + additionCorrection;
+            additions.push([idx, [mutation[2]]]);
+            additionCorrection++;
+        }
+    });
+
+    const optimizedAdditions = [];
+    if (additions.length > 0) {
+        let currentAddition = additions[0];
+        optimizedAdditions.push(currentAddition);
+        for (let i = 1; i < additions.length; i++) {
+            if (currentAddition[0] + currentAddition[1].length === additions[i][0]) {
+                currentAddition[1] = currentAddition[1].concat(additions[i][1]);
+            } else {
+                currentAddition = additions[i];
+                optimizedAdditions.push(currentAddition);
+            }
+        }
+    }
+
+    const result = {};
+    if (deletions.length > 0) {
+        result.delete = deletions;
+    }
+    if (replacements.length > 0) {
+        result.replace = replacements;
+    }
+    if (additions.length > 0) {
+        result.add = optimizedAdditions;
+    }
+
     return result;
 }
 
@@ -1169,16 +1293,30 @@ export function applyStringPatch(origin, patch) {
 }
 
 function applySequencePatch(origin, patch, isArray) {
+    let originClone = origin;
     let result = origin;
     if (isArray) {
-        result = utils.clone(origin);
+        originClone = utils.clone(origin);
+        result = originClone;
     }
 
-    if (patch.delete.length > 0) {
+    if (patch.replace && Array.isArray(patch.replace)) {
+        patch.replace.forEach(([idx, value]) => {
+            if (idx >= 0 && idx < result.length) {
+                if (isArray) {
+                    originClone[idx] = value;
+                } else {
+                    originClone = originClone.substring(0, idx) + value + originClone.substring(idx+1);
+                }
+            }
+        });
+    }
+
+    if (patch.delete && patch.delete.length > 0) {
         const buffer = [];
         let i = 0;
         let j = 0;
-        while(i < origin.length && j < patch.delete.length) {
+        while(i < result.length && j < patch.delete.length) {
             if (patch.delete[j][0] === i) {
                 i += patch.delete[j][1]-1;
                 j++;
@@ -1186,7 +1324,7 @@ function applySequencePatch(origin, patch, isArray) {
                     break;
                 }
             } else {
-                buffer.push(origin[i]);
+                buffer.push(result[i]);
             }
             i++;
         }
@@ -1195,16 +1333,16 @@ function applySequencePatch(origin, patch, isArray) {
         } else {
             result = buffer.join('');
         }
-        if (i < origin.length) {
+        if (i < originClone.length) {
             if (isArray) {
-                result = result.concat(origin.slice(i+1))
+                result = result.concat(originClone.slice(i+1))
             } else {
-                result += origin.substring(i+1);
+                result += originClone.substring(i+1);
             }
         }
     }
 
-    if (Array.isArray(patch.add)) {
+    if (patch.add && Array.isArray(patch.add)) {
         patch.add.forEach(addition => {
             const i = addition[0];
             const value = addition[1];
@@ -1272,4 +1410,49 @@ export function generateMapPatch(origin, modified, patchSchemaEntry) {
         }
     }
     return changes;
+}
+
+
+function objectEqualityOperator(a, b) {
+    const aType = typeof a;
+    const bType = typeof b;
+    if (aType !== bType) {
+        return false;
+    }
+
+    if (aType === 'object') {
+        for (let key in a) {
+            if (a.hasOwnProperty(key)) {
+                if (b.hasOwnProperty(key)) {
+                    if (!objectEqualityOperator(a[key], b[key])) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        for (let key in b) {
+            if (b.hasOwnProperty(key)) {
+                if (!a.hasOwnProperty(key)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    } else if (aType === 'array') {
+        if (a.length !== b.length) {
+            return false;
+        }
+
+        for (let i = 0; i < a.length; i++) {
+            if (!objectEqualityOperator(a[i], b[i])) {
+                return false;
+            }
+        }
+    }
+
+    return a === b;
 }

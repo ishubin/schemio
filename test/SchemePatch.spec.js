@@ -1,4 +1,4 @@
-import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, stringLCS } from '../src/ui/scheme/SchemePatch'
+import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, leastMutationsForArray, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from 'lodash';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -68,7 +68,7 @@ describe('SchemePatch.generateSchemePatch', () => {
                     changes: [{ path: ['name'], op: 'patch-text', patch: {delete: [], add: [[8, ' modified']]} }]
                 }, {
                     id: 'zxc', op: 'modify',
-                    changes: [{path: ['shapeProps', 'points'], op: 'patch-array', patch: {delete: [], add: [[0, [{x: 1, y: 5}]]]}}]
+                    changes: [{path: ['shapeProps', 'points'], op: 'patch-array', patch: {add: [[0, [{x: 1, y: 5}]]]}}]
                 }]
             }]
         });
@@ -176,26 +176,30 @@ describe('SchemePatch.applyStringPatch', () => {
 describe('SchemaPatch.generateArrayPatch', () => {
     it('should generate patch for arrays', () => {
         const patch = generateArrayPatch(
-            [{x:1, y:3}, {x:2, y:3},  {x:0, y:2}, {x:6, y:9}, {x:-1, y:0.0002}, {x:7, y:1}],
-            [{x:2, y:3}, {x:10, y:6}, {x:0, y:2}, {x:7, y:1}, {x:11, y:11}, {x: 20, y:0}]
+            [{x:0, y:0}, {x:1, y:3}, {x:2, y:3},  {x:0, y:2}, {x:6, y:9}, {x:-1, y:0.0002}, {x:20, y:0}],
+            [{x:2, y:3}, {x:10, y:6}, {x:0, y:2}, {x:7, y:1}, {x:11, y:11}, {x:-3, y:-3}, {x:-4, y:-4}, {x: 20, y:0}, {x:-5, y:-5}]
         );
+
         expect(patch).toStrictEqual({
-            delete: [[0, 1], [3, 2]],
-            add: [[1, [{x:10, y:6}]], [4, [{x:11, y:11}, {x:20, y:0}]]],
+            delete: [ [0, 2] ],
+            replace: [ [4, {x:7, y:1}], [5, {x:11, y:11}] ],
+            add: [ [1, [{x:10, y:6}]], [5, [{x:-3, y:-3}, {x:-4, y:-4}]], [8, [{x:-5, y:-5}]] ]
         });
     })
 });
 
 describe('SchemaPatch.applyArrayPatch', () => {
     it('should patch array', () => {
-        const origin = [{x:1, y:3}, {x:2, y:3},  {x:0, y:2}, {x:6, y:9}, {x:-1, y:0.0002}, {x:7, y:1}];
-        const expected = [{x:2, y:3}, {x:10, y:6}, {x:0, y:2}, {x:7, y:1}, {x:11, y:11}, {x: 20, y:0}];
+        const origin = [{x:0, y:0}, {x:1, y:3}, {x:2, y:3},  {x:0, y:2}, {x:6, y:9}, {x:-1, y:0.0002}, {x:20, y:0}];
+        const expected = [{x:2, y:3}, {x:10, y:6}, {x:0, y:2}, {x:7, y:1}, {x:11, y:11}, {x:-3, y:-3}, {x:-4, y:-4}, {x: 20, y:0}, {x:-5, y:-5}];
         const patch = {
-            delete: [[0, 1], [3, 2]],
-            add: [[1, [{x:10, y:6}]], [4, [{x:11, y:11}, {x:20, y:0}]]],
+            delete: [ [0, 2] ],
+            replace: [ [4, {x:7, y:1}], [5, {x:11, y:11}] ],
+            add: [ [1, [{x:10, y:6}]], [5, [{x:-3, y:-3}, {x:-4, y:-4}]], [8, [{x:-5, y:-5}]] ]
         };
 
         const real = applyArrayPatch(origin, patch);
+        console.log(JSON.stringify(real));
         expect(real).toStrictEqual(expected);
     })
 });
@@ -347,3 +351,28 @@ describe('SchemaPatch.applyMapPatch', () => {
         expect(realModified).toStrictEqual(expectedModified);
     });
 });
+
+
+describe('SchemioPatch.leastMutationsForArray', () => {
+    it('generate most optimal array mutations for string arrays', () => {
+        const originText = 'Hello  world';
+        const modifiedText = 'Hi woorld!';
+        const mutations = leastMutationsForArray(textToArray(originText), textToArray(modifiedText), (a, b) => a === b);
+        expect(mutations).toStrictEqual([
+            [1, 0], [2, 0], [3, 0], [4, 0],  [5, 1, 'i'], [9, 2, 'o'], [12, 2, '!']
+        ]);
+    });
+});
+
+/**
+ *
+ * @param {String} text
+ * @returns {Array}
+ */
+function textToArray(text) {
+    const arr = [];
+    for (let i = 0; i < text.length; i++) {
+        arr.push(text.charAt(i));
+    }
+    return arr;
+}
