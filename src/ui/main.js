@@ -8,6 +8,7 @@ import store from './store/Store.js';
 import {createHasher} from './url/hasher.js';
 import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
 import Modal from './components/Modal.vue';
+import Pagination from './components/Pagination.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import EditorEventBus from './components/editor/EditorEventBus';
 import { snapshotSvg } from './svgPreview.js';
@@ -18,8 +19,12 @@ import MenuDropdown from './components/MenuDropdown.vue';
 import {  applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic  } from './scheme/SchemePatch.js';
 import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
 
+
 window.Schemio = {
-    components: { Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp, store, Dropdown, MenuDropdown},
+    components: {
+        Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
+        store, Dropdown, MenuDropdown, Pagination
+    },
     utils: {
         createHasher,
         snapshotSvg,

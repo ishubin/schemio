@@ -2717,6 +2717,9 @@ export default {
             rebaseScheme(this.schemeContainer.scheme, latestScheme);
             this.schemeContainer.reindexItems();
             this.schemeContainer.reselectItems();
+            if (this.state === 'editPath') {
+                this.restoreCurveEditing();
+            }
             this.editorRevision++;
             this.updateRevision();
         },
