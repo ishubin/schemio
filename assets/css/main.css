@@ -3607,6 +3607,7 @@ ul.breadcrumbs li .breadcrumb-separator {
     width: 100%;
     justify-content: center;
     align-items: center;
+    z-index: 100;
 }
 
 .patch-menu-popup {

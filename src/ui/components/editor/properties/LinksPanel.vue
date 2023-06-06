@@ -30,7 +30,6 @@ import LinkEditPopup from '../LinkEditPopup.vue';
 import Panel from '../Panel.vue';
 import linkTypes from '../LinkTypes.js';
 import EditorEventBus from '../EditorEventBus.js';
-import shortid from 'shortid';
 
 export default {
     props: {
@@ -82,7 +81,6 @@ export default {
                     this.item.links = [];
                 }
                 this.item.links.push({
-                    id: shortid.generate(),
                     title: link.title,
                     url: link.url,
                     type: link.type

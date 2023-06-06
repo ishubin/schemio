@@ -848,24 +848,24 @@ export const patchTestData = [{
         }
     }
 }, {
-    name: 'item links addition, deletion, reorder and modification',
+    name: 'item links',
     origin: {
         items: [
             { id: 'qwe1', name: 'item1', links: [
-                { id: 'l1', title: 'Link 1', url: 'http://link-1', type: 'default' },
-                { id: 'l2', title: 'Link 2', url: 'http://link-2', type: 'default' },
-                { id: 'l3', title: 'Link 3', url: 'http://link-3', type: 'default' },
-                { id: 'l4', title: 'Link 4', url: 'http://link-4', type: 'default' },
+                { title: 'Link 1', url: 'http://link-1', type: 'default' },
+                { title: 'Link 2', url: 'http://link-2', type: 'default' },
+                { title: 'Link 3', url: 'http://link-3', type: 'default' },
+                { title: 'Link 4', url: 'http://link-4', type: 'default' },
             ]},
         ]
     },
     modified: {
         items: [
             { id: 'qwe1', name: 'item1', links: [
-                { id: 'l1', title: 'Link 1', url: 'http://link-1', type: 'default' },
-                { id: 'l4', title: 'Link 4', url: 'http://link-4', type: 'default' },
-                { id: 'l3', title: 'Link 3 edited', url: 'http://link-3-edited', type: 'logs' },
-                { id: 'l5', title: 'Link 5', url: 'http://link-5', type: 'default' },
+                { title: 'Link 1', url: 'http://link-1', type: 'default' },
+                { title: 'Link 4', url: 'http://link-4', type: 'default' },
+                { title: 'Link 3', url: 'http://link-3-edited', type: 'logs' },
+                { title: 'Link 5', url: 'http://link-5', type: 'default' },
             ]},
         ]
     },
@@ -881,36 +881,14 @@ export const patchTestData = [{
                 op: 'modify',
                 changes: [{
                     path: ['links'],
-                    op: 'patch-id-array',
-                    changes: [ {
-                        id: 'l2',
-                        op: 'delete',
-                    }, {
-                        id: 'l4',
-                        op: 'reorder',
-                        sortOrder: 1
-                    }, {
-                        id: 'l5',
-                        op: 'add',
-                        sortOrder: 3,
-                        value: { id: 'l5', title: 'Link 5', url: 'http://link-5', type: 'default' }
-                    }, {
-                        id: 'l3',
-                        op: 'modify',
-                        changes: [{
-                            path: ['title'],
-                            op: 'replace',
-                            value: 'Link 3 edited'
-                        }, {
-                            path: ['url'],
-                            op: 'replace',
-                            value: 'http://link-3-edited'
-                        }, {
-                            path: ['type'],
-                            op: 'replace',
-                            value: 'logs'
-                        }]
-                    }]
+                    op: 'patch-array',
+                    patch: {
+                        replace: [
+                            [1, { title: 'Link 4', url: 'http://link-4', type: 'default' }],
+                            [2, { title: 'Link 3', url: 'http://link-3-edited', type: 'logs' }],
+                            [3, { title: 'Link 5', url: 'http://link-5', type: 'default' }]
+                        ]
+                    },
                 }]
             } ]
         }],
@@ -920,7 +898,7 @@ export const patchTestData = [{
         "items": {
             "added": {"count": 0, "items": []},
             "deleted": {"count": 0, "items": []},
-            "modified": {"count": 6, "items": [{"fields": ["links.l2", "links.l4", "links.l5", "links.l3.title", "links.l3.url", "links.l3.type"], "id": "qwe1"}]}
+            "modified": {"count": 1, "items": [{"fields": ['links'], "id": "qwe1"}]}
         }
     }
 }, {

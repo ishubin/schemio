@@ -57,8 +57,7 @@ const baseSchema = {
                     sx: {type: 'number', patching: ['replace']},
                     sy: {type: 'number', patching: ['replace']},
                 }},
-                links: {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
-                    id   : {type: 'string'},
+                links: {type: 'array', of: 'object', patching: ['patch-array'], fields: {
                     title: {type: 'string', patching: ['replace']},
                     url  : {type: 'string', patching: ['replace']},
                     type : {type: 'string', patching: ['replace']}

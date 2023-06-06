@@ -62,6 +62,7 @@ window.Schemio = {
                     userStylesEnabled : options.userStylesEnabled || false,
                     menuOptions       : options.menuOptions || [],
                     detectBrowserClose: options.detectBrowserClose || false,
+
                 },
                 on: {
                     'mode-changed': (mode) => {

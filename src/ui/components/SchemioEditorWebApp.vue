@@ -17,7 +17,11 @@
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
+            :overridePatchControls="overridePatchControls"
+            :patchApplyButton="patchApplyButton"
+            :patchCancelButton="patchCancelButton"
             @patch-applied="onPatchApplied"
+            @patch-canceled="onPatchCanceled"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
             @history-committed="onHistoryCommitted"
@@ -101,15 +105,19 @@ export default {
         menuOptions       : {type: Array, default: () => []},
         userStylesEnabled : {type: Boolean, default: false},
         projectArtEnabled : {type: Boolean, default: true},
-        schemeTagsEnabled: {type: Boolean, default: true},
+        schemeTagsEnabled : {type: Boolean, default: true},
         editAllowed       : {type: Boolean, default: false},
         isStaticEditor    : {type: Boolean, default: false},
         isOfflineEditor   : {type: Boolean, default: false},
         // allows to switch between edit and view modes from quick helper panel
-        modeControlEnabled: {type: Boolean, default: true},
-        saveControlEnabled: { type: Boolean, default: true},
-        isSaving          : {type: Boolean, default: false},
-        modificationKey   : {type: String, default: ''},
+        modeControlEnabled   : {type: Boolean, default: true},
+        saveControlEnabled   : {type: Boolean, default: true},
+        isSaving             : {type: Boolean, default: false},
+        modificationKey      : {type: String, default: ''},
+        patch                : {type: Object, default: null},
+        overridePatchControls: {type: Boolean, default: false},
+        patchApplyButton     : {type: String, default: 'Apply'},
+        patchCancelButton    : {type: String, default: 'Cancel'},
     },
 
     beforeMount() {
@@ -168,7 +176,7 @@ export default {
 
             loadPatchFileShown: false,
 
-            schemePatch: null,
+            schemePatch: this.patch,
 
             exportPictureModal: {
                 kind: 'svg',
@@ -348,9 +356,17 @@ export default {
         },
 
         onPatchApplied(patchedScheme) {
-            this.scheme = patchedScheme;
-            this.schemePatch = null;
-            this.appReloadKey = shortid.generate();
+            if (this.overridePatchControls) {
+                this.$emit('patch-applied', patchedScheme);
+            } else {
+                this.scheme = patchedScheme;
+                this.schemePatch = null;
+                this.appReloadKey = shortid.generate();
+            }
+        },
+
+        onPatchCanceled() {
+            this.$emit('patch-canceled');
         },
 
         onModeChangeRequested(mode) {

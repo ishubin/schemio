@@ -8,6 +8,7 @@ describe('SchemePatch.generateSchemePatch', () => {
     forEach(patchTestData, testData => {
         it(`should recognize ${testData.name}`, () => {
             const patch = generateSchemePatch(testData.origin, testData.modified);
+            console.log(JSON.stringify(patch));
             expect(patch).toStrictEqual(testData.patch);
         });
     });

@@ -88,8 +88,8 @@
                 <color-picker :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="26px" hint="Modifications"></color-picker>
 
                 <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
-                <span class="btn btn-primary" @click="applyPatch">Apply</span>
-                <span class="btn btn-danger" @click="cancelPatch">Cancel</span>
+                <span class="btn btn-primary" @click="applyPatch">{{ patchApplyButton }}</span>
+                <span class="btn btn-danger" @click="cancelPatch">{{ patchCancelButton }}</span>
             </div>
         </div>
 
@@ -139,8 +139,11 @@ export default{
         historyRedoable  : { type: Boolean, required: true},
         isSaving         : { type: Boolean, required: true},
         // allows to switch between edit and view modes from quick helper panel
-        modeControlEnabled  : { type: Boolean, default: true},
-        saveControlEnabled  : { type: Boolean, default: true},
+        modeControlEnabled   : { type: Boolean, default: true},
+        saveControlEnabled   : { type: Boolean, default: true},
+        overridePatchControls: { type: Boolean, default: false},
+        patchApplyButton     : { type: String, default: 'Apply'},
+        patchCancelButton    : { type: String, default: 'Cancel'},
     },
 
     beforeMount() {
@@ -203,6 +206,14 @@ export default{
         },
 
         cancelPatch() {
+            if (this.overridePatchControls) {
+                this.$emit('patch-canceled');
+            } else {
+                this.resetPatch();
+            }
+        },
+
+        resetPatch() {
             this.patch.isToggled = false;
             this.patch.patch = null;
             this.patch.patchedScheme = null;
@@ -214,7 +225,9 @@ export default{
 
         applyPatch() {
             this.$emit('patch-applied', this.patch.patchedScheme);
-            this.cancelPatch();
+            if (!this.overridePatchControls) {
+                this.resetPatch();
+            }
         },
     },
 
