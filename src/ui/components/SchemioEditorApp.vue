@@ -28,7 +28,7 @@
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @history-committed="$emit('history-committed', arguments[0], arguments[1])"
+            @history-committed="$emit('patched-history-committed', arguments[0], arguments[1])"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"

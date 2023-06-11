@@ -32,6 +32,7 @@
             @export-picture-requested="openExportPictureModal"
             @context-menu-requested="onContextMenuRequested"
             @new-diagram-requested-for-item="onNewDiagramRequestedForItem(arguments[0], arguments[1])"
+            @patched-history-committed="$emit('patched-history-committed', arguments[0], arguments[1])"
         />
 
         <ContextMenu v-if="customContextMenu.show"
