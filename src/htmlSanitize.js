@@ -6,6 +6,7 @@ const sanitizeHtml = require('sanitize-html');
 export default function (html) {
     return sanitizeHtml(html, {
         allowedTags: ['blockquote', 'code', 'div', 'em', 'li', 'ol', 'p', 'strong', 'b', 's', 'i', 'u', 'ul', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        allowedSchemes: [ 'http', 'https'],
         allowedAttributes: {
             'a': [ 'href' ],
             'img': ['src']

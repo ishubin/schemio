@@ -17,12 +17,13 @@
             :projectArtEnabled="projectArtEnabled"
             :schemeTagsEnabled="schemeTagsEnabled"
             :menuOptions="menuOptions"
-            :comments="comments"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
+            :extraTabs="extraTabs"
+            @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
@@ -51,12 +52,12 @@
             :projectArtEnabled="projectArtEnabled"
             :schemeTagsEnabled="schemeTagsEnabled"
             :menuOptions="menuOptions"
-            :comments="comments"
             :historyUndoable="historyUndoable"
             :historyRedoable="historyRedoable"
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
+            @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
@@ -75,21 +76,31 @@
 
         <div v-if="scheme && patch.patchedScheme" class="patch-menu-wrapper">
             <div class="patch-menu-popup">
-                <div class="toggle-group">
-                    <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="patch.isToggled = false" >Origin</span>
-                    <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="patch.isToggled = true" >Modified</span>
+                <div v-if="patch.menuCollapsed">
+                    <span @click="patch.menuCollapsed = false" style="cursor: pointer"><i class="fa-solid fa-angle-down"></i></span>
                 </div>
+                <div v-else>
+                    <span @click="patch.menuCollapsed = true" style="cursor: pointer"><i class="fa-solid fa-angle-up"></i></span>
+                    <div class="toggle-group">
+                        <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="patch.isToggled = false" >Origin</span>
+                        <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="patch.isToggled = true" >Modified</span>
+                    </div>
 
-                <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring(arguments[0].target.checked)"/>
-                <label for="chk-patch-menu-toggle-diff-coloring">Highlight diff</label>
+                    <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring(arguments[0].target.checked)"/>
+                    <label for="chk-patch-menu-toggle-diff-coloring">Highlight diff</label>
 
-                <color-picker :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', arguments[0])" width="26px" hint="Additions"></color-picker>
-                <color-picker :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', arguments[0])" width="26px" hint="Deletions"></color-picker>
-                <color-picker :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="26px" hint="Modifications"></color-picker>
+                    <color-picker :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', arguments[0])" width="26px" hint="Additions"></color-picker>
+                    <color-picker :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', arguments[0])" width="26px" hint="Deletions"></color-picker>
+                    <color-picker :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="26px" hint="Modifications"></color-picker>
 
-                <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
-                <span class="btn btn-primary" @click="applyPatch">{{ patchApplyButton }}</span>
-                <span class="btn btn-danger" @click="cancelPatch">{{ patchCancelButton }}</span>
+                    <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
+
+                    <span v-if="overridePatchControls" v-for="patchControl in patchControls"
+                        class="btn" :class="patchControl.css" @click="patchControl.click()">{{ patchControl.name }}</span>
+
+                    <span v-if="!overridePatchControls" class="btn btn-primary" @click="applyPatch">Apply</span>
+                    <span v-if="!overridePatchControls" class="btn btn-danger" @click="cancelPatch">Cancel</span>
+                </div>
             </div>
         </div>
 
@@ -133,7 +144,6 @@ export default{
         schemeTagsEnabled: {type: Boolean, default: true},
         menuOptions      : {type: Array, default: () => []},
         schemeReloadKey  : {type: String, default: null},
-        comments         : {type: Object, default: () => null},
         schemePatch      : {type: Object, default: null},
         historyUndoable  : { type: Boolean, required: true},
         historyRedoable  : { type: Boolean, required: true},
@@ -142,8 +152,8 @@ export default{
         modeControlEnabled   : { type: Boolean, default: true},
         saveControlEnabled   : { type: Boolean, default: true},
         overridePatchControls: { type: Boolean, default: false},
-        patchApplyButton     : { type: String, default: 'Apply'},
-        patchCancelButton    : { type: String, default: 'Cancel'},
+        patchControls        : { type: Array, default: () => []},
+        extraTabs            : { type: Array, default: () => []},
     },
 
     beforeMount() {
@@ -169,7 +179,8 @@ export default{
                 stats                  : null,
                 originSchemeContainer  : null,
                 modifiedSchemeContainer: null,
-                detailsModalShown      : false
+                detailsModalShown      : false,
+                menuCollapsed          : false
             },
         };
     },
@@ -206,11 +217,7 @@ export default{
         },
 
         cancelPatch() {
-            if (this.overridePatchControls) {
-                this.$emit('patch-canceled');
-            } else {
-                this.resetPatch();
-            }
+            this.resetPatch();
         },
 
         resetPatch() {
@@ -225,9 +232,7 @@ export default{
 
         applyPatch() {
             this.$emit('patch-applied', this.patch.patchedScheme);
-            if (!this.overridePatchControls) {
-                this.resetPatch();
-            }
+            this.resetPatch();
         },
     },
 

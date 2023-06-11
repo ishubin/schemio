@@ -16,21 +16,24 @@ import { getBoundingBoxOfItems } from './scheme/SchemeContainer.js';
 import { traverseItems } from './scheme/Item.js';
 import Dropdown from './components/Dropdown.vue';
 import MenuDropdown from './components/MenuDropdown.vue';
-import {  applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic  } from './scheme/SchemePatch.js';
+import { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic  } from './scheme/SchemePatch.js';
 import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
+import htmlSanitize from '../htmlSanitize.js';
+import RichTextEditor from './components/RichTextEditor.vue';
 
 
 window.Schemio = {
     components: {
         Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
-        store, Dropdown, MenuDropdown, Pagination
+        store, Dropdown, MenuDropdown, Pagination, RichTextEditor
     },
     utils: {
         createHasher,
         snapshotSvg,
         getBoundingBoxOfItems,
         traverseItems,
-        enrichSchemeWithDefaults
+        enrichSchemeWithDefaults,
+        htmlSanitize
     },
     patcher: { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic },
     /**
@@ -41,7 +44,6 @@ window.Schemio = {
      * @param {Array}  options.menuOptions - an array of dropdown menu options in the format of [{name: String, iconClass: String, callback: Function}]
      * @param {Boolean} options.editAllowed
      * @param {Boolean} options.userStylesEnabled
-     * @param {Object} options.comments
      * @param {Object} options.apiClient - API client
      */
     mountSchemioEditorApp(querySelector,  options) {
@@ -62,7 +64,6 @@ window.Schemio = {
                     userStylesEnabled : options.userStylesEnabled || false,
                     menuOptions       : options.menuOptions || [],
                     detectBrowserClose: options.detectBrowserClose || false,
-
                 },
                 on: {
                     'mode-changed': (mode) => {

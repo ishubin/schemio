@@ -18,10 +18,10 @@
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
             :overridePatchControls="overridePatchControls"
-            :patchApplyButton="patchApplyButton"
-            :patchCancelButton="patchCancelButton"
+            :patchControls="patchControls"
+            :extraTabs="extraTabs"
+            @custom-tab-event="$emit('custom-tab-event', $event)"
             @patch-applied="onPatchApplied"
-            @patch-canceled="onPatchCanceled"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
             @history-committed="onHistoryCommitted"
@@ -116,8 +116,8 @@ export default {
         modificationKey      : {type: String, default: ''},
         patch                : {type: Object, default: null},
         overridePatchControls: {type: Boolean, default: false},
-        patchApplyButton     : {type: String, default: 'Apply'},
-        patchCancelButton    : {type: String, default: 'Cancel'},
+        patchControls        : {type: Array, default: () => []},
+        extraTabs            : {type: Array, default: () => []},
     },
 
     beforeMount() {
@@ -156,9 +156,11 @@ export default {
             },
 
             editorMenuOptions: this.menuOptions.concat([
-                {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'},
+                {name: 'Import diagram',    callback: () => this.showImportJSONModal(), iconClass: 'fas fa-file-import'}
+            ]).concat(this.overridePatchControls ? [] : [
                 {name: 'Create patch',      callback: () => this.openSchemePatchModal(this.scheme), iconClass: 'fas fa-file-export', disabled: !this.editAllowed || this.isStaticEditor || this.isOfflineEditor},
                 {name: 'Apply patch',       callback: () => this.triggerApplyPatchUpload(), iconClass: 'fas fa-file-import'},
+            ]).concat([
                 {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
                 {name: 'Export as SVG',     callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'},
                 {name: 'Export as PNG',     callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'},
@@ -356,17 +358,9 @@ export default {
         },
 
         onPatchApplied(patchedScheme) {
-            if (this.overridePatchControls) {
-                this.$emit('patch-applied', patchedScheme);
-            } else {
-                this.scheme = patchedScheme;
-                this.schemePatch = null;
-                this.appReloadKey = shortid.generate();
-            }
-        },
-
-        onPatchCanceled() {
-            this.$emit('patch-canceled');
+            this.scheme = patchedScheme;
+            this.schemePatch = null;
+            this.appReloadKey = shortid.generate();
         },
 
         onModeChangeRequested(mode) {

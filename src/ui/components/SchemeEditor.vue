@@ -347,12 +347,11 @@
                                 @click="currentTab = tab"
                                 >{{tab}}</span>
                         </li>
-                        <li v-if="comments && comments.enabled">
+                        <li v-for="tab in extraTabs">
                             <span class="tab"
-                                :class="{active: currentTab === 'Comments'}"
-                                @click="currentTab = 'Comments'"
-                                ><i class="fas fa-comment-alt"></i> {{comments.counter}}</span>
-
+                                :class="{active: currentTab === `extra:${tab.name}`}"
+                                @click="currentTab = `extra:${tab.name}`"
+                                >{{tab.name}}</span>
                         </li>
                         <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
                             <span class="tab"
@@ -406,11 +405,6 @@
                             </div>
 
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
-
-                        </div>
-
-                        <div v-if="currentTab === 'Comments' && comments && comments.enabled">
-                            <Comments :entityId="commentsEntityId" :comments="comments"/>
                         </div>
 
                         <div v-if="inPlaceTextEditor.shown && mode === 'edit'">
@@ -422,8 +416,8 @@
                                 @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
-                        <div v-else-if="mode === 'edit'">
-                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="currentTab === itemTextSlot.tabName"
+                        <div>
+                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
                                 :editorId="editorId"
                                 :item="itemTextSlot.item"
@@ -431,6 +425,14 @@
                                 @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
                                 @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
                                 />
+                            <component
+                                v-for="tab in extraTabs"
+                                v-if="currentTab === `extra:${tab.name}`"
+                                :key="`tab-${currentTab}`"
+                                :is="tab.component"
+                                :mode="mode"
+                                @tab-event="$emit('custom-tab-event', $event)"
+                            />
                         </div>
                     </div>
                 </div>
@@ -518,7 +520,6 @@ import DiagramPicker from './editor/DiagramPicker.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
-import Comments from './Comments.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import Shape from './editor/items/shapes/Shape.js';
 import {createAnimationRegistry, destroyAnimationRegistry} from '../animations/AnimationRegistry';
@@ -684,7 +685,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        Comments, MultiItemEditBox, ElementPicker, DiagramPicker
+        MultiItemEditBox, ElementPicker, DiagramPicker
     },
 
     props: {
@@ -710,15 +711,8 @@ export default {
         saveControlEnabled  : { type: Boolean, default: true},
 
         //Used to signify that SchemeContainer needs to be recreated and item selection needs to be restored
-        schemeReloadKey : {type: String, default: null},
-        comments         : {type: Object, default: {
-            enabled: false,
-            isAdmin: false,
-            allowed: false,
-            counter: 0,
-            provider: null
-        }},
-
+        schemeReloadKey: {type: String, default: null},
+        extraTabs      : {type: Array, default: () => []},
     },
 
     created() {
@@ -2787,13 +2781,6 @@ export default {
 
         statusMessage() {
             return this.$store.getters.statusMessage;
-        },
-
-        commentsEntityId() {
-            if (!this.scheme) {
-                return 'offline-scheme';
-            }
-            return this.scheme.id;
         },
 
         apiClient() {
