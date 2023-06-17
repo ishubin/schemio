@@ -57,6 +57,7 @@
             :isSaving="isSaving"
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
+            :extraTabs="extraTabs"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
