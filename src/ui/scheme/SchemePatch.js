@@ -722,7 +722,7 @@ export function applyMapPatch(origin, changes, fieldPath, schemaIndex) {
  * @param {SchemaIndexNode} schemaIndex
  */
 function applyIdArrayPatch(obj, arrChange, rootPath, schemaIndex) {
-    const arr = utils.getObjectProperty(obj, arrChange.path);
+    let arr = utils.getObjectProperty(obj, arrChange.path);
 
     if (!Array.isArray(arr)) {
         arr = [];
