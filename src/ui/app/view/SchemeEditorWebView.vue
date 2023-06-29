@@ -46,9 +46,11 @@
             :isOfflineEditor="isOfflineEditor"
             :isSaving="isSaving"
             :modificationKey="modificationKey"
+            :schemeReloadKey="schemeReloadKey"
             @mode-changed="onSchemeEditorModeChanged"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @scheme-save-requested="onSaveSchemeRequested"
+            @scheme-update-requested="onSchemeUpdateRequested"
         />
 
         <CreateNewSchemeModal v-if="newSchemePopup.show"
@@ -187,6 +189,7 @@ export default {
             editorMode: 'view',
 
             appReloadKey: shortid.generate(),
+            schemeReloadKey: shortid.generate(),
 
             newSchemePopup: {
                 name: '',
@@ -394,6 +397,11 @@ export default {
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
                 this.isSaving = false;
             });
+        },
+
+        onSchemeUpdateRequested(scheme) {
+            this.scheme = scheme;
+            this.schemeReloadKey = shortid.generate();
         }
     },
     computed: {

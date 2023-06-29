@@ -101,6 +101,7 @@ export default {
     props: {
         editorId          : {type: String, default: 'default'},
         scheme            : {type: Object, required: true},
+        schemeReloadKey   : {type: String, default: ''},
         detectBrowserClose: {type: Boolean, default: true},
         editorMode        : {type: String, default: 'view'},
         menuOptions       : {type: Array, default: () => []},
@@ -144,7 +145,6 @@ export default {
 
     data() {
         return {
-            schemeReloadKey: null,
             modified: this.isModified,
             mode: this.editorMode,
             originScheme: null,
@@ -192,11 +192,10 @@ export default {
 
             exportHTMLModalShown: false,
 
-            // used to trigger update of SchemeContainer inside of SchemeEditor component
-            schemeReloadKey: shortid.generate(),
-
             historyUndoable: false,
             historyRedoable: false,
+
+            appReloadKey: '',
         }
     },
 
@@ -281,12 +280,11 @@ export default {
         importScheme(scheme) {
             scheme.id = this.scheme.id;
             enrichSchemeWithDefaults(scheme);
-            this.scheme = scheme;
-            this.history.commit(this.scheme);
+            this.history.commit(scheme);
+            this.$emit('scheme-update-requested', scheme);
+            this.appReloadKey = shortid.generate();
             this.modified = true;
             this.updateHistoryState();
-            this.appReloadKey = shortid.generate();
-            this.schemeReloadKey = shortid.generate();
         },
 
         updateHistoryState() {
@@ -303,8 +301,7 @@ export default {
         undoHistory() {
             const scheme = this.history.undo();
             if (scheme) {
-                this.scheme = scheme;
-                this.schemeReloadKey = shortid.generate();
+                this.$emit('scheme-update-requested', scheme);
             }
             this.modified = true;
             this.updateHistoryState();
@@ -313,8 +310,7 @@ export default {
         redoHistory() {
             const scheme = this.history.redo();
             if (scheme) {
-                this.scheme = scheme;
-                this.schemeReloadKey = shortid.generate();
+                this.$emit('scheme-update-requested', scheme);
             }
             this.modified = true;
             this.updateHistoryState();

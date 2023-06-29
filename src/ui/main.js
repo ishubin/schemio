@@ -20,6 +20,7 @@ import { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatc
 import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
 import htmlSanitize from '../htmlSanitize.js';
 import RichTextEditor from './components/RichTextEditor.vue';
+import utils from './utils.js';
 
 
 window.Schemio = {
@@ -28,6 +29,7 @@ window.Schemio = {
         store, Dropdown, MenuDropdown, Pagination, RichTextEditor
     },
     utils: {
+        getObjectProperty: utils.getObjectProperty,
         createHasher,
         snapshotSvg,
         getBoundingBoxOfItems,
