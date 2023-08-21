@@ -19,9 +19,6 @@
 
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
-                    <!-- <li>
-                        <span title="Logger" class="toggle-button" @click="$emit('mobile-debugger-requested')"><i class="fa-solid fa-bug"></i></span>
-                    </li> -->
                     <li>
                         <span title="Zoom to Selection" class="toggle-button" @click="$emit('clicked-zoom-to-selection')"><i class="fas fa-bullseye"></i></span>
                     </li>
@@ -506,25 +503,25 @@ export default {
         },
 
         changeZoomTo(newZoom) {
-            // calculating old center of the scheme
+            // // calculating old center of the scheme
 
-            let schemeContainer = this.schemeContainer;
-            const xo = schemeContainer.screenTransform.x;
-            const yo = schemeContainer.screenTransform.y;
+            // let schemeContainer = this.schemeContainer;
+            // const xo = schemeContainer.screenTransform.x;
+            // const yo = schemeContainer.screenTransform.y;
 
-            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
-            const cx = svgRect.width / 2;
-            const cy = svgRect.height / 2;
+            // const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
+            // const cx = svgRect.width / 2;
+            // const cy = svgRect.height / 2;
 
-            const nz = newZoom / 100;
+            // const nz = newZoom / 100;
 
-            const sx = cx - nz * (cx - xo) / schemeContainer.screenTransform.scale;
-            const sy = cy - nz * (cy - yo) / schemeContainer.screenTransform.scale;
+            // const sx = cx - nz * (cx - xo) / schemeContainer.screenTransform.scale;
+            // const sy = cy - nz * (cy - yo) / schemeContainer.screenTransform.scale;
 
-            schemeContainer.screenTransform.scale = nz;
+            // schemeContainer.screenTransform.scale = nz;
 
-            schemeContainer.screenTransform.x = sx;
-            schemeContainer.screenTransform.y = sy;
+            // schemeContainer.screenTransform.x = sx;
+            // schemeContainer.screenTransform.y = sy;
             this.$emit('zoom-changed', newZoom);
         },
 

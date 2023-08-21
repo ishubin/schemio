@@ -1401,6 +1401,7 @@ export default {
         },
 
         onZoomChanged(newZoom) {
+            this.states[this.state].changeZoomTo(newZoom/100);
             this.zoom = newZoom;
             this.initOffsetSave();
         },

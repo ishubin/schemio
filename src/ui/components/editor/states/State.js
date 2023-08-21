@@ -7,6 +7,7 @@ import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
 import forEach from 'lodash/forEach';
 import { Keys } from '../../../events';
+import { Interpolations, convertTime } from '../../../animations/ValueAnimation';
 
 const SUB_STATE_STACK_LIMIT = 10;
 
@@ -27,6 +28,65 @@ export function isEventMiddleClick(event) {
 
 export function isEventRightClick(event) {
     return event.button === 2;
+}
+
+
+function interpolate(t, v1, v2) {
+    return v1 * (1.0 - t) + v2 * t;
+}
+
+let currentZoomAnimation = null;
+
+function animateZoom(schemeContainer, newScale, screenTransformCallback) {
+    const xo = schemeContainer.screenTransform.x;
+    const yo = schemeContainer.screenTransform.y;
+
+    const svgRect = document.getElementById(`svg-plot-${schemeContainer.editorId}`).getBoundingClientRect();
+    const cx = svgRect.width / 2;
+    const cy = svgRect.height / 2;
+
+    const sx = cx - newScale * (cx - xo) / schemeContainer.screenTransform.scale;
+    const sy = cy - newScale * (cy - yo) / schemeContainer.screenTransform.scale;
+
+    const zoomAnimation = {
+        t: 0,
+        finished: false,
+        oldScale: schemeContainer.screenTransform.scale,
+        oldX: schemeContainer.screenTransform.x,
+        oldY: schemeContainer.screenTransform.y,
+
+        newScale,
+        newX: sx,
+        newY: sy
+    };
+
+    if (currentZoomAnimation) {
+        currentZoomAnimation.finished = true;
+    }
+
+    const animationLoop = (timeMarker) => {
+        const nextMarker = performance.now();
+        const dt = nextMarker - timeMarker;
+
+        zoomAnimation.t += 8 * dt / 1000.0;
+
+        const t = convertTime(myMath.clamp(zoomAnimation.t, 0, 1), Interpolations.EASE_OUT);
+        schemeContainer.screenTransform.scale = interpolate(t, zoomAnimation.oldScale, zoomAnimation.newScale);
+
+        schemeContainer.screenTransform.x = interpolate(t, zoomAnimation.oldX, zoomAnimation.newX);
+        schemeContainer.screenTransform.y = interpolate(t, zoomAnimation.oldY, zoomAnimation.newY);
+
+        screenTransformCallback(schemeContainer.screenTransform);
+
+        if (!zoomAnimation.finished && zoomAnimation.t < 1.0) {
+            window.requestAnimationFrame(() => {
+                animationLoop(nextMarker);
+            });
+        }
+    };
+
+    animationLoop(performance.now());
+    currentZoomAnimation = zoomAnimation;
 }
 
 class State {
@@ -358,23 +418,27 @@ class State {
     changeZoomTo(newScale) {
         // calculating old center of the scheme
 
-        let schemeContainer = this.schemeContainer;
-        const xo = schemeContainer.screenTransform.x;
-        const yo = schemeContainer.screenTransform.y;
+        animateZoom(this.schemeContainer, newScale, (screenTransform) => {
+            this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+        });
 
-        const svgRect = document.getElementById(`svg-plot-${this.schemeContainer.editorId}`).getBoundingClientRect();
-        const cx = svgRect.width / 2;
-        const cy = svgRect.height / 2;
+        // let schemeContainer = this.schemeContainer;
+        // const xo = schemeContainer.screenTransform.x;
+        // const yo = schemeContainer.screenTransform.y;
 
-        const sx = cx - newScale * (cx - xo) / schemeContainer.screenTransform.scale;
-        const sy = cy - newScale * (cy - yo) / schemeContainer.screenTransform.scale;
+        // const svgRect = document.getElementById(`svg-plot-${this.schemeContainer.editorId}`).getBoundingClientRect();
+        // const cx = svgRect.width / 2;
+        // const cy = svgRect.height / 2;
 
-        schemeContainer.screenTransform.scale = newScale;
+        // const sx = cx - newScale * (cx - xo) / schemeContainer.screenTransform.scale;
+        // const sy = cy - newScale * (cy - yo) / schemeContainer.screenTransform.scale;
 
-        schemeContainer.screenTransform.x = sx;
-        schemeContainer.screenTransform.y = sy;
+        // schemeContainer.screenTransform.scale = newScale;
 
-        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+        // schemeContainer.screenTransform.x = sx;
+        // schemeContainer.screenTransform.y = sy;
+
+        // this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
     }
 
     dragScreenOffset(dx, dy) {
