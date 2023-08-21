@@ -112,7 +112,8 @@ code {
     white-space: pre;
 }
 
-.text-nonselectable {
+.text-nonselectable,
+.modal-header {
     -moz-user-select: none;
     -webkit-user-select: none;
     -ms-user-select:    none;
@@ -1066,6 +1067,7 @@ textarea.in-place-text-editor {
     display: flex;
     align-items: center;
     margin-right: 10px;
+    margin-left: 10px;
 }
 .header .right-section a, .header .right-section span.link {
     color: var(--accent-weak-down);
@@ -1893,6 +1895,10 @@ ul.links-editor .edit-link:hover {
     cursor: pointer;
     border-radius: var(--control-border-radius);
 }
+.dropdown-container.borderless.error .dropdown-click-area,
+.dropdown-container.error .dropdown-click-area {
+    border: 1px solid var(--critic-faint);
+}
 .dropdown-container.inline {
     display: inline-block;
 }
@@ -1907,6 +1913,10 @@ ul.links-editor .edit-link:hover {
     border: none;
     background: none;
     margin: 1px;
+}
+.dropdown-container.borderless.error .dropdown-click-area {
+    border: 1px solid var(--critic-faint);
+    margin: 0;
 }
 .dropdown-container.borderless .dropdown-click-area.hover-effect:hover {
     margin: 0;
@@ -3076,7 +3086,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 .header .header-middle-section {
     flex: 1;
     display: inline-block;
-    overflow: hidden;
+    /* overflow: hidden; */
 }
 .header .header-middle-section > div {
     display: flex;
@@ -3481,8 +3491,8 @@ ul.breadcrumbs li .breadcrumb-separator {
 
 
 /*********************** Home ******************************/
-.home-page h1,
-.home-page p,
+.home-page > h1,
+.home-page .home-option > p,
 .home-buttons {
     text-align: center;
 }

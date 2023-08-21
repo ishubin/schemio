@@ -58,6 +58,13 @@ export default {
         },
 
         toggleSearchModal() {
+            const apiClient = this.$store.state.apiClient;
+            if (apiClient && apiClient.diagramSearchProvider) {
+                apiClient.diagramSearchProvider(this.diagramId).then(pickedDiagram => {
+                    this.onDiagramPicked(pickedDiagram);
+                });
+                return;
+            }
             if (this.disabled) {
                 return;
             }

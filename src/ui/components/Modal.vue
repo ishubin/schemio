@@ -5,7 +5,7 @@
 <template>
     <div>
         <div v-if="useMask" class="modal-mask"></div>
-        <div ref="modalContainer" class="modal-container text-nonselectable" :style="{width: actualWidth + 'px', top: `${y}px`, left: `${x}px`}">
+        <div ref="modalContainer" class="modal-container" :style="{width: actualWidth + 'px', top: `${y}px`, left: `${x}px`}">
             <div class="modal-header" v-if="showHeader" @touchstart="initModalDrag" @mousedown="initModalDrag" :class="{dragging: dragging}">
                 <h3>{{title}}</h3>
                 <span class="modal-close" v-if="closable" @click="$emit('close')"><i class="fas fa-times"/></span>

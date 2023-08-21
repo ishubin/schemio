@@ -4,7 +4,7 @@
 
 <template lang="html">
     <div class="dropdown-container" :class="{inline: inline, borderless: borderless}">
-        <div class="dropdown-click-area" :class="{'hover-effect': hoverEffect && !disabled}" @click="toggleDropdown">
+        <div class="dropdown-click-area" :style="dropwonClickAreaStyle" :class="{'hover-effect': hoverEffect && !disabled}" @click="toggleDropdown">
             <slot v-if="value === null"></slot>
             <div v-else>
                 <div v-if="selectedOption">
@@ -40,7 +40,7 @@
         </div>
 
         <div v-if="shown && hoveredOption.shown"
-            class="dropdown-option-tooltip" 
+            class="dropdown-option-tooltip"
             :style="{'top': `${hoveredOption.y}px`, 'left': `${hoveredOption.x}px`, 'width': `${hoveredOption.w}px`, 'height': `${hoveredOption.h}px`}"
             >
             <h3> 
@@ -66,6 +66,7 @@ export default {
         disabled       : {type: Boolean, default: false},
         autoFocusSearch: {type: Boolean, default: true},
         inline         : {type: Boolean, default: false},
+        width          : {type: Number, default: 0}, //only used in combination with inline
         borderless     : {type: Boolean, default: false},
     },
 
@@ -244,6 +245,13 @@ export default {
     computed: {
         filteredOptions() {
             return filter(this.options, option => option.name.toLowerCase().indexOf(this.searchKeyword.toLowerCase()) >= 0);
+        },
+        dropwonClickAreaStyle() {
+            const style = {};
+            if (this.inline && this.width > 0) {
+                style['min-width'] = `${this.width}px`;
+            }
+            return style;
         }
     },
     watch: {
