@@ -348,10 +348,14 @@
                                 >{{tab}}</span>
                         </li>
                         <li v-for="tab in extraTabs">
-                            <span class="tab"
+                            <div class="tab"
                                 :class="{active: currentTab === `extra:${tab.name}`}"
                                 @click="currentTab = `extra:${tab.name}`"
-                                >{{tab.name}}</span>
+                                >
+                                <i v-if="tab.icon" :class="tab.icon"></i>
+                                <span v-else>{{tab.name}}</span>
+                                <span v-if="tab.count">({{tab.count}})</span>
+                            </div>
                         </li>
                         <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
                             <span class="tab"
