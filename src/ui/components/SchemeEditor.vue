@@ -87,6 +87,7 @@
                     :zoomedItems="zoomedItems"
                     :zoomToItemsTrigger="zoomToItemsTrigger"
                     :stateLayerShown="state === 'draw' || state === 'createItem'"
+                    :screenTransform="initialScreenTransform"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
                     @mouse-down="mouseDown"
@@ -161,6 +162,7 @@
                     :highlightedItems="highlightedItems"
                     :zoomedItems="zoomedItems"
                     :zoomToItemsTrigger="zoomToItemsTrigger"
+                    :screenTransform="initialScreenTransform"
                     @mouse-wheel="mouseWheel"
                     @mouse-move="mouseMove"
                     @mouse-down="mouseDown"
@@ -874,6 +876,20 @@ export default {
     },
 
     data() {
+        let screenTransform = null;
+
+        if (this.scheme && this.scheme.id) {
+            const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
+            if (schemeSettings && schemeSettings.screenPosition) {
+                const zoom = parseFloat(schemeSettings.screenPosition.zoom);
+                screenTransform = {
+                    x: schemeSettings.screenPosition.offsetX,
+                    y: schemeSettings.screenPosition.offsetY,
+                    scale: parseFloat(zoom) / 100.0,
+                };
+            }
+        }
+
         return {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file and if history is undone/redone
@@ -891,6 +907,8 @@ export default {
             isLoading: false,
             loadingStep: 'load', // can be "load", "img-preload"
             schemeLoadErrorMessage: null,
+
+            initialScreenTransform: screenTransform,
 
             highlightedItems: {
                 itemIds: [],
@@ -1029,12 +1047,6 @@ export default {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 
-                if (this.mode === 'view') {
-                    this.switchToViewMode();
-                } else {
-                    this.switchToEditMode();
-                }
-
                 forEach(this.states, state => {
                     state.setSchemeContainer(this.schemeContainer);
                     state.reset();
@@ -1042,27 +1054,23 @@ export default {
 
                 if (this.mode === 'view') {
                     this.switchToViewMode();
+                } else {
+                    this.switchToEditMode();
                 }
 
-                const schemeSettings = schemeSettingsStorage.get(this.schemeId);
-                if (schemeSettings && schemeSettings.screenPosition) {
-                    // Text tab is only rendered when in place text edit is triggered
-                    // therefore it does not make sense to set it as current on scheme load
+                // Text tab is only rendered when in place text edit is triggered
+                // therefore it does not make sense to set it as current on scheme load
+                if (this.scheme && this.scheme.id) {
+                    const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
                     if (schemeSettings.currentTab !== 'Text') {
                         this.currentTab = schemeSettings.currentTab;
                     }
-                    this.schemeContainer.screenTransform.x = schemeSettings.screenPosition.offsetX;
-                    this.schemeContainer.screenTransform.y = schemeSettings.screenPosition.offsetY;
-                    this.zoom = parseFloat(schemeSettings.screenPosition.zoom);
-                    this.schemeContainer.screenTransform.scale = parseFloat(this.zoom) / 100.0;
-                } else {
-                    if (this.schemeContainer.selectedItems.length > 0) {
-                        const area = this.calculateZoomingAreaForItems(this.schemeContainer.selectedItems);
-                        if (area) {
-                            EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
-                        }
+
+                    if (this.mode == 'view') {
+                        this.currentTab = 'Doc';
                     }
                 }
+
                 return this.schemeContainer;
             })
             .then(schemeContainer => {
@@ -1422,11 +1430,15 @@ export default {
         },
 
         saveSchemeSettings() {
-            schemeSettingsStorage.save(this.schemeContainer.scheme.id, {
+            let schemeContainer = this.schemeContainer;
+            if (this.mode === 'view') {
+                schemeContainer = this.interactiveSchemeContainer;
+            }
+            schemeSettingsStorage.save(schemeContainer.scheme.id, {
                 currentTab: this.currentTab,
                 screenPosition: {
-                    offsetX: this.schemeContainer.screenTransform.x,
-                    offsetY: this.schemeContainer.screenTransform.y,
+                    offsetX: schemeContainer.screenTransform.x,
+                    offsetY: schemeContainer.screenTransform.y,
                     zoom: this.zoom
                 }
             });

@@ -70,12 +70,12 @@ export default class LimitedSettingsStorage {
         this.saveToSettingsStorage();
     }
 
-    get(id, defualtValue) {
+    get(id, defaultValue) {
         const item = this.items[id];
         if (item) {
             return item.v;
         } 
-        return defualtValue;
+        return defaultValue;
     }
 
     makeMostRecent(item) {

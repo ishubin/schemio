@@ -183,7 +183,7 @@ import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer, { itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
+import SchemeContainer, { getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
 import Compiler from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
@@ -223,6 +223,9 @@ export default {
         zoomedItems         : { type: Array, default: null},
         // hack that is used in order to trigger zooming of items from parent component without using event bus
         zoomToItemsTrigger  : { type: String, default: null},
+
+        // used for initializing scheme with either pre-saved transform or then one that shows all items
+        screenTransform     : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -274,6 +277,7 @@ export default {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }
+        this.setInitialZoom();
     },
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
@@ -891,6 +895,61 @@ export default {
             }
         },
 
+        setInitialZoom() {
+            const zoomToAllItems = () => {
+                const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+                this.onBringToView(area, false);
+            };
+
+            if (!this.screenTransform) {
+                zoomToAllItems();
+                return;
+            }
+
+            // checking that the saved screen transform is good enough.
+            // it could be that some other user has modified the diagram and no items are visible on this transform
+
+
+            // this function traverses all items with the exception of hud items in view mode
+            // This exclusion is necessary since hud items are always displayed in the viewport and not in world transform
+            // However in edit mode they are displayed the same way as other shapes.
+            const itemTraverser = (items, callback) => {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    if (!(this.mode === 'view' && item.shape === 'hud')) {
+                        callback(item);
+                        if (Array.isArray(item.childItems)) {
+                            itemTraverser(item.childItems, callback);
+                        }
+                    }
+                }
+            };
+
+            const padding = 10;
+            const viewportBox = {x: padding, y: padding, w: this.width - 2 * padding, h: this.height - 2 * padding};
+            let fill = 0;
+
+            itemTraverser(this.schemeContainer.scheme.items, item => {
+                const box = this.areaToViewport(getBoundingBoxOfItems([item]), this.screenTransform);
+                const area = myMath.overlappingArea(viewportBox, box);
+                if (area) {
+                    fill += area.w * area.h;
+                }
+            });
+
+            const wholeArea = this.width * this.height;
+
+            if (wholeArea > 0 && 100 * fill / wholeArea < 1.0) {
+                zoomToAllItems();
+                return;
+            }
+
+            this.schemeContainer.screenTransform.scale = this.screenTransform.scale;
+            this.schemeContainer.screenTransform.x = this.screenTransform.x;
+            this.schemeContainer.screenTransform.y = this.screenTransform.y;
+            this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
+        },
+
         onBringToView(area, animated) {
             let newZoom = 1.0;
             if (area.w > 0 && area.h > 0 && this.width > 0 && this.height > 0) {
@@ -898,7 +957,7 @@ export default {
                 newZoom = Math.max(0.0001, newZoom);
             }
 
-            if (newZoom > 0.7 && newZoom < 1) {
+            if (newZoom > 0.2 && newZoom < 1.5) {
                 newZoom = 1;
             }
 
@@ -907,7 +966,7 @@ export default {
             const oldZoom = this.schemeContainer.screenTransform.scale;
 
             const destX = this.width/2 - (area.x + area.w/2) * newZoom;
-            const destY = (this.height)/2 - (area.y + area.h/2) *newZoom;
+            const destY = (this.height)/2 - (area.y + area.h/2) * newZoom;
 
             if (animated) {
                 playInAnimationRegistry(this.editorId, new ValueAnimation({
@@ -1057,6 +1116,25 @@ export default {
             event.preventDefault();
             event.stopPropagation();
         },
+
+
+        areaToViewport(area, screenTransform) {
+            const p = this.pointToViewport(area.x, area.y, screenTransform);
+            return {
+                x: p.x,
+                y: p.y,
+                w: area.w * screenTransform.scale,
+                h: area.h * screenTransform.scale,
+            }
+        },
+
+        pointToViewport(x, y, screenTransform) {
+            return {
+                x: x * screenTransform.scale + screenTransform.x,
+                y: y * screenTransform.scale + screenTransform.y,
+            };
+        },
+
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
