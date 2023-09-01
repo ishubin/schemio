@@ -51,6 +51,7 @@
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @scheme-save-requested="onSaveSchemeRequested"
             @scheme-update-requested="onSchemeUpdateRequested"
+            @new-diagram-requested-for-item="onNewDiagramRequestedForItem"
         />
 
         <CreateNewSchemeModal v-if="newSchemePopup.show"
