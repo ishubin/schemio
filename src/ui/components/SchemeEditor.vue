@@ -346,13 +346,13 @@
                         <li v-for="tab in tabs">
                             <span class="tab"
                                 :class="{active: currentTab === tab}"
-                                @click="currentTab = tab"
+                                @click="changeTab(tab)"
                                 >{{tab}}</span>
                         </li>
                         <li v-for="tab in extraTabs">
                             <div class="tab"
                                 :class="{active: currentTab === `extra:${tab.name}`}"
-                                @click="currentTab = `extra:${tab.name}`"
+                                @click="changeTab(`extra:${tab.name}`)"
                                 >
                                 <i v-if="tab.icon" :class="tab.icon"></i>
                                 <span v-else>{{tab.name}}</span>
@@ -362,7 +362,7 @@
                         <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
                             <span class="tab"
                                 :class="{active: currentTab === itemTextSlotTab.tabName}"
-                                @click="currentTab = itemTextSlotTab.tabName"
+                                @click="changeTab(itemTextSlotTab.tabName)"
                                 >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
                     </ul>
@@ -1062,7 +1062,7 @@ export default {
                 // therefore it does not make sense to set it as current on scheme load
                 if (this.scheme && this.scheme.id) {
                     const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
-                    if (schemeSettings.currentTab !== 'Text') {
+                    if (schemeSettings && schemeSettings.currentTab !== 'Text') {
                         this.currentTab = schemeSettings.currentTab;
                     }
 
@@ -2735,6 +2735,11 @@ export default {
             this.updateRevision();
         },
 
+        changeTab(tab) {
+            this.currentTab = tab;
+            this.saveSchemeSettings();
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y },
@@ -2760,10 +2765,6 @@ export default {
             } else {
                 this.switchToEditMode();
             }
-        },
-
-        currentTab(newValue) {
-            this.saveSchemeSettings();
         },
 
         state(newState) {

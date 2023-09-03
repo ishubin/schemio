@@ -225,7 +225,7 @@ export default {
         zoomToItemsTrigger  : { type: String, default: null},
 
         // used for initializing scheme with either pre-saved transform or then one that shows all items
-        screenTransform     : { type: Object, default: null},
+        screenTransform     : { type: Object, default: { x: 0, y: 0, scale: 1.0 }},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -901,9 +901,11 @@ export default {
                 this.onBringToView(area, false);
             };
 
-            if (!this.screenTransform) {
-                zoomToAllItems();
-                return;
+            let screenTransform = this.screenTransform;
+            if (!screenTransform) {
+                screenTransform = {
+                    x: 0, y: 0, scale: 1
+                };
             }
 
             // checking that the saved screen transform is good enough.
@@ -930,24 +932,26 @@ export default {
             let fill = 0;
 
             itemTraverser(this.schemeContainer.scheme.items, item => {
-                const box = this.areaToViewport(getBoundingBoxOfItems([item]), this.screenTransform);
+                const box = this.areaToViewport(getBoundingBoxOfItems([item]), screenTransform);
                 const area = myMath.overlappingArea(viewportBox, box);
                 if (area) {
-                    fill += area.w * area.h;
+                    fill += Math.max(area.w, 1.0) * Math.max(area.h, 1.0);
                 }
             });
 
             const wholeArea = this.width * this.height;
 
-            if (wholeArea > 0 && 100 * fill / wholeArea < 1.0) {
-                zoomToAllItems();
-                return;
+            if (wholeArea > 0) {
+                const coverage = 100 * fill / wholeArea;
+                if (coverage < 0.0001) {
+                    zoomToAllItems();
+                    return;
+                }
             }
 
-            this.schemeContainer.screenTransform.scale = this.screenTransform.scale;
-            this.schemeContainer.screenTransform.x = this.screenTransform.x;
-            this.schemeContainer.screenTransform.y = this.screenTransform.y;
-            this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
+            this.schemeContainer.screenTransform.scale = screenTransform.scale;
+            this.schemeContainer.screenTransform.x = screenTransform.x;
+            this.schemeContainer.screenTransform.y = screenTransform.y;
         },
 
         onBringToView(area, animated) {
@@ -957,7 +961,7 @@ export default {
                 newZoom = Math.max(0.0001, newZoom);
             }
 
-            if (newZoom > 0.2 && newZoom < 1.5) {
+            if (newZoom > 0.2 && newZoom < 2) {
                 newZoom = 1;
             }
 
