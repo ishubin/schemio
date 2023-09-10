@@ -27,10 +27,10 @@ import {prepareDiagramForPictureExport} from '../../diagramExporter'
 import utils from '../../utils';
 import { traverseItems } from '../../scheme/Item';
 
-function generateTemplate(items, svgPreview, padding, width, height) {
-    items = utils.clone(items);
+function generateTemplate(rootItem, svgPreview, padding, width, height) {
+    rootItem = utils.clone(rootItem);
 
-    traverseItems(items, item => {
+    traverseItems([rootItem], item => {
         if (item.meta) {
             delete item.meta;
         }
@@ -46,10 +46,10 @@ function generateTemplate(items, svgPreview, padding, width, height) {
     </svg>`
 
     return {
-        name: items.length > 0 ? items[0].name : '',
+        name: rootItem.name,
         args: {},
         preview: 'data:image/svg+xml;base64,' + btoa(svgImage),
-        items: items
+        item: rootItem,
     };
 }
 
@@ -57,14 +57,11 @@ export default {
     components: {Modal},
 
     props: {
-        items: {type: Array, required: true},
-    },
-
-    mounted() {
+        item: {type: Object, required: true},
     },
 
     data() {
-        const preparedItems = prepareDiagramForPictureExport(this.items);
+        const preparedItems = prepareDiagramForPictureExport([this.item]);
         const svgHtml = map(preparedItems.exportedItems, e => e.html).join('\n');
 
         let largestStrokeSize = 0;
@@ -76,7 +73,7 @@ export default {
 
         const padding = Math.max(10, 2 * largestStrokeSize);
 
-        const template = generateTemplate(this.items, svgHtml, padding, preparedItems.width, preparedItems.height);
+        const template = generateTemplate(this.item, svgHtml, padding, preparedItems.width, preparedItems.height);
         return {
             preparedItems,
             name: template.name,
@@ -92,7 +89,7 @@ export default {
 
     methods: {
         generateCode() {
-            const template = generateTemplate(this.items, this.svgHtml, this.padding, this.width, this.height);
+            const template = generateTemplate(this.item, this.svgHtml, this.padding, this.width, this.height);
             template.name = this.name;
             this.content = JSON.stringify(template);
         }

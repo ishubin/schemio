@@ -493,7 +493,7 @@
         </modal>
 
         <export-template-modal v-if="exportTemplateModal.shown"
-            :items="exportTemplateModal.items"
+            :item="exportTemplateModal.item"
             @close="exportTemplateModal.shown = false"/>
 
     </div>
@@ -1028,7 +1028,7 @@ export default {
             isStateLooping: false,
 
             exportTemplateModal: {
-                items: [],
+                item: null,
                 shown: false,
             }
         }
@@ -2068,7 +2068,7 @@ export default {
                 }].concat(selectedOnlyOne ? [{
                     name: 'Export as template ...',
                     iconClass: 'fa-solid fa-object-group',
-                    clicked: () => { this.exportSelectedItemsAsTemplate(); }
+                    clicked: () => { this.exportSelectedItemsAsTemplate(item); }
                 }]: [])
             }]);
 
@@ -2256,12 +2256,8 @@ export default {
             }
         },
 
-        exportSelectedItemsAsTemplate() {
-            const items = this.collectSelectedItems();
-            if (items.length === 0) {
-                return;
-            }
-            this.exportTemplateModal.items = items;
+        exportSelectedItemsAsTemplate(item) {
+            this.exportTemplateModal.item = item;
             this.exportTemplateModal.shown = true;
         },
 

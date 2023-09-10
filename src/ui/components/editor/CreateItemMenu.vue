@@ -645,6 +645,10 @@ export default {
             this.previewItem.shown = false;
 
             const itemClone = utils.clone(item.item);
+            if (!template) {
+                itemClone.id = shortid.generate();
+            }
+
 
             dragAndDropBuilder(originalEvent)
             .withDroppableClass('svg-editor-plot')
@@ -718,7 +722,6 @@ export default {
                     return;
                 }
 
-                itemClone.id = shortid.generate();
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
                 itemClone.name = this.makeUniqueName(item.name);
                 this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
