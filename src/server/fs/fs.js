@@ -581,20 +581,6 @@ export function fsSaveDeleteArt(config, isDeletion) {
     };
 }
 
-export function fsGetTemplates(config) {
-    return (req, res) => {
-        return templateService.getAll()
-        .then(templates => {
-            res.json(templates);
-        })
-        .catch(err => {
-            console.error('Failed to get templates', err);
-            res.json([]);
-        });
-    };
-}
-
-
 export function fsGetArt(config) {
     return (req, res) => {
         return artService.getAll(config.fs.rootPath)

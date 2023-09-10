@@ -75,11 +75,11 @@ export const fsClientProvider = {
             },
 
             getAllTemplates() {
-                return axios.get('/v1/fs/templates').then(unwrapAxios);
+                return axios.get('/assets/templates/index.json').then(unwrapAxios);
             },
 
             getTemplate(path) {
-                return axios.get(`/assets/templates${path}`).then(unwrapAxios);
+                return axios.get(path).then(unwrapAxios);
             },
 
             saveArt(artId, art) {

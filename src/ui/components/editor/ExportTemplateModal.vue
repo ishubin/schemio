@@ -26,9 +26,16 @@ import forEach from 'lodash/forEach';
 import {prepareDiagramForPictureExport} from '../../diagramExporter'
 import utils from '../../utils';
 import { traverseItems } from '../../scheme/Item';
+import { stripAllHtml } from '../../../htmlSanitize';
 
 function generateTemplate(rootItem, svgPreview, padding, width, height) {
     rootItem = utils.clone(rootItem);
+
+    let description = '';
+    if (rootItem.description) {
+        description = stripAllHtml(rootItem.description).trim()
+    }
+    rootItem.description = '';
 
     traverseItems([rootItem], item => {
         if (item.meta) {
@@ -48,6 +55,7 @@ function generateTemplate(rootItem, svgPreview, padding, width, height) {
     return {
         name: rootItem.name,
         args: {},
+        description: description,
         preview: 'data:image/svg+xml;base64,' + btoa(svgImage),
         item: rootItem,
     };
