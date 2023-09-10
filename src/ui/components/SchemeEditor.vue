@@ -492,6 +492,10 @@
             </div>
         </modal>
 
+        <export-template-modal v-if="exportTemplateModal.shown"
+            :items="exportTemplateModal.items"
+            @close="exportTemplateModal.shown = false"/>
+
     </div>
 
 </template>
@@ -512,7 +516,7 @@ import MultiItemEditBox from './editor/MultiItemEditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
-import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems } from '../scheme/SchemeContainer.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
@@ -553,6 +557,7 @@ import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
 import UserEventBus from '../userevents/UserEventBus.js';
+import ExportTemplateModal from './editor/ExportTemplateModal.vue';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
@@ -691,7 +696,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        MultiItemEditBox, ElementPicker, DiagramPicker
+        MultiItemEditBox, ElementPicker, DiagramPicker, ExportTemplateModal
     },
 
     props: {
@@ -1020,7 +1025,12 @@ export default {
             mobileLogEntries: [],
             isScreenGrabbing: false,
 
-            isStateLooping: false
+            isStateLooping: false,
+
+            exportTemplateModal: {
+                items: [],
+                shown: false,
+            }
         }
     },
     methods: {
@@ -1349,7 +1359,7 @@ export default {
         },
 
         saveScheme() {
-            const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
+            const area = getBoundingBoxOfItems(this.schemeContainer.getItems());
             snapshotSvg(`#svg-plot-${this.editorId} [data-type="scene-transform"]`, area).then(svgPreview => {
                 this.$emit('scheme-save-requested', this.schemeContainer.scheme, svgPreview);
             })
@@ -1920,7 +1930,7 @@ export default {
             });
             this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
 
-            const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
+            const boundingBox = getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
             this.animationRegistry.enableAnimations();
@@ -2049,14 +2059,19 @@ export default {
                 name: 'Export',
                 subOptions: [{
                     name: 'Export as SVG ...',
-                    iconsClass: 'fas fa-file-export',
+                    iconClass: 'fas fa-file-export',
                     clicked: () => { this.exportSelectedItemsAsSVG(); }
                 }, {
                     name: 'Export as PNG ...',
-                    iconsClass: 'fas fa-file-export',
+                    iconClass: 'fas fa-file-export',
                     clicked: () => { this.exportSelectedItemsAsPNG(); }
-                }]
+                }].concat(selectedOnlyOne ? [{
+                    name: 'Export as template ...',
+                    iconClass: 'fa-solid fa-object-group',
+                    clicked: () => { this.exportSelectedItemsAsTemplate(); }
+                }]: [])
             }]);
+
 
 
             let items = [item];
@@ -2241,6 +2256,15 @@ export default {
             }
         },
 
+        exportSelectedItemsAsTemplate() {
+            const items = this.collectSelectedItems();
+            if (items.length === 0) {
+                return;
+            }
+            this.exportTemplateModal.items = items;
+            this.exportTemplateModal.shown = true;
+        },
+
         exportSelectedItemsAsSVG() {
             this.exportSelectedItemsAsPicture('svg');
         },
@@ -2250,14 +2274,21 @@ export default {
         },
 
         exportSelectedItemsAsPicture(kind) {
-            if (!this.schemeContainer.multiItemEditBox) {
+            const items = this.collectSelectedItems();
+            if (items.length === 0) {
                 return;
+            }
+            this.$emit('export-picture-requested', items, kind)
+        },
+
+        collectSelectedItems() {
+            if (!this.schemeContainer.multiItemEditBox) {
+                return [];
             }
             const box = this.schemeContainer.multiItemEditBox;
             if (box.items.length === 0) {
-                return;
+                return [];
             }
-
             // picking all root selected items
             // we don't want to double export selected items if their ancestors were already picked for export
             const items = [];
@@ -2274,8 +2305,7 @@ export default {
                     pickedItemIds[item.id] = 1;
                 }
             });
-
-            this.$emit('export-picture-requested', items, kind)
+            return items;
         },
 
 

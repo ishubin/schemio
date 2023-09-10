@@ -78,6 +78,23 @@
                 </div>
             </panel>
 
+            <panel v-if="templates || templatesLoading" name="Templates">
+                <div class="item-menu">
+                    <div class="item-container"
+                        v-for="template in templates"
+                        v-if="!searchKeyword || safeTextMatchKeyword(template.name)"
+                        @mouseover="showPreviewTemplate(template)"
+                        @mouseleave="stopPreviewTemplate(template)"
+                        @mousedown="onTemplateMouseDown($event, template)"
+                        @dragstart="preventEvent"
+                        @drag="preventEvent"
+                        >
+                        <img v-if="template.preview" :src="template.preview"/>
+                        <img v-else src="/assets/images/missing-preview.svg"/>
+                    </div>
+                </div>
+            </panel>
+
             <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
                 <div class="art-pack">
                     <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
@@ -137,12 +154,19 @@
                     <img :src="`${assetsPath}/images/animations/${previewItem.gif}.gif`" style="max-width: 100%;"/>
                 </div>
 
+                <div v-if="previewItem.template">
+                    <h4>{{previewItem.template.name}}</h4>
+                    <img v-if="previewItem.template.preview" :src="previewItem.template.preview" style="max-width: 100%;"/>
+                    <img v-else src="/assets/images/missing-preview.svg" style="max-width: 100%;"/>
+                </div>
+
                 <div v-if="previewItem.description" class="preview-item-description">{{previewItem.description}}</div>
             </div>
         </div>
 
         <div ref="itemDragger" style="position: fixed;" :style="{display: itemCreationDragged.item && itemCreationDragged.startedDragging ? 'inline-block' : 'none' }">
-            <svg v-if="itemCreationDragged.item && itemCreationDragged.startedDragging"
+            <img v-if="itemCreationDragged.previewUrl" :src="itemCreationDragged.previewUrl"/>
+            <svg v-else-if="itemCreationDragged.item && itemCreationDragged.startedDragging"
                 :width="`${itemCreationDragged.item.area.x + itemCreationDragged.item.area.w + 50}px`"
                 :height="`${itemCreationDragged.item.area.y + itemCreationDragged.item.area.h + 50}px`"
                 >
@@ -194,6 +218,7 @@ export default {
 
     beforeMount() {
         this.loadProjectArt();
+        this.loadTemplates();
         this.filterItemPanels();
     },
 
@@ -230,7 +255,8 @@ export default {
                 artIcon       : null,
                 gif           : null,
                 y             : 50,
-                description   : null
+                description   : null,
+                template      : null,
             },
 
             itemCreationDragged: {
@@ -238,12 +264,15 @@ export default {
                 item: null,
                 pageX: 0,
                 pageY: 0,
-                imageProperty: null
+                imageProperty: null,
+                previewUrl: null
             },
 
             extraShapesModal: {
                 shown: false
-            }
+            },
+            templates: [],
+            templatesLoading: false,
         }
     },
     methods: {
@@ -252,6 +281,23 @@ export default {
                 this.$store.state.apiClient.getAllArt()
                 .then(artList => {
                     this.artList = artList;
+                });
+            }
+        },
+
+        loadTemplates() {
+            if (this.$store.state.apiClient && this.$store.state.apiClient.getAllTemplates) {
+                this.templatesLoading = true;
+                this.$store.state.apiClient.getAllTemplates()
+                .then(templates => {
+                    this.templatesLoading = true;
+                    this.templates = templates;
+                    this.$forceUpdate();
+                })
+                .catch(err => {
+                    this.templatesLoading = false;
+                    console.error('Failed to load templates', err);
+                    this.templates = [];
                 });
             }
         },
@@ -377,6 +423,7 @@ export default {
 
             this.previewItem.item = item;
             this.previewItem.artIcon = null;
+            this.previewItem.template = null;
             this.previewItem.gif = null;
             this.previewItem.description = item.description;
             this.displayPreviewItemTooltip();
@@ -391,11 +438,26 @@ export default {
             this.previewItem.item = null;
             this.previewItem.artIcon = artIcon;
             this.previewItem.gif = null;
+            this.previewItem.template = null;
             this.previewItem.description = artIcon.description;
             this.displayPreviewItemTooltip();
         },
         stopPreviewArt(artIcon) {
             if (this.previewItem.artIcon &&this.previewItem.artIcon.name === artIcon.name) {
+                this.previewItem.shown = false;
+            }
+        },
+
+        showPreviewTemplate(template) {
+            this.previewItem.item = null;
+            this.previewItem.artIcon = null;
+            this.previewItem.template = template;
+            this.previewItem.gif = null;
+            this.previewItem.description = template.description;
+            this.displayPreviewItemTooltip();
+        },
+        stopPreviewTemplate(template) {
+            if (this.previewItem.template && this.previewItem.template.path === template.path) {
                 this.previewItem.shown = false;
             }
         },
@@ -556,7 +618,30 @@ export default {
             }, true);
         },
 
-        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps) {
+        onTemplateMouseDown(event, templateEntry) {
+            if (!this.$store.state.apiClient && !this.$store.state.apiClient.getTemplate) {
+                return;
+            }
+            this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
+                const item = template.item;
+                enrichItemWithDefaults(item);
+
+                // this.schemeContainer.pasteItems([item], 0, 0);
+
+                const [clonnedItem] = this.schemeContainer.cloneItems([item]);
+
+                this.onItemMouseDown(event, {
+                    item: clonnedItem,
+                    name: item.name
+                }, true, template);
+            })
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, `Failed to load "${templateEntry.name}" template`, 'failed-template');
+            });
+        },
+
+        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template) {
             this.previewItem.shown = false;
 
             const itemClone = utils.clone(item.item);
@@ -569,7 +654,10 @@ export default {
                     recentPropsChanges.applyItemProps(itemClone);
                 }
 
-                if (item.previewArea) {
+                if (template) {
+                    itemClone.area.w = template.item.area.w;
+                    itemClone.area.h = template.item.area.h;
+                } else if (item.previewArea) {
                     itemClone.area.w = item.previewArea.w;
                     itemClone.area.h = item.previewArea.h;
                 } else {
@@ -583,6 +671,10 @@ export default {
                     itemClone.area.h = item.size.h;
                 }
 
+                this.itemCreationDragged.template = null;
+                if (template) {
+                    this.itemCreationDragged.previewUrl = template.preview;
+                }
                 this.itemCreationDragged.item = itemClone;
                 this.itemCreationDragged.startedDragging = true;
 
@@ -597,7 +689,17 @@ export default {
                 this.itemCreationDragged.startedDragging = false;
             })
             .onSimpleClick(() => {
-                this.onItemPicked(item);
+                if (template) {
+                    const scale = this.schemeContainer.screenTransform.scale;
+                    let pageX = window.innerWidth/2;
+                    let pageY = window.innerHeight/2;
+
+                    pageX -= itemClone.area.w/2;
+                    pageY -= itemClone.area.h/2;
+                    this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
+                } else {
+                    this.onItemPicked(item);
+                }
             })
             .onDrop((event, element, pageX, pageY) => {
                 this.itemCreationDragged.pageX = pageX;

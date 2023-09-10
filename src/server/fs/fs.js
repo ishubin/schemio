@@ -9,6 +9,7 @@ import { folderPathFromPath, mediaFolder, supportedMediaExtensions, getFileExten
 import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
 import { ProjectService } from '../../common/fs/projectService.js';
+import templateService from '../../common/fs/templateService.js';
 
 const fsMediaPrefix = '/media/';
 const electronMediaPrefix = 'media://local/';
@@ -579,6 +580,20 @@ export function fsSaveDeleteArt(config, isDeletion) {
         })
     };
 }
+
+export function fsGetTemplates(config) {
+    return (req, res) => {
+        return templateService.getAll()
+        .then(templates => {
+            res.json(templates);
+        })
+        .catch(err => {
+            console.error('Failed to get templates', err);
+            res.json([]);
+        });
+    };
+}
+
 
 export function fsGetArt(config) {
     return (req, res) => {
