@@ -84,6 +84,7 @@ export default {
             } else {
                 item.area.r = parseFloat(args.angle);
                 schemeContainer.reindexItemTransforms(item);
+                EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             }
         }
         resultCallback();

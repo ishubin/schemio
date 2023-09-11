@@ -672,8 +672,6 @@ export default {
                 const item = template.item;
                 enrichItemWithDefaults(item);
 
-                // this.schemeContainer.pasteItems([item], 0, 0);
-
                 const [clonnedItem] = this.schemeContainer.cloneItems([item]);
 
                 this.onItemMouseDown(event, {
@@ -742,13 +740,12 @@ export default {
             })
             .onSimpleClick(() => {
                 if (template) {
-                    const scale = this.schemeContainer.screenTransform.scale;
                     let pageX = window.innerWidth/2;
                     let pageY = window.innerHeight/2;
 
                     pageX -= itemClone.area.w/2;
                     pageY -= itemClone.area.h/2;
-                    this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
+                    this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template);
                 } else {
                     this.onItemPicked(item);
                 }
@@ -772,7 +769,7 @@ export default {
 
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
                 itemClone.name = this.makeUniqueName(item.name);
-                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY);
+                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template);
             })
             .build();
         },

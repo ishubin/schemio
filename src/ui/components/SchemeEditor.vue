@@ -2310,14 +2310,16 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
-        itemCreationDraggedToSvgEditor(item, pageX, pageY) {
+        itemCreationDraggedToSvgEditor(item, pageX, pageY, template) {
             const coords = this.mouseCoordsFromPageCoords(pageX, pageY);
             const p = this.toLocalPoint(coords.x, coords.y);
             item.area.x = p.x;
             item.area.y = p.y;
 
-            item.area.w = item.area.w / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
-            item.area.h = item.area.h / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+            if (!template) {
+                item.area.w = item.area.w / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+                item.area.h = item.area.h / Math.max(0.0000001, this.schemeContainer.screenTransform.scale);
+            }
 
             const worldWidth = item.area.w;
             const worldHeight = item.area.h;
