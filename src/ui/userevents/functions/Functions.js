@@ -34,6 +34,8 @@ import CopyLinksFunction from './CopyLinksFunction';
 import CopyDescriptionFunction from './CopyDescriptionFunction';
 import TransformScreenFunction from './TransformScreenFunction';
 import DrawEffectFunction from './DrawEffectFunction';
+import WidthFunction from './WidthFunction';
+import HeightFunction from './HeightFunction';
 
 export default {
     main: {
@@ -69,6 +71,8 @@ export default {
         copyLinks           : CopyLinksFunction,
         copyDescription     : CopyDescriptionFunction,
         repeater            : RepeaterFunction,
-        stopRepeater        : StopRepeaterFunction
+        stopRepeater        : StopRepeaterFunction,
+        sizeWidth           : WidthFunction,
+        sizeHeight          : HeightFunction,
     },
 };
