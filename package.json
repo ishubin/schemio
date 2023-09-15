@@ -24,7 +24,8 @@
     "build-ui-static-app-prod": "NODE_ENV=production webpack --config webpack.build.app.static.prod.js; cp dist/assets/schemio.app.static.js assets/.; cp html/index-static.html assets/index-static.html",
     "build-app-drive-dev": "webpack --config webpack.build.app.drive.dev.js; cp dist/assets/schemio.app.drive.js assets/; npm run build-standalone",
     "build-app-drive-prod": "webpack --config webpack.build.app.drive.prod.js; cp dist/assets/schemio.app.drive.js assets/; npm run build-standalone-prod",
-    "test": "webpack --config webpack.build.test.js && mocha dist/schemio.tests.js",
+    "build-test": "webpack --config webpack.build.test.js",
+    "test": "npm run build-test && mocha dist/schemio.tests.js",
     "export-patcher-schema": "webpack --config webpack.export.patcher.schema.js && node dist/schemio.export-patcher-schema.js"
   },
   "author": "Ivan Shubin",
@@ -48,6 +49,7 @@
     "css-loader": "^6.7.1",
     "electron": "21.2.3",
     "electron-icon-maker": "^0.0.5",
+    "esm": "^3.2.25",
     "expect": "^27.4.2",
     "file-loader": "^0.11.2",
     "js-base64": "^3.7.4",

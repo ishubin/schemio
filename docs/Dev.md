@@ -113,3 +113,58 @@ $-if:Close Animation:=:scale-fade:behavior.events.0.actions.2
 # for cross
 $-if:Hover Animation:=:rotate:behavior.events.0.actions.2
 ```
+
+
+
+```js
+const template = {
+    args: {
+        tabs: {type: 'number', min: 1, max: 20, value: 3},
+        tabWidth: {type: 'number', min: 1, max: 200, value: 50},
+        tabHeight: {type: 'number', min: 1, max: 200, value: 50},
+        tabMargin: {type: 'number', min: 0, max: 1000, value: 10},
+    },
+
+    item: {
+        id: 'container',
+        name: 'tab-container',
+        childItems: [{
+            '$-for': {from: 1, until: {'$-expr': 'tabs + 1'}, it: 'tab'},
+            id: {'$-string-expr': 'tab-${tab}'},
+            name: {'$-string-expr': 'tab-${tab}'},
+            area: {
+                x: {'$-expr': 'tab * tabWidth + (tab) * tabMargin'},
+                y: 10,
+                w: {'$-expr': 'tabWidth'},
+                h: {'$-expr': 'tabHeight + 10'},
+            },
+            behavior: {
+                events: [{
+                    id: {'$-id': ''}, // generates unique id
+                    event: 'clicked',
+                    actions: [{
+                        on: true,
+                        element: 'self',
+                        method: "set",
+                        args: {
+                            field: "opacity",
+                            value: 100,
+                            animated: false,
+                            animationDuration: 0.2,
+                            transition: "ease-in-out",
+                            inBackground: true
+                        }
+                    }, {
+                        on: true,
+                        element: {'$-string-expr': 'tab-container-${tab}'}
+                    }]
+                }]
+            }
+        }, {
+            '$-for': {start: 1, end: {'$-arg-value': 'tabs'}, it: 'tab'},
+            id: 'tab-container-${tab}',
+            name: 'tab-container-${tab}'
+        }]
+    }
+}
+```

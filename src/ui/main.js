@@ -22,7 +22,6 @@ import htmlSanitize from '../htmlSanitize.js';
 import RichTextEditor from './components/RichTextEditor.vue';
 import utils from './utils.js';
 
-
 window.Schemio = {
     components: {
         Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
@@ -35,7 +34,7 @@ window.Schemio = {
         getBoundingBoxOfItems,
         traverseItems,
         enrichSchemeWithDefaults,
-        htmlSanitize
+        htmlSanitize,
     },
     patcher: { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic },
     /**
