@@ -365,6 +365,12 @@
                                 @click="changeTab(itemTextSlotTab.tabName)"
                                 >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
+                        <li v-if="schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
+                            <span class="tab"
+                                :class="{active: currentTab === 'template'}"
+                                @click="changeTab('template')"
+                                >Template</span>
+                        </li>
                     </ul>
 
                     <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
@@ -411,6 +417,16 @@
                             </div>
 
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
+                        </div>
+                        <div v-if="currentTab === 'template' && schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
+                            <TemplateProperties
+                                :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                                :editorId="editorId"
+                                :item="schemeContainer.selectedItems[0]"
+                                :schemeContainer="schemeContainer"
+                                :templateRef="schemeContainer.selectedItems[0].args.templateRef"
+                                @updated="onTemplateItemRegenerated"
+                            />
                         </div>
 
                         <div v-if="inPlaceTextEditor.shown && mode === 'edit'">
@@ -519,6 +535,7 @@ import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems } from '../scheme/SchemeContainer.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
+import TemplateProperties from './editor/properties/TemplateProperties.vue';
 import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
 import ItemDetails from './editor/ItemDetails.vue';
@@ -562,6 +579,7 @@ import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
 import {MobileDebugger} from '../logger';
+import {traverseItems} from '../scheme/Item';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -692,7 +710,7 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
-        LinkEditPopup, InPlaceTextEditBox,
+        LinkEditPopup, InPlaceTextEditBox, TemplateProperties,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
@@ -1892,6 +1910,28 @@ export default {
                 itemIds += item.id;
             });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
+        },
+
+        onTemplateItemRegenerated(originItemId, item) {
+            const originItem = this.schemeContainer.findItemById(originItemId);
+            if (!originItem) {
+                return;
+            }
+
+            traverseItems([item], enrichItemWithDefaults);
+
+            // doing this in order to regenerate all item ids and fix their references
+            const [clonnedItem] = this.schemeContainer.cloneItems([item]);
+
+            originItem.id = clonnedItem.id;
+            originItem.args = clonnedItem.args;
+            originItem.shapeProps = clonnedItem.shapeProps;
+            originItem.childItems = clonnedItem.childItems;
+
+            this.schemeContainer.reindexItems();
+
+            this.schemeContainer.selectItem(originItem, false);
+            this.currentTab = 'template';
         },
 
         convertCurvePointToSimple() {

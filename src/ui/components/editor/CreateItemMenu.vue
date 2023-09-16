@@ -196,6 +196,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
+import {processJSONTemplate} from '../../templater/templater';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -669,10 +670,27 @@ export default {
                 return;
             }
             this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
-                const item = template.item;
+                const args = {};
+                if (template.args) {
+                    forEach(template.args, (arg, argName) => {
+                        args[argName] = arg.value;
+                    });
+                }
+
+                const item = processJSONTemplate(template.item, args);
                 enrichItemWithDefaults(item);
 
                 const [clonnedItem] = this.schemeContainer.cloneItems([item]);
+
+                clonnedItem.args = {templateRef: templateEntry.path, templateArgs: args};
+                if (clonnedItem.childItems) {
+                    traverseItems(clonnedItem.childItems, item => {
+                        if (!item.args) {
+                            item.args = {};
+                        }
+                        item.args.templated = true;
+                    });
+                }
 
                 this.onItemMouseDown(event, {
                     item: clonnedItem,

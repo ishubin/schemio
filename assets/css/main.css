@@ -373,6 +373,10 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     padding: 1px 5px;
     font-size: 13px;
 }
+.btn.btn-wide {
+    display: block;
+    text-align: center;
+}
 
 
 /******************** Textfields *******************/
