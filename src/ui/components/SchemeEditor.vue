@@ -2380,6 +2380,10 @@ export default {
 
             this.schemeContainer.selectItem(item);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+
+            if (template && item.args && item.args.templateRef) {
+                this.currentTab = 'template';
+            }
         },
 
         toLocalPoint(mouseX, mouseY) {

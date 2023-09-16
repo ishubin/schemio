@@ -159,14 +159,19 @@
             :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
             closeName="Cancel"
             @close="functionEditorModal.shown = false"
-            @primary-submit="onFunctionModalSubmit()">
-            <ArgumentsEditor
-                :editorId="editorId"
-                :argsDefinition="functionEditorModal.functionDescription.args"
-                :args="functionEditorModal.args"
-                :schemeContainer="schemeContainer"
-                @argument-changed="onFunctionModalArgumentChanged"
-                />
+            :width="400"
+            :use-mask="false"
+            @primary-submit="onFunctionModalSubmit()"
+            >
+            <div style="max-width:400px">
+                <ArgumentsEditor
+                    :editorId="editorId"
+                    :argsDefinition="functionEditorModal.functionDescription.args"
+                    :args="functionEditorModal.args"
+                    :schemeContainer="schemeContainer"
+                    @argument-changed="onFunctionModalArgumentChanged"
+                    />
+            </div>
         </modal>
     </div>
 </template>

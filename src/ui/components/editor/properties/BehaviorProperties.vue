@@ -125,15 +125,22 @@
         <span class="btn btn-secondary" @click="copyAllEvents()">Copy all events</span>
         <span class="btn btn-secondary" @click="pasteEvents()">Paste events</span>
 
-        <modal :title="`${functionArgumentsEditor.functionDescription.name} arguments`" v-if="functionArgumentsEditor.shown" @close="functionArgumentsEditor.shown = false">
+        <modal v-if="functionArgumentsEditor.shown"
+            :title="`${functionArgumentsEditor.functionDescription.name} arguments`"
+            @close="functionArgumentsEditor.shown = false"
+            :width="400"
+            :use-mask="false"
+            >
             <p>{{ functionArgumentsEditor.functionDescription.description }}</p>
-            <ArgumentsEditor
-                :editorId="editorId"
-                :argsDefinition="functionArgumentsEditor.functionDescription.args"
-                :args="functionArgumentsEditor.args"
-                :scheme-container="schemeContainer"
-                @argument-changed="onFunctionArgumentsEditorChange"
-            />
+            <div style="max-width: 400px;">
+                <ArgumentsEditor
+                    :editorId="editorId"
+                    :argsDefinition="functionArgumentsEditor.functionDescription.args"
+                    :args="functionArgumentsEditor.args"
+                    :scheme-container="schemeContainer"
+                    @argument-changed="onFunctionArgumentsEditorChange"
+                />
+            </div>
         </modal>
 
         <div ref="dragPreview" class="behavior-action-drag-preview">
