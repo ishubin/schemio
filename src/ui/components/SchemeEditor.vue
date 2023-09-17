@@ -899,20 +899,6 @@ export default {
     },
 
     data() {
-        let screenTransform = null;
-
-        if (this.scheme && this.scheme.id) {
-            const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
-            if (schemeSettings && schemeSettings.screenPosition) {
-                const zoom = parseFloat(schemeSettings.screenPosition.zoom);
-                screenTransform = {
-                    x: schemeSettings.screenPosition.offsetX,
-                    y: schemeSettings.screenPosition.offsetY,
-                    scale: parseFloat(zoom) / 100.0,
-                };
-            }
-        }
-
         return {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file and if history is undone/redone
@@ -931,7 +917,7 @@ export default {
             loadingStep: 'load', // can be "load", "img-preload"
             schemeLoadErrorMessage: null,
 
-            initialScreenTransform: screenTransform,
+            initialScreenTransform: null,
 
             highlightedItems: {
                 itemIds: [],
@@ -1060,6 +1046,24 @@ export default {
             this.initSchemeContainer(this.scheme);
         },
 
+        getInitialScreenTransform() {
+            let screenTransform = { x: 0, y: 0, scale: 1.0 };
+
+            if (this.scheme && this.scheme.id) {
+                const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
+                if (schemeSettings && schemeSettings.screenPosition) {
+                    const zoom = parseFloat(schemeSettings.screenPosition.zoom);
+                    screenTransform = {
+                        x: schemeSettings.screenPosition.offsetX,
+                        y: schemeSettings.screenPosition.offsetY,
+                        scale: parseFloat(zoom) / 100.0,
+                    };
+                }
+            }
+
+            return screenTransform;
+        },
+
         initSchemeContainer(scheme) {
             this.schemeLoadErrorMessage = null;
             this.loadingStep = 'load-shapes';
@@ -1080,10 +1084,12 @@ export default {
                     state.reset();
                 });
 
+                const initialScreenTransform = this.getInitialScreenTransform();
+
                 if (this.mode === 'view') {
-                    this.switchToViewMode();
+                    this.switchToViewMode(initialScreenTransform);
                 } else {
-                    this.switchToEditMode();
+                    this.switchToEditMode(initialScreenTransform);
                 }
 
                 // Text tab is only rendered when in place text edit is triggered
@@ -1972,7 +1978,8 @@ export default {
             this.$store.dispatch('clearStatusMessage');
         },
 
-        switchToViewMode() {
+        switchToViewMode(screenTransform) {
+            this.initialScreenTransform = screenTransform;
             this.animationRegistry.stopAllAnimations();
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
@@ -1986,7 +1993,11 @@ export default {
             this.switchStateInteract();
         },
 
-        switchToEditMode() {
+        switchToEditMode(screenTransform) {
+            this.initialScreenTransform = screenTransform;
+            if (this.interactiveSchemeContainer) {
+                this.schemeContainer.screenTransform = utils.clone(this.interactiveSchemeContainer.screenTransform);
+            }
             this.interactiveSchemeContainer = null;
             this.animationRegistry.stopAllAnimations();
             this.switchStateDragItem();

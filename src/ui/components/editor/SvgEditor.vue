@@ -225,7 +225,8 @@ export default {
         zoomToItemsTrigger  : { type: String, default: null},
 
         // used for initializing scheme with either pre-saved transform or then one that shows all items
-        screenTransform     : { type: Object, default: { x: 0, y: 0, scale: 1.0 }},
+        // if set as null, then it will not try to set inital screen transform
+        screenTransform     : { type: Object, default: null},
 
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
@@ -277,7 +278,9 @@ export default {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }
-        this.setInitialZoom();
+        if (this.screenTransform) {
+            this.setInitialZoom();
+        }
     },
     beforeDestroy(){
         window.removeEventListener("resize", this.updateSvgSize);
