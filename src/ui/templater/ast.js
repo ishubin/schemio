@@ -169,6 +169,34 @@ class ASTBoolAnd extends ASTOperator {
     evalNode(scope) { return this.a.evalNode(scope) && this.b.evalNode(scope); }
 }
 
+
+const reservedFunctions = new Map(Object.entries({
+    min: args => Math.min(...args),
+    max: args => Math.max(...args),
+    pow: args => Math.pow(...args),
+    cos: args => Math.cos(...args),
+    sin: args => Math.sin(...args),
+}));
+
+class ASTFunctionInvocation extends ASTNode {
+    constructor(name, args) {
+        super('functionInvoke');
+        this.name = name;
+        this.args = args;
+    }
+    print() {
+        const argsText = this.args.map(a => a.print()).join(", ");
+        return `${this.name}(${argsText})`;
+    }
+    evalNode(scope) {
+        const args = this.args.map(arg => arg.evalNode(scope));
+        if (reservedFunctions.has(this.name)) {
+            return reservedFunctions.get(this.name)(args);
+        }
+        return scope.get(this.name)(args);
+    }
+}
+
 const operatorPrecedences = new Map(Object.entries({
     '*': 5,
     '/': 5,
@@ -234,6 +262,9 @@ class ASTParser {
         if (!node) {
             throw new Error('Failed parsing expression');
         }
+        if (this.idx < this.tokens.length) {
+            throw new Error('Failed to parse entire expression');
+        }
         return node;
     }
 
@@ -270,7 +301,7 @@ class ASTParser {
 
         while(this.idx < this.tokens.length) {
             const token = this.peekToken();
-            if (token === null || token.t === TokenTypes.END_BRACKET) {
+            if (token === null || token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.COMMA) {
                 break;
             }
             this.skipToken();
@@ -327,6 +358,11 @@ class ASTParser {
         } else if (token.t === TokenTypes.NUMBER) {
             return new ASTNumber(token.v);
         } else if (token.t === TokenTypes.TERM) {
+            const nextToken = this.peekToken();
+            if (nextToken && nextToken.t === TokenTypes.START_BRACKET) {
+                this.skipToken();
+                return this.parseFunction(token.v);
+            }
             return new ASTVarRef(token.v);
         } else if (token.t === TokenTypes.STRING) {
             return new ASTString(token.v);
@@ -339,6 +375,32 @@ class ASTParser {
         } else {
             throw new Error(`Unexpected token ${JSON.stringify(token)}`);
         }
+    }
+
+    parseFunction(name) {
+        const args = [];
+        while(this.idx < this.tokens.length) {
+            const token = this.peekToken();
+            if (!token) {
+                throw new Error('Function is missing ) symbol');
+            }
+            if (token.t === TokenTypes.END_BRACKET) {
+                this.skipToken();
+                break;
+            }
+            if (token.t === TokenTypes.COMMA ) {
+                this.skipToken();
+            }
+
+            const expr = this.parseExpression();
+            if (!expr) {
+                throw new Error('Function is missing an argument');
+            }
+
+            args.push(expr);
+        }
+
+        return new ASTFunctionInvocation(name, args);
     }
 }
 

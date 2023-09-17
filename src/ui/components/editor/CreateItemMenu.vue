@@ -677,7 +677,7 @@ export default {
                     });
                 }
 
-                const item = processJSONTemplate(template.item, args);
+                const item = processJSONTemplate(template.item, {...args, width: template.item.area.w, height: template.item.area.h});
                 enrichItemWithDefaults(item);
 
                 const [clonnedItem] = this.schemeContainer.cloneItems([item]);

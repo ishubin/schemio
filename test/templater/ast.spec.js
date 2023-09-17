@@ -13,10 +13,34 @@ describe('templater ast parser', () => {
             ['x + 1 < 5 - y', '((x + 1) < (5 - y))'],
             ['x + 1 < 5 - y || x > 10', '(((x + 1) < (5 - y)) || (x > 10))'],
             ['x + 1 < 5 - y && x > 10', '(((x + 1) < (5 - y)) && (x > 10))'],
-            ['x + "qwe" == \'hi qwe\'', '((x + "qwe") == "hi qwe")']
+            ['x + "qwe" == \'hi qwe\'', '((x + "qwe") == "hi qwe")'],
         ].forEach(([input, expected]) => {
             const real = parseAST(tokenizeExpression(input)).print();
             expect(real).toBe(expected);
+        });
+    });
+
+    it('should parse functions', () => {
+        [
+            ['x + cos(0.2)', '(x + cos(0.2))'],
+            ['x + max(0.2, y)', '(x + max(0.2, y))'],
+            ['x + cos(0.2) + max(1, y + 2)', '((x + cos(0.2)) + max(1, (y + 2)))'],
+        ].forEach(([input, expected]) => {
+            const real = parseAST(tokenizeExpression(input)).print();
+            expect(real).toBe(expected);
+        });
+    });
+
+
+    it('should evaluate functions', () => {
+        [
+            ['x + pow(y + 1, 3)', {x: 7, y: 2}, 34],
+            ['min(x, 3) + max(y, 7)', {x: 7, y: 2}, 10],
+            ['min(x, 3) + max(y, 7)', {x: 2, y: 10}, 12],
+        ].forEach(([input, data, expected]) => {
+            const ast = parseAST(tokenizeExpression(input));
+            const result = ast.evalNode(new Scope(data));
+            expect(result).toBe(expected);
         });
     });
 

@@ -8,6 +8,7 @@ export const TokenTypes = {
     NUMBER: 'number',
     OPERATOR: 'operator',
     WHITESPACE: 'whitespace',
+    COMMA: 'comma',
 };
 
 function isLetter(c) {
@@ -28,6 +29,7 @@ function isWhitespace(c) {
 
 
 const singleCharTokens = new Map(Object.entries({
+    ',': {t: TokenTypes.COMMA},
     '(': {t: TokenTypes.START_BRACKET},
     ')': {t: TokenTypes.END_BRACKET},
     '+': {t: TokenTypes.OPERATOR, v: '+'},

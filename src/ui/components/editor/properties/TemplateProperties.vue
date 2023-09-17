@@ -85,7 +85,7 @@ export default {
         },
 
         regenerateTemplateItem() {
-            const item = processJSONTemplate(this.template.item, this.args);
+            const item = processJSONTemplate(this.template.item, {...this.args, width: this.item.area.w, height: this.item.area.h});
             item.args = {templateRef: this.templateRef, templateArgs: utils.clone(this.args)};
 
             if (item.childItems) {
