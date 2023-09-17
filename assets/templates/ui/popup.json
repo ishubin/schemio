@@ -176,7 +176,7 @@
                 "shape": "ellipse",
                 "cursor": "default",
                 "area": {
-                    "x": {"$-expr": "cond(closePos == 'top-left', closePosMargin, width - 30 - closePosMargin)"},
+                    "x": {"$-expr": "ifcond(closePos == 'top-left', closePosMargin, width - 30 - closePosMargin)"},
                     "y": {"$-expr": "closePosMargin"},
                     "w": 30,
                     "h": 30,

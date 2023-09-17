@@ -176,7 +176,8 @@ const reservedFunctions = new Map(Object.entries({
     pow: args => Math.pow(...args),
     cos: args => Math.cos(...args),
     sin: args => Math.sin(...args),
-    cond: args => {
+    abs: args => Math.abs(...args),
+    ifcond: args => {
         if (args.length !== 3) {
             throw new Error('cond function is taking exactly 3 arguments');
         }
