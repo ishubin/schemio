@@ -4,6 +4,7 @@ export const TokenTypes = {
     START_BRACKET: 'start_bracket',
     END_BRACKET: 'end_bracket',
     TERM: 'term',
+    STRING: 'string',
     NUMBER: 'number',
     OPERATOR: 'operator',
     WHITESPACE: 'whitespace',
@@ -34,9 +35,27 @@ const singleCharTokens = new Map(Object.entries({
     '*': {t: TokenTypes.OPERATOR, v: '*'},
     '/': {t: TokenTypes.OPERATOR, v: '/'},
     '%': {t: TokenTypes.OPERATOR, v: '%'},
+    '<': {t: TokenTypes.OPERATOR, v: '<'},
+    '>': {t: TokenTypes.OPERATOR, v: '>'},
+}));
+
+const doubleCharTokens = new Map(Object.entries({
+    '==': {t: TokenTypes.OPERATOR, v: '=='},
+    '!=': {t: TokenTypes.OPERATOR, v: '!='},
+    '||': {t: TokenTypes.OPERATOR, v: '||'},
+    '&&': {t: TokenTypes.OPERATOR, v: '&&'},
+    '<=': {t: TokenTypes.OPERATOR, v: '<='},
+    '>=': {t: TokenTypes.OPERATOR, v: '>='},
 }));
 
 
+const stringEscapeSymbols = new Map(Object.entries({
+    '\\': '\\',
+    't': '\t',
+    'n': '\n',
+    '"': '"',
+    '\'': '\''
+}));
 
 class Scanner {
     constructor(text) {
@@ -57,12 +76,23 @@ class Scanner {
             return this.scanNumber();
         } else if (isWhitespace(c)) {
             return this.scanWhitespace();
+        } else if (c === '"' || c === '\'') {
+            this.idx++;
+            return this.scanString(c);
         } else {
+            if (this.idx < this.text.length - 1) {
+                const cc = this.text.substring(this.idx, this.idx + 2);
+                if (doubleCharTokens.has(cc)) {
+                    this.idx+=2;
+                    return doubleCharTokens.get(cc);
+                }
+            }
+
             if (singleCharTokens.has(c)) {
                 this.idx++;
                 return singleCharTokens.get(c);
             }
-            return null;
+            throw new Error('Invalid symbol: ' + c);
         }
     }
 
@@ -122,6 +152,37 @@ class Scanner {
             }
         }
         return {t: TokenTypes.WHITESPACE};
+    }
+
+    scanString(breakChar) {
+        let str = '';
+        while(this.idx < this.text.length) {
+            const c = this.text[this.idx];
+
+            if (c === breakChar) {
+                this.idx++;
+                return {t: 'string', v: str};
+            }
+
+            if (c === '\\') {
+                if (this.idx < this.text.length - 1) {
+                    const n = this.text[this.idx+1];
+                    if (stringEscapeSymbols.has(n)) {
+                        str += stringEscapeSymbols.get(n);
+                    } else {
+                        throw new Error(`Unknown escape symbol: ${n}`);
+                    }
+                    this.idx++
+                } else {
+                    throw new Error('Invalid use of escape symbol in string');
+                }
+            } else {
+                str += c;
+            }
+            this.idx++;
+        }
+
+        throw new Error('Unterminated string: ' + str);
     }
 }
 

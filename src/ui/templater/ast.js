@@ -53,9 +53,22 @@ class ASTNumber extends ASTNode {
     }
 }
 
+class ASTString extends ASTNode {
+    constructor(str) {
+        super('string');
+        this.str = str;
+    }
+    evalNode(scope) {
+        return this.str;
+    }
+    print() {
+        return `"${this.str}"`;
+    }
+}
+
 class ASTVarRef extends ASTNode {
     constructor(varName) {
-        super('var-ref', varName);
+        super('var-ref');
         this.varName = varName;
     }
     evalNode(scope) {
@@ -116,26 +129,89 @@ class ASTNegate extends ASTNode {
     }
 }
 
+class ASTLessThen extends ASTOperator {
+    constructor(a, b) { super('lessThan', '<', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) < this.b.evalNode(scope); }
+}
+
+class ASTGreaterThan extends ASTOperator {
+    constructor(a, b) { super('greaterThan', '>', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) > this.b.evalNode(scope); }
+}
+
+class ASTLessThenOrEquals extends ASTOperator {
+    constructor(a, b) { super('lessThanOrEquals', '<=', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) <= this.b.evalNode(scope); }
+}
+
+class ASTGreaterThanOrEquals extends ASTOperator {
+    constructor(a, b) { super('greaterThanOrEquals', '>=', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) >= this.b.evalNode(scope); }
+}
+
+class ASTEquals extends ASTOperator {
+    constructor(a, b) { super('equals', '==', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) == this.b.evalNode(scope); }
+}
+
+class ASTNotEqual extends ASTOperator {
+    constructor(a, b) { super('notEqual', '!=', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) != this.b.evalNode(scope); }
+}
+
+class ASTBoolOr extends ASTOperator {
+    constructor(a, b) { super('boolOr', '||', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) || this.b.evalNode(scope); }
+}
+
+class ASTBoolAnd extends ASTOperator {
+    constructor(a, b) { super('boolAnd', '&&', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) && this.b.evalNode(scope); }
+}
+
+const operatorPrecedences = new Map(Object.entries({
+    '*': 5,
+    '/': 5,
+    '%': 5,
+    '+': 4,
+    '-': 4,
+    '<': 3,
+    '>': 3,
+    '<=': 3,
+    '>=': 3,
+    '&&': 2,
+    '||': 1,
+    '!=': 0,
+    '==': 0,
+}));
+
 
 function operatorPrecedence(operator) {
-    if (operator === '*' || operator === '/' || operator === '%') {
-        return 1;
+    if (operatorPrecedences.has(operator)) {
+        return operatorPrecedences.get(operator);
     }
     return 0;
 }
 
+const operatorClasses = new Map(Object.entries({
+    '+': ASTAdd,
+    '-': ASTSubtract,
+    '*': ASTMultiply,
+    '/': ASTDivide,
+    '%': ASTMod,
+    '<': ASTLessThen,
+    '>': ASTGreaterThan,
+    '<=': ASTLessThenOrEquals,
+    '>=': ASTGreaterThanOrEquals,
+    '==': ASTEquals,
+    '!=': ASTNotEqual,
+    '&&': ASTBoolAnd,
+    '||': ASTBoolOr,
+}));
 
 function operatorClass(operator) {
-    if (operator === '+') {
-        return ASTAdd;
-    } else if (operator === '-') {
-        return ASTSubtract;
-    } else if (operator === '*') {
-        return ASTMultiply;
-    } else if (operator === '/') {
-        return ASTDivide;
-    } else if (operator === '%') {
-        return ASTMod;
+    if (operatorClasses.has(operator)) {
+        return operatorClasses.get(operator);
     }
 
     throw new Error('Unknown operator: ' + operator);
@@ -190,7 +266,7 @@ class ASTParser {
 
         let a = this.parseTerm();
 
-        let leftover = null;
+        const leftovers = [];
 
         while(this.idx < this.tokens.length) {
             const token = this.peekToken();
@@ -216,17 +292,18 @@ class ASTParser {
 
             if (precedence >= nextPrecedence) {
                 a = new opClass(a, b);
-                if (leftover) {
+                while(leftovers.length > 0) {
+                    const leftover = leftovers.pop();
                     a = leftover(a);
-                    leftover = null;
                 }
             } else {
-                leftover = createOpLeftover(a, opClass);
+                leftovers.push(createOpLeftover(a, opClass));
                 a = b;
             }
         }
 
-        if (leftover) {
+        while(leftovers.length > 0) {
+            const leftover = leftovers.pop();
             a = leftover(a);
         }
 
@@ -251,6 +328,8 @@ class ASTParser {
             return new ASTNumber(token.v);
         } else if (token.t === TokenTypes.TERM) {
             return new ASTVarRef(token.v);
+        } else if (token.t === TokenTypes.STRING) {
+            return new ASTString(token.v);
         } else if (token.t === TokenTypes.OPERATOR && token.v === '-') {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {
@@ -258,7 +337,7 @@ class ASTParser {
             }
             return new ASTNegate(nextTerm);
         } else {
-            throw new Error(`Unexpected token`);
+            throw new Error(`Unexpected token ${JSON.stringify(token)}`);
         }
     }
 }
