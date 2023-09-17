@@ -2,6 +2,9 @@ import axios from "axios";
 import forEach from 'lodash/forEach';
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { getExportHTMLResources, unwrapAxios } from "./clientCommons";
+import { InMemoryCache } from "../../LimitedSettingsStorage";
+
+const templateCache = new InMemoryCache(100);
 
 export const fsClientProvider = {
     type: 'fs',
@@ -79,7 +82,7 @@ export const fsClientProvider = {
             },
 
             getTemplate(path) {
-                return axios.get(path).then(unwrapAxios);
+                return templateCache.get(path, () => axios.get(path).then(unwrapAxios));
             },
 
             saveArt(artId, art) {
