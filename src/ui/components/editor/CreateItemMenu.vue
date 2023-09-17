@@ -165,7 +165,10 @@
         </div>
 
         <div ref="itemDragger" style="position: fixed;" :style="{display: itemCreationDragged.item && itemCreationDragged.startedDragging ? 'inline-block' : 'none' }">
-            <img v-if="itemCreationDragged.previewUrl" :src="itemCreationDragged.previewUrl"/>
+            <img v-if="itemCreationDragged.previewUrl"
+                :width="`${itemCreationDragged.width}px`"
+                :height="`${itemCreationDragged.height}px`"
+                :src="itemCreationDragged.previewUrl"/>
             <svg v-else-if="itemCreationDragged.item && itemCreationDragged.startedDragging"
                 :width="`${itemCreationDragged.item.area.x + itemCreationDragged.item.area.w + 50}px`"
                 :height="`${itemCreationDragged.item.area.y + itemCreationDragged.item.area.h + 50}px`"
@@ -311,6 +314,8 @@ export default {
                 item: null,
                 pageX: 0,
                 pageY: 0,
+                width: 100,
+                height: 100,
                 imageProperty: null,
                 previewUrl: null
             },
@@ -722,15 +727,14 @@ export default {
                     recentPropsChanges.applyItemProps(itemClone);
                 }
 
-                if (template) {
-                    itemClone.area.w = template.item.area.w;
-                    itemClone.area.h = template.item.area.h;
-                } else if (item.previewArea) {
-                    itemClone.area.w = item.previewArea.w;
-                    itemClone.area.h = item.previewArea.h;
-                } else {
-                    itemClone.area.w = 100;
-                    itemClone.area.h = 60;
+                if (!template) {
+                    if (item.previewArea) {
+                        itemClone.area.w = item.previewArea.w;
+                        itemClone.area.h = item.previewArea.h;
+                    } else {
+                        itemClone.area.w = 100;
+                        itemClone.area.h = 60;
+                    }
                 }
 
                 // each item might have different size defined in its menu
@@ -739,9 +743,10 @@ export default {
                     itemClone.area.h = item.size.h;
                 }
 
-                this.itemCreationDragged.template = null;
                 if (template) {
                     this.itemCreationDragged.previewUrl = template.preview;
+                    this.itemCreationDragged.width = itemClone.area.w;
+                    this.itemCreationDragged.height = itemClone.area.h;
                 }
                 this.itemCreationDragged.item = itemClone;
                 this.itemCreationDragged.startedDragging = true;
