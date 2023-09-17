@@ -59,7 +59,7 @@
                     "event": "Show Popup",
                     "actions": [
                         {
-                            "$-if": {"arg": "animation", "op": "=", "values": ["scale-fade"]},
+                            "$-if": "animation == 'scale-fade'",
                             "id": "EdCej1bMv",
                             "element": "self",
                             "method": "scale",
@@ -86,7 +86,7 @@
                             }
                         },
                         {
-                            "$-if": {"arg": "animation", "op": "=", "values": ["scale-fade"]},
+                            "$-if": "animation == 'scale-fade'",
                             "id": "ZsEnYnQ2x",
                             "element": "self",
                             "method": "scale",
@@ -395,7 +395,7 @@
                                     }
                                 },
                                 {
-                                    "$-if": {"arg": "animation", "op": "=", "values": ["scale-fade"]},
+                                    "$-if": "animation == 'scale-fade'",
                                     "id": "LwDC-lucV",
                                     "element": "#root",
                                     "method": "scale",
@@ -430,7 +430,7 @@
                                     }
                                 },
                                 {
-                                    "$-if": {"arg": "hoverAnimation", "op":"=", "values": ["rotate"]},
+                                    "$-if": "hoverAnimation == 'rotate'",
                                     "id": "ZtI5JV1gT",
                                     "element": "#cross",
                                     "method": "rotate",
@@ -464,7 +464,7 @@
                                     }
                                 },
                                 {
-                                    "$-if": {"arg": "hoverAnimation", "op":"=", "values": ["rotate"]},
+                                    "$-if": "hoverAnimation == 'rotate'",
                                     "id": "kIOpAUywv",
                                     "element": "#cross",
                                     "method": "rotate",

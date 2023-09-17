@@ -29,6 +29,9 @@ describe('templater ast parser', () => {
             ['"user: " + x == "user: john" ', {x: 'sara'}, false],
             ['"user: " + x != "user: sara" ', {x: 'john'}, true],
             ['"user: " + x != "user: sara" ', {x: 'sara'}, false],
+            ["animation == 'simple' || animation == 'scaled'", {animation: 'simple'}, true],
+            ["animation == 'simple' || animation == 'scaled'", {animation: 'scaled'}, true],
+            ["animation == 'simple' || animation == 'scaled'", {animation: 'rotate'}, false]
         ].forEach(([input, data, expected]) => {
             const ast = parseAST(tokenizeExpression(input));
             const result = ast.evalNode(new Scope(data));

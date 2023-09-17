@@ -125,14 +125,11 @@ function processArrayItem(item, scope, conditionState) {
             $if = item[$_IF];
         }
 
-        const value = scope.get($if.arg);
-        const expected = $if.hasOwnProperty('values') ? process($if.values, scope) : process($if.value, scope);
-        if (conditionMatches(value, $if.op, expected)) {
-            conditionState.setPreviousCondition(true);
+        const conditionResult = parseAST(tokenizeExpression($if)).evalNode(scope);
+        if (conditionResult) {
             result.push(processObject(item, scope));
-        } else {
-            conditionState.setPreviousCondition(false);
         }
+        conditionState.setPreviousCondition(conditionResult);
     } else if (item.hasOwnProperty($_ELSE)) {
         if (conditionState.previousConditionDefined() && !conditionState.previousConditionExecuted()) {
             conditionState.reset();
@@ -193,37 +190,4 @@ function processArrayLoop(item, $for, scope) {
         result.push(process(item, scope));
     }
     return result;
-}
-
-
-const conditionOperators = {
-    '=': (value, expected) => {
-        if (Array.isArray(expected)) {
-            for (let i = 0; i < expected.length; i++) {
-                if (expected[i] === value) {
-                    return true;
-                }
-            }
-            return false;
-        }
-        return value === expected;
-    },
-    '!=': (value, expected) => {
-        if (Array.isArray(expected)) {
-            for (let i = 0; i < expected.length; i++) {
-                if (expected[i] === value) {
-                    return false;
-                }
-            }
-            return true;
-        }
-        return value !== expected;
-    },
-}
-
-function conditionMatches(value, op, expected) {
-    if (!conditionOperators.hasOwnProperty(op)) {
-        throw new Error(`Unknown condition operator: ${op}`);
-    }
-    return conditionOperators[op](value, expected);
 }

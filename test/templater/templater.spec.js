@@ -52,7 +52,7 @@ describe('templater', () => {
                 name: '1'
             }, {
                 name: '2',
-                '$-if': {arg: 'animation', op: '=', values: ['simple', 'scaled']},
+                '$-if': "animation == 'simple' || animation == 'scaled'"
             }, {
                 name: '3'
             }]
@@ -75,7 +75,7 @@ describe('templater', () => {
                 name: '1'
             }, {
                 name: '2',
-                '$-if': {arg: 'animation', op: '=', values: ['simple', 'scaled']},
+                '$-if': "animation == 'simple' || animation == 'scaled'"
             }, {
                 name: '2_',
                 '$-else': ''
@@ -99,10 +99,10 @@ describe('templater', () => {
                 name: '1'
             }, {
                 name: '2',
-                '$-if': {arg: 'animation', op: '=', values: ['simple', 'scaled']},
+                '$-if': 'animation == "simple" || animation == "scaled"'
             }, {
                 name: '2_',
-                '$-else-if': {arg: 'pos', op: '=', values: ['centered']}
+                '$-else-if': 'pos == "centered"'
             }, {
                 name: '_2',
                 '$-else': '',
