@@ -1913,6 +1913,8 @@ export default {
         },
 
         onTemplateItemRegenerated(originItemId, item) {
+            this.schemeContainer.deselectAllItems();
+
             const originItem = this.schemeContainer.findItemById(originItemId);
             if (!originItem) {
                 return;
@@ -1934,7 +1936,10 @@ export default {
 
             this.schemeContainer.reindexItems();
 
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+
             this.schemeContainer.selectItem(originItem, false);
+
             this.currentTab = 'template';
         },
 
