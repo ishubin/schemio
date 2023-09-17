@@ -122,6 +122,10 @@ export function enrichItemWithDefaults(item) {
         item.shape = 'none';
     }
 
+    if (!item.meta) {
+        item.meta = {};
+    }
+
     // fixing old documents before curves were moved into multi-path shapes
     if (item.shape === 'curve') {
         fixOldCurveItem(item);

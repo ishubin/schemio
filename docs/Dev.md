@@ -45,3 +45,126 @@ const patch = {
 };
 
 ```
+
+
+
+Snippets & Templates
+--------------------
+
+- All ids in templates will be changed and their references will be updated accordingly
+- Should be possible to generate template from selection
+- User templates
+- Export SVG preview as well
+- `$-if`
+- `$-else`
+
+```js
+const templates = [{
+    name: 'Popup',
+
+    args: {
+        title: {name: 'Title', value: 'Title placeholder...', type: 'string'},
+        content: {name: 'Content', value: 'Content placeholder...', type: 'string'},
+        background: {name: 'Background', type: 'advanced-color', value: {type: 'solid', color: 'rgba(168, 193, 219, 1.0)'}}
+    },
+
+    items: [{
+        id: 'a',
+        shape: 'rect',
+        textSlots: {
+            body: {
+                text: {$placeholder: 'content'}
+            }
+        }
+        shapeProps: {
+            fill: {$placeholder: 'background'}
+        }
+    }]
+}];
+```
+
+```js
+actions = [{
+    '$-if': {arg: 'animation', op: '=', values: ['rotate']}
+    // ....
+}, {
+    '$-else': {}
+    // ...
+}, {
+    '$-if': {arg: 'animation', op: '=', values: ['rotate', 'simple']}
+    // ....
+
+}]
+
+```
+
+```
+$-arg:Close Animation:choice:scale-fade,fade,simple
+$-arg:Hover Animation:choice:rotate,simple
+$-arg:Drop Shadow:boolean:true
+$-placeholder:Background:shapeProps.fill
+$-placeholder:Stroke:shapeProps.strokeColor
+$-if:Drop Shadow:=:true:effects.1
+$-if:Close Animation:=:scale-fade,fade:behavior.events.0.actions.0
+$-if-else:behavior.events.0.actions.1
+$-if:Close Animation:=:scale-fade:behavior.events.0.actions.2
+
+
+# for cross
+$-if:Hover Animation:=:rotate:behavior.events.0.actions.2
+```
+
+
+
+```js
+const template = {
+    args: {
+        tabs: {type: 'number', min: 1, max: 20, value: 3},
+        tabWidth: {type: 'number', min: 1, max: 200, value: 50},
+        tabHeight: {type: 'number', min: 1, max: 200, value: 50},
+        tabMargin: {type: 'number', min: 0, max: 1000, value: 10},
+    },
+
+    item: {
+        id: 'container',
+        name: 'tab-container',
+        childItems: [{
+            '$-for': {from: 1, until: {'$-expr': 'tabs + 1'}, it: 'tab'},
+            id: {'$-string-expr': 'tab-${tab}'},
+            name: {'$-string-expr': 'tab-${tab}'},
+            area: {
+                x: {'$-expr': 'tab * tabWidth + (tab) * tabMargin'},
+                y: 10,
+                w: {'$-expr': 'tabWidth'},
+                h: {'$-expr': 'tabHeight + 10'},
+            },
+            behavior: {
+                events: [{
+                    id: {'$-id': ''}, // generates unique id
+                    event: 'clicked',
+                    actions: [{
+                        on: true,
+                        element: 'self',
+                        method: "set",
+                        args: {
+                            field: "opacity",
+                            value: 100,
+                            animated: false,
+                            animationDuration: 0.2,
+                            transition: "ease-in-out",
+                            inBackground: true
+                        }
+                    }, {
+                        on: true,
+                        element: {'$-string-expr': 'tab-container-${tab}'}
+                    }]
+                }]
+            }
+        }, {
+            '$-for': {start: 1, end: {'$-arg-value': 'tabs'}, it: 'tab'},
+            id: 'tab-container-${tab}',
+            name: 'tab-container-${tab}'
+        }]
+    }
+}
+```

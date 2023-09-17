@@ -154,16 +154,25 @@
             @close="frameContextMenu.shown = false"
             />
 
-        <FunctionArgumentsEditor v-if="functionEditorModal.shown"
-            :editorId="editorId"
-            :functionDescription="functionEditorModal.functionDescription"
-            :args="functionEditorModal.args"
+        <modal v-if="functionEditorModal.shown && functionEditorModal.functionDescription"
+            :title="`&quot;${functionEditorModal.functionDescription.name}&quot; arguments`"
             :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
-            :schemeContainer="schemeContainer"
             closeName="Cancel"
             @close="functionEditorModal.shown = false"
-            @argument-changed="onFunctionModalArgumentChanged"
-            @submit="onFunctionModalSubmit()"/>
+            :width="400"
+            :use-mask="false"
+            @primary-submit="onFunctionModalSubmit()"
+            >
+            <div style="max-width:400px">
+                <ArgumentsEditor
+                    :editorId="editorId"
+                    :argsDefinition="functionEditorModal.functionDescription.args"
+                    :args="functionEditorModal.args"
+                    :schemeContainer="schemeContainer"
+                    @argument-changed="onFunctionModalArgumentChanged"
+                    />
+            </div>
+        </modal>
     </div>
 </template>
 
@@ -178,9 +187,9 @@ import { jsonDiff } from '../../../json-differ';
 import { compileAnimations, findItemPropertyDescriptor, findSchemePropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
 import PropertyInput from '../properties/PropertyInput.vue';
-import StoreUtils from '../../../store/StoreUtils';
+import Modal from '../../Modal.vue';
 import AnimationFunctions from '../../../animations/functions/AnimationFunctions';
-import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
+import ArgumentsEditor from '../ArgumentsEditor.vue';
 import shortid from 'shortid';
 import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
@@ -343,7 +352,7 @@ export default {
         light          : {type: Boolean, default: true},
     },
 
-    components: { ContextMenu, PropertyInput, FunctionArgumentsEditor },
+    components: { ContextMenu, PropertyInput, ArgumentsEditor, Modal },
 
     beforeMount() {
         this.compileAnimations();

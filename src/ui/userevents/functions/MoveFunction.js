@@ -98,6 +98,7 @@ export default {
                 item.area.x = args.x;
                 item.area.y = args.y;
                 schemeContainer.reindexItemTransforms(item);
+                EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             }
         }
         resultCallback();

@@ -2013,7 +2013,7 @@ class SchemeContainer {
                     newItem.area.x = translation.x;
                     newItem.area.y = translation.y;
                 } else {
-                    const worldPoint = this.worldPointOnItem(0, 0, item);
+                    const worldPoint = worldPointOnItem(0, 0, item);
                     newItem.area.x = worldPoint.x;
                     newItem.area.y = worldPoint.y;
                 }

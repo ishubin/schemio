@@ -125,14 +125,23 @@
         <span class="btn btn-secondary" @click="copyAllEvents()">Copy all events</span>
         <span class="btn btn-secondary" @click="pasteEvents()">Paste events</span>
 
-        <FunctionArgumentsEditor v-if="functionArgumentsEditor.shown"
-            :editorId="editorId"
-            :function-description="functionArgumentsEditor.functionDescription"
-            :args="functionArgumentsEditor.args"
-            :scheme-container="schemeContainer"
+        <modal v-if="functionArgumentsEditor.shown"
+            :title="`${functionArgumentsEditor.functionDescription.name} arguments`"
             @close="functionArgumentsEditor.shown = false"
-            @argument-changed="onFunctionArgumentsEditorChange"
-        />
+            :width="400"
+            :use-mask="false"
+            >
+            <p>{{ functionArgumentsEditor.functionDescription.description }}</p>
+            <div style="max-width: 400px;">
+                <ArgumentsEditor
+                    :editorId="editorId"
+                    :argsDefinition="functionArgumentsEditor.functionDescription.args"
+                    :args="functionArgumentsEditor.args"
+                    :scheme-container="schemeContainer"
+                    @argument-changed="onFunctionArgumentsEditorChange"
+                />
+            </div>
+        </modal>
 
         <div ref="dragPreview" class="behavior-action-drag-preview">
             <i v-if="dragging.preview.elementIcon" :class="dragging.preview.elementIcon"></i>
@@ -167,7 +176,7 @@ import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
-import FunctionArgumentsEditor from '../FunctionArgumentsEditor.vue';
+import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import {textSlotProperties, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
@@ -175,6 +184,7 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
 import EditorEventBus from '../EditorEventBus.js';
 import { dragAndDropBuilder } from '../../../dragndrop';
+import Modal from '../../Modal.vue';
 
 const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
 const standardItemEventIds = map(standardItemEvents, event => event.id);
@@ -236,7 +246,7 @@ export default {
         extended       : { type: Boolean, default: false }
     },
 
-    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, FunctionArgumentsEditor, VueTagsInput},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor, VueTagsInput, Modal},
 
     data() {
         const items = sortBy(

@@ -3,12 +3,13 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
 
+
 export default class LimitedSettingsStorage {
 
     /**
-     * 
-     * @param {Storage} localStorage 
-     * @param {String} name 
+     *
+     * @param {Storage} localStorage
+     * @param {String} name
      * @param {Number} limit Amount of objects to be stored in settings storage
      */
     constructor(localStorage, name, limit) {
@@ -125,4 +126,56 @@ const schemioLocalStorage = {
 
 export function createSettingStorageFromLocalStorage(name, limit) {
     return new LimitedSettingsStorage(schemioLocalStorage, name, limit);
+}
+
+
+function createInMemoryStorage() {
+    const m = new Map();
+    return {
+        getItem(name) {
+            return m.get(name);
+        },
+        setItem(name, value) {
+            m.set(name, value);
+        },
+        hasItem(name) {
+            return m.has(name);
+        }
+    }
+}
+
+class InMemoryLSS extends LimitedSettingsStorage {
+    constructor(limit = 100) {
+        super(createInMemoryStorage(), 'cache', limit);
+    }
+    _saveItem(itemName, obj) {
+        this.storage.setItem(itemName, obj);
+    }
+    _getItem(name, defaultValue) {
+        if (this.storage.hasItem(name)) {
+            return this.storage.getItem(name);
+        }
+        return defaultValue;
+    }
+    hasItem(name) {
+        return this.storage.hasItem(name);
+    }
+}
+
+
+export class InMemoryCache {
+    constructor(limit = 100) {
+        this.lss = new InMemoryLSS(limit);
+    }
+
+    get(name, promiseCallback) {
+        if (this.lss.hasItem(name)) {
+            return new Promise.resolve(this.lss.get(name));
+        }
+
+        return promiseCallback().then(value => {
+            this.lss.save(name, value);
+            return value;
+        });
+    }
 }

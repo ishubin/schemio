@@ -21,7 +21,7 @@ import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
 import htmlSanitize from '../htmlSanitize.js';
 import RichTextEditor from './components/RichTextEditor.vue';
 import utils from './utils.js';
-
+import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js'
 
 window.Schemio = {
     components: {
@@ -35,7 +35,9 @@ window.Schemio = {
         getBoundingBoxOfItems,
         traverseItems,
         enrichSchemeWithDefaults,
-        htmlSanitize
+        htmlSanitize,
+        LimitedSettingsStorage,
+        InMemoryCache,
     },
     patcher: { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic },
     /**

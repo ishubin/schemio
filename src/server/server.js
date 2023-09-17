@@ -10,7 +10,7 @@ import {
     fsCreateSchemePreview, fsDeleteDirectory, fsDeleteScheme,
     fsDeleteStyle,
     fsDownloadMediaFile, fsGetArt,
-    fsGetScheme, fsGetSchemeInfo, fsGetStyles, fsListFilesRoute,
+    fsGetScheme, fsGetSchemeInfo, fsGetStyles, fsGetTemplates, fsListFilesRoute,
     fsMoveDirectory, fsMoveScheme, fsPatchDirectory,
     fsPatchScheme, fsSaveDeleteArt, fsSaveScheme,
     fsSaveStyle, fsSearchSchemes, fsUploadMediaFile
