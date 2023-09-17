@@ -96,7 +96,7 @@ export default {
                     childItem.args.templated = true;
                 });
             }
-
+            this.modified = false;
             this.$emit('updated', this.item.id, item);
         }
     },

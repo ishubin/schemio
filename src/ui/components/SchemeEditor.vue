@@ -365,7 +365,7 @@
                                 @click="changeTab(itemTextSlotTab.tabName)"
                                 >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
-                        <li v-if="schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
+                        <li v-if="mode !== 'view' && schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
                             <span class="tab"
                                 :class="{active: currentTab === 'template'}"
                                 @click="changeTab('template')"
@@ -418,7 +418,7 @@
 
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
                         </div>
-                        <div v-if="currentTab === 'template' && schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
+                        <div v-if="mode !== 'view' && currentTab === 'template' && !inPlaceTextEditor.shown && schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
                             <TemplateProperties
                                 :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
                                 :editorId="editorId"
@@ -1927,6 +1927,10 @@ export default {
             originItem.args = clonnedItem.args;
             originItem.shapeProps = clonnedItem.shapeProps;
             originItem.childItems = clonnedItem.childItems;
+            originItem.links = clonnedItem.links;
+            originItem.textSlots = clonnedItem.textSlots;
+            originItem.tags = clonnedItem.tags;
+            originItem.behavior = clonnedItem.behavior;
 
             this.schemeContainer.reindexItems();
 
