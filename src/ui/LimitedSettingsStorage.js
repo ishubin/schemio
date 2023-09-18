@@ -129,53 +129,42 @@ export function createSettingStorageFromLocalStorage(name, limit) {
 }
 
 
-function createInMemoryStorage() {
-    const m = new Map();
-    return {
-        getItem(name) {
-            return m.get(name);
-        },
-        setItem(name, value) {
-            m.set(name, value);
-        },
-        hasItem(name) {
-            return m.has(name);
-        }
-    }
-}
-
-class InMemoryLSS extends LimitedSettingsStorage {
-    constructor(limit = 100) {
-        super(createInMemoryStorage(), 'cache', limit);
-    }
-    _saveItem(itemName, obj) {
-        this.storage.setItem(itemName, obj);
-    }
-    _getItem(name, defaultValue) {
-        if (this.storage.hasItem(name)) {
-            return this.storage.getItem(name);
-        }
-        return defaultValue;
-    }
-    hasItem(name) {
-        return this.storage.hasItem(name);
-    }
-}
-
-
 export class InMemoryCache {
     constructor(limit = 100) {
-        this.lss = new InMemoryLSS(limit);
+        this.limit = limit;
+        this.items = new Map();
+        this.counter = 0;
     }
 
     get(name, promiseCallback) {
-        if (this.lss.hasItem(name)) {
-            return new Promise.resolve(this.lss.get(name));
+        if (this.items.has(name)) {
+            return Promise.resolve(this.items.get(name).value);
         }
 
         return promiseCallback().then(value => {
-            this.lss.save(name, value);
+            this._makeSpace();
+            this.counter += 1;
+            this.items.set(name, { value, rev: this.counter });
             return value;
         });
+    }
+
+    _makeSpace() {
+        if (this.items.size < this.limit) {
+            return;
+        }
+        let key = null;
+        let minRev = 0;
+
+        this.items.forEach((item, name) => {
+            if (!key || minRev > item.rev) {
+                key = name;
+                minRev = item.rev;
+            }
+        });
+
+        if (key) {
+            this.items.delete(key);
+        }
     }
 }

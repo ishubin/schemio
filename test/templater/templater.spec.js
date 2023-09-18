@@ -150,4 +150,24 @@ describe('templater', () => {
             }]
         });
     });
+
+
+    it('should run expressions in eval with assigning values to new variables', () => {
+        const template = {
+            '$-eval': ['x = 45', 'y = 3'],
+            items: [{
+                name: {'$-str': 'name: ${x}'}
+            }, {
+                name: {'$-str': 'name: ${y}'}
+            }]
+        };
+
+        expect(processJSONTemplate(template, {y: 6})).toStrictEqual({
+            items: [{
+                name: 'name: 45'
+            }, {
+                name: 'name: 3'
+            }]
+        });
+    });
 });

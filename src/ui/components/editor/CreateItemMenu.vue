@@ -212,51 +212,6 @@ const ITEM_PICKED_FOR_CREATION = 'item-picked-for-creation';
 const PATH_EDITED = 'path-edited';
 
 
-function makeTagsUnique(rootItem) {
-    const tags = new Set();
-    traverseItems([rootItem], item => {
-        if (item.tags) {
-            forEach(item.tags, tag => tags.add(tag));
-        }
-    });
-
-    const tagMapping = new Map();
-    tags.forEach(tag => {
-        tagMapping.set(tag, `${tag}-${shortid.generate()}`);
-    });
-
-    traverseItems([rootItem], item => {
-        const newTags = [];
-        if (item.tags) {
-            forEach(item.tags, tag => {
-                if (tagMapping.has(tag)) {
-                    newTags.push(tagMapping.get(tag));
-                }
-            });
-        }
-        item.tags = newTags;
-
-        if (item.behavior && item.behavior.events) {
-            forEach(item.behavior.events, event => {
-                if (event.actions) {
-                    forEach(event.actions, action => {
-                        const colonIndex = action.element.indexOf(':');
-                        if (colonIndex > 0) {
-                            const expression = action.element.substring(0, colonIndex).trim();
-                            if (expression === 'tag') {
-                                const tag = action.element.substr(colonIndex + 1).trim();
-                                if (tagMapping.has(tag)) {
-                                    action.element = 'tag: ' + tagMapping.get(tag);
-                                }
-                            }
-                        }
-                    });
-                }
-            });
-        }
-    });
-}
-
 export default {
     props: {
         editorId         : {type: String, required: true},
@@ -712,9 +667,7 @@ export default {
             this.previewItem.shown = false;
 
             const itemClone = utils.clone(item.item);
-            if (template) {
-                makeTagsUnique(itemClone);
-            } else {
+            if (!template) {
                 itemClone.id = shortid.generate();
             }
 

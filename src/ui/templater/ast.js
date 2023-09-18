@@ -1,3 +1,4 @@
+import shortid from "shortid";
 import { TokenTypes, tokenizeExpression } from "./tokenizer";
 
 export class Scope {
@@ -20,6 +21,9 @@ export class Scope {
         this.data[varName] = value;
     }
 
+    newScope() {
+        return new Scope({}, this);
+    }
 }
 
 
@@ -72,6 +76,11 @@ class ASTVarRef extends ASTNode {
         this.varName = varName;
     }
     evalNode(scope) {
+        if (this.varName === 'true') {
+            return true;
+        } else if (this.varName === 'false') {
+            return false;
+        }
         return scope.get(this.varName);
     }
     print() {
@@ -169,6 +178,17 @@ class ASTBoolAnd extends ASTOperator {
     evalNode(scope) { return this.a.evalNode(scope) && this.b.evalNode(scope); }
 }
 
+class ASTAssign extends ASTOperator {
+    constructor(a, b) { super('assign', '=', a, b); }
+    evalNode(scope) {
+        if (this.a.type !== 'var-ref') {
+            throw new Error('Cannot use assign operator on non-var');
+        }
+        const value = this.b.evalNode(scope);
+        scope.set(this.a.varName, value);
+    }
+}
+
 
 const reservedFunctions = new Map(Object.entries({
     min: args => Math.min(...args),
@@ -177,6 +197,7 @@ const reservedFunctions = new Map(Object.entries({
     cos: args => Math.cos(...args),
     sin: args => Math.sin(...args),
     abs: args => Math.abs(...args),
+    uid: args => shortid.generate(),
     ifcond: args => {
         if (args.length !== 3) {
             throw new Error('cond function is taking exactly 3 arguments');
@@ -221,6 +242,7 @@ const operatorPrecedences = new Map(Object.entries({
     '==': 2,
     '&&': 1,
     '||': 0,
+    '=': -1,
 }));
 
 
@@ -245,6 +267,7 @@ const operatorClasses = new Map(Object.entries({
     '!=': ASTNotEqual,
     '&&': ASTBoolAnd,
     '||': ASTBoolOr,
+    '=': ASTAssign,
 }));
 
 function operatorClass(operator) {

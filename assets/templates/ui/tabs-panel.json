@@ -1,1 +1,291 @@
-{"name":"Tabs panel","args":{},"description":"Panel with tabs","preview":"data:image/svg+xml;base64,PHN2ZyByZWY9InN2Z0NvbnRhaW5lciIgY2xhc3M9ImV4cG9ydC1zdmctcHJldmlldyIKICAgICAgICB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMDBweCIKICAgICAgICB2aWV3Qm94PSItMTAgLTEwIDU2MCAzODAiCiAgICAgICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQiCiAgICAgICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgICAgIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgogICAgICAgIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiA+CiAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJpUnVRLTdJR3giIGRhdGEtaXRlbS1pZD0iaVJ1US03SUd4IiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPjxnPjxkZWZzPjxmaWx0ZXIgaWQ9Iml0ZW0tZWZmZWN0LWRyb3Atc2hhZG93LWlSdVEtN0lHeC0wIiB4PSItNTAwJSIgeT0iLTUwMCUiIHdpZHRoPSIyMDAwJSIgaGVpZ2h0PSIyMDAwJSI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VHcmFwaGljIiBzdGREZXZpYXRpb249IjIwIj48L2ZlR2F1c3NpYW5CbHVyPjwvZmlsdGVyPjwvZGVmcz48cGF0aCBkPSJNIDUyMCAzNjAgIEwgMjAgMzYwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgNTIwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDU0MCAzNDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2U9Im5vbmUiIGZpbGw9InJnYmEoMCwwLDAsMS4wKSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMyAzKSIgc3R5bGU9Im9wYWNpdHk6IDAuMiIgZmlsdGVyPSJ1cmwoI2l0ZW0tZWZmZWN0LWRyb3Atc2hhZG93LWlSdVEtN0lHeC0wKSI+PC9wYXRoPjwvZz4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSA1MjAgMzYwICBMIDIwIDM2MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDUyMCAwICAgYSAyMCAyMCAwIDAgMSAyMCAyMCAgTCA1NDAgMzQwICAgYSAyMCAyMCAwIDAgMSAtMjAgMjAgWiIgc3Ryb2tlLXdpZHRoPSIxcHgiIHN0cm9rZT0icmdiYSgyMTIsIDIxMiwgMjEyLCAxKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBkYXRhLWl0ZW0taWQ9ImlSdVEtN0lHeCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtaVJ1US03SUd4LWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSI1NDAiIGhlaWdodD0iMzYwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9ImlSdVEtN0lHeCIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDU0MHB4OyBoZWlnaHQ6IDM2MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9ImlSdVEtN0lHeCIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgPGc+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSw0MCwyMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJHb04yVzVVLUEiIGRhdGEtaXRlbS1pZD0iR29OMlc1VS1BIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDkxIDYwICBMIDkgNjAgYSA5IDkgMCAwIDEgLTkgLTkgIEwgMCA5ICBhIDkgOSAwIDAgMSA5IC05ICAgTCA5MSAwICAgYSA5IDkgMCAwIDEgOSA5ICBMIDEwMCA1MSAgIGEgOSA5IDAgMCAxIC05IDkgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iR29OMlc1VS1BIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtR29OMlc1VS1BLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iNjAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGRhdGEtaXRlbS1pZD0iR29OMlc1VS1BIiBjbGFzcz0iaXRlbS10ZXh0LWNvbnRhaW5lciIgc3R5bGU9ImNvbG9yOiByZ2IoMCwgMCwgMCk7IGZvbnQtc2l6ZTogMTRweDsgZm9udC1mYW1pbHk6IEFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7IHBhZGRpbmc6IDE1cHggMHB4IDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyB2ZXJ0aWNhbC1hbGlnbjogdG9wOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyBkaXNwbGF5OiB0YWJsZS1jZWxsOyBib3gtc2l6aW5nOiBib3JkZXItYm94OyB3aWR0aDogMTAwcHg7IGhlaWdodDogNjBweDsiPjxkaXYgZGF0YS1pdGVtLXRleHQtZWxlbWVudC1pdGVtLWlkPSJHb04yVzVVLUEiIGNsYXNzPSJpdGVtLXRleHQtZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsiPjxwIHN0eWxlPSJtYXJnaW4tdG9wOiAwcHg7IG1hcmdpbi1ib3R0b206IDBweDsgcGFkZGluZzogMHB4OyBtaW4taGVpZ2h0OiAxOHB4OyI+VGFiIDE8L3A+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgIDwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDE2MCwyMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJWWDB2OTFQSGkiIGRhdGEtaXRlbS1pZD0iVlgwdjkxUEhpIiBzdHlsZT0ib3BhY2l0eTogMC41OyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzPjwvZGVmcz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gOTEgNjAgIEwgOSA2MCBhIDkgOSAwIDAgMSAtOSAtOSAgTCAwIDkgIGEgOSA5IDAgMCAxIDkgLTkgICBMIDkxIDAgICBhIDkgOSAwIDAgMSA5IDkgIEwgMTAwIDUxICAgYSA5IDkgMCAwIDEgLTkgOSBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZGF0YS1pdGVtLWlkPSJWWDB2OTFQSGkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMSkiPjwvcGF0aD48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGRhdGEtdGV4dC1zbG90LW5hbWU9ImJvZHkiIGlkPSJpdGVtLXRleHQtc2xvdC1WWDB2OTFQSGktYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSI2MCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgZGF0YS1pdGVtLWlkPSJWWDB2OTFQSGkiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigwLCAwLCAwKTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMTVweCAwcHggMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiB0b3A7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IHdpZHRoOiAxMDBweDsgaGVpZ2h0OiA2MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9IlZYMHY5MVBIaSIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5UYWIgMjwvcD48L2Rpdj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz4gICAgICAgICAgPC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMjgwLDIwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9ImNIVXpZSVNwZiIgZGF0YS1pdGVtLWlkPSJjSFV6WUlTcGYiIHN0eWxlPSJvcGFjaXR5OiAwLjU7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSA5MSA2MCAgTCA5IDYwIGEgOSA5IDAgMCAxIC05IC05ICBMIDAgOSAgYSA5IDkgMCAwIDEgOSAtOSAgIEwgOTEgMCAgIGEgOSA5IDAgMCAxIDkgOSAgTCAxMDAgNTEgICBhIDkgOSAwIDAgMSAtOSA5IFoiIHN0cm9rZS13aWR0aD0iMHB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBkYXRhLWl0ZW0taWQ9ImNIVXpZSVNwZiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAxKSI+PC9wYXRoPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGZvcmVpZ25PYmplY3QgZGF0YS10ZXh0LXNsb3QtbmFtZT0iYm9keSIgaWQ9Iml0ZW0tdGV4dC1zbG90LWNIVXpZSVNwZi1ib2R5IiB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjYwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9ImNIVXpZSVNwZiIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAxNXB4IDBweCAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IHRvcDsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDEwMHB4OyBoZWlnaHQ6IDYwcHg7Ij48ZGl2IGRhdGEtaXRlbS10ZXh0LWVsZW1lbnQtaXRlbS1pZD0iY0hVellJU3BmIiBjbGFzcz0iaXRlbS10ZXh0LWVsZW1lbnQiIHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7Ij48cCBzdHlsZT0ibWFyZ2luLXRvcDogMHB4OyBtYXJnaW4tYm90dG9tOiAwcHg7IHBhZGRpbmc6IDBweDsgbWluLWhlaWdodDogMThweDsiPlRhYiAzPC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgICA8L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwyMCw2MCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSItYUZNdVFITmwiIGRhdGEtaXRlbS1pZD0iLWFGTXVRSE5sIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDQ4MCAyODAgIEwgMjAgMjgwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgNDgwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDUwMCAyNjAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iLWFGTXVRSE5sIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtLWFGTXVRSE5sLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSI1MDAiIGhlaWdodD0iMjgwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9Ii1hRk11UUhObCIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDUwMHB4OyBoZWlnaHQ6IDI4MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9Ii1hRk11UUhObCIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5UYWIgY29udGVudCAxPC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgICA8L2c+PC9nPiA8L2c+CiAgICA8L3N2Zz4=","item":{"shapeProps":{"cornerRadius":20,"strokeColor":"rgba(212, 212, 212, 1)","strokeSize":1,"fill":{"type":"solid","color":"rgba(240,240,240,1.0)"},"strokePattern":"solid"},"shape":"rect","area":{"x":960,"y":-260,"w":540,"h":360,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"name":"Tabs panel","links":[],"behavior":{"events":[{"id":"NzIBept5Z","event":"init","actions":[{"id":"1bQtvEeG4","element":"tag: tab","method":"set","on":true,"args":{"field":"opacity","value":50,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"2ynR6hXh3","element":"#GoN2W5U-A","method":"set","on":true,"args":{"field":"opacity","value":100,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}}]}]},"tags":[],"effects":[{"id":"Lira_Np5T","effect":"drop-shadow","name":"Drop Shadow","args":{"color":"rgba(0,0,0,1.0)","dx":3,"dy":3,"blur":20,"opacity":20,"inside":false}}],"id":"iRuQ-7IGx","childItems":[{"shapeProps":{"cornerRadius":9,"fill":{"type":"solid","color":"rgba(255, 255, 255, 1)"},"strokeColor":"rgba(30,30,30,1.0)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"pointer","area":{"x":40,"y":20,"w":100,"h":60,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"tab 1","description":"","links":[],"textSlots":{"body":{"text":"<p>Tab 1</p>","color":"rgba(0,0,0,1.0)","halign":"center","valign":"top","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":15,"paddingBottom":0}},"behavior":{"events":[{"id":"cLOIlh8JS","event":"clicked","actions":[{"id":"8DkVBjYlH","element":"tag: tab","method":"set","on":true,"args":{"field":"opacity","value":50,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"2BOw7x3tg","element":"self","method":"set","on":true,"args":{"field":"opacity","value":100,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"glqtuahyh","element":"tag: tab-container","method":"hide","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}},{"id":"ZzXTnxYqq","element":"#-aFMuQHNl","method":"show","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}}]}]},"selfOpacity":100,"visible":true,"tags":["tab"],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","id":"GoN2W5U-A","locked":true},{"id":"VX0v91PHi","shapeProps":{"cornerRadius":9,"fill":{"type":"solid","color":"rgba(255, 255, 255, 1)"},"strokeColor":"rgba(30,30,30,1.0)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"pointer","area":{"x":160,"y":20,"w":100,"h":60,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":50,"blendMode":"normal","name":"tab 2","description":"","links":[],"textSlots":{"body":{"text":"<p>Tab 2</p>","color":"rgba(0,0,0,1.0)","halign":"center","valign":"top","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":15,"paddingBottom":0}},"behavior":{"events":[{"id":"cLOIlh8JS","event":"clicked","actions":[{"id":"8DkVBjYlH","element":"tag: tab","method":"set","on":true,"args":{"field":"opacity","value":50,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"2BOw7x3tg","element":"self","method":"set","on":true,"args":{"field":"opacity","value":100,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"glqtuahyh","element":"tag: tab-container","method":"hide","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}},{"id":"ZzXTnxYqq","element":"#YwXhxSncv","method":"show","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}}]}]},"selfOpacity":100,"visible":true,"tags":["tab"],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","locked":false},{"id":"cHUzYISpf","shapeProps":{"cornerRadius":9,"fill":{"type":"solid","color":"rgba(255, 255, 255, 1)"},"strokeColor":"rgba(30,30,30,1.0)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"pointer","area":{"x":280,"y":20,"w":100,"h":60,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":50,"blendMode":"normal","name":"tab 3","description":"","links":[],"textSlots":{"body":{"text":"<p>Tab 3</p>","color":"rgba(0,0,0,1.0)","halign":"center","valign":"top","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":15,"paddingBottom":0}},"behavior":{"events":[{"id":"cLOIlh8JS","event":"clicked","actions":[{"id":"8DkVBjYlH","element":"tag: tab","method":"set","on":true,"args":{"field":"opacity","value":50,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"2BOw7x3tg","element":"self","method":"set","on":true,"args":{"field":"opacity","value":100,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true}},{"id":"glqtuahyh","element":"tag: tab-container","method":"hide","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}},{"id":"ZzXTnxYqq","element":"#QQ8BX7Yug","method":"show","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}}]}]},"selfOpacity":100,"visible":true,"tags":["tab"],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","locked":false},{"shapeProps":{"cornerRadius":20,"fill":{"type":"solid","color":"rgba(255, 255, 255, 1)"},"strokeColor":"rgba(255, 255, 255, 1)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"default","area":{"x":20,"y":60,"w":500,"h":280,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"Tab container 1","description":"","links":[],"textSlots":{"body":{"text":"<p>Tab content 1</p>","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"behavior":{"events":[]},"selfOpacity":100,"visible":true,"tags":["tab-container"],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","id":"-aFMuQHNl","locked":true},{"id":"YwXhxSncv","shapeProps":{"cornerRadius":20,"fill":{"type":"solid","color":"rgba(255, 255, 255, 1)"},"strokeColor":"rgba(255, 255, 255, 1)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"default","area":{"x":20,"y":60,"w":500,"h":280,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"Tab container 2","description":"","links":[],"textSlots":{"body":{"text":"<p>Tab content 2</p>","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"behavior":{"events":[]},"selfOpacity":100,"visible":false,"tags":["tab-container"],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","locked":true},{"id":"QQ8BX7Yug","shapeProps":{"cornerRadius":20,"fill":{"type":"solid","color":"rgba(255, 255, 255, 1)"},"strokeColor":"rgba(255, 255, 255, 1)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"default","area":{"x":20,"y":60,"w":500,"h":280,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"Tab container 3","description":"","links":[],"textSlots":{"body":{"text":"<p>Tab content 3</p>","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"behavior":{"events":[]},"selfOpacity":100,"visible":false,"tags":["tab-container"],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","locked":true}],"description":"","textSlots":{"body":{"text":"","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"opacity":100,"selfOpacity":100,"visible":true,"blendMode":"normal","cursor":"default","clip":false,"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)"}}
+{
+    "name": "Tabs panel",
+    "args": {
+        "numTabs": {"type": "number", "value": 3, "min": 1, "name": "Numbers of tabs"},
+        "tabWidth": {"type": "number", "value": 100, "min": 0, "name": "Tab width"},
+        "tabHeight": {"type": "number", "value": 40, "min": 0, "name": "Tab height"},
+        "tabCornerRadius": {"type": "number", "value": 6, "min": 0, "name": "Tab Corner radius"},
+        "cornerRadius": {"type": "number", "value": 10, "min": 0, "name": "Corner radius"},
+        "tabGap": {"type": "number", "value": 5, "min": 0, "name": "Tab gap", "description": "Distance between tabs"},
+        "padding": {"type": "number", "value": 10, "min": 0, "name": "Padding"},
+        "tabBackground": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(255, 255, 255, 1)" }, "name": "Tab background"},
+        "inactiveBackground": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(232, 232, 232, 1)" }, "name": "Inactive tab background"},
+        "background": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},
+        "strokeColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
+        "textColor": {"type": "color", "value": "rgba(30,30,30,1.0)", "name": "Text color"},
+        "shadow": {"type": "boolean", "value": true, "name": "Drop shadow"}
+    },
+    "description": "Panel with tabs",
+    "preview": "data:image/svg+xml;base64,PHN2ZyByZWY9InN2Z0NvbnRhaW5lciIgY2xhc3M9ImV4cG9ydC1zdmctcHJldmlldyIKICAgICAgICB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMDBweCIKICAgICAgICB2aWV3Qm94PSItMTAgLTEwIDU2MCAzODAiCiAgICAgICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQiCiAgICAgICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgICAgIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgogICAgICAgIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiA+CiAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJpUnVRLTdJR3giIGRhdGEtaXRlbS1pZD0iaVJ1US03SUd4IiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPjxnPjxkZWZzPjxmaWx0ZXIgaWQ9Iml0ZW0tZWZmZWN0LWRyb3Atc2hhZG93LWlSdVEtN0lHeC0wIiB4PSItNTAwJSIgeT0iLTUwMCUiIHdpZHRoPSIyMDAwJSIgaGVpZ2h0PSIyMDAwJSI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VHcmFwaGljIiBzdGREZXZpYXRpb249IjIwIj48L2ZlR2F1c3NpYW5CbHVyPjwvZmlsdGVyPjwvZGVmcz48cGF0aCBkPSJNIDUyMCAzNjAgIEwgMjAgMzYwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgNTIwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDU0MCAzNDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2U9Im5vbmUiIGZpbGw9InJnYmEoMCwwLDAsMS4wKSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMyAzKSIgc3R5bGU9Im9wYWNpdHk6IDAuMiIgZmlsdGVyPSJ1cmwoI2l0ZW0tZWZmZWN0LWRyb3Atc2hhZG93LWlSdVEtN0lHeC0wKSI+PC9wYXRoPjwvZz4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSA1MjAgMzYwICBMIDIwIDM2MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDUyMCAwICAgYSAyMCAyMCAwIDAgMSAyMCAyMCAgTCA1NDAgMzQwICAgYSAyMCAyMCAwIDAgMSAtMjAgMjAgWiIgc3Ryb2tlLXdpZHRoPSIxcHgiIHN0cm9rZT0icmdiYSgyMTIsIDIxMiwgMjEyLCAxKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBkYXRhLWl0ZW0taWQ9ImlSdVEtN0lHeCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtaVJ1US03SUd4LWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSI1NDAiIGhlaWdodD0iMzYwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9ImlSdVEtN0lHeCIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDU0MHB4OyBoZWlnaHQ6IDM2MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9ImlSdVEtN0lHeCIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgPGc+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSw0MCwyMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJHb04yVzVVLUEiIGRhdGEtaXRlbS1pZD0iR29OMlc1VS1BIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDkxIDYwICBMIDkgNjAgYSA5IDkgMCAwIDEgLTkgLTkgIEwgMCA5ICBhIDkgOSAwIDAgMSA5IC05ICAgTCA5MSAwICAgYSA5IDkgMCAwIDEgOSA5ICBMIDEwMCA1MSAgIGEgOSA5IDAgMCAxIC05IDkgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iR29OMlc1VS1BIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtR29OMlc1VS1BLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iNjAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGRhdGEtaXRlbS1pZD0iR29OMlc1VS1BIiBjbGFzcz0iaXRlbS10ZXh0LWNvbnRhaW5lciIgc3R5bGU9ImNvbG9yOiByZ2IoMCwgMCwgMCk7IGZvbnQtc2l6ZTogMTRweDsgZm9udC1mYW1pbHk6IEFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7IHBhZGRpbmc6IDE1cHggMHB4IDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyB2ZXJ0aWNhbC1hbGlnbjogdG9wOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyBkaXNwbGF5OiB0YWJsZS1jZWxsOyBib3gtc2l6aW5nOiBib3JkZXItYm94OyB3aWR0aDogMTAwcHg7IGhlaWdodDogNjBweDsiPjxkaXYgZGF0YS1pdGVtLXRleHQtZWxlbWVudC1pdGVtLWlkPSJHb04yVzVVLUEiIGNsYXNzPSJpdGVtLXRleHQtZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsiPjxwIHN0eWxlPSJtYXJnaW4tdG9wOiAwcHg7IG1hcmdpbi1ib3R0b206IDBweDsgcGFkZGluZzogMHB4OyBtaW4taGVpZ2h0OiAxOHB4OyI+VGFiIDE8L3A+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgIDwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDE2MCwyMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJWWDB2OTFQSGkiIGRhdGEtaXRlbS1pZD0iVlgwdjkxUEhpIiBzdHlsZT0ib3BhY2l0eTogMC41OyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzPjwvZGVmcz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gOTEgNjAgIEwgOSA2MCBhIDkgOSAwIDAgMSAtOSAtOSAgTCAwIDkgIGEgOSA5IDAgMCAxIDkgLTkgICBMIDkxIDAgICBhIDkgOSAwIDAgMSA5IDkgIEwgMTAwIDUxICAgYSA5IDkgMCAwIDEgLTkgOSBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZGF0YS1pdGVtLWlkPSJWWDB2OTFQSGkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMSkiPjwvcGF0aD48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGRhdGEtdGV4dC1zbG90LW5hbWU9ImJvZHkiIGlkPSJpdGVtLXRleHQtc2xvdC1WWDB2OTFQSGktYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSI2MCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgZGF0YS1pdGVtLWlkPSJWWDB2OTFQSGkiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigwLCAwLCAwKTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMTVweCAwcHggMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiB0b3A7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IHdpZHRoOiAxMDBweDsgaGVpZ2h0OiA2MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9IlZYMHY5MVBIaSIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5UYWIgMjwvcD48L2Rpdj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz4gICAgICAgICAgPC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMjgwLDIwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9ImNIVXpZSVNwZiIgZGF0YS1pdGVtLWlkPSJjSFV6WUlTcGYiIHN0eWxlPSJvcGFjaXR5OiAwLjU7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSA5MSA2MCAgTCA5IDYwIGEgOSA5IDAgMCAxIC05IC05ICBMIDAgOSAgYSA5IDkgMCAwIDEgOSAtOSAgIEwgOTEgMCAgIGEgOSA5IDAgMCAxIDkgOSAgTCAxMDAgNTEgICBhIDkgOSAwIDAgMSAtOSA5IFoiIHN0cm9rZS13aWR0aD0iMHB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBkYXRhLWl0ZW0taWQ9ImNIVXpZSVNwZiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAxKSI+PC9wYXRoPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGZvcmVpZ25PYmplY3QgZGF0YS10ZXh0LXNsb3QtbmFtZT0iYm9keSIgaWQ9Iml0ZW0tdGV4dC1zbG90LWNIVXpZSVNwZi1ib2R5IiB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjYwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9ImNIVXpZSVNwZiIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAxNXB4IDBweCAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IHRvcDsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDEwMHB4OyBoZWlnaHQ6IDYwcHg7Ij48ZGl2IGRhdGEtaXRlbS10ZXh0LWVsZW1lbnQtaXRlbS1pZD0iY0hVellJU3BmIiBjbGFzcz0iaXRlbS10ZXh0LWVsZW1lbnQiIHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7Ij48cCBzdHlsZT0ibWFyZ2luLXRvcDogMHB4OyBtYXJnaW4tYm90dG9tOiAwcHg7IHBhZGRpbmc6IDBweDsgbWluLWhlaWdodDogMThweDsiPlRhYiAzPC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgICA8L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwyMCw2MCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSItYUZNdVFITmwiIGRhdGEtaXRlbS1pZD0iLWFGTXVRSE5sIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDQ4MCAyODAgIEwgMjAgMjgwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgNDgwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDUwMCAyNjAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iLWFGTXVRSE5sIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtLWFGTXVRSE5sLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSI1MDAiIGhlaWdodD0iMjgwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9Ii1hRk11UUhObCIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDUwMHB4OyBoZWlnaHQ6IDI4MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9Ii1hRk11UUhObCIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5UYWIgY29udGVudCAxPC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgICA8L2c+PC9nPiA8L2c+CiAgICA8L3N2Zz4=",
+    "item": {
+        "$-eval": [
+            "topMargin = padding",
+            "tw = max(10, min((width - 2 * padding) / numTabs - tabGap, tabWidth))",
+            "tabMargin = max(10, cornerRadius) + padding",
+            "tabTag = 'tab-' + uid()",
+            "containerTag = 'tab-container-' + uid()"
+        ],
+        "id": "root",
+        "shapeProps": {
+            "cornerRadius": {"$-expr": "cornerRadius"},
+            "strokeColor": {"$-expr": "strokeColor"},
+            "strokeSize": 1,
+            "fill": {"$-expr": "background"},
+            "strokePattern": "solid"
+        },
+        "shape": "rect",
+        "area": {
+            "x": 0,
+            "y": 0,
+            "w": 540,
+            "h": 360,
+            "r": 0,
+            "px": 0.5,
+            "py": 0.5,
+            "sx": 1,
+            "sy": 1
+        },
+        "name": "Tabs panel",
+        "links": [],
+        "behavior": {
+            "events": [
+                {
+                    "id": "NzIBept5Z",
+                    "event": "init",
+                    "actions": [
+                        {
+                            "id": "1bQtvEeG4",
+                            "element": {"$-str": "tag: ${tabTag}"},
+                            "method": "set",
+                            "on": true,
+                            "args": {
+                                "field": "shapeProps.fill",
+                                "value": {"$-expr": "inactiveBackground"},
+                                "animated": false,
+                                "animationDuration": 0.2,
+                                "transition": "ease-in-out",
+                                "inBackground": true
+                            }
+                        },
+                        {
+                            "id": "2ynR6hXh3",
+                            "element": "#tab-1",
+                            "method": "set",
+                            "on": true,
+                            "args": {
+                                "field": "shapeProps.fill",
+                                "value": {"$-expr": "tabBackground"},
+                                "animated": false,
+                                "animationDuration": 0.2,
+                                "transition": "ease-in-out",
+                                "inBackground": true
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [],
+        "effects": [
+            {
+                "$-if": "shadow == true",
+                "id": "Lira_Np5T",
+                "effect": "drop-shadow",
+                "name": "Drop Shadow",
+                "args": {
+                    "color": "rgba(0,0,0,1.0)",
+                    "dx": 3,
+                    "dy": 3,
+                    "blur": 20,
+                    "opacity": 20,
+                    "inside": false
+                }
+            }
+        ],
+        "childItems": [
+            {
+                "$-for": {"start": 0, "until": {"$-expr": "numTabs"}, "it": "idx"},
+                "id": {"$-str": "tab-${idx+1}"},
+                "name": {"$-str": "Tab ${idx+1}"},
+                "shapeProps": {
+                    "cornerRadius": {"$-expr": "tabCornerRadius"},
+                    "fill": {"$-expr": "ifcond(idx == 0, tabBackground, inactiveBackground)"},
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "shape": "rect",
+                "cursor": "pointer",
+                "area": {
+                    "x": {"$-expr": "tabMargin + idx * (tw + tabGap)"},
+                    "y": {"$-expr": "topMargin"},
+                    "w": {"$-expr": "tw"},
+                    "h": {"$-expr": "tabHeight"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "description": "",
+                "links": [],
+                "textSlots": {
+                    "body": {
+                        "text": {"$-str": "<p>Tab ${idx+1}</p>"},
+                        "color": {"$-expr": "textColor"},
+                        "halign": "center",
+                        "valign": "top",
+                        "fontSize": 14,
+                        "whiteSpace": "normal",
+                        "font": "Arial",
+                        "paddingLeft": 0,
+                        "paddingRight": 0,
+                        "paddingTop": 10,
+                        "paddingBottom": 0
+                    }
+                },
+                "behavior": {
+                    "events": [
+                        {
+                            "id": {"$-expr": "uid()"},
+                            "event": "clicked",
+                            "actions": [
+                                {
+                                    "id": {"$-expr": "uid()"},
+                                    "element": {"$-str": "tag: ${tabTag}"},
+                                    "method": "set",
+                                    "on": true,
+                                    "args": {
+                                        "field": "shapeProps.fill",
+                                        "value": {"$-expr": "inactiveBackground"},
+                                        "animated": false,
+                                        "animationDuration": 0.2,
+                                        "transition": "ease-in-out",
+                                        "inBackground": true
+                                    }
+                                },
+                                {
+                                    "id": {"$-expr": "uid()"},
+                                    "element": "self",
+                                    "method": "set",
+                                    "on": true,
+                                    "args": {
+                                        "field": "shapeProps.fill",
+                                        "value": {"$-expr": "tabBackground"},
+                                        "animated": false,
+                                        "animationDuration": 0.2,
+                                        "transition": "ease-in-out",
+                                        "inBackground": true
+                                    }
+                                },
+                                {
+                                    "id": {"$-expr": "uid()"},
+                                    "element": {"$-str": "#tab-container-${idx+1}"},
+                                    "method": "toggleGroup",
+                                    "on": true,
+                                    "args": {
+                                        "group": {"$-str": "tag: ${containerTag}"}
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [ {"$-expr": "tabTag"} ],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)",
+                "locked": true
+            },
+            {
+                "$-for": {"start": 0, "until": {"$-expr": "numTabs"}, "it": "idx"},
+                "id": {"$-str": "tab-container-${idx+1}"},
+                "shapeProps": {
+                    "cornerRadius": {"$-expr": "cornerRadius"},
+                    "fill": {"$-expr": "tabBackground"},
+                    "strokeColor": "rgba(255, 255, 255, 1)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "shape": "rect",
+                "cursor": "default",
+                "area": {
+                    "x": {"$-expr": "padding"},
+                    "y": {"$-expr": "topMargin + tabHeight - tabCornerRadius - 1"},
+                    "w": {"$-expr": "max(1, width - padding * 2)"},
+                    "h": {"$-expr": "max(1, height - padding - (topMargin + tabHeight - tabCornerRadius - 1))"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "name": {"$-str": "Tab container ${idx+1}"},
+                "description": "",
+                "links": [],
+                "textSlots": {
+                    "body": {
+                        "text": {"$-str": "<p>Attach items here (tab ${idx+1})...</p>"},
+                        "color": "rgba(150,150,150,1.0)",
+                        "halign": "center",
+                        "valign": "middle",
+                        "fontSize": 26,
+                        "whiteSpace": "normal",
+                        "font": "Arial",
+                        "paddingLeft": 0,
+                        "paddingRight": 0,
+                        "paddingTop": 0,
+                        "paddingBottom": 0
+                    }
+                },
+                "behavior": {
+                    "events": []
+                },
+                "selfOpacity": 100,
+                "visible": {"$-expr": "idx == 0"},
+                "tags": [
+                    {"$-expr": "containerTag"}
+                ],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)",
+                "locked": true
+            }
+        ],
+        "description": "",
+        "textSlots": {
+            "body": {
+                "text": "",
+                "color": "rgba(0,0,0,1.0)",
+                "halign": "center",
+                "valign": "middle",
+                "fontSize": 14,
+                "whiteSpace": "normal",
+                "font": "Arial",
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0
+            }
+        },
+        "opacity": 100,
+        "selfOpacity": 100,
+        "visible": true,
+        "blendMode": "normal",
+        "cursor": "default",
+        "clip": false,
+        "interactionMode": "tooltip",
+        "tooltipBackground": "rgba(230,230,230,1.0)",
+        "tooltipColor": "rgba(30,30,30,1.0)"
+    }
+}

@@ -1939,6 +1939,7 @@ export default {
             originItem.textSlots = clonnedItem.textSlots;
             originItem.tags = clonnedItem.tags;
             originItem.behavior = clonnedItem.behavior;
+            originItem.effects = clonnedItem.effects;
 
             this.schemeContainer.reindexItems();
 

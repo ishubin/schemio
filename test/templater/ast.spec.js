@@ -45,6 +45,13 @@ describe('templater ast parser', () => {
     });
 
 
+    it('should assign variable using = operator', () => {
+        const scope = new Scope({x: 2});
+        const ast = parseAST(tokenizeExpression('newVar = abs(x - 10) + 6'));
+        ast.evalNode(scope);
+        expect(scope.get('newVar')).toBe(14);
+    });
+
     it('should parse and evaluate boolean expressions', () => {
         [
             ['2-5 + x > y - 1', {x: 2, y: 4}, false],

@@ -15,7 +15,7 @@
                 @argument-changed="onArgChanged"
             />
         </div>
-        <span v-if="template" class="btn btn-primary btn-wide" :class="{disabled: !modified}" @click="regenerateTemplateItem()">Update</span>
+        <span v-if="template" class="btn btn-primary btn-wide" @click="regenerateTemplateItem()">Update</span>
     </div>
 </template>
 

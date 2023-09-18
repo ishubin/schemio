@@ -5,9 +5,15 @@ import { tokenizeExpression } from '../../src/ui/templater/tokenizer';
 
 describe('template tokenizer', () => {
     it('should tokenize complex expressions', () => {
-        const tokens = tokenizeExpression('2.4     + (3 * rnd() - 3 / 0.4 + x1) == "some * \\" - string" + "23"');
+        const tokens = tokenizeExpression('x = 2.4     + (3 * rnd() - 3 / 0.4 + x1) == "some * \\" - string" + "23"');
 
         expect(tokens).toStrictEqual([{
+            t: 'term',
+            v: 'x'
+        }, {
+            t: 'operator',
+            v: '='
+        }, {
             t: 'number',
             v: 2.4
         }, {

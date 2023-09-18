@@ -9,6 +9,7 @@ const $_IF = '$-if';
 const $_ELSE_IF = '$-else-if';
 const $_ELSE = '$-else';
 const $_FOR = '$-for';
+const $_EVAL = '$-eval';
 
 
 export function processJSONTemplate(obj, data) {
@@ -19,16 +20,29 @@ export function processJSONTemplate(obj, data) {
     return process(obj, new Scope(data));
 }
 
+/**
+ *
+ * @param {*} obj
+ * @param {Scope} scope
+ * @returns
+ */
 function process(obj, scope) {
     if (Array.isArray(obj)) {
-        return processArray(obj, scope);
+        return processArray(obj, scope.newScope());
     } else if (typeof obj === 'object') {
         if (obj.hasOwnProperty($_EXPR)) {
             return processExpression(obj[$_EXPR], scope);
         } else if (obj.hasOwnProperty($_STR)) {
             return processStringExpression(obj[$_STR], scope);
+        } else if (obj.hasOwnProperty($_EVAL)) {
+            const $eval = obj[$_EVAL];
+            if (Array.isArray) {
+                $eval.forEach(expr => processExpression(expr, scope));
+            } else {
+                return processExpression($eval, scope)
+            }
         }
-        return processObject(obj, scope);
+        return processObject(obj, scope.newScope());
     }
 
     return obj;
@@ -90,7 +104,7 @@ function processArray(arr, scope) {
         const item = arr[i];
 
         if (Array.isArray(item)) {
-            result.push(processArray(item, scope));
+            result.push(processArray(item, scope.newScope()));
         } else if (typeof item === 'object') {
             result = result.concat(processArrayItem(item, scope, conditionState));
         } else {
