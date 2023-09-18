@@ -428,6 +428,7 @@ export default {
         showPreviewItem(event, item) {
             enrichItemWithDefaults(item.item);
 
+            this.previewItem.template = null;
             this.previewItem.item = item;
             this.previewItem.artIcon = null;
             this.previewItem.template = null;
@@ -442,6 +443,7 @@ export default {
         },
 
         showPreviewArt(artIcon) {
+            this.previewItem.template = null;
             this.previewItem.item = null;
             this.previewItem.artIcon = artIcon;
             this.previewItem.gif = null;
@@ -470,6 +472,7 @@ export default {
         },
 
         showPreviewGif(event, gifName) {
+            this.previewItem.template = null;
             this.previewItem.item = null;
             this.previewItem.artIcon = null;
             this.previewItem.gif = gifName;
@@ -638,19 +641,22 @@ export default {
                 }
 
                 const item = processJSONTemplate(template.item, {...args, width: template.item.area.w, height: template.item.area.h});
+                traverseItems([item], it => {
+                    if (!it.args) {
+                        it.args = {};
+                    }
+                    // Storing id of every item in its args so that later, when regenerating templated item that is already in scene,
+                    // we can reconstruct other user made items that user attached to templated items
+                    it.args.templatedId = it.id;
+                    it.args.templated = true;
+                });
+
                 enrichItemWithDefaults(item);
 
                 const [clonnedItem] = this.schemeContainer.cloneItems([item]);
 
-                clonnedItem.args = {templateRef: templateEntry.path, templateArgs: args};
-                if (clonnedItem.childItems) {
-                    traverseItems(clonnedItem.childItems, item => {
-                        if (!item.args) {
-                            item.args = {};
-                        }
-                        item.args.templated = true;
-                    });
-                }
+                clonnedItem.args.templateRef = templateEntry.path;
+                clonnedItem.args.templateArgs = args;
 
                 this.onItemMouseDown(event, {
                     item: clonnedItem,
@@ -700,6 +706,8 @@ export default {
                     this.itemCreationDragged.previewUrl = template.preview;
                     this.itemCreationDragged.width = itemClone.area.w;
                     this.itemCreationDragged.height = itemClone.area.h;
+                } else {
+                    this.itemCreationDragged.previewUrl = null;
                 }
                 this.itemCreationDragged.item = itemClone;
                 this.itemCreationDragged.startedDragging = true;

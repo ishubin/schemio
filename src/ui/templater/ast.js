@@ -42,9 +42,9 @@ class ASTNode {
     }
 }
 
-class ASTNumber extends ASTNode {
+class ASTValue extends ASTNode {
     constructor(value) {
-        super('number', value);
+        super('value', value);
         this.value = value;
     }
 
@@ -76,11 +76,6 @@ class ASTVarRef extends ASTNode {
         this.varName = varName;
     }
     evalNode(scope) {
-        if (this.varName === 'true') {
-            return true;
-        } else if (this.varName === 'false') {
-            return false;
-        }
         return scope.get(this.varName);
     }
     print() {
@@ -389,12 +384,18 @@ class ASTParser {
             }
             return expr;
         } else if (token.t === TokenTypes.NUMBER) {
-            return new ASTNumber(token.v);
+            return new ASTValue(token.v);
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
             if (nextToken && nextToken.t === TokenTypes.START_BRACKET) {
                 this.skipToken();
                 return this.parseFunction(token.v);
+            }
+            if (token.v === 'true') {
+                return new ASTValue(true);
+            }
+            if (token.v === 'false') {
+                return new ASTValue(false);
             }
             return new ASTVarRef(token.v);
         } else if (token.t === TokenTypes.STRING) {

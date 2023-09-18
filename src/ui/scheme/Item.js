@@ -174,20 +174,25 @@ export function defaultifyItem(item) {
 }
 
 export function traverseItems(items, callback) {
+    _traverseItems(items, null, callback);
+}
+
+function _traverseItems(items, parentItem, callback) {
     if (!Array.isArray(items)) {
         return;
     }
 
     items.forEach(item => {
-        callback(item);
+        callback(item, parentItem);
         if (item.childItems) {
-            traverseItems(item.childItems, callback);
+            _traverseItems(item.childItems, item, callback);
         }
         if (item._childItems) {
-            traverseItems(item._childItems, callback);
+            _traverseItems(item._childItems, item, callback);
         }
     });
 }
+
 
 /**
  *

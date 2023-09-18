@@ -54,7 +54,7 @@
                     "event": "init",
                     "actions": [
                         {
-                            "id": "1bQtvEeG4",
+                            "id": {"$-expr": "uid()"},
                             "element": {"$-str": "tag: ${tabTag}"},
                             "method": "set",
                             "on": true,
@@ -68,7 +68,7 @@
                             }
                         },
                         {
-                            "id": "2ynR6hXh3",
+                            "id": {"$-expr": "uid()"},
                             "element": "#tab-1",
                             "method": "set",
                             "on": true,
@@ -79,6 +79,15 @@
                                 "animationDuration": 0.2,
                                 "transition": "ease-in-out",
                                 "inBackground": true
+                            }
+                        },
+                        {
+                            "id": {"$-expr": "uid()"},
+                            "element": "#tab-container-1",
+                            "method": "toggleGroup",
+                            "on": true,
+                            "args": {
+                                "group": {"$-str": "tag: ${containerTag}"}
                             }
                         }
                     ]
