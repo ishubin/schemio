@@ -72,6 +72,7 @@ class EditBoxState extends SubState {
 
     mouseUp(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
+
         let items = [];
         if (this.multiItemEditBox && this.multiItemEditBox.items) {
             items = this.multiItemEditBox.items;
@@ -374,6 +375,10 @@ class ResizeEditBoxState extends EditBoxState {
             return;
         }
 
+        if (this.multiItemEditBox && this.multiItemEditBox.locked) {
+            return;
+        }
+
         dragMultiItemEditBoxByDragger(
             this.multiItemEditBox,
             this.multiItemEditBoxOriginalArea,
@@ -410,6 +415,11 @@ class RotateEditBoxState extends EditBoxState {
             this.mouseUp(x, y, mx, my, object, event);
             return;
         }
+
+        if (this.multiItemEditBox && this.multiItemEditBox.locked) {
+            return;
+        }
+
         const area = this.multiItemEditBoxOriginalArea;
 
         const pivotPoint = myMath.worldPointInArea(area.w * this.multiItemEditBox.pivotPoint.x, area.h * this.multiItemEditBox.pivotPoint.y, area);
@@ -485,6 +495,10 @@ class DragEditBoxState extends EditBoxState {
 
         if (!this.multiItemEditBox) {
             this.migrateToPreviousSubState();
+            return;
+        }
+
+        if (this.multiItemEditBox.locked) {
             return;
         }
 
@@ -697,7 +711,6 @@ class IdleState extends SubState {
                 this.reset();
                 return;
             }
-
         }
     }
 
