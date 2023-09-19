@@ -233,6 +233,7 @@ export default {
 
             if (event.button === 2) {
                 this.$emit('item-right-clicked', item, event.pageX, event.pageY);
+                return;
             }
 
             dragAndDropBuilder(event)
