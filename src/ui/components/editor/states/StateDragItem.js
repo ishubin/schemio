@@ -529,17 +529,22 @@ class DragEditBoxState extends EditBoxState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (this.store.state.autoRemount && !this.parentState.isRecording) {
-            if (this.multiItemEditBox && this.proposedItemForMounting) {
-                // it should remount all items in multi item edit box into the new proposed parent
-                this.remountItems(this.multiItemEditBox.items, this.proposedItemForMounting);
-            } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
-                this.remountItems(this.multiItemEditBox.items);
-            }
-        }
-
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         super.mouseUp(x, y, mx, my, object, event);
+
+        if (!this.store.state.autoRemount || this.parentState.isRecording) {
+            return;
+        }
+        const items = this.multiItemEditBox.items.filter(item => !item.locked);
+        if (items.length === 0) {
+            return;
+        }
+        if (this.multiItemEditBox && this.proposedItemForMounting) {
+            // it should remount all items in multi item edit box into the new proposed parent
+            this.remountItems(items, this.proposedItemForMounting);
+        } else if (this.multiItemEditBox && this.proposedToRemountToRoot) {
+            this.remountItems(items);
+        }
     }
 
     remountItems(items, parentItem) {
