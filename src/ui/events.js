@@ -66,15 +66,16 @@ export function deregisterKeyPressHandler(callback) {
 let lastKeyPressed = null;
 
 function handleKeyPress(event, isDown) {
+    if (!isDown) {
+        lastKeyPressed = null;
+    }
     event = event || window.event;
     if (event.target !== document.body) {
         return;
     }
     const key = identifyKeyPress(event);
     if (key) {
-        if (!isDown) {
-            lastKeyPressed = null;
-        } else {
+        if (isDown) {
             // only arrow keys should be allowed to continuously invoke key press event
             if (lastKeyPressed === key && !key.startsWith('arrow-')) {
                 return;
