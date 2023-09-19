@@ -1,1 +1,577 @@
-{"name":"Dropdown","args":{},"description":"","preview":"data:image/svg+xml;base64,PHN2ZyByZWY9InN2Z0NvbnRhaW5lciIgY2xhc3M9ImV4cG9ydC1zdmctcHJldmlldyIKICAgICAgICB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMDBweCIKICAgICAgICB2aWV3Qm94PSItMTAgLTEwIDMyMCA0MjAiCiAgICAgICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQiCiAgICAgICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgICAgIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgogICAgICAgIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiA+CiAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJNZUNGT0JRMEYiIGRhdGEtaXRlbS1pZD0iTWVDRk9CUTBGIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDI4OCA0MDAgIEwgMTIgNDAwIGEgMTIgMTIgMCAwIDEgLTEyIC0xMiAgTCAwIDEyICBhIDEyIDEyIDAgMCAxIDEyIC0xMiAgIEwgMjg4IDAgICBhIDEyIDEyIDAgMCAxIDEyIDEyICBMIDMwMCAzODggICBhIDEyIDEyIDAgMCAxIC0xMiAxMiBaIiBzdHJva2Utd2lkdGg9IjFweCIgc3Ryb2tlPSJyZ2JhKDIwNiwgMjA2LCAyMDYsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iTWVDRk9CUTBGIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtTWVDRk9CUTBGLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIzMDAiIGhlaWdodD0iNDAwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9Ik1lQ0ZPQlEwRiIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDMwMHB4OyBoZWlnaHQ6IDQwMHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9Ik1lQ0ZPQlEwRiIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgIDxkZWZzPjxjbGlwUGF0aCBpZD0iaXRlbS1jbGlwLXBhdGgtTWVDRk9CUTBGIj48cGF0aCBkPSJNIDI4OCA0MDAgIEwgMTIgNDAwIGEgMTIgMTIgMCAwIDEgLTEyIC0xMiAgTCAwIDEyICBhIDEyIDEyIDAgMCAxIDEyIC0xMiAgIEwgMjg4IDAgICBhIDEyIDEyIDAgMCAxIDEyIDEyICBMIDMwMCAzODggICBhIDEyIDEyIDAgMCAxIC0xMiAxMiBaIiBkYXRhLWl0ZW0taWQ9Ik1lQ0ZPQlEwRiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwKSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwKSIgY2xhc3M9InN2Zy1ldmVudC1sYXllciI+PC9wYXRoPjwvY2xpcFBhdGg+PC9kZWZzPiAgPGcgc3R5bGU9ImNsaXAtcGF0aDogdXJsKCZxdW90OyNpdGVtLWNsaXAtcGF0aC1NZUNGT0JRMEYmcXVvdDspOyI+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwwLDApIiBkYXRhLXN2Zy1pdGVtLWNvbnRhaW5lci1pZD0ibXo4LXVnUldzIiBkYXRhLWl0ZW0taWQ9Im16OC11Z1JXcyIgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iZmlsbC1wYXR0ZXJuLW16OC11Z1JXcyIgeDE9IjUwJSIgeTE9IjEwMCUiIHgyPSI1MCUiIHkyPSIwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IHJnYig3NSwgMTI3LCAxNzMpOyI+PC9zdG9wPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IHJnYigxMDgsIDE4MiwgMjQ5KTsiPjwvc3RvcD48L2xpbmVhckdyYWRpZW50PiA8L2RlZnM+PC9nPiA8cGF0aCBkPSJNIDI4OCA0MCAgTCAxMiA0MCBhIDEyIDEyIDAgMCAxIC0xMiAtMTIgIEwgMCAxMiAgYSAxMiAxMiAwIDAgMSAxMiAtMTIgICBMIDI4OCAwICAgYSAxMiAxMiAwIDAgMSAxMiAxMiAgTCAzMDAgMjggICBhIDEyIDEyIDAgMCAxIC0xMiAxMiBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZGF0YS1pdGVtLWlkPSJtejgtdWdSV3MiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InVybCgjZmlsbC1wYXR0ZXJuLW16OC11Z1JXcykiPjwvcGF0aD48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGRhdGEtdGV4dC1zbG90LW5hbWU9ImJvZHkiIGlkPSJpdGVtLXRleHQtc2xvdC1tejgtdWdSV3MtYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0MCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgZGF0YS1pdGVtLWlkPSJtejgtdWdSV3MiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigyNTUsIDI1NSwgMjU1KTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiBtaWRkbGU7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IHdpZHRoOiAzMDBweDsgaGVpZ2h0OiA0MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9Im16OC11Z1JXcyIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij48c3Ryb25nPkRyb3Bkb3duPC9zdHJvbmc+PC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMTcuMDA1NDI3NTA3NTQ2NzU2LDE2Ljc1Njc4NDM4NDQzMzQxNikiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJmR3FfVVdBbXgiIGRhdGEtaXRlbS1pZD0iZkdxX1VXQW14IiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj48ZyBtb2RlPSJlZGl0IiBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMCAxLjY1IEwgNi41NyA2LjE4IEwgMTMuMTMgMS42NSBMIDExLjcyIDAgTCA2LjU3IDMuNzEgTCAxLjQxIDAgTCAwIDEuNjUgIFogIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMS4wKSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ij48L3BhdGg+PC9nPiAgIDwvZz4gICAgICAgICAgPC9nPjwvZz4gPC9nPjwvZz4gPC9nPgogICAgPC9zdmc+","item":{"shapeProps":{"cornerRadius":12,"fill":{"color":"rgba(255, 255, 255, 1)","type":"solid"},"strokeColor":"rgba(206, 206, 206, 1)","strokeSize":1,"strokePattern":"solid"},"shape":"rect","area":{"x":1700,"y":-260,"w":300,"h":400,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"name":"Dropdown","links":[],"behavior":{"events":[{"id":"md7N8G-1U","event":"init","actions":[{"id":"sWd2Vfs-U","element":"self","method":"sizeHeight","on":true,"args":{"height":40,"animate":false,"duration":1,"animationType":"linear","inBackground":false}},{"id":"JOkh0RqRB","element":"#fGq_UWAmx","method":"rotate","on":true,"args":{"angle":-90,"animate":false,"duration":0.2,"movement":"ease-out","inBackground":false}}]},{"event":"Expand","actions":[{"element":"#MeCFOBQ0F","method":"sizeHeight","on":true,"args":{"height":400,"animate":true,"duration":1,"animationType":"bounce","inBackground":true},"id":"xW73Rkqait"},{"element":"#uii2kk3Wa","method":"show","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false},"id":"bHFnwJHo95"},{"id":"YVfdODQuU","element":"#RG19RNHtaP","method":"hide","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}},{"id":"8fB36Dc9w","element":"#fGq_UWAmx","method":"rotate","on":true,"args":{"angle":0,"animate":true,"duration":0.2,"movement":"ease-out","inBackground":false}}],"id":"sIyB58vUV"},{"event":"Collapse","actions":[{"element":"#uii2kk3Wa","method":"hide","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false},"id":"ZuJGqvzBNE"},{"id":"6A1KEITPf","element":"#RG19RNHtaP","method":"show","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false}},{"element":"#MeCFOBQ0F","method":"sizeHeight","on":true,"args":{"height":40,"animate":true,"duration":0.2,"animationType":"ease-in","inBackground":false},"id":"LhcMb9JEXr"},{"id":"0sYLW2wUq","element":"#fGq_UWAmx","method":"rotate","on":true,"args":{"angle":-90,"animate":true,"duration":0.2,"movement":"ease-out","inBackground":false}}],"id":"gnodIA2_N"}]},"tags":[],"effects":[],"id":"MeCFOBQ0F","childItems":[{"shapeProps":{"cornerRadius":12,"fill":{"type":"gradient","color":"rgba(95, 170, 236, 1)","gradient":{"colors":[{"c":"rgba(75, 127, 173, 1)","p":0},{"c":"rgba(108, 182, 249, 1)","p":100}],"type":"linear","direction":0,"selectedColor":"rgba(75, 127, 173, 1)"}},"strokeColor":"rgba(30,30,30,1.0)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"pointer","area":{"x":0,"y":0,"w":300,"h":40,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"btn-dropdown-open","description":"","links":[],"textSlots":{"body":{"text":"<p><strong>Dropdown</strong></p>","color":"rgba(255, 255, 255, 1)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"behavior":{"events":[]},"selfOpacity":100,"visible":true,"tags":[],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","id":"mz8-ugRWs","childItems":[{"name":"carret","area":{"x":17.005427507546756,"y":16.756784384433416,"w":13.131606290804939,"h":6.179725904052049,"r":0,"sx":1,"sy":1,"px":0.5,"py":0.5},"shape":"path","shapeProps":{"paths":[{"id":"Zapz2S9OMg","closed":true,"points":[{"t":"L","x":0,"y":26.666666666666668},{"t":"L","x":50,"y":100},{"t":"L","x":100,"y":26.666666666666668},{"t":"L","x":89.28571428571429,"y":0},{"t":"L","x":50,"y":60},{"t":"L","x":10.714285714285714,"y":0}],"pos":"relative"}],"fill":{"type":"solid","color":"rgba(255,255,255,1.0)"},"strokeColor":"rgba(255, 255, 255, 1)","strokeSize":2,"strokePattern":"solid","points":[],"closed":false},"textSlots":{},"opacity":100,"selfOpacity":100,"visible":true,"tags":[],"links":[],"blendMode":"normal","cursor":"default","clip":false,"effects":[],"description":"","interactionMode":"tooltip","behavior":{"events":[]},"tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","id":"fGq_UWAmx"}]},{"shapeProps":{"cornerRadius":12,"fill":{"type":"solid","color":"rgba(236, 243, 160, 0)"},"strokeColor":"rgba(30,30,30,1.0)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"pointer","area":{"x":0,"y":0,"w":300,"h":40,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"btn-dropdown-hide-overlay","description":"","links":[],"textSlots":{"body":{"text":"","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"behavior":{"events":[{"event":"init","actions":[{"element":"self","method":"set","on":true,"args":{"field":"opacity","value":0,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true},"id":"uTi4EfkjGr"},{"element":"self","method":"hide","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false},"id":"rdFaxl3cM9"}],"id":"jwPYzscNL"},{"id":"2PoKVa_ss","event":"clicked","actions":[{"id":"pHHuRrEZx","element":"#MeCFOBQ0F","method":"sendEvent","on":true,"args":{"event":"Collapse"}}]}]},"selfOpacity":100,"visible":false,"tags":[],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)","id":"uii2kk3Wa"},{"id":"RG19RNHtaP","shapeProps":{"cornerRadius":12,"fill":{"type":"solid","color":"rgba(236, 243, 160, 0)"},"strokeColor":"rgba(30,30,30,1.0)","strokeSize":0,"strokePattern":"solid"},"shape":"rect","cursor":"pointer","area":{"x":0,"y":0,"w":300,"h":40,"r":0,"px":0.5,"py":0.5,"sx":1,"sy":1},"opacity":100,"blendMode":"normal","name":"btn-dropdown-open-overlay","description":"","links":[],"textSlots":{"body":{"text":"","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"behavior":{"events":[{"event":"init","actions":[{"element":"self","method":"set","on":true,"args":{"field":"opacity","value":0,"animated":false,"animationDuration":0.2,"transition":"ease-in-out","inBackground":true},"id":"uTi4EfkjGr"},{"element":"self","method":"show","on":true,"args":{"animated":false,"animationDuration":0.5,"transition":"ease-out","inBackground":false},"id":"rdFaxl3cM9"}],"id":"jwPYzscNL"},{"id":"2PoKVa_ss","event":"clicked","actions":[{"id":"pHHuRrEZx","element":"#MeCFOBQ0F","method":"sendEvent","on":true,"args":{"event":"Expand"}}]}]},"selfOpacity":100,"visible":false,"tags":[],"clip":false,"effects":[],"interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)"}],"clip":true,"textSlots":{"body":{"text":"","color":"rgba(0,0,0,1.0)","halign":"center","valign":"middle","fontSize":14,"whiteSpace":"normal","font":"Arial","paddingLeft":0,"paddingRight":0,"paddingTop":0,"paddingBottom":0}},"opacity":100,"selfOpacity":100,"visible":true,"blendMode":"normal","cursor":"default","description":"","interactionMode":"tooltip","tooltipBackground":"rgba(230,230,230,1.0)","tooltipColor":"rgba(30,30,30,1.0)"}}
+{
+    "name": "Dropdown",
+    "args": {
+        "background": { "type": "advanced-color", "value": { "type": "solid", "color": "rgba(255,255,255,1)" }, "name": "Background" },
+        "strokeColor": { "type": "color", "value": "rgba(206, 206, 206, 1)", "name": "Stroke color" },
+        "strokeSize": { "type": "number", "value": 1, "min": 0, "name": "Stroke size" },
+        "cornerRadius": { "type": "number", "value": 12, "min": 0, "name": "Corner radius" },
+        "buttonBackground": { "type": "advanced-color",
+            "value": { "type": "gradient", "color": "rgba(95, 170, 236, 1)",
+                "gradient": {
+                    "colors": [ { "c": "rgba(21, 96, 171, 1)", "p": 0 }, { "c": "rgba(51, 155, 249, 1)", "p": 100 } ],
+                    "type": "linear",
+                    "direction": 0
+                }
+            },
+            "name": "Button background"
+        },
+        "buttonHeight": { "type": "number", "value": 40, "min": 0, "name": "Button height" },
+        "textColor": {"type": "color", "value":"rgba(255, 255, 255, 1)", "name": "Text color"}
+    },
+    "description": "",
+    "preview": "data:image/svg+xml;base64,PHN2ZyByZWY9InN2Z0NvbnRhaW5lciIgY2xhc3M9ImV4cG9ydC1zdmctcHJldmlldyIKICAgICAgICB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMDBweCIKICAgICAgICB2aWV3Qm94PSItMTAgLTEwIDMyMCA0MjAiCiAgICAgICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQiCiAgICAgICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgICAgIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgogICAgICAgIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiA+CiAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJnc0RYYTlhMnEiIGRhdGEtaXRlbS1pZD0iZ3NEWGE5YTJxIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPjxnPjxkZWZzPjxmaWx0ZXIgaWQ9Iml0ZW0tZWZmZWN0LWRyb3Atc2hhZG93LWdzRFhhOWEycS0wIiB4PSItNTAwJSIgeT0iLTUwMCUiIHdpZHRoPSIyMDAwJSIgaGVpZ2h0PSIyMDAwJSI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VHcmFwaGljIiBzdGREZXZpYXRpb249IjUiPjwvZmVHYXVzc2lhbkJsdXI+PC9maWx0ZXI+PC9kZWZzPjxwYXRoIGQ9Ik0gMjg4IDQwMCAgTCAxMiA0MDAgYSAxMiAxMiAwIDAgMSAtMTIgLTEyICBMIDAgMTIgIGEgMTIgMTIgMCAwIDEgMTIgLTEyICAgTCAyODggMCAgIGEgMTIgMTIgMCAwIDEgMTIgMTIgIEwgMzAwIDM4OCAgIGEgMTIgMTIgMCAwIDEgLTEyIDEyIFoiIHN0cm9rZT0ibm9uZSIgZmlsbD0icmdiYSgwLDAsMCwxLjApIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgxMCAxMCkiIHN0eWxlPSJvcGFjaXR5OiAwLjA1IiBmaWx0ZXI9InVybCgjaXRlbS1lZmZlY3QtZHJvcC1zaGFkb3ctZ3NEWGE5YTJxLTApIj48L3BhdGg+PC9nPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDI4OCA0MDAgIEwgMTIgNDAwIGEgMTIgMTIgMCAwIDEgLTEyIC0xMiAgTCAwIDEyICBhIDEyIDEyIDAgMCAxIDEyIC0xMiAgIEwgMjg4IDAgICBhIDEyIDEyIDAgMCAxIDEyIDEyICBMIDMwMCAzODggICBhIDEyIDEyIDAgMCAxIC0xMiAxMiBaIiBzdHJva2Utd2lkdGg9IjFweCIgc3Ryb2tlPSJyZ2JhKDIwNiwgMjA2LCAyMDYsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iZ3NEWGE5YTJxIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDEpIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtZ3NEWGE5YTJxLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIzMDAiIGhlaWdodD0iNDAwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9ImdzRFhhOWEycSIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDMwMHB4OyBoZWlnaHQ6IDQwMHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9ImdzRFhhOWEycSIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgIDxkZWZzPjxjbGlwUGF0aCBpZD0iaXRlbS1jbGlwLXBhdGgtZ3NEWGE5YTJxIj48cGF0aCBkPSJNIDI4OCA0MDAgIEwgMTIgNDAwIGEgMTIgMTIgMCAwIDEgLTEyIC0xMiAgTCAwIDEyICBhIDEyIDEyIDAgMCAxIDEyIC0xMiAgIEwgMjg4IDAgICBhIDEyIDEyIDAgMCAxIDEyIDEyICBMIDMwMCAzODggICBhIDEyIDEyIDAgMCAxIC0xMiAxMiBaIiBkYXRhLWl0ZW0taWQ9ImdzRFhhOWEycSIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgyNTUsIDI1NSwgMjU1LCAwKSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwKSIgY2xhc3M9InN2Zy1ldmVudC1sYXllciI+PC9wYXRoPjwvY2xpcFBhdGg+PC9kZWZzPiAgPGcgc3R5bGU9ImNsaXAtcGF0aDogdXJsKCZxdW90OyNpdGVtLWNsaXAtcGF0aC1nc0RYYTlhMnEmcXVvdDspOyI+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwwLDApIiBkYXRhLXN2Zy1pdGVtLWNvbnRhaW5lci1pZD0ieFE4ZmlwRXFsMyIgZGF0YS1pdGVtLWlkPSJ4UThmaXBFcWwzIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJmaWxsLXBhdHRlcm4teFE4ZmlwRXFsMyIgeDE9IjUwJSIgeTE9IjEwMCUiIHgyPSI1MCUiIHkyPSIwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IHJnYigyMSwgOTYsIDE3MSk7Ij48L3N0b3A+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjogcmdiKDUxLCAxNTUsIDI0OSk7Ij48L3N0b3A+PC9saW5lYXJHcmFkaWVudD4gPC9kZWZzPjwvZz4gPHBhdGggZD0iTSAyODggNDAgIEwgMTIgNDAgYSAxMiAxMiAwIDAgMSAtMTIgLTEyICBMIDAgMTIgIGEgMTIgMTIgMCAwIDEgMTIgLTEyICAgTCAyODggMCAgIGEgMTIgMTIgMCAwIDEgMTIgMTIgIEwgMzAwIDI4ICAgYSAxMiAxMiAwIDAgMSAtMTIgMTIgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0ieFE4ZmlwRXFsMyIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0idXJsKCNmaWxsLXBhdHRlcm4teFE4ZmlwRXFsMykiPjwvcGF0aD48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGRhdGEtdGV4dC1zbG90LW5hbWU9ImJvZHkiIGlkPSJpdGVtLXRleHQtc2xvdC14UThmaXBFcWwzLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIzMDAiIGhlaWdodD0iNDAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGRhdGEtaXRlbS1pZD0ieFE4ZmlwRXFsMyIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDI1NSwgMjU1LCAyNTUpOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDMwMHB4OyBoZWlnaHQ6IDQwcHg7Ij48ZGl2IGRhdGEtaXRlbS10ZXh0LWVsZW1lbnQtaXRlbS1pZD0ieFE4ZmlwRXFsMyIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij48c3Ryb25nPkRyb3Bkb3duPC9zdHJvbmc+PC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMTcsMTYuNSkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJzNVpIVk5GYXQ5IiBkYXRhLWl0ZW0taWQ9InM1WkhWTkZhdDkiIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzPjwvZGVmcz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDEuNiBMIDYuNSA2IEwgMTMgMS42IEwgMTEuNjEgMCBMIDYuNSAzLjYgTCAxLjM5IDAgTCAwIDEuNiAgWiAiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMjU1LCAyNTUsIDI1NSwgMSkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAxKSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ij48L3BhdGg+PC9nPiAgIDwvZz4gICAgICAgICAgPC9nPjwvZz4gPC9nPjwvZz4gPC9nPgogICAgPC9zdmc+",
+    "item": {
+        "$-eval": [
+            "carretWidth = 13",
+            "carretHeight = 6"
+        ],
+        "id": "root",
+        "shapeProps": {
+            "cornerRadius": { "$-expr": "cornerRadius" },
+            "fill": { "$-expr": "background" },
+            "strokeColor": { "$-expr": "strokeColor" },
+            "strokeSize": { "$-expr": "strokeSize" },
+            "strokePattern": "solid"
+        },
+        "shape": "rect",
+        "area": {
+            "x": 0,
+            "y": 0,
+            "w": 300,
+            "h": 400,
+            "r": 0,
+            "px": 0.5,
+            "py": 0.5,
+            "sx": 1,
+            "sy": 1
+        },
+        "name": "Dropdown",
+        "links": [],
+        "behavior": {
+            "events": [
+                {
+                    "id": "md7N8G-1U",
+                    "event": "init",
+                    "actions": [
+                        {
+                            "id": "sWd2Vfs-U",
+                            "element": "self",
+                            "method": "sizeHeight",
+                            "on": true,
+                            "args": {
+                                "height": { "$-expr": "buttonHeight" },
+                                "animate": false,
+                                "duration": 1,
+                                "animationType": "linear",
+                                "inBackground": false
+                            }
+                        },
+                        {
+                            "id": "JOkh0RqRB",
+                            "element": "#carret",
+                            "method": "rotate",
+                            "on": true,
+                            "args": {
+                                "angle": -90,
+                                "animate": false,
+                                "duration": 1,
+                                "movement": "bounce",
+                                "inBackground": false
+                            }
+                        }
+                    ]
+                },
+                {
+                    "event": "Expand",
+                    "actions": [
+                        {
+                            "element": "#root",
+                            "method": "sizeHeight",
+                            "on": true,
+                            "args": {
+                                "height": { "$-expr": "height" },
+                                "animate": true,
+                                "duration": 1,
+                                "animationType": "bounce",
+                                "inBackground": true
+                            },
+                            "id": "xW73Rkqait"
+                        },
+                        {
+                            "element": "#btn-hide-overlay",
+                            "method": "show",
+                            "on": true,
+                            "args": {
+                                "animated": false,
+                                "animationDuration": 0.5,
+                                "transition": "ease-out",
+                                "inBackground": false
+                            },
+                            "id": "bHFnwJHo95"
+                        },
+                        {
+                            "id": "YVfdODQuU",
+                            "element": "#btn-show-overlay",
+                            "method": "hide",
+                            "on": true,
+                            "args": {
+                                "animated": false,
+                                "animationDuration": 0.5,
+                                "transition": "ease-out",
+                                "inBackground": false
+                            }
+                        },
+                        {
+                            "id": "8fB36Dc9w",
+                            "element": "#carret",
+                            "method": "rotate",
+                            "on": true,
+                            "args": {
+                                "angle": 0,
+                                "animate": true,
+                                "duration": 1,
+                                "movement": "bounce",
+                                "inBackground": false
+                            }
+                        }
+                    ],
+                    "id": "sIyB58vUV"
+                },
+                {
+                    "event": "Collapse",
+                    "actions": [
+                        {
+                            "element": "#btn-hide-overlay",
+                            "method": "hide",
+                            "on": true,
+                            "args": {
+                                "animated": false,
+                                "animationDuration": 0.5,
+                                "transition": "ease-out",
+                                "inBackground": false
+                            },
+                            "id": "ZuJGqvzBNE"
+                        },
+                        {
+                            "id": "6A1KEITPf",
+                            "element": "#btn-show-overlay",
+                            "method": "show",
+                            "on": true,
+                            "args": {
+                                "animated": false,
+                                "animationDuration": 0.5,
+                                "transition": "ease-out",
+                                "inBackground": false
+                            }
+                        },
+                        {
+                            "element": "#root",
+                            "method": "sizeHeight",
+                            "on": true,
+                            "args": {
+                                "height": { "$-expr": "buttonHeight" },
+                                "animate": true,
+                                "duration": 0.2,
+                                "animationType": "ease-in",
+                                "inBackground": false
+                            },
+                            "id": "LhcMb9JEXr"
+                        },
+                        {
+                            "id": "0sYLW2wUq",
+                            "element": "#carret",
+                            "method": "rotate",
+                            "on": true,
+                            "args": {
+                                "angle": -90,
+                                "animate": true,
+                                "duration": 1,
+                                "movement": "bounce",
+                                "inBackground": false
+                            }
+                        }
+                    ],
+                    "id": "gnodIA2_N"
+                }
+            ]
+        },
+        "tags": [],
+        "effects": [],
+        "childItems": [
+            {
+                "shapeProps": {
+                    "cornerRadius": { "$-expr": "cornerRadius" },
+                    "fill": {"$-expr": "buttonBackground" },
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "shape": "rect",
+                "cursor": "pointer",
+                "area": {
+                    "x": 0,
+                    "y": 0,
+                    "w": {"$-expr": "width"},
+                    "h": {"$-expr": "buttonHeight"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "name": "btn-dropdown-open",
+                "description": "",
+                "links": [],
+                "textSlots": {
+                    "body": {
+                        "text": "<p><strong>Dropdown</strong></p>",
+                        "color": {"$-expr": "textColor"},
+                        "halign": "center",
+                        "valign": "middle",
+                        "fontSize": 14,
+                        "whiteSpace": "normal",
+                        "font": "Arial",
+                        "paddingLeft": 0,
+                        "paddingRight": 0,
+                        "paddingTop": 0,
+                        "paddingBottom": 0
+                    }
+                },
+                "behavior": {
+                    "events": []
+                },
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)",
+                "id": "mz8-ugRWs",
+                "childItems": [
+                    {
+                        "id": "carret",
+                        "name": "carret",
+                        "area": {
+                            "x": 17.0,
+                            "y": {"$-expr": "buttonHeight/2 - carretHeight/2"},
+                            "w": {"$-expr": "carretWidth"},
+                            "h": {"$-expr": "carretHeight"},
+                            "r": 0,
+                            "sx": 1,
+                            "sy": 1,
+                            "px": 0.5,
+                            "py": 0.5
+                        },
+                        "shape": "path",
+                        "shapeProps": {
+                            "paths": [
+                                {
+                                    "id": "Zapz2S9OMg",
+                                    "closed": true,
+                                    "points": [
+                                        {
+                                            "t": "L",
+                                            "x": 0,
+                                            "y": 26.6
+                                        },
+                                        {
+                                            "t": "L",
+                                            "x": 50,
+                                            "y": 100
+                                        },
+                                        {
+                                            "t": "L",
+                                            "x": 100,
+                                            "y": 26.6
+                                        },
+                                        {
+                                            "t": "L",
+                                            "x": 89.28,
+                                            "y": 0
+                                        },
+                                        {
+                                            "t": "L",
+                                            "x": 50,
+                                            "y": 60
+                                        },
+                                        {
+                                            "t": "L",
+                                            "x": 10.71,
+                                            "y": 0
+                                        }
+                                    ],
+                                    "pos": "relative"
+                                }
+                            ],
+                            "fill": {
+                                "type": "solid",
+                                "color": {"$-expr": "textColor"}
+                            },
+                            "strokeColor": {"$-expr": "textColor"},
+                            "strokeSize": 2,
+                            "strokePattern": "solid",
+                            "points": [],
+                            "closed": false
+                        },
+                        "textSlots": {},
+                        "opacity": 100,
+                        "selfOpacity": 100,
+                        "visible": true,
+                        "tags": [],
+                        "links": [],
+                        "blendMode": "normal",
+                        "cursor": "default",
+                        "clip": false,
+                        "effects": [],
+                        "description": "",
+                        "interactionMode": "tooltip",
+                        "behavior": {
+                            "events": []
+                        },
+                        "tooltipBackground": "rgba(230,230,230,1.0)",
+                        "tooltipColor": "rgba(30,30,30,1.0)"
+                    }
+                ]
+            },
+            {
+                "id": "btn-hide-overlay",
+                "name": "btn-dropdown-hide-overlay",
+                "shapeProps": {
+                    "cornerRadius": {"$-expr": "cornerRadius"},
+                    "fill": {
+                        "type": "solid",
+                        "color": "rgba(236, 243, 160, 0)"
+                    },
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "shape": "rect",
+                "cursor": "pointer",
+                "area": {
+                    "x": 0,
+                    "y": 0,
+                    "w": {"$-expr": "width"},
+                    "h": {"$-expr": "buttonHeight"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "description": "",
+                "links": [],
+                "textSlots": {
+                    "body": {
+                        "text": "",
+                        "color": "rgba(0,0,0,1.0)",
+                        "halign": "center",
+                        "valign": "middle",
+                        "fontSize": 14,
+                        "whiteSpace": "normal",
+                        "font": "Arial",
+                        "paddingLeft": 0,
+                        "paddingRight": 0,
+                        "paddingTop": 0,
+                        "paddingBottom": 0
+                    }
+                },
+                "behavior": {
+                    "events": [
+                        {
+                            "event": "init",
+                            "actions": [
+                                {
+                                    "element": "self",
+                                    "method": "set",
+                                    "on": true,
+                                    "args": {
+                                        "field": "opacity",
+                                        "value": 0,
+                                        "animated": false,
+                                        "animationDuration": 0.2,
+                                        "transition": "ease-in-out",
+                                        "inBackground": true
+                                    },
+                                    "id": "uTi4EfkjGr"
+                                },
+                                {
+                                    "element": "self",
+                                    "method": "hide",
+                                    "on": true,
+                                    "args": {
+                                        "animated": false,
+                                        "animationDuration": 0.5,
+                                        "transition": "ease-out",
+                                        "inBackground": false
+                                    },
+                                    "id": "rdFaxl3cM9"
+                                }
+                            ],
+                            "id": "jwPYzscNL"
+                        },
+                        {
+                            "id": "2PoKVa_ss",
+                            "event": "clicked",
+                            "actions": [
+                                {
+                                    "id": "pHHuRrEZx",
+                                    "element": "#root",
+                                    "method": "sendEvent",
+                                    "on": true,
+                                    "args": {
+                                        "event": "Collapse"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "selfOpacity": 100,
+                "visible": false,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)"
+            },
+            {
+                "id": "btn-show-overlay",
+                "name": "btn-dropdown-open-overlay",
+                "shapeProps": {
+                    "cornerRadius": {"$-expr": "cornerRadius"},
+                    "fill": {
+                        "type": "solid",
+                        "color": "rgba(236, 243, 160, 0)"
+                    },
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "shape": "rect",
+                "cursor": "pointer",
+                "area": {
+                    "x": 0,
+                    "y": 0,
+                    "w": {"$-expr": "width"},
+                    "h": {"$-expr": "height"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "description": "",
+                "links": [],
+                "textSlots": {
+                    "body": {
+                        "text": "",
+                        "color": "rgba(0,0,0,1.0)",
+                        "halign": "center",
+                        "valign": "middle",
+                        "fontSize": 14,
+                        "whiteSpace": "normal",
+                        "font": "Arial",
+                        "paddingLeft": 0,
+                        "paddingRight": 0,
+                        "paddingTop": 0,
+                        "paddingBottom": 0
+                    }
+                },
+                "behavior": {
+                    "events": [
+                        {
+                            "event": "init",
+                            "actions": [
+                                {
+                                    "element": "self",
+                                    "method": "set",
+                                    "on": true,
+                                    "args": {
+                                        "field": "opacity",
+                                        "value": 0,
+                                        "animated": false,
+                                        "animationDuration": 0.2,
+                                        "transition": "ease-in-out",
+                                        "inBackground": true
+                                    },
+                                    "id": "uTi4EfkjGr"
+                                },
+                                {
+                                    "element": "self",
+                                    "method": "show",
+                                    "on": true,
+                                    "args": {
+                                        "animated": false,
+                                        "animationDuration": 0.5,
+                                        "transition": "ease-out",
+                                        "inBackground": false
+                                    },
+                                    "id": "rdFaxl3cM9"
+                                }
+                            ],
+                            "id": "jwPYzscNL"
+                        },
+                        {
+                            "id": "2PoKVa_ss",
+                            "event": "clicked",
+                            "actions": [
+                                {
+                                    "id": "pHHuRrEZx",
+                                    "element": "#root",
+                                    "method": "sendEvent",
+                                    "on": true,
+                                    "args": {
+                                        "event": "Expand"
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "selfOpacity": 100,
+                "visible": false,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)"
+            }
+        ],
+        "clip": true,
+        "textSlots": {
+            "body": {
+                "text": "",
+                "color": "rgba(0,0,0,1.0)",
+                "halign": "center",
+                "valign": "middle",
+                "fontSize": 14,
+                "whiteSpace": "normal",
+                "font": "Arial",
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0
+            }
+        },
+        "opacity": 100,
+        "selfOpacity": 100,
+        "visible": true,
+        "blendMode": "normal",
+        "cursor": "default",
+        "description": "",
+        "interactionMode": "tooltip",
+        "tooltipBackground": "rgba(230,230,230,1.0)",
+        "tooltipColor": "rgba(30,30,30,1.0)"
+    }
+}
