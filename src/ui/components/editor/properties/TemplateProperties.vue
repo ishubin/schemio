@@ -85,32 +85,7 @@ export default {
         },
 
         regenerateTemplateItem() {
-            const foreignItems = new Map();
-            findForeignItemsInTemplate(this.templateRef, this.item, null, (item, parentItem) => {
-                if (!parentItem || !parentItem.args || !parentItem.args.templated || !parentItem.args.templatedId) {
-                    return;
-                }
-                const id = parentItem.args.templatedId;
-
-                if (!foreignItems.has(id)) {
-                    foreignItems.set(id, []);
-                }
-                foreignItems.set(id, foreignItems.get(id).concat([item]));
-            });
-
-            const item = processJSONTemplate(this.template.item, {...this.args, width: this.item.area.w, height: this.item.area.h});
-            item.args = {templateRef: this.templateRef, templateArgs: utils.clone(this.args)};
-
-            traverseItems([item], it => {
-                if (!it.args) {
-                    it.args = {};
-                }
-                it.args.templated = true;
-                it.args.templatedId = it.id;
-            });
-
-            reattachForeignItems(this.templateRef, item, foreignItems);
-
+            const item = this.schemeContainer.regenerateTemplatedItem(this.item, this.template, this.templateRef, this.args);
             this.modified = false;
             this.$emit('updated', this.item.id, item);
         }
@@ -123,42 +98,4 @@ export default {
     }
 }
 
-function findForeignItemsInTemplate(templateRef, item, parentItem, callback) {
-    if (!item.args || !item.args.templated || (item.args.templateRef && item.args.templateRef !== templateRef)) {
-        callback(item, parentItem);
-        return;
-    }
-    if (!item.childItems) {
-        return;
-    }
-    item.childItems.forEach(it => {
-        findForeignItemsInTemplate(templateRef, it, item, callback);
-    });
-}
-
-/**
- *
- * @param {*} templateRef
- * @param {*} item
- * @param {Map} foreignItems
- */
-function reattachForeignItems(templateRef, item, foreignItems) {
-    if (!item.args || !item.args.templatedId || (item.args.templateRef && item.args.templateRef !== templateRef)) {
-        return;
-    }
-
-    if (item.childItems) {
-        item.childItems.forEach(childItem => {
-            reattachForeignItems(templateRef, childItem, foreignItems);
-        });
-    }
-    const tId = item.args.templatedId;
-    if (foreignItems.has(tId)) {
-        if (!item.childItems) {
-            item.childItems = [];
-        }
-        const items = foreignItems.get(tId);
-        items.forEach(foreignItem => item.childItems.push(foreignItem));
-    }
-}
 </script>

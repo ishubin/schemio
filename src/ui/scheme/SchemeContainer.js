@@ -27,6 +27,7 @@ import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation'
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
+import { processJSONTemplate } from '../templater/templater';
 
 const log = new Logger('SchemeContainer');
 
@@ -1991,7 +1992,7 @@ class SchemeContainer {
             // as we don't need to copy it twice
             if (!find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
                 copiedItemIds[item.id] = 1;
-                const worldPivotPoint = this.worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
+                const worldPivotPoint = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
                 const worldAngle = worldAngleOfItem(item);
 
                 const newItem = this.copyItem(item);
@@ -2680,6 +2681,109 @@ class SchemeContainer {
             item.area.x += correction.x;
             item.area.y += correction.y;
         });
+    }
+
+    generateItemFromTemplate(template, templateRef, args, width, height) {
+        if (!args) {
+            args = {};
+            // getting default values for template args
+            if (template.args) {
+                forEach(template.args, (arg, argName) => {
+                    args[argName] = arg.value;
+                });
+            }
+        }
+
+        const item = processJSONTemplate(template.item, {
+            ...args,
+            width : width || template.item.area.w,
+            height: height || template.item.area.h
+        });
+
+        traverseItems([item], it => {
+            if (!it.args) {
+                it.args = {};
+            }
+            // Storing id of every item in its args so that later, when regenerating templated item that is already in scene,
+            // we can reconstruct other user made items that user attached to templated items
+            it.args.templatedId = it.id;
+            it.args.templated = true;
+            enrichItemWithDefaults(it);
+        });
+
+        const [clonnedItem] = this.cloneItems([item], true, false);
+
+        clonnedItem.args.templateRef = templateRef;
+        clonnedItem.args.templateArgs = args;
+        return clonnedItem;
+    }
+
+    regenerateTemplatedItem(item, template, templateRef, args) {
+        const foreignItems = new Map();
+        this.findForeignItemsInTemplate(templateRef, item, null, (it, parentItem) => {
+            if (!parentItem || !parentItem.args || !parentItem.args.templated || !parentItem.args.templatedId) {
+                return;
+            }
+            const id = parentItem.args.templatedId;
+
+            if (!foreignItems.has(id)) {
+                foreignItems.set(id, []);
+            }
+            foreignItems.set(id, foreignItems.get(id).concat([it]));
+        });
+
+        const templatedItem = processJSONTemplate(template.item, {...args, width: item.area.w, height: item.area.h});
+        templatedItem.args = {templateRef: templateRef, templateArgs: utils.clone(args)};
+
+        traverseItems([templatedItem], it => {
+            if (!it.args) {
+                it.args = {};
+            }
+            it.args.templated = true;
+            it.args.templatedId = it.id;
+        });
+
+        this.reattachForeignItems(templateRef, templatedItem, foreignItems);
+        return templatedItem;
+    }
+
+    findForeignItemsInTemplate(templateRef, item, parentItem, callback) {
+        if (!item.args || !item.args.templated || (item.args.templateRef && item.args.templateRef !== templateRef)) {
+            callback(item, parentItem);
+            return;
+        }
+        if (!item.childItems) {
+            return;
+        }
+        item.childItems.forEach(it => {
+            this.findForeignItemsInTemplate(templateRef, it, item, callback);
+        });
+    }
+
+    /**
+     *
+     * @param {*} templateRef
+     * @param {*} item
+     * @param {Map} foreignItems
+     */
+    reattachForeignItems(templateRef, item, foreignItems) {
+        if (!item.args || !item.args.templatedId || (item.args.templateRef && item.args.templateRef !== templateRef)) {
+            return;
+        }
+
+        if (item.childItems) {
+            item.childItems.forEach(childItem => {
+                this.reattachForeignItems(templateRef, childItem, foreignItems);
+            });
+        }
+        const tId = item.args.templatedId;
+        if (foreignItems.has(tId)) {
+            if (!item.childItems) {
+                item.childItems = [];
+            }
+            const items = foreignItems.get(tId);
+            items.forEach(foreignItem => item.childItems.push(foreignItem));
+        }
     }
 
     _alignItemsWith(items, correctionCallback) {

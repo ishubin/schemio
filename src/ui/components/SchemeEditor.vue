@@ -1165,7 +1165,7 @@ export default {
         },
 
 
-        switchStateCreateItem(item) {
+        switchStateCreateItem(item, template, templateRef, templateArgs) {
             this.resetItemHighlight();
             this.states[this.state].cancel();
             if (item.shape === 'path') {
@@ -1182,7 +1182,7 @@ export default {
             }
             this.states[this.state].schemeContainer = this.schemeContainer;
             this.states[this.state].reset();
-            this.states[this.state].setItem(item);
+            this.states[this.state].setItem(item, template, templateRef, templateArgs);
             this.updateFloatingHelperPanel();
         },
 

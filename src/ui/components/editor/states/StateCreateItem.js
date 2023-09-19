@@ -5,22 +5,32 @@
 import State from './State.js';
 import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
+import {processJSONTemplate} from '../../../templater/templater';
 
 export default class StateCreateItem extends State {
     constructor(editorId, store, listener) {
         super(editorId, store, 'create-item', listener);
         this.item = null;
+        this.template = null;
+        this.templateRef = null;
+        this.templateArgs = null;
         this.addedToScheme = false;
         this.originalPoint = null;
     }
 
     reset() {
         this.item = null;
+        this.template = null;
+        this.templateRef = null;
+        this.templateArgs = null;
         this.addedToScheme = false;
     }
 
-    setItem(item) {
+    setItem(item, template, templateRef, templateArgs) {
         this.item = item;
+        this.template = template;
+        this.templateRef = templateRef;
+        this.templateArgs = templateArgs;
 
         const shape = Shape.find(item.shape);
         if (shape && shape.shapeEvents && shape.shapeEvents.beforeCreate) {
@@ -76,6 +86,17 @@ export default class StateCreateItem extends State {
 
     submitItemAndFinishCreating() {
         this.schemeContainer.setActiveBoundaryBox(null);
+
+        if (this.template && this.templateRef && this.templateArgs) {
+            const templatedItem = this.schemeContainer.generateItemFromTemplate(this.template, this.templateRef, this.templateArgs, this.item.area.w, this.item.area.h);
+            templatedItem.area.x = this.item.area.x;
+            templatedItem.area.y = this.item.area.y;
+            templatedItem.area.w = this.item.area.w;
+            templatedItem.area.h = this.item.area.h;
+            this.schemeContainer.deleteItem(this.item);
+            this.schemeContainer.addItem(templatedItem);
+            this.item = templatedItem;
+        }
 
         if (this.store.state.autoRemount && this.item.shape !== 'hud') {
             const parentItem = this.schemeContainer.findItemSuitableForParent(this.item, candidateItem => candidateItem.id !== this.item.id);

@@ -503,7 +503,7 @@ export default {
             this.customArtUploadModalShown = false;
         },
 
-        onItemPicked(item) {
+        onItemPicked(item, template, templateRef, templateArgs) {
             if (this.itemCreationDragged.startedDragging) {
                 return;
             }
@@ -522,7 +522,7 @@ export default {
                 this.imageCreation.popupShown = true;
                 return;
             } else {
-                this.$emit(ITEM_PICKED_FOR_CREATION, clonedItem);
+                this.$emit(ITEM_PICKED_FOR_CREATION, clonedItem, template, templateRef, templateArgs);
             }
         },
 
@@ -633,35 +633,12 @@ export default {
                 return;
             }
             this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
-                const args = {};
-                if (template.args) {
-                    forEach(template.args, (arg, argName) => {
-                        args[argName] = arg.value;
-                    });
-                }
-
-                const item = processJSONTemplate(template.item, {...args, width: template.item.area.w, height: template.item.area.h});
-                traverseItems([item], it => {
-                    if (!it.args) {
-                        it.args = {};
-                    }
-                    // Storing id of every item in its args so that later, when regenerating templated item that is already in scene,
-                    // we can reconstruct other user made items that user attached to templated items
-                    it.args.templatedId = it.id;
-                    it.args.templated = true;
-                });
-
-                enrichItemWithDefaults(item);
-
-                const [clonnedItem] = this.schemeContainer.cloneItems([item]);
-
-                clonnedItem.args.templateRef = templateEntry.path;
-                clonnedItem.args.templateArgs = args;
+                const templatedItem = this.schemeContainer.generateItemFromTemplate(template, templateEntry.path);
 
                 this.onItemMouseDown(event, {
-                    item: clonnedItem,
-                    name: item.name
-                }, true, template);
+                    item: templatedItem,
+                    name: templatedItem.name
+                }, true, template, templateEntry.path);
             })
             .catch(err => {
                 console.error(err);
@@ -669,7 +646,7 @@ export default {
             });
         },
 
-        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template) {
+        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template, templateRef) {
             this.previewItem.shown = false;
 
             const itemClone = utils.clone(item.item);
@@ -724,15 +701,28 @@ export default {
             })
             .onSimpleClick(() => {
                 if (template) {
-                    let pageX = window.innerWidth/2;
-                    let pageY = window.innerHeight/2;
-
-                    pageX -= itemClone.area.w/2;
-                    pageY -= itemClone.area.h/2;
-                    this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template);
-                } else {
-                    this.onItemPicked(item);
+                    if (template.preview) {
+                        const previewItem = {
+                            name: template.name,
+                            item: {
+                                id: shortid.generate(),
+                                shape: 'image',
+                                shapeProps: {
+                                    image: template.preview
+                                }
+                            }
+                        };
+                        enrichItemWithDefaults(previewItem.item);
+                        this.onItemPicked(previewItem, template, templateRef, item.item.args.templateArgs);
+                    } else {
+                        this.onItemPicked({
+                            name: template.name,
+                            item: itemClone
+                        }, template, templateRef, item.item.args.templateArgs);
+                    }
+                    return;
                 }
+                this.onItemPicked(item);
             })
             .onDrop((event, element, pageX, pageY) => {
                 this.itemCreationDragged.pageX = pageX;
