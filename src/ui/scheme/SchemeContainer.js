@@ -1753,9 +1753,11 @@ class SchemeContainer {
             this.deselectAllItems();
         }
         forEach(items, item => {
-            this.selectedItems.push(item);
-            this.selectedItemsMap[item.id] = true;
-            EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
+            if (!this.selectedItemsMap[item.id]) {
+                this.selectedItems.push(item);
+                this.selectedItemsMap[item.id] = true;
+                EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
+            }
         });
         this.updateMultiItemEditBox();
     }
