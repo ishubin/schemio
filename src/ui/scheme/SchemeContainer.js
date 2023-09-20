@@ -2114,6 +2114,7 @@ class SchemeContainer {
 
         forEach(copiedItems, item => {
             copiedIds.add(item.id);
+            item.locked = false;
             this.scheme.items.push(item);
         });
 
