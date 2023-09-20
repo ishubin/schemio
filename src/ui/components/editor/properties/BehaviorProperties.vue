@@ -428,6 +428,16 @@ export default {
                 name: 'Self opacity',
                 fieldPath: 'selfOpacity',
                 iconClass: 'fas fa-cog'
+            }, {
+                method: 'set',
+                name: 'Visible',
+                fieldPath: 'visible',
+                iconClass: 'fas fa-cog'
+            }, {
+                method: 'set',
+                name: 'Clip',
+                fieldPath: 'clip',
+                iconClass: 'fas fa-cog'
             }];
 
             const shape = Shape.find(item.shape);
