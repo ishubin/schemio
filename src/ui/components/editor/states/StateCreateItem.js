@@ -5,7 +5,6 @@
 import State from './State.js';
 import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
-import {processJSONTemplate} from '../../../templater/templater';
 
 export default class StateCreateItem extends State {
     constructor(editorId, store, listener) {
@@ -95,6 +94,7 @@ export default class StateCreateItem extends State {
             templatedItem.area.h = this.item.area.h;
             this.schemeContainer.deleteItem(this.item);
             this.schemeContainer.addItem(templatedItem);
+            this.schemeContainer.addTemplate(this.templateRef, this.template);
             this.item = templatedItem;
         }
 

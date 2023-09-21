@@ -107,7 +107,11 @@
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
-                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
+                            :template="selectedItemTemplate"
+                            :templateArgs="selectedItemTemplateArgs"
+                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"
+                            @template-rebuild-requested="onTemplateRebuildRequested"
+                            />
 
                         <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
                             :key="`crop-image-edit-box-${editorRevision}`"
@@ -1918,6 +1922,22 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
+        onTemplateRebuildRequested(item, args) {
+            if (!this.schemeContainer.scheme.templates || !item.args || !item.args.templateRef) {
+                return;
+            }
+
+            const templateRef = item.args.templateRef;
+
+            const template = this.schemeContainer.scheme.templates[templateRef];
+            if (!template) {
+                return;
+            }
+
+            const updatedItem = this.schemeContainer.regenerateTemplatedItem(item, template, templateRef, args);
+            this.onTemplateItemRegenerated(item.id, updatedItem);
+        },
+
         onTemplateItemRegenerated(originItemId, item) {
             this.schemeContainer.deselectAllItems();
 
@@ -1941,6 +1961,9 @@ export default {
             originItem.behavior = clonnedItem.behavior;
             originItem.effects = clonnedItem.effects;
 
+            const idsMapping = new Map();
+            idsMapping.set(originItemId, clonnedItem.id);
+            this.schemeContainer.fixItemsReferences(this.scheme.items, idsMapping);
             this.schemeContainer.reindexItems();
 
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
@@ -2371,7 +2394,7 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
-        itemCreationDraggedToSvgEditor(item, pageX, pageY, template) {
+        itemCreationDraggedToSvgEditor(item, pageX, pageY, template, templateRef) {
             const coords = this.mouseCoordsFromPageCoords(pageX, pageY);
             const p = this.toLocalPoint(coords.x, coords.y);
             item.area.x = p.x;
@@ -2386,6 +2409,9 @@ export default {
             const worldHeight = item.area.h;
 
             this.schemeContainer.addItem(item);
+            if (template && templateRef) {
+                this.schemeContainer.addTemplate(templateRef, template);
+            }
 
             if (this.$store.state.autoRemount) {
                 const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item, x => x.id !== item.id);
@@ -2912,6 +2938,35 @@ export default {
 
         docsLinkTarget() {
             return this.$store.getters.docsLinkTarget;
+        },
+
+        selectedItemTemplate() {
+            if (this.schemeContainer.selectedItems.length !== 1) {
+                return null;
+            }
+
+            const item = this.schemeContainer.selectedItems[0];
+            if (!item.args || !item.args.templateRef) {
+                return null;
+            }
+
+            if (!this.schemeContainer.scheme.templates) {
+                return null;
+            }
+
+            return (this.schemeContainer.scheme.templates[item.args.templateRef]);
+        },
+
+        selectedItemTemplateArgs() {
+            if (this.schemeContainer.selectedItems.length !== 1) {
+                return null;
+            }
+
+            const item = this.schemeContainer.selectedItems[0];
+            if (!item.args || !item.args.templateArgs) {
+                return null;
+            }
+            return item.args.templateArgs;
         },
     }
 }

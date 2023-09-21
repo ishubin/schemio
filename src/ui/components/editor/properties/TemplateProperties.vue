@@ -21,9 +21,6 @@
 
 <script>
 import ArgumentsEditor from '../ArgumentsEditor.vue';
-import { processJSONTemplate } from '../../../templater/templater';
-import { traverseItems } from '../../../scheme/Item';
-import utils from '../../../utils';
 import forEach from 'lodash/forEach';
 
 export default {

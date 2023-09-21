@@ -73,6 +73,42 @@
                         >
                     </circle>
                 </g>
+
+                <g v-for="(control,idx) in templateControls"
+                    :transform="`translate(${control.x}, ${control.y})`"
+                    >
+                    <g v-if="control.type === 'button'" >
+                        <rect
+                            class="item-control-point"
+                            :x="0"
+                            :y="0"
+                            :width="control.width/safeZoom"
+                            :height="control.height/safeZoom"
+                            :fill="controlPointsColor"
+                            :rx="10/safeZoom"
+                            />
+                        <foreignObject :x="0" :y="0"  :width="control.width/safeZoom" :height="control.height/safeZoom">
+                            <div xmlns="http://www.w3.org/1999/xhtml"
+                                style="color: white; display: table-cell; white-space: nowrap; text-align: center; vertical-align: middle"
+                                :style="{'font-size': `${12/safeZoom}px`,width: `${Math.round(control.width/safeZoom)}px`, height: `${Math.round(control.height/safeZoom)}px`}"
+                                >
+                                {{ control.text }}
+                            </div>
+                        </foreignObject>
+                        <rect
+                            class="item-control-point"
+                            :x="0"
+                            :y="0"
+                            :width="control.width/safeZoom"
+                            :height="control.height/safeZoom"
+                            fill="rgba(0,0,0,0)"
+                            :rx="10/safeZoom"
+                            data-type="multi-item-edit-box"
+                            @click="onTemplateControlClick(idx)"
+                            />
+                    </g>
+
+                </g>
             </g>
         </g>
 
@@ -358,6 +394,8 @@ import StoreUtils from '../../store/StoreUtils';
 import StrokePattern from './items/StrokePattern';
 import myMath from '../../myMath';
 import { itemCompleteTransform } from '../../scheme/SchemeContainer';
+import { processJSONTemplate, processTemplateExpressions } from '../../templater/templater';
+import utils from '../../utils';
 
 
 function isItemConnector(items) {
@@ -394,6 +432,10 @@ export default {
         boundaryBoxColor: {type: String},
         controlPointsColor: {type: String},
 
+        // used for templated items to build template controls
+        template: {type: Object, default: null},
+        templateArgs: {type: Object, default: null},
+
         // can be regular or crop-image
         kind: {type: String, default: 'regular'},
     },
@@ -416,6 +458,10 @@ export default {
         } else {
             StoreUtils.clearItemControlPoints(this.$store);
         }
+
+        if (this.template) {
+            this.buildTemplateControls();
+        }
     },
 
     mounted() {
@@ -433,7 +479,8 @@ export default {
             connectionStarterDisplayed: false,
             connectionStarterTimerId: null,
 
-            customControls: []
+            customControls: [],
+            templateControls: []
         };
     },
 
@@ -485,6 +532,45 @@ export default {
         onCustomControlClick(idx) {
             this.customControls[idx].click();
             this.$emit('custom-control-clicked', this.editBox.items[0]);
+        },
+
+        buildTemplateControls() {
+            if (!this.template.controls || this.editBox.items.length !== 1) {
+                return;
+            }
+
+            const result = processJSONTemplate({'$-eval': this.template.init || [], controls: this.template.controls || []}, this.getFullTemplateArgs());
+            this.templateControls = result.controls;
+        },
+
+        getFullTemplateArgs() {
+            const userArgs = this.templateArgs || {};
+            const args = {...userArgs};
+
+            // initializing default args just in case there were some missed in item.args.templateArgs field
+            if (this.template.args) {
+                for(let name in this.template.args) {
+                    if (this.template.args.hasOwnProperty(name) && !args.hasOwnProperty(name)) {
+                        args[name] = utils.clone(this.template.args[name].value);
+                    }
+                }
+            }
+            const width = this.editBox.items[0].area.w;
+            const height = this.editBox.items[0].area.h;
+            return {...args, width, height};
+        },
+
+        onTemplateControlClick(idx) {
+            const control = this.templateControls[idx];
+            if (!control.click) {
+                return;
+            }
+            const args = this.getFullTemplateArgs();
+            const expressions = (this.template.init || []).concat(control.click);
+
+            const updatedArgs = processTemplateExpressions(expressions, args);
+
+            this.$emit('template-rebuild-requested', this.editBox.items[0], updatedArgs);
         }
     },
 

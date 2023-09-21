@@ -199,7 +199,6 @@ import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
-import {processJSONTemplate} from '../../templater/templater';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -743,7 +742,7 @@ export default {
 
                 itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
                 itemClone.name = this.makeUniqueName(item.name);
-                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template);
+                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template, templateRef);
             })
             .build();
         },

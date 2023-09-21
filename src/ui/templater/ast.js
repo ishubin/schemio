@@ -24,6 +24,10 @@ export class Scope {
     newScope() {
         return new Scope({}, this);
     }
+
+    getData() {
+        return this.data;
+    }
 }
 
 

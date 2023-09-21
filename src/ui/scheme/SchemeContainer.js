@@ -384,6 +384,14 @@ class SchemeContainer {
         this.reindexItems();
     }
 
+    addTemplate(templateRef, template) {
+        if (!this.scheme.templates) {
+            this.scheme.templates = {};
+        }
+
+        this.scheme.templates[templateRef] = template;
+    }
+
     /**
      * Recalculates transform for each child item of specified item.
      * It is needed when user drags an item that has sub-items.
@@ -444,9 +452,9 @@ class SchemeContainer {
         this.reindexComponents();
         this.fixComponentCyclicDependencies();
 
+        this.removeUnusedTemplates();
         log.timeEnd('reindexItems');
     }
-
 
     reindexComponents() {
         forEach(this.componentItems, item => this.reindexEmbeddedComponent(item));
@@ -511,6 +519,25 @@ class SchemeContainer {
             visitedIds.clear();
             visitComponent(componentItem);
         });
+    }
+
+    removeUnusedTemplates() {
+        if (this.scheme.templates) {
+            return;
+        }
+
+        const templateRefs = new Set();
+        traverseItems(this.scheme.items, item => {
+            if (item.args && item.args.templateRef) {
+                templateRefs.add(item.args.templateRef);
+            }
+        });
+
+        for (let templateRef in this.scheme.templates) {
+            if (this.scheme.templates.hasOwnProperty(templateRef) && !templateRefs.has(templateRef)) {
+                delete this.scheme.templates[templateRef];
+            }
+        }
     }
 
     /*
@@ -2040,19 +2067,28 @@ class SchemeContainer {
         });
 
         //TODO OPTIMIZE: we don't need to execute code below for a scheme container in edit mode
+        this.fixItemsReferences(copiedItems, idOldToNewConversions);
+        return copiedItems;
+    }
 
+    /**
+     * Traverses all items and replaces all outdated references to the one provided in idsMapping argument
+     * @param {Arrat<Item>} items - items with new ids
+     * @param {Map<String, String>} idsMapping - map of old to new ids
+     */
+    fixItemsReferences(items, idsMapping) {
         // recreates element selector in case the source or destination was also copied together with it
         const rebuildElementSelector = (elementSelector) => {
             if (elementSelector && elementSelector.indexOf('#') === 0) {
                 const oldId = elementSelector.substr(1);
-                if (idOldToNewConversions.has(oldId)) {
-                    return '#' + idOldToNewConversions.get(oldId);
+                if (idsMapping.has(oldId)) {
+                    return '#' + idsMapping.get(oldId);
                 }
             }
             return elementSelector;
         };
 
-        traverseItems(copiedItems, item => {
+        traverseItems(items, item => {
             if (item.shape === 'connector') {
                 item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
                 item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
@@ -2094,7 +2130,7 @@ class SchemeContainer {
                 });
             });
         });
-        return copiedItems;
+
     }
 
     /**
@@ -2697,11 +2733,13 @@ class SchemeContainer {
             }
         }
 
-        const item = processJSONTemplate(template.item, {
+        const result = processJSONTemplate({'$-eval': template.init || [], item: template.item}, {
             ...args,
             width : width || template.item.area.w,
             height: height || template.item.area.h
         });
+
+        const item = result.item;
 
         traverseItems([item], it => {
             if (!it.args) {
@@ -2734,8 +2772,8 @@ class SchemeContainer {
             }
             foreignItems.set(id, foreignItems.get(id).concat([it]));
         });
-
-        const templatedItem = processJSONTemplate(template.item, {...args, width: item.area.w, height: item.area.h});
+        const result = processJSONTemplate({'$-eval': template.init || [], item: template.item}, {...args, width: item.area.w, height: item.area.h});
+        const templatedItem = result.item;
         templatedItem.args = {templateRef: templateRef, templateArgs: utils.clone(args)};
 
         traverseItems([templatedItem], it => {

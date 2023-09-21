@@ -21,6 +21,22 @@ export function processJSONTemplate(obj, data) {
 }
 
 /**
+ * This function is used when user clicks on template controls.
+ * It executes init and control expressions and returns the updated template argument values
+ * @param {Array<String>} expressions - an array of strings which represent template expressions
+ * @param {Object} data - an object with initial arguments
+ * @returns {Object} - mutated arguments that were changed by the executed epxressions
+ */
+export function processTemplateExpressions(expressions, data) {
+    if (!Array.isArray(expressions)) {
+        return;
+    }
+    const scope = new Scope(data);
+    expressions.forEach(expr => processExpression(expr, scope));
+    return scope.getData();
+}
+
+/**
  *
  * @param {*} obj
  * @param {Scope} scope
