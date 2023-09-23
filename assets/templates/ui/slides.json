@@ -1,0 +1,713 @@
+{
+    "name": "Slides",
+    "args": {
+        "numSlides": {"type": "number", "value": 3, "min": 1, "name": "Numbers of slides"},
+        "background": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},
+        "strokeColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
+        "strokeSize": {"type": "number", "value": 1, "min": 0, "name": "Stroke size"},
+        "textColor": {"type": "color", "value": "rgba(30,30,30,1.0)", "name": "Text color"},
+        "shadow": {"type": "boolean", "value": true, "name": "Drop shadow"},
+        "buttonColor": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(78, 131, 245, 1)" }, "name": "Button color"},
+        "iconColor": {"type": "color", "value": "rgba(255, 255, 255, 1)", "name": "Icon color"},
+        "buttonSize": {"type": "number", "value": 60, "min": 5, "name": "Button size"},
+        "padding": {"type": "number", "value": 14, "min": 0, "name": "Padding"},
+        "cornerRadius": {"type": "number", "value": 10, "min": 0, "name": "Corner radius"}
+    },
+    "init": [
+        "slideTag = 'slide-container-' + uid()",
+        "buttonMargin = padding / 2",
+        "containerMarginX = buttonMargin*2 + buttonSize",
+        "containerMarginTop = 60",
+        "btnIconK = buttonSize / 60",
+        "btnIconWidth = 20 * btnIconK",
+        "btnIconHeight = 25 * btnIconK",
+        "containerMarginBottom = padding",
+        "slideWidth = max(1, width - containerMarginX * 2)",
+        "slideHeight = max(1, height - containerMarginTop - containerMarginBottom",
+        "slideMargin = 10",
+        "currentSlideVarName = 'current-slide-' + uid()"
+    ],
+    "controls": [ {
+        "name": "addSlide",
+        "type": "button",
+        "text": "Add slide",
+        "x": {"$-expr": "width - 60"},
+        "y": {"$-expr": "10"},
+        "width": 120,
+        "height": 30,
+        "click": [
+            "numSlides = numSlides + 1"
+        ]
+    }],
+    "description": "",
+    "preview": "data:image/svg+xml;base64,PHN2ZyByZWY9InN2Z0NvbnRhaW5lciIgY2xhc3M9ImV4cG9ydC1zdmctcHJldmlldyIKICAgICAgICB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMDBweCIKICAgICAgICB2aWV3Qm94PSItMTAgLTEwIDgwMCA0NDAiCiAgICAgICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQiCiAgICAgICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgICAgIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgogICAgICAgIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiA+CiAgICAgICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJLcWp2NFk3eVgiIGRhdGEtaXRlbS1pZD0iS3FqdjRZN3lYIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDc2MCA0MjAgIEwgMjAgNDIwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgNzYwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDc4MCA0MDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZGF0YS1pdGVtLWlkPSJLcWp2NFk3eVgiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjQwLDI0MCwyNDAsMS4wKSI+PC9wYXRoPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGZvcmVpZ25PYmplY3QgZGF0YS10ZXh0LXNsb3QtbmFtZT0iYm9keSIgaWQ9Iml0ZW0tdGV4dC1zbG90LUtxanY0WTd5WC1ib2R5IiB4PSIwIiB5PSIwIiB3aWR0aD0iNzgwIiBoZWlnaHQ9IjQyMCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgZGF0YS1pdGVtLWlkPSJLcWp2NFk3eVgiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigwLCAwLCAwKTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiBtaWRkbGU7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IHdpZHRoOiA3ODBweDsgaGVpZ2h0OiA0MjBweDsiPjxkaXYgZGF0YS1pdGVtLXRleHQtZWxlbWVudC1pdGVtLWlkPSJLcWp2NFk3eVgiIGNsYXNzPSJpdGVtLXRleHQtZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsiPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMjQwLDApIiBkYXRhLXN2Zy1pdGVtLWNvbnRhaW5lci1pZD0iTndFdmNOd3BoIiBkYXRhLWl0ZW0taWQ9Ik53RXZjTndwaCIgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+ICAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3QtTndFdmNOd3BoLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIzMDEuNjUyODkyNTYxOTgzNjYiIGhlaWdodD0iNDAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGRhdGEtaXRlbS1pZD0iTndFdmNOd3BoIiBjbGFzcz0iaXRlbS10ZXh0LWNvbnRhaW5lciIgc3R5bGU9ImNvbG9yOiByZ2IoMCwgMCwgMCk7IGZvbnQtc2l6ZTogMThweDsgZm9udC1mYW1pbHk6IEFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7IHBhZGRpbmc6IDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyB2ZXJ0aWNhbC1hbGlnbjogbWlkZGxlOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyBkaXNwbGF5OiB0YWJsZS1jZWxsOyBib3gtc2l6aW5nOiBib3JkZXItYm94OyB3aWR0aDogMzAxLjY1M3B4OyBoZWlnaHQ6IDQwcHg7Ij48ZGl2IGRhdGEtaXRlbS10ZXh0LWVsZW1lbnQtaXRlbS1pZD0iTndFdmNOd3BoIiBjbGFzcz0iaXRlbS10ZXh0LWVsZW1lbnQiIHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7Ij48cCBzdHlsZT0ibWFyZ2luLXRvcDogMHB4OyBtYXJnaW4tYm90dG9tOiAwcHg7IHBhZGRpbmc6IDBweDsgbWluLWhlaWdodDogMThweDsiPjxzdHJvbmc+U2xpZGVzPC9zdHJvbmc+PC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgICA8L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwyMCwxODUpIiBkYXRhLXN2Zy1pdGVtLWNvbnRhaW5lci1pZD0id29ZdS1va3d1IiBkYXRhLWl0ZW0taWQ9IndvWXUtb2t3dSIgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDMwIEEgMzAgMzAgMCAxIDEgNjAgMzAgIEEgMzAgMzAgMCAxIDEgMCAzMCBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZGF0YS1pdGVtLWlkPSJ3b1l1LW9rd3UiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoNzgsIDEzMSwgMjM4LCAxKSI+PC9wYXRoPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGZvcmVpZ25PYmplY3QgZGF0YS10ZXh0LXNsb3QtbmFtZT0iYm9keSIgaWQ9Iml0ZW0tdGV4dC1zbG90LXdvWXUtb2t3dS1ib2R5IiB4PSIwIiB5PSIwIiB3aWR0aD0iNjAiIGhlaWdodD0iNjAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGRhdGEtaXRlbS1pZD0id29ZdS1va3d1IiBjbGFzcz0iaXRlbS10ZXh0LWNvbnRhaW5lciIgc3R5bGU9ImNvbG9yOiByZ2IoMCwgMCwgMCk7IGZvbnQtc2l6ZTogMTRweDsgZm9udC1mYW1pbHk6IEFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7IHBhZGRpbmc6IDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyB2ZXJ0aWNhbC1hbGlnbjogbWlkZGxlOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyBkaXNwbGF5OiB0YWJsZS1jZWxsOyBib3gtc2l6aW5nOiBib3JkZXItYm94OyB3aWR0aDogNjBweDsgaGVpZ2h0OiA2MHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9IndvWXUtb2t3dSIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgPGc+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxNSwxOCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJNNkY0V2dNbUgiIGRhdGEtaXRlbS1pZD0iTTZGNFdnTW1IIiBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcz48L2RlZnM+IDxnIGZpbHRlcj0iIj48ZyBtb2RlPSJlZGl0IiBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMjAgMCBMIDIwIDI1IEwgMCAxMi41IEwgMjAgMCAgWiAiIHN0cm9rZS13aWR0aD0iNHB4IiBzdHJva2U9InJnYmEoMjU1LCAyNTUsIDI1NSwgMSkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwxLjApIiBzdHlsZT0ic3Ryb2tlLWxpbmVqb2luOiByb3VuZDsiPjwvcGF0aD48L2c+ICAgPC9nPiAgICAgICAgICA8L2c+PC9nPiA8L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSw3MDAsMTgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9IjJsZGlkWk1vViIgZGF0YS1pdGVtLWlkPSIybGRpZFpNb1YiIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzPjwvZGVmcz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMCAzMCBBIDMwIDMwIDAgMSAxIDYwIDMwICBBIDMwIDMwIDAgMSAxIDAgMzAgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIGRhdGEtaXRlbS1pZD0iMmxkaWRaTW9WIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDc4LCAxMzEsIDIzOCwgMSkiPjwvcGF0aD48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGRhdGEtdGV4dC1zbG90LW5hbWU9ImJvZHkiIGlkPSJpdGVtLXRleHQtc2xvdC0ybGRpZFpNb1YtYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9IjJsZGlkWk1vViIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDYwcHg7IGhlaWdodDogNjBweDsiPjxkaXYgZGF0YS1pdGVtLXRleHQtZWxlbWVudC1pdGVtLWlkPSIybGRpZFpNb1YiIGNsYXNzPSJpdGVtLXRleHQtZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsiPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KC0xLDEuMjI0NjQ2Nzk5MTQ3MzUzMmUtMTYsLTEuMjI0NjQ2Nzk5MTQ3MzUzMmUtMTYsLTEsNDQuNjI3OTI2Njk4MTk1NzgsNDMuNTk4MjkxNjg0NzI2NzQ2KSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9Imx0Q2lSdng1a1kiIGRhdGEtaXRlbS1pZD0ibHRDaVJ2eDVrWSIgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnM+PC9kZWZzPiA8ZyBmaWx0ZXI9IiI+PGcgbW9kZT0iZWRpdCIgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDIwIDAgTCAyMCAyNSBMIDAgMTIuNSBMIDIwIDAgIFogIiBzdHJva2Utd2lkdGg9IjRweCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMS4wKSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ij48L3BhdGg+PC9nPiAgIDwvZz4gICAgICAgICAgPC9nPjwvZz4gPC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMTAwLDYwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9ImtPRnFpVTJsciIgZGF0YS1pdGVtLWlkPSJrT0ZxaVUybHIiIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzPjwvZGVmcz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gNTc5LjggMzIwICBMIDAuMiAzMjAgYSAwLjIgMC4yIDAgMCAxIC0wLjIgLTAuMiAgTCAwIDAuMiAgYSAwLjIgMC4yIDAgMCAxIDAuMiAtMC4yICAgTCA1NzkuOCAwICAgYSAwLjIgMC4yIDAgMCAxIDAuMiAwLjIgIEwgNTgwIDMxOS44ICAgYSAwLjIgMC4yIDAgMCAxIC0wLjIgMC4yIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBkYXRhLWl0ZW0taWQ9ImtPRnFpVTJsciIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIj48L3BhdGg+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBkYXRhLXRleHQtc2xvdC1uYW1lPSJib2R5IiBpZD0iaXRlbS10ZXh0LXNsb3Qta09GcWlVMmxyLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSI1ODAiIGhlaWdodD0iMzIwIj48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBkYXRhLWl0ZW0taWQ9ImtPRnFpVTJsciIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDAsIDAsIDApOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgd2lkdGg6IDU4MHB4OyBoZWlnaHQ6IDMyMHB4OyI+PGRpdiBkYXRhLWl0ZW0tdGV4dC1lbGVtZW50LWl0ZW0taWQ9ImtPRnFpVTJsciIgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgIDwvZz48L2c+IDwvZz4KICAgIDwvc3ZnPg==",
+    "item": {
+        "id": "root",
+        "name": "Slides",
+        "shapeProps": {
+            "cornerRadius": {"$-expr": "cornerRadius"},
+            "fill": {"$-expr": "background"},
+            "strokeColor": {"$-expr": "strokeColor"},
+            "strokeSize": {"$-expr": "strokeSize"},
+            "strokePattern": "solid"
+        },
+        "shape": "rect",
+        "area": {
+            "x": 0,
+            "y": 0,
+            "w": 600,
+            "h": 400,
+            "r": 0,
+            "px": 0.5,
+            "py": 0.5,
+            "sx": 1,
+            "sy": 1
+        },
+        "links": [],
+        "behavior": {
+            "events": []
+        },
+        "tags": [],
+        "effects": [
+            {
+                "$-if": "shadow == true",
+                "id": "Lira_Np5T",
+                "effect": "drop-shadow",
+                "name": "Drop Shadow",
+                "args": {
+                    "color": "rgba(0,0,0,1.0)",
+                    "dx": 3,
+                    "dy": 3,
+                    "blur": 20,
+                    "opacity": 20,
+                    "inside": false
+                }
+            }
+        ],
+        "childItems": [
+            {
+                "id": "header",
+                "name": "Header",
+                "textSlots": {
+                    "body": {
+                        "text": "<p><strong>Slides</strong></p>",
+                        "paddingLeft": 0,
+                        "paddingRight": 0,
+                        "paddingTop": 0,
+                        "paddingBottom": 0,
+                        "color": {"$-expr": "textColor"},
+                        "halign": "center",
+                        "valign": "middle",
+                        "fontSize": 20,
+                        "whiteSpace": "normal",
+                        "font": "Arial"
+                    }
+                },
+                "shape": "none",
+                "cursor": "default",
+                "area": {
+                    "x": 0,
+                    "y": 0,
+                    "w": {"$-expr": "width"},
+                    "h": 40,
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "description": "",
+                "links": [],
+                "behavior": {
+                    "events": []
+                },
+                "shapeProps": {},
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)"
+            },
+            {
+                "id": "container",
+                "name": "Container",
+                "locked": true,
+                "shapeProps": {
+                    "cornerRadius": 0.2,
+                    "fill": {
+                        "type": "solid",
+                        "color": "rgba(240,240,240,1.0)"
+                    },
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 2,
+                    "strokePattern": "solid"
+                },
+                "shape": "rect",
+                "cursor": "default",
+                "area": {
+                    "x": {"$-expr": "containerMarginX"},
+                    "y": {"$-expr": "containerMarginTop"},
+                    "w": {"$-expr": "slideWidth"},
+                    "h": {"$-expr": "slideHeight"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "description": "",
+                "links": [],
+                "textSlots": { },
+                "behavior": {
+                    "events": [{
+                        "id": {"$-expr": "uid()"},
+                        "event": "init",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "self",
+                            "method": "set",
+                            "on": true,
+                            "args": {
+                                "field": "clip",
+                                "value": true
+                            }
+                        }]
+                    }]
+                },
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "interactionMode": "tooltip",
+                "tooltipBackground": "rgba(230,230,230,1.0)",
+                "tooltipColor": "rgba(30,30,30,1.0)",
+                "childItems": [{
+                    "id": "moving-container",
+                    "name": "Moving container",
+                    "locked": true,
+                    "area": {
+                        "x": 0,
+                        "y": 0,
+                        "w": {"$-expr": "(slideWidth + slideMargin) * numSlides"},
+                        "h": {"$-expr": "slideHeight"},
+                        "r": 0,
+                        "px": 0.5,
+                        "py": 0.5,
+                        "sx": 1,
+                        "sy": 1
+                    },
+                    "shape": "rect",
+                    "selfOpacity": 0,
+                    "shapeProps": {},
+                    "childItems": [ {
+                        "$-for": {"start": 1, "until": {"$-expr": "numSlides + 1"}, "it": "idx"},
+                        "id": {"$-str": "slide-${idx}"},
+                        "name": {"$-str": "Slide #${idx}"},
+                        "locked": true,
+                        "shape": "rect",
+                        "area": {
+                            "x": {"$-expr": "ifcond(idx > 1, containerMarginX, 0) + (slideWidth + slideMargin) * (idx - 1)"},
+                            "y": 0,
+                            "w": {"$-expr": "slideWidth"},
+                            "h": {"$-expr": "slideHeight"},
+                            "r": 0,
+                            "px": 0.5,
+                            "py": 0.5,
+                            "sx": 1,
+                            "sy": 1
+                        },
+                        "textSlots": {
+                            "body": {
+                                "fontSize": 16,
+                                "color": "rgba(0,0,0,0.3)",
+                                "text": {"$-str": [
+                                    "<h1>Slide #${idx}</h1>",
+                                    "<p>Drop your items here</p>",
+                                    "<p><i>(this text as well as this slide container will not be visible in view mode)</i></p>"
+                                ]}
+                            }
+                        },
+                        "behavior": {
+                            "events": [{
+                                "id": {"$-expr": "uid()"},
+                                "event": "init",
+                                "actions": [{
+                                    "id": {"$-expr": "uid()"},
+                                    "element": "self",
+                                    "method": "move",
+                                    "args": {
+                                        "x": {"$-expr": "(slideWidth) * (idx - 1)"},
+                                        "y": 0,
+                                        "animate": false
+                                    }
+                                }, {
+                                    "id": {"$-expr": "uid()"},
+                                    "element": "self",
+                                    "method": "set",
+                                    "args": {
+                                        "field": "selfOpacity",
+                                        "value": 0,
+                                        "animated": false
+                                    }
+                                }]
+                            }]
+                        }
+                    } ],
+                    "behavior": {
+                        "events": [{
+                            "id": {"$-expr": "uid()"},
+                            "event": "init",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "method": "script",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "script": {"$-str": "setVar('currentSlide', 1)"}
+                                }
+                            }]
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "event": "slide_prev",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "method": "condition",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "expression": {"$-str": "getVar('currentSlide', 1) < 2"},
+                                    "success": "break-event",
+                                    "fail": "pass"
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "script",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "script": {"$-str": [
+                                        "slide = max(getVar('currentSlide', 1) - 1, 1);",
+                                        "setVar('currentSlide', slide);",
+                                        "setVar('srcX', getPosX());",
+                                        "setVar('dstX', -${slideWidth}*(slide - 1));"
+                                    ]}
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "sendEvent",
+                                "on": true,
+                                "element": "#btn-prev",
+                                "args": {
+                                    "event": "update_state"
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "sendEvent",
+                                "on": true,
+                                "element": "#btn-next",
+                                "args": {
+                                    "event": "update_state"
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "script",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "script": "setPosX(getVar('srcX') * (1 - t) + getVar('dstX') * t)",
+                                    "animated": true,
+                                    "animationDuration": 0.2,
+                                    "transition": "ease-in-out",
+                                    "inBackground": true
+                                }
+                            }]
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "event": "slide_next",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "method": "condition",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "expression": {"$-str": "getVar('currentSlide', 1) > ${numSlides}"},
+                                    "success": "break-event",
+                                    "fail": "pass"
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "sendEvent",
+                                "on": true,
+                                "element": "#btn-prev",
+                                "args": {
+                                    "event": "update_state"
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "sendEvent",
+                                "on": true,
+                                "element": "#btn-next",
+                                "args": {
+                                    "event": "update_state"
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "script",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "script": {"$-str": [
+                                        "slide = min(getVar('currentSlide', 1) + 1, ${numSlides});",
+                                        "setVar('currentSlide', slide);",
+                                        "setVar('srcX', getPosX());",
+                                        "setVar('dstX', -${slideWidth}*(slide - 1));"
+                                    ]}
+                                }
+                            }, {
+                                "id": {"$-expr": "uid()"},
+                                "method": "script",
+                                "on": true,
+                                "element": "self",
+                                "args": {
+                                    "script": "setPosX(getVar('srcX') * (1 - t) + getVar('dstX') * t)",
+                                    "animated": true,
+                                    "animationDuration": 0.2,
+                                    "transition": "ease-in-out",
+                                    "inBackground": true
+                                }
+                            }]
+                        }]
+                    }
+                }]
+            },
+            {
+                "id": "btn-prev",
+                "shape": "ellipse",
+                "locked": true,
+                "cursor": "default",
+                "area": {
+                    "x": {"$-expr": "buttonMargin"},
+                    "y": {"$-expr": "(height - buttonSize) / 2"},
+                    "w": {"$-expr": "buttonSize"},
+                    "h": {"$-expr": "buttonSize"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "name": "Prev button",
+                "description": "",
+                "links": [],
+                "textSlots": { },
+                "behavior": {
+                    "events": [{
+                        "id": {"$-expr": "uid()"},
+                        "event": "init",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "on": true,
+                            "element": "self",
+                            "method": "hide",
+                            "args": {
+                                "animate": false
+                            }
+                        }]
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "event": "update_state",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "method": "condition",
+                            "on": true,
+                            "element": "#moving-container",
+                            "args": {
+                                "expression": {"$-str": "getVar('currentSlide', 1) < 2"},
+                                "success": "pass",
+                                "fail": "skip-next"
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "element": "self",
+                            "method": "hide",
+                            "on": true,
+                            "args": {
+                                "animated": true,
+                                "animationDuration": 0.2
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "element": "#moving-container",
+                            "method": "condition",
+                            "on": true,
+                            "args": {
+                                "expression": {"$-str": "getVar('currentSlide', 1) > 1"},
+                                "success": "pass",
+                                "fail": "skip-next"
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "element": "self",
+                            "method": "show",
+                            "on": true,
+                            "args": {
+                                "animated": false,
+                                "animationDuration": 0.2
+                            }
+                        }]
+                    }]
+                },
+                "shapeProps": {
+                    "fill": {"$-expr": "buttonColor"},
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "childItems": [ {
+                    "id": "prev-icon",
+                    "name": "Prev icon",
+                    "locked": true,
+                    "area": {
+                        "x": {"$-expr": "15 * btnIconK"},
+                        "y": {"$-expr": "18 * btnIconK"},
+                        "w": {"$-expr": "btnIconWidth"},
+                        "h": {"$-expr": "btnIconHeight"},
+                        "r": 0, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5
+                    },
+                    "shape": "path",
+                    "shapeProps": {
+                        "paths": [
+                            {
+                                "id": {"$-expr": "uid()"},
+                                "closed": true,
+                                "points": [
+                                    { "t": "L", "x": 100, "y": 0 },
+                                    { "t": "L", "x": 100, "y": 100 },
+                                    { "t": "L", "x": 0, "y": 50 }
+                                ],
+                                "pos": "relative"
+                            }
+                        ],
+                        "fill": {
+                            "type": "solid",
+                            "color": {"$-expr": "iconColor"}
+                        },
+                        "strokeColor":{"$-expr": "iconColor"},
+                        "strokeSize": 4,
+                        "strokePattern": "solid",
+                        "points": [],
+                        "closed": false
+                    },
+                    "textSlots": {},
+                    "opacity": 100,
+                    "selfOpacity": 100,
+                    "visible": true,
+                    "tags": [],
+                    "links": [],
+                    "blendMode": "normal",
+                    "cursor": "default",
+                    "clip": false,
+                    "effects": [],
+                    "description": "",
+                    "behavior": {
+                        "events": []
+                    }
+                }, {
+                    "id": "btn-prev-overlay",
+                    "name": "Button prev overlay",
+                    "locked": true,
+                    "shape": "ellipse",
+                    "cursor": "pointer",
+                    "selfOpacity": 0,
+                    "area": { "x": 0, "y": 0, "w": {"$-expr": "buttonSize"}, "h": {"$-expr": "buttonSize"}, "r": 180, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5 },
+                    "behavior": {
+                        "events": [{
+                            "id": {"$-expr": "uid()"},
+                            "event": "clicked",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "element": "#moving-container",
+                                "method": "sendEvent",
+                                "args": {
+                                    "event": "slide_prev"
+                                }
+                            }]
+                        }]
+                    }
+                } ]
+            },
+            {
+                "id": "btn-next",
+                "shape": "ellipse",
+                "locked": true,
+                "cursor": "default",
+                "area": {
+                    "x": {"$-expr": "width - buttonSize - buttonMargin"},
+                    "y": {"$-expr": "(height - buttonSize) / 2"},
+                    "w": {"$-expr": "buttonSize"},
+                    "h": {"$-expr": "buttonSize"},
+                    "r": 0,
+                    "px": 0.5,
+                    "py": 0.5,
+                    "sx": 1,
+                    "sy": 1
+                },
+                "opacity": 100,
+                "blendMode": "normal",
+                "name": "Next button",
+                "description": "",
+                "links": [],
+                "textSlots": { },
+                "behavior": {
+                    "events": [{
+                        "id": {"$-expr": "uid()"},
+                        "event": "update_state",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "method": "condition",
+                            "on": true,
+                            "element": "#moving-container",
+                            "args": {
+                                "expression": {"$-str": "getVar('currentSlide', 1) >= ${numSlides - 1}"},
+                                "success": "pass",
+                                "fail": "skip-next"
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "element": "self",
+                            "method": "hide",
+                            "on": true,
+                            "args": {
+                                "animated": true,
+                                "animationDuration": 0.2
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "element": "#moving-container",
+                            "method": "condition",
+                            "on": true,
+                            "args": {
+                                "expression": {"$-str": "getVar('currentSlide', 1) < ${numSlides}"},
+                                "success": "pass",
+                                "fail": "skip-next"
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "element": "self",
+                            "method": "show",
+                            "on": true,
+                            "args": {
+                                "animated": false,
+                                "animationDuration": 0.2
+                            }
+                        }]
+                    }]
+                },
+                "shapeProps": {
+                    "fill": {"$-expr": "buttonColor"},
+                    "strokeColor": "rgba(30,30,30,1.0)",
+                    "strokeSize": 0,
+                    "strokePattern": "solid"
+                },
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "clip": false,
+                "effects": [],
+                "childItems": [ {
+                    "id": "next-icon",
+                    "name": "Next icon",
+                    "locked": true,
+                    "area": {
+                        "x": {"$-expr": "24 * btnIconK"},
+                        "y": {"$-expr": "18 * btnIconK"},
+                        "w": {"$-expr": "btnIconWidth"},
+                        "h": {"$-expr": "btnIconHeight"},
+                        "r": 180, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5
+                    },
+                    "shape": "path",
+                    "shapeProps": {
+                        "paths": [
+                            {
+                                "id": {"$-expr": "uid()"},
+                                "closed": true,
+                                "points": [
+                                    { "t": "L", "x": 100, "y": 0 },
+                                    { "t": "L", "x": 100, "y": 100 },
+                                    { "t": "L", "x": 0, "y": 50 }
+                                ],
+                                "pos": "relative"
+                            }
+                        ],
+                        "fill": {
+                            "type": "solid",
+                            "color": {"$-expr": "iconColor"}
+                        },
+                        "strokeColor": {"$-expr": "iconColor"},
+                        "strokeSize": 4,
+                        "strokePattern": "solid",
+                        "points": [],
+                        "closed": false
+                    },
+                    "textSlots": {},
+                    "opacity": 100,
+                    "selfOpacity": 100,
+                    "visible": true,
+                    "tags": [],
+                    "links": [],
+                    "blendMode": "normal",
+                    "cursor": "default",
+                    "clip": false,
+                    "effects": [],
+                    "behavior": {
+                        "events": []
+                    }
+                }, {
+                    "id": "btn-next-overlay",
+                    "name": "Button next overlay",
+                    "locked": true,
+                    "shape": "ellipse",
+                    "cursor": "pointer",
+                    "selfOpacity": 0,
+                    "area": { "x": 0, "y": 0, "w": {"$-expr": "buttonSize"}, "h": {"$-expr": "buttonSize"}, "r": 180, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5 },
+                    "behavior": {
+                        "events": [{
+                            "id": {"$-expr": "uid()"},
+                            "event": "clicked",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "element": "#moving-container",
+                                "method": "sendEvent",
+                                "args": {
+                                    "event": "slide_next"
+                                }
+                            }]
+                        }]
+                    }
+                } ]
+            }
+        ],
+        "textSlots": { },
+        "opacity": 100,
+        "selfOpacity": 100,
+        "visible": true,
+        "blendMode": "normal",
+        "cursor": "default",
+        "clip": false
+    }
+}

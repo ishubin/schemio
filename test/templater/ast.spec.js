@@ -72,7 +72,6 @@ describe('templater ast parser', () => {
 
     it('should allow to get properties of objects using dot operator', () => {
         const scope = new Scope({someObj: {area: {x: 1, y: 2}, name: 'some object'}});
-        console.log(parseAST(tokenizeExpression('someObj*area*x + someObj*area*y')).print());
         expect(parseAST(tokenizeExpression('someObj.area.x')).evalNode(scope)).toBe(1);
         expect(parseAST(tokenizeExpression('someObj.area.y')).evalNode(scope)).toBe(2);
         expect(parseAST(tokenizeExpression('someObj.area')).evalNode(scope)).toStrictEqual({x: 1, y: 2});
@@ -80,5 +79,17 @@ describe('templater ast parser', () => {
         expect(parseAST(tokenizeExpression('someObj.area.x + someObj.area.y')).evalNode(scope)).toBe(3);
         expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y > 3, 10, 100)')).evalNode(scope)).toBe(101);
         expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y < 3, 10, 100)')).evalNode(scope)).toBe(11);
+    });
+
+    it('should allow to execute multiple expressions separated by semicolon', () => {
+        const scope = new Scope({
+            setVar(name, value) {
+                scope.set(name, value);
+            }
+        });
+        parseAST(tokenizeExpression('x = 4; y = x + 10; setVar("z", y + 2 * x);')).evalNode(scope);
+        expect(scope.get('x')).toBe(4);
+        expect(scope.get('y')).toBe(14);
+        expect(scope.get('z')).toBe(22);
     });
 });

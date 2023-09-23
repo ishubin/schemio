@@ -67,6 +67,18 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const emitItemChanged = () => {
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     };
+
+    const withFloatValue = (callback) => {
+        return (value) => {
+            const fValue = parseFloat(value);
+            if (isNaN(fValue)) {
+                return;
+            }
+            callback(fValue);
+            emitItemChanged();
+        };
+    };
+
     return new Scope({
         setVar(name, value) {
             if (!item.args) {
@@ -86,23 +98,37 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
             return item.args.customVars[name];
         },
 
-        getPosX() {
-            return item.area.x;
-        },
+        getPosX: () => item.area.x,
+        getPosY: () => item.area.y,
+        getWidth: () => item.area.w,
+        getHeight: () => item.area.h,
+        getAngle: () => item.area.r,
+        getScaleX: () => item.area.sx,
+        getScaleY: () => item.area.sy,
 
-        getPosY() {
-            return item.area.y;
-        },
+        setPosX: withFloatValue(x => item.area.x = x),
+        setPosY: withFloatValue(y => item.area.y = y),
+        setWidth: withFloatValue(w => item.area.w = w),
+        setHeight: withFloatValue(h => item.area.h = h),
+        setScaleX: withFloatValue(sx => item.area.sx = sx),
+        setScaleY: withFloatValue(sy => item.area.sy = sy),
 
-        setPosX(x) {
-            item.area.x = x;
+        getOpacity: () => item.opacity,
+        getSelfOpacity: () => item.selfOpacity,
+        isVisible: () => item.visible || item.opacity === 0,
+
+        setOpacity: withFloatValue(opacity => item.opacity = opacity),
+        setSelfOpacity: withFloatValue(opacity => item.SelfOpacity = opacity),
+
+        show() {
+            item.visible = true;
             emitItemChanged();
         },
 
-        setPosY(y) {
-            item.area.y = y;
+        hide() {
+            item.visible = false;
             emitItemChanged();
-        }
+        },
     });
 }
 

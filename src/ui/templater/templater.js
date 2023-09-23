@@ -82,7 +82,11 @@ function processExpression(expr, scope) {
 }
 
 function processStringExpression(text, scope) {
-    return parseStringExpression(text).render(scope);
+    let t = text;
+    if (Array.isArray(text)) {
+        t = text.join('\n');
+    }
+    return parseStringExpression(t).render(scope);
 }
 
 

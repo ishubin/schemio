@@ -207,14 +207,29 @@ class ASTObjectFieldAccesser extends ASTOperator {
 }
 
 
+class ASTMultiExpression extends ASTOperator {
+    constructor(a, b) { super('multiexpr', ';', a, b); }
+    evalNode(scope) {
+        const result = this.a.evalNode(scope);
+        if (!this.b) {
+            return result;
+        }
+
+        return this.b.evalNode(scope);
+    }
+}
+
+
 const reservedFunctions = new Map(Object.entries({
-    min: args => Math.min(...args),
-    max: args => Math.max(...args),
-    pow: args => Math.pow(...args),
-    cos: args => Math.cos(...args),
-    sin: args => Math.sin(...args),
-    abs: args => Math.abs(...args),
-    uid: args => shortid.generate(),
+    min   : args => Math.min(...args),
+    max   : args => Math.max(...args),
+    pow   : args => Math.pow(...args),
+    sqrt  : args => Math.sqrt(...args),
+    cos   : args => Math.cos(...args),
+    sin   : args => Math.sin(...args),
+    abs   : args => Math.abs(...args),
+    uid   : args => shortid.generate(),
+    log   : args => console.log(...args),
     ifcond: args => {
         if (args.length !== 3) {
             throw new Error('cond function is taking exactly 3 arguments');
@@ -261,6 +276,7 @@ const operatorPrecedences = new Map(Object.entries({
     '&&': 1,
     '||': 0,
     '=': -1,
+    ';': -100
 }));
 
 function operatorPrecedence(operator) {
@@ -286,6 +302,7 @@ const operatorClasses = new Map(Object.entries({
     '&&': ASTBoolAnd,
     '||': ASTBoolOr,
     '=': ASTAssign,
+    ';': ASTMultiExpression,
 }));
 
 function operatorClass(operator) {
@@ -366,7 +383,9 @@ class ASTParser {
 
             const b = this.parseTerm();
             if (b === null) {
-                throw new Error(`Missing right term after the "${token.v}" operator`);
+                if (token.v !== ';') {
+                    throw new Error(`Missing right term after the "${token.v}" operator`);
+                }
             }
 
             const nextToken = this.peekToken();
