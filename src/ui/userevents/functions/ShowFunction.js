@@ -11,6 +11,7 @@ export default {
     description: 'Makes your item visible on scene. You can also make it with a slow transition.',
 
     args: {
+        targetOpacity       : {name: 'Target opacity', type: 'number', value: 100},
         animated            : {name: 'Animated', type: 'boolean', value: true},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
         transition          : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
@@ -38,12 +39,12 @@ export default {
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 },
                 update(t) {
-                    item.opacity = 100.0 * t;
+                    item.opacity = args.targetOpacity * t;
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 },
                 destroy() {
                     item.visible = true;
-                    item.opacity = 100.0;
+                    item.opacity = args.targetOpacity;
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                     if (!args.inBackground) {
                         resultCallback();
@@ -55,9 +56,7 @@ export default {
             }
         } else {
             item.visible = true;
-            if (item.opacity < 0.5) {
-                item.opacity = 100.0;
-            }
+            item.opacity = args.targetOpacity;
             resultCallback();
         }
     }

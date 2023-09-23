@@ -10,6 +10,7 @@
         "buttonColor": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(78, 131, 245, 1)" }, "name": "Button color"},
         "iconColor": {"type": "color", "value": "rgba(255, 255, 255, 1)", "name": "Icon color"},
         "buttonSize": {"type": "number", "value": 60, "min": 5, "name": "Button size"},
+        "buttonOpacity": {"type": "number", "value": 60, "min": 5, "name": "Button opacity"},
         "padding": {"type": "number", "value": 14, "min": 0, "name": "Padding"},
         "cornerRadius": {"type": "number", "value": 10, "min": 0, "name": "Corner radius"},
         "frameFill": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(250, 250, 250, 1)" }, "name": "Frame background"},
@@ -423,7 +424,7 @@
                     "sx": 1,
                     "sy": 1
                 },
-                "opacity": 100,
+                "opacity": {"$-expr": "buttonOpacity"},
                 "blendMode": "normal",
                 "name": "Prev button",
                 "description": "",
@@ -439,7 +440,7 @@
                             "element": "self",
                             "method": "hide",
                             "args": {
-                                "animate": false
+                                "animated": false
                             }
                         }]
                     }, {
@@ -491,6 +492,7 @@
                             "on": true,
                             "args": {
                                 "animated": true,
+                                "targetOpacity": {"$-expr": "buttonOpacity"},
                                 "animationDuration": 0.2
                             }
                         }]
@@ -576,6 +578,32 @@
                                     "event": "slide_prev"
                                 }
                             }]
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "event": "mousein",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "element": "#btn-prev",
+                                "method": "set",
+                                "args": {
+                                    "field": "opacity",
+                                    "value": 100,
+                                    "animated": true
+                                }
+                            }]
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "event": "mouseout",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "element": "#btn-prev",
+                                "method": "set",
+                                "args": {
+                                    "field": "opacity",
+                                    "value": {"$-expr": "buttonOpacity"},
+                                    "animated": true
+                                }
+                            }]
                         }]
                     }
                 } ]
@@ -596,7 +624,7 @@
                     "sx": 1,
                     "sy": 1
                 },
-                "opacity": 100,
+                "opacity": {"$-expr": "buttonOpacity"},
                 "blendMode": "normal",
                 "name": "Next button",
                 "description": "",
@@ -652,6 +680,7 @@
                             "on": true,
                             "args": {
                                 "animated": true,
+                                "targetOpacity": {"$-expr": "buttonOpacity"},
                                 "animationDuration": 0.2
                             }
                         }]
@@ -734,6 +763,32 @@
                                 "method": "sendEvent",
                                 "args": {
                                     "event": "slide_next"
+                                }
+                            }]
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "event": "mousein",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "element": "#btn-next",
+                                "method": "set",
+                                "args": {
+                                    "field": "opacity",
+                                    "value": 100,
+                                    "animated": true
+                                }
+                            }]
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "event": "mouseout",
+                            "actions": [{
+                                "id": {"$-expr": "uid()"},
+                                "element": "#btn-next",
+                                "method": "set",
+                                "args": {
+                                    "field": "opacity",
+                                    "value": {"$-expr": "buttonOpacity"},
+                                    "animated": true
                                 }
                             }]
                         }]
