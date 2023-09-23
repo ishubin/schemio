@@ -1586,6 +1586,14 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     background: none;
 }
 
+.properties-table .script-property-container textarea {
+    padding: 10px;
+    border: 1px solid var(--faint-weak-down);
+    background: var(--base-weak);
+    min-width: 100px;
+    border-radius: var(--middle-border-radius);
+}
+
 
 .scheme-ref-control {
     display: flex;

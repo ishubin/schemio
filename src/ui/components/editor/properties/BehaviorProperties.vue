@@ -128,11 +128,11 @@
         <modal v-if="functionArgumentsEditor.shown"
             :title="`${functionArgumentsEditor.functionDescription.name} arguments`"
             @close="functionArgumentsEditor.shown = false"
-            :width="400"
+            :width="600"
             :use-mask="false"
             >
             <p>{{ functionArgumentsEditor.functionDescription.description }}</p>
-            <div style="max-width: 400px;">
+            <div style="max-width: 600px;">
                 <ArgumentsEditor
                     :editorId="editorId"
                     :argsDefinition="functionArgumentsEditor.functionDescription.args"

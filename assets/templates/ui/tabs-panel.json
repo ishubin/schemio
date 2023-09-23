@@ -74,7 +74,7 @@
         "behavior": {
             "events": [
                 {
-                    "id": "NzIBept5Z",
+                    "id": {"$-expr": "uid()"},
                     "event": "init",
                     "actions": [
                         {

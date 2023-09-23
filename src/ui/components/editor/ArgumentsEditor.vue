@@ -5,11 +5,11 @@
     <div>
         <table class="properties-table">
             <tr v-for="(arg, argName) in argsDefinition" v-if="argumentControlStates[argName]">
-                <td class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
+                <td v-if="arg.type !== 'script'" class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
                     {{arg.name}}
                     <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                 </td>
-                <td class="value" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
+                <td v-if="arg.type !== 'script'" class="value" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
                     <input v-if="arg.type === 'string' || arg.type === 'image'"
                         class="textfield"
                         :value="argumentValues[argName]"
@@ -45,6 +45,18 @@
                         :use-self="false"
                         @selected="onValueChange(argName, arguments[0])"
                     />
+                </td>
+                <td v-else colspan="2">
+                    <div class="label">
+                        {{arg.name}}
+                        <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                    </div>
+
+                    <div v-if="arg.type === 'script'" class="script-property-container">
+                        <textarea :value="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @input="onValueChange(argName, arguments[0].target.value)"></textarea>
+                    </div>
                 </td>
             </tr>
         </table>

@@ -79,13 +79,22 @@ export default class ValueAnimation extends Animation {
     play(dt) {
         this.elapsedTime += dt;
         if (this.elapsedTime >= this.durationMillis) {
-            this.updateCallback(1.0);
+            try {
+                this.updateCallback(1.0);
+            } catch(err) {
+                console.error(err);
+            }
             return false;
         }
 
         const t = this.elapsedTime / this.durationMillis;
 
-        this.updateCallback(convertTime(t, this.animationType));
+        try {
+            this.updateCallback(convertTime(t, this.animationType));
+        } catch(err) {
+            console.error(err);
+            return false;
+        }
         return true;
     }
 

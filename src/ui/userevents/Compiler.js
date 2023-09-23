@@ -70,23 +70,55 @@ export default class Compiler {
                 return;
             }
 
-            let index = 0;
-            let resultCallback = () => {
-                index += 1;
-                if (index >= funcs.length) {
+            const it = {
+                idx: 0,
+                next() {
+                    if (this.idx >= funcs.length) {
+                        return null;
+                    }
+
+                    const f = funcs[this.idx];
+                    this.idx++;
+                    return f;
+                },
+
+                skip() {
+                    this.idx++;
+                }
+            };
+
+
+            const execNext = () => {
+                const f = it.next();
+                if (!f) {
                     return;
                 }
 
-                let f = funcs[index];
-                if (userEventBus.isActionAllowed(revision)) {
-                    log.info('Executing', f.func.name, 'function');
-                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName);
+                log.info('Executing', f.func.name, 'function');
+
+                if (f.func.execute) {
+                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName);
+                } else if (f.func.executeWithBranching) {
+                    const branchingCallback = (result) => {
+                        log.info('Branch result', result);
+                        if (result.break) {
+                            return;
+                        }
+
+                        let skip = result.skip;
+                        while(skip > 0) {
+                            skip--;
+                            it.skip();
+                        }
+                        execNext();
+                    };
+                    f.func.executeWithBranching(f.element, f.args, schemeContainer, userEventBus, branchingCallback, subscribedItem, eventName);
+                } else {
+                    execNext();
                 }
             };
-            if (userEventBus.isActionAllowed(revision)) {
-                log.info('Executing', funcs[0].func.name, 'function');
-                funcs[0].func.execute(funcs[0].element, funcs[0].args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName);
-            }
+
+            execNext();
         };
     }
 }
