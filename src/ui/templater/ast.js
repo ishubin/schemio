@@ -188,6 +188,24 @@ class ASTAssign extends ASTOperator {
     }
 }
 
+class ASTObjectFieldAccesser extends ASTOperator {
+    constructor(a, b) { super('field', '.', a, b); }
+    evalNode(scope) {
+        const obj = this.a.evalNode(scope);
+
+        if (this.b.type !== 'var-ref') {
+            throw new Error('Invalid use for dot operator. Expected field reference but got: ' + this.b.type);
+        }
+        const fieldName = this.b.varName;
+
+        if (typeof obj === 'undefined' || obj === null) {
+            throw new Error(`Cannot get ${fieldName} from ${obj}`);
+        }
+
+        return obj[fieldName];
+    }
+}
+
 
 const reservedFunctions = new Map(Object.entries({
     min: args => Math.min(...args),
@@ -223,11 +241,12 @@ class ASTFunctionInvocation extends ASTNode {
         if (reservedFunctions.has(this.name)) {
             return reservedFunctions.get(this.name)(args);
         }
-        return scope.get(this.name)(args);
+        return scope.get(this.name)(...args);
     }
 }
 
 const operatorPrecedences = new Map(Object.entries({
+    '.': 6,
     '*': 5,
     '/': 5,
     '%': 5,
@@ -244,7 +263,6 @@ const operatorPrecedences = new Map(Object.entries({
     '=': -1,
 }));
 
-
 function operatorPrecedence(operator) {
     if (operatorPrecedences.has(operator)) {
         return operatorPrecedences.get(operator);
@@ -253,6 +271,7 @@ function operatorPrecedence(operator) {
 }
 
 const operatorClasses = new Map(Object.entries({
+    '.': ASTObjectFieldAccesser,
     '+': ASTAdd,
     '-': ASTSubtract,
     '*': ASTMultiply,
@@ -277,10 +296,11 @@ function operatorClass(operator) {
     throw new Error('Unknown operator: ' + operator);
 }
 
-function createOpLeftover(a, opClass) {
-    return (b) => {
-        return new opClass(a, b);
-    }
+function createOpLeftover(a, opClass, precedence) {
+    return {
+        a, opClass, precedence,
+        make: (b) => new opClass(a, b)
+    };
 }
 
 class ASTParser {
@@ -339,7 +359,7 @@ class ASTParser {
             this.skipToken();
 
             if (token.t !== TokenTypes.OPERATOR) {
-                throw new Error('Unexpected token in expression: ', JSON.stringify(token));
+                throw new Error(`Unexpected token in expression: ${token.t} "${token.text}"`);
             }
             const precedence = operatorPrecedence(token.v);
             const opClass = operatorClass(token.v);
@@ -351,23 +371,27 @@ class ASTParser {
 
             const nextToken = this.peekToken();
             const nextOperator = nextToken && nextToken.t === TokenTypes.OPERATOR ? nextToken.v : null;
-            const nextPrecedence = nextOperator ? operatorPrecedence(nextOperator) : 0;
+            const nextPrecedence = nextOperator ? operatorPrecedence(nextOperator) : -100;
 
             if (precedence >= nextPrecedence) {
                 a = new opClass(a, b);
                 while(leftovers.length > 0) {
-                    const leftover = leftovers.pop();
-                    a = leftover(a);
+                    const leftover = leftovers[leftovers.length - 1];
+                    if (leftover.precedence < nextPrecedence) {
+                        break
+                    }
+                    a = leftover.make(a);
+                    leftovers.pop();
                 }
             } else {
-                leftovers.push(createOpLeftover(a, opClass));
+                leftovers.push(createOpLeftover(a, opClass, precedence));
                 a = b;
             }
         }
 
         while(leftovers.length > 0) {
             const leftover = leftovers.pop();
-            a = leftover(a);
+            a = leftover.make(a);
         }
 
         return a;
@@ -411,7 +435,7 @@ class ASTParser {
             }
             return new ASTNegate(nextTerm);
         } else {
-            throw new Error(`Unexpected token ${JSON.stringify(token)}`);
+            throw new Error(`Unexpected token: ${token.t} "${token.text}"`);
         }
     }
 

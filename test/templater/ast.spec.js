@@ -68,6 +68,17 @@ describe('templater ast parser', () => {
             const result = ast.evalNode(new Scope(data));
             expect(result).toBe(expected);
         });
+    });
 
+    it('should allow to get properties of objects using dot operator', () => {
+        const scope = new Scope({someObj: {area: {x: 1, y: 2}, name: 'some object'}});
+        console.log(parseAST(tokenizeExpression('someObj*area*x + someObj*area*y')).print());
+        expect(parseAST(tokenizeExpression('someObj.area.x')).evalNode(scope)).toBe(1);
+        expect(parseAST(tokenizeExpression('someObj.area.y')).evalNode(scope)).toBe(2);
+        expect(parseAST(tokenizeExpression('someObj.area')).evalNode(scope)).toStrictEqual({x: 1, y: 2});
+        expect(parseAST(tokenizeExpression('someObj.name')).evalNode(scope)).toBe('some object');
+        expect(parseAST(tokenizeExpression('someObj.area.x + someObj.area.y')).evalNode(scope)).toBe(3);
+        expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y > 3, 10, 100)')).evalNode(scope)).toBe(101);
+        expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y < 3, 10, 100)')).evalNode(scope)).toBe(11);
     });
 });

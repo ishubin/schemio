@@ -9,63 +9,84 @@ describe('template tokenizer', () => {
 
         expect(tokens).toStrictEqual([{
             t: 'term',
-            v: 'x'
+            v: 'x',
+            text: 'x'
         }, {
             t: 'operator',
-            v: '='
+            v: '=',
+            text: '='
         }, {
             t: 'number',
-            v: 2.4
+            v: 2.4,
+            text: '2.4'
         }, {
             t: 'operator',
-            v: '+'
+            v: '+',
+            text: '+'
         }, {
-            t: 'start_bracket'
+            t: 'start_bracket',
+            text: '('
         }, {
             t: 'number',
-            v: 3
+            v: 3,
+            text: '3'
         }, {
             t: 'operator',
-            v: '*'
+            v: '*',
+            text: '*'
         }, {
             t: 'term',
-            v: 'rnd'
+            v: 'rnd',
+            text: 'rnd'
         }, {
-            t: 'start_bracket'
+            t: 'start_bracket',
+            text: '('
         }, {
-            t: 'end_bracket'
+            t: 'end_bracket',
+            text: ')'
         }, {
             t: 'operator',
-            v: '-'
+            v: '-',
+            text: '-'
         }, {
             t: 'number',
-            v: 3
+            v: 3,
+            text: '3'
         }, {
             t: 'operator',
-            v: '/'
+            v: '/',
+            text: '/'
         }, {
             t: 'number',
-            v: 0.4
+            v: 0.4,
+            text: '0.4'
         }, {
             t: 'operator',
-            v: '+'
+            v: '+',
+            text: '+'
         }, {
             t: 'term',
-            v: 'x1'
+            v: 'x1',
+            text: 'x1'
         }, {
-            t: 'end_bracket'
-        }, {
-            t: 'operator',
-            v: '=='
-        }, {
-            t: 'string',
-            v: "some * \" - string"
+            t: 'end_bracket',
+            text: ')'
         }, {
             t: 'operator',
-            v: '+'
+            v: '==',
+            text: '=='
         }, {
             t: 'string',
-            v: '23'
+            v: "some * \" - string",
+            text: "some * \" - string"
+        }, {
+            t: 'operator',
+            v: '+',
+            text: '+'
+        }, {
+            t: 'string',
+            v: '23',
+            text: '23'
         }]);
     });
 });

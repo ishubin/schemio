@@ -40,6 +40,7 @@ const singleCharTokens = new Map(Object.entries({
     '<': {t: TokenTypes.OPERATOR, v: '<'},
     '>': {t: TokenTypes.OPERATOR, v: '>'},
     '=': {t: TokenTypes.OPERATOR, v: '='},
+    '.': {t: TokenTypes.OPERATOR, v: '.'},
 }));
 
 const doubleCharTokens = new Map(Object.entries({
@@ -87,13 +88,13 @@ class Scanner {
                 const cc = this.text.substring(this.idx, this.idx + 2);
                 if (doubleCharTokens.has(cc)) {
                     this.idx+=2;
-                    return doubleCharTokens.get(cc);
+                    return {...doubleCharTokens.get(cc), text: cc};
                 }
             }
 
             if (singleCharTokens.has(c)) {
                 this.idx++;
-                return singleCharTokens.get(c);
+                return {...singleCharTokens.get(c), text: c};
             }
             throw new Error('Invalid symbol: ' + c);
         }
@@ -113,13 +114,23 @@ class Scanner {
         }
         return {
             t: TokenTypes.TERM,
-            v: term
+            v: term,
+            text: term
         };
     }
 
     scanNumber() {
         let numberText = '';
         let hasDotAlready = false;
+
+        if (this.text[this.idx] === '.' && this.idx < this.text.length - 1 && !isDigit(this.text[this.idx+1])) {
+            this.idx++;
+            return {
+                t: TokenTypes.OPERATOR,
+                v: '.',
+                text: '.'
+            };
+        }
 
         for (let i = this.idx; i < this.text.length; i++) {
             const c = this.text[i];
@@ -141,7 +152,8 @@ class Scanner {
 
         return {
             t: TokenTypes.NUMBER,
-            v: parseFloat(numberText)
+            v: parseFloat(numberText),
+            text: numberText,
         };
     }
 
@@ -154,7 +166,7 @@ class Scanner {
                 break;
             }
         }
-        return {t: TokenTypes.WHITESPACE};
+        return {t: TokenTypes.WHITESPACE, text: ' '};
     }
 
     scanString(breakChar) {
@@ -164,7 +176,7 @@ class Scanner {
 
             if (c === breakChar) {
                 this.idx++;
-                return {t: 'string', v: str};
+                return {t: TokenTypes.STRING, v: str, text: str};
             }
 
             if (c === '\\') {
