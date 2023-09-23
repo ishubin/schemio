@@ -115,7 +115,7 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
 
         getOpacity: () => item.opacity,
         getSelfOpacity: () => item.selfOpacity,
-        isVisible: () => item.visible || item.opacity === 0,
+        isVisible: () => item.visible && item.opacity !== 0,
 
         setOpacity: withFloatValue(opacity => item.opacity = opacity),
         setSelfOpacity: withFloatValue(opacity => item.SelfOpacity = opacity),
