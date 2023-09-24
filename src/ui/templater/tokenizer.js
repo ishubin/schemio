@@ -9,6 +9,7 @@ export const TokenTypes = {
     OPERATOR: 'operator',
     WHITESPACE: 'whitespace',
     COMMA: 'comma',
+    NOT: 'not',
 };
 
 function isLetter(c) {
@@ -42,6 +43,7 @@ const singleCharTokens = new Map(Object.entries({
     '=': {t: TokenTypes.OPERATOR, v: '='},
     '.': {t: TokenTypes.OPERATOR, v: '.'},
     ';': {t: TokenTypes.OPERATOR, v: ';'},
+    '!': {t: TokenTypes.NOT},
 }));
 
 const doubleCharTokens = new Map(Object.entries({

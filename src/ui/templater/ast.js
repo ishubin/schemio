@@ -137,6 +137,21 @@ class ASTNegate extends ASTNode {
     }
 }
 
+class ASTNot extends ASTNode {
+    constructor(node) {
+        super('not');
+        this.node = node;
+    }
+    evalNode(scope) {
+        const v = this.node.evalNode(scope);
+        return !v;
+    }
+    print() {
+        return `(!${this.v.print()})`;
+    }
+}
+
+
 class ASTLessThen extends ASTOperator {
     constructor(a, b) { super('lessThan', '<', a, b); }
     evalNode(scope) { return this.a.evalNode(scope) < this.b.evalNode(scope); }
@@ -227,11 +242,15 @@ const reservedFunctions = new Map(Object.entries({
     sqrt  : args => Math.sqrt(...args),
     cos   : args => Math.cos(...args),
     sin   : args => Math.sin(...args),
+    acos   : args => Math.acos(...args),
+    asin   : args => Math.asin(...args),
     abs   : args => Math.abs(...args),
     uid   : args => shortid.generate(),
     log   : args => console.log(...args),
     round : args => Math.round(...args),
     ceil  : args => Math.ceil(...args),
+    floor : args => Math.floor(...args),
+    PI: () => Math.PI,
     ifcond: args => {
         if (args.length !== 3) {
             throw new Error('cond function is taking exactly 3 arguments');
@@ -455,6 +474,12 @@ class ASTParser {
                 throw new Error('Expected term token after "-"');
             }
             return new ASTNegate(nextTerm);
+        } else if (token.t === TokenTypes.NOT) {
+            const nextTerm = this.parseTerm();
+            if (!nextTerm) {
+                throw new Error('Expected term token after "!"');
+            }
+            return new ASTNot(nextTerm);
         } else {
             throw new Error(`Unexpected token: ${token.t} "${token.text}"`);
         }

@@ -18,7 +18,7 @@ import Header from './app/components/Header.vue';
 import Footer from './app/components/Footer.vue';
 import { fsClientProvider } from './app/client/fsClient';
 import { offlineClientProvider } from './app/client/offlineClient';
-import { testAST } from './templater/ast';
+import { Scope, testAST } from './templater/ast';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -31,6 +31,9 @@ function route(name, path, component, props) {
 }
 
 window.testAST = testAST;
+window.testEvalAST = (expr, data) => {
+    return testAST(expr).evalNode(new Scope(data));
+};
 
 const routes = [
     route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: fsClientProvider}),
