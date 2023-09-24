@@ -14,12 +14,17 @@ export default {
     description: 'Runs user defined script using Schemio expression language.',
 
     args: {
-        script              : {name: 'Script', type: 'script', value: '', description: 'A Schemio script expression. If script runs in animation mode, then the script is exposed to "t" variable which represents the animation time from 0 to 1'},
-        animated            : {name: 'Animated', type: 'boolean', value: false},
+        script              : {name: 'Script', type: 'script', value: '', description: 'A Schemio script expression'},
+        animated            : {name: 'Animated', type: 'boolean', value: false, description: 'Script is called multiple times for the duration of the animation. It has access to "t" variable (start from 0, ends at 1) which represents the relative animation time'},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true}},
         transition          : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
+
+    argsToShortString(args) {
+        return args.script;
+    },
+
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         const scriptAST = parseItemScript(args.script);

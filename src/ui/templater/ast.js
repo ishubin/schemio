@@ -230,6 +230,8 @@ const reservedFunctions = new Map(Object.entries({
     abs   : args => Math.abs(...args),
     uid   : args => shortid.generate(),
     log   : args => console.log(...args),
+    round : args => Math.round(...args),
+    ceil  : args => Math.ceil(...args),
     ifcond: args => {
         if (args.length !== 3) {
             throw new Error('cond function is taking exactly 3 arguments');

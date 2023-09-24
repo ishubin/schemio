@@ -18,6 +18,10 @@ export default {
         fail      : {name: 'Else', type: 'choice', value: 'pass', options: conditionBranchOptions}
     },
 
+    argsToShortString(args) {
+        return `${args.success} if ${args.expression} else ${args.fail}`;
+    },
+
     executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback) {
         const scriptAST = parseItemScript(args.expression);
         if (!scriptAST) {

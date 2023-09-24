@@ -87,12 +87,12 @@
                                 <span class="behavior-function" v-if="action.method !== 'set' && action.method !== 'sendEvent'">{{action.method | toPrettyMethod(action.element) }} </span>
                                 <span class="behavior-function" v-if="action.method === 'sendEvent'"><i class="icon fas fa-play"></i> {{action.args.event}} </span>
                             </dropdown>
-                            <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
-                                class="action-method-arguments-expand"
-                                @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
-                                title="Edit function arguments"
-                                >{{action | toPrettyActionArgs}}</span>
                         </div>
+                        <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
+                            class="action-method-arguments-expand"
+                            @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
+                            title="Edit function arguments"
+                            >{{action | toPrettyActionArgs}}</span>
 
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
@@ -862,7 +862,11 @@ export default {
             if (Functions.main[action.method]) {
                 const func = Functions.main[action.method];
                 if (func.argsToShortString) {
-                    return `( ${func.argsToShortString(action.args)} )`;
+                    const text = func.argsToShortString(action.args);
+                    if (text.length > 100) {
+                        return text.substring(0, 100) + " ...";
+                    }
+                    return text;
                 }
             }
             return '(...)';

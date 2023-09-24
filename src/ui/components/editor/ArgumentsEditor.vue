@@ -50,6 +50,7 @@
                     <div class="label">
                         {{arg.name}}
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                        <a class="link" target="_blank" href="https://github.com/ishubin/schemio/blob/master/docs/Scripting.md">(documentation)</a>
                     </div>
 
                     <div v-if="arg.type === 'script'" class="script-property-container">

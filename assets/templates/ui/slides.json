@@ -19,18 +19,18 @@
     },
     "init": [
         "slideTag = 'slide-container-' + uid()",
-        "buttonMargin = padding / 2",
+        "buttonMargin = round(padding / 2)",
         "containerMarginX = buttonMargin*2 + buttonSize",
         "containerMarginTop = 60",
         "btnIconK = buttonSize / 60",
         "btnIconWidth = 20 * btnIconK",
         "btnIconHeight = 25 * btnIconK",
         "containerMarginBottom = padding",
-        "slideWidth = max(1, width - containerMarginX * 2)",
-        "slideHeight = max(1, height - containerMarginTop - containerMarginBottom",
+        "slideWidth = round(max(1, width - containerMarginX * 2))",
+        "slideHeight = round(max(1, height - containerMarginTop - containerMarginBottom)",
         "slideMargin = 10",
         "currentSlideVarName = 'current-slide-' + uid()",
-        "headerWidth = min(max(200, width / 2), width)"
+        "headerWidth = min(max(200, round(width / 2)), width)"
     ],
     "controls": [ {
         "name": "addSlide",

@@ -125,13 +125,17 @@ const template = {
         tabMargin: {type: 'number', min: 0, max: 1000, value: 10},
     },
 
+    init: [
+        "containerMargin = tabMargin * 2"
+    ],
+
     item: {
         id: 'container',
         name: 'tab-container',
         childItems: [{
-            '$-for': {from: 1, until: {'$-expr': 'tabs + 1'}, it: 'tab'},
-            id: {'$-string-expr': 'tab-${tab}'},
-            name: {'$-string-expr': 'tab-${tab}'},
+            '$-for': {start: 1, until: {'$-expr': 'tabs + 1'}, it: 'tab'},
+            id: {'$-str': 'tab-${tab}'},
+            name: {'$-str': 'tab-${tab}'},
             area: {
                 x: {'$-expr': 'tab * tabWidth + (tab) * tabMargin'},
                 y: 10,
@@ -140,7 +144,7 @@ const template = {
             },
             behavior: {
                 events: [{
-                    id: {'$-id': ''}, // generates unique id
+                    id: {'$-expr': 'uid()'}, // generates unique id
                     event: 'clicked',
                     actions: [{
                         on: true,
@@ -156,14 +160,14 @@ const template = {
                         }
                     }, {
                         on: true,
-                        element: {'$-string-expr': 'tab-container-${tab}'}
+                        element: {'$-str': 'tab-container-${tab}'}
                     }]
                 }]
             }
         }, {
             '$-for': {start: 1, end: {'$-arg-value': 'tabs'}, it: 'tab'},
-            id: 'tab-container-${tab}',
-            name: 'tab-container-${tab}'
+            id: {'$-str': 'tab-container-${tab}'},
+            name: {'$-str': 'tab-container-${tab}'}
         }]
     }
 }
