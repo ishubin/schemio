@@ -1900,6 +1900,16 @@ class SchemeContainer {
         });
     }
 
+    findItemByName(name) {
+        const items = this.getItems();
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].name === name) {
+                return items[i];
+            }
+        }
+        return null;
+    }
+
     findItemById(itemId) {
         return this.itemMap[itemId];
     }

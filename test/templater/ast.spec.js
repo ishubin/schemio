@@ -83,6 +83,19 @@ describe('templater ast parser', () => {
         expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y < 3, 10, 100)')).evalNode(scope)).toBe(11);
     });
 
+    it('should allow to get invoke function an an objects using dot operator', () => {
+        const data = {
+            someObj: {
+                someField: {
+                    pow: (a, b) => Math.pow(a, b)
+                }
+            }
+        };
+        const scope = new Scope(data);
+        expect(parseAST(tokenizeExpression('someObj.someField.pow(3, 2)')).evalNode(scope)).toBe(9);
+    });
+
+
     it('should allow to execute multiple expressions separated by semicolon', () => {
         const scope = new Scope({
             setVar(name, value) {

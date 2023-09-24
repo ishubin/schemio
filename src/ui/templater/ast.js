@@ -1,6 +1,10 @@
 import shortid from "shortid";
 import { TokenTypes, tokenizeExpression } from "./tokenizer";
 
+
+const FUNC_INVOKE = 'funcInvoke';
+const VAR_REF = 'var-ref';
+
 export class Scope {
     constructor(data, parent) {
         this.data = data || {};
@@ -76,7 +80,7 @@ class ASTString extends ASTNode {
 
 class ASTVarRef extends ASTNode {
     constructor(varName) {
-        super('var-ref');
+        super(VAR_REF);
         this.varName = varName;
     }
     evalNode(scope) {
@@ -195,7 +199,7 @@ class ASTBoolAnd extends ASTOperator {
 class ASTAssign extends ASTOperator {
     constructor(a, b) { super('assign', '=', a, b); }
     evalNode(scope) {
-        if (this.a.type !== 'var-ref') {
+        if (this.a.type !== VAR_REF) {
             throw new Error('Cannot use assign operator on non-var');
         }
         const value = this.b.evalNode(scope);
@@ -208,16 +212,17 @@ class ASTObjectFieldAccesser extends ASTOperator {
     evalNode(scope) {
         const obj = this.a.evalNode(scope);
 
-        if (this.b.type !== 'var-ref') {
-            throw new Error('Invalid use for dot operator. Expected field reference but got: ' + this.b.type);
-        }
-        const fieldName = this.b.varName;
+        if (this.b.type === VAR_REF) {
+            const fieldName = this.b.varName;
 
-        if (typeof obj === 'undefined' || obj === null) {
-            throw new Error(`Cannot get ${fieldName} from ${obj}`);
+            if (typeof obj === 'undefined' || obj === null) {
+                throw new Error(`Cannot get ${fieldName} from ${obj}`);
+            }
+            return obj[fieldName];
+        } else if (this.b.type === FUNC_INVOKE) {
+            return this.b.evalOnObject(scope, obj);
         }
-
-        return obj[fieldName];
+        throw new Error('Invalid use for dot operator. Expected field reference but got: ' + this.b.type);
     }
 }
 
@@ -264,7 +269,7 @@ const reservedFunctions = new Map(Object.entries({
 
 class ASTFunctionInvocation extends ASTNode {
     constructor(name, args) {
-        super('functionInvoke');
+        super(FUNC_INVOKE);
         this.name = name;
         this.args = args;
     }
@@ -278,6 +283,11 @@ class ASTFunctionInvocation extends ASTNode {
             return reservedFunctions.get(this.name)(args);
         }
         return scope.get(this.name)(...args);
+    }
+
+    evalOnObject(scope, obj) {
+        const args = this.args.map(arg => arg.evalNode(scope));
+        return obj[this.name](...args);
     }
 }
 

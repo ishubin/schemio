@@ -22,7 +22,11 @@ export default {
     },
 
     argsToShortString(args) {
-        return args.script;
+        const script = args.script.trim();
+        if (!script) {
+            return '(...)';
+        }
+        return script;
     },
 
 
@@ -68,7 +72,7 @@ export default {
     }
 }
 
-export function createItemBasedScope(item, schemeContainer, userEventBus) {
+function createItemScriptWrapper(item, schemeContainer) {
     const emitItemChanged = () => {
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     };
@@ -84,7 +88,11 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
         };
     };
 
-    return new Scope({
+    return {
+        exists() {
+            return item !== null;
+        },
+
         setVar(name, value) {
             if (!item.args) {
                 item.args = {};
@@ -134,6 +142,19 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
             item.visible = false;
             emitItemChanged();
         },
+    }
+}
+
+export function createItemBasedScope(item, schemeContainer, userEventBus) {
+    const itemInterface = createItemScriptWrapper(item, schemeContainer);
+    return new Scope({
+        findItemById: (id) => {
+            return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer);
+        },
+        findItemByName: (name) => {
+            return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer);
+        },
+        ...itemInterface
     });
 }
 
