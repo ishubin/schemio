@@ -54,7 +54,17 @@
                     "event": "init",
                     "actions": [
                         {
-                            "id": "sWd2Vfs-U",
+                            "id": {"$-expr": "uid()"},
+                            "element": "self",
+                            "method": "script",
+                            "on": true,
+                            "args": {
+                                "script": "setVar('originalHeight', getHeight())",
+                                "animated": false
+                            }
+                        },
+                        {
+                            "id": {"$-expr": "uid()"},
                             "element": "self",
                             "method": "sizeHeight",
                             "on": true,
@@ -67,7 +77,7 @@
                             }
                         },
                         {
-                            "id": "JOkh0RqRB",
+                            "id": {"$-expr": "uid()"},
                             "element": "#carret",
                             "method": "rotate",
                             "on": true,
@@ -85,19 +95,30 @@
                     "event": "Expand",
                     "actions": [
                         {
+                            "id": {"$-expr": "uid()"},
                             "element": "#root",
-                            "method": "sizeHeight",
+                            "method": "script",
                             "on": true,
                             "args": {
-                                "height": { "$-expr": "height" },
-                                "animate": true,
-                                "duration": 1,
-                                "animationType": "bounce",
-                                "inBackground": true
-                            },
-                            "id": "xW73Rkqait"
+                                "script": "setVar('srcH', getHeight())",
+                                "animated": false
+                            }
                         },
                         {
+                            "id": {"$-expr": "uid()"},
+                            "element": "#root",
+                            "method": "script",
+                            "on": true,
+                            "args": {
+                                "script": { "$-str": "setHeight(getVar('srcH', ${buttonHeight}) * (1 - t) + getVar('originalHeight', ${height}) * t)" },
+                                "animated": true,
+                                "duration": 1,
+                                "transition": "bounce",
+                                "inBackground": true
+                            }
+                        },
+                        {
+                            "id": {"$-expr": "uid()"},
                             "element": "#btn-hide-overlay",
                             "method": "show",
                             "on": true,
@@ -106,11 +127,10 @@
                                 "animationDuration": 0.5,
                                 "transition": "ease-out",
                                 "inBackground": false
-                            },
-                            "id": "bHFnwJHo95"
+                            }
                         },
                         {
-                            "id": "YVfdODQuU",
+                            "id": {"$-expr": "uid()"},
                             "element": "#btn-show-overlay",
                             "method": "hide",
                             "on": true,
@@ -122,7 +142,7 @@
                             }
                         },
                         {
-                            "id": "8fB36Dc9w",
+                            "id": {"$-expr": "uid()"},
                             "element": "#carret",
                             "method": "rotate",
                             "on": true,

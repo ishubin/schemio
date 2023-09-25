@@ -27,6 +27,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [getEventName](#geteventname)
     - [getEventArg](#geteventarg)
     - [Item functions](#item-functions)
+      - [getId](#getid)
       - [setVar](#setvar)
       - [getVar](#getvar)
       - [getPosX](#getposx)
@@ -56,6 +57,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [sendEvent](#sendevent)
       - [findItemByName](#finditembyname)
       - [findItemById](#finditembyid)
+      - [findChildItemByName](#findchilditembyname)
 
 
 Basic syntax
@@ -288,6 +290,11 @@ The code above will return `-1` in case if `y` value is `0` and will return `1` 
 Since all the script and condition functions are executed on some particular item, you get access to that items data.
 
 
+##### getId
+
+`getId()` returns item internal id
+
+
 ##### setVar
 
 `setVar(name, value)` stores user defined variable in the context of an item. This is useful in case you need to have access to the same variable from different script function. For instance you can prepare some variables in on script function:
@@ -476,7 +483,7 @@ setPosY(getPosY() + speed * d)
 
 ##### findItemByName
 
-`findItemByName(name)` searches for item with specified name and returns an [item interface](#item-functions) with all same item function but in the context of specified item. Using this function you can change the properties of different item from the same script.
+`findItemByName(name)` searches for first item which name matches the specified `name` argument and returns an [item interface](#item-functions) with all same item functions, but in the context of specified item. Using this function you can change the properties of different items from the same script.
 
 Example:
 ```js
@@ -491,3 +498,8 @@ it.setTextSize('body', 30)
 ##### findItemById
 
 `findItemById(id)` same as [findItemByName](#finditembyname) but it searchs for item base on its internal id.
+
+
+##### findChildItemByName
+
+`findChildItemByName(name)` searches only for child items of the current item and returns the first one which name matches the specified `name` argument. This is used when you want to narrow the scope of items within particular group.

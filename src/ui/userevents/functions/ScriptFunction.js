@@ -104,6 +104,12 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             return item !== null;
         },
 
+        getId() {
+            if (!item) {
+                return item.id;
+            }
+        },
+
         setVar(name, value) {
             if (!item.args) {
                 item.args = {};
@@ -164,8 +170,32 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
         sendEvent(eventName, ...args) {
             userEventBus.emitItemEvent(item.id, eventName, ...args);
+        },
+
+        findChildItemByName: (name) => {
+            return createItemScriptWrapper(findChildItemByName(item, name), schemeContainer, userEventBus);
+        },
+    }
+}
+
+
+function findChildItemByName(item, name) {
+    if (!item || !Array.isArray(item.childItems)) {
+        return null;
+    }
+
+    for (let i = 0; i < item.childItems.length; i++) {
+        const childItem = item.childItems[i];
+        if (childItem.name === name) {
+            return childItem;
+        }
+
+        const foundItem = findChildItemByName(childItem, name);
+        if (foundItem) {
+            return foundItem;
         }
     }
+    return null;
 }
 
 export function createItemBasedScope(item, schemeContainer, userEventBus) {

@@ -13,14 +13,16 @@
         "background": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},
         "strokeColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
         "textColor": {"type": "color", "value": "rgba(30,30,30,1.0)", "name": "Text color"},
-        "shadow": {"type": "boolean", "value": true, "name": "Drop shadow"}
+        "shadow": {"type": "boolean", "value": true, "name": "Drop shadow"},
+        "showAllTabs": {"type": "boolean", "value": false, "name": "Show all tabs", "description": "Displays all tabs in edit mode next to each other for easier editing. In view mode all the tabs will be placed in their proper position and will be hidden"}
     },
     "init": [
         "topMargin = padding",
         "tabMargin = max(10, cornerRadius) + padding",
         "tw = max(10, min((width - 2 * tabMargin) / numTabs - tabGap, tabWidth))",
         "tabTag = 'tab-' + uid()",
-        "containerTag = 'tab-container-' + uid()"
+        "containerTag = 'tab-container-' + uid()",
+        "containerWidth = max(1, width - padding * 2)"
     ],
     "controls": [ {
         "name": "addTab",
@@ -44,6 +46,28 @@
         "height": 20,
         "click": [
             "numTabs = max(1, numTabs - 1)"
+        ]
+    }, {
+        "$-if": "showAllTabs == true",
+        "type": "button",
+        "text": "Hide all tabs",
+        "x": {"$-expr": "width"},
+        "y": {"$-expr": "0"},
+        "width": 90,
+        "height": 30,
+        "click": [
+            "showAllTabs = false"
+        ]
+    }, {
+        "$-else": "",
+        "type": "button",
+        "text": "Show all tabs",
+        "x": {"$-expr": "width"},
+        "y": {"$-expr": "0"},
+        "width": 90,
+        "height": 30,
+        "click": [
+            "showAllTabs = true"
         ]
     }],
     "description": "Panel with tabs",
@@ -249,9 +273,9 @@
                 "shape": "rect",
                 "cursor": "default",
                 "area": {
-                    "x": {"$-expr": "padding"},
+                    "x": {"$-expr": "ifcond(showAllTabs, padding + idx * (containerWidth + padding) + ifcond(idx > 0, 2*padding, 0), padding)"},
                     "y": {"$-expr": "topMargin + tabHeight - tabCornerRadius - 1"},
-                    "w": {"$-expr": "max(1, width - padding * 2)"},
+                    "w": {"$-expr": "containerWidth"},
                     "h": {"$-expr": "max(1, height - padding - (topMargin + tabHeight - tabCornerRadius - 1))"},
                     "r": 0,
                     "px": 0.5,
@@ -266,7 +290,7 @@
                 "links": [],
                 "textSlots": {
                     "body": {
-                        "text": {"$-str": "<p>Attach items here (tab ${idx+1})...</p>"},
+                        "text": {"$-str": "<p>Attach items here (tab ${idx+1})...</p><p><i>This text will be hidden in view mode</i></p>"},
                         "color": "rgba(150,150,150,1.0)",
                         "halign": "center",
                         "valign": "middle",
@@ -280,10 +304,33 @@
                     }
                 },
                 "behavior": {
-                    "events": []
+                    "events": [{
+                        "id": {"$-expr": "uid()"},
+                        "event": "init",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "on": true,
+                            "element": "self",
+                            "method": "set",
+                            "args": {
+                                "field": "textSlots.body.color",
+                                "value": "rgba(0,0,0,0.0)"
+                            }
+                        }, {
+                            "id": {"$-expr": "uid()"},
+                            "on": true,
+                            "element": "self",
+                            "method": "move",
+                            "args": {
+                                "x": {"$-expr": "padding"},
+                                "y": {"$-expr": "topMargin + tabHeight - tabCornerRadius - 1"},
+                                "animate": false
+                            }
+                        }]
+                    }]
                 },
                 "selfOpacity": 100,
-                "visible": {"$-expr": "idx == 0"},
+                "visible": {"$-expr": "ifcond(showAllTabs, true, idx == 0"},
                 "tags": [
                     {"$-expr": "containerTag"}
                 ],
