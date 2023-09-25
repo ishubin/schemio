@@ -7,6 +7,7 @@ import ValueAnimation from "../../animations/ValueAnimation";
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import { Scope, parseAST } from "../../templater/ast";
 import { tokenizeExpression } from "../../templater/tokenizer";
+import htmlSanitize from "../../../htmlSanitize";
 
 export default {
     name: 'Script',
@@ -88,6 +89,14 @@ function createItemScriptWrapper(item, schemeContainer) {
         };
     };
 
+    const withTextSlot = (name, callback) => {
+        if (!item || !item.textSlots || !item.textSlots.hasOwnProperty(name)) {
+            return;
+        }
+        callback(item.textSlots[name]);
+        emitItemChanged();
+    };
+
     return {
         exists() {
             return item !== null;
@@ -133,6 +142,14 @@ function createItemScriptWrapper(item, schemeContainer) {
         setOpacity: withFloatValue(opacity => item.opacity = opacity),
         setSelfOpacity: withFloatValue(opacity => item.SelfOpacity = opacity),
 
+        setText: (slotName, text) => withTextSlot(slotName, slot => slot.text = htmlSanitize('' + text)),
+        setTextColor: (slotName, color) => withTextSlot(slotName, slot => slot.color = '' + color),
+        setTextSize: (slotName, size) => {
+            if (!isNaN(size)) {
+                withTextSlot(slotName, slot => slot.fontSize = size);
+            }
+        },
+
         show() {
             item.visible = true;
             emitItemChanged();
@@ -160,7 +177,7 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
 
 export function parseItemScript(text) {
     try {
-        return parseAST(tokenizeExpression(text));
+        return parseAST(tokenizeExpression(text), text);
     } catch (err) {
         console.error('Failed to parse item script: ' + text, err);
         return null;

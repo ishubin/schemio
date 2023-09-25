@@ -8,8 +8,11 @@ export const TokenTypes = {
     NUMBER: 'number',
     OPERATOR: 'operator',
     WHITESPACE: 'whitespace',
+    NEWLINE: 'newline',
+    DELIMITER: 'delimiter',
     COMMA: 'comma',
     NOT: 'not',
+    COMMENT: 'comment',
 };
 
 function isLetter(c) {
@@ -25,7 +28,7 @@ function isPartOfNumber(c) {
 }
 
 function isWhitespace(c) {
-    return c === ' ' || c === '\t' || c === '\n';
+    return c === ' ' || c === '\t';
 }
 
 
@@ -42,7 +45,7 @@ const singleCharTokens = new Map(Object.entries({
     '>': {t: TokenTypes.OPERATOR, v: '>'},
     '=': {t: TokenTypes.OPERATOR, v: '='},
     '.': {t: TokenTypes.OPERATOR, v: '.'},
-    ';': {t: TokenTypes.OPERATOR, v: ';'},
+    ';': {t: TokenTypes.DELIMITER, v: ';'},
     '!': {t: TokenTypes.NOT},
 }));
 
@@ -68,6 +71,7 @@ class Scanner {
     constructor(text) {
         this.idx = 0;
         this.text = text;
+        this.currentLine = 0;
     }
 
     scanToken() {
@@ -77,7 +81,11 @@ class Scanner {
 
         const c = this.text[this.idx];
 
-        if (isLetter(c)) {
+        if (c === '\n') {
+            this.idx++;
+            this.currentLine++;
+            return {t: TokenTypes.NEWLINE, idx: this.idx - 1, line: this.currentLine - 1, text: ''};
+        } else if (isLetter(c)) {
             return this.scanTerm();
         } else if (isPartOfNumber(c)) {
             return this.scanNumber();
@@ -89,23 +97,44 @@ class Scanner {
         } else {
             if (this.idx < this.text.length - 1) {
                 const cc = this.text.substring(this.idx, this.idx + 2);
-                if (doubleCharTokens.has(cc)) {
+                if (cc === '//') {
+                    this.idx += 2;
+                    return this.scanComment('\n');
+                } else if (cc === '/*') {
+                    this.idx += 2;
+                    return this.scanComment('*/');
+                } else if (doubleCharTokens.has(cc)) {
                     this.idx+=2;
-                    return {...doubleCharTokens.get(cc), text: cc};
+                    return {...doubleCharTokens.get(cc), text: cc, idx: this.idx - 2, line: this.currentLine};
                 }
             }
 
             if (singleCharTokens.has(c)) {
                 this.idx++;
-                return {...singleCharTokens.get(c), text: c};
+                return {...singleCharTokens.get(c), text: c, idx: this.idx - 1, line: this.currentLine};
             }
             throw new Error('Invalid symbol: ' + c);
         }
     }
 
+    scanComment(endTerm) {
+        let commentText = '';
+        while(this.idx <= this.text.length) {
+            if (this.text.substring(this.idx, this.idx + endTerm.length) === endTerm) {
+                this.idx += endTerm.length;
+                break;
+            }
+            commentText += this.text[this.idx];
+            this.idx++;
+        }
+
+        return {t: TokenTypes.COMMENT, text: commentText};
+    }
+
 
     scanTerm() {
         let term = '';
+        let startIdx = this.idx;
         for (let i = this.idx; i < this.text.length; i++) {
             const c = this.text[i];
             if (isLetter(c) || isDigit(c)) {
@@ -118,13 +147,16 @@ class Scanner {
         return {
             t: TokenTypes.TERM,
             v: term,
-            text: term
+            text: term,
+            idx: startIdx,
+            line: this.currentLine
         };
     }
 
     scanNumber() {
         let numberText = '';
         let hasDotAlready = false;
+        const startIdx = this.idx;
 
         if (this.text[this.idx] === '.' && this.idx < this.text.length - 1 && !isDigit(this.text[this.idx+1])) {
             this.idx++;
@@ -157,10 +189,13 @@ class Scanner {
             t: TokenTypes.NUMBER,
             v: parseFloat(numberText),
             text: numberText,
+            idx: startIdx,
+            line: this.currentLine
         };
     }
 
     scanWhitespace() {
+        const startIdx = this.idx;
         for (let i = this.idx; i < this.text.length; i++) {
             const c = this.text[i];
             if (isWhitespace(c)) {
@@ -169,17 +204,18 @@ class Scanner {
                 break;
             }
         }
-        return {t: TokenTypes.WHITESPACE, text: ' '};
+        return {t: TokenTypes.WHITESPACE, text: ' ', idx: startIdx, line: this.currentLine};
     }
 
     scanString(breakChar) {
         let str = '';
+        const startIdx = this.idx;
         while(this.idx < this.text.length) {
             const c = this.text[this.idx];
 
             if (c === breakChar) {
                 this.idx++;
-                return {t: TokenTypes.STRING, v: str, text: str};
+                return {t: TokenTypes.STRING, v: str, text: str, idx: startIdx, line: this.currentLine};
             }
 
             if (c === '\\') {

@@ -1,6 +1,6 @@
 import expect from 'expect';
-import { Scope, parseAST } from '../../src/ui/templater/ast';
-import { tokenizeExpression } from '../../src/ui/templater/tokenizer';
+import { Scope, parseExpression } from '../../src/ui/templater/ast';
+
 
 
 describe('templater ast parser', () => {
@@ -14,8 +14,9 @@ describe('templater ast parser', () => {
             ['x + 1 < 5 - y || x > 10', '(((x + 1) < (5 - y)) || (x > 10))'],
             ['x + 1 < 5 - y && x > 10', '(((x + 1) < (5 - y)) && (x > 10))'],
             ['x + "qwe" == \'hi qwe\'', '((x + "qwe") == "hi qwe")'],
+            ['x = (a = 1; b = 2; a + b); x*10', '((x = ((a = 1); (b = 2); (a + b))); (x * 10))']
         ].forEach(([input, expected]) => {
-            const real = parseAST(tokenizeExpression(input)).print();
+            const real = parseExpression(input).print();
             expect(real).toBe(expected);
         });
     });
@@ -26,19 +27,20 @@ describe('templater ast parser', () => {
             ['x + max(0.2, y)', '(x + max(0.2, y))'],
             ['x + cos(0.2) + max(1, y + 2)', '((x + cos(0.2)) + max(1, (y + 2)))'],
         ].forEach(([input, expected]) => {
-            const real = parseAST(tokenizeExpression(input)).print();
+            const real = parseExpression(input).print();
             expect(real).toBe(expected);
         });
     });
 
 
-    it('should evaluate functions', () => {
+    it('should evaluate functions and multi expressions', () => {
         [
             ['x + pow(y + 1, 3)', {x: 7, y: 2}, 34],
             ['min(x, 3) + max(y, 7)', {x: 7, y: 2}, 10],
             ['min(x, 3) + max(y, 7)', {x: 2, y: 10}, 12],
+            ['x = (a = 1; b = 2; a + b); x*10', {}, 30]
         ].forEach(([input, data, expected]) => {
-            const ast = parseAST(tokenizeExpression(input));
+            const ast = parseExpression(input);
             const result = ast.evalNode(new Scope(data));
             expect(result).toBe(expected);
         });
@@ -47,7 +49,7 @@ describe('templater ast parser', () => {
 
     it('should assign variable using = operator', () => {
         const scope = new Scope({x: 2});
-        const ast = parseAST(tokenizeExpression('newVar = abs(x - 10) + 6'));
+        const ast = parseExpression('newVar = abs(x - 10) + 6');
         ast.evalNode(scope);
         expect(scope.get('newVar')).toBe(14);
     });
@@ -66,7 +68,7 @@ describe('templater ast parser', () => {
             ["animation == 'simple' || animation == 'scaled'", {animation: 'scaled'}, true],
             ["animation == 'simple' || animation == 'scaled'", {animation: 'rotate'}, false]
         ].forEach(([input, data, expected]) => {
-            const ast = parseAST(tokenizeExpression(input));
+            const ast = parseExpression(input);
             const result = ast.evalNode(new Scope(data));
             expect(result).toBe(expected);
         });
@@ -74,13 +76,13 @@ describe('templater ast parser', () => {
 
     it('should allow to get properties of objects using dot operator', () => {
         const scope = new Scope({someObj: {area: {x: 1, y: 2}, name: 'some object'}});
-        expect(parseAST(tokenizeExpression('someObj.area.x')).evalNode(scope)).toBe(1);
-        expect(parseAST(tokenizeExpression('someObj.area.y')).evalNode(scope)).toBe(2);
-        expect(parseAST(tokenizeExpression('someObj.area')).evalNode(scope)).toStrictEqual({x: 1, y: 2});
-        expect(parseAST(tokenizeExpression('someObj.name')).evalNode(scope)).toBe('some object');
-        expect(parseAST(tokenizeExpression('someObj.area.x + someObj.area.y')).evalNode(scope)).toBe(3);
-        expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y > 3, 10, 100)')).evalNode(scope)).toBe(101);
-        expect(parseAST(tokenizeExpression('someObj.area.x + ifcond(someObj.area.y < 3, 10, 100)')).evalNode(scope)).toBe(11);
+        expect(parseExpression('someObj.area.x').evalNode(scope)).toBe(1);
+        expect(parseExpression('someObj.area.y').evalNode(scope)).toBe(2);
+        expect(parseExpression('someObj.area').evalNode(scope)).toStrictEqual({x: 1, y: 2});
+        expect(parseExpression('someObj.name').evalNode(scope)).toBe('some object');
+        expect(parseExpression('someObj.area.x + someObj.area.y').evalNode(scope)).toBe(3);
+        expect(parseExpression('someObj.area.x + ifcond(someObj.area.y > 3, 10, 100)').evalNode(scope)).toBe(101);
+        expect(parseExpression('someObj.area.x + ifcond(someObj.area.y < 3, 10, 100)').evalNode(scope)).toBe(11);
     });
 
     it('should allow to get invoke function an an objects using dot operator', () => {
@@ -92,7 +94,7 @@ describe('templater ast parser', () => {
             }
         };
         const scope = new Scope(data);
-        expect(parseAST(tokenizeExpression('someObj.someField.pow(3, 2)')).evalNode(scope)).toBe(9);
+        expect(parseExpression('someObj.someField.pow(3, 2)').evalNode(scope)).toBe(9);
     });
 
 
@@ -102,9 +104,47 @@ describe('templater ast parser', () => {
                 scope.set(name, value);
             }
         });
-        parseAST(tokenizeExpression('x = 4; y = x + 10; setVar("z", y + 2 * x);')).evalNode(scope);
+        parseExpression('x = 4; y = x + 10; setVar("z", y + 2 * x);').evalNode(scope);
         expect(scope.get('x')).toBe(4);
         expect(scope.get('y')).toBe(14);
         expect(scope.get('z')).toBe(22);
     });
+
+    it('should allow to execute multiple expressions separated by newline', () => {
+        [
+            '\n\nx = 4\n\n\n y = x + 10\n setVar("z", y + 2 * x)\n\n',
+            '\n\nx \n= \n\n4\n\n\n y = \nx +\n\n 10\n setVar (\n"z"\n, \ny + \n2 \n * x\n)\n\n',
+        ].forEach((script, idx) => {
+            let callCounter = 0;
+            const scope = new Scope({
+                setVar(name, value) {
+                    scope.set(name, value);
+                    callCounter++;
+                }
+            });
+            try {
+                const result = parseExpression(script).evalNode(scope);
+                expect(scope.get('x')).toBe(4);
+                expect(scope.get('y')).toBe(14);
+                expect(scope.get('z')).toBe(22);
+                expect(callCounter).toBe(1);
+                expect(result).toBeUndefined();
+            } catch(err) {
+                console.error(`ERROR: test fail for #${idx}`);
+                throw err;
+            }
+        });
+    });
+
+
+    it('should ignore comments', () => {
+        [
+            ['x = 3; x = x + 6;/* x = x + 100 */;x = x *2; x', 18],
+            ['x = 3\nx = x + 6\n // x = x + 100\nx = x *2\n x', 18],
+        ].forEach(([script, expected]) => {
+            const result = parseExpression(script).evalNode(new Scope({}));
+            expect(result).toBe(expected);
+        })
+    });
+
 });

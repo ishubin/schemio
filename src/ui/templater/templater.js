@@ -78,7 +78,7 @@ function processObject(obj, scope) {
 }
 
 function processExpression(expr, scope) {
-    return parseAST(tokenizeExpression(expr)).evalNode(scope);
+    return parseAST(tokenizeExpression(expr), expr).evalNode(scope);
 }
 
 function processStringExpression(text, scope) {
@@ -159,7 +159,7 @@ function processArrayItem(item, scope, conditionState) {
             $if = item[$_IF];
         }
 
-        const conditionResult = parseAST(tokenizeExpression($if)).evalNode(scope);
+        const conditionResult = parseAST(tokenizeExpression($if), $if).evalNode(scope);
         if (conditionResult) {
             result.push(processObject(item, scope));
         }

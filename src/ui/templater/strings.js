@@ -16,7 +16,7 @@ class StringPart {
 
     compile() {
         if (this.isExpression) {
-            this.expression = parseAST(tokenizeExpression(this.text));
+            this.expression = parseAST(tokenizeExpression(this.text), this.text);
         }
     }
 

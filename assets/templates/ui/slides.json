@@ -314,10 +314,10 @@
                                 "element": "self",
                                 "args": {
                                     "script": {"$-str": [
-                                        "slide = max(getVar('currentSlide', 1) - 1, 1);",
-                                        "setVar('currentSlide', slide);",
-                                        "setVar('srcX', getPosX());",
-                                        "setVar('dstX', -${slideWidth}*(slide - 1));"
+                                        "slide = max(getVar('currentSlide', 1) - 1, 1)",
+                                        "setVar('currentSlide', slide)",
+                                        "setVar('srcX', getPosX())",
+                                        "setVar('dstX', -${slideWidth}*(slide - 1))"
                                     ]}
                                 }
                             }, {
@@ -385,10 +385,10 @@
                                 "element": "self",
                                 "args": {
                                     "script": {"$-str": [
-                                        "slide = min(getVar('currentSlide', 1) + 1, ${numSlides});",
-                                        "setVar('currentSlide', slide);",
-                                        "setVar('srcX', getPosX());",
-                                        "setVar('dstX', -${slideWidth}*(slide - 1));"
+                                        "slide = min(getVar('currentSlide', 1) + 1, ${numSlides})",
+                                        "setVar('currentSlide', slide)",
+                                        "setVar('srcX', getPosX())",
+                                        "setVar('dstX', -${slideWidth}*(slide - 1))"
                                     ]}
                                 }
                             }, {
