@@ -1,5 +1,6 @@
 import shortid from "shortid";
 import { TokenTypes, tokenizeExpression } from "./tokenizer";
+import { StringTemplate, parseStringExpression } from "./strings";
 
 
 const FUNC_INVOKE = 'funcInvoke';
@@ -152,6 +153,21 @@ class ASTNot extends ASTNode {
     }
     print() {
         return `(!${this.v.print()})`;
+    }
+}
+
+
+class ASTStringTemplate extends ASTNode {
+    /**
+     *
+     * @param {StringTemplate} stringExpression
+     */
+    constructor(stringExpression) {
+        super('string-template');
+        this.stringExpression = stringExpression;
+    }
+    evalNode(scope) {
+        return this.stringExpression.render(scope);
     }
 }
 
@@ -618,6 +634,8 @@ class ASTParser {
                 throw new Error('Expected term token after "!"');
             }
             return new ASTNot(nextTerm);
+        } else if (token.t === TokenTypes.STRING_TEMPLATE) {
+            return new ASTStringTemplate(parseStringExpression(token.v));
         } else {
             throw new Error(`Unexpected token: ${token.t} "${token.text}"`);
         }

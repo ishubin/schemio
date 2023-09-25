@@ -147,4 +147,14 @@ describe('templater ast parser', () => {
         })
     });
 
+
+    it('should process string templates', () => {
+        [
+            ['`rgba(${r}, ${g}, ${b}, ${a})`', {r: 100, g: 50, b: 10, a: 0.9}, 'rgba(100, 50, 10, 0.9)'],
+            ['`rgba(${getRed() + 5}, ${g}, ${b}, ${a})`', {getRed: () => 70, g: 50, b: 10, a: 1}, 'rgba(75, 50, 10, 1)'],
+        ].forEach(([script, data, expected]) => {
+            const result = parseExpression(script).evalNode(new Scope(data));
+            expect(result).toBe(expected);
+        })
+    });
 });

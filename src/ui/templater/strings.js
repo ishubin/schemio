@@ -29,7 +29,8 @@ class StringPart {
     }
 }
 
-class StringTemplate {
+
+export class StringTemplate {
     constructor(parts) {
         this.parts = parts;
     }

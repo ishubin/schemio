@@ -5,6 +5,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
 
 - [Basic syntax](#basic-syntax)
 - [Boolean expressions](#boolean-expressions)
+- [Templated strings](#templated-strings)
 - [Functions](#functions)
     - [abs](#abs)
     - [min](#min)
@@ -51,6 +52,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [setTextSize](#settextsize)
       - [exists](#exists)
       - [findItemByName](#finditembyname)
+      - [findItemById](#finditembyid)
 
 
 Basic syntax
@@ -93,6 +95,17 @@ Boolean expressions are implemented the same way as in C. You may use the follow
 - `&&`: AND operator e.g. `x > (y + 2)*6 && x <= 23`
 - `||`: OR operator e.g. `x > (y + 2)*6 || x <= 23`
 - `!`: NOT operator e.g. `!(x > 10 && x < 20)`
+
+
+Templated strings
+-----------------
+
+Regular strings can be specified using single or double quotes (`'` or `"`). But if you use backticks you can use expressions inside of a string using `${ ... }` syntax
+
+Example:
+```js
+setTextColor('body', `rgba(${r + 10}, ${g}, 20, 0.5)`)
+```
 
 
 Functions
@@ -435,3 +448,8 @@ dstX = it.getVar('dstX')
 it.setPosX(dstX)
 it.setTextSize('body', 30)
 ```
+
+
+##### findItemById
+
+`findItemById(id)` same as [findItemByName](#finditembyname) but it searchs for item base on its internal id.

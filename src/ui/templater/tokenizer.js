@@ -5,6 +5,7 @@ export const TokenTypes = {
     END_BRACKET: 'end_bracket',
     TERM: 'term',
     STRING: 'string',
+    STRING_TEMPLATE: 'string-template',
     NUMBER: 'number',
     OPERATOR: 'operator',
     WHITESPACE: 'whitespace',
@@ -94,6 +95,10 @@ class Scanner {
         } else if (c === '"' || c === '\'') {
             this.idx++;
             return this.scanString(c);
+        } else if (c === '`') {
+            this.idx++;
+            const token = this.scanString(c);
+            return {...token, t: TokenTypes.STRING_TEMPLATE};
         } else {
             if (this.idx < this.text.length - 1) {
                 const cc = this.text.substring(this.idx, this.idx + 2);
