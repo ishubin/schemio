@@ -30,18 +30,14 @@ export default class UserEventBus {
     }
 
 
-    /**
-     * Emits event that originated for a specific item
-     * @param {string} itemId
-     * @param {string} eventName
-     */
-    emitItemEvent(itemId, eventName) {
+
+    emitItemEvent(itemId, eventName, ...args) {
         log.infoEvent(eventName, [itemId]);
 
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             forEach(itemSubs[eventName], subscriber => {
-                subscriber.callback.apply(null, [this, this.revision, itemId, eventName]);
+                subscriber.callback.apply(null, [this, this.revision, itemId, eventName, args]);
             });
         }
     }

@@ -31,7 +31,7 @@ export default {
     },
 
 
-    execute(item, args, schemeContainer, userEventBus, resultCallback) {
+    execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
         const scriptAST = parseItemScript(args.script);
         if (!scriptAST) {
             resultCallback();
@@ -42,6 +42,8 @@ export default {
 
         const execScript = (t) => {
             scope.set('t', t);
+            scope.set('getEventName', () => eventName);
+            scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
             scriptAST.evalNode(scope);
         };
 
@@ -73,7 +75,7 @@ export default {
     }
 }
 
-function createItemScriptWrapper(item, schemeContainer) {
+function createItemScriptWrapper(item, schemeContainer, userEventBus) {
     const emitItemChanged = () => {
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     };
@@ -159,6 +161,10 @@ function createItemScriptWrapper(item, schemeContainer) {
             item.visible = false;
             emitItemChanged();
         },
+
+        sendEvent(eventName, ...args) {
+            userEventBus.emitItemEvent(item.id, eventName, ...args);
+        }
     }
 }
 
@@ -166,10 +172,10 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer);
     return new Scope({
         findItemById: (id) => {
-            return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer);
+            return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
         },
         findItemByName: (name) => {
-            return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer);
+            return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer, userEventBus);
         },
         ...itemInterface
     });

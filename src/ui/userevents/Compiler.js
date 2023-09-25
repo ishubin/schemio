@@ -64,7 +64,7 @@ export default class Compiler {
         });
         log.info('Compiling functions for item', selfItem? `${selfItem.id}/${selfItem.name}` : '');
 
-        return (userEventBus, revision, subscribedItemId, eventName) => {
+        return (userEventBus, revision, subscribedItemId, eventName, eventArgs) => {
             const subscribedItem = schemeContainer.findItemById(subscribedItemId);
             if (funcs.length < 1) {
                 return;
@@ -97,7 +97,7 @@ export default class Compiler {
                 log.info('Executing', f.func.name, 'function');
 
                 if (f.func.execute) {
-                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName);
+                    f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName, eventArgs);
                 } else if (f.func.executeWithBranching) {
                     const branchingCallback = (result) => {
                         log.info('Branch result', result);
@@ -112,7 +112,7 @@ export default class Compiler {
                         }
                         execNext();
                     };
-                    f.func.executeWithBranching(f.element, f.args, schemeContainer, userEventBus, branchingCallback, subscribedItem, eventName);
+                    f.func.executeWithBranching(f.element, f.args, schemeContainer, userEventBus, branchingCallback, subscribedItem, eventName, eventArgs);
                 } else {
                     execNext();
                 }

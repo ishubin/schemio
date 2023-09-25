@@ -24,6 +24,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [rnd](#rnd)
     - [rgba](#rgba)
     - [ifcond](#ifcond)
+    - [getEventName](#geteventname)
+    - [getEventArg](#geteventarg)
     - [Item functions](#item-functions)
       - [setVar](#setvar)
       - [getVar](#getvar)
@@ -51,6 +53,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [setTextColor](#settextcolor)
       - [setTextSize](#settextsize)
       - [exists](#exists)
+      - [sendEvent](#sendevent)
       - [findItemByName](#finditembyname)
       - [findItemById](#finditembyid)
 
@@ -270,6 +273,16 @@ result = ifcond(x + y > 2, -1, 1);
 The code above will return `-1` in case if `y` value is `0` and will return `1` if the expression is becomes valid (e.g. when `y` is set to 10).
 
 
+#### getEventName
+
+`getEventName()` returns the name of the event for which the current script is running
+
+
+#### getEventArg
+
+`getEventArg(i)` returns the event argument value at position `i` which is the number of argument starting from 0. It only makes sense to use this function if the event was sent using [sendEvent](#sendevent) function with custom arguments.
+
+
 #### Item functions
 
 Since all the script and condition functions are executed on some particular item, you get access to that items data.
@@ -434,6 +447,31 @@ setTextColor("body", rgba(r, g, b, 1.0))
 ##### exists
 
 `exists()` returns true if item exists in the document
+
+
+##### sendEvent
+
+`sendEvent(eventName, ...args)` sends arbitrary event with argument to current item. This way you can have more flexibility in the event handler of your item by parameterizing it.
+
+Example in one item:
+```js
+sendEvent('my-custom-move', 'up', 10)
+```
+
+Another item:
+```js
+sendEvent('my-custom-move', 'down', 10)
+```
+
+Example of a script that is invoked in the custom `my-custom-move` event:
+```js
+d = ifcond(getEventArg(0) == 'up',
+          -1,
+          ifcond(getEventArg(0) == 'down', 1, 0))
+
+speed = getEventArg(1)
+setPosY(getPosY() + speed * d)
+```
 
 
 ##### findItemByName
