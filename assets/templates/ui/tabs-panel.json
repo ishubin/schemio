@@ -290,11 +290,11 @@
                 "links": [],
                 "textSlots": {
                     "body": {
-                        "text": {"$-str": "<p>Attach items here (tab ${idx+1})...</p><p><i>This text will be hidden in view mode</i></p>"},
+                        "text": {"$-str": "<h2>Tab ${idx+1}</h2><p><b>Attach items here</b></p><p><i>(This text will be hidden in view mode)</i></p>"},
                         "color": "rgba(150,150,150,1.0)",
                         "halign": "center",
                         "valign": "middle",
-                        "fontSize": 26,
+                        "fontSize": 16,
                         "whiteSpace": "normal",
                         "font": "Arial",
                         "paddingLeft": 0,

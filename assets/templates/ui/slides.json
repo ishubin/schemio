@@ -122,6 +122,7 @@
                 },
                 "shape": "none",
                 "cursor": "default",
+                "locked": true,
                 "area": {
                     "x": {"$-expr": "(width - headerWidth)/2"},
                     "y": 0,
