@@ -365,6 +365,12 @@ class ResizeEditBoxState extends EditBoxState {
     constructor(parentState, multiItemEditBox, draggerEdges, x, y, mx, my) {
         super(parentState, 'resize-edit-box', multiItemEditBox, x, y, mx, my);
         this.draggerEdges = draggerEdges
+
+        let ratio = 0;
+        if (!myMath.tooSmall(multiItemEditBox.area.h)) {
+            ratio = multiItemEditBox.area.w / multiItemEditBox.area.h;
+        }
+        this.originalRatio = ratio;
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -379,13 +385,17 @@ class ResizeEditBoxState extends EditBoxState {
             return;
         }
 
+        const lockedRatio = event.metaKey || event.ctrlKey ? this.originalRatio : 0;
+
         dragMultiItemEditBoxByDragger(
             this.multiItemEditBox,
             this.multiItemEditBoxOriginalArea,
             this.originalPoint,
             this.store,
             this,
-            x, y, this.draggerEdges);
+            x, y,
+            this.draggerEdges,
+            lockedRatio);
 
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, {
             moved: false,
@@ -919,7 +929,7 @@ export default class StateDragItem extends State {
     }
 }
 
-export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBoxOriginalArea, originalPoint, store, snapper, x, y, draggerEdges) {
+export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBoxOriginalArea, originalPoint, store, snapper, x, y, draggerEdges, lockedRatio) {
     let nx = multiItemEditBox.area.x,
         ny = multiItemEditBox.area.y,
         nw = multiItemEditBox.area.w,
@@ -930,6 +940,17 @@ export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBox
     let p0 = myMath.worldPointInArea(0, 0, multiItemEditBox.area);
     let p1 = myMath.worldPointInArea(1, 0, multiItemEditBox.area);
     let p2 = myMath.worldPointInArea(0, 1, multiItemEditBox.area);
+
+    // storing original rect points of edit box
+    // this will be used later for readjusting the position of the box
+    const ow = multiItemEditBox.area.w;
+    const oh = multiItemEditBox.area.h;
+    const originalWorldCorners = {
+        topLeft: myMath.worldPointInArea(0, 0, multiItemEditBox.area),
+        topRight: myMath.worldPointInArea(ow, 0, multiItemEditBox.area),
+        bottomRight: myMath.worldPointInArea(ow, oh, multiItemEditBox.area),
+        bottomLeft: myMath.worldPointInArea(0, oh, multiItemEditBox.area)
+    }
 
     const rightVector = {x: p1.x - p0.x, y: p1.y - p0.y};
     const bottomVector = {x: p2.x - p0.x, y: p2.y - p0.y};
@@ -965,52 +986,48 @@ export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBox
         return projection
     };
 
+    const edgeBits = {
+        'top'   : 0,
+        'bottom': 1,
+        'left'  : 2,
+        'right' : 3
+    };
+    let edgeID = 0;
 
-    // dirty hack as dragging of top left edge is special
-    if (draggerEdges.length === 2 && draggerEdges[0] === 'top' && draggerEdges[1] === 'left') {
-        const projectionBottom = snapEdge(0, 0, multiItemEditBoxOriginalArea.w, 0, bottomVector);
-        const projectionRight = snapEdge(0, 0, 0, multiItemEditBoxOriginalArea.h, rightVector);
+    forEach(draggerEdges, edge => {
+        edgeID |= 1 << edgeBits[edge];
 
-        nx = multiItemEditBoxOriginalArea.x + projectionRight * rightVector.x + projectionBottom * bottomVector.x;
-        ny = multiItemEditBoxOriginalArea.y + projectionRight * rightVector.y + projectionBottom * bottomVector.y;
-        nw = multiItemEditBoxOriginalArea.w - projectionRight;
-        nh = multiItemEditBoxOriginalArea.h - projectionBottom;
-        if (nh < 0) {
-            nh = 0;
-        }
-    } else {
-        forEach(draggerEdges, edge => {
-            if (edge === 'top') {
-                const projection = snapEdge(0, 0, multiItemEditBoxOriginalArea.w, 0, bottomVector);
-                nx = multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
-                ny = multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
-                nh = multiItemEditBoxOriginalArea.h - projection;
-                if (nh < 0) {
-                    nh = 0;
-                }
-            } else if (edge === 'bottom') {
-                const projection = snapEdge(0, multiItemEditBoxOriginalArea.h, multiItemEditBoxOriginalArea.w, multiItemEditBoxOriginalArea.h, bottomVector);
-                nh = multiItemEditBoxOriginalArea.h + projection;
-                if (nh < 0) {
-                    nh = 0;
-                }
-            } else if (edge === 'left') {
-                const projection = snapEdge(0, 0, 0, multiItemEditBoxOriginalArea.h, rightVector);
-                nx = multiItemEditBoxOriginalArea.x + projection * rightVector.x;
-                ny = multiItemEditBoxOriginalArea.y + projection * rightVector.y;
-                nw = multiItemEditBoxOriginalArea.w - projection;
-                if (nw < 0) {
-                    nw = 0;
-                }
-            } else if (edge === 'right') {
-                const projection = snapEdge(multiItemEditBoxOriginalArea.w, 0, multiItemEditBoxOriginalArea.w, multiItemEditBoxOriginalArea.h, rightVector);
-                nw = multiItemEditBoxOriginalArea.w + projection;
-                if (nw < 0) {
-                    nw = 0;
-                }
+        if (edge === 'top') {
+            const projection = snapEdge(0, 0, multiItemEditBoxOriginalArea.w, 0, bottomVector);
+            nx = multiItemEditBoxOriginalArea.x + projection * bottomVector.x;
+            ny = multiItemEditBoxOriginalArea.y + projection * bottomVector.y;
+            nh = multiItemEditBoxOriginalArea.h - projection;
+            if (nh < 0) {
+                nh = 0;
             }
-        });
-    }
+        } else if (edge === 'bottom') {
+            const projection = snapEdge(0, multiItemEditBoxOriginalArea.h, multiItemEditBoxOriginalArea.w, multiItemEditBoxOriginalArea.h, bottomVector);
+            nh = multiItemEditBoxOriginalArea.h + projection;
+            if (nh < 0) {
+                nh = 0;
+            }
+        } else if (edge === 'left') {
+            const projection = snapEdge(0, 0, 0, multiItemEditBoxOriginalArea.h, rightVector);
+            nx = multiItemEditBoxOriginalArea.x + projection * rightVector.x;
+            ny = multiItemEditBoxOriginalArea.y + projection * rightVector.y;
+            nw = multiItemEditBoxOriginalArea.w - projection;
+            if (nw < 0) {
+                nw = 0;
+            }
+        } else if (edge === 'right') {
+            const projection = snapEdge(multiItemEditBoxOriginalArea.w, 0, multiItemEditBoxOriginalArea.w, multiItemEditBoxOriginalArea.h, rightVector);
+            nw = multiItemEditBoxOriginalArea.w + projection;
+            if (nw < 0) {
+                nw = 0;
+            }
+        }
+    });
+
     multiItemEditBox.area.x = nx;
     multiItemEditBox.area.y = ny;
     if (nw > 0) {
@@ -1018,5 +1035,40 @@ export function dragMultiItemEditBoxByDragger(multiItemEditBox, multiItemEditBox
     }
     if (nh > 0) {
         multiItemEditBox.area.h = nh;
+    }
+
+    if (lockedRatio) {
+        const xPart = dx * rightVector.x + dy * rightVector.y;
+        const yPart = dx * bottomVector.x + dy * bottomVector.y;
+
+        if (Math.abs(xPart) > Math.abs(yPart)) {
+            multiItemEditBox.area.h = multiItemEditBox.area.w / lockedRatio;
+        } else {
+            multiItemEditBox.area.w = multiItemEditBox.area.h * lockedRatio;
+        }
+    }
+    let p = null;
+
+    if (edgeID == (1 << edgeBits.top | 1 << edgeBits.left)) {
+        // bottom right position should remain as it was before
+        const c = originalWorldCorners.bottomRight;
+        p = myMath.findTranslationMatchingWorldPoint(c.x, c.y, multiItemEditBox.area.w, multiItemEditBox.area.h, multiItemEditBox.area, null);
+
+    } else if (edgeID == (1 << edgeBits.top | 1 << edgeBits.right)) {
+        const c = originalWorldCorners.bottomLeft;
+        p = myMath.findTranslationMatchingWorldPoint(c.x, c.y, 0, multiItemEditBox.area.h, multiItemEditBox.area, null);
+
+    } else if (edgeID == (1 << edgeBits.bottom | 1 << edgeBits.right)) {
+        const c = originalWorldCorners.topLeft;
+        p = myMath.findTranslationMatchingWorldPoint(c.x, c.y, 0, 0, multiItemEditBox.area, null);
+
+    } else if (edgeID == (1 << edgeBits.bottom | 1 << edgeBits.left)) {
+        const c = originalWorldCorners.topRight;
+        p = myMath.findTranslationMatchingWorldPoint(c.x, c.y, multiItemEditBox.area.w, 0, multiItemEditBox.area, null);
+    }
+
+    if (p) {
+        multiItemEditBox.area.x = p.x;
+        multiItemEditBox.area.y = p.y;
     }
 }
