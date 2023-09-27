@@ -2,17 +2,25 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import forEach from 'lodash/forEach';
+import shortid from 'shortid';
 
 // desired delta time between loop cycles in milliseconds
 const DESIRED_DELTA_TIME = 16;
 
-// storing all animation registries in global Map so tat Vue does not make it reactive
-// Can't figure out a better way to do this.
+// storing animations registries in global map as they can be referenced from any item behavior function
 const animationRegistries = new Map();
 
+// maps editorId to animation registry unique id
+// this is needed since in Vue, when updating the SchemeEditor component key,
+// it first initializes new component and only then run beforeDestory function of the old one
+// Because of this, and the fact the the same editorId is used, the animation registry is deleted
+// and no animations could be played.
+const editorIdMappings = new Map();
 
 class AnimationRegistry {
-    constructor() {
+    constructor(editorId) {
+        this.id = shortid.generate();
+        this.editorId = editorId;
         this.animationsEnabled = true;
         this.isAlreadyLooping = false;
         this.animations = [];
@@ -103,6 +111,13 @@ class AnimationRegistry {
             }
         });
     }
+
+    destroy() {
+        this.stopAllAnimations();
+        if (animationRegistries.has(this.id)) {
+            animationRegistries.delete(this.id);
+        }
+    }
 }
 
 /**
@@ -189,37 +204,32 @@ function stopSimilarAnimationForItem(registry, entityId, animationId) {
  * @returns {AnimationRegistry}
  */
 export function createAnimationRegistry(editorId) {
-    if (animationRegistries.has(editorId)) {
-        return animationRegistries.get(editorId);
-    }
-
-    const registry = new AnimationRegistry();
-    animationRegistries.set(editorId, registry);
+    const registry = new AnimationRegistry(editorId);
+    animationRegistries.set(registry.id, registry);
+    editorIdMappings.set(editorId, registry.id);
     return registry;
 }
 
-export function playInAnimationRegistry(editorId, animation, entityId, animationId) {
-    const registry = animationRegistries.get(editorId);
-    if (!registry) {
+
+function withAnimationRegistryForEditor(editorId, callback) {
+    if (!editorIdMappings.has(editorId)) {
         return;
     }
 
-    registry.play(animation, entityId, animationId);
+    const id = editorIdMappings.get(editorId);
+    if (animationRegistries.has(id)) {
+        callback(animationRegistries.get(id));
+    }
+}
+
+export function playInAnimationRegistry(editorId, animation, entityId, animationId) {
+    withAnimationRegistryForEditor(editorId, registry => {
+        registry.play(animation, entityId, animationId);
+    });
 }
 
 export function stopAllAnimationsForEntityInAnimationRegistry(editorId, entityId) {
-    const registry = animationRegistries.get(editorId);
-    if (!registry) {
-        return;
-    }
-
-    registry.stopAllAnimationsForEntity(entityId);
-}
-
-export function destroyAnimationRegistry(editorId) {
-    if (animationRegistries.has(editorId)) {
-        const registry = animationRegistries.get(editorId);
-        registry.stopAllAnimations();
-        animationRegistries.delete(editorId);
-    }
+    withAnimationRegistryForEditor(editorId, registry => {
+        registry.stopAllAnimationsForEntity(entityId);
+    });
 }

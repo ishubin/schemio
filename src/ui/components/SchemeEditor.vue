@@ -553,7 +553,7 @@ import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import { snapshotSvg } from '../svgPreview.js';
 import Shape from './editor/items/shapes/Shape.js';
-import {createAnimationRegistry, destroyAnimationRegistry} from '../animations/AnimationRegistry';
+import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
 import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
@@ -890,7 +890,7 @@ export default {
         EditorEventBus.schemeRebased.$off(this.editorId, this.rebaseScheme);
         deregisterKeyPressHandler(this.keyPressHandler);
 
-        destroyAnimationRegistry(this.editorId);
+        this.animationRegistry.destroy();
         window.addEventListener('resize', this.onWindowResize);
         this.stopStateLoop();
     },

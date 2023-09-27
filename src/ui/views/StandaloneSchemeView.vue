@@ -57,7 +57,7 @@ import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
 import StateInteract from '../components/editor/states/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
-import {createAnimationRegistry, destroyAnimationRegistry} from '../animations/AnimationRegistry';
+import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
 
 
@@ -84,7 +84,7 @@ export default {
     beforeDestroy() {
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
-        destroyAnimationRegistry(this.editorId);
+        this.animationRegistry.destroy();
         this.stopStateLoop();
     },
     created() {
