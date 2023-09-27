@@ -143,7 +143,7 @@
 <script>
 import { EditorMenuBar } from 'tiptap';
 import {getAllFonts} from '../../../scheme/Fonts';
-import map from 'lodash/map';
+import {map} from '../../../collections';
 import Shape from '../../editor/items/shapes/Shape';
 import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';

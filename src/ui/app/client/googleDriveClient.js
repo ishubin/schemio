@@ -1,6 +1,5 @@
 import { getExportHTMLResources } from "./clientCommons";
-import {forEach} from "../../collections";
-import map from "lodash/map";
+import {forEach, map} from "../../collections";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
 import { googleRefreshToken, whenGAPILoaded } from "../../googleApi";

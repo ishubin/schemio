@@ -72,8 +72,7 @@
 <script>
 import { generatePatchStatistic } from '../../scheme/SchemePatch';
 import { prettyTextSlotProperty } from '../../scheme/Item';
-import {forEach} from '../../collections';
-import map from 'lodash/map';
+import {forEach, map} from '../../collections';
 import Shape from '../editor/items/shapes/Shape';
 
 function prettyItemFieldName(itemId, fieldPath, schemeContainer) {

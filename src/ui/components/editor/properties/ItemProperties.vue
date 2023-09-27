@@ -219,10 +219,7 @@
 </template>
 
 <script>
-import map from 'lodash/map';
-import indexOf from 'lodash/indexOf';
-import mapValues from 'lodash/mapValues';
-import {forEach} from '../../../collections';
+import {forEach, map, mapObjectValues, indexOf} from '../../../collections';
 import EditorEventBus from '../EditorEventBus.js';
 import Panel from '../Panel.vue';
 import Tooltip from '../../Tooltip.vue';
@@ -307,7 +304,7 @@ export default {
             oldShape: this.item.shape,
             knownBlendModes: utils.clone(knownBlendModes),
 
-            shapePropsControlStates: shapeComponent ? mapValues(shapeComponent.args, () => {return {shown: true};}) : {},
+            shapePropsControlStates: shapeComponent ? mapObjectValues(shapeComponent.args, () => {return {shown: true};}) : {},
             knownInteractionModes: ItemInteractionMode.values(),
 
             behaviorPanelRevision: 1,

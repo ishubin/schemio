@@ -64,8 +64,7 @@
     </div>
 </template>
 <script>
-import {forEach} from '../../collections';
-import mapValues from 'lodash/mapValues';
+import {forEach, mapObjectValues} from '../../collections';
 import ColorPicker from './ColorPicker.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import Modal from '../Modal.vue';
@@ -99,7 +98,7 @@ export default {
         });
         return {
             argumentValues,
-            argumentControlStates: mapValues(this.argsDefinition, () => {return {shown: true};}),
+            argumentControlStates: mapObjectValues(this.argsDefinition, () => {return {shown: true};}),
         };
     },
 

@@ -51,7 +51,7 @@ import VueColor from 'vue-color';
 import NumberTextfield from '../NumberTextfield.vue';
 import Dropdown from '../Dropdown.vue';
 import { getAllFonts, getDefaultFont } from '../../scheme/Fonts';
-import map from 'lodash/map';
+import {map} from '../../collections';
 import EditorEventBus from './EditorEventBus';
 
 export default {

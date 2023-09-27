@@ -23,8 +23,7 @@
  * This component is used in order to pick any item on the scheme
  */
 import Dropdown from '../Dropdown.vue';
-import {forEach} from '../../collections';
-import indexOf from 'lodash/indexOf';
+import {forEach, indexOf} from '../../collections';
 import EditorEventBus from './EditorEventBus';
 
 const maxNameSymbols = 20;

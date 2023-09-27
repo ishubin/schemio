@@ -40,22 +40,148 @@ export function giveUniqueName(namePrefix, names) {
 }
 
 export function forEach(obj, callback) {
-    if (!obj) {
-        return;
-    }
-
     if (Array.isArray(obj)) {
         obj.forEach(callback);
         return;
     }
 
+    forEachObject(obj, callback);
+}
+
+export function forEachObject(obj, callback) {
+    if (!obj) {
+        return;
+    }
     if (typeof obj !== 'object') {
         return;
     }
-
     for(let name in obj) {
         if (obj.hasOwnProperty(name)) {
             callback(obj[name], name);
         }
     }
+}
+
+export function map(obj, callback) {
+    if (Array.isArray(obj)) {
+        return obj.map(callback);
+    }
+
+    return mapObjectValues(obj, callback);
+}
+
+export function mapObjectValues(obj, callback) {
+    if (!obj) {
+        return obj;
+    }
+
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+    const newObj = {};
+    for(let name in obj) {
+        if (obj.hasOwnProperty(name)) {
+            newObj[name] = callback(obj[name], name);
+        }
+    }
+    return newObj;
+}
+
+/**
+ *
+ * @param {Array} arr
+ * @param {Function} callback
+ * @returns
+ */
+export function filter(arr, callback) {
+    if (!Array.isArray(arr)) {
+        return [];
+    }
+    return arr.filter(callback);
+}
+
+/**
+ *
+ * @param {Array} arr
+ * @param {Function} callback
+ * @returns
+ */
+export function find(arr, callback) {
+    if (!Array.isArray(arr)) {
+        return null;
+    }
+    return arr.find(callback);
+}
+
+/**
+ *
+ * @param {Array} arr
+ * @param {Function} callback
+ * @returns
+ */
+export function findIndex(arr, callback) {
+    if (!Array.isArray(arr)) {
+        return null;
+    }
+    return arr.findIndex(callback);
+}
+
+/**
+ * 
+ * @param {Object} obj 
+ * @param {*} callback 
+ * @returns 
+ */
+export function findKey(obj, callback) {
+    if (!obj) {
+        return obj;
+    }
+
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+
+    for(let name in obj) {
+        if (obj.hasOwnProperty(name)) {
+            if (callback(obj[name], name)) {
+                return name;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ *
+ * @param {Array} arr
+ * @param {any} value
+ * @returns {Number}
+ */
+export function indexOf(arr, value) {
+    if (!Array.isArray(arr)) {
+        return null;
+    }
+    return arr.indexOf(value);
+}
+
+
+/**
+ *
+ * @param {Array} arr
+ * @returns {Array}
+ */
+export function uniq(arr) {
+    if (!Array.isArray(arr)) {
+        return [];
+    }
+
+    const s = new Set();
+
+    return arr.filter(item => {
+        if (s.has(item)) {
+            return false;
+        }
+        s.add(item);
+        return true;
+    });
 }

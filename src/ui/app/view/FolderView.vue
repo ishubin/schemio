@@ -128,8 +128,7 @@
 </template>
 
 <script>
-import {forEach} from '../../collections';
-import map from 'lodash/map';
+import {forEach, map} from '../../collections';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';

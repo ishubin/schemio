@@ -1,8 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import keys from 'lodash/keys';
-
 const patterns = {
     'solid': () => '',
     'dotted': (w) => `${w} ${w*2}`,
@@ -31,7 +29,7 @@ export default {
             + '</svg>';
     },
 
-    patterns: keys(patterns),
+    patterns: Object.keys(patterns),
 
     SOLID: 'solid',
     DASHED: 'dashed',

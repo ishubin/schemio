@@ -2,8 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import findKey from 'lodash/findKey';
+import { findKey } from './collections';
 import Vue from 'vue';
+
 
 
 export const Keys = {
@@ -50,7 +51,7 @@ keyMap[Keys.EQUALS] = event => event.key === '=' || event.keyCode === 187;
  * @returns {String} id of event which is available in Keys object
  */
 export function identifyKeyPress(event) {
-    return findKey(keyMap, (check, keyName) => check(event));
+    return findKey(keyMap, check => check(event));
 }
 
 const keyEventBus = new Vue({});

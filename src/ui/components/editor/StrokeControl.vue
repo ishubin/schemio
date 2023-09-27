@@ -31,7 +31,7 @@
 import Shape from './items/shapes/Shape';
 import VueColor from 'vue-color';
 import NumberTextfield from '../NumberTextfield.vue';
-import map from 'lodash/map';
+import {map} from '../../collections';
 import StrokePattern from './items/StrokePattern';
 import EditorEventBus from './EditorEventBus';
 

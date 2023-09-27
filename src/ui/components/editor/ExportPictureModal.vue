@@ -66,8 +66,7 @@
 <script>
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
-import map from 'lodash/map';
-import {forEach} from '../../collections';
+import {forEach, map} from '../../collections';
 import {rasterizeAllImagesToDataURL} from '../../svgPreview';
 import { encode } from 'js-base64';
 

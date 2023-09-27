@@ -154,15 +154,7 @@
 </template>
 
 <script>
-import values from 'lodash/values';
-import sortBy from 'lodash/sortBy';
-import map from 'lodash/map';
-import {forEach} from '../../../collections';
-import filter from 'lodash/filter';
-import uniq from 'lodash/uniq';
-import indexOf from 'lodash/indexOf';
-import mapValues from 'lodash/mapValues';
-import find from 'lodash/find';
+import {forEach, map, mapObjectValues, filter, find, indexOf, uniq} from '../../../collections';
 
 import shortid from 'shortid';
 import VueTagsInput from '@johmun/vue-tags-input';
@@ -186,7 +178,18 @@ import EditorEventBus from '../EditorEventBus.js';
 import { dragAndDropBuilder } from '../../../dragndrop';
 import Modal from '../../Modal.vue';
 
-const standardItemEvents = sortBy(values(Events.standardEvents), event => event.name);
+
+function byName(a, b) {
+    const nameA = a.name.toUpperCase();
+    const nameB = b.name.toUpperCase();
+    if (nameA < nameB) { return -1; }
+    if (nameA > nameB) { return 1; }
+    return 0;
+}
+
+const standardItemEvents = Object.values(Events.standardEvents);
+standardItemEvents.sort(byName);
+
 const standardItemEventIds = map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = createSettingStorageFromLocalStorage('behavior-collapse', 400);
@@ -249,13 +252,9 @@ export default {
     components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor, VueTagsInput, Modal},
 
     data() {
-        const items = sortBy(
-            map(
-                this.schemeContainer.getItems(),
-                item => {return {id: item.id, name: item.name || 'Unnamed'}}
-            ),
-            item => item.name
-        );
+        const items = map(this.schemeContainer.getItems(), item => {return {id: item.id, name: item.name || 'Unnamed'}});
+        items.sort(byName);
+
 
         const eventMetas = map(this.item.behavior.events, this.createBehaviorEventMeta);
         forEach(eventMetas, (meta, index) => {
@@ -572,7 +571,7 @@ export default {
                 element,
                 method: 'show',
                 on: true,
-                args: mapValues(Functions.main.show.args, arg => arg.value)
+                args: mapObjectValues(Functions.main.show.args, arg => arg.value)
             });
             this.emitChangeCommited();
         },

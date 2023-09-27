@@ -1,9 +1,7 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import map from 'lodash/map';
-import find from 'lodash/find';
-import indexOf from 'lodash/indexOf';
+import {map, find, indexOf} from '../../../../collections';
 import {worldPointOnItem} from '../../../../scheme/SchemeContainer';
 import myMath from '../../../../myMath';
 import { traverseItems } from '../../../../scheme/Item';

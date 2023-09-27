@@ -1,4 +1,4 @@
-import { forEach } from "../collections";
+import { forEach, forEachObject } from "../collections";
 import utils from "../utils";
 import { fieldTypeMatchesSchema, getSchemioDocSchema } from "./SchemioDocSchema";
 import { tokenizeText } from "./tokenize";
@@ -459,14 +459,14 @@ function generatePatch(originObject, modifiedObject, schema) {
 function generatePatchForObject(originObject, modifiedObject, patchSchema, fieldPath) {
     let ops = [];
     const fieldNames = new Set();
-    forEach(originObject, (value, name) => {
+    forEachObject(originObject, (value, name) => {
         if (modifiedObject.hasOwnProperty(name)) {
             fieldNames.add(name)
         } else {
             ops.push({op: 'delete', path: fieldPath.concat(name)})
         }
     });
-    forEach(modifiedObject, (value, name) => fieldNames.add(name));
+    forEachObject(modifiedObject, (value, name) => fieldNames.add(name));
 
     const fieldSchemas = new Map();
     let defaultFieldEntry = null;

@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
 import { defaultifyItem } from './Item';
-import map from 'lodash/map';
+import {map} from '../collections';
 import utils from '../utils';
 
 const defaultScheme = {

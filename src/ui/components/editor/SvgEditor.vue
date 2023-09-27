@@ -170,10 +170,7 @@
 </template>
 
 <script>
-import map from 'lodash/map';
-import filter from 'lodash/filter';
-import {forEach} from '../../collections';
-import find from 'lodash/find';
+import {forEach, map, filter, find} from '../../collections';
 
 import '../../typedef';
 

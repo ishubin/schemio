@@ -1,6 +1,6 @@
 import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, leastMutationsForArray, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
-import { forEach } from 'lodash';
+import { forEach } from '../src/ui/collections';
 import { patchTestData } from './data/patch/patch-test-data';
 
 

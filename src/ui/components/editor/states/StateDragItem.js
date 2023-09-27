@@ -5,8 +5,7 @@
 
 import State, { DragScreenState, MultiSelectState, SubState } from './State.js';
 import Shape from '../items/shapes/Shape';
-import {forEach} from '../../../collections';
-import find from 'lodash/find';
+import {forEach, find} from '../../../collections';
 import myMath from '../../../myMath';
 import {Logger} from '../../../logger';
 import '../../../typedef';

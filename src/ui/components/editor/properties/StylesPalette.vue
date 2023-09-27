@@ -39,8 +39,7 @@
 </template>
 
 <script>
-import filter from 'lodash/filter';
-import map from 'lodash/map';
+import {map, filter} from '../../../collections';
 import Panel from '../Panel.vue';
 import AdvancedFill from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';

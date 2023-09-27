@@ -18,7 +18,7 @@
 
 </template>
 <script>
-import map from 'lodash/map';
+import {map} from '../../../../collections';
 import LinkTypes from '../../LinkTypes.js';
 import htmlSanitize from '../../../../../htmlSanitize';
 import {generateTextStyle} from '../../text/ItemText';

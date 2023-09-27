@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import map from 'lodash/map';
+import {map} from '../../../collections';
 import AdvancedFill from '../items/AdvancedFill.vue';
 import {defaultStyles} from './ItemStyles';
 

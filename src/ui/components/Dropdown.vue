@@ -53,8 +53,8 @@
 </template>
 
 <script>
-import filter from 'lodash/filter';
-import find from 'lodash/find';
+import {filter, find} from '../collections';
+
 
 export default {
     /* options is an array of {name and any other fields} */

@@ -21,8 +21,7 @@
 
 <script>
 import Modal from '../Modal.vue';
-import map from 'lodash/map';
-import {forEach} from '../../collections';
+import {forEach, map} from '../../collections';
 import {prepareDiagramForPictureExport} from '../../diagramExporter'
 import utils from '../../utils';
 import { traverseItems } from '../../scheme/Item';

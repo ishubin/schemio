@@ -2,13 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import map from 'lodash/map';
-import {forEach} from '../collections';
-import filter from 'lodash/filter';
-import keys from 'lodash/keys';
-import indexOf from 'lodash/indexOf';
-import findIndex from 'lodash/findIndex';
-import find from 'lodash/find';
+import {forEach, map, filter, findIndex, find, indexOf} from '../collections';
 import { SpatialIndex } from '../SpatialIndex';
 
 import '../typedef';
@@ -834,7 +828,7 @@ class SchemeContainer {
             this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         }
 
-        this.itemTags = keys(this._itemTagsToIds);
+        this.itemTags = Object.keys(this._itemTagsToIds);
         this.itemTags.sort();
 
         this.revision = newRevision;
@@ -850,7 +844,7 @@ class SchemeContainer {
                 this.indexItemTags(item.id, item.tags);
             }
         });
-        this.itemTags = keys(this._itemTagsToIds);
+        this.itemTags = Object.keys(this._itemTagsToIds);
         this.itemTags.sort();
     }
 

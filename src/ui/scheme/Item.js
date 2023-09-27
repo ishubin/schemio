@@ -4,10 +4,8 @@
 import utils from '../utils.js';
 import Shape from '../components/editor/items/shapes/Shape';
 import {getDefaultFont, getAllFonts} from './Fonts';
-import {forEach} from '../collections.js';
+import {forEach, map, find} from '../collections.js';
 import { defaultifyObject } from '../../defaultify';
-import map from 'lodash/map';
-import find from 'lodash/find';
 
 export const ItemInteractionMode = {
     NONE:       'none',

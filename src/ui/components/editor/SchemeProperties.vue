@@ -102,8 +102,7 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import RichTextEditor from '../RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
-import map from 'lodash/map';
-import indexOf from 'lodash/indexOf';
+import {map, indexOf} from '../../collections';
 import Tooltip from '../Tooltip.vue';
 import EditorEventBus from './EditorEventBus.js';
 

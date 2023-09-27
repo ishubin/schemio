@@ -10,8 +10,7 @@
 
 <script>
 import Dropdown from '../Dropdown.vue';
-import map from 'lodash/map';
-import filter from 'lodash/filter';
+import {map, filter} from '../../collections';
 import { createConnectorCap, getCapTypes } from './items/shapes/ConnectorCaps';
 
 function generateCapHtml(w, h, y, cap, isSource) {

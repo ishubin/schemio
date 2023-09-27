@@ -87,8 +87,7 @@
 </template>
 
 <script>
-import {forEach} from '../../collections';
-import filter from 'lodash/filter';
+import {forEach, filter} from '../../collections';
 import myMath from '../../myMath';
 import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';

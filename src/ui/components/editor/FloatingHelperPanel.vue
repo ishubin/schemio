@@ -81,7 +81,7 @@ import myMath from '../../myMath';
 import VueTagsInput from '@johmun/vue-tags-input';
 import { applyItemStyle } from './properties/ItemStyles';
 import LinksPanel from './properties/LinksPanel.vue';
-import map from 'lodash/map';
+import {map} from '../../collections';
 import EditorEventBus from './EditorEventBus';
 
 export default {

@@ -33,7 +33,7 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
-import map from 'lodash/map';
+import {map} from '../../../../collections';
 
 function computePath(item) {
     const W = item.area.w;

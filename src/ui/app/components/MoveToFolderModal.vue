@@ -30,8 +30,7 @@
 
 <script>
 import Modal from '../../components/Modal.vue';
-import filter from 'lodash/filter';
-import map from 'lodash/map';
+import {map, filter} from '../../collections';
 
 export default {
     components: { Modal },

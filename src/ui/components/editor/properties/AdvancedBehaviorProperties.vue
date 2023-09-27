@@ -55,9 +55,7 @@
 import Modal from '../../Modal.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import ElementPicker from '../ElementPicker.vue';
-import filter from 'lodash/filter';
-import find from 'lodash/find';
-import map from 'lodash/map';
+import {map, filter, find} from '../../../collections';
 
 export default {
     components: { Modal, BehaviorProperties, ElementPicker },
