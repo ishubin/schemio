@@ -125,6 +125,7 @@
         "childItems": [
             {
                 "id": "nKa2DAJ2ro",
+                "locked": true,
                 "textSlots": {
                     "body": {
                         "text": "<p><strong>Title placeholder</strong></p>",
@@ -173,6 +174,7 @@
             },
             {
                 "id": "close-btn",
+                "locked": true,
                 "shape": "ellipse",
                 "cursor": "default",
                 "area": {
@@ -226,6 +228,7 @@
                 "childItems": [
                     {
                         "name": "btn cross",
+                        "locked": true,
                         "area": {
                             "x": 7.343145750507617,
                             "y": 7.343145750507631,
@@ -344,6 +347,7 @@
                     },
                     {
                         "shape": "ellipse",
+                        "locked": true,
                         "cursor": "pointer",
                         "area": {
                             "x": 0,

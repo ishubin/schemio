@@ -345,7 +345,7 @@
                                 "args": {
                                     "script": "setPosX(getVar('srcX') * (1 - t) + getVar('dstX') * t)",
                                     "animated": true,
-                                    "animationDuration": 0.2,
+                                    "animationDuration": 0.5,
                                     "transition": "ease-in-out",
                                     "inBackground": true
                                 }
@@ -400,7 +400,7 @@
                                 "args": {
                                     "script": "setPosX(getVar('srcX') * (1 - t) + getVar('dstX') * t)",
                                     "animated": true,
-                                    "animationDuration": 0.2,
+                                    "animationDuration": 0.5,
                                     "transition": "ease-in-out",
                                     "inBackground": true
                                 }
