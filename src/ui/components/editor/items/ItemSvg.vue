@@ -182,7 +182,7 @@ import Shape from './shapes/Shape.js';
 import utils from '../../../utils';
 import htmlSanitize from '../../../../htmlSanitize';
 import {generateTextStyle} from '../text/ItemText';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../collections';
 import { findEffect } from '../../effects/Effects';
 import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';

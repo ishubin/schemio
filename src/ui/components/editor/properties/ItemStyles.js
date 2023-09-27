@@ -4,7 +4,7 @@
 
 import utils from "../../../utils";
 import Shape from "../items/shapes/Shape";
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../collections';
 
 let scIiterator = 1;
 function _sc(fillColor, strokeColor, textColor) {

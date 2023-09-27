@@ -181,7 +181,7 @@ import SchemeContainer from '../../../scheme/SchemeContainer';
 import ContextMenu from '../ContextMenu.vue';
 import utils from '../../../utils';
 import {dragAndDropBuilder} from '../../../dragndrop';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../collections';
 import find from 'lodash/find';
 import { jsonDiff } from '../../../json-differ';
 import { compileAnimations, findItemPropertyDescriptor, findSchemePropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';

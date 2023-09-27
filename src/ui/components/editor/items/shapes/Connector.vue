@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
-import map from 'lodash/forEach';
+import {forEach} from '../../../../collections';
+import map from 'lodash/map';
 import StrokePattern from '../StrokePattern.js';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';

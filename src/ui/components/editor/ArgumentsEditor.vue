@@ -64,7 +64,7 @@
     </div>
 </template>
 <script>
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import mapValues from 'lodash/mapValues';
 import ColorPicker from './ColorPicker.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';

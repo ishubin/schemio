@@ -11,7 +11,7 @@
 <script>
 import StrokePattern from './items/StrokePattern';
 import Dropdown from '../Dropdown.vue';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import utils from '../../utils';
 
 const patternOptions = [];

@@ -561,7 +561,7 @@ import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import Modal from './Modal.vue';
 import FrameAnimatorPanel from './editor/animator/FrameAnimatorPanel.vue';
 import recentPropsChanges from '../history/recentPropsChanges';
-import forEach from 'lodash/forEach';
+import {forEach} from '../collections';
 import map from 'lodash/map';
 import {copyToClipboard, getTextFromClipboard} from '../clipboard';
 import QuickHelperPanel from './editor/QuickHelperPanel.vue';

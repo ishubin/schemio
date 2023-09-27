@@ -72,7 +72,7 @@
 <script>
 import { generatePatchStatistic } from '../../scheme/SchemePatch';
 import { prettyTextSlotProperty } from '../../scheme/Item';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import map from 'lodash/map';
 import Shape from '../editor/items/shapes/Shape';
 

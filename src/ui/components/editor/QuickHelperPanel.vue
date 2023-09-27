@@ -229,7 +229,7 @@ import PathCapDropdown from './PathCapDropdown.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import MenuDropdown from '../MenuDropdown.vue';
 import Shape from './items/shapes/Shape';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import StoreUtils from '../../store/StoreUtils';
 import EditorEventBus from './EditorEventBus';
 

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import utils from '../../utils';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import Shape from '../editor/items/shapes/Shape';
 import StrokePattern from '../editor/items/StrokePattern';
 

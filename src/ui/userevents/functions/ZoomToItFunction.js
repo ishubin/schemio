@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../myMath';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import ValueAnimation from '../../animations/ValueAnimation';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import EditorEventBus from '../../components/editor/EditorEventBus';

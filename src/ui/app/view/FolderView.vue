@@ -128,7 +128,7 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import map from 'lodash/map';
 import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';

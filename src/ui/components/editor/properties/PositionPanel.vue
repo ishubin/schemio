@@ -64,7 +64,7 @@
 <script>
 import Panel from '../Panel.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../collections';
 import EditorEventBus from '../EditorEventBus';
 
 export default {

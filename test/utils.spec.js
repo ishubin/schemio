@@ -1,7 +1,6 @@
 import utils from '../src/ui/utils.js';
 import expect from 'expect';
-import forEach from 'lodash/forEach';
-
+import { forEach } from '../src/ui/collections.js';
 
 describe('Utils.getOpbjectProperty', () => {
     const obj = {

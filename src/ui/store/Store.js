@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import Vue from 'vue';
 import Vuex from 'vuex';
-import forEach from 'lodash/forEach';
+import {forEach} from '../collections';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';

@@ -1,5 +1,5 @@
 import axios from "axios";
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { getExportHTMLResources, unwrapAxios } from "./clientCommons";
 import { InMemoryCache } from "../../LimitedSettingsStorage";

@@ -13,7 +13,7 @@
 
 <script>
 import utils from '../../utils';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import Shape from './items/shapes/Shape';
 import ItemSvg from './items/ItemSvg.vue';
 

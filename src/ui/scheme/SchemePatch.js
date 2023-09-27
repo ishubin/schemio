@@ -1,7 +1,8 @@
-import forEach from "lodash/forEach";
+import { forEach } from "../collections";
 import utils from "../utils";
 import { fieldTypeMatchesSchema, getSchemioDocSchema } from "./SchemioDocSchema";
 import { tokenizeText } from "./tokenize";
+
 
 // Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
 //

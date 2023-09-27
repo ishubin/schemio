@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../../collections';
 import EditorEventBus from '../../EditorEventBus';
 
 const buttonSize = 20;

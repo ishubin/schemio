@@ -80,7 +80,7 @@
 </template>
 <script>
 import JSZip from 'jszip';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import StoreUtils from '../../store/StoreUtils';
 import utils from '../../utils';
 import { enrichSchemeWithDefaults, prepareSchemeForSaving } from '../../scheme/Scheme';

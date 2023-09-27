@@ -4,7 +4,7 @@ import shortid from 'shortid';
 import { enrichObjectWithDefaults } from "../../defaultify";
 import { convertCurvePointToRelative } from '../components/editor/items/shapes/StandardCurves.js';
 import Functions from '../userevents/functions/Functions.js';
-import forEach from 'lodash/forEach';
+import {forEach} from '../collections';
 import utils from "../utils";
 
 

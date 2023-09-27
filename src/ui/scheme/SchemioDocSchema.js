@@ -1,4 +1,4 @@
-import forEach from "lodash/forEach";
+import {forEach} from "../collections";
 import AnimationFunctions from "../animations/functions/AnimationFunctions";
 import { getCapTypes } from "../components/editor/items/shapes/ConnectorCaps";
 import Shape from "../components/editor/items/shapes/Shape";

@@ -5,7 +5,7 @@
 import myMath from '../../../myMath';
 import StoreUtils from '../../../store/StoreUtils';
 import '../../../typedef';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../collections';
 import { Keys } from '../../../events';
 import { Interpolations, convertTime } from '../../../animations/ValueAnimation';
 

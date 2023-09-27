@@ -186,7 +186,7 @@ import EditArtModal from './EditArtModal.vue';
 import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import shortid from 'shortid';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import map from 'lodash/map';
 import filter from 'lodash/filter';
 import utils from '../../../ui/utils.js';

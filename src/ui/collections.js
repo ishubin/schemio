@@ -9,7 +9,7 @@
  * @param {string} namePrefix - a prefix for a name
  * @param {Array} names - array of existing names
  */
-function giveUniqueName(namePrefix, names) {
+export function giveUniqueName(namePrefix, names) {
     let largestIndex = -1;
 
     for (let i = 0; i < names.length; i++) {
@@ -39,6 +39,23 @@ function giveUniqueName(namePrefix, names) {
     return namePrefix;
 }
 
-export default {
-    giveUniqueName
+export function forEach(obj, callback) {
+    if (!obj) {
+        return;
+    }
+
+    if (Array.isArray(obj)) {
+        obj.forEach(callback);
+        return;
+    }
+
+    if (typeof obj !== 'object') {
+        return;
+    }
+
+    for(let name in obj) {
+        if (obj.hasOwnProperty(name)) {
+            callback(obj[name], name);
+        }
+    }
 }

@@ -52,7 +52,7 @@ import SchemeContainer from '../scheme/SchemeContainer';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import ItemTooltip from '../components/editor/ItemTooltip.vue';
 import ItemDetails from '../components/editor/ItemDetails.vue';
-import forEach from 'lodash/forEach';
+import {forEach} from '../collections';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
 import StateInteract from '../components/editor/states/StateInteract';

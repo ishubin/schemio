@@ -172,7 +172,7 @@
 <script>
 import map from 'lodash/map';
 import filter from 'lodash/filter';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import find from 'lodash/find';
 
 import '../../typedef';

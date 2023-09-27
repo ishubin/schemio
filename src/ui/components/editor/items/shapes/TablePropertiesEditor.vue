@@ -54,7 +54,7 @@ import NumberTextfield from '../../../NumberTextfield.vue';
 import ColorPicker from '../../ColorPicker.vue';
 import AdvancedColorEditor from '../../AdvancedColorEditor.vue';
 
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../../collections';
 
 const tableStyles = [{
     name: 'Standard',

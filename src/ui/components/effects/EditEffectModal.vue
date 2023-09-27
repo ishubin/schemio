@@ -36,7 +36,7 @@
 import Modal from '../Modal.vue';
 import EffectEditor from './EffectEditor.vue';
 import { findEffect, getEffects } from './Effects';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import shortid from 'shortid';
 
 function getKnownEffects() {

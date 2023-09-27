@@ -21,7 +21,7 @@
 
 <script>
 import ArgumentsEditor from '../ArgumentsEditor.vue';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../../collections';
 
 export default {
     props: {

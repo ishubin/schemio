@@ -1,5 +1,5 @@
 import { getExportHTMLResources } from "./clientCommons";
-import forEach from "lodash/forEach";
+import {forEach} from "../../collections";
 import map from "lodash/map";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';

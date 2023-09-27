@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import map from 'lodash/map';
-import forEach from 'lodash/forEach';
+import {forEach} from '../collections';
 import filter from 'lodash/filter';
 import keys from 'lodash/keys';
 import indexOf from 'lodash/indexOf';
@@ -12,7 +12,7 @@ import find from 'lodash/find';
 import { SpatialIndex } from '../SpatialIndex';
 
 import '../typedef';
-import collections from '../collections';
+import {giveUniqueName} from '../collections';
 import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
@@ -2324,7 +2324,7 @@ class SchemeContainer {
      */
     generateUniqueName(name) {
         const itemNames = map(this.getItems(), item => item.name);
-        return collections.giveUniqueName(name, itemNames);
+        return giveUniqueName(name, itemNames);
     }
 
     copyNameAndMakeUnique(name) {

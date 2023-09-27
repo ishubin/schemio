@@ -40,7 +40,7 @@
 
 <script>
 import Modal from '../Modal.vue';
-import forEach from 'lodash/forEach';
+import {forEach} from '../../collections';
 import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/shapes/ShapeExporter';
 import utils from '../../utils';
 import { convertRawShapeForRender } from './items/shapes/StandardCurves';

@@ -33,7 +33,7 @@
 </template>
 
 <script>
-import forEach from 'lodash/forEach';
+import {forEach} from '../collections';
 import { LogConfig } from '../logger';
 import Modal from './Modal.vue';
 
