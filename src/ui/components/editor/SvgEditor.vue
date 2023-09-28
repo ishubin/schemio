@@ -276,7 +276,9 @@ export default {
             });
         }
         if (this.screenTransform) {
-            this.setInitialZoom();
+            this.schemeContainer.screenTransform.scale = this.screenTransform.scale;
+            this.schemeContainer.screenTransform.x = this.screenTransform.x;
+            this.schemeContainer.screenTransform.y = this.screenTransform.y;
         }
     },
     beforeDestroy(){
@@ -893,65 +895,6 @@ export default {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];
             }
-        },
-
-        setInitialZoom() {
-            const zoomToAllItems = () => {
-                const area = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.getItems());
-                this.onBringToView(area, false);
-            };
-
-            let screenTransform = this.screenTransform;
-            if (!screenTransform) {
-                screenTransform = {
-                    x: 0, y: 0, scale: 1
-                };
-            }
-
-            // checking that the saved screen transform is good enough.
-            // it could be that some other user has modified the diagram and no items are visible on this transform
-
-
-            // this function traverses all items with the exception of hud items in view mode
-            // This exclusion is necessary since hud items are always displayed in the viewport and not in world transform
-            // However in edit mode they are displayed the same way as other shapes.
-            const itemTraverser = (items, callback) => {
-                for (let i = 0; i < items.length; i++) {
-                    const item = items[i];
-                    if (!(this.mode === 'view' && item.shape === 'hud')) {
-                        callback(item);
-                        if (Array.isArray(item.childItems)) {
-                            itemTraverser(item.childItems, callback);
-                        }
-                    }
-                }
-            };
-
-            const padding = 10;
-            const viewportBox = {x: padding, y: padding, w: this.width - 2 * padding, h: this.height - 2 * padding};
-            let fill = 0;
-
-            itemTraverser(this.schemeContainer.scheme.items, item => {
-                const box = this.areaToViewport(getBoundingBoxOfItems([item]), screenTransform);
-                const area = myMath.overlappingArea(viewportBox, box);
-                if (area) {
-                    fill += Math.max(area.w, 1.0) * Math.max(area.h, 1.0);
-                }
-            });
-
-            const wholeArea = this.width * this.height;
-
-            if (wholeArea > 0) {
-                const coverage = 100 * fill / wholeArea;
-                if (coverage < 0.0001) {
-                    zoomToAllItems();
-                    return;
-                }
-            }
-
-            this.schemeContainer.screenTransform.scale = screenTransform.scale;
-            this.schemeContainer.screenTransform.x = screenTransform.x;
-            this.schemeContainer.screenTransform.y = screenTransform.y;
         },
 
         onBringToView(area, animated) {
