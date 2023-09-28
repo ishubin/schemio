@@ -15,7 +15,7 @@
         <div ref="itemSelectorContainer" class="item-selector-items" :style="{'height': `${height}px`, 'min-height': `${minHeight}px`}" oncontextmenu="return false;">
             <div v-for="(item, idx) in filteredItems"
                 class="item-selector-item-row-container item-droppable-area"
-                :key="item.id"
+                :key="`itsel-${item.id}`"
                 :ref="`row_${item.id}`"
                 :data-item-id="item.id"
                 :data-index="idx"

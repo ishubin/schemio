@@ -76,7 +76,7 @@
             >
             <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible"
-                :key="`${childItem.id}-${childItem.shape}-${item.meta.revision}`"
+                :key="`itsvg-${childItem.id}-${childItem.shape}-${item.meta.revision}`"
                 :item="childItem"
                 :editorId="editorId"
                 :patchIndex="patchIndex"
@@ -149,7 +149,7 @@
             >
             <ItemSvg v-for="childItem in item.childItems"
                 v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
-                :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
                 :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"
@@ -164,7 +164,7 @@
             >
             <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible && childItem.shape !== 'hud'"
-                :key="`${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
                 :item="childItem"
                 :editorId="editorId"
                 :textSelectionEnabled="textSelectionEnabled"

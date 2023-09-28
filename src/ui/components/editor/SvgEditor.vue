@@ -221,10 +221,6 @@ export default {
         // hack that is used in order to trigger zooming of items from parent component without using event bus
         zoomToItemsTrigger  : { type: String, default: null},
 
-        // used for initializing scheme with either pre-saved transform or then one that shows all items
-        // if set as null, then it will not try to set inital screen transform
-        screenTransform     : { type: Object, default: null},
-
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
         zoom            : { default: 1.0, type: Number },
@@ -274,11 +270,6 @@ export default {
             forEach(this.itemsForInit, (val, itemId) => {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
-        }
-        if (this.screenTransform) {
-            this.schemeContainer.screenTransform.scale = this.screenTransform.scale;
-            this.schemeContainer.screenTransform.x = this.screenTransform.x;
-            this.schemeContainer.screenTransform.y = this.screenTransform.y;
         }
     },
     beforeDestroy(){

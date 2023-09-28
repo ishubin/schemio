@@ -2002,12 +2002,15 @@ export default {
         },
 
         switchToViewMode(screenTransform) {
-            this.initialScreenTransform = screenTransform;
             this.animationRegistry.stopAllAnimations();
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });
-            this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
+            if (screenTransform) {
+                this.interactiveSchemeContainer.screenTransform = screenTransform;
+            } else {
+                this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
+            }
 
             const boundingBox = getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
 
@@ -2017,8 +2020,9 @@ export default {
         },
 
         switchToEditMode(screenTransform) {
-            this.initialScreenTransform = screenTransform;
-            if (this.interactiveSchemeContainer) {
+            if (screenTransform) {
+                this.schemeContainer.screenTransform = screenTransform;
+            } else if (this.interactiveSchemeContainer) {
                 this.schemeContainer.screenTransform = utils.clone(this.interactiveSchemeContainer.screenTransform);
             }
             this.interactiveSchemeContainer = null;
