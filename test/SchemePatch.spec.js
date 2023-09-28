@@ -129,6 +129,60 @@ describe('SchemePatch.generateSchemePatch', () => {
             }]
         });
     });
+
+    it('should flatten nested new items', () => {
+        const origin = {
+            name: 'some doc',
+            description: 'some text',
+            items: [{
+                id: 'q1'
+            }]
+        };
+
+        const modified = {
+            name: 'some doc',
+            description: 'some text',
+            items: [{
+                id: 'q1',
+            }, {
+                id: 'q2',
+                childItems: [{
+                    id: 'q2_1',
+                    childItems: [{
+                        id: 'q2_1_1'
+                    }, {
+                        id: 'q2_1_2'
+                    }]
+                }, {
+                    id: 'q2_2'
+                }]
+            }]
+        };
+
+        const patch = generateSchemePatch(origin, modified);
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+            changes: [{
+                path: ['items'],
+                op: 'patch-id-array',
+                changes: [{
+                    id: 'q2', op: 'add', sortOrder: 1, parentId: null, value: {id: 'q2'},
+                }, {
+                    id: 'q2_1', op: 'add', sortOrder: 0, parentId: 'q2', value: {id: 'q2_1'}
+                }, {
+                    id: 'q2_2', op: 'add', sortOrder: 1, parentId: 'q2', value: {id: 'q2_2'}
+                }, {
+                    id: 'q2_1_1', op: 'add', sortOrder: 0, parentId: 'q2_1', value: {id: 'q2_1_1'}
+                }, {
+                    id: 'q2_1_2', op: 'add', sortOrder: 1, parentId: 'q2_1', value: {id: 'q2_1_2'}
+                }]
+            }]
+        });
+    });
+
+
 });
 
 describe('SchemePatch.applySchemePatch', () => {
