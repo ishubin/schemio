@@ -239,6 +239,8 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
     const originIndex = indexIdArray(originItems, patchSchemaEntry.childrenField);
     const modIndex = indexIdArray(modifiedItems, patchSchemaEntry.childrenField);
 
+    const deleteOperations = [];
+
     const scopedOperations = new Map();
     const registerScopedOperation = (parentId, op) => {
         if (!scopedOperations.has(parentId)) {
@@ -299,6 +301,8 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
             const item = items[i];
             const itemEntry = originIndex.get(item.id);
 
+            let isItemDeleted = false;
+
             // ignoring all deleted items
             if (modIndex.has(item.id)) {
                 const modEntry = modIndex.get(item.id);
@@ -319,16 +323,30 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
                     })
                 }
             } else {
-                const originEntry = originIndex.get(item.id);
-                registerScopedOperation(originEntry.parentId, {
-                    id: item.id,
-                    op: 'delete',
-                    parentId: originEntry.parentId,
-                    sortOrder: originEntry.sortOrder,
+                const itemsToDelete = [];
+                traverseItems([item], patchSchemaEntry.childrenField, (item) => {
+                    itemsToDelete.push(item.id);
                 });
+                itemsToDelete.reverse();
+
+                itemsToDelete.forEach(itemId => {
+                    deleteOperations.push({
+                        id: itemId,
+                        op: 'delete'
+                    });
+                    // const originEntry = originIndex.get(itemId);
+                    // registerScopedOperation(originEntry.parentId, {
+                    //     id: itemId,
+                    //     op: 'delete',
+                    //     parentId: originEntry.parentId,
+                    //     sortOrder: originEntry.sortOrder,
+                    // });
+                });
+                // we don't need to perform deep scan as the item is going to be deleted
+                isItemDeleted = true;
             }
 
-            if (patchSchemaEntry.childrenField && item[patchSchemaEntry.childrenField]) {
+            if (!isItemDeleted && patchSchemaEntry.childrenField && item[patchSchemaEntry.childrenField]) {
                 scanThroughArrayOfItems(item[patchSchemaEntry.childrenField], item.id);
             }
         }
@@ -393,7 +411,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
 
     scanThroughArrayOfItems(originItems, null);
 
-    let operations = [];
+    let operations = deleteOperations;
 
     scopedOperations.forEach(ops => {
         ops.sort((a, b) => {
@@ -404,10 +422,10 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
         });
 
         ops.forEach(op => {
-            if (op.op === 'delete') {
-                delete op.sortOrder;
-                delete op.parentId;
-            }
+            // if (op.op === 'delete') {
+            //     delete op.sortOrder;
+            //     delete op.parentId;
+            // }
 
             if (!patchSchemaEntry.childrenField && op.hasOwnProperty('parentId')) {
                 delete op.parentId;
@@ -415,7 +433,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
         })
 
         operations = operations.concat(ops);
-    })
+    });
 
     return operations;
 }

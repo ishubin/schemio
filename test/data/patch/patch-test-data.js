@@ -277,6 +277,9 @@ export const patchTestData = [{
             path: ['items'],
             op: 'patch-id-array',
             changes: [{
+                id: 'qwe2',
+                op: 'delete'
+            },{
                 id: 'qwe5',
                 op: 'add',
                 parentId: null,
@@ -285,9 +288,6 @@ export const patchTestData = [{
                     id: 'qwe5',
                     name: 'item5'
                 }
-            }, {
-                id: 'qwe2',
-                op: 'delete'
             },{
                 id: 'qwe4',
                 op: 'reorder',
@@ -804,12 +804,12 @@ export const patchTestData = [{
                             path: ['actions'],
                             op: 'patch-id-array',
                             changes: [{
+                                id: 'a2',
+                                op: 'delete'
+                            }, {
                                 id: 'a3',
                                 op: 'reorder',
                                 sortOrder: 0
-                            }, {
-                                id: 'a2',
-                                op: 'delete'
                             }, {
                                 id: 'a5',
                                 op: 'add',
@@ -844,7 +844,7 @@ export const patchTestData = [{
         "items": {
             "added": {"count": 0, "items": []},
             "deleted": {"count": 0, "items": []},
-            "modified": {"count": 5, "items": [{"fields": ["behavior.events.e1.actions.a3", "behavior.events.e1.actions.a2", "behavior.events.e1.actions.a5", "behavior.events.e1.actions.a4.element", "behavior.events.e1.actions.a4.args.value"], "id": "qwe1"}]}
+            "modified": {"count": 5, "items": [{"fields": ["behavior.events.e1.actions.a2", "behavior.events.e1.actions.a3", "behavior.events.e1.actions.a5", "behavior.events.e1.actions.a4.element", "behavior.events.e1.actions.a4.args.value"], "id": "qwe1"}]}
         }
     }
 }, {

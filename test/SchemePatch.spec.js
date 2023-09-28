@@ -74,6 +74,61 @@ describe('SchemePatch.generateSchemePatch', () => {
             }]
         });
     });
+
+
+    it('should optimize recursive items deletion', () => {
+        // when user deletes parent item with multiple child items
+        // the resulting patch changes should order deletion of items by deleting the lowest child first
+        const origin = {
+            name: 'some doc',
+            description: 'some text',
+            items: [{
+                id: 'q1',
+                childItems: [{
+                    id: 'q1_1',
+                    childItems: [{
+                        id: 'q1_1_1'
+                    }, {
+                        id: 'q1_1_2'
+                    }]
+                }, {
+                    id: 'q1_2'
+                }]
+            }, {
+                id: 'q2'
+            }]
+        };
+
+        const modified = {
+            name: 'some doc',
+            description: 'some text',
+            items: [{
+                id: 'q2'
+            }]
+        };
+
+        const patch = generateSchemePatch(origin, modified);
+
+        expect(patch).toStrictEqual({
+            version: '1',
+            protocol: 'schemio/patch',
+            changes: [{
+                path: ['items'],
+                op: 'patch-id-array',
+                changes: [{
+                    id: 'q1_2', op: 'delete',
+                }, {
+                    id: 'q1_1_2', op: 'delete',
+                }, {
+                    id: 'q1_1_1', op: 'delete',
+                }, {
+                    id: 'q1_1', op: 'delete',
+                }, {
+                    id: 'q1', op: 'delete',
+                }]
+            }]
+        });
+    });
 });
 
 describe('SchemePatch.applySchemePatch', () => {
