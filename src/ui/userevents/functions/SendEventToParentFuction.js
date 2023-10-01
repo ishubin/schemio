@@ -16,14 +16,18 @@ It can be used for cross-component communication`,
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item.meta && item.meta.parentId) {
-            sentEventToParent(item, args.event, userEventBus, schemeContainer);
+            sendEventToParent(item, args.event, userEventBus, schemeContainer);
         }
         resultCallback();
     }
 }
 
-function sentEventToParent(item, event, userEventBus, schemeContainer) {
-    userEventBus.emitItemEvent(item.meta.parentId, event);
+export function sendEventToParent(item, event, userEventBus, schemeContainer, eventArgs) {
+    let args = [];
+    if (Array.isArray(eventArgs)) {
+        args = eventArgs;
+    }
+    userEventBus.emitItemEvent(item.meta.parentId, event, ...args);
 
     const parent = schemeContainer.findItemById(item.meta.parentId);
     if (!parent) {
@@ -31,6 +35,6 @@ function sentEventToParent(item, event, userEventBus, schemeContainer) {
     }
     // retransmitting event to component holder
     if (parent.meta.isComponentContainer && parent.meta.parentId) {
-        sentEventToParent(parent, event, userEventBus, schemeContainer)
+        sendEventToParent(parent, event, userEventBus, schemeContainer, eventArgs)
     }
 }

@@ -16,32 +16,42 @@ Using this function you can send event into dynamic component`,
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        if (item.shape === 'component') {
-            if (Array.isArray(item._childItems)) {
-                item._childItems.forEach(childItem => {
-                    if (childItem.meta.isComponentContainer) {
-                        sendEventToItems(childItem.childItems, args.event, userEventBus);
-                        sendEventToItems(childItem._childItems, args.event, userEventBus);
-                    }
-                });
-            }
-        }
-        sendEventToItems(item.childItems, args.event, userEventBus);
-        sendEventToItems(item._childItems, args.event, userEventBus);
+        sendEventToChildren(item, args.event, userEventBus, []);
         resultCallback();
     }
 }
 
-function sendEventToItems(items, event, userEventBus) {
+export function sendEventToChildren(item, event, userEventBus, eventArgs) {
+    if (item.shape === 'component') {
+        if (Array.isArray(item._childItems)) {
+            item._childItems.forEach(childItem => {
+                if (childItem.meta.isComponentContainer) {
+                    sendEventToItems(childItem.childItems, event, userEventBus, eventArgs);
+                    sendEventToItems(childItem._childItems, event, userEventBus, eventArgs);
+                }
+            });
+            sendEventToItems(item.childItems, event, userEventBus, eventArgs);
+            return;
+        }
+    }
+    sendEventToItems(item.childItems, event, userEventBus, eventArgs);
+    sendEventToItems(item._childItems, event, userEventBus, eventArgs);
+}
+
+function sendEventToItems(items, event, userEventBus, eventArgs) {
     if (!Array.isArray(items)) {
         return;
     }
     items.forEach(item => {
         if (item.meta.isComponentContainer) {
-            sendEventToItems(item.childItems, event, userEventBus);
-            sendEventToItems(item._childItems, event, userEventBus);
+            sendEventToItems(item.childItems, event, userEventBus, eventArgs);
+            sendEventToItems(item._childItems, event, userEventBus, eventArgs);
         } else {
-            userEventBus.emitItemEvent(item.id, event);
+            let args = [];
+            if (Array.isArray(eventArgs)) {
+                args = eventArgs;
+            }
+            userEventBus.emitItemEvent(item.id, event, ...args);
         }
     });
 }

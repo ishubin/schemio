@@ -8,6 +8,8 @@ import EditorEventBus from "../../components/editor/EditorEventBus";
 import { Scope, parseAST } from "../../templater/ast";
 import { tokenizeExpression } from "../../templater/tokenizer";
 import htmlSanitize from "../../../htmlSanitize";
+import { sendEventToChildren } from "./SendEventToChildrenFunction";
+import { sendEventToParent } from "./SendEventToParentFuction";
 
 export default {
     name: 'Script',
@@ -172,6 +174,14 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             userEventBus.emitItemEvent(item.id, eventName, ...args);
         },
 
+        sendEventToChildren(eventName, ...args) {
+            sendEventToChildren(item, eventName, userEventBus, args);
+        },
+
+        sendEventToParent(eventName, ...args) {
+            sendEventToParent(item, eventName, userEventBus, schemeContainer, args);
+        },
+
         findChildItemByName: (name) => {
             return createItemScriptWrapper(findChildItemByName(item, name), schemeContainer, userEventBus);
         },
@@ -199,7 +209,7 @@ function findChildItemByName(item, name) {
 }
 
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
-    const itemInterface = createItemScriptWrapper(item, schemeContainer);
+    const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
     return new Scope({
         findItemById: (id) => {
             return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
