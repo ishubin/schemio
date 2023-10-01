@@ -157,4 +157,125 @@ describe('templater ast parser', () => {
             expect(result).toBe(expected);
         })
     });
+
+
+    it('should process if statements', () => {
+        const script = `
+        x = 5
+        y = 3
+        result = 1
+        if (z > 0) {
+            result = x + y
+        }
+        `;
+
+        const expr = parseExpression(script);
+        [
+            [{z: 1}, 8],
+            [{z: -1}, 1],
+        ].forEach(([data, expected]) => {
+            expr.evalNode(new Scope(data));
+            expect(data.result).toBe(expected);
+        });
+    });
+
+
+    it('should handle if statements as return values', () => {
+        const script = `
+        if (z > 0) {
+            x = 5
+            y = 3
+            x + y
+        } else {
+            x = 2
+            y = 6
+            x * y
+        }
+        `;
+
+        const expr = parseExpression(script);
+        [
+            [{z: 1}, 8],
+            [{z: -1}, 12],
+        ].forEach(([data, expected]) => {
+            const result = expr.evalNode(new Scope(data));
+            expect(result).toBe(expected);
+        });
+    });
+
+
+    it('should process if statements with multiple else if blocks', () => {
+        const script = `
+        x = 5
+        y = 3
+        result = 1
+        if (z == 0) {
+            result = x + y
+        } else if (z == 1) {
+            result = x * y
+        } else if (z == 2) {
+            result = x - y
+        } else {
+            result = x + y * 2
+        }
+        `;
+
+        const expr = parseExpression(script);
+        [
+            [{z: 0}, 8],
+            [{z: 1}, 15],
+            [{z: 2}, 2],
+            [{z: -1}, 11],
+        ].forEach(([data, expected]) => {
+            expr.evalNode(new Scope(data));
+            expect(data.result).toBe(expected);
+        });
+    });
+
+
+    it('should make a new scope for true and false blocks in if statements', () => {
+        const script = `
+        result = if (x = 1; y = 2; z == x + y) {
+            x = 3
+            y = 4
+            x * y
+        } else {
+            x = 5
+            y = 6
+            x + y
+        }
+        result
+        `;
+        const expr = parseExpression(script);
+        [
+            [{z: 3}, 12],
+            [{z: 1}, 11],
+        ].forEach(([data, expected]) => {
+            const scope = new Scope(data);
+            const result = expr.evalNode(scope);
+            expect(result).toBe(expected);
+            expect(scope.hasVar('x')).toBe(false);
+            expect(scope.hasVar('y')).toBe(false);
+            expect(scope.hasVar('result')).toBe(true);
+        });
+    });
+
+
+    it ('should use if expression as term in one line', () => {
+        const script = `
+        x = z
+        x = if (x < 100) { x + 1 } else { 0 }
+        `;
+
+        const expr = parseExpression(script);
+        [
+            [{z: 10}, 11],
+            [{z: 99}, 100],
+            [{z: 100}, 0],
+            [{z: 110}, 0],
+        ].forEach(([data, expected]) => {
+            expr.evalNode(new Scope(data));
+            expect(data.x).toBe(expected);
+        });
+    })
 });

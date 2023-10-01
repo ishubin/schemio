@@ -14,7 +14,17 @@ export const TokenTypes = {
     COMMA: 'comma',
     NOT: 'not',
     COMMENT: 'comment',
+    START_CURLY: '{',
+    END_CURLY: '}',
+    RESERVED: 'reserved'
 };
+
+export const ReservedTerms = {
+    IF: 'if',
+    ELSE: 'else'
+};
+
+export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
 
 function isLetter(c) {
     return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c === '_';
@@ -48,6 +58,8 @@ const singleCharTokens = new Map(Object.entries({
     '.': {t: TokenTypes.OPERATOR, v: '.'},
     ';': {t: TokenTypes.DELIMITER, v: ';'},
     '!': {t: TokenTypes.NOT},
+    '{': {t: TokenTypes.START_CURLY},
+    '}': {t: TokenTypes.END_CURLY},
 }));
 
 const doubleCharTokens = new Map(Object.entries({
@@ -124,6 +136,7 @@ class Scanner {
 
     scanComment(endTerm) {
         let commentText = '';
+        const startIdx = this.idx;
         while(this.idx <= this.text.length) {
             if (this.text.substring(this.idx, this.idx + endTerm.length) === endTerm) {
                 this.idx += endTerm.length;
@@ -133,7 +146,12 @@ class Scanner {
             this.idx++;
         }
 
-        return {t: TokenTypes.COMMENT, text: commentText};
+        return {
+            t: TokenTypes.COMMENT,
+            text: commentText,
+            idx: startIdx,
+            line: this.currentLine
+        };
     }
 
 
@@ -149,6 +167,17 @@ class Scanner {
                 break;
             }
         }
+
+        if (ReservedTermsSet.has(term)) {
+            return {
+                t: TokenTypes.RESERVED,
+                v: term,
+                text: term,
+                idx: startIdx,
+                line: this.currentLine
+            };
+        };
+
         return {
             t: TokenTypes.TERM,
             v: term,

@@ -1,5 +1,5 @@
 import shortid from "shortid";
-import { TokenTypes, tokenizeExpression } from "./tokenizer";
+import { ReservedTerms, TokenTypes, tokenizeExpression } from "./tokenizer";
 import { StringTemplate, parseStringExpression } from "./strings";
 
 
@@ -12,9 +12,13 @@ export class Scope {
         this.parent = parent;
     }
 
+    hasVar(varName) {
+        return this.data.hasOwnProperty(varName);
+    }
+
     get(varName) {
         if (this.data.hasOwnProperty(varName)) {
-            return this.data[varName]
+            return this.data[varName];
         }
         if (this.parent) {
             return this.parent.get(varName);
@@ -22,8 +26,22 @@ export class Scope {
         throw new Error(`"${varName}" was not defined`);
     }
 
+    findScopeWithVar(varName) {
+        if (this.data.hasOwnProperty(varName)) {
+            return this;
+        }
+        if (this.parent) {
+            return this.parent.findScopeWithVar(varName);
+        }
+        return null;
+    }
+
     set(varName, value) {
-        this.data[varName] = value;
+        let scope = this.findScopeWithVar(varName);
+        if (!scope) {
+            scope = this;
+        }
+        scope.data[varName] = value;
     }
 
     newScope() {
@@ -153,6 +171,34 @@ class ASTNot extends ASTNode {
     }
     print() {
         return `(!${this.v.print()})`;
+    }
+}
+
+
+class ASTIFStatement extends ASTNode {
+    constructor(conditionExpression, trueBlock, falseBlock) {
+        super('if');
+        this.conditionExpression = conditionExpression;
+        this.trueBlock = trueBlock;
+        this.falseBlock = falseBlock;
+    }
+
+    evalNode(scope) {
+        const result = this.conditionExpression.evalNode(scope.newScope());
+        if (result) {
+            if (!this.trueBlock) {
+                return null;
+            }
+            return this.trueBlock.evalNode(scope.newScope());
+        } else if (this.falseBlock) {
+            return this.falseBlock.evalNode(scope.newScope());
+        }
+        return null;
+    }
+    print() {
+        const trueBlock = this.trueBlock ? this.trueBlock.print() : '';
+        const falseBlock = this.falseBlock ? this.falseBlock.print() : '';
+        return `if (${this.conditionExpression.print()}) {${trueBlock}} else {${falseBlock}}`;
     }
 }
 
@@ -392,6 +438,7 @@ class ASTParser {
         this.tokens = tokens;
         this.originalText = originalText;
         this.idx = 0;
+        this.line = 0;
     }
 
     parse() {
@@ -412,6 +459,9 @@ class ASTParser {
 
         const token = this.tokens[this.idx];
         this.idx++;
+        if (token.t === TokenTypes.NEWLINE) {
+            this.line++;
+        }
         return token;
     }
 
@@ -444,6 +494,7 @@ class ASTParser {
             if (!token || (token.t !== TokenTypes.NEWLINE)) {
                 return;
             }
+            this.line++;
             this.skipToken();
         }
     }
@@ -454,6 +505,9 @@ class ASTParser {
             const token = this.peekToken();
             if (!token || (token.t !== TokenTypes.NEWLINE && token.t !== TokenTypes.DELIMITER)) {
                 return;
+            }
+            if (token.t === TokenTypes.NEWLINE) {
+                this.line++;
             }
             this.skipToken();
         }
@@ -471,7 +525,7 @@ class ASTParser {
         let a = this.parseTerm();
 
         if (!a) {
-            throw new Error('Empty expression');
+            return null;
         }
 
         const leftovers = [];
@@ -498,7 +552,7 @@ class ASTParser {
             return a ? true : false;
         };
 
-        const isEndToken = (token) => token === null || token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.COMMA;
+        const isEndToken = (token) => token === null || token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY || token.t === TokenTypes.COMMA;
 
         while(this.idx < this.tokens.length) {
             let token = this.peekToken();
@@ -607,6 +661,8 @@ class ASTParser {
             return expr;
         } else if (token.t === TokenTypes.NUMBER) {
             return new ASTValue(token.v);
+        } else if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
+            return this.parseIfExpression();
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
             if (nextToken && nextToken.t === TokenTypes.START_BRACKET) {
@@ -688,6 +744,72 @@ class ASTParser {
         }
 
         return indentation + this.originalText.substring(start, end) + '\n' + indentation + ' '.repeat(idx - start) + '^';
+    }
+
+    parseIfExpression() {
+        this.skipNewlines();
+        let token = this.peekToken();
+        if (!token) {
+            throw new Error('Invalid if statement');
+        }
+        if (token.t !== TokenTypes.START_BRACKET) {
+            throw new Error(`Expected "(" symbol after if (at ${token.idx}, line ${token.line})`);
+        }
+
+        this.skipToken();
+
+        const ifExpression = this.parseExpression();
+        if (!ifExpression) {
+            throw new Error(`Missing condition expression for if statement (at ${token.idx}, line ${token.line})`);
+        }
+
+        this.skipNewlines();
+        token = this.scanToken();
+        if (!token || token.t !== TokenTypes.END_BRACKET) {
+            throw new Error(`Missing ")" for if statement`);
+        }
+        this.skipNewlines();
+
+        token = this.scanToken();
+        if (!token || token.t !== TokenTypes.START_CURLY) {
+            throw new Error(`Missing "{" for if statement`);
+        }
+
+        const trueBlock = this.parseExpression();
+        token = this.scanToken();
+        if (!token || token.t !== TokenTypes.END_CURLY) {
+            throw new Error(`Missing "}" for if statement (line ${this.line})`);
+        }
+
+        this.skipNewlines();
+
+        token = this.peekToken();
+
+        let falseBlock = null;
+
+        if (token && token.t === TokenTypes.RESERVED && token.v === ReservedTerms.ELSE) {
+            this.skipToken();
+            this.skipNewlines();
+
+            token = this.scanToken();
+            if (!token) {
+                throw new Error('Missing expression after "else"');
+            }
+
+            if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
+                falseBlock = this.parseIfExpression();
+            } else {
+                if (token.t !== TokenTypes.START_CURLY) {
+                    throw new Error('Expected "{" after "else"');
+                }
+                falseBlock = this.parseExpression();
+                token = this.scanToken();
+                if (!token || token.t !== TokenTypes.END_CURLY) {
+                    throw new Error(`Missing "}" for else statement (line ${this.line})`);
+                }
+            }
+        }
+        return new ASTIFStatement(ifExpression, trueBlock, falseBlock);
     }
 }
 

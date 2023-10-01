@@ -6,6 +6,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
 - [Basic syntax](#basic-syntax)
 - [Boolean expressions](#boolean-expressions)
 - [Templated strings](#templated-strings)
+- [If statements](#if-statements)
 - [Functions](#functions)
     - [abs](#abs)
     - [min](#min)
@@ -110,6 +111,37 @@ Regular strings can be specified using single or double quotes (`'` or `"`). But
 Example:
 ```js
 setTextColor('body', `rgba(${r + 10}, ${g}, 20, 0.5)`)
+```
+
+
+If statements
+--------------
+
+It is possible to to use if statements in Schemio scripting language the same way as in JavaScript. You can use `if` and `else` keywords and you can construct complex expressions:
+
+```js
+x = 5
+y = 3
+result = 1
+if (z == 0) {
+    result = x + y
+} else if (z == 1) {
+    result = x * y
+} else if (z == 2) {
+    result = x - y
+} else {
+    result = x + y * 2
+}
+```
+
+Unlike JavaScript if statements in Schemio scripting language can also be used as terms and you can assign them to other variables. It takes the last executed statement in the if block as the result of the expression.
+
+```js
+x = getPosX();
+x = if (x < 100) {
+    step = 4
+    x + step
+} else { 0 }
 ```
 
 
