@@ -94,7 +94,6 @@ export default class StateCreateItem extends State {
             templatedItem.area.h = this.item.area.h;
             this.schemeContainer.deleteItem(this.item);
             this.schemeContainer.addItem(templatedItem);
-            this.schemeContainer.addTemplate(this.templateRef, this.template);
             this.item = templatedItem;
         }
 

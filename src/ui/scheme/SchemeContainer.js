@@ -378,14 +378,6 @@ class SchemeContainer {
         this.reindexItems();
     }
 
-    addTemplate(templateRef, template) {
-        if (!this.scheme.templates) {
-            this.scheme.templates = {};
-        }
-
-        this.scheme.templates[templateRef] = template;
-    }
-
     /**
      * Recalculates transform for each child item of specified item.
      * It is needed when user drags an item that has sub-items.
@@ -446,7 +438,6 @@ class SchemeContainer {
         this.reindexComponents();
         this.fixComponentCyclicDependencies();
 
-        this.removeUnusedTemplates();
         log.timeEnd('reindexItems');
     }
 
@@ -513,25 +504,6 @@ class SchemeContainer {
             visitedIds.clear();
             visitComponent(componentItem);
         });
-    }
-
-    removeUnusedTemplates() {
-        if (this.scheme.templates) {
-            return;
-        }
-
-        const templateRefs = new Set();
-        traverseItems(this.scheme.items, item => {
-            if (item.args && item.args.templateRef) {
-                templateRefs.add(item.args.templateRef);
-            }
-        });
-
-        for (let templateRef in this.scheme.templates) {
-            if (this.scheme.templates.hasOwnProperty(templateRef) && !templateRefs.has(templateRef)) {
-                delete this.scheme.templates[templateRef];
-            }
-        }
     }
 
     /*

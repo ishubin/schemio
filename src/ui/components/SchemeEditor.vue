@@ -103,12 +103,11 @@
                             :key="`multi-item-edit-box-${editorRevision}-${schemeContainer.multiItemEditBox.id}`"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
+                            :apiClient="apiClient"
                             :edit-box="schemeContainer.multiItemEditBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
-                            :template="selectedItemTemplate"
-                            :templateArgs="selectedItemTemplateArgs"
                             @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"
                             @template-rebuild-requested="onTemplateRebuildRequested"
                             />
@@ -118,6 +117,7 @@
                             kind="crop-image"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
+                            :apiClient="apiClient"
                             :edit-box="cropImage.editBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
@@ -1921,18 +1921,8 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
-        onTemplateRebuildRequested(item, args) {
-            if (!this.schemeContainer.scheme.templates || !item.args || !item.args.templateRef) {
-                return;
-            }
-
+        onTemplateRebuildRequested(item, template, args) {
             const templateRef = item.args.templateRef;
-
-            const template = this.schemeContainer.scheme.templates[templateRef];
-            if (!template) {
-                return;
-            }
-
             const updatedItem = this.schemeContainer.regenerateTemplatedItem(item, template, templateRef, args);
             this.onTemplateItemRegenerated(item.id, updatedItem);
         },
@@ -2412,9 +2402,6 @@ export default {
             const worldHeight = item.area.h;
 
             this.schemeContainer.addItem(item);
-            if (template && templateRef) {
-                this.schemeContainer.addTemplate(templateRef, template);
-            }
 
             if (this.$store.state.autoRemount) {
                 const proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(item, x => x.id !== item.id);
@@ -2941,23 +2928,6 @@ export default {
 
         docsLinkTarget() {
             return this.$store.getters.docsLinkTarget;
-        },
-
-        selectedItemTemplate() {
-            if (this.schemeContainer.selectedItems.length !== 1) {
-                return null;
-            }
-
-            const item = this.schemeContainer.selectedItems[0];
-            if (!item.args || !item.args.templateRef) {
-                return null;
-            }
-
-            if (!this.schemeContainer.scheme.templates) {
-                return null;
-            }
-
-            return (this.schemeContainer.scheme.templates[item.args.templateRef]);
         },
 
         selectedItemTemplateArgs() {

@@ -423,18 +423,28 @@ function createCustomControlAxis(place) {
     };
 }
 
+function templateArgsFromEditBox(editBox) {
+    if (editBox.items.length !== 1) {
+        return null;
+    }
+
+    const item = editBox.items[0];
+    if (!item.args || !item.args.templateArgs) {
+        return null;
+    }
+
+    return item.args.templateArgs;
+}
+
 export default {
     props: {
+        apiClient: {type: Object, required: true},
         editorId: {type: String, required: true},
         cursor: {type: Object},
         editBox: {type: Object, required: true},
         zoom: {type: Number},
         boundaryBoxColor: {type: String},
         controlPointsColor: {type: String},
-
-        // used for templated items to build template controls
-        template: {type: Object, default: null},
-        templateArgs: {type: Object, default: null},
 
         // can be regular or crop-image
         kind: {type: String, default: 'regular'},
@@ -448,6 +458,10 @@ export default {
             const item = this.editBox.items[0];
             const shape = Shape.find(item.shape);
 
+            if (item.args && item.args.templateRef) {
+                this.fetchTemplate(item.args.templateRef);
+            }
+
             this.configureCustomControls(item, shape.editorProps);
 
             if (item.shape === 'connector') {
@@ -457,10 +471,6 @@ export default {
             StoreUtils.setItemControlPoints(this.$store, item);
         } else {
             StoreUtils.clearItemControlPoints(this.$store);
-        }
-
-        if (this.template) {
-            this.buildTemplateControls();
         }
     },
 
@@ -479,12 +489,25 @@ export default {
             connectionStarterDisplayed: false,
             connectionStarterTimerId: null,
 
+            template: null,
+            templateArgs: templateArgsFromEditBox(this.editBox),
+
             customControls: [],
             templateControls: []
         };
     },
 
     methods: {
+        fetchTemplate(templateRef) {
+            if (!this.apiClient.getTemplate) {
+                return;
+            }
+            this.apiClient.getTemplate(templateRef).then(template => {
+                this.template = template;
+                this.buildTemplateControls();
+            });
+        },
+
         createStrokeDashArray(pattern, strokeSize) {
             return StrokePattern.createDashArray(pattern, strokeSize);
         },
@@ -570,7 +593,7 @@ export default {
 
             const updatedArgs = processTemplateExpressions(expressions, args);
 
-            this.$emit('template-rebuild-requested', this.editBox.items[0], updatedArgs);
+            this.$emit('template-rebuild-requested', this.editBox.items[0], this.template, updatedArgs);
         }
     },
 

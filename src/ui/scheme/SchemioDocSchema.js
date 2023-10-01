@@ -27,7 +27,6 @@ const baseSchema = {
                 draggable: {type: 'boolean', patching: ['replace']}
             }},
         }},
-        templates: {type: 'map', patching: ['patch-map'], fields: {'*': {patching: ['replace']}}},
         items: {
             type: 'array', of: 'object',
             patching: ['patch-id-array'],
