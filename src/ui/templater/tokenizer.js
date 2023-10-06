@@ -1,22 +1,22 @@
 
 
 export const TokenTypes = {
-    START_BRACKET: 'start_bracket',
-    END_BRACKET: 'end_bracket',
-    TERM: 'term',
-    STRING: 'string',
-    STRING_TEMPLATE: 'string-template',
-    NUMBER: 'number',
-    OPERATOR: 'operator',
-    WHITESPACE: 'whitespace',
-    NEWLINE: 'newline',
-    DELIMITER: 'delimiter',
-    COMMA: 'comma',
-    NOT: 'not',
-    COMMENT: 'comment',
-    START_CURLY: '{',
-    END_CURLY: '}',
-    RESERVED: 'reserved'
+    START_BRACKET  : 1,
+    END_BRACKET    : 2,
+    TERM           : 3,
+    STRING         : 4,
+    STRING_TEMPLATE: 5,
+    NUMBER         : 6,
+    OPERATOR       : 7,
+    WHITESPACE     : 8,
+    NEWLINE        : 9,
+    DELIMITER      : 10,
+    COMMA          : 11,
+    NOT            : 12,
+    COMMENT        : 13,
+    START_CURLY    : 14,
+    END_CURLY      : 15,
+    RESERVED       : 16
 };
 
 export const ReservedTerms = {
