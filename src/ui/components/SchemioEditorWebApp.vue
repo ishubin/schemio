@@ -1,6 +1,7 @@
 <template>
     <div class="scheme-editor-webapp">
         <SchemioEditorApp
+            :key="`schemio-editor-app-${appReloadKey}`"
             :editorId="editorId"
             :scheme="scheme"
             :schemePatch="schemePatch"
