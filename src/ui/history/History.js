@@ -77,4 +77,9 @@ export default class History {
     redoable() {
         return this.currentPosition < this.checkpoints.length - 1;
     }
+
+    reset() {
+        this.checkpoints = [];
+        this.currentPosition = 0;
+    }
 };

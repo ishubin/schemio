@@ -5,7 +5,7 @@
 <template>
     <div class="scheme-editor-app">
         <SchemeEditor v-if="patch.patchedScheme && patch.isToggled"
-            key="patched-scheme"
+            :key="`patched-scheme-${patch.reloadKey}`"
             :editorId="editorId"
             :scheme="patch.patchedScheme"
             :mode="mode"
@@ -83,8 +83,8 @@
                 <div v-else>
                     <span @click="patch.menuCollapsed = true" style="cursor: pointer"><i class="fa-solid fa-angle-up"></i></span>
                     <div class="toggle-group">
-                        <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="patch.isToggled = false" >Origin</span>
-                        <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="patch.isToggled = true" >Modified</span>
+                        <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="showPatchOrigin" >Origin</span>
+                        <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="showPatchModified" >Modified</span>
                     </div>
 
                     <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring(arguments[0].target.checked)"/>
@@ -129,6 +129,7 @@ import ColorPicker from './editor/ColorPicker.vue';
 import Modal from './Modal.vue';
 import PatchDetails from './patch/PatchDetails.vue';
 import SchemeContainer from '../scheme/SchemeContainer';
+import EditorEventBus from './editor/EditorEventBus';
 
 export default{
     components: {Debugger, SystemMessagePanel, SchemeEditor, ColorPicker, Modal, PatchDetails},
@@ -167,6 +168,12 @@ export default{
         registerDebuggerInitiation(() => {
             this.debuggerShown = true;
         });
+
+        EditorEventBus.patchedSchemeUpdated.$on(this.editorId, this.onPatchedSchemeUpdated);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.patchedSchemeUpdated.$off(this.editorId, this.onPatchedSchemeUpdated);
     },
 
     data() {
@@ -181,7 +188,8 @@ export default{
                 originSchemeContainer  : null,
                 modifiedSchemeContainer: null,
                 detailsModalShown      : false,
-                menuCollapsed          : false
+                menuCollapsed          : false,
+                reloadKey              : 0
             },
         };
     },
@@ -189,6 +197,11 @@ export default{
     methods: {
         onNewSchemeSubmitted(scheme, callback, errorCallback) {
             this.$emit('new-scheme-submitted', scheme, callback, errorCallback);
+        },
+
+        onPatchedSchemeUpdated(scheme) {
+            this.patch.patchedScheme = scheme;
+            this.patch.reloadKey++;
         },
 
         onModeChangeRequested(mode) {
@@ -202,7 +215,8 @@ export default{
                 this.patch.index = generatePatchIndex(this.patch.stats);
 
                 this.patch.patchedScheme = applySchemePatch(this.scheme, patch);
-                this.patch.isToggled = true;
+                this.$emit('patch-modified-generated', this.patch.patchedScheme);
+                this.showPatchOrigin();
                 this.patch.originSchemeContainer = new SchemeContainer(this.scheme, this.editorId);
                 this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme, this.editorId);
                 this.$forceUpdate();
@@ -235,6 +249,16 @@ export default{
             this.$emit('patch-applied', this.patch.patchedScheme);
             this.resetPatch();
         },
+
+        showPatchOrigin() {
+            this.patch.isToggled = false;
+            this.$emit('patch-origin-toggled');
+        },
+
+        showPatchModified() {
+            this.patch.isToggled = true;
+            this.$emit('patch-modified-toggled');
+        }
     },
 
     computed: {

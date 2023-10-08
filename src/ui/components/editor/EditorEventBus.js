@@ -41,6 +41,13 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'scheme-change-committed', [], affinityId),
     },
 
+    // emited when user clicks undo/redo when editing modified scheme in patch mode
+    patchedSchemeUpdated: {
+        $on: (editorId, callback) => $on(editorId, 'patched-scheme-updated', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'patched-scheme-updated', [], callback),
+        $emit: (editorId, affinityId) => $emit(editorId, 'patched-scheme-updated', [], affinityId),
+    },
+
     // This is used in order to tell that the document was modified,
     // but there is no need to push the change into history
     silentSchemeChangeCommitted: {

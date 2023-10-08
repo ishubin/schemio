@@ -32,8 +32,11 @@
             @delete-diagram-requested="deleteDiagram"
             @export-picture-requested="openExportPictureModal"
             @context-menu-requested="onContextMenuRequested"
+            @patch-origin-toggled="onPatchOriginToggled"
+            @patch-modified-toggled="onPatchModifiedToggled"
+            @patch-modified-generated="onPatchModifiedGenerated"
             @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
-            @patched-history-committed="$emit('patched-history-committed', arguments[0], arguments[1])"
+            @patched-history-committed="onPatchedHistoryCommitted"
         />
 
         <ContextMenu v-if="customContextMenu.show"
@@ -139,9 +142,14 @@ export default {
     },
 
     created() {
-        //history object does not have to be reactive
-        this.history = new History({size: defaultHistorySize});
-        this.history.commit(this.scheme);
+        // history objects do not have to be reactive
+        this.histories = {
+            origin  : new History({size: defaultHistorySize}),
+            modified: new History({size: defaultHistorySize}),
+        };
+
+        this.currentHistory = 'origin';
+        this.histories[this.currentHistory].commit(this.scheme);
     },
 
     data() {
@@ -281,7 +289,7 @@ export default {
         importScheme(scheme) {
             scheme.id = this.scheme.id;
             enrichSchemeWithDefaults(scheme);
-            this.history.commit(scheme);
+            this.histories[this.currentHistory].commit(scheme);
             this.$emit('scheme-update-requested', scheme);
             this.appReloadKey = shortid.generate();
             this.modified = true;
@@ -289,32 +297,54 @@ export default {
         },
 
         updateHistoryState() {
-            this.historyUndoable = this.history.undoable();
-            this.historyRedoable = this.history.redoable();
+            this.historyUndoable = this.histories[this.currentHistory].undoable();
+            this.historyRedoable = this.histories[this.currentHistory].redoable();
         },
 
         onHistoryCommitted(scheme, affinityId) {
-            this.history.commit(scheme, affinityId);
+            this.histories.origin.commit(scheme, affinityId);
             this.modified = true;
+            this.updateHistoryState();
+        },
+
+        onPatchedHistoryCommitted(scheme, affinityId) {
+            this.histories.modified.commit(scheme, affinityId);
+            this.modified = true;
+            this.$emit('patched-history-committed', scheme, affinityId)
+            this.updateHistoryState();
+        },
+
+        onPatchModifiedGenerated(patchedScheme) {
+            this.histories.modified.commit(patchedScheme);
             this.updateHistoryState();
         },
 
         undoHistory() {
-            const scheme = this.history.undo();
-            if (scheme) {
+            const scheme = this.histories[this.currentHistory].undo();
+            this.updateHistoryState();
+            if (!scheme) {
+                return;
+            }
+            if (this.currentHistory === 'modified') {
+                EditorEventBus.patchedSchemeUpdated.$emit(this.editorId, scheme);
+            } else {
                 this.$emit('scheme-update-requested', scheme);
             }
             this.modified = true;
-            this.updateHistoryState();
         },
 
         redoHistory() {
-            const scheme = this.history.redo();
-            if (scheme) {
+            const scheme = this.histories[this.currentHistory].redo();
+            this.updateHistoryState();
+            if (!scheme) {
+                return;
+            }
+            if (this.currentHistory === 'modified') {
+                EditorEventBus.patchedSchemeUpdated.$emit(this.editorId, scheme);
+            } else {
                 this.$emit('scheme-update-requested', scheme);
             }
             this.modified = true;
-            this.updateHistoryState();
         },
 
         onEditorStateChanged(state) {
@@ -339,6 +369,7 @@ export default {
                 try {
                     const patch = JSON.parse(event.target.result);
                     //TODO verify that it is correct patch file
+                    this.histories.modified.reset();
                     this.schemePatch = patch;
                     this.appReloadKey = shortid.generate();
                 } catch(err) {
@@ -358,6 +389,7 @@ export default {
         onPatchApplied(patchedScheme) {
             this.scheme = patchedScheme;
             this.schemePatch = null;
+            this.histories.modified.reset();
             this.appReloadKey = shortid.generate();
         },
 
@@ -380,6 +412,16 @@ export default {
 
         deleteDiagram() {
             this.$emit('delete-diagram-requested', this.scheme.id);
+        },
+
+        onPatchOriginToggled() {
+            this.currentHistory = 'origin';
+            this.updateHistoryState();
+        },
+
+        onPatchModifiedToggled() {
+            this.currentHistory = 'modified';
+            this.updateHistoryState();
         },
     },
 
