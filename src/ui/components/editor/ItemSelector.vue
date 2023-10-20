@@ -20,7 +20,7 @@
                 :data-item-id="item.id"
                 :data-index="idx"
                 >
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && idx === dragging.previewIdx && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
                     <div class="item">
                         <div class="item-name">
                             <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && item.id === dragging.destinationId && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
+                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && idx === dragging.previewIdx && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
                     <div class="item">
                         <div class="item-name">
                             <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
@@ -146,6 +146,7 @@ export default {
                 pageX: 0,
                 pageY: 0,
                 padding: 0,
+                previewIdx: -1, // used to allocate a slot for previewing the item
             },
             nameEdit: {
                 itemId: null,
@@ -296,20 +297,17 @@ export default {
                 let overItem = this.schemeContainer.findItemById(element.getAttribute('data-item-id'));
                 let dropAbove = event.clientY < bbox.top + bbox.height/2;
 
-                if (dropAbove) {
-                    // searching for previous item in item selector
-                    // this is needed for better user experience
+                //searching for item index in the filtered list
 
-                    let idx = 0;
-                    let found = false;
-                    for (; idx < this.filteredItems.length && !found; idx++) {
-                        if (this.filteredItems[idx].id === overItem.id && idx > 0) {
-                            found = true;
-                            overItem = this.filteredItems[idx - 1];
-                            dropAbove = false;
-                        }
+                let found = false;
+                for (let idx = 0; idx < this.filteredItems.length && !found; idx++) {
+                    if (this.filteredItems[idx].id === overItem.id) {
+                        found = true;
+                        // overItem = this.filteredItems[idx - 1];
+                        this.dragging.previewIdx = idx;
                     }
                 }
+
 
                 const xDiff = this.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
 
