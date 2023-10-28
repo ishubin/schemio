@@ -321,6 +321,8 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border-radius: var(--control-border-radius);
     text-decoration: none;
     transition: background-color 0.5s ease;
+    box-sizing: border-box;
+    line-height: 1.0;
 }
 .btn:hover {
     background: var(--faint-weak);

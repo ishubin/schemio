@@ -298,12 +298,10 @@ export default {
                 let dropAbove = event.clientY < bbox.top + bbox.height/2;
 
                 //searching for item index in the filtered list
-
                 let found = false;
                 for (let idx = 0; idx < this.filteredItems.length && !found; idx++) {
                     if (this.filteredItems[idx].id === overItem.id) {
                         found = true;
-                        // overItem = this.filteredItems[idx - 1];
                         this.dragging.previewIdx = idx;
                     }
                 }
@@ -313,6 +311,11 @@ export default {
 
                 this.dragging.destinationId = overItem.id;
                 this.dragging.dropInside = xDiff > 35;
+
+                // if (!dropAbove && !this.dragging.dropInside) {
+
+                // }
+
 
                 if (xDiff < 0 && overItem.meta.ancestorIds.length > 0) {
                     const ancestorsBack =  myMath.clamp(Math.ceil(Math.abs(xDiff / 25)), 1, overItem.meta.ancestorIds.length);
