@@ -276,8 +276,12 @@ export default {
                 try {
                     const scheme = JSON.parse(event.target.result);
                     //TODO verify if it is correct scheme file
-                    this.importSchemeModal.scheme = scheme;
-                    this.importSchemeModal.shown = true;
+                    if (this.scheme.items.length === 0) {
+                        this.importScheme(scheme);
+                    } else {
+                        this.importSchemeModal.scheme = scheme;
+                        this.importSchemeModal.shown = true;
+                    }
                 } catch(err) {
                     alert('Not able to import scheme. Malformed json');
                 }
