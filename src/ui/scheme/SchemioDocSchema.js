@@ -149,6 +149,9 @@ function createFieldSchemaForArg(argDef) {
     if (knownType) {
         schema.type = knownType.type;
         schema.patching = knownType.patching;
+        if (knownType.fields) {
+            schema.fields = knownType.fields;
+        }
     }
 
     if (argDef.type === 'number' && argDef.hasOwnProperty('min')) {
