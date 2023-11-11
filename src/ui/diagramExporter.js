@@ -167,10 +167,7 @@ export function diagramImageExporter(items) {
             svg.setAttribute('height', `${imageHeight}px`);
 
             return rasterizeAllImagesToDataURL(svg)
-            .then(() => {
-                console.log(svg.outerHTML);
-                return svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor);
-            });
+            .then(() => svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
         }
     };
 }
