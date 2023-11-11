@@ -194,17 +194,23 @@ function findChildItemByName(item, name) {
         return null;
     }
 
-    for (let i = 0; i < item.childItems.length; i++) {
-        const childItem = item.childItems[i];
+    let searchedItems = [].concat(item.childItems);
+
+    // doing breadth search first
+    while(searchedItems.length > 0) {
+        const childItem = searchedItems.shift();
+        if (!childItem) {
+            return null;
+        }
         if (childItem.name === name) {
             return childItem;
         }
 
-        const foundItem = findChildItemByName(childItem, name);
-        if (foundItem) {
-            return foundItem;
+        if (Array.isArray(childItem.childItems)) {
+            searchedItems = searchedItems.concat(childItem.childItems);
         }
     }
+
     return null;
 }
 
