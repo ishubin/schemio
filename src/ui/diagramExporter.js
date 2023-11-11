@@ -1,7 +1,30 @@
+import { map } from "./collections";
 import { traverseItems } from "./scheme/Item";
 import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./scheme/SchemeContainer";
-import { filterOutPreviewSvgElements } from './svgPreview';
+import { filterOutPreviewSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
+import { encode } from 'js-base64';
 
+
+/**
+ * @typedef {Object} ItemHTML
+ * @property {Object} item
+ * @property {String} html
+ */
+
+/**
+ * @typedef {Object} DiagramPictureBox
+ * @property {Array<ItemHTML>} exportedItems
+ * @property {Number} width
+ * @property {Number} height
+ */
+
+
+
+/**
+ * Fetches svg content for specified items, calculates their bounding box and returns it
+ * @param {Array<Object>} items items from the diagram
+ * @returns {DiagramPictureBox}
+ */
 export function prepareDiagramForPictureExport(items) {
     const exportedItems = [];
     let minP = null;
@@ -91,4 +114,60 @@ function calculateBoundingBoxOfAllSubItems(parentItem) {
         }
     });
     return getBoundingBoxOfItems(items);
+}
+
+/**
+ * Exports specified svg code as png image
+ * @param {String} svgHtml outer HTML of SVG element
+ * @param {*} imageWidth width of resulting image
+ * @param {*} imageHeight height of resulting image
+ * @param {*} paddingLeft left padding in the image
+ * @param {*} paddingTop top padding in the image
+ * @param {*} backgroundColor background color of the image, if set as null then it will not be used and the background will be transparent
+ */
+export function svgToImage(svgHtml, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor) {
+    return new Promise((resolve, reject) => {
+        const svgDataUrl = `data:image/svg+xml;base64,${encode(svgHtml)}`;
+        const canvas = document.createElement('canvas');
+        canvas.width = imageWidth;
+        canvas.height = imageHeight;
+
+        const ctx = canvas.getContext('2d');
+        const img = new Image;
+
+        img.onload = () => {
+            if (backgroundColor) {
+                ctx.fillStyle = backgroundColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(img, paddingLeft, paddingTop);
+            resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = svgDataUrl;
+
+        img.onerror = (err) => reject(err);
+    });
+}
+
+export function diagramImageExporter(items) {
+    const result = prepareDiagramForPictureExport(items);
+    return {
+        exportImage(imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor) {
+            const box = getBoundingBoxOfItems(items);
+            const svgHtml = map(result.exportedItems, e => e.html).join('\n');
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.innerHTML = svgHtml;
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            svg.setAttribute('xmlns:xhtml', "http://www.w3.org/1999/xhtml");
+            svg.setAttribute('xmlns:xlink', "http://www.w3.org/1999/xlink");
+            svg.setAttribute('viewBox', `${-paddingLeft} ${-paddingTop} ${box.w + paddingLeft} ${box.h + paddingTop}`);
+            svg.setAttribute('preserveAspectRatio', 'xMinYMin');
+            svg.setAttribute('width', `${box.w}px`);
+            svg.setAttribute('height', `${box.h}px`);
+
+            return rasterizeAllImagesToDataURL(svg)
+            .then(() => svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
+        }
+    };
 }

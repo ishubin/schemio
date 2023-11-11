@@ -22,6 +22,8 @@ import htmlSanitize from '../htmlSanitize.js';
 import RichTextEditor from './components/RichTextEditor.vue';
 import utils from './utils.js';
 import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js'
+import { diagramImageExporter } from './diagramExporter.js';
+
 
 window.Schemio = {
     components: {
@@ -32,6 +34,7 @@ window.Schemio = {
         getObjectProperty: utils.getObjectProperty,
         createHasher,
         snapshotSvg,
+        diagramImageExporter,
         getBoundingBoxOfItems,
         traverseItems,
         enrichSchemeWithDefaults,

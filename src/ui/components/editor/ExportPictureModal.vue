@@ -68,6 +68,7 @@ import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import {forEach, map} from '../../collections';
 import {rasterizeAllImagesToDataURL} from '../../svgPreview';
+import {svgToImage} from '../../diagramExporter';
 import { encode } from 'js-base64';
 
 
@@ -141,50 +142,34 @@ export default {
                 console.error('Failed to rasterize some images', err);
             })
             .then(() => {
+                const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
+                const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
+                svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
                 if (this.kind === 'svg') {
-                    const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
-                    const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
-                    svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
                     svgDom.removeAttribute('width');
                     svgDom.removeAttribute('height');
                 } else {
-                    const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
-                    const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
-                    svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
                     svgDom.setAttribute('width', `${this.rasterWidth}px`);
                     svgDom.setAttribute('height', `${this.rasterHeight}px`);
                 }
 
                 const svgCode = svgDom.outerHTML;
-                const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
 
                 if (this.kind === 'svg') {
+                    const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
                     this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);
                 } else {
-                    const canvas = document.createElement('canvas');
-                    if (this.kind === 'png') {
-                        canvas.width = this.rasterWidth;
-                        canvas.height = this.rasterHeight;
-                    } else {
-                        canvas.width = Math.max(1, this.width +  this.paddingLeft + this.paddingRight);
-                        canvas.height = Math.max(1, this.height + this.paddingTop + this.paddingBottom);
-                    }
-
-                    const ctx = canvas.getContext('2d');
-                    const img = new Image;
-
-                    img.onload = () => {
-                        if (this.shouldExportBackground) {
-                            ctx.fillStyle = this.backgroundColor;
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        }
-                        ctx.drawImage(img, this.paddingLeft, this.paddingTop);
-                        this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, canvas.toDataURL('image/png'));
-                    };
-                    img.src = svgDataUrl;
+                    const backgroundColor = this.shouldExportBackground ? this.backgroundColor : null;
+                    svgToImage(svgCode, this.rasterWidth, this.rasterHeight, this.paddingLeft, this.paddingTop, backgroundColor)
+                    .then(imageDataUrl => {
+                        this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, imageDataUrl);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Something went wrong, failed to generate image');
+                    });
                 }
             });
-
         },
 
         downloadViaLink(name, content) {

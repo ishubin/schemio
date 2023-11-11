@@ -33,7 +33,13 @@
             </clipPath>
 
             <pattern :id="`image-fill-${item.id}`" patternUnits="userSpaceOnUse" :width="imageWidth" :height="imageHeight">
-                <image :xlink:href="imagePath" :x="-item.shapeProps.crop.x * imageWidth" :y="-item.shapeProps.crop.y * imageHeight" :width="imageWidth * (1 + item.shapeProps.crop.x + item.shapeProps.crop.w)" :height="imageHeight * (1 + item.shapeProps.crop.y + item.shapeProps.crop.h)" :preserveAspectRatio="imagePreserveAspectRatio"/>
+                <image :xlink:href="imagePath"
+                    crossorigin="anonymous"
+                    :x="-item.shapeProps.crop.x * imageWidth"
+                    :y="-item.shapeProps.crop.y * imageHeight"
+                    :width="imageWidth * (1 + item.shapeProps.crop.x + item.shapeProps.crop.w)"
+                    :height="imageHeight * (1 + item.shapeProps.crop.y + item.shapeProps.crop.h)"
+                    :preserveAspectRatio="imagePreserveAspectRatio"/>
             </pattern>
 
             <g :style="{'clip-path': `url(#image-crop-clip-path-${item.id})`}">

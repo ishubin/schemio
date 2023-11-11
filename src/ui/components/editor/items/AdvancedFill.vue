@@ -5,7 +5,7 @@
     <g>
         <defs v-if="fill.type === 'image' && fill.image">
             <pattern :id="fillId" patternUnits="userSpaceOnUse" :width="area.w" :height="area.h">
-                <image :xlink:href="fill.image" x="0" y="0" :width="area.w" :height="area.h" :preserveAspectRatio="imagePreserveAspectRatio"/>
+                <image :xlink:href="fill.image" crossorigin="anonymous" x="0" y="0" :width="area.w" :height="area.h" :preserveAspectRatio="imagePreserveAspectRatio"/>
             </pattern>
         </defs>
 
