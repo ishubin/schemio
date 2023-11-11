@@ -211,6 +211,13 @@ function findChildItemByName(item, name) {
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
     return new Scope({
+        findParent: () => {
+            let parentId = null;
+            if (item && item.meta) {
+                parentId = item.meta.parentId
+            }
+            return createItemScriptWrapper(schemeContainer.findItemById(parentId), schemeContainer, userEventBus);
+        },
         findItemById: (id) => {
             return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
         },

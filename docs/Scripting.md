@@ -59,6 +59,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [findItemByName](#finditembyname)
       - [findItemById](#finditembyid)
       - [findChildItemByName](#findchilditembyname)
+      - [findParent](#findparent)
 
 
 Basic syntax
@@ -535,3 +536,8 @@ it.setTextSize('body', 30)
 ##### findChildItemByName
 
 `findChildItemByName(name)` searches only for child items of the current item and returns the first one which name matches the specified `name` argument. This is used when you want to narrow the scope of items within particular group.
+
+
+##### findParent
+
+`findParent()` searches for parent item of the current item
