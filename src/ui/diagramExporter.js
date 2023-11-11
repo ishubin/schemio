@@ -162,12 +162,15 @@ export function diagramImageExporter(items) {
             svg.setAttribute('xmlns:xhtml', "http://www.w3.org/1999/xhtml");
             svg.setAttribute('xmlns:xlink', "http://www.w3.org/1999/xlink");
             svg.setAttribute('viewBox', `${-paddingLeft} ${-paddingTop} ${box.w + paddingLeft} ${box.h + paddingTop}`);
-            svg.setAttribute('preserveAspectRatio', 'xMinYMin');
-            svg.setAttribute('width', `${box.w}px`);
-            svg.setAttribute('height', `${box.h}px`);
+            svg.setAttribute('preserveAspectRatio', 'xMidYMid');
+            svg.setAttribute('width', `${imageWidth}px`);
+            svg.setAttribute('height', `${imageHeight}px`);
 
             return rasterizeAllImagesToDataURL(svg)
-            .then(() => svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
+            .then(() => {
+                console.log(svg.outerHTML);
+                return svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor);
+            });
         }
     };
 }
