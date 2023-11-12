@@ -50,6 +50,15 @@ export default class Compiler {
                                 });
                             } else {
                                 forEach(elements, element => {
+                                    if (knownFunc.init) {
+                                        try {
+                                            knownFunc.init(element, args, schemeContainer);
+                                        } catch(err) {
+                                            if (err) {
+                                                console.error(err);
+                                            }
+                                        }
+                                    }
                                     funcs.push({
                                         func: knownFunc,
                                         element,

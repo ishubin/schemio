@@ -60,7 +60,7 @@
                             "on": true,
                             "args": {
                                 "angle": -90,
-                                "animate": false,
+                                "animated": false,
                                 "duration": 1,
                                 "movement": "bounce",
                                 "inBackground": false
@@ -94,7 +94,7 @@
                             "method": "show",
                             "on": true,
                             "args": {
-                                "animate": false
+                                "animated": false
                             }
                         }
                     ]
@@ -159,7 +159,7 @@
                             "on": true,
                             "args": {
                                 "angle": 0,
-                                "animate": true,
+                                "animated": true,
                                 "duration": 1,
                                 "movement": "bounce",
                                 "inBackground": false
@@ -208,7 +208,7 @@
                             "on": true,
                             "args": {
                                 "angle": -90,
-                                "animate": true,
+                                "animated": true,
                                 "duration": 1,
                                 "movement": "bounce",
                                 "inBackground": false

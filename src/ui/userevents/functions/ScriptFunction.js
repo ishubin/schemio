@@ -32,9 +32,31 @@ export default {
         return script;
     },
 
+    // init function is called on compile phase
+    // this is used to optimize parsing of the script
+    init(item, args, schemeContainer, userEventBus) {
+        console.log('init script');
+        const scriptAST = parseItemScript(args.script);
+        if (!scriptAST) {
+            return;
+        }
+
+        if (!item.args) {
+            item.args = {};
+        }
+        if (!item.args.compiledScripts) {
+            item.args.compiledScripts = {};
+        }
+        item.args.compiledScripts[args.script] = scriptAST;
+    },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-        const scriptAST = parseItemScript(args.script);
+        console.log('execute script');
+        if (!item.args || !item.args.compiledScripts) {
+            resultCallback();
+            return
+        }
+        const scriptAST = item.args.compiledScripts[args.script];
         if (!scriptAST) {
             resultCallback();
             return;
