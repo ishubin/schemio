@@ -35,7 +35,6 @@ export default {
     // init function is called on compile phase
     // this is used to optimize parsing of the script
     init(item, args, schemeContainer, userEventBus) {
-        console.log('init script');
         const scriptAST = parseItemScript(args.script);
         if (!scriptAST) {
             return;
@@ -51,7 +50,6 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-        console.log('execute script');
         if (!item.args || !item.args.compiledScripts) {
             resultCallback();
             return
