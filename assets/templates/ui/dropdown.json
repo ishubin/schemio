@@ -400,18 +400,6 @@
                                         "inBackground": true
                                     },
                                     "id": "uTi4EfkjGr"
-                                },
-                                {
-                                    "element": "self",
-                                    "method": "hide",
-                                    "on": true,
-                                    "args": {
-                                        "animated": false,
-                                        "animationDuration": 0.5,
-                                        "transition": "ease-out",
-                                        "inBackground": false
-                                    },
-                                    "id": "rdFaxl3cM9"
                                 }
                             ],
                             "id": "jwPYzscNL"

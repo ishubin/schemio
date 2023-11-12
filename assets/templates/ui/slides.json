@@ -267,7 +267,7 @@
                                     "args": {
                                         "x": {"$-expr": "(slideWidth) * (idx - 1)"},
                                         "y": 0,
-                                        "animate": false
+                                        "animated": false
                                     }
                                 }, {
                                     "id": {"$-expr": "uid()"},

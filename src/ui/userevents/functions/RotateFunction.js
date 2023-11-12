@@ -24,7 +24,7 @@ class RotateAnimation extends Animation {
     }
 
     play(dt) {
-        if (this.args.animate && this.args.duration > 0.00001) {
+        if (this.args.animated && this.args.duration > 0.00001) {
             this.elapsedTime += dt;
 
             const t = Math.min(1.0, this.elapsedTime / (this.args.duration * 1000));
@@ -67,15 +67,15 @@ export default {
 
     args: {
         angle           : {name: 'Angle',             type: 'number', value: 0},
-        animate         : {name: 'Animate',           type: 'boolean',value: false},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
-        movement        : {name: 'Movement',          type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animate: true}}
+        animated        : {name: 'Animated',          type: 'boolean',value: false},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animated: true}},
+        movement        : {name: 'Movement',          type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            if (args.animate) {
+            if (args.animated) {
                 playInAnimationRegistry(schemeContainer.editorId, new RotateAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
                 if (args.inBackground) {
                     resultCallback();

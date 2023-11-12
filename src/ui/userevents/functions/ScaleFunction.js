@@ -30,7 +30,7 @@ class ScaleAnimation extends Animation {
     }
 
     play(dt) {
-        if (this.args.animate && this.args.duration > 0.00001) {
+        if (this.args.animated && this.args.duration > 0.00001) {
             this.elapsedTime += dt;
 
             const t = Math.min(1.0, this.elapsedTime / (this.args.duration * 1000));
@@ -75,19 +75,19 @@ export default {
     args: {
         scaleX          : {name: 'Scale X',           type: 'number', value: 1.5},
         scaleY          : {name: 'Scale Y',           type: 'number', value: 1.5},
-        animate         : {name: 'Animate',           type: 'boolean',value: true},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
-        movement        : {name: 'Movement',          type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animate: true}}
+        animated        : {name: 'Animated',          type: 'boolean',value: true},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animated: true}},
+        movement        : {name: 'Movement',          type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
     },
 
     argsToShortString(args) {
-        return `x: ${args.scaleX}, y: ${args.scaleY}` + (args.animate ? ', animated' : '');
+        return `x: ${args.scaleX}, y: ${args.scaleY}` + (args.animated ? ', animated' : '');
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            if (args.animate) {
+            if (args.animated) {
                 playInAnimationRegistry(schemeContainer.editorId, new ScaleAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
                 if (args.inBackground) {
                     resultCallback();

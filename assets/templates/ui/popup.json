@@ -69,7 +69,7 @@
                             "args": {
                                 "scaleX": 0.2,
                                 "scaleY": 0.2,
-                                "animate": false,
+                                "animated": false,
                                 "duration": 2,
                                 "movement": "ease-out",
                                 "inBackground": false
@@ -96,7 +96,7 @@
                             "args": {
                                 "scaleX": 1,
                                 "scaleY": 1,
-                                "animate": true,
+                                "animated": true,
                                 "duration": 1,
                                 "movement": "bounce",
                                 "inBackground": false
@@ -407,7 +407,7 @@
                                             "args": {
                                                 "scaleX": 0.2,
                                                 "scaleY": 0.2,
-                                                "animate": true,
+                                                "animated": true,
                                                 "duration": 0.5,
                                                 "movement": "ease-out",
                                                 "inBackground": true
@@ -441,7 +441,7 @@
                                             "on": true,
                                             "args": {
                                                 "angle": 360,
-                                                "animate": true,
+                                                "animated": true,
                                                 "duration": 0.3,
                                                 "movement": "ease-out",
                                                 "inBackground": false
@@ -475,7 +475,7 @@
                                             "on": true,
                                             "args": {
                                                 "angle": 0,
-                                                "animate": true,
+                                                "animated": true,
                                                 "duration": 0.3,
                                                 "movement": "ease-out",
                                                 "inBackground": true

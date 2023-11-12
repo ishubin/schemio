@@ -77,7 +77,7 @@ class MoveToItemAnimation extends Animation {
     }
 
     play(dt) {
-        if (this.args.animate && this.args.duration > 0.00001) {
+        if (this.args.animated && this.args.duration > 0.00001) {
             this.elapsedTime += dt;
 
             const t = Math.min(1.0, this.elapsedTime / (this.args.duration * 1000));
@@ -135,14 +135,14 @@ export default {
         matchPoint      : {name: 'Match point',       type: 'choice', value: 'center', description: 'Match items points',
             options: ['center', 'pivot', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
         },
-        animate         : {name: 'Animate',           type: 'boolean',value: false},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animate: true}},
-        movement        : {name: 'Movement',          type: 'choice', value: 'ease-in-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animate: true}},
+        animated        : {name: 'Animated',          type: 'boolean',value: false},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animated: true}},
+        movement        : {name: 'Movement',          type: 'choice', value: 'ease-in-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
         rotate          : {name: 'Rotate',            type: 'boolean',value: false, description: 'Align rotation of items'},
         rotationOffset  : {name: 'Rotation Offset',   type: 'number', value: 0.0, depends: {rotate: true}, description: 'Rotation angle offset'},
         alignWidth      : {name: 'Align Width',       type: 'boolean',value: false, description: 'Adjust items width so that it fits to the width of its destination item'},
         alignHeight     : {name: 'Align Height',      type: 'boolean',value: false, description: 'Adjust items height so that it fits to the height of its destination item'},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animate: true}}
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
@@ -170,7 +170,7 @@ export default {
 
 
             if (destinationPosition) {
-                if (args.animate) {
+                if (args.animated) {
                     playInAnimationRegistry(schemeContainer.editorId, 
                         new MoveToItemAnimation(item, args, destinationPosition, destinationAngle, destinationWidth, destinationHeight, schemeContainer, resultCallback),
                         item.id,

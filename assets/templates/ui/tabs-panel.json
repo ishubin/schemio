@@ -324,7 +324,7 @@
                             "args": {
                                 "x": {"$-expr": "padding"},
                                 "y": {"$-expr": "topMargin + tabHeight - tabCornerRadius - 1"},
-                                "animate": false
+                                "animated": false
                             }
                         }]
                     }]
