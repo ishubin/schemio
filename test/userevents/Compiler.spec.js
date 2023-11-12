@@ -230,6 +230,9 @@ describe('UserEvents Compiler', () => {
 
             action1(userEventBus, userEventBus.revision, 'qwe', 'clicked');
 
+            // Deleting item args as it is used for storing pre-compiled script and we don't need to check it for equality
+            items.forEach(item => delete item.args);
+
             expect(items).toStrictEqual(expectedItems);
         });
     });
