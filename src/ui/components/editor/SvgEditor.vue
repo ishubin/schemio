@@ -180,14 +180,14 @@ import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer, { getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
+import SchemeContainer, { getBoundingBoxOfItems, itemCompleteTransform, worldPointOnItem, worldScalingVectorOnItem } from '../../scheme/SchemeContainer.js';
 import Compiler from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED } from './items/shapes/Component.vue';
+import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, calculateComponentButtonArea } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 
@@ -620,8 +620,10 @@ export default {
                     return;
                 }
                 itemArray.forEach(item => {
-                    if (item.visible && item.opacity > 0 && item.selfOpacity > 0) {
-                        callback(item);
+                    if (item.visible && item.opacity > 0) {
+                        if (item.selfOpacity > 0) {
+                            callback(item);
+                        }
 
                         traverseVisibleItems(item.childItems, callback);
                         traverseVisibleItems(item._childItems, callback);
@@ -638,6 +640,18 @@ export default {
                     markers.push({
                         x: box.x + box.w,
                         y: box.y,
+                        itemId: item.id,
+                        visible: true
+                    });
+                }
+
+                if (item.shape === 'component' && item.shapeProps.showButton) {
+                    const buttonLocalArea = calculateComponentButtonArea(item);
+
+                    const p = worldPointOnItem(buttonLocalArea.x + buttonLocalArea.w, buttonLocalArea.y, item);
+                    markers.push({
+                        x: p.x,
+                        y: p.y,
                         itemId: item.id,
                         visible: true
                     });
