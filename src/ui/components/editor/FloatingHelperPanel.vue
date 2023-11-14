@@ -48,7 +48,7 @@
 
             <modal title="Description" v-if="descriptionEditorShown" @close="descriptionEditorShown = false">
                 <h5>Name</h5>
-                <input type="text" class="textfield" v-model="item.name"/>
+                <input type="text" class="textfield" v-model="item.name" @input="emitChangeCommited('name')"/>
 
                 <h5>Tags</h5>
                 <vue-tags-input v-model="itemTag"
@@ -140,6 +140,11 @@ export default {
     methods: {
         onItemTagChange(newTags) {
             this.item.tags = newTags.map(tag => tag.text);
+            this.emitChangeCommited('tags');
+        },
+
+        emitChangeCommited(propName) {
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.${propName}`);
         },
 
         updatePosition() {
