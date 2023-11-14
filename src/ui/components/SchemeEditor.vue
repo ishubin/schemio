@@ -94,8 +94,6 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
-                    @item-tooltip-requested="onItemTooltipTriggered"
-                    @item-side-panel-requested="onItemSidePanelTriggered"
                     @screen-transform-updated="onScreenTransformUpdated"
                     >
                     <g slot="scene-transform">
@@ -173,8 +171,6 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
-                    @item-tooltip-requested="onItemTooltipTriggered"
-                    @item-side-panel-requested="onItemSidePanelTriggered"
                     @screen-transform-updated="onScreenTransformUpdated"
                     >
 
@@ -470,7 +466,7 @@
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
 
-        <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+        <item-tooltip v-if="itemTooltip.shown" :key="`item-tooltip-${itemTooltip.id}`" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
 
         <connector-destination-proposal v-if="connectorProposedDestination && connectorProposedDestination.shown"
             :x="connectorProposedDestination.mx"
@@ -763,8 +759,8 @@ export default {
         this.states = {
             interact: new StateInteract(this.editorId, this.$store, this.userEventBus, {
                 onCancel,
-                onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
-                onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+                onItemClicked: (item) => this.onInteractItemClicked(item),
+                onVoidClicked: () => this.onInteractVoidClicked(),
                 onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
                 onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
                 onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
@@ -984,6 +980,7 @@ export default {
             offsetSaveTimerId: null,
 
             itemTooltip: {
+                id: null,
                 item: null,
                 shown: false,
                 x: 0,
@@ -1616,8 +1613,17 @@ export default {
             })
         },
 
+        onInteractVoidClicked() {
+            this.itemTooltip.shown = false;
+            EditorEventBus.void.clicked.$emit(this.editorId);
+        },
+        onInteractItemClicked(item) {
+            this.itemTooltip.shown = false;
+            EditorEventBus.item.clicked.any.$emit(this.editorId, item);
+        },
         onItemTooltipTriggered(item, mouseX, mouseY) {
             this.itemTooltip.item = item;
+            this.itemTooltip.id = item.id;
             this.itemTooltip.x = mouseX;
 
             const rect = this.$refs.middleSection.getBoundingClientRect();
@@ -2010,6 +2016,7 @@ export default {
         },
 
         switchToEditMode(screenTransform) {
+            this.itemTooltip.shown = false;
             if (screenTransform) {
                 this.schemeContainer.screenTransform = screenTransform;
             } else if (this.interactiveSchemeContainer) {

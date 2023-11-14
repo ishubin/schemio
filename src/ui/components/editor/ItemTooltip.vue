@@ -18,7 +18,6 @@ export default {
     props: ['item', 'x', 'y'],
 
     beforeMount() {
-        this.timeMounted = new Date().getTime();
         document.body.addEventListener('click', this.onBodyClick);
     },
     mounted() {
@@ -38,7 +37,6 @@ export default {
 
         return {
             domId:              `item-tooltip-${this.item.id}`,
-            timeMounted:        0,
             positionLeft:       this.x,
             positionTop:        this.y,
             minWidth:           minWidth,
@@ -51,22 +49,10 @@ export default {
 
     methods: {
         onBodyClick(event) {
-            //checking whether there is a race condition and 
-            // this is the initial click event that led to opening of a tooltip
-            if (new Date().getTime() - this.timeMounted > 200)  {
-                // checking whether user clicked inside tooltip or not
-                if (!this.isInsideTooltip(event.srcElement)) {
-                    this.$emit('close');
-                }
+            if (!event.srcElement.closest('svg.svg-editor-plot')) {
+                this.$emit('close');
             }
         },
-
-        isInsideTooltip(domElement) {
-            if (domElement.closest('[data-type="item-tooltip"]')) {
-                return true;
-            }
-            return false;
-        }
     },
 
     computed: {

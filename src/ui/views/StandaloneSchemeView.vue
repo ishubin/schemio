@@ -29,12 +29,10 @@
                 @mouse-down="mouseDown"
                 @mouse-up="mouseUp"
                 @mouse-double-click="mouseDoubleClick"
-                @item-tooltip-requested="onItemTooltipTriggered"
-                @item-side-panel-requested="onItemSidePanelTriggered"
                 @screen-transform-updated="onScreenTransformUpdated"
                 />
 
-            <item-tooltip v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+            <item-tooltip :key="`item-tooltip-${itemTooltip.id}`" v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
 
             <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
                 <div class="ssc-side-panel-content">
@@ -92,9 +90,9 @@ export default {
         this.userEventBus = new UserEventBus();
         this.stateInteract = new StateInteract(this.editorId, store, this.userEventBus, {
             onCancel: () => {},
-            onItemClicked: (item) => EditorEventBus.item.clicked.any.$emit(this.editorId, item),
             onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),
-            onVoidClicked: () => EditorEventBus.void.clicked.$emit(this.editorId),
+            onItemClicked: (item) => this.onInteractItemClicked(item),
+            onVoidClicked: () => this.onInteractVoidClicked(),
             onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
             onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
             onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
@@ -112,6 +110,7 @@ export default {
             vZoom: this.zoom,
 
             itemTooltip: {
+                id: null,
                 item: null,
                 shown: false,
                 x: 0,
@@ -184,7 +183,16 @@ export default {
             this.textZoom = '' + Math.round(screenTransform.scale * 10000) / 100;
         },
 
+        onInteractVoidClicked() {
+            this.itemTooltip.shown = false;
+            EditorEventBus.void.clicked.$emit(this.editorId);
+        },
+        onInteractItemClicked(item) {
+            this.itemTooltip.shown = false;
+            EditorEventBus.item.clicked.any.$emit(this.editorId, item);
+        },
         onItemTooltipTriggered(item, mouseX, mouseY) {
+            this.itemTooltip.id = item.id;
             this.itemTooltip.item = item;
             this.itemTooltip.x = mouseX;
             this.itemTooltip.y = mouseY;
