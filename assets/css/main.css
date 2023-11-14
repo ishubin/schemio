@@ -269,11 +269,15 @@ ul.tabs li .tab {
     font-weight: bold;
     cursor: pointer;
     line-height: 1;
+    user-select: none;
 }
 @media (max-width: 900px) {
     ul.tabs li .tab {
         padding: 6px 10px;
     }
+}
+ul.tabs li .tab .tab-icon {
+    font-size: 9px;
 }
 ul.tabs li .tab.active, ul.tabs li .tab.active:hover {
     background: var(--faint-weak);
@@ -324,6 +328,7 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     transition: background-color 0.5s ease;
     box-sizing: border-box;
     line-height: 1.0;
+    user-select: none;
 }
 .btn:hover {
     background: var(--faint-weak);
@@ -1173,6 +1178,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     display: inline-block;
     padding: 0;
     font-size: 0;
+    user-select: none;
 }
 .toggle-group > .toggle-button {
     color: var(--faint-strong);

@@ -358,7 +358,7 @@
                                 :class="{active: currentTab === `extra:${tab.name}`}"
                                 @click="changeTab(`extra:${tab.name}`)"
                                 >
-                                <i v-if="tab.icon" :class="tab.icon"></i>
+                                <i v-if="tab.icon" class="tab-icon" :class="tab.icon"></i>
                                 <span v-else>{{tab.name}}</span>
                                 <span v-if="tab.count">({{tab.count}})</span>
                             </div>
