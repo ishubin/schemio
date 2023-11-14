@@ -31,9 +31,9 @@ export default {
         document.body.removeEventListener('click', this.onBodyClick);
     },
     data() {
-        const minWidth      = Math.min(200, window.innerWidth - 60);
-        const maxWidth      = Math.min(700, window.innerWidth - 60);
-        const maxHeight     = Math.min(500, window.innerHeight - 60);
+        const minWidth      = Math.min(300, window.innerWidth*0.7);
+        const maxWidth      = Math.min(700, window.innerWidth*0.7);
+        const maxHeight     = Math.min(500, window.innerHeight*0.7);
 
         return {
             domId:              `item-tooltip-${this.item.id}`,
