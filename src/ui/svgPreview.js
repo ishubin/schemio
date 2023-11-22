@@ -105,7 +105,7 @@ export function rasterizeAllImagesToDataURL(svgElement) {
 
     const promises = [];
     forEach(imageElements, imageElement => {
-        promises.push(convertImageToDataURL(imageElement));
+        promises.push(convertImageToDataURL(imageElement).catch(() => {}));
     });
 
     return Promise.all(promises);
