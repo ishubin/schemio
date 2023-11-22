@@ -49,7 +49,10 @@ export default {
                             method: 'set',
                             args: {
                                 field: 'opacity',
-                                value: 50
+                                value: 50,
+                                animated: true,
+                                animationDuration: 0.2,
+                                transition: 'ease-in-out'
                             }
                         }]
                     }, {
@@ -59,7 +62,10 @@ export default {
                             method: 'set',
                             args: {
                                 field: 'opacity',
-                                value: 5
+                                value: 5,
+                                animated: true,
+                                animationDuration: 0.2,
+                                transition: 'ease-in-out'
                             }
                         } ]
                     }]

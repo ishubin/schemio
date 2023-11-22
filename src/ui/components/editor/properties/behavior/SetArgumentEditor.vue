@@ -33,19 +33,19 @@
                         <tr>
                             <td class="label" width="50%">Animated</td>
                             <td class="value" width="50%">
-                                <input type="checkbox" v-model="args.animated"/>
+                                <input type="checkbox" :checked="args.animated" @input="onPropertyChange('animated', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Duration</td>
                             <td class="value" width="50%">
-                                <number-textfield :disabled="!args.animated" :value="args.animationDuration" @changed="args.animationDuration = arguments[0]"/>
+                                <number-textfield :disabled="!args.animated" :min="0" :value="args.animationDuration" @changed="onPropertyChange('animationDuration', arguments[0])"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Transition</td>
                             <td class="value" width="50%">
-                                <select v-model="args.transition" :disabled="!args.animated">
+                                <select :value="args.transition" :disabled="!args.animated" @input="onPropertyChange('transition', $event.target.value)">
                                     <option v-for="transition in transitions" :value="transition">{{transition}}</option>
                                 </select>
                             </td>
@@ -53,7 +53,7 @@
                         <tr>
                             <td class="label" width="50%">In Background</td>
                             <td class="value" width="50%">
-                                <input type="checkbox" v-model="args.inBackground" :disabled="!args.animated"/>
+                                <input type="checkbox" :checked="args.inBackground" :disabled="!args.animated" @input="onPropertyChange('inBackground', $event.target.checked)"/>
                             </td>
                         </tr>
                     </tbody>
@@ -110,13 +110,16 @@ export default {
 
     methods: {
         emitValue(value) {
-            this.$emit('changed', value);
+            this.onPropertyChange('value', value);
         },
         onInputValue(event) {
             this.emitValue(event.target.value);
         },
         onCheckboxInput(event) {
             this.emitValue(event.target.checked);
+        },
+        onPropertyChange(property, value) {
+            this.$emit('property-changed', property, value);
         }
     },
     filters: {

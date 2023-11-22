@@ -96,12 +96,12 @@
 
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
-                        <set-argument-editor v-if="action.method === 'set'"
+                        <SetArgumentEditor v-if="action.method === 'set'"
                             :key="action.args.field"
                             :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                             :argument-value="action.args.value"
                             :args="action.args"
-                            @changed="onArgumentValueChangeForSet(eventIndex, actionIndex, arguments[0])"
+                            @property-changed="onArgumentPropertyChangeForSet(eventIndex, actionIndex, arguments[0], arguments[1])"
                             />
                     </div>
                 </div>
@@ -651,8 +651,8 @@ export default {
             return {type: 'string'};
         },
 
-        onArgumentValueChangeForSet(eventIndex, actionIndex, value) {
-            this.item.behavior.events[eventIndex].actions[actionIndex].args.value = value;
+        onArgumentPropertyChangeForSet(eventIndex, actionIndex, property, value) {
+            this.item.behavior.events[eventIndex].actions[actionIndex].args[property] = value;
             const propertyName = this.item.behavior.events[eventIndex].actions[actionIndex].args.field;
             this.emitChangeCommited(`${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${propertyName}`);
         },

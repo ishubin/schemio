@@ -73,7 +73,7 @@
                 <h3>{{schemeLoadErrorMessage}}</h3>
             </div>
 
-            <div class="scheme-container" oncontextmenu="return false;" v-if="schemeContainer">
+            <div class="scheme-container" v-if="schemeContainer">
                 <SvgEditor
                     v-if="schemeContainer && mode === 'edit'"
                     :class="['state-' + state, 'sub-state-' + editorSubStateName]"
