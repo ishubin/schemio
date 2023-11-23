@@ -1117,6 +1117,9 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
+            })
+            .catch(err => {
+                console.error(err);
             });
         },
 

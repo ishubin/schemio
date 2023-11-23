@@ -113,6 +113,35 @@ function fixOldGroups(item) {
         delete item.groups;
     }
 }
+
+function fixFramePlayer(item) {
+    if (!item.shapeProps){
+        item.shapeProps = {};
+    }
+    if (!Array.isArray(item.shapeProps.animations)) {
+        item.shapeProps.animations = [];
+    }
+    item.shapeProps.animations.forEach(animation => {
+        if (animation.kind === 'item') {
+            if (!animation.hasOwnProperty('itemId')) {
+                animation.itemId = animation.id;
+                animation.id = shortid.generate();
+            }
+            if (!animation.hasOwnProperty('id')) {
+                animation.id = shortid.generate();
+            }
+        } else if (animation.kind === 'function') {
+            if (!animation.hasOwnProperty('funcId')) {
+                animation.funcId = animation.id;
+                animation.id = shortid.generate();
+            }
+            if (!animation.hasOwnProperty('id')) {
+                animation.id = shortid.generate();
+            }
+        }
+    });
+}
+
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
         item.textSlots = {};
@@ -132,6 +161,9 @@ export function enrichItemWithDefaults(item) {
     }
     if (item.shape === 'path') {
         fixPath(item);
+    }
+    if (item.shape === 'frame_player') {
+        fixFramePlayer(item);
     }
 
     enrichObjectWithDefaults(item, defaultItemDefinition);

@@ -2,14 +2,49 @@ import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arr
 import expect from 'expect';
 import { forEach } from '../src/ui/collections';
 import { patchTestData } from './data/patch/patch-test-data';
+import fs from 'fs-extra';
 
 
 describe('SchemePatch.generateSchemePatch', () => {
     forEach(patchTestData, testData => {
         it(`should recognize ${testData.name}`, () => {
             const patch = generateSchemePatch(testData.origin, testData.modified);
-            console.log(JSON.stringify(patch));
             expect(patch).toStrictEqual(testData.patch);
+        });
+    });
+
+
+    it('should generate patch for frame_player shape', () => {
+        const origin = JSON.parse(fs.readFileSync('test/data/patch/frame-player.origin.json'));
+        const modified = JSON.parse(fs.readFileSync('test/data/patch/frame-player.modified.json'));
+        const patch = generateSchemePatch(origin, modified);
+
+        expect(patch).toStrictEqual( {
+            version: "1",
+            protocol: "schemio/patch",
+            changes: [ {
+                path: [ "items" ],
+                op: "patch-id-array",
+                changes: [ {
+                    id: "TNrdJ9bqq",
+                    op: "modify",
+                    changes: [ {
+                        path: [ "shapeProps", "animations" ],
+                        op: "patch-id-array",
+                        changes: [ {
+                            id: "vewtw4",
+                            op: "modify",
+                            changes: [ {
+                                path: [ "frames" ],
+                                op: "patch-array",
+                                patch: {
+                                    replace: [ [ 1, { frame: 3, value: 0, kind: "linear" } ] ]
+                                }
+                            } ]
+                        } ]
+                    } ]
+                } ]
+            } ]
         });
     });
 
@@ -309,7 +344,6 @@ describe('SchemaPatch.applyArrayPatch', () => {
         };
 
         const real = applyArrayPatch(origin, patch);
-        console.log(JSON.stringify(real));
         expect(real).toStrictEqual(expected);
     })
 });

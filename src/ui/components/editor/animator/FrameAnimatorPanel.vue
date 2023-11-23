@@ -156,8 +156,8 @@
 
         <modal v-if="functionEditorModal.shown && functionEditorModal.functionDescription"
             :title="`&quot;${functionEditorModal.functionDescription.name}&quot; arguments`"
-            :primaryButton="functionEditorModal.isAdding ? 'Add' : 'Save'"
-            closeName="Cancel"
+            :primaryButton="functionEditorModal.isAdding ? 'Add' : null"
+            :closeName="functionEditorModal.isAdding ? 'Cancel' : 'Close'"
             @close="functionEditorModal.shown = false"
             :width="400"
             :use-mask="false"
@@ -575,7 +575,7 @@ export default {
                 let valueType = null;
 
                 if (animation.kind === 'item') {
-                    const item = this.schemeContainer.findItemById(animation.id);
+                    const item = this.schemeContainer.findItemById(animation.itemId);
                     if (item) {
                         itemName = item.name;
                         propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
@@ -597,8 +597,9 @@ export default {
                 const track = {
                     kind    : animation.kind,
                     id      : animation.id,
+                    itemId  : animation.itemId,
                     property: animation.property,
-                    color   : calculateTrackColor(animation.kind, animation.id, animation.property),
+                    color   : calculateTrackColor(animation.kind, animation.itemId, animation.property),
                     propertyDescriptor,
                     valueType,
                     itemName,
@@ -664,14 +665,15 @@ export default {
                 // not the most efficient code, every time we search the entire list all over again
                 // but it's fine since there is not going to be that many functions and animation tracks in a single frame player
                 forEach(this.framePlayer.shapeProps.animations, animation => {
-                    if (animation.kind === 'function' && animation.id === id) {
+                    if (animation.kind === 'function' && animation.funcId === id) {
                         const propertyDescriptor = functionDescription.inputs[animation.property];
                         if (!propertyDescriptor) {
                             return;
                         }
                         tracks.push({
                             kind    : 'function',
-                            id      : id,
+                            id      : animation.id,
+                            funcId  : animation.funcId,
                             property: animation.property,
                             frames  : this.fillMatrixFrames(animation.frames, 'number'),
                             propertyDescriptor,
@@ -865,6 +867,7 @@ export default {
                 const droppableFrameIdx = parseInt(frameElement.getAttribute('data-frame-idx'));
                 if (droppableTrackIdx === this.frameDrag.source.trackIdx) {
                     this.onMatrixDragEnd(this.frameDrag.source.trackIdx, this.frameDrag.source.frameIdx, droppableFrameIdx);
+
                 }
             })
             .onDone((event) => {
@@ -1220,7 +1223,7 @@ export default {
                 this.framesMatrix[trackIdx].frames[frame - 1].value = value;
 
                 if (animation.kind === 'item') {
-                    const item = this.schemeContainer.findItemById(animation.id);
+                    const item = this.schemeContainer.findItemById(animation.itemId);
                     if (item) {
                         utils.setObjectProperty(item, animation.property, value);
                         EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, animation.property);
@@ -1376,18 +1379,21 @@ export default {
 
         onFunctionModalArgumentChanged(name, value) {
             this.functionEditorModal.args[name] = value;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.framePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[name] = value;
+            this.compileAnimations();
         },
 
         onFunctionModalSubmit() {
             this.functionEditorModal.shown = false;
             if (this.functionEditorModal.isAdding) {
-                const id = shortid.generate();
+                const funcId = shortid.generate();
                 const func = AnimationFunctions[this.functionEditorModal.funcName];
                 if (!func) {
                     return;
                 }
 
-                this.framePlayer.shapeProps.functions[id] = {
+                this.framePlayer.shapeProps.functions[funcId] = {
                     functionId: this.functionEditorModal.funcName,
                     args: utils.clone(this.functionEditorModal.args)
                 };
@@ -1395,7 +1401,8 @@ export default {
                 forEach (func.inputs, (input, inputName) => {
                     this.framePlayer.shapeProps.animations.push({
                         kind: 'function',
-                        id: id,
+                        id: shortid.generate(),
+                        funcId: funcId,
                         property: inputName,
                         frames: [{
                             frame: 1,
@@ -1407,10 +1414,6 @@ export default {
                             value: input.endValue
                         }]
                     });
-                });
-            } else if (this.functionEditorModal.functionId) {
-                forEach(this.functionEditorModal.args, (value, argName) => {
-                    this.framePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[argName] = value;
                 });
             }
 
@@ -1520,6 +1523,7 @@ export default {
                         this.framePlayer.shapeProps.animations.splice(dstAnimationIdx, 0, deletedAnimations[0]);
 
                         this.updateFramesMatrix();
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         this.$forceUpdate();
                     }
                 } else if (track.kind === 'function-header') {
@@ -1556,6 +1560,7 @@ export default {
 
                     this.framePlayer.shapeProps.functions = newFuncs;
                     this.updateFramesMatrix();
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                     this.$forceUpdate();
                 }
             })

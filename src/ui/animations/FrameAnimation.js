@@ -324,7 +324,7 @@ export function compileAnimations(framePlayer, schemeContainer) {
 
     forEach(framePlayer.shapeProps.animations, animation => {
         if (animation.kind === 'item') {
-            const item = schemeContainer.findItemById(animation.id);
+            const item = schemeContainer.findItemById(animation.itemId);
             if (item) {
                 const propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
                 const itemAnimation = creatObjectFrameAnimation(schemeContainer.editorId, item, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, true);
@@ -333,10 +333,10 @@ export function compileAnimations(framePlayer, schemeContainer) {
                 }
             }
         } else if (animation.kind === 'function') {
-            if (!functionAnimationTracks.hasOwnProperty(animation.id)) {
-                functionAnimationTracks[animation.id] = {};
+            if (!functionAnimationTracks.hasOwnProperty(animation.funcId)) {
+                functionAnimationTracks[animation.funcId] = {};
             }
-            functionAnimationTracks[animation.id][animation.property] = animation;
+            functionAnimationTracks[animation.funcId][animation.property] = animation;
         } else if (animation.kind === 'scheme') {
             const propertyDescriptor = findSchemePropertyDescriptor(animation.property);
             const schemeAnimation = creatObjectFrameAnimation(schemeContainer.editorId, schemeContainer.scheme, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, false);

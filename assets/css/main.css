@@ -354,13 +354,13 @@ ul.tabs li .tab.disabled, ul.tabs li .tab.disabled:hover {
     border: 1px solid var(--accent-strong);
 }
 .btn.btn-secondary, .btn.btn-secondary.disabled:hover {
-    background: var(--faint-strong-down);
-    color: var(--base-weak);
-    border: 1px solid var(--faint-strong-down);
+    background: var(--faint-weak);
+    color: var(--base-strong-up);
+    border: 1px solid var(--faint-strong);
 }
 .btn.btn-secondary:hover {
-    background: var(--faint-strong);
-    color: var(--base-weak);
+    background: var(--faint-weak-down);
+    color: var(--base-strong-up);
     border: 1px solid var(--faint-strong-down);
 }
 .btn.btn-danger, .btn.btn-danger.disabled:hover {

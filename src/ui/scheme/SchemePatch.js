@@ -1453,10 +1453,8 @@ function objectEqualityOperator(a, b) {
         }
 
         for (let key in b) {
-            if (b.hasOwnProperty(key)) {
-                if (!a.hasOwnProperty(key)) {
-                    return false;
-                }
+            if (b.hasOwnProperty(key) && !a.hasOwnProperty(key)) {
+                return false;
             }
         }
 

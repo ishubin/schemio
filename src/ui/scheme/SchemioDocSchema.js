@@ -198,6 +198,7 @@ function createFieldSchemaForArg(argDef) {
     if (argDef.type === 'animations') {
         schema = {type: 'array', patching: ['patch-id-array'], fields: {
             kind    : {type: 'string', patching: ['replace'] },
+            itemId  : {type: 'string', patching: ['replace'] },
             property: {type: 'string', patching: ['replace'] },
             frames  : {type: 'array', patching: ['patch-array'], fields: {
                 frame: {type: 'number', min: 0 },

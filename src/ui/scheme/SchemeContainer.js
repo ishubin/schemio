@@ -2073,7 +2073,7 @@ class SchemeContainer {
             if (item.shape === 'frame_player') {
                 forEach(item.shapeProps.animations, animation => {
                     if (animation.kind === 'item') {
-                        animation.id = idsMapping.get(animation.id);
+                        animation.itemId = idsMapping.get(animation.itemId);
                     }
                 });
                 forEach(item.shapeProps.functions, animationFunction => {

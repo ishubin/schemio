@@ -1,0 +1,89 @@
+{
+    "name": "frame player scheme",
+    "description": "",
+    "items": [{
+        "textSlots": {
+            "title": {
+                "text": "<b>Frame Player</b>",
+                "color": "#000000",
+                "fontSize": 14,
+                "halign": "center",
+                "valign": "middle",
+                "whiteSpace": "normal",
+                "font": "Arial",
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0
+            }
+        },
+        "shape": "frame_player",
+        "cursor": "default",
+        "area": {
+            "x": 1080,
+            "y": 242,
+            "w": 115,
+            "h": 82,
+            "r": 0,
+            "px": 0.5,
+            "py": 0.5,
+            "sx": 1,
+            "sy": 1
+        },
+        "opacity": 100,
+        "blendMode": "normal",
+        "name": "Frame Player",
+        "description": "",
+        "links": [],
+        "behavior": {
+            "events": []
+        },
+        "shapeProps": {
+            "totalFrames": 5,
+            "fps": 1,
+            "fillColor": "rgba(220, 220, 220, 1.0)",
+            "hoverFillColor": "rgba(190, 190, 190, 1.0)",
+            "strokeColor": "rgba(30,30,30,1.0)",
+            "animations": [ {
+                "kind": "item",
+                "id": "wet2352werw",
+                "itemId": "WUycjHSk6",
+                "property": "area.x",
+                "frames": [ {
+                    "frame": 1,
+                    "value": 1174.1,
+                    "kind": "linear"
+                }, {
+                    "frame": 3,
+                    "value": 1216.3,
+                    "kind": "linear"
+                } ]
+            }, {
+                "kind": "item",
+                "id": "vewtw4",
+                "itemId": "WUycjHSk6",
+                "property": "area.y",
+                "frames": [ {
+                    "frame": 1,
+                    "value": 152.3,
+                    "kind": "linear"
+                }, {
+                    "frame": 3,
+                    "value": 156.4,
+                    "kind": "linear"
+                } ]
+            } ],
+            "functions": {},
+            "sections": []
+        },
+        "selfOpacity": 100,
+        "visible": true,
+        "tags": [],
+        "clip": false,
+        "effects": [],
+        "interactionMode": "tooltip",
+        "tooltipBackground": "rgba(230,230,230,1.0)",
+        "tooltipColor": "rgba(30,30,30,1.0)",
+        "id": "TNrdJ9bqq"
+    } ]
+}
