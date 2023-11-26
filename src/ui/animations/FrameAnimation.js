@@ -278,8 +278,16 @@ function createFunctionFrameAnimation(functionDescriptor, instance, inputTracks,
 
 function compileAnimationFunctions(framePlayer, functionAnimationTracks, schemeContainer) {
     const animations = [];
-    forEach(framePlayer.shapeProps.functions, (framePlayerFunction, playerFunctionId) => {
-        if (!functionAnimationTracks[playerFunctionId]) {
+    forEach(framePlayer.shapeProps.animations, (animationTrack) => {
+        if (animationTrack.kind !== 'function' || !animationTrack.funcId) {
+            return;
+        }
+        const framePlayerFunction = framePlayer.shapeProps.functions[animationTrack.funcId];
+        if (!framePlayerFunction) {
+            return;
+        }
+
+        if (!functionAnimationTracks[animationTrack.funcId]) {
             return;
         }
 
@@ -292,12 +300,12 @@ function compileAnimationFunctions(framePlayer, functionAnimationTracks, schemeC
 
         // making sure that all inputs have at least one frame
         forEach(functionDescriptor.inputs, (inputDescriptor, inputName) => {
-            if (functionAnimationTracks[playerFunctionId][inputName]) {
-                inputTracks[inputName] = functionAnimationTracks[playerFunctionId][inputName];
+            if (functionAnimationTracks[animationTrack.funcId][inputName]) {
+                inputTracks[inputName] = functionAnimationTracks[animationTrack.funcId][inputName];
             } else {
                 inputTracks[inputName] = {
                     kind      : 'function',
-                    functionId: playerFunctionId,
+                    functionId: animationTrack.funcId,
                     property  : inputName,
                     frames    : [{
                         frame: 0,

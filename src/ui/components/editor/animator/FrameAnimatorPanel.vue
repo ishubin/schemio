@@ -1361,14 +1361,14 @@ export default {
         },
 
         toggleEditFunctionArgumentsForTrack(track) {
-            const func = this.framePlayer.shapeProps.functions[track.id];
+            const func = this.framePlayer.shapeProps.functions[track.funcId];
             if (!func) {
                 return null;
             }
 
             this.functionEditorModal.funcName = track.functionId;
             this.functionEditorModal.functionDescription = AnimationFunctions[func.functionId];
-            this.functionEditorModal.functionId = track.id;
+            this.functionEditorModal.functionId = track.funcId;
             this.functionEditorModal.args = func.args;
             this.functionEditorModal.isAdding = false;
 
@@ -1379,8 +1379,10 @@ export default {
 
         onFunctionModalArgumentChanged(name, value) {
             this.functionEditorModal.args[name] = value;
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-            this.framePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[name] = value;
+            if (this.functionEditorModal.functionId) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                this.framePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[name] = value;
+            }
             this.compileAnimations();
         },
 
@@ -1415,6 +1417,7 @@ export default {
                         }]
                     });
                 });
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             }
 
             this.updateFramesMatrix();
