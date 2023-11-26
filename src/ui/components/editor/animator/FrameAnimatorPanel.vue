@@ -398,8 +398,6 @@ export default {
                 kind: null,
                 text: 'Drag it',
                 dstTrackIdx: -1,
-                dstFuncId: null,
-                dstFuncDropBefore: false,
                 dropHead: false
             },
 
@@ -649,36 +647,39 @@ export default {
 
         buildFunctionTracks() {
             const tracks = [];
-            forEach(this.framePlayer.shapeProps.functions, (func, id) => {
+            forEach(this.framePlayer.shapeProps.animations, animation => {
+                if (animation.kind !== 'function') {
+                    return;
+                }
+
+                const func = this.framePlayer.shapeProps.functions[animation.funcId];
+                if (!func) {
+                    return;
+                }
+
                 const functionDescription = AnimationFunctions[func.functionId];
                 if (!functionDescription) {
                     return;
                 }
 
                 tracks.push({
-                    kind: 'function-header',
-                    id  : id,
-                    name: functionDescription.getFullName(func.args, this.schemeContainer),
+                    kind  : 'function-header',
+                    id    : animation.id,
+                    funcId: animation.funcId,
+                    name  : functionDescription.getFullName(func.args, this.schemeContainer),
                 });
 
-                // OPTIMIZE frame player function track search
-                // not the most efficient code, every time we search the entire list all over again
-                // but it's fine since there is not going to be that many functions and animation tracks in a single frame player
-                forEach(this.framePlayer.shapeProps.animations, animation => {
-                    if (animation.kind === 'function' && animation.funcId === id) {
-                        const propertyDescriptor = functionDescription.inputs[animation.property];
-                        if (!propertyDescriptor) {
-                            return;
-                        }
-                        tracks.push({
-                            kind    : 'function',
-                            id      : animation.id,
-                            funcId  : animation.funcId,
-                            property: animation.property,
-                            frames  : this.fillMatrixFrames(animation.frames, 'number'),
-                            propertyDescriptor,
-                        });
-                    }
+                const propertyDescriptor = functionDescription.inputs[animation.property];
+                if (!propertyDescriptor) {
+                    return;
+                }
+                tracks.push({
+                    kind    : 'function',
+                    id      : animation.id,
+                    funcId  : animation.funcId,
+                    property: animation.property,
+                    frames  : this.fillMatrixFrames(animation.frames, 'number'),
+                    propertyDescriptor,
                 });
             });
             return tracks;
@@ -799,8 +800,8 @@ export default {
         removeAnimationTrack(track) {
             if (track.kind === 'function-header') {
                 // should remove function and all its assosiated property tracks
-                if (this.framePlayer.shapeProps.functions.hasOwnProperty(track.id)) {
-                    delete this.framePlayer.shapeProps.functions[track.id];
+                if (this.framePlayer.shapeProps.functions.hasOwnProperty(track.funcId)) {
+                    delete this.framePlayer.shapeProps.functions[track.funcId];
                 }
 
                 const animations = this.framePlayer.shapeProps.animations;
@@ -810,7 +811,6 @@ export default {
                         i = i - 1;
                     }
                 }
-
                 this.updateFramesMatrix();
             } else if (track.kind === 'item') {
                 const idx = this.findAnimationIndexForTrack(track);
@@ -1463,12 +1463,8 @@ export default {
                     this.trackDrag.dropHead = false;
                     if (dstTrack.kind === 'function-header' && dstTrack.id !== track.id) {
                         this.trackDrag.dstTrackIdx = dstTrackIdx - 1;
-                        this.trackDrag.dstFuncId = dstTrack.id;
-                        this.trackDrag.dstFuncDropBefore = true;
 
                     } else if (dstTrack.kind === 'function' && dstTrack.id !== track.id) {
-                        this.trackDrag.dstFuncId = dstTrack.id;
-                        this.trackDrag.dstFuncDropBefore = false;
                         let found = false;
                         let i = dstTrackIdx + 1;
                         for (; i < this.framesMatrix.length && !found; i++) {
@@ -1483,7 +1479,6 @@ export default {
                         }
                     } else {
                         this.trackDrag.dstTrackIdx = -1;
-                        this.trackDrag.dstFuncId = null;
                     }
                 }
             };
@@ -1496,7 +1491,6 @@ export default {
             .onDragStart(() => {
                 this.trackDrag.srcTrackIdx = trackIdx;
                 this.trackDrag.kind = track.kind;
-                this.trackDrag.dstFuncId = null;
                 this.trackDrag.on = true;
                 if (track.kind === 'item') {
                     this.trackDrag.text = track.itemName + ' ' + track.property;
@@ -1527,38 +1521,52 @@ export default {
                         this.$forceUpdate();
                     }
                 } else if (track.kind === 'function-header') {
-                    if (!this.trackDrag.dstFuncId) {
+                    const dstMatrixTrack = this.framesMatrix[this.trackDrag.dstTrackIdx];
+                    if (!dstMatrixTrack) {
                         return;
                     }
 
-                    const funcIds = [];
-                    let dropIdx = -1;
-                    forEach(this.framePlayer.shapeProps.functions, (func, funcId) => {
-                        if (track.id !== funcId) {
-                            funcIds.push(funcId);
-                        }
-                        if (this.trackDrag.dstFuncId === funcId) {
-                            if (this.trackDrag.dstFuncDropBefore) {
-                                dropIdx = funcIds.length - 1;
+                    let dstIdx = -1;
+                    let dropAbove = false;
+
+                    if (dstMatrixTrack.kind !== 'function' && dstMatrixTrack.kind !== 'function-header') {
+                        dstIdx = 0;
+                        dropAbove = true;
+                    }
+
+                    const regularAnimations = [];
+                    const functionAnimations = [];
+
+                    let srcAnimation = null;
+
+                    forEach(this.framePlayer.shapeProps.animations, animation => {
+                        if (animation.kind === 'function') {
+                            if (animation.id !== track.id) {
+                                functionAnimations.push(animation);
+                                if (animation.id === dstMatrixTrack.id) {
+                                    dstIdx = functionAnimations.length - 1;
+                                    dropAbove = false;
+                                }
                             } else {
-                                dropIdx = funcIds.length;
+                                srcAnimation = animation;
                             }
+                        } else {
+                            regularAnimations.push(animation);
                         }
-
                     });
 
-                    if (dropIdx < 0) {
+                    if (!srcAnimation || dstIdx < 0) {
                         return;
                     }
 
-                    funcIds.splice(dropIdx, 0, track.id);
+                    if (dropAbove) {
+                        functionAnimations.splice(dstIdx, 0, srcAnimation);
+                    } else {
+                        functionAnimations.splice(dstIdx + 1, 0, srcAnimation);
+                    }
 
-                    const newFuncs = {};
-                    funcIds.forEach(id => {
-                        newFuncs[id] = this.framePlayer.shapeProps.functions[id];
-                    });
+                    this.framePlayer.shapeProps.animations = regularAnimations.concat(functionAnimations);
 
-                    this.framePlayer.shapeProps.functions = newFuncs;
                     this.updateFramesMatrix();
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                     this.$forceUpdate();

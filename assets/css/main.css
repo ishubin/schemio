@@ -2852,6 +2852,10 @@ table.frame-animator-matrix td.frame .empty-frame-number {
 table.frame-animator-matrix td.frame.drop-candidate {
     background: var(--critic-weak-down);
 }
+table.frame-animator-matrix thead tr.drop-above th,
+table.frame-animator-matrix tbody tr.drop-above td {
+    border-top: 1px solid var(--accent-strong);
+}
 table.frame-animator-matrix thead tr.drop-below th,
 table.frame-animator-matrix tbody tr.drop-below td {
     border-bottom: 1px solid var(--accent-strong);
