@@ -289,10 +289,10 @@ export const patchTestData = [{
                     name: 'item5'
                 }
             },{
-                id: 'qwe4',
+                id: 'qwe3',
                 op: 'reorder',
                 parentId: null,
-                sortOrder: 2
+                sortOrder: 3
             } ]
         }],
     },
@@ -305,7 +305,7 @@ export const patchTestData = [{
             added: {count: 1, items: ['qwe5']},
             deleted: {count: 1, items: ['qwe2']},
             modified: {count: 1, items: [{
-                id: 'qwe4',
+                id: 'qwe3',
                 fields: [ ]
             }]},
         }
@@ -627,6 +627,67 @@ export const patchTestData = [{
         }
     }
 }, {
+    name: 'items reorder',
+    origin: {
+        items: [{
+            id: 'it_1', name: 'it_1'
+        }, {
+            id: 'it_2', name: 'it_2'
+        }, {
+            id: 'it_3', name: 'it_3'
+        }, {
+            id: 'that_1', name: 'that_1'
+        }, {
+            id: 'that_2', name: 'that_2'
+        }, {
+            id: 'another_1', name: 'another_1'
+        }]
+    },
+    modified: {
+        items: [{
+            id: 'that_1', name: 'that_1'
+        }, {
+            id: 'that_2', name: 'that_2'
+        }, {
+            id: 'it_1', name: 'it_1'
+        }, {
+            id: 'it_2', name: 'it_2'
+        }, {
+            id: 'it_3', name: 'it_3'
+        }, {
+            id: 'another_1', name: 'another_1'
+        }]
+    },
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [ {
+                id: 'that_1',
+                op: 'reorder',
+                sortOrder: 0,
+                parentId: null
+            }, {
+                id: 'that_2',
+                op: 'reorder',
+                sortOrder: 1,
+                parentId: null
+            } ]
+        }],
+    },
+    stats: {
+        "document": {"fieldChanges": 0, "fields": []},
+        "items": {
+            "added": {"count": 0, "items": []},
+            "deleted": {"count": 0, "items": []},
+            "modified": {"count": 2, "items": [{fields: [], id: 'that_1'}, {fields: [], id: 'that_2'}]}
+        }
+    }
+
+}, {
     name: 'behavior events addition, deletion, reorder and modification',
     origin: {
         items: [
@@ -669,12 +730,9 @@ export const patchTestData = [{
                         id: 'e1',
                         op: 'delete',
                     }, {
-                        id: 'e3',
-                        op: 'reorder',
-                        sortOrder: 0
-                    }, {
                         id: 'e5',
                         op: 'add',
+                        parentId: null,
                         sortOrder: 3,
                         value: { id: 'e5', event: 'custom event', actions: []}
                     }, {
@@ -685,6 +743,11 @@ export const patchTestData = [{
                             op: 'replace',
                             value: 'click'
                         }]
+                    }, {
+                        id: 'e2',
+                        op: 'reorder',
+                        parentId: null,
+                        sortOrder: 1
                     }]
                 }]
             } ]
@@ -695,7 +758,7 @@ export const patchTestData = [{
         "items": {
             "added": {"count": 0, "items": []},
             "deleted": {"count": 0, "items": []},
-            "modified": {"count": 4, "items": [{"fields": ["behavior.events.e1", "behavior.events.e3", "behavior.events.e5", "behavior.events.e4.event"], "id": "qwe1"}]}
+            "modified": {"count": 4, "items": [{"fields": ["behavior.events.e1", "behavior.events.e5", "behavior.events.e4.event", "behavior.events.e2"], "id": "qwe1"}]}
         }
     }
 }, {
@@ -807,13 +870,10 @@ export const patchTestData = [{
                                 id: 'a2',
                                 op: 'delete'
                             }, {
-                                id: 'a3',
-                                op: 'reorder',
-                                sortOrder: 0
-                            }, {
                                 id: 'a5',
                                 op: 'add',
                                 sortOrder: 3,
+                                parentId: null,
                                 value: {
                                     id: 'a5',
                                     element: 'self',
@@ -832,6 +892,11 @@ export const patchTestData = [{
                                     op: 'replace',
                                     value: '#000'
                                 }]
+                            }, {
+                                id: 'a1',
+                                op: 'reorder',
+                                parentId: null,
+                                sortOrder: 1
                             }]
                         }]
                     }]
@@ -844,7 +909,7 @@ export const patchTestData = [{
         "items": {
             "added": {"count": 0, "items": []},
             "deleted": {"count": 0, "items": []},
-            "modified": {"count": 5, "items": [{"fields": ["behavior.events.e1.actions.a2", "behavior.events.e1.actions.a3", "behavior.events.e1.actions.a5", "behavior.events.e1.actions.a4.element", "behavior.events.e1.actions.a4.args.value"], "id": "qwe1"}]}
+            "modified": {"count": 5, "items": [{"fields": ["behavior.events.e1.actions.a2", "behavior.events.e1.actions.a5", "behavior.events.e1.actions.a4.element", "behavior.events.e1.actions.a4.args.value", "behavior.events.e1.actions.a1"], "id": "qwe1"}]}
         }
     }
 }, {
@@ -940,12 +1005,9 @@ export const patchTestData = [{
                         id: 'e2',
                         op: 'delete',
                     }, {
-                        id: 'e4',
-                        op: 'reorder',
-                        sortOrder: 1
-                    }, {
                         id: 'e5',
                         op: 'add',
+                        parentId: null,
                         sortOrder: 3,
                         value: { id: 'e5', effect: 'blur', name: 'Blur', args: { size: 50} }
                     }, {
@@ -968,6 +1030,11 @@ export const patchTestData = [{
                             op: 'replace',
                             value: true
                         }]
+                    }, {
+                        id: 'e3',
+                        op: 'reorder',
+                        parentId: null,
+                        sortOrder: 2
                     }]
                 }]
             } ]
@@ -978,7 +1045,7 @@ export const patchTestData = [{
         "items": {
             "added": {"count": 0, "items": []},
             "deleted": {"count": 0, "items": []},
-            "modified": {"count": 7, "items": [{"fields": ["effects.e2", "effects.e4", "effects.e5", "effects.e3.name", "effects.e3.args.color", "effects.e3.args.dx", "effects.e3.args.inside"], "id": "qwe1"}]}
+            "modified": {"count": 7, "items": [{"fields": ["effects.e2", "effects.e5", "effects.e3.name", "effects.e3.args.color", "effects.e3.args.dx", "effects.e3.args.inside", "effects.e3"], "id": "qwe1"}]}
         }
     }
 }, {

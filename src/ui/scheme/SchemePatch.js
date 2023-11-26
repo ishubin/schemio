@@ -4,98 +4,275 @@ import { fieldTypeMatchesSchema, getSchemioDocSchema } from "./SchemioDocSchema"
 import { tokenizeText } from "./tokenize";
 
 
-// Test Case: Adding, deleting and changing order (delete a2, move a3 to pos 0, add a10 at pos 4, move a8 to pos 5)
-//
-// old: a1, a2, a3, a4, a5, a6, a7, a8, a9
-// new: a3, a1, a4, a5, a10, a6, a8, a7, a9
-//
-// expected result:
-//   - delete a2
-//   - add a10 at pos 4
-//   - move a3 to pos 0
-//   - move a8 to pos 6
-//
-// STEP 1: first find all deleted items
-// - a2 old_pos = 1
-//
-// STEP 2: find all added items
-// - a10 new_pos = 4
-//
-// STEP 3: Create a list of old items without deleted ones
-// a1, a3, a4, a5, a6, a6, a8, a9
-//
-//
-// STEP 4: Add new items to the list above
-// a1, a3, a4, a5, a10, a6, a7, a8, a9
-//
-// STEP 5: now index new list and compare it with the new list.
-// old: a1, a3, a4, a5, a10, a6, a7, a8, a9
-// new: a3, a1, a4, a5, a10, a6, a8, a7, a9
-// - a1:  old_prev = null, new_prev = a3,   old_pos = 0, new_pos = 1
-// - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
-// - a4:  old_prev = a3,   new_prev = a3,   old_pos = 2, new_pos = 2
-// - a5:  old_prev = a4,   new_prev = a4,   old_pos = 3, new_pos = 3
-// - a10: old_prev = a5,   new_prev = a5,   old_pos = 4, new_pos = 4
-// - a6:  old_prev = a10,  new_prev = a10,  old_pos = 5, new_pos = 5
-// - a7:  old_prev = a6,   new_prev = a8,   old_pos = 6, new_pos = 7
-// - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
-// - a9:  old_prev = a8,   new_prev = a7,   old_pos = 8, new_pos = 8
-//
-// STEP 6: filtering by old_prev != new_prev and old_pos != new_pos
-// - a1:  old_prev = null, new_prev = a3,   old_pos = 0, new_pos = 1
-// - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
-// - a7:  old_prev = a6,   new_prev = a8,   old_pos = 6, new_pos = 7
-// - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
-//
-// STEP 7: sorting by new_pos ascending
-// - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
-// - a1:  old_prev = null, new_prev = a3,   old_pos = 0, new_pos = 1
-// - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
-// - a7:  old_prev = a6,   new_prev = a8,   old_pos = 6, new_pos = 7
-//
-// STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition
-// when old_pos[i] == new_pos[i-1] and new_pos[i] = old_pos[i] + 1
-// - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
-// - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
-//
-// Result:
-// - Delete a2
-// - Add a10 at pos 4
-// - Move a3 to pos 0
-// - Move a8 to pos 6
+/*
+
+This comment section explains how th algorithm detects the optimal set
+of reorder operations to bring the origin list to the same order as modified list
 
 
-// Test Case 2: Moving item from further range (a7 move in front of a3)
-//
-// old: a1, a2, a3, a4, a5, a6, a7, a8, a9
-// new: a1, a2, a7, a3, a4, a5, a6, a8, a9
-//
-// STEPS 1-4 we can skip since nothing was deleted or added
-//
-// STEP 5:
-// a1: old_prev = null, new_prev = null, old_pos = 0, new_pos = 0
-// a2: old_prev = a1,   new_prev = a1,   old_pos = 1, new_pos = 1
-// a3: old_prev = a2,   new_prev = a7,   old_pos = 2, new_pos = 3
-// a4: old_prev = a3,   new_prev = a3,   old_pos = 3, new_pos = 4
-// a5: old_prev = a4,   new_prev = a4,   old_pos = 4, new_pos = 5
-// a6: old_prev = a5,   new_prev = a5,   old_pos = 5, new_pos = 6
-// a7: old_prev = a6,   new_prev = a2,   old_pos = 6, new_pos = 2
-// a8: old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 7
-// a9: old_prev = a8,   new_prev = a8,   old_pos = 8, new_pos = 8
-//
-// STEP 6: filtering by (old_prev != new_prev and old_pos != new_pos)
-// a3: old_prev = a2,   new_prev = a7,   old_pos = 2, new_pos = 3
-// a7: old_prev = a6,   new_prev = a2,   old_pos = 6, new_pos = 2
-//
-// STEP 7: sorting by new_pos ascending
-// a7: old_prev = a6,   new_prev = a2,   old_pos = 6, new_pos = 2
-// a3: old_prev = a2,   new_prev = a7,   old_pos = 2, new_pos = 3
-//
-// STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition
-//         when old_pos[i] == new_pos[i-1] and new_pos[i] = old_pos[i] + 1
-// - a7: old_prev = a6,   new_prev = a2,   old_pos = 6, new_pos = 2
-//
-// Result: only single record of moving item a7 to position 2
+CASE 1: Moving a small batch of items
+    Old  New
+    a1   b1
+    a2   b2
+    b1   b3
+    b2   a1
+    b3   a2
+    c1   c1
+
+    Reconstructing the sequence of changes based on the old positions:
+        a1   b1    a1|        *
+        a2   b2      | a2|    |   *
+        b1   b3      |   |  b1|   |   *
+        b2   a1      *   |      b2|   |
+        b3   a2          *          b3|
+        c1   c1                         c1
+
+    Noting the changes:
+        a1 3↓
+        a2 3↓
+        b1 2↑
+        b2 2↑
+        b3 2↑
+
+    Sorting all the changes by number of moves. In this case the array stays the same
+
+    The resulting patch should include:
+        a1 3↓
+        a2 3↓
+
+
+CASE 2: Moving another batch of items
+    Old  New
+    a1   b1
+    a2   b2
+    a3   a1
+    b1   a2
+    b2   a3
+    c1   c1
+
+    Reconstructing the sequence of changes based on the old positions:
+    0  a1   b1   a1|              *
+    1  a2   b2     |  a2|         |    *
+    2  a3   a1     *    |  a3|    |    |
+    3  b1   a2          *    |  b1|    |
+    4  b2   a3               *       b2|
+    5  c1   c1                           c1
+
+    Noting the changes
+        a1 2↓ from 0 to 3
+        a2 2↓ from 1 to 4
+        a3 2↓ from 2 to 5
+        b1 3↑ from 3 to 0
+        b2 3↑ from 4 to 1
+
+    Sorting changes first by distance, then by from position:
+        b1 3↑ from 3 to 0
+        b2 3↑ from 4 to 1
+        a1 2↓ from 0 to 3
+        a2 2↓ from 1 to 4
+        a3 2↓ from 2 to 5
+
+    Executing changes one at a time and checking whether next change is needed
+        b1 3↑ from 3 to 0 - valid change
+               old curr dst
+            0  a1  b1  b1
+            1  a2  a1  b2
+            2  a3  a2  a1
+            3  b1  a3  a2
+            4  b2  b2  a3
+            5  c1  c1  c1
+
+        b2 3↑ from 4 to 1 - valid change
+               old curr dst
+            0  a1  b1  b1
+            1  a2  b2  b2
+            2  a3  a1  a1
+            3  b1  a2  a2
+            4  b2  a3  a3
+            5  c1  c1  c1
+
+        a1 2↓ from 0 to 3 - discarded as the element is in the right place already
+        a2 2↓ from 1 to 4 - dscarded
+        a3 2↓ from 2 to 5 - discarded
+
+CASE 3: Overlapping reorder
+    Old New
+    0  a  b
+    1  b  g
+    2  c  c
+    3  d  d
+    4  e  e
+    5  f  a
+    6  g  f
+    7  h  h
+
+    Reconstructing the sequence of changes based on the old positions:
+        0   a  b     a|   *
+        1   b  g      |  b|               *
+        2   c  c      |     c             |
+        3   d  d      |        d          |
+        4   e  e      |           e       |
+        5   f  a      *              f|   |
+        6   g  f                      *  g|
+        7   h  h                            h
+
+    Noting the changes
+        a 5↓ from 0 to 5
+        b 1↑ from 1 to 0
+        f 1↓ from 5 to 6
+        g 5↑ from 6 to 1
+
+    sorting the changes first by distance then by from position
+        a 5↓ from 0 to 5
+        g 5↑ from 6 to 1
+        b 1↑ from 1 to 0
+        f 1↓ from 5 to 6
+
+    executing every change from top to bottom and checking which changes are not needed anymore and which need to be adjusted
+        a 5↓ from 0 to 5
+               old  curr dst
+            0  a    b    b
+            1  b    c    g
+            2  c    d    c
+            3  d    e    d
+            4  e    f    e
+            5  f    a    a
+            6  g    g    f
+            7  h    h    h
+
+        g 5↑ from 6 to 1 - g in the same position as in old so distance stays the same and the change is valid:
+               old  curr  dst
+            0  a    b    b
+            1  b    g    h
+            2  c    c    c
+            3  d    d    d
+            4  e    e    e
+            5  f    f    a
+            6  g    a    f
+            7  h    h    h
+
+        b 1↑ from 1 to 0 - change is discarded as b is already in the right due to previous changes
+
+
+        f 1↓ from 5 to 6 - change is valid. f is at pos 5 and by moving it by 1 pos we arrange all the symbols as it is supposed to be
+               old  curr  dst
+            0  a    b    b
+            1  b    g    h
+            2  c    c    c
+            3  d    d    d
+            4  e    e    e
+            5  f    a    a
+            6  g    f    f
+            7  h    h    h
+
+
+
+CASE 4: Deletion and reorder
+
+       old  new (deleted d, and moved g in front of b)
+    0  a    a
+    1  b    g
+    2  c    b
+    3  d    c
+    4  e    e
+    5  f    f
+    6  g
+
+    first we align the list by removing the d element
+           old  dst
+        0  a    a
+        1  b    g
+        2  c    b
+        3  e    c
+        4  f    e
+        5  g    f
+
+
+    Reconstructing the sequence of changes based on the old positions:
+           old  dst
+        0  a    a    a
+        1  b    g      b|               *
+        2  c    b       *  c|           |
+        3  e    c           *  e|       |
+        4  f    e               *  f|   |
+        5  g    f                   *  g|
+
+    Noting the changes
+        b 1↓ from 1 to 2
+        c 1↓ from 2 to 3
+        e 1↓ from 3 to 4
+        f 1↓ from 4 to 5
+        g 4↑ from 5 to 1
+
+    Sorting by distance
+        g 4↑ from 5 to 1    <- this is the only valid change,
+        b 1↓ from 1 to 2       once it is done the other changes can be discarded
+        c 1↓ from 2 to 3       as all elements will be in the right positions
+        e 1↓ from 3 to 4
+        f 1↓ from 4 to 5
+
+
+CASE 5: complete shuffle, e.g. reverse
+       old new
+    0  a   e
+    1  b   d
+    2  c   c
+    3  d   b
+    4  e   a
+
+    Reconstructing the sequence of changes based on the old positions:
+           old dst
+        0  a   e     a|               *
+        1  b   d      |   b|      *   |
+        2  c   c      |    |  c   |   |
+        3  d   b      |    *     d|   |
+        4  e   a      *              e|
+
+    Noting the changes
+        a 4↓ from 0 to 4
+        b 2↓ from 1 to 3
+        d 2↑ from 3 to 1
+        e 4↑ from 4 to 0
+
+    Sort by distance
+        a 4↓ from 0 to 4
+        e 4↑ from 4 to 0
+        b 2↓ from 1 to 3
+        d 2↑ from 3 to 1
+
+    Iterating through every change and testing it on old array
+        a 4↓ from 0 to 4
+               old cur dst
+            0  a   b   e
+            1  b   c   d
+            2  c   d   c
+            3  d   e   b
+            4  e   a   a
+
+        e 4↑ from 4 to 0 - almost valid, but it needs to go to by 1 jump less (3↑ from 3 to 0)
+               old cur dst
+            0  a   e   e
+            1  b   b   d
+            2  c   c   c
+            3  d   d   b
+            4  e   a   a
+
+        b 2↓ from 1 to 3 - change is valid
+               old cur dst
+            0  a   e   e
+            1  b   c   d
+            2  c   d   c
+            3  d   b   b
+            4  e   a   a
+
+        d 2↑ from 3 to 1 - change is almost valid, but its jump is reduced by 1 (1↑ from 2 to 1)
+               old cur dst
+            0  a   e   e
+            1  b   d   d
+            2  c   c   c
+            3  d   b   b
+            4  e   a   a
+*/
 
 
 class SchemaIndexNode {
@@ -153,13 +330,20 @@ function traverseItems(items, childrenField, callback) {
     _traverseItems(items, childrenField, null, callback);
 }
 function _traverseItems(items, childrenField, parentItem, callback) {
-    let previousItem = null;
     forEach(items, (item, i) => {
-        callback(item, parentItem, previousItem, i);
+        callback(item, parentItem, i);
         if (childrenField && item[childrenField]) {
             _traverseItems(item[childrenField], childrenField, item, callback);
         }
-        previousItem = item;
+    });
+}
+
+function traverseItemsLowestFirst(items, childrenField, parentItem, callback) {
+    forEach(items, (item, i) => {
+        if (childrenField && item[childrenField]) {
+            _traverseItems(item[childrenField], childrenField, item, callback);
+        }
+        callback(item, parentItem, i);
     });
 }
 
@@ -200,28 +384,18 @@ function generateSetPatchOperations(originArr, modArr) {
  *
  * @param {Array} items
  * @param {String} childrenField name of the field that is used to store nested objects of the same structure
- * @returns {Map}
+ * @returns {Map<String, Object>}
  */
 function indexIdArray(items, childrenField) {
     const index = new Map();
 
-    traverseItems(items, childrenField, (item, parentItem, previousItem, sortOrder) => {
-        let parentId = null;
-        if (parentItem) {
-            parentId = parentItem.id;
-        }
-
-        index.set(item.id, {
-            id: item.id,
-            item,
-            parentId,
-            previousId: previousItem ? previousItem.id : null,
-            sortOrder,
-        });
+    traverseItems(items, childrenField, (item, parentItem, sortOrder) => {
+        const parentId = parentItem ? parentItem.id : null;
+        index.set(item.id, {item, parentId, sortOrder});
     });
-
     return index;
 }
+
 
 /**
  *
@@ -239,16 +413,22 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
     const originIndex = indexIdArray(originItems, patchSchemaEntry.childrenField);
     const modIndex = indexIdArray(modifiedItems, patchSchemaEntry.childrenField);
 
-    const deleteOperations = [];
+    let operations = [];
 
-    const scopedOperations = new Map();
-    const registerScopedOperation = (parentId, op) => {
-        if (!scopedOperations.has(parentId)) {
-            scopedOperations.set(parentId, []);
+    const deletedItemIds = new Set();
+
+    traverseItemsLowestFirst(originItems, patchSchemaEntry.childrenField, null, (item) => {
+        if (!modIndex.has(item.id)) {
+            operations.push({
+                id: item.id,
+                op: 'delete'
+            });
+            deletedItemIds.add(item.id);
         }
-        scopedOperations.get(parentId).push(op);
-    };
+    });
 
+    // then it needs to detect additions or remounts as the sortOrder field in reported additions
+    // is relative to the old items after the deletions applied
     const cloneWithoutChildren = (item) => {
         const newItem = {};
         for(let key in item) {
@@ -259,180 +439,165 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
         return newItem;
     };
 
-    // key - parentId, value = Array of added items in that parent scope
-    const addedItemsInScope = new Map();
-
-    // searching for added items
     modIndex.forEach((itemEntry, itemId) => {
         const originEntry = originIndex.get(itemId);
-        if (!originEntry || originEntry.parentId !== itemEntry.parentId) {
-
-            if (!addedItemsInScope.has(itemEntry.parentId)) {
-                addedItemsInScope.set(itemEntry.parentId, []);
-            }
-
-            // faking that this item was added
-            // so that we can use it for sortOrder compensation later
-            addedItemsInScope.get(itemEntry.parentId).push(itemEntry);
-
-            // but we don't want to report it as added item
-            if (!originEntry) {
-                registerScopedOperation(itemEntry.parentId, {
-                    id: itemId,
-                    op: 'add',
-                    value: cloneWithoutChildren(itemEntry.item),
-                    parentId: itemEntry.parentId,
-                    sortOrder: itemEntry.sortOrder,
-                });
-            } else {
-                registerScopedOperation(itemEntry.parentId, {
-                    id: itemId,
-                    op: 'mount',
-                    parentId: itemEntry.parentId,
-                    sortOrder: itemEntry.sortOrder,
-                });
-            }
+        if (!originEntry) {
+            operations.push({
+                id: itemId,
+                op: 'add',
+                value: cloneWithoutChildren(itemEntry.item),
+                parentId: itemEntry.parentId,
+                sortOrder: itemEntry.sortOrder,
+            });
+        } else if (originEntry.parentId !== itemEntry.parentId) {
+            operations.push({
+                id: itemId,
+                op: 'mount',
+                parentId: itemEntry.parentId,
+                sortOrder: itemEntry.sortOrder,
+            });
         }
     });
 
-    const scanThroughArrayOfItems = (items, parentId) => {
-        const entries = [];
+    const scanThroughRemainingItems = (items, callback, parentId) => {
+        callback(items, parentId ? parentId : null);
         for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const itemEntry = originIndex.get(item.id);
-
-            let isItemDeleted = false;
-
-            // ignoring all deleted items
-            if (modIndex.has(item.id)) {
-                const modEntry = modIndex.get(item.id);
-
-                if (modEntry.parentId === itemEntry.parentId) {
-                    entries.push(itemEntry);
-
-                }
-
-                // also checking for field changes for items that were not removed
-                const itemSchema = {type: 'object', patching: ['modify'], fields: patchSchemaEntry.fields};
-                const fieldChanges = generatePatchForObject(item, modEntry.item, itemSchema, []);
-                if (fieldChanges.length > 0) {
-                    registerScopedOperation(item.parentId, {
-                        id     : item.id,
-                        op     : 'modify',
-                        changes: fieldChanges
-                    })
-                }
-            } else {
-                const itemsToDelete = [];
-                traverseItems([item], patchSchemaEntry.childrenField, (item) => {
-                    itemsToDelete.push(item.id);
-                });
-                itemsToDelete.reverse();
-
-                itemsToDelete.forEach(itemId => {
-                    deleteOperations.push({
-                        id: itemId,
-                        op: 'delete'
-                    });
-                    // const originEntry = originIndex.get(itemId);
-                    // registerScopedOperation(originEntry.parentId, {
-                    //     id: itemId,
-                    //     op: 'delete',
-                    //     parentId: originEntry.parentId,
-                    //     sortOrder: originEntry.sortOrder,
-                    // });
-                });
-                // we don't need to perform deep scan as the item is going to be deleted
-                isItemDeleted = true;
-            }
-
-            if (!isItemDeleted && patchSchemaEntry.childrenField && item[patchSchemaEntry.childrenField]) {
-                scanThroughArrayOfItems(item[patchSchemaEntry.childrenField], item.id);
+            if (!deletedItemIds.has(items[i].id) && patchSchemaEntry.childrenField && items[i][patchSchemaEntry.childrenField]) {
+                scanThroughRemainingItems(items[i][patchSchemaEntry.childrenField], callback, items[i].id);
             }
         }
-
-        // STEP 4 adding added items
-        const addedItemEntries = addedItemsInScope.get(parentId);
-        if (addedItemEntries) {
-            forEach(addedItemEntries, itemEntry => {
-                entries.splice(Math.min(itemEntry.sortOrder, entries.length), 0, itemEntry);
-            });
-        }
-        // STEP 5-6: reindexing entries and filtering by old_prev != new_prev and old_pos != new_pos || old_parentId != new_parentId
-        // a1: old_prev = null, new_prev = null, old_pos = 0, new_pos = 0
-        // a2: old_prev = a1,   new_prev = a1,   old_pos = 1, new_pos = 1
-        // a3: old_prev = a2,   new_prev = a7,   old_pos = 2, new_pos = 3
-
-        const filteredEntries = [];
-        for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
-
-            // resetting previousId and sortOrder since it was changed by simulating deletion and additions
-            if (i > 0) {
-                entry.previousId = entries[i-1].item.id;
-            } else {
-                entry.previousId = null;
-            }
-            entry.sortOrder = i;
-
-            const modifiedEntry     = modIndex.get(entry.id);
-            entry.newSortOrder      = modifiedEntry.sortOrder;
-            entry.newParentId       = modifiedEntry.parentId;
-
-            if (entry.previousId !== modifiedEntry.previousId && entry.sortOrder != entry.newSortOrder || entry.parentId !== entry.newParentId) {
-                filteredEntries.push(entry);
-            }
-        }
-
-        // STEP 7: sorting by new_pos ascending
-        filteredEntries.sort((a, b) => a.newSortOrder - b.newSortOrder);
-
-        // STEP 8: iterate through that list and remove items that were moved by the previously inserted element using condition
-        //         when old_pos[i] == new_pos[i-1] and new_pos[i] = old_pos[i] + 1 and the parentId did not change
-
-        for (let i = filteredEntries.length - 1; i > 0; i--) {
-            if (filteredEntries[i].sortOrder === filteredEntries[i-1].newSortOrder && filteredEntries[i].newSortOrder === filteredEntries[i].sortOrder + 1 && filteredEntries[i].parentId === filteredEntries[i].newParentId) {
-                filteredEntries.splice(i, 1);
-            }
-        }
-        // done, now we have our pure sort order changes
-        // - a3:  old_prev = a1,   new_prev = null, old_pos = 1, new_pos = 0
-        // - a8:  old_prev = a7,   new_prev = a6,   old_pos = 7, new_pos = 6
-
-        forEach(filteredEntries, entry => {
-            registerScopedOperation(entry.parentId, {
-                id       : entry.id,
-                op       : 'reorder',
-                parentId : entry.newParentId,
-                sortOrder: entry.newSortOrder
-            });
-        });
     };
 
-    scanThroughArrayOfItems(originItems, null);
-
-    let operations = deleteOperations;
-
-    scopedOperations.forEach(ops => {
-        ops.sort((a, b) => {
-            if (a.op === 'modify') {
-                return 2;
+    // next we are going to detect modifications of items and reorder of items in their parent array
+    scanThroughRemainingItems(originItems, (items, parentId) => {
+        items.forEach(item => {
+            const modEntry = modIndex.get(item.id);
+            if (!modEntry) {
+                // item was deleted
+                return;
             }
-            return a.sortOrder < b.sortOrder ? -1 : 1;
+            // also checking for field changes for items that were not removed
+            const itemSchema = {type: 'object', patching: ['modify'], fields: patchSchemaEntry.fields};
+            const fieldChanges = generatePatchForObject(item, modEntry.item, itemSchema, []);
+            if (fieldChanges.length > 0) {
+                operations.push({
+                    id: item.id,
+                    op: 'modify',
+                    changes: fieldChanges
+                });
+            }
         });
 
-        ops.forEach(op => {
-            // if (op.op === 'delete') {
-            //     delete op.sortOrder;
-            //     delete op.parentId;
-            // }
-
-            if (!patchSchemaEntry.childrenField && op.hasOwnProperty('parentId')) {
-                delete op.parentId;
+        let modItems = null;
+        if (parentId) {
+            const modParentEntry = modIndex.get(parentId);
+            if (modParentEntry && patchSchemaEntry.childrenField) {
+                modItems = modParentEntry.item[patchSchemaEntry.childrenField];
             }
-        })
+        } else {
+            modItems = modifiedItems;
+        }
 
-        operations = operations.concat(ops);
+        if (modItems) {
+            const ops = generateIdArrayReorderOperations(items, modItems).map(op => {
+                return {
+                    ...op,
+                    parentId
+                };
+            })
+            operations = operations.concat(ops);
+        }
+    });
+
+    return operations;
+}
+
+/**
+ *
+ * @param {Array} oldItems
+ * @param {Array} modItems
+ * @returns {Array}
+ */
+function generateIdArrayReorderOperations(oldItems, modItems) {
+    // first align oldItems array so that
+    const createIndex = (items) => {
+        const index = new Map();
+        items.forEach((item, sortOrder) => {
+            index.set(item.id, {item, sortOrder});
+        });
+        return index;
+    }
+    const oldIndex = createIndex(oldItems);
+    const modIndex = createIndex(modItems);
+
+    // creating srcItems which should be aligned with modItems
+    // (should have the same length, deleted items removed and have added items in the same place)
+    const srcItemIds = [];
+    oldItems.forEach(item => {
+        // excluding deleted items from old list
+        if (modIndex.has(item.id)) {
+            srcItemIds.push(item.id);
+        }
+    });
+
+    modItems.forEach((item, idx) => {
+        if (!oldIndex.has(item.id)) {
+            // inserting added items
+            // these are not necessarily added,
+            // they could be items that were remounted from another parent item
+            srcItemIds.splice(idx, 0, item.id);
+        }
+    });
+
+    // constructing the list of all changed item ids
+    const changes = [];
+    srcItemIds.forEach((itemId, idx) => {
+        // we are only looking at items that were present in both arrays originally
+        if (!modIndex.has(itemId) || !oldIndex.has(itemId)) {
+            return;
+        }
+        const dstIdx = modIndex.get(itemId).sortOrder;
+        if (idx !== dstIdx) {
+            changes.push({
+                id      : itemId,
+                steps   : dstIdx - idx,
+                absSteps: Math.abs(dstIdx - idx),
+                from    : idx,
+                to      : dstIdx,
+            });
+        }
+    });
+
+    // sorting all changes based on steps
+    changes.sort((a, b) => {
+        if (a.absSteps === b.absSteps) {
+            return a.from - b.from;
+        } else {
+            return b.absSteps - a.absSteps;
+        }
+    });
+
+    const operations = [];
+
+    changes.forEach(change => {
+        const idx = srcItemIds.indexOf(change.id);
+        if (idx < 0) {
+            return;
+        }
+
+        const modEntry = modIndex.get(change.id);
+        if (!modEntry || modEntry.sortOrder === idx) {
+            return;
+        }
+
+        srcItemIds.splice(idx, 1);
+        srcItemIds.splice(modEntry.sortOrder, 0, change.id);
+
+        operations.push({
+            id: change.id,
+            op: 'reorder',
+            sortOrder: modEntry.sortOrder
+        });
     });
 
     return operations;

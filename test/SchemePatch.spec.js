@@ -151,13 +151,13 @@ describe('SchemePatch.generateSchemePatch', () => {
                 path: ['items'],
                 op: 'patch-id-array',
                 changes: [{
-                    id: 'q1_2', op: 'delete',
-                }, {
-                    id: 'q1_1_2', op: 'delete',
+                    id: 'q1_1', op: 'delete',
                 }, {
                     id: 'q1_1_1', op: 'delete',
                 }, {
-                    id: 'q1_1', op: 'delete',
+                    id: 'q1_1_2', op: 'delete',
+                }, {
+                    id: 'q1_2', op: 'delete',
                 }, {
                     id: 'q1', op: 'delete',
                 }]
@@ -207,11 +207,11 @@ describe('SchemePatch.generateSchemePatch', () => {
                 }, {
                     id: 'q2_1', op: 'add', sortOrder: 0, parentId: 'q2', value: {id: 'q2_1'}
                 }, {
-                    id: 'q2_2', op: 'add', sortOrder: 1, parentId: 'q2', value: {id: 'q2_2'}
-                }, {
                     id: 'q2_1_1', op: 'add', sortOrder: 0, parentId: 'q2_1', value: {id: 'q2_1_1'}
                 }, {
                     id: 'q2_1_2', op: 'add', sortOrder: 1, parentId: 'q2_1', value: {id: 'q2_1_2'}
+                }, {
+                    id: 'q2_2', op: 'add', sortOrder: 1, parentId: 'q2', value: {id: 'q2_2'}
                 }]
             }]
         });

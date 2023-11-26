@@ -19,6 +19,7 @@ import Footer from './app/components/Footer.vue';
 import { fsClientProvider } from './app/client/fsClient';
 import { offlineClientProvider } from './app/client/offlineClient';
 import { Scope, testAST } from './templater/ast';
+import { generateSchemePatch } from './scheme/SchemePatch';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -30,6 +31,7 @@ function route(name, path, component, props) {
     return { name, path, component, props };
 }
 
+window.generateSchemePatch = generateSchemePatch;
 window.testAST = testAST;
 window.testEvalAST = (expr, data) => {
     return testAST(expr).evalNode(new Scope(data));
