@@ -48,14 +48,6 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'patched-scheme-updated', [], affinityId),
     },
 
-    // This is used in order to tell that the document was modified,
-    // but there is no need to push the change into history
-    silentSchemeChangeCommitted: {
-        $on: (editorId, callback) => $on(editorId, 'silent-scheme-change-committed', [], callback),
-        $off: (editorId, callback) => $off(editorId, 'silent-scheme-change-committed', [], callback),
-        $emit: (editorId, affinityId) => $emit(editorId, 'silent-scheme-change-committed', [], affinityId),
-    },
-
     schemeRebased: {
         $on: (editorId, callback) => $on(editorId, 'scheme-rebased', [], callback),
         $off: (editorId, callback) => $off(editorId, 'scheme-rebased', [], callback),

@@ -357,11 +357,13 @@ export default {
         this.compileAnimations();
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
+        EditorEventBus.schemeRebased.$on(this.editorId, this.compileAnimations);
     },
 
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
+        EditorEventBus.schemeRebased.$off(this.editorId, this.compileAnimations);
         this.$emit('recording-state-updated', false);
     },
 

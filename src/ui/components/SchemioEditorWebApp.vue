@@ -134,11 +134,9 @@ export default {
             this.originScheme = utils.clone(this.scheme);
             enrichSchemeWithDefaults(this.originScheme);
         }
-        EditorEventBus.silentSchemeChangeCommitted.$on(this.editorId, this.onSilentSchemeChangeCommitted);
     },
 
     beforeDestroy() {
-        EditorEventBus.silentSchemeChangeCommitted.$off(this.editorId, this.onSilentSchemeChangeCommitted);
     },
 
     created() {
@@ -408,10 +406,6 @@ export default {
             }
 
             this.$emit('scheme-save-requested', scheme, preview);
-        },
-
-        onSilentSchemeChangeCommitted() {
-            this.modified = true;
         },
 
         deleteDiagram() {

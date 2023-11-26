@@ -26,6 +26,13 @@ import { encode } from 'js-base64';
  * @returns {DiagramPictureBox}
  */
 export function prepareDiagramForPictureExport(items) {
+    if (items.length === 0) {
+        return {
+            exportedItems: [],
+            width: 0,
+            height: 0,
+        };
+    }
     const exportedItems = [];
     let minP = null;
     let maxP = null;
