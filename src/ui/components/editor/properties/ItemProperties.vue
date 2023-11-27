@@ -489,6 +489,9 @@ export default {
                 this.item.effects[this.editEffectModal.currentEffectIndex].args[argName] = value;
             }
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
+            if (!this.editEffectModal.isAdding) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
+            }
         },
 
         onEffectNameChanged(name) {
