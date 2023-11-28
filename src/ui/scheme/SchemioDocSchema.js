@@ -131,7 +131,7 @@ const schemaForShapeArgType = {
     'stroke-pattern': {type: 'string', patching: ['replace']},
     'path-cap'      : {type: 'string', patching: ['replace']},
     'scheme-ref'    : {type: 'string', patching: ['replace']},
-    'color-matrix'  : {type: 'array', patching: ['replace']},
+    'color-matrix'  : {type: 'array', of: 'array', patching: ['replace']},
     element         : {type: 'string', patching: ['replace']},
     'crop-area'     : {type: 'object', patching: ['modify'], fields: {
         x: {type: 'number', patching: ['replace']},
@@ -196,11 +196,11 @@ function createFieldSchemaForArg(argDef) {
         }};
     }
     if (argDef.type === 'animations') {
-        schema = {type: 'array', patching: ['patch-id-array'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
             kind    : {type: 'string', patching: ['replace'] },
             itemId  : {type: 'string', patching: ['replace'] },
             property: {type: 'string', patching: ['replace'] },
-            frames  : {type: 'array', patching: ['patch-array'], fields: {
+            frames  : {type: 'array', of: 'object', patching: ['patch-array'], fields: {
                 frame: {type: 'number', min: 0 },
                 kind : {type: 'string' },
                 value: {type: 'any'}
