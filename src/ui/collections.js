@@ -159,9 +159,18 @@ export function findKey(obj, callback) {
  */
 export function indexOf(arr, value) {
     if (!Array.isArray(arr)) {
-        return null;
+        return -1;
     }
-    return arr.indexOf(value);
+    if (typeof value === 'function') {
+        for (let i = 0; i < arr.length; i++) {
+            if (value(arr[i], i)) {
+                return i;
+            }
+        }
+        return -1;
+    } else {
+        return arr.indexOf(value);
+    }
 }
 
 

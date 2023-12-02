@@ -1554,8 +1554,6 @@ export const patchTestData = [{
                 id: "F1M_g-8-n",
                 op: "modify",
                 changes: [ {
-                    path: ["shape"], op: 'replace', value: 'rect'
-                }, {
                     path: [ "shapeProps", "totalFrames" ], op: "delete",
                 }, {
                     path: [ "shapeProps", "fps" ], op: "delete",
@@ -1570,6 +1568,8 @@ export const patchTestData = [{
                 }, {
                     path: [ "shapeProps", "sections" ], op: "delete",
                 }, {
+                    path: ["shape"], op: 'replace', value: 'rect'
+                } ,{
                     path: ["shapeProps", "fill"], op: 'replace', value: {type: 'solid', color: 'rgba(220, 220, 220, 1.0)'}
                 } ]
             } ]
@@ -1586,7 +1586,6 @@ export const patchTestData = [{
             modified: {count: 9, items: [{
                 id: 'F1M_g-8-n',
                 fields: [
-                    "shape",
                     "shapeProps.totalFrames",
                     "shapeProps.fps",
                     "shapeProps.fillColor",
@@ -1594,6 +1593,7 @@ export const patchTestData = [{
                     "shapeProps.animations",
                     "shapeProps.functions",
                     "shapeProps.sections",
+                    "shape",
                     "shapeProps.fill",
                 ]
             }]},

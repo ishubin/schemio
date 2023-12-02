@@ -1,4 +1,4 @@
-import { forEach, forEachObject } from "../collections";
+import { forEach, forEachObject, indexOf } from "../collections";
 import utils from "../utils";
 import { fieldTypeMatchesSchema, getSchemioDocSchema } from "./SchemioDocSchema";
 import { tokenizeText } from "./tokenize";
@@ -667,13 +667,6 @@ function generatePatchForObject(originObject, modifiedObject, patchSchema, field
      * @param {*} field
      */
     const generatePatchForField = (fieldSchema, field) => {
-        if (fieldSchema.type === 'conditional') {
-            if (modifiedObject.hasOwnProperty(field)) {
-                ops = ops.concat(generateConditionalPatch(originObject, modifiedObject, originObject[field], modifiedObject[field], fieldPath.concat([field]), fieldSchema));
-            }
-            return;
-        }
-
         if (!Array.isArray(fieldSchema.patching) || fieldSchema.patching.length === 0) {
             return;
         }
@@ -746,7 +739,50 @@ function generatePatchForObject(originObject, modifiedObject, patchSchema, field
         fieldNames.delete(field);
     };
 
-    fieldSchemas.forEach((entry, field) => generatePatchForField(entry, field));
+    const conditionalPostponed = [];
+    fieldSchemas.forEach((fieldSchema, field) => {
+        // conditional operations should all be done at the end after all the other changes are generated.
+        // It later breaks down the conditional operation into two separate chunks.
+        // This is needed in situations when conditional value was also changed and it triggered the cleanup of conditional fields
+        // (e.g. switching item "shape" to the one that has completely diffent set of properties in "shapeProps")
+        if (fieldSchema.type !== 'conditional') {
+            generatePatchForField(fieldSchema, field)
+        } else {
+            conditionalPostponed.push({fieldSchema, field});
+        }
+    });
+
+    conditionalPostponed.forEach(({fieldSchema, field}) => {
+        if (modifiedObject.hasOwnProperty(field)) {
+            if (!fieldSchema.contidionalParentField) {
+                return false;
+            }
+
+            const cOps = generateConditionalPatch(originObject, modifiedObject, originObject[field], modifiedObject[field], fieldPath.concat([field]), fieldSchema);
+            if (cOps.length === 0) {
+                return;
+            }
+            const cIdx = indexOf(ops, op => op.path.length === 1 && op.path[0] === fieldSchema.contidionalParentField)
+            if (cIdx < 0) {
+                ops = ops.concat(cOps);
+            } else {
+                const deleteOps = [];
+                const otherOps = [];
+
+                cOps.forEach(cOp => {
+                    if (cOp.op === 'delete') {
+                        deleteOps.push(cOp);
+                    } else {
+                        otherOps.push(cOp);
+                    }
+                });
+
+                ops.splice(cIdx, 0, ...deleteOps);
+                ops.splice(cIdx+deleteOps.length + 1, 0, ...otherOps);
+            }
+        }
+        return;
+    });
 
     if (defaultFieldEntry) {
         fieldNames.forEach(field => {
