@@ -429,11 +429,21 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
 
     // then it needs to detect additions or remounts as the sortOrder field in reported additions
     // is relative to the old items after the deletions applied
-    const cloneWithoutChildren = (item) => {
+    const cloneWithoutChildrenAndIgnoredFields = (item) => {
         const newItem = {};
         for(let key in item) {
-            if (item.hasOwnProperty(key) && key !== patchSchemaEntry.childrenField) {
-                newItem[key] = item[key];
+            if (item.hasOwnProperty(key)) {
+                let allowedField = false;
+                if (key === patchSchemaEntry.childrenField) {
+                    allowedField = false;
+                } else if (patchSchemaEntry.fields && patchSchemaEntry.fields.hasOwnProperty(key)) {
+                    allowedField = patchSchemaEntry.fields[key].type !== 'ignored';
+                } else {
+                    allowedField = true;
+                }
+                if (allowedField) {
+                    newItem[key] = item[key];
+                }
             }
         }
         return newItem;
@@ -445,7 +455,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
             operations.push({
                 id: itemId,
                 op: 'add',
-                value: cloneWithoutChildren(itemEntry.item),
+                value: cloneWithoutChildrenAndIgnoredFields(itemEntry.item),
                 parentId: itemEntry.parentId,
                 sortOrder: itemEntry.sortOrder,
             });

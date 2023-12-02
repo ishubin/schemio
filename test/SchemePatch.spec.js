@@ -14,6 +14,70 @@ describe('SchemePatch.generateSchemePatch', () => {
     });
 
 
+    it('should not put "ignored" fields when adding new items', () => {
+        const origin = {
+            name: 'origin',
+            items: []
+        };
+
+        const modified = {
+            name: 'origin',
+            items: [{
+                id: 'qwe',
+                name: 'qwe',
+                meta: {parentId: null, collapsed: true},
+                shape: 'rect',
+                shapeProps: {
+                    strokeColor: 'rgba(0,0,0,1.0)'
+                },
+                childItems: [{
+                    id: 'asd',
+                    name: 'asd',
+                    meta: {
+                        someDummyProperty: 'blah'
+                    }
+                }]
+            }]
+        };
+
+        const patch = generateSchemePatch(origin, modified);
+
+        expect(patch).toStrictEqual({
+            version: "1",
+            protocol: "schemio/patch",
+            changes: [ {
+                path: [
+                    "items"
+                ],
+                op: "patch-id-array",
+                changes: [ {
+                    id: "qwe",
+                    op: "add",
+                    value: {
+                        id: "qwe",
+                        name: "qwe",
+                        shape: "rect",
+                        shapeProps: {
+                            strokeColor: "rgba(0,0,0,1.0)"
+                        }
+                    },
+                    parentId: null,
+                    sortOrder: 0
+                }, {
+                    id: "asd",
+                    op: "add",
+                    value: {
+                        id: "asd",
+                        name: "asd"
+                    },
+                    parentId: "qwe",
+                    sortOrder: 0
+                }]
+            }]
+        });
+    });
+
+
     it('should generate patch for frame_player shape', () => {
         const origin = JSON.parse(fs.readFileSync('test/data/patch/frame-player.origin.json'));
         const modified = JSON.parse(fs.readFileSync('test/data/patch/frame-player.modified.json'));

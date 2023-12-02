@@ -33,6 +33,7 @@ const baseSchema = {
             childrenField: 'childItems',
             fields: {
                 id               : {type: 'string'},
+                meta             : {type: 'ignored'},
                 name             : {type: 'string', patching: ['patch-text', 'replace'], },
                 description      : {type: 'string', patching: ['patch-text'] },
                 opacity          : {type: 'number', min: 0, max: 100, patching: ['replace']},
