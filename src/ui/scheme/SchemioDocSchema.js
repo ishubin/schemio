@@ -47,7 +47,7 @@ const baseSchema = {
                 tooltipColor     : {type: 'string', patching: ['replace']},
                 tags             : {type: 'array', of: 'string', patching: ['patch-set']},
                 args             : {type: 'map', patching: ['patch-map'], fields: {
-                    '*': {patching: ['replace']},
+                    '*': {patching: ['replace', 'delete']},
                 }},
                 area             : {type: 'object', patching: ['modify'], fields: {
                     x : {type: 'number', patching: ['replace']},
@@ -112,7 +112,7 @@ function buildConditionsForAnimationFunctions() {
             funcFields[argName] = createFieldSchemaForArg(argDef);
         });
         conditions.push({
-            on: functionId, type: 'object', patching: ['modify'], fields: funcFields
+            on: functionId, type: 'object', patching: ['modify', 'delete'], fields: funcFields
         });
     })
     return conditions;
@@ -148,7 +148,7 @@ function createFieldSchemaForArg(argDef) {
     const knownType = schemaForShapeArgType[argDef.type];
     if (knownType) {
         schema.type = knownType.type;
-        schema.patching = knownType.patching;
+        schema.patching = [].concat(knownType.patching).concat(['delete']);
         if (knownType.fields) {
             schema.fields = knownType.fields;
         }
@@ -173,10 +173,10 @@ function createFieldSchemaForArg(argDef) {
         schema.validValues = getCapTypes();
     }
     if (argDef.type === 'path-array') {
-        schema = {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'delete'], fields: {
             id    : {type: 'string'},
             closed: {type: 'boolean', patching: ['replace']},
-            points: {type: 'array', of: 'object', patching: ['patch-array'], fields: {
+            points: {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
                 t : {type: 'string'},
                 x : {type: 'number'},
                 y : {type: 'number'},
@@ -190,17 +190,17 @@ function createFieldSchemaForArg(argDef) {
         }};
     }
     if (argDef.type === 'path-points') {
-        schema = {type: 'array', of: 'object', patching: ['patch-array'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
             x : {type: 'number'},
             y : {type: 'number'},
         }};
     }
     if (argDef.type === 'animations') {
-        schema = {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'delete'], fields: {
             kind    : {type: 'string', patching: ['replace'] },
             itemId  : {type: 'string', patching: ['replace'] },
             property: {type: 'string', patching: ['replace'] },
-            frames  : {type: 'array', of: 'object', patching: ['patch-array'], fields: {
+            frames  : {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
                 frame: {type: 'number', min: 0 },
                 kind : {type: 'string' },
                 value: {type: 'any'}
@@ -208,13 +208,13 @@ function createFieldSchemaForArg(argDef) {
         }};
     }
     if (argDef.type === 'animation-functions') {
-        schema = {type: 'map', patching: ['patch-map'], fields: {
+        schema = {type: 'map', patching: ['patch-map', 'delete'], fields: {
             functionId: {type: 'string', patching: ['replace']},
             args: {type: 'conditional', contidionalParentField: 'functionId', conditions: buildConditionsForAnimationFunctions()}
         }};
     }
     if (argDef.type === 'animation-sections') {
-        schema = {type: 'array', of: 'object', patching: ['patch-array'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
             frame: {type: 'number'},
             value: {type: 'string'},
             kind : {type: 'string'}
@@ -232,7 +232,7 @@ function buildFieldConditionsFor(entries) {
             fields[name] = createFieldSchemaForArg(argDef);
         });
         conditions.push({
-            on: name, type: 'object', patching: ['modify'], fields
+            on: name, type: 'object', patching: ['modify', 'delete'], fields
         });
     });
     return conditions;
@@ -245,12 +245,12 @@ export function getSchemioDocSchema() {
     }
 
     const shapePropsConditions = [{
-        on: null, type: 'object', patching: ['modify'], fields: { '*': {type: 'any', patching: ['replace']} }
+        on: null, type: 'object', patching: ['modify', 'delete'], fields: { '*': {type: 'any', patching: ['replace', 'delete']} }
     }]
 
     Shape.getShapeIds().forEach(shapeId => {
         const shape = Shape.find(shapeId);
-        const condition = {on : shapeId, type: 'object', patching: ['modify'], fields: {}};
+        const condition = {on : shapeId, type: 'object', patching: ['modify', 'delete'], fields: {}};
         forEach(Shape.getShapeArgs(shape), (argDef, name) => {
             condition.fields[name] = createFieldSchemaForArg(argDef);
         })
