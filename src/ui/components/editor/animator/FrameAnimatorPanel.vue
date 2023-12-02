@@ -716,8 +716,17 @@ export default {
         recordCurrentFrame() {
             const changes = detectChanges(this.schemeContainer, this.originSchemeContainer);
 
-            const isAnimationForSame = (a, b) => {
-                return a.kind === b.kind && a.id === b.id && a.property === b.property;
+            const changeMatchesAnimation = (change, animation) => {
+                if (change.kind !== animation.kind || change.property !== animation.property) {
+                    return false;
+                }
+                if (change.kind === 'item') {
+                    return change.id === animation.itemId;
+                }
+                if (change.kind === 'scheme') {
+                    return true;
+                }
+                return false;
             };
             forEach(changes, change => {
 
@@ -731,9 +740,8 @@ export default {
                     }
                 }
 
-                let animation = find(this.framePlayer.shapeProps.animations, animation => isAnimationForSame(change, animation));
+                let animation = find(this.framePlayer.shapeProps.animations, animation => changeMatchesAnimation(change, animation));
                 if (!animation) {
-                    animation = change;
                     const frames = [{
                         frame: this.currentFrame,
                         value: change.value,
@@ -746,12 +754,16 @@ export default {
                             kind : 'linear'
                         });
                     }
-                    this.framePlayer.shapeProps.animations.push({
+                    const track = {
                         kind    : change.kind,
-                        id      : change.id,
+                        id      : shortid.generate(),
                         property: change.property,
                         frames  : frames
-                    });
+                    };
+                    if (change.kind === 'item') {
+                        track.itemId = change.id;
+                    }
+                    this.framePlayer.shapeProps.animations.push(track);
                 } else {
                     let idx = -1;
                     let found = false;
