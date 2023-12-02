@@ -124,8 +124,8 @@ const schemaForShapeArgType = {
     text            : {type: 'string', patching: ['replace']},
     image           : {type: 'string', patching: ['replace']},
     color           : {type: 'string', patching: ['replace']},
-    object          : {type: 'object', patching: ['replace']},
-    'advanced-color': {type: 'object', patching: ['replace']},
+    object          : {type: 'object', patching: ['replace'], fields: {'*': {type: 'any'}}},
+    'advanced-color': {type: 'object', patching: ['replace'], fields: {'*': {type: 'any'}}},
     boolean         : {type: 'boolean', patching: ['replace']},
     number          : {type: 'number', patching: ['replace']},
     choice          : {type: 'string', patching: ['replace']},
@@ -198,6 +198,7 @@ function createFieldSchemaForArg(argDef) {
     }
     if (argDef.type === 'animations') {
         schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'delete'], fields: {
+            id      : {type: 'string'},
             kind    : {type: 'string', patching: ['replace'] },
             itemId  : {type: 'string', patching: ['replace'] },
             property: {type: 'string', patching: ['replace'] },
