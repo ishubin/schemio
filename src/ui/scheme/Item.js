@@ -33,7 +33,7 @@ export const textSlotProperties = [
     {field: 'halign', name: 'Horizontal Align', type: 'choice', options: ['left', 'center', 'right']},
     {field: 'valign', name: 'Vertical Align', type: 'choice', options: ['top', 'middle', 'bottom']},
     {field: 'fontSize', name: 'Font Size', type: 'number'},
-    {field: 'whiteSpace', name: 'White Space', type: 'choice', options: textWhiteSpaceOptions},
+    {field: 'whiteSpace', name: 'White Space', type: 'choice', options: textWhiteSpaceOptions.map(x => x.value)},
     {field: 'font', name: 'Font', type: 'choice', options: map(getAllFonts(), font => font.name)},
     {field: 'paddingLeft', name: 'Padding Left', type: 'number'},
     {field: 'paddingRight', name: 'Padding Right', type: 'number'},
