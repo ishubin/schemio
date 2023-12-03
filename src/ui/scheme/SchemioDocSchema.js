@@ -5,6 +5,7 @@ import Shape from "../components/editor/items/shapes/Shape";
 import StrokePattern from "../components/editor/items/StrokePattern";
 import { getEffects } from "../components/effects/Effects";
 import Functions from "../userevents/functions/Functions";
+import { textSlotProperties } from "./Item";
 
 
 const baseSchema = {
@@ -66,19 +67,7 @@ const baseSchema = {
                     url  : {type: 'string', patching: ['replace']},
                     type : {type: 'string', patching: ['replace']}
                 }},
-                textSlots: {type: 'map', patching: ['patch-map'], fields: {
-                    text         : {type: 'string', patching: ['patch-text']},
-                    color        : {type: 'string', patching: ['replace']},
-                    halign       : {type: 'string', patching: ['replace']},
-                    valign       : {type: 'string', patching: ['replace']},
-                    fontSize     : {type: 'number', min: 0, patching: ['replace']},
-                    whiteSpace   : {type: 'string', patching: ['replace']},
-                    font         : {type: 'string', patching: ['replace']},
-                    paddingLeft  : {type: 'number', min: 0, patching: ['replace']},
-                    paddingRight : {type: 'number', min: 0, patching: ['replace']},
-                    paddingTop   : {type: 'number', min: 0, patching: ['replace']},
-                    paddingBottom: {type: 'number', min: 0, patching: ['replace']}
-                }},
+                textSlots: {type: 'map', patching: ['patch-map'], fields: { /* built dynamically */ }},
                 behavior: {type: 'object', patching: ['modify'], fields: {
                     events: {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
                         id   : {type: 'string'},
@@ -240,6 +229,17 @@ function buildFieldConditionsFor(entries) {
     return conditions;
 }
 
+function buildTextSlotsFields() {
+    const fields = {
+        text : {type: 'string', patching: ['patch-text']},
+    };
+
+    textSlotProperties.forEach(prop => {
+        fields[prop.field] = createFieldSchemaForArg(prop);
+    });
+    return fields;
+}
+
 let _schemioDocSchema = null;
 export function getSchemioDocSchema() {
     if (_schemioDocSchema) {
@@ -259,6 +259,7 @@ export function getSchemioDocSchema() {
         shapePropsConditions.push(condition);
     });
 
+    baseSchema.fields.items.fields.textSlots.fields = buildTextSlotsFields();
     baseSchema.fields.items.fields.shapeProps.conditions = shapePropsConditions;
     baseSchema.fields.items.fields.effects.fields.args.conditions = buildFieldConditionsFor(getEffects());
     baseSchema.fields.items.fields.behavior.fields.events.fields.actions.fields.args.conditions = buildFieldConditionsFor(Functions.main);
