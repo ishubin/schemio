@@ -524,7 +524,7 @@ import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
 
 import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
-import {enrichItemWithDefaults} from '../scheme/ItemFixer';
+import {enrichItemWithDefaults, cleanupShapeProps} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
@@ -1871,6 +1871,7 @@ export default {
             forEach(this.schemeContainer.selectedItems, item => {
                 this.schemeContainer.setPropertyForItem(item, item => {
                     item.shape = shapeName;
+                    cleanupShapeProps(item);
                     enrichItemWithDefaults(item);
                     EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'shape');
                 });

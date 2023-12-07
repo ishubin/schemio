@@ -112,8 +112,8 @@ export default {
         },
 
         args: {
-            cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
-            headerHeight: {type: 'number', value: 30, name: 'Header Height'},
+            cornerRadius: {type: 'number', value: '0', name: 'Corner radius', min: 0},
+            headerHeight: {type: 'number', value: 30, name: 'Header Height', min: 0},
             sectionRatio: {type: 'number', value: 50, name: 'Section Ratio (%)', min: 0, max: 100}
         }
     }

@@ -10,30 +10,30 @@ export default {
         id: 'basic_triangle',
 
         computePath(item) {
-            const xs = item.area.w * item.shapeProps.skew / 100.0;
+            const xs = item.area.w * item.shapeProps.skewP / 100.0;
             return `M 0 ${item.area.h}  L ${xs} 0  L ${item.area.w} ${item.area.h} Z`;
         },
 
         controlPoints: {
             make(item) {
                 return {
-                    skew: {
-                        x: item.area.w * item.shapeProps.skew / 100,
+                    skewP: {
+                        x: item.area.w * item.shapeProps.skewP / 100,
                         y: 0
                     },
                 };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-                if (controlPointName === 'skew') {
+                if (controlPointName === 'skewP') {
                     if (item.area.w > 0.01) {
-                        item.shapeProps.skew = myMath.roundPrecise1(myMath.clamp((100 * (originalX + dx) / item.area.w), 0, 100));
+                        item.shapeProps.skewP = myMath.roundPrecise1(myMath.clamp((100 * (originalX + dx) / item.area.w), 0, 100));
                     }
                 }
             }
         },
 
         getPins(item) {
-            const s = item.area.w * item.shapeProps.skew / 100;
+            const s = item.area.w * item.shapeProps.skewP / 100;
             return [{
                 x: (s + item.area.w)/3,
                 y: item.area.h*2/3
@@ -64,7 +64,7 @@ export default {
             iconUrl: '/assets/images/items/basic-triangle.svg',
             item: {
                 textSlots: { body: { valign: 'bottom', halign: 'center' } },
-                shapeProps: {skew: 50}
+                shapeProps: {skewP: 50}
             }
         }, {
             group: 'Basic Shapes',
@@ -72,7 +72,7 @@ export default {
             iconUrl: '/assets/images/items/basic-triangle-left.svg',
             item: {
                 textSlots: { body: { valign: 'bottom', halign: 'center' } },
-                shapeProps: {skew: 0}
+                shapeProps: {skewP: 0}
             }
         }, {
             group: 'Basic Shapes',
@@ -80,12 +80,12 @@ export default {
             iconUrl: '/assets/images/items/basic-triangle-right.svg',
             item: {
                 textSlots: { body: { valign: 'bottom', halign: 'center' } },
-                shapeProps: {skew: 100}
+                shapeProps: {skewP: 100}
             }
         }],
 
         args: {
-            skew: {type: 'number', value: 50, min: 0, max: 100, name: 'Skew (%)'}
+            skewP: {type: 'number', value: 50, min: 0, max: 100, name: 'Skew (%)'}
         }
     }
 }

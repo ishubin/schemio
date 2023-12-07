@@ -318,9 +318,9 @@ export default {
                 }
             }
         },
-        
+
         args: {
-            columns: {type: 'number', value: 3, name: 'Columns', min: 1, max: 12, onUpdate: onColumnNumberUpdate },
+            columns: {type: 'number', value: 3, name: 'Columns', min: 1, max: 100, onUpdate: onColumnNumberUpdate },
             headerHeight: {type: 'number', value: 50, name: 'Header Height', min: 0, hidden: true},
             vertical: {type: 'boolean', value: true, name: 'Vertical'},
             colw1: {type: 'number', value: 20, name: 'Column Width 1', min: 0, max: 100.0, hidden: true},

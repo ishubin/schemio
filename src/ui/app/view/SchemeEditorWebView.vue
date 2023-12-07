@@ -322,7 +322,7 @@ export default {
                     this.appReloadKey = shortid.generate();
                 })
                 .catch(err => {
-                    console.log(err);
+                    console.error(err);
                     StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load document from URL', 'link-loader');
                 });
             }

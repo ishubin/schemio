@@ -10,7 +10,7 @@
         <g>
             <rect v-for="c in cells" :x="c.area.x" :y="c.area.y" :width="c.area.w" :height="c.area.h" stroke="none" :fill="c.fill"/>
         </g>
-        <g v-if="item.shapeProps.style === 'simple'">
+        <g v-if="item.shapeProps.tableStyle === 'simple'">
             <path :d="outlinePath" :stroke="item.shapeProps.stroke" :stroke-width="`${item.shapeProps.strokeSize}px`" fill="none"/>
             <line v-for="l in gridLines"
                 :stroke="item.shapeProps.stroke"
@@ -221,7 +221,7 @@ function generateCells(item) {
             let y2 = rowOffset + rowWidth;
 
             let pad = 0;
-            if (item.shapeProps.style === 'flat') {
+            if (item.shapeProps.tableStyle === 'flat') {
                 pad = item.shapeProps.cellPadding;
             }
 
@@ -729,16 +729,16 @@ export default {
         },
 
         args: {
-            style: {type: 'choice', value: 'simple', options: [
+            tableStyle: {type: 'choice', value: 'simple', options: [
                 'simple', 'flat',
             ], name: 'Style'},
 
             columns: {type: 'number', value: 3, name: 'Columns', min: minCells, max: maxCells, onUpdate: onColumnNumberUpdate },
             rows: {type: 'number', value: 3, name: 'Rows', min: minCells, max: maxCells, onUpdate: onRowsNumberUpdate },
             fill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(245, 245, 245, 1.0)'}, name: 'Fill'},
-            stroke: {type: 'color', value: 'rgba(145, 178, 196, 1.0)', name: 'Stroke', depends: {style: 'simple'}},
-            strokeSize: {type: 'number', value: 1, name: 'Stroke size', depends: {style: 'simple'}},
-            cellPadding: {type: 'number', value: 2, name: 'Cell padding', depends: {style: 'flat'}},
+            stroke: {type: 'color', value: 'rgba(145, 178, 196, 1.0)', name: 'Stroke', depends: {tableStyle: 'simple'}},
+            strokeSize: {type: 'number', value: 1, name: 'Stroke size', depends: {tableStyle: 'simple'}},
+            cellPadding: {type: 'number', value: 2, name: 'Cell padding', depends: {tableStyle: 'flat'}},
 
             header: {type: 'choice', value: 'columns', options: ['none', 'columns', 'rows', 'both'], name: 'Header fill override'},
             headerFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(168, 193, 219, 1.0)'}, name: 'Header fill'},

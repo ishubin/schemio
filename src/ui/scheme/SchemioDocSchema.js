@@ -48,7 +48,7 @@ const baseSchema = {
                 tooltipBackground: {type: 'string', patching: ['replace']},
                 tooltipColor     : {type: 'string', patching: ['replace']},
                 tags             : {type: 'array', of: 'string', patching: ['patch-set']},
-                args             : {type: 'map', patching: ['patch-map'], fields: {
+                args             : {type: 'map', patching: ['patch-map', 'replace'], fields: {
                     '*': {patching: ['replace', 'delete']},
                 }},
                 area             : {type: 'object', patching: ['modify'], fields: {
@@ -62,17 +62,17 @@ const baseSchema = {
                     sx: {type: 'number', patching: ['replace']},
                     sy: {type: 'number', patching: ['replace']},
                 }},
-                links: {type: 'array', of: 'object', patching: ['patch-array'], fields: {
+                links: {type: 'array', of: 'object', patching: ['patch-array', 'replace'], fields: {
                     title: {type: 'string', patching: ['replace']},
                     url  : {type: 'string', patching: ['replace']},
                     type : {type: 'string', patching: ['replace']}
                 }},
                 textSlots: {type: 'map', patching: ['patch-map'], fields: { /* built dynamically */ }},
                 behavior: {type: 'object', patching: ['modify'], fields: {
-                    events: {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+                    events: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
                         id   : {type: 'string'},
                         event: {type: 'string', patching: ['replace']},
-                        actions: {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+                        actions: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
                             id     : {type: 'string'},
                             element: {type: 'string', patching: ['replace']},
                             method : {type: 'string', patching: ['replace']},
@@ -82,7 +82,7 @@ const baseSchema = {
                     }}
                 }},
                 shapeProps     : {type: 'conditional', contidionalParentField: 'shape', conditions: [ /* dynamically built */]},
-                effects: {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+                effects: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
                     id    : {type: 'string'},
                     effect: {type: 'string', patching: ['replace']},
                     name  : {type: 'string', patching: ['patch-text', 'replace']},
@@ -163,10 +163,10 @@ function createFieldSchemaForArg(argDef) {
         schema.validValues = getCapTypes();
     }
     if (argDef.type === 'path-array') {
-        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'delete'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'replace', 'delete'], fields: {
             id    : {type: 'string'},
             closed: {type: 'boolean', patching: ['replace']},
-            points: {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
+            points: {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
                 t : {type: 'string'},
                 x : {type: 'number'},
                 y : {type: 'number'},
@@ -180,18 +180,18 @@ function createFieldSchemaForArg(argDef) {
         }};
     }
     if (argDef.type === 'path-points') {
-        schema = {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
             x : {type: 'number'},
             y : {type: 'number'},
         }};
     }
     if (argDef.type === 'animations') {
-        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'delete'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'replace', 'delete'], fields: {
             id      : {type: 'string'},
             kind    : {type: 'string', patching: ['replace'] },
             itemId  : {type: 'string', patching: ['replace'] },
             property: {type: 'string', patching: ['replace'] },
-            frames  : {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
+            frames  : {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
                 frame: {type: 'number', min: 0 },
                 kind : {type: 'string' },
                 value: {type: 'any'}
@@ -199,13 +199,13 @@ function createFieldSchemaForArg(argDef) {
         }};
     }
     if (argDef.type === 'animation-functions') {
-        schema = {type: 'map', patching: ['patch-map', 'delete'], fields: {
+        schema = {type: 'map', patching: ['patch-map', 'replace', 'delete'], fields: {
             functionId: {type: 'string', patching: ['replace']},
             args: {type: 'conditional', contidionalParentField: 'functionId', conditions: buildConditionsForAnimationFunctions()}
         }};
     }
     if (argDef.type === 'animation-sections') {
-        schema = {type: 'array', of: 'object', patching: ['patch-array', 'delete'], fields: {
+        schema = {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
             frame: {type: 'number'},
             value: {type: 'string'},
             kind : {type: 'string'}

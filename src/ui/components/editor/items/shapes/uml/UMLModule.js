@@ -106,9 +106,9 @@ export default {
         },
 
         args: {
-            cornerRadius: {type: 'number', value: '0', name: 'Corner radius'},
-            brickWidth  : {type: 'number', value: '70', name: 'Brick Width'},
-            brickHeight : {type: 'number', value: '20', name: 'Brick Height'},
+            cornerRadius: {type: 'number', value: '0', name: 'Corner radius', min: 0},
+            brickWidth  : {type: 'number', value: '70', name: 'Brick Width', min: 0},
+            brickHeight : {type: 'number', value: '20', name: 'Brick Height', min: 0},
         },
     },
 }

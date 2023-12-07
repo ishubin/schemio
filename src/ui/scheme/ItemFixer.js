@@ -142,6 +142,24 @@ function fixFramePlayer(item) {
     });
 }
 
+/**
+ * Checks all shapeProps args of the item if they match its shape and removes the unknown args
+ * @param {Item} item
+ */
+export function cleanupShapeProps(item) {
+    const shape = Shape.find(item.shape);
+    if (!shape) {
+        return;
+    }
+    const knownShapeArgs = Shape.getShapeArgs(shape);
+
+    forEach(item.shapeProps, (arg, argName) => {
+        if (!knownShapeArgs.hasOwnProperty(argName)) {
+            delete item.shapeProps[argName];
+        }
+    });
+}
+
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
         item.textSlots = {};

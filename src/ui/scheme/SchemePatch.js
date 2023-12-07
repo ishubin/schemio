@@ -681,6 +681,22 @@ function generatePatchForObject(originObject, modifiedObject, patchSchema, field
             return;
         }
         const op = fieldSchema.patching[0];
+
+        if (op !== 'replace') {
+            if (typeof modifiedObject[field] !== typeof originObject[field] && (typeof originObject[field] === 'undefined' || originObject[field] === null)) {
+                if (indexOf(fieldSchema.patching, 'replace') < 0) {
+                    throw new Error('Cannot patch undefined object with ' + op);
+                }
+                ops.push({
+                    op: 'replace',
+                    path: fieldPath.concat([field]),
+                    value: utils.clone(modifiedObject[field])
+                });
+                return;
+            }
+        }
+
+
         if (originObject.hasOwnProperty(field) && !modifiedObject.hasOwnProperty(field)) {
             ops.push({
                 path: fieldPath.concat([field]),

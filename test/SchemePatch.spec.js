@@ -3,6 +3,7 @@ import expect from 'expect';
 import { forEach } from '../src/ui/collections';
 import { patchTestData } from './data/patch/patch-test-data';
 import fs from 'fs-extra';
+import { getSchemioDocSchema } from '../src/ui/scheme/SchemioDocSchema';
 
 
 describe('SchemePatch.generateSchemePatch', () => {
@@ -569,6 +570,34 @@ describe('SchemioPatch.leastMutationsForArray', () => {
         expect(mutations).toStrictEqual([
             [1, 0], [2, 0], [3, 0], [4, 0],  [5, 1, 'i'], [9, 2, 'o'], [12, 2, '!']
         ]);
+    });
+});
+
+
+describe('SchemioDocSchema', () => {
+    it('should not have mismatching field schema for identical fields in different shapes', () => {
+        const shapePropsConditions = getSchemioDocSchema().fields.items.fields.shapeProps.conditions;
+
+        const fields = new Map();
+
+        shapePropsConditions.forEach(condition => {
+            if (!condition.on || condition.on === '*') {
+                return;
+            }
+            forEach(condition.fields, (fieldSchema, fieldName) => {
+                if (!fields.has(fieldName)) {
+                    fields.set(fieldName, {
+                        on: [condition.on],
+                        schema: fieldSchema
+                    });
+                    return;
+                }
+
+                const entry = fields.get(fieldName);
+                expect(fieldSchema).toStrictEqual(entry.schema);
+                entry.on.push(condition.on);
+            });
+        });
     });
 });
 

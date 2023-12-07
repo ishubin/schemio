@@ -75,7 +75,7 @@ export default {
             strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 1},
             strokePattern: {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
-            cornerRadius : {type: 'number', value: 0, name: 'Corner radius'},
+            cornerRadius : {type: 'number', value: 0, name: 'Corner radius', min: 0},
             showName     : {type: 'boolean', value: true, name: 'Display Name'},
         },
     },

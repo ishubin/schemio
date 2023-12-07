@@ -1599,4 +1599,154 @@ export const patchTestData = [{
             }]},
         }
     }
+}, {
+    name: 'switching shapeProps from rect to frame_player and replacing props instead of patching',
+    origin: {
+        items: [ {
+            shape: "rect",
+            shapeProps: {
+                fill          : {
+                    color: 'rgba(220, 220, 220, 1.0)',
+                    'type': 'solid'
+                },
+                strokeColor   : "rgba(30,30,30,1.0)",
+            },
+            id: "F1M_g-8-n"
+        } ]
+    },
+    modified: {
+        items: [ {
+            shape: "frame_player",
+            shapeProps: {
+                totalFrames: 5,
+                fps: 1,
+                fillColor: "rgba(220, 220, 220, 1.0)",
+                hoverFillColor: "rgba(190, 190, 190, 1.0)",
+                strokeColor: "rgba(30,30,30,1.0)",
+                animations: [ {
+                    kind: "function",
+                    id: "5Vv41hELi",
+                    property: "distance",
+                    frames: [ {
+                        frame: 1,
+                        kind: "linear",
+                        value: 0
+                    }  ]
+                } ],
+                functions: {
+                    "5Vv41hELi": {
+                        functionId: "moveAlongPath",
+                        args: {
+                            item: "#XSNfyTgGc",
+                            path: "#32yLBPYak",
+                            rotateItem: true,
+                            rotationOffset: 45
+                        }
+                    }
+                },
+                sections: [ {
+                    frame: 1,
+                    value: "start",
+                    kind: "step"
+                } ]
+            },
+            id: "F1M_g-8-n"
+        } ]
+    },
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [ {
+            "path": [ "items" ],
+            "op": "patch-id-array",
+            "changes": [ {
+                "id": "F1M_g-8-n",
+                "op": "modify",
+                "changes": [ {
+                    "op": "delete",
+                    "path": [ "shapeProps", "fill" ]
+                }, {
+                    "path": [ "shape" ],
+                    "op": "replace",
+                    "value": "frame_player"
+                }, {
+                    "path": [ "shapeProps", "totalFrames" ],
+                    "op": "replace",
+                    "value": 5
+                }, {
+                    "path": [ "shapeProps", "fps" ],
+                    "op": "replace",
+                    "value": 1
+                }, {
+                    "path": [ "shapeProps", "fillColor" ],
+                    "op": "replace",
+                    "value": "rgba(220, 220, 220, 1.0)"
+                }, {
+                    "path": [ "shapeProps", "hoverFillColor" ],
+                    "op": "replace",
+                    "value": "rgba(190, 190, 190, 1.0)"
+                }, {
+                    "op": "replace",
+                    "path": [ "shapeProps", "animations" ],
+                    "value": [ {
+                        "kind": "function",
+                        "id": "5Vv41hELi",
+                        "property": "distance",
+                        "frames": [ {
+                            "frame": 1,
+                            "kind": "linear",
+                            "value": 0
+                        } ]
+                    } ]
+                }, {
+                    "op": "replace",
+                    "path": [ "shapeProps", "functions" ],
+                    "value": {
+                        "5Vv41hELi": {
+                            "functionId": "moveAlongPath",
+                            "args": {
+                                "item": "#XSNfyTgGc",
+                                "path": "#32yLBPYak",
+                                "rotateItem": true,
+                                "rotationOffset": 45
+                            }
+                        }
+                    }
+                }, {
+                    "op": "replace",
+                    "path": [ "shapeProps", "sections" ],
+                    "value": [ {
+                        "frame": 1,
+                        "value": "start",
+                        "kind": "step"
+                    } ]
+                } ]
+            } ]
+        } ],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: [ ]},
+            deleted: {count: 0, items: []},
+            modified: {count: 9, items: [{
+                id: 'F1M_g-8-n',
+                fields: [
+                    "shapeProps.fill",
+                    "shape",
+                    "shapeProps.totalFrames",
+                    "shapeProps.fps",
+                    "shapeProps.fillColor",
+                    "shapeProps.hoverFillColor",
+                    "shapeProps.animations",
+                    "shapeProps.functions",
+                    "shapeProps.sections",
+                ]
+            }]},
+        }
+    }
 }];

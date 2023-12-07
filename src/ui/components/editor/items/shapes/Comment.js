@@ -303,7 +303,7 @@ export default {
         },
 
         args: {
-            cornerRadius        : {type: 'number', value: 10, name: 'Corner radius'},
+            cornerRadius        : {type: 'number', value: 10, name: 'Corner radius', min: 0},
             tailLength          : {type: 'number', value: 30, name: 'Tail Length'},
             tailWidth           : {type: 'number', value: 40, name: 'Tail Width'},
             tailSide            : {type: 'choice', value: 'bottom', name: 'Tail Side', options: ['top', 'bottom', 'left', 'right']},
