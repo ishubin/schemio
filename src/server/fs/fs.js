@@ -224,7 +224,7 @@ export function fsSaveScheme(config, projectService) {
         const scheme = req.body;
         scheme.id = schemeId;
         scheme.modifiedTime = new Date();
-        scheme.publicLink = `/docs/${schemeId}`;
+        scheme.link= `/docs/${schemeId}`;
 
         projectService.writeDiagram(filePath, scheme)
         .then(() => {

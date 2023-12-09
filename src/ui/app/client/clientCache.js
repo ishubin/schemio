@@ -15,7 +15,7 @@ export function getCachedSchemeInfo(schemeId, executor) {
 export function schemeSearchCacher(response) {
     if (Array.isArray(response.results)) {
         response.results.forEach(scheme => {
-            schemeInfoMap.set(scheme.id, {id: scheme.id, name: scheme.name});
+            schemeInfoMap.set(scheme.id, {id: scheme.id, name: scheme.name, link: scheme.link});
         });
     }
     return response;

@@ -258,12 +258,6 @@
                                 :key="`selected-component-diagram-picker-${selectedItem.id}-${selectedItem.shapeProps.schemeId}`"
                                 :diagramId="selectedItem.shapeProps.schemeId"
                                 @diagram-selected="onDiagramPickedForSelectedComponent"/>
-                            <a v-if="selectedItem.shapeProps.schemeId"
-                                :href="`${docsPath}/${selectedItem.shapeProps.schemeId}`"
-                                :target="docsLinkTarget"
-                                title="Open diagram new tab">
-                                <i class="fa-solid fa-up-right-from-square"></i>
-                            </a>
                         </div>
                         <div v-if="selectedItem.shapeProps.kind == 'embedded'" class="diagram-controls">
                             <span class="label">Reference Item: </span>
@@ -2931,14 +2925,6 @@ export default {
 
         assetsPath() {
             return this.$store.getters.assetsPath;
-        },
-
-        docsPath() {
-            return this.$store.getters.docsPath;
-        },
-
-        docsLinkTarget() {
-            return this.$store.getters.docsLinkTarget;
         },
 
         selectedItemTemplateArgs() {

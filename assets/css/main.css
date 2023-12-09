@@ -3929,20 +3929,24 @@ ul.patch-field-list {
     color: var(--faint-strong);
     font-style: italic;
 }
-.diagram-picker .diagram-picker-button {
-    padding: 2px;
+.diagram-picker .diagram-picker-external-link {
+    padding: 2px 5px;
     background: var(--accent-weak);
     color: var(--accent-strong);
+    opacity: 0.3;
     border-radius: 0 var(--control-border-radius) var(--control-border-radius) 0;
 }
-.diagram-picker.specified .diagram-picker-button {
+.diagram-picker.specified .diagram-picker-external-link {
     display: none;
 }
-.diagram-picker.specified:hover .diagram-picker-button {
+.diagram-picker.specified:hover .diagram-picker-external-link {
     display: inline-block;
 }
-.diagram-picker.disabled.specified:hover .diagram-picker-button {
+.diagram-picker.disabled.specified:hover .diagram-picker-external-link {
     display: none;
+}
+.diagram-picker .diagram-picker-external-link:hover {
+    opacity: 1;
 }
 
 

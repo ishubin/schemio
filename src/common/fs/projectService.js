@@ -255,7 +255,8 @@ export class ProjectService {
         }
         return Promise.resolve({
             id: docId,
-            name: doc.name
+            name: doc.name,
+            link: `/docs/${docId}`
         });
     }
 

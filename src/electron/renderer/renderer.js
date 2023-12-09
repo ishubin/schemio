@@ -17,7 +17,6 @@ applyVueFilters(Vue);
 
 store.dispatch('setApiClient', electronAPICLient());
 store.dispatch('setAssetsPath', 'media://assets');
-store.dispatch('setDocsLinkTarget', '_self');
 
 new Vue(Vue.util.extend({
     store,

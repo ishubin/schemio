@@ -9,7 +9,7 @@
             <div v-else class="diagram-title" @click="toggleSearchModal">
                 <span class="diagram-placeholder">Search diagram...</span>
             </div>
-            <span class="diagram-picker-button" @click="toggleSearchModal"><i class="fas fa-search"></i></span>
+            <a v-if="diagramLink" title="Open diagram in another tab" target="_blank" class="diagram-picker-external-link" :href="diagramLink" ><i class="fa-solid fa-square-up-right"></i></a>
             <SchemeSearchModal v-if="searchModalShown" @close="searchModalShown = false" @selected-scheme="onDiagramPicked"/>
         </div>
     </div>
@@ -34,6 +34,7 @@ export default {
             .then(info => {
                 this.isLoading = false;
                 this.diagramTitle = info.name;
+                this.diagramLink = info.link;
             })
             .catch(err => {
                 console.error(err);
@@ -47,6 +48,7 @@ export default {
         return {
             searchModalShown: false,
             diagramTitle: null,
+            diagramLink: null,
             isLoading: false
         };
     },

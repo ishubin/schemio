@@ -374,7 +374,7 @@ export const googleDriveClientProvider = {
                                     id: file.id,
                                     name: convertSchemioFileTitle(file.name),
                                     modifiedTime: file.modifiedDate,
-                                    publicLink: `/docs/${file.id}`
+                                    link: `/docs/${file.id}`
                                 };
                             })
                         };

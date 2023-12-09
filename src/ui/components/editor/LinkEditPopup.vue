@@ -64,7 +64,7 @@ export default {
 
         onSchemeSelect(scheme) {
             this.editType = 'doc';
-            this.editUrl = scheme.publicLink;
+            this.editUrl = scheme.link;
 
             if (!this.editTitle) {
                 this.editTitle = scheme.name;

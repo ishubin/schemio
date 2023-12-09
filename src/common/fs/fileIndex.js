@@ -205,7 +205,7 @@ function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
         name: scheme.name,
         lowerName: scheme.name.toLowerCase(),
         modifiedTime: scheme.modifiedTime,
-        publicLink: `/docs/${schemeId}`,
+        link: `/docs/${schemeId}`,
         previewURL
     }, folderPathFromPath(fsPath));
 }
