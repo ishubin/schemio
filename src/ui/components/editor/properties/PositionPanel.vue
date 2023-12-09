@@ -81,7 +81,7 @@ export default {
 
     data() {
         const sx = this.editBox.items[0].area.sx;
-        const sy = this.editBox.items[0].area.sy; 
+        const sy = this.editBox.items[0].area.sy;
 
         return {
             x: this.editBox.area.x,
@@ -103,6 +103,8 @@ export default {
             forEach(this.editBox.items, item => {
                 item.locked = this.editBox.locked;
             });
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         onEditBoxChange() {
