@@ -77,6 +77,7 @@ function fixOldCurveItem(item) {
             closed: item.shapeProps.closed
         }];
         delete item.shapeProps.points;
+        delete item.shapeProps.closed;
     }
 }
 

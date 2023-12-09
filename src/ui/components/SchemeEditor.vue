@@ -1166,7 +1166,6 @@ export default {
             this.resetItemHighlight();
             this.states[this.state].cancel();
             if (item.shape === 'path') {
-                item.shapeProps.points = [];
                 this.setCurveEditItem(item);
                 this.state = 'editPath';
                 this.onEditPathRequested(item);
@@ -1187,12 +1186,7 @@ export default {
             this.resetItemHighlight();
             this.states[this.state].cancel();
 
-            item.shapeProps.points = [];
             this.setCurveEditItem(item);
-            // making sure every new curve starts non-closed
-            if (item.shape === 'path') {
-                item.shapeProps.closed = false;
-            }
             this.state = 'editPath';
             this.onEditPathRequested(item);
 

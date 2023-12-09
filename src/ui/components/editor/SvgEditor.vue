@@ -698,7 +698,7 @@ export default {
                 let strokeSize = 6;
                 if (item.shape === 'path') {
                     strokeSize = item.shapeProps.strokeSize;
-                    if (item.shapeProps.fill.type === 'none' && !item.shapeProps.closed) {
+                    if (item.shapeProps.fill.type === 'none') {
                         fill = 'none';
                     }
                 } else {

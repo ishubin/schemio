@@ -643,7 +643,7 @@ export default {
             if (this.state === 'editPath') {
                 return true;
             }
-            if (this.selectedItemsCount > 0 && (this.firstSelectedItem.shape === 'connector' || this.firstSelectedItem.shape === 'path')) {
+            if (this.selectedItemsCount > 0 && (this.firstSelectedItem.shape === 'connector')) {
                 return true;
             }
             return false;

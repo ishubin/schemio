@@ -41,7 +41,6 @@ export default class StateDraw extends State {
             this.item.shapeProps.paths.push({
                 id: shortid.generate(),
                 pos: 'relative',
-                closed: false,
                 points: [ convertCurvePointToRelative({
                     x: this.round(x),
                     y: this.round(y),
@@ -68,7 +67,6 @@ export default class StateDraw extends State {
                     points: []
                 }],
                 strokeSize: 3,
-                closed: false,
                 fill: {type: 'none'}
             }
         };
