@@ -78,6 +78,8 @@ export default class StateConnecting extends State {
     }
 
     setItem(item) {
+        item.area.x = 0;
+        item.area.y = 0;
         this.item = item;
         StoreUtils.setCurrentConnector(this.store, item);
         if (this.schemeContainer.findItemById(item.id)) {
