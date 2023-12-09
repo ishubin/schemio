@@ -184,6 +184,9 @@ function createFieldSchemaForArg(argDef) {
         schema = {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
             x : {type: 'number'},
             y : {type: 'number'},
+            t : {type: 'string'},
+            bx : {type: 'number'},
+            by : {type: 'number'},
         }};
     }
     if (argDef.type === 'animations') {
