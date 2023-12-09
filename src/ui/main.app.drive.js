@@ -15,7 +15,7 @@ import SchemeEditorWebView from './app/view/SchemeEditorWebView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
 import { applyVueFilters } from './vue.filters';
 import Header from './app/components/HeaderDrive.vue';
-import Footer from './app/components/Footer.vue';
+import Footer from './app/components/FooterDrive.vue';
 import HomeDriveView from './app/view/HomeDriveView.vue';
 import { googleDriveClientProvider } from './app/client/googleDriveClient';
 import { offlineClientProvider } from './app/client/offlineClient';
