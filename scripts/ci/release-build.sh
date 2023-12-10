@@ -93,9 +93,6 @@ zip -9 -r "schemio-static-$NEW_VERSION.zip" $BIN_FOLDER_NAME
 cd $PROJECT_DIR
 
 
-echo_section "Building drive app for prod"
-./build-drive-app.sh
-
 cat package.json | jq ".version=\"$NEW_VERSION\"" > tmp && mv tmp package.json
 export SCHEMIO_VERSION="$NEW_VERSION"
 cat README.tpl.md | envsubst > README.md
