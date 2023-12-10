@@ -1,4 +1,7 @@
 import axios from "axios";
+import { InMemoryCache } from "../../LimitedSettingsStorage";
+
+const templateCache = new InMemoryCache(100);
 
 export function unwrapAxios(response) {
     return response.data;
@@ -25,4 +28,12 @@ export function getExportHTMLResources(assetsPath) {
             css, html, js, syntaxHighlightWorker, syntaxHighlightCSS
         };
     })
+}
+
+export function getAllTemplates() {
+    return axios.get('/assets/templates/index.json').then(unwrapAxios);
+}
+
+export function getTemplate(path) {
+    return templateCache.get(path, () => axios.get(path).then(unwrapAxios));
 }

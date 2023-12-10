@@ -1,4 +1,4 @@
-import { getExportHTMLResources } from "./clientCommons";
+import { getAllTemplates, getExportHTMLResources, getTemplate } from "./clientCommons";
 import {forEach, map} from "../../collections";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
@@ -234,6 +234,9 @@ export const googleDriveClientProvider = {
                         };
                     });
                 },
+
+                getAllTemplates,
+                getTemplate,
 
                 renameScheme(schemeId, newName) {
                     return this.renameGoogleFile(schemeId, newName);

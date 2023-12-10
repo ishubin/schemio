@@ -1,10 +1,7 @@
 import axios from "axios";
 import {forEach} from '../../collections';
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
-import { getExportHTMLResources, unwrapAxios } from "./clientCommons";
-import { InMemoryCache } from "../../LimitedSettingsStorage";
-
-const templateCache = new InMemoryCache(100);
+import { getAllTemplates, getExportHTMLResources, getTemplate, unwrapAxios } from "./clientCommons";
 
 export const fsClientProvider = {
     type: 'fs',
@@ -77,13 +74,8 @@ export const fsClientProvider = {
                 return axios.get('/v1/fs/art').then(unwrapAxios);
             },
 
-            getAllTemplates() {
-                return axios.get('/assets/templates/index.json').then(unwrapAxios);
-            },
-
-            getTemplate(path) {
-                return templateCache.get(path, () => axios.get(path).then(unwrapAxios));
-            },
+            getAllTemplates,
+            getTemplate: getTemplate,
 
             saveArt(artId, art) {
                 return axios.put(`/v1/fs/art/${artId}`, art).then(unwrapAxios);

@@ -1,4 +1,4 @@
-import { getExportHTMLResources } from "./clientCommons";
+import { getAllTemplates, getExportHTMLResources, getTemplate } from "./clientCommons";
 
 export const offlineClientProvider = {
     type: 'offline',
@@ -9,7 +9,10 @@ export const offlineClientProvider = {
             saveScheme(scheme) {
                 window.localStorage.setItem('offlineScheme', JSON.stringify(scheme));
                 return Promise.resolve(scheme);
-            }
+            },
+
+            getAllTemplates,
+            getTemplate,
         });
     }
 }
