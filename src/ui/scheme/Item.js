@@ -39,6 +39,7 @@ export const textSlotProperties = [
     {field: 'paddingRight', name: 'Padding Right', type: 'number'},
     {field: 'paddingTop', name: 'Padding Top', type: 'number'},
     {field: 'paddingBottom', name: 'Padding Bottom', type: 'number'},
+    {field: 'letterSpacing', name: 'Letter spacing', type: 'number', min: 0},
 ];
 
 export function prettyTextSlotProperty(propertyName) {
@@ -63,7 +64,8 @@ export const defaultTextSlotProps = {
     paddingLeft  : 0,
     paddingRight : 0,
     paddingTop   : 0,
-    paddingBottom: 0
+    paddingBottom: 0,
+    letterSpacing: 0,
 };
 
 

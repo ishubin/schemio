@@ -19,6 +19,10 @@ export function generateTextStyle(textSlot) {
         'box-sizing'      : 'border-box'
     };
 
+    if (textSlot.letterSpacing > 0) {
+        style['letter-spacing'] = textSlot.letterSpacing + 'px';
+    }
+
     if (textSlot.bold) {
         style['font-weight'] = 'bold';
     }
