@@ -206,7 +206,6 @@ export default {
             name: 'Comment',
             iconUrl: '/assets/images/items/comment.svg',
             item: {
-                text: 'Text...',
                 shapeProps: {
                     fontSize: 8,
                     cornerRadius: 5,
