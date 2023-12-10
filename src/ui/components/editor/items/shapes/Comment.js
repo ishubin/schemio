@@ -207,7 +207,6 @@ export default {
             iconUrl: '/assets/images/items/comment.svg',
             item: {
                 shapeProps: {
-                    fontSize: 8,
                     cornerRadius: 5,
                     tailLength: 20,
                     tailWidth: 20,
