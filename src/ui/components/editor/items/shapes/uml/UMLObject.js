@@ -85,7 +85,7 @@ export default {
         },
 
         args: {
-            cornerRadius: {type: 'number', value: '0', name: 'Corner radius', min: 0},
+            cornerRadius: {type: 'number', value: 0, name: 'Corner radius', min: 0},
             headerHeight: {type: 'number', value: 30, name: 'Header Height', min: 0}
         }
     }

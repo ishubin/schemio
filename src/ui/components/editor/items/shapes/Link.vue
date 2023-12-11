@@ -38,7 +38,17 @@ export default {
             iconUrl: '/assets/images/items/link.svg',
             item: {
                 textSlots: {
-                    link: {text: 'Link', fontSize: 16, padding: {left: 0, top: 0, bottom: 0, right: 0}, color: '#047EFB', halign: 'left', valign: 'top'}
+                    link: {
+                        text: 'Link',
+                        fontSize: 16,
+                        paddingLeft: 0,
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                        paddingRight: 0,
+                        color: '#047EFB',
+                        halign: 'left',
+                        valign: 'top'
+                    }
                 },
                 cursor: 'pointer'
             }
