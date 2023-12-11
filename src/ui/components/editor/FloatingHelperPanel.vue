@@ -1,51 +1,53 @@
 <template>
     <transition name="floating-helper-panel">
         <div ref="floatingHelperPanel" class="floating-helper-panel" :style="{top: `${posY}px`, left: `${posX}px`}">
-            <ul class="button-group">
-                <li>
-                    <div class="item-name">
-                        <input v-if="nameEdited" ref="nameInput" type="text" v-model="itemName" placeholder="Name..." @keydown.enter="nameEdited = false" @blur="nameEdited = false
-                        "/>
-                        <span v-else @click="triggerNameEdit" :title="itemName">{{item.name}}</span>
-                    </div>
-                </li>
-                <li>
-                    <span class="toggle-button" @click="descriptionEditorShown = true" title="Description">
-                        <i class="fas fa-paragraph"></i>
-                    </span>
-                </li>
-                <li v-if="supportsFill && item.shape !== 'connector'">
-                    <advanced-color-editor
-                        :value="fillColor"
-                        width="18px"
-                        height="18px"
-                        @changed="updateShapeProp('fill', arguments[0])"
-                        title="Fill"/>
-                </li>
-                <li v-if="supportsStroke">
-                    <StrokeControl
-                        :editorId="editorId"
-                        :item="item"
-                        @color-changed="updateShapeProp('strokeColor', arguments[0])"
-                        @size-changed="updateShapeProp('strokeSize', arguments[0])"
-                        @pattern-changed="updateShapeProp('strokePattern', arguments[0])"
-                        title="Stroke"
-                        />
-                </li>
-                <li v-if="item.shape === 'path'">
-                    <span class="toggle-button" @click="editPath" title="Edit path"><img width="20px" :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
-                </li>
-                <li v-if="item.shape === 'image'">
-                    <span @click="cropImage" class="toggle-button" title="Crop image"><i class="fas fa-crop"></i></span>
-                </li>
-                <li v-if="supportsFill && item.shape !== 'connector'">
-                    <span class="toggle-button" title="Styles" @click="toggleStylesPopup()"> <i class="fas fa-palette"></i> </span>
-                </li>
-                <li>
-                    <span class="toggle-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>
-                </li>
-            </ul>
-
+            <div class="floating-helper-panel-inner">
+                <span class="panel-close" @click="$emit('close')"><i class="fa-solid fa-xmark"></i></span>
+                <ul class="button-group">
+                    <li>
+                        <div class="item-name">
+                            <input v-if="nameEdited" ref="nameInput" type="text" v-model="itemName" placeholder="Name..." @keydown.enter="nameEdited = false" @blur="nameEdited = false
+                            "/>
+                            <span v-else @click="triggerNameEdit" :title="itemName">{{item.name}}</span>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="toggle-button" @click="descriptionEditorShown = true" title="Description">
+                            <i class="fas fa-paragraph"></i>
+                        </span>
+                    </li>
+                    <li v-if="supportsFill && item.shape !== 'connector'">
+                        <advanced-color-editor
+                            :value="fillColor"
+                            width="18px"
+                            height="18px"
+                            @changed="updateShapeProp('fill', arguments[0])"
+                            title="Fill"/>
+                    </li>
+                    <li v-if="supportsStroke">
+                        <StrokeControl
+                            :editorId="editorId"
+                            :item="item"
+                            @color-changed="updateShapeProp('strokeColor', arguments[0])"
+                            @size-changed="updateShapeProp('strokeSize', arguments[0])"
+                            @pattern-changed="updateShapeProp('strokePattern', arguments[0])"
+                            title="Stroke"
+                            />
+                    </li>
+                    <li v-if="item.shape === 'path'">
+                        <span class="toggle-button" @click="editPath" title="Edit path"><img width="20px" :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
+                    </li>
+                    <li v-if="item.shape === 'image'">
+                        <span @click="cropImage" class="toggle-button" title="Crop image"><i class="fas fa-crop"></i></span>
+                    </li>
+                    <li v-if="supportsFill && item.shape !== 'connector'">
+                        <span class="toggle-button" title="Styles" @click="toggleStylesPopup()"> <i class="fas fa-palette"></i> </span>
+                    </li>
+                    <li>
+                        <span class="toggle-button" title="Remove" @click="deleteItem()"> <i class="fas fa-trash"></i> </span>
+                    </li>
+                </ul>
+            </div>
             <modal title="Description" v-if="descriptionEditorShown" @close="descriptionEditorShown = false">
                 <h5>Name</h5>
                 <input type="text" class="textfield" v-model="item.name" @input="emitChangeCommited('name')"/>

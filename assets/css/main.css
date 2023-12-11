@@ -1099,7 +1099,7 @@ textarea.in-place-text-editor {
 /*********************** Button Group **********************/
 
 ul.button-group {
-    display: inline-block;
+    display: block;
     margin: 0;
     padding: 2px;
     list-style: none;
@@ -3655,7 +3655,6 @@ ul.patch-field-list {
     display: flex;
     background: var(--faint-weak-up);
     box-shadow: 1px 1px 7px var(--shadow-color);
-    padding: 6px;
     border-radius: var(--control-border-radius);
 }
 
@@ -3671,6 +3670,21 @@ ul.patch-field-list {
 .floating-helper-panel-enter-to,
 .floating-helper-panel-leave-from {
     opacity: 1.0;
+}
+
+.floating-helper-panel .floating-helper-panel-inner {
+    position: relative;
+    padding: 0 14px 0 0;
+}
+.floating-helper-panel .floating-helper-panel-inner .panel-close {
+    font-size: 12px;
+    display: none;
+    right: 4px;
+    top: 1px;
+    color: var(--faint-strong-down);
+}
+.floating-helper-panel:hover .floating-helper-panel-inner .panel-close {
+    display: inline-block;
 }
 
 .floating-helper-panel .item-name {

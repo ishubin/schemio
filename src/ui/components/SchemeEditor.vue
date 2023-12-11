@@ -147,6 +147,7 @@
                             :schemeContainer="schemeContainer"
                             @edit-path-requested="onEditPathRequested"
                             @image-crop-requested="startCroppingImage"
+                            @close="floatingHelperPanel.shown = false"
                             />
                     </div>
                 </SvgEditor>
