@@ -49,7 +49,7 @@ const baseSchema = {
                 tooltipBackground: {type: 'string', patching: ['replace']},
                 tooltipColor     : {type: 'string', patching: ['replace']},
                 tags             : {type: 'array', of: 'string', patching: ['patch-set']},
-                args             : {type: 'map', patching: ['patch-map', 'replace'], fields: {
+                args             : {type: 'map', of: 'any', patching: ['patch-map', 'replace'], fields: {
                     '*': {patching: ['replace', 'delete']},
                 }},
                 area             : {type: 'object', patching: ['modify'], fields: {
@@ -68,7 +68,7 @@ const baseSchema = {
                     url  : {type: 'string', patching: ['replace']},
                     type : {type: 'string', patching: ['replace']}
                 }},
-                textSlots: {type: 'map', patching: ['patch-map'], fields: { /* built dynamically */ }},
+                textSlots: {type: 'map', of: 'object', patching: ['patch-map'], fields: { /* built dynamically */ }},
                 behavior: {type: 'object', patching: ['modify'], fields: {
                     events: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
                         id   : {type: 'string'},
@@ -203,7 +203,7 @@ function createFieldSchemaForArg(argDef) {
         }};
     }
     if (argDef.type === 'animation-functions') {
-        schema = {type: 'map', patching: ['patch-map', 'replace', 'delete'], fields: {
+        schema = {type: 'map', of: 'object', patching: ['patch-map', 'replace', 'delete'], fields: {
             functionId: {type: 'string', patching: ['replace']},
             args: {type: 'conditional', contidionalParentField: 'functionId', conditions: buildConditionsForAnimationFunctions()}
         }};
