@@ -541,9 +541,7 @@
                         },
                         "strokeColor":{"$-expr": "iconColor"},
                         "strokeSize": 4,
-                        "strokePattern": "solid",
-                        "points": [],
-                        "closed": false
+                        "strokePattern": "solid"
                     },
                     "textSlots": {},
                     "opacity": 100,
@@ -729,9 +727,7 @@
                         },
                         "strokeColor": {"$-expr": "iconColor"},
                         "strokeSize": 4,
-                        "strokePattern": "solid",
-                        "points": [],
-                        "closed": false
+                        "strokePattern": "solid"
                     },
                     "textSlots": {},
                     "opacity": 100,

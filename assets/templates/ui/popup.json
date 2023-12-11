@@ -321,9 +321,7 @@
                             },
                             "strokeColor": "rgba(30,30,30,1.0)",
                             "strokeSize": 0,
-                            "strokePattern": "solid",
-                            "points": [],
-                            "closed": false
+                            "strokePattern": "solid"
                         },
                         "textSlots": {},
                         "opacity": 100,

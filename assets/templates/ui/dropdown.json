@@ -313,9 +313,7 @@
                             },
                             "strokeColor": {"$-expr": "textColor"},
                             "strokeSize": 2,
-                            "strokePattern": "solid",
-                            "points": [],
-                            "closed": false
+                            "strokePattern": "solid"
                         },
                         "textSlots": {},
                         "opacity": 100,
