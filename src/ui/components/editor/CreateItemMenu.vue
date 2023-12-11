@@ -653,7 +653,7 @@ export default {
 
 
             dragAndDropBuilder(originalEvent)
-            .withDroppableClass('svg-editor-plot')
+            .withDroppableClass('scheme-container')
             .withDraggedElement(this.$refs.itemDragger)
             .onDragStart(() => {
                 if (!shouldIgnoreRecentProps && itemClone.shape !== 'sticky_note') {
