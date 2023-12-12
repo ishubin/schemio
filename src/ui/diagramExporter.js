@@ -3,6 +3,7 @@ import { traverseItems } from "./scheme/Item";
 import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./scheme/SchemeContainer";
 import { filterOutPreviewSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
 import { encode } from 'js-base64';
+import axios from "axios";
 
 
 /**
@@ -174,7 +175,20 @@ export function diagramImageExporter(items) {
             svg.setAttribute('height', `${imageHeight}px`);
 
             return rasterizeAllImagesToDataURL(svg)
+            .then(() => insertCustomFonts(svg))
             .then(() => svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
         }
     };
+}
+
+function insertCustomFonts(svg) {
+    return axios.get('/assets/custom-fonts/all-fonts-embedded.css')
+    .then(data => {
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = '<style>\n' + data.data + '\n</style>';
+        svg.prepend(defs);
+    })
+    .catch(err => {
+        console.error(err);
+    });
 }
