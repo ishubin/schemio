@@ -196,6 +196,20 @@ export function enrichItemWithDefaults(item) {
         return;
     }
 
+    if (!item.shapeProps) {
+        item.shapeProps = {};
+    }
+
+    if (shape.fixItem) {
+        shape.fixItem(item);
+    }
+
+    forEach(item.shapeProps, (value, argName) => {
+        if (!shape.args || !shape.args.hasOwnProperty(argName)) {
+            delete item.shapeProps[argName];
+        }
+    });
+
     forEach(shape.args, (arg, argName) => {
         if (!item.shapeProps.hasOwnProperty(argName)) {
             item.shapeProps[argName] = utils.clone(arg.value);
@@ -206,10 +220,6 @@ export function enrichItemWithDefaults(item) {
 
     if (shape.shapeType === 'standard') {
         enrichItemWithStandardShapeProps(item);
-    }
-
-    if (shape.fixItem) {
-        shape.fixItem(item);
     }
 
     // Some getTextSlots functions in some shapes rely on specific fields in shapeProps
