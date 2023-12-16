@@ -195,6 +195,7 @@ function createFieldSchemaForArg(argDef) {
             id      : {type: 'string'},
             kind    : {type: 'string', patching: ['replace'] },
             itemId  : {type: 'string', patching: ['replace'] },
+            funcId  : {type: 'string', patching: ['replace'] },
             property: {type: 'string', patching: ['replace'] },
             frames  : {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
                 frame: {type: 'number', min: 0 },
