@@ -3675,6 +3675,10 @@ ul.patch-field-list {
 .floating-helper-panel .floating-helper-panel-inner {
     position: relative;
     padding: 0 14px 0 0;
+    height: 33px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .floating-helper-panel .floating-helper-panel-inner .panel-close {
     font-size: 12px;
@@ -3702,7 +3706,7 @@ ul.patch-field-list {
     font-size: 14px;
     cursor: pointer;
     color: var(--base-strong-up-up);
-    padding: 2px;
+    padding: 6px 2px 2px 2px;
     margin: 0;
     white-space: nowrap;
     border: 1px solid var(--faint-weak);
