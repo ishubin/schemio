@@ -13,7 +13,7 @@
             :stroke-dasharray="strokeDashArray"
             :fill="svgFill"></path>
 
-        <foreignObject v-if="hideTextSlot !== 'body' && bodyTextShown" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
+        <foreignObject v-if="item.shapeProps.kind !== 'embedded' && hideTextSlot !== 'body' && bodyTextShown" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
             <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
         </foreignObject>
 
@@ -245,6 +245,9 @@ export default {
         },
 
         getTextSlots(item) {
+            if (item.shapeProps.kind === 'embedded') {
+                return [];
+            }
             const btnArea = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
             let h = item.area.h;
             let hasButton = false;
@@ -275,7 +278,7 @@ export default {
         },
 
         computeCustomAreas(item) {
-            if (item.meta && item.meta.componentLoadFailed) {
+            if (item.shapeProps.kind === 'embedded' || (item.meta && item.meta.componentLoadFailed)) {
                 return [];
             }
             return [{

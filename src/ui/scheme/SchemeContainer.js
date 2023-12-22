@@ -345,8 +345,6 @@ class SchemeContainer {
         this.framesAnimations = {};
 
         this.componentItems = [];
-        // map of component id to reference item id
-        this.componentCyclicIndex = new Map();
 
         this.outlinePointsCache = new Map(); // stores points of item outlines so that it doesn't have to recompute it for items that were not changed
 
@@ -428,7 +426,6 @@ class SchemeContainer {
         this.framePlayers = [];
 
         this.componentItems = [];
-        this.componentCyclicIndex = new Map();
 
         if (!this.scheme.items) {
             return;
@@ -446,10 +443,11 @@ class SchemeContainer {
     }
 
     reindexEmbeddedComponent(item) {
+        item.meta.referenceItemId = null;
         if (item.shapeProps.kind === 'embedded' && item.shapeProps.referenceItem) {
             const referenceItem = this.findFirstElementBySelector(item.shapeProps.referenceItem);
             if (referenceItem) {
-                this.componentCyclicIndex.set(item.id, referenceItem.id);
+                item.meta.referenceItemId = referenceItem.id;
 
                 const rootItem = {
                     ...referenceItem,
@@ -471,40 +469,58 @@ class SchemeContainer {
     }
 
     fixComponentCyclicDependencies() {
-        const visitedIds = new Set();
+        this.componentItems.forEach(component => component.meta.cyclicComponent = false);
+        this.componentItems.forEach(component => {
+            if (component.shapeProps.kind === 'embedded') {
+                this.checkComponentForCyclicDependencies(component);
+            }
+        });
+    }
 
-        const traverseReferenceItem = (item) => {
-            forEach(item.childItems, childItem => {
-                if (childItem.shape === 'component') {
-                    visitComponent(childItem);
-                } else {
-                    traverseReferenceItem(childItem);
-                }
+    checkComponentForCyclicDependencies(componentItem) {
+        if (componentItem.shapeProps.kind !== 'embedded') {
+            return;
+        }
+
+        const mainReferenceItem = this.findItemById(componentItem.meta.referenceItemId);
+        if (!mainReferenceItem) {
+            return;
+        }
+
+        const queue = [componentItem];
+
+        const planForTraverse = (childItems) => {
+            forEach(childItems, childItem => {
+                queue.push(childItem);
             });
         };
 
-        const visitComponent = (componentItem) => {
-            if (visitedIds.has(componentItem.id)) {
-                // this is dirty code. We waste time on enriching components and only later check their dependecies
-                // and clean up in case a cyclic dependency is detected
-                componentItem._childItems = [];
-                componentItem.meta.cyclicComponent = true;
-                return false;
-            }
-            visitedIds.add(componentItem.id);
+        let isFirstMatch = true;
 
-            const referenceItem = this.findItemById(this.componentCyclicIndex.get(componentItem.id));
-            if (referenceItem) {
-                traverseReferenceItem(referenceItem);
+        // doing a breadth first search in order to protect from the cyclic loops in the lower stack.
+        // Technically this should not be possible but that is only in case each component is check in the correct order
+        while(queue.length > 0) {
+            const item = queue.shift();
+            if (item.meta.referenceItemId === mainReferenceItem.id) {
+                if (!isFirstMatch) {
+                    componentItem.meta.cyclicComponent = true;
+                    componentItem._childItems = [];
+                    return;
+                }
+                isFirstMatch = false;
             }
-            return true;
-        };
 
-        this.componentItems.forEach(componentItem => {
-            visitedIds.clear();
-            visitComponent(componentItem);
-        });
+            if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
+                const referenceItem = this.findItemById(item.meta.referenceItemId);
+                if (referenceItem) {
+                    queue.push(referenceItem);
+                }
+            }
+            planForTraverse(item.childItems);
+            planForTraverse(item._childItems);
+        }
     }
+
 
     /*
         Traverses all items and makes their tags and tag selectors unique.
