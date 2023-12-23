@@ -170,6 +170,7 @@ export default {
 
         updateShapeProp(name, value) {
             this.item.shapeProps[name] = value;
+            this.$emit('item-updated', this.item);
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, `shapeProps.${name}`);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.${name}`);
         },
@@ -198,6 +199,7 @@ export default {
 
         applyItemStyle(style) {
             if (applyItemStyle(this.item, style)) {
+                this.$emit('item-updated', this.item);
                 EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.styles`);
             }

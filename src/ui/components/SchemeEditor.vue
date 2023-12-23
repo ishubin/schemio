@@ -145,6 +145,7 @@
                             :y="floatingHelperPanel.y"
                             :item="floatingHelperPanel.item"
                             :schemeContainer="schemeContainer"
+                            @item-updated="onItemUpdatedInFloatingHelperPanel"
                             @edit-path-requested="onEditPathRequested"
                             @image-crop-requested="startCroppingImage"
                             @close="floatingHelperPanel.shown = false"
@@ -1906,6 +1907,10 @@ export default {
             });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.*.${propertyName}`);
 
+        },
+
+        onItemUpdatedInFloatingHelperPanel(item) {
+            this.schemeContainer.updateItemClones(item);
         },
 
         // this is triggered from specific text slot in side panel
