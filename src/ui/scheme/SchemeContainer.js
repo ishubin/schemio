@@ -455,11 +455,7 @@ class SchemeContainer {
                         ...referenceItem.meta,
                         componentRoot: true
                     },
-                    shape: 'none',
-                    opacity: 100,
-                    selfOpacity: 100,
                     visible: true,
-                    shapeProps: {}
                 };
 
                 this.attachItemsToComponentItem(item, [rootItem]);
