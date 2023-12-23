@@ -190,6 +190,7 @@ class DragControlPointState extends SubState {
         if (this.controlPoint) {
             if (this.item.shape === 'connector' && (this.controlPoint.isEdgeStart || this.controlPoint.isEdgeEnd)) {
                 this.handleCurveConnectorEdgeControlPointDrag(x, y, this.controlPoint);
+                this.schemeContainer.updateItemClones(this.item);
             } else {
                 const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.item);
                 const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.item);
@@ -216,6 +217,7 @@ class DragControlPointState extends SubState {
                 StoreUtils.setItemControlPoints(this.store, this.item);
                 this.reindexNeeded = true;
                 this.lastModifiedItem = this.item;
+                this.schemeContainer.updateItemClones(this.item);
             }
         }
     }

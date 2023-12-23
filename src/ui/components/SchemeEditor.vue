@@ -1893,28 +1893,32 @@ export default {
         onItemGenericTextSlotPropChanged(propertyName, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                if (item.textSlots) {
-                    forEach(item.textSlots, (textSlot, textSlotName) => {
-                        item.textSlots[textSlotName][propertyName] = utils.clone(value);
-                        recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
-                    });
-                }
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.*.${propertyName}`);
+                this.schemeContainer.setPropertyForItem(item, (it) => {
+                    if (it.textSlots) {
+                        forEach(it.textSlots, (textSlot, textSlotName) => {
+                            it.textSlots[textSlotName][propertyName] = utils.clone(value);
+                            recentPropsChanges.registerItemTextProp(it.shape, textSlotName, propertyName, value);
+                        });
+                    }
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, it.id, `textSlots.*.${propertyName}`);
+                });
                 itemIds += item.id;
             });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.*.${propertyName}`);
 
         },
 
-        // this is triggerd from specific text slot in side panel
+        // this is triggered from specific text slot in side panel
         onTextPropertyChanged(textSlotName, propertyName, value) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
-                if (item.textSlots && item.textSlots.hasOwnProperty(textSlotName)) {
-                    item.textSlots[textSlotName][propertyName] = utils.clone(value);
-                    recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
-                }
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${textSlotName}.${propertyName}`);
+                this.schemeContainer.setPropertyForItem(item, (it) => {
+                    if (it.textSlots && it.textSlots.hasOwnProperty(textSlotName)) {
+                        it.textSlots[textSlotName][propertyName] = utils.clone(value);
+                        recentPropsChanges.registerItemTextProp(it.shape, textSlotName, propertyName, value);
+                    }
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, it.id, `textSlots.${textSlotName}.${propertyName}`);
+                });
                 itemIds += item.id;
             });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);

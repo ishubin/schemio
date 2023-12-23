@@ -409,8 +409,6 @@ class SchemeContainer {
         log.info('reindexItems()', this);
         log.time('reindexItems');
 
-        //TODO optimize it to not reconstruct all indices with every change (e.g. reindex only effected items. This obviously needs to be specified from the caller)
-
         this.itemMap = {};
         this._itemArray = [];
         this.worldItems = [];
@@ -1988,13 +1986,37 @@ class SchemeContainer {
         this.updatePropertyForClones(item, setter);
     }
 
-    updatePropertyForClones(item, setter) {
+    updatePropertyForClones(item, setter, ignoreComponentRoots) {
         const cloneIds = this.getItemCloneIds(item.id);
         if (cloneIds) {
             cloneIds.forEach(cloneId => {
                 const clonedItem = this.findItemById(cloneId);
-                if (clonedItem && !clonedItem.meta.componentRoot) {
-                    this.setPropertyForItem(clonedItem, setter);
+                if (!clonedItem) {
+                    return;
+                }
+                if (ignoreComponentRoots && clonedItem.meta.componentRoot) {
+                    return;
+                }
+                this.setPropertyForItem(clonedItem, setter);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, clonedItem.id);
+            });
+        }
+    }
+
+    updateItemClones(item) {
+        const cloneIds = this.getItemCloneIds(item.id);
+        if (cloneIds) {
+            cloneIds.forEach(cloneId => {
+                const clonedItem = this.findItemById(cloneId);
+                if (clonedItem) {
+                    this.updateItemClones(clonedItem);
+
+                    const copy = utils.clone(item);
+
+                    clonedItem.shapeProps = copy.shapeProps;
+                    clonedItem.opacity = copy.opacity;
+                    clonedItem.selfOpacity = copy.selfOpacity;
+                    clonedItem.textSlots = copy.textSlots;
                     EditorEventBus.item.changed.specific.$emit(this.editorId, clonedItem.id);
                 }
             });
@@ -2289,7 +2311,7 @@ class SchemeContainer {
                     clone.area.r = item.area.r;
                     clone.area.px = item.area.px;
                     clone.area.py = item.area.py;
-                });
+                }, true);
             }
         });
 
