@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <modal v-if="animationEditorShown" title="Animation" @close="animationEditorShown = false">
+        <modal v-if="animationEditorShown" title="Animation" @close="animationEditorShown = false" :use-mask="false">
             <div>
                 <table class="properties-table">
                     <tbody>
