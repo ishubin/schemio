@@ -2298,17 +2298,23 @@ export default {
                     h: box.area.h + padding * 2,
                     r: box.area.r,
                 };
-                rect.shape = 'rect';
+                rect.shape = 'uml_group';
                 rect.shapeProps = {
-                    strokePattern: StrokePattern.DASHED,
-                    strokeSize: 2,
+                    strokePattern: StrokePattern.SOLID,
+                    strokeColor: 'rgba(160,160,160,1.0)',
+                    strokeSize: 3,
                     fill: {type: 'none'},
+                    pos: 'top',
+                    align: 'middle'
                 };
                 rect.textSlots = {
-                    body: {
-                        halign: 'left',
-                        valign: 'top',
-                        text: '<i>Group...</i>'
+                    title: {
+                        halign: 'center',
+                        valign: 'middle',
+                        color: '#969696',
+                        text: 'Group',
+                        fontSize: 16,
+                        bold: true,
                     }
                 };
                 this.schemeContainer.addItem(rect);
