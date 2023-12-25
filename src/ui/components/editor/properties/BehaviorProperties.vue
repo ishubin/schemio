@@ -3,12 +3,60 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div :class="{'actions-being-dragged': dragging.eventIndex >= 0}">
-        <panel v-if="!extended" uid="behavior-tags" name="Tags">
+        <panel v-if="!extended" uid="behavior-tags" name="General">
             <vue-tags-input v-model="itemTag"
                 :tags="itemTags"
                 :autocomplete-items="filteredItemTagsSuggestions"
                 @tags-changed="onItemTagsChange"
                 ></vue-tags-input>
+
+            <table class="properties-table">
+                <tbody>
+                    <tr>
+                        <td class="label" width="50%">Dragging</td>
+                        <td class="value" width="50%">
+                            <dropdown
+                                :options="draggingOptions"
+                                @selected="onItemDraggingChange"
+                            >
+                                {{ item.behavior.dragging | toPrettyDraggingOptionName }}
+                            </dropdown>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" :class="{disabled: item.behavior.dragging !== 'dragndrop' }" width="50%">Drop to</td>
+                        <td class="value" width="50%">
+                            <ElementPicker
+                                :editorId="editorId"
+                                :element="item.behavior.dropTo"
+                                :scheme-container="schemeContainer"
+                                :useSelf="false"
+                                :allowNone="true"
+                                :inline="true"
+                                :borderless="true"
+                                :disabled="item.behavior.dragging !== 'dragndrop'"
+                                @selected="onItemDraggingDropToSelected"
+                                />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" :class="{disabled: item.behavior.dragging !== 'path' }" width="50%">Drag path</td>
+                        <td class="value" width="50%">
+                            <ElementPicker
+                                :editorId="editorId"
+                                :element="item.behavior.dragPath"
+                                :scheme-container="schemeContainer"
+                                :useSelf="false"
+                                :allowNone="true"
+                                :inline="true"
+                                :borderless="true"
+                                :disabled="item.behavior.dragging !== 'path'"
+                                @selected="onItemDraggingPathSelected"
+                                />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </panel>
 
         <div class="hint" v-if="item.behavior.events.length === 0">There are no events defined for this item yet. Start by adding an event</div>
@@ -170,7 +218,7 @@ import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
+import {textSlotProperties, getItemPropertyDescriptionForShape, DragType} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
@@ -268,6 +316,9 @@ export default {
             shapeEvents = shape.getEvents(this.item).map(shapeEvent => shapeEvent.name);
         }
 
+        const draggingOptions = [];
+        forEach(DragType, (value) => draggingOptions.push(value));
+
         return {
             items: items,
             eventOptions: this.createEventOptions(),
@@ -298,7 +349,9 @@ export default {
                     eventIndex: -1,
                     actionIndex: -1,
                 }
-            }
+            },
+
+            draggingOptions
         };
     },
 
@@ -837,7 +890,22 @@ export default {
             const action = this.item.behavior.events[eventIndex].actions[actionIndex];
             action.on = !action.on;
             this.$forceUpdate();
-        }
+        },
+
+        onItemDraggingChange(option) {
+            this.item.behavior.dragging = option.id;
+            this.$forceUpdate();
+        },
+
+        onItemDraggingDropToSelected(element) {
+            this.item.behavior.dropTo = element;
+            this.$forceUpdate();
+        },
+
+        onItemDraggingPathSelected(element) {
+            this.item.behavior.dragPath = element;
+            this.$forceUpdate();
+        },
     },
 
     filters: {
@@ -882,6 +950,16 @@ export default {
         },
         itemTags() {
             return map(this.item.tags, tag => {return {text: tag}});
+        },
+    },
+    filters: {
+        toPrettyDraggingOptionName(id) {
+            const option = DragType[id];
+            if (!option) {
+                return DragType.none.name;
+            }
+
+            return option.name;
         }
     }
 }

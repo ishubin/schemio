@@ -179,25 +179,6 @@ export function getBoundingBoxOfItems(items) {
     return schemeBoundaryBox;
 }
 
-
-/**
- * converts worlds coords to local point in the transform of the parent of the item
- * In case item has no parents - it returns the world coords
- * @param {*} x world position x
- * @param {*} y world position y
- * @param {*} item
- */
-export function relativePointForItem(x, y, item) {
-    if (item.meta.parentId) {
-        const parentItem = this.findItemById(item.meta.parentId);
-        if (parentItem) {
-            return this.localPointOnItem(x, y, parentItem);
-        }
-    }
-
-    return {x, y};
-}
-
 /**
  * Calculates scaling effect of the item relative to the world
  * This is needed for proper computation of control points for scaled items
@@ -1134,7 +1115,14 @@ class SchemeContainer {
      * @param {*} item
      */
     relativePointForItem(x, y, item) {
-        return relativePointForItem(x, y, item);
+        if (item.meta.parentId) {
+            const parentItem = this.findItemById(item.meta.parentId);
+            if (parentItem) {
+                return this.localPointOnItem(x, y, parentItem);
+            }
+        }
+
+        return {x, y};
     }
 
     /**

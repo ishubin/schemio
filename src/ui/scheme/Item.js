@@ -52,6 +52,28 @@ export function prettyTextSlotProperty(propertyName) {
 }
 
 
+export const DragType = {
+    none: {
+        id: 'none',
+        name: 'None',
+        description: 'Cannot be dragged'
+    },
+    free: {
+        id: 'free',
+        name: 'Free',
+        description: 'Can be dragged and dropped anywhere on the scene'
+    },
+    path: {
+        id: 'path',
+        name: 'Path',
+        description: 'Can be dragged only along specified path'
+    },
+    dragndrop: {
+        id: 'dragndrop',
+        name: 'Drag-n-drop',
+        description: 'Can be dragged but has to be dropped to designated drop area, otherwise the item will return to its original position'
+    }
+}
 
 export const defaultTextSlotProps = {
     text         : '',
@@ -110,7 +132,17 @@ export const defaultItemDefinition = {
     description: '',
     interactionMode: ItemInteractionMode.TOOLTIP,
     behavior: {
-        events: []
+        events: [],
+        // specifies whether the item can be dragged
+        // possible values are:
+        //     - none        = no dragging
+        //     - free        = free dragging
+        //     - path        = user can drag the item but it is constrained by the path of specified items
+        //     - drag-n-drop = user can only drag from one place to another
+        dragging: 'none',
+        dropTo: '',
+        // element selector that contraints the dragging within the outline of specified item or group of items
+        dragPath: '',
     },
     shapeProps: {},
     tooltipBackground: 'rgba(230,230,230,1.0)',
@@ -128,7 +160,17 @@ export const defaultItem = {
     links: [],
     textSlots: {},
     behavior: {
-        events: []
+        events: [],
+        // specifies whether the item can be dragged
+        // possible values are:
+        //     - none        = no dragging
+        //     - free        = free dragging
+        //     - path        = user can drag the item but it is constrained by the path of specified items
+        //     - drag-n-drop = user can only drag from one place to another
+        dragging: 'none',
+        dropTo: '',
+        // element selector that contraints the dragging within the outline of specified item or group of items
+        dragPath: '',
     },
 
     // childItems: [], // used dynamically in case there are child items

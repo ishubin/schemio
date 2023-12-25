@@ -2,13 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import State from './State.js';
+import State, { isEventMiddleClick, SubState } from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
 import { localPointOnItem } from '../../../scheme/SchemeContainer.js';
+import EditorEventBus from '../EditorEventBus.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -24,6 +25,50 @@ class StateInteract extends State {
      */
     constructor(editorId, store, userEventBus, listener) {
         super(editorId, store,  'interact', listener);
+        this.subState = null;
+        this.userEventBus = userEventBus;
+    }
+
+    reset() {
+        this.migrateSubState(new IdleState(this, this.listener, this.userEventBus));
+    }
+}
+
+
+
+class DragItemState extends SubState {
+    constructor(parentState, listener, item, x, y) {
+        super(parentState, 'drag-item-state');
+        this.listener = listener;
+        this.initialClickPoint = {x, y};
+        this.originalItemPosition = {x: item.area.x, y: item.area.y};
+        this.item = item;
+    }
+
+    mouseMove(x, y, mx, my, object, event) {
+        const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
+        const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
+        this.item.area.x = this.originalItemPosition.x + p1.x - p0.x;
+        this.item.area.y = this.originalItemPosition.y + p1.y - p0.y;
+        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
+    }
+
+    mouseUp(x, y, mx, my, object, event) {
+        if (this.item.behavior.dragging !== 'free') {
+            this.item.area.x = this.originalItemPosition.x;
+            this.item.area.y = this.originalItemPosition.y;
+        }
+        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
+        this.migrateToPreviousSubState();
+    }
+}
+
+
+
+class IdleState extends SubState {
+    constructor(parentState, listener, userEventBus) {
+        super(parentState, 'idle');
+        this.listener = listener;
         this.startedDragging = false;
         this.initialClickPoint = null;
         this.originalOffset = {x:0, y: 0};
@@ -33,11 +78,7 @@ class StateInteract extends State {
         this.currentHoveredItem = null;
         this.hoveredItemIds = new Set();
         this.userEventBus = userEventBus;
-    }
-
-    softReset() {
-        this.initialClickPoint = null;
-        this.startedDragging = false;
+        this.schemeContainer = this.parentState.schemeContainer;
     }
 
     reset() {
@@ -45,8 +86,17 @@ class StateInteract extends State {
         this.hoveredItemIds = new Set();
     }
 
+    softReset() {
+        this.initialClickPoint = null;
+        this.startedDragging = false;
+    }
+
     mouseDown(x, y, mx, my, object, event){
         super.mouseDown(x, y, mx, my, object, event);
+        if (!isEventMiddleClick(event) && object && object.type === 'item' && object.item.behavior.dragging !== 'none') {
+            this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y));
+            return;
+        }
         this.initScreenDrag(mx, my);
     }
 
