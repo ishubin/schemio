@@ -48,9 +48,9 @@ class StateInteract extends State {
         }
     }
 
-    emit(element, eventName) {
+    emit(element, eventName, ...args) {
         if (element && element.id) {
-            this.userEventBus.emitItemEvent(element.id, eventName);
+            this.userEventBus.emitItemEvent(element.id, eventName, ...args);
         }
     }
 }
@@ -65,25 +65,52 @@ class DragItemState extends SubState {
         this.originalItemPosition = {x: item.area.x, y: item.area.y};
         this.item = item;
         this.moved = false;
+        this.lastDropCandidate = null;
+
     }
 
+    emit(element, eventName, ...args) {
+        this.parentState.emit(element, eventName, ...args);
+    }
+
+
     mouseMove(x, y, mx, my, object, event) {
+        this.emit(this.item, Events.standardEvents.dragStart.id);
         this.moved = true;
         const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
         this.item.area.x = this.originalItemPosition.x + p1.x - p0.x;
         this.item.area.y = this.originalItemPosition.y + p1.y - p0.y;
         EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
+
+        if (this.item.behavior.dragging === DragType.dragndrop.id) {
+            const dropItem = this.findDesignatedDropItem();
+
+            if (this.lastDropCandidate && (!dropItem || dropItem.id !== this.lastDropCandidate.id)) {
+                this.emit(this.item, Events.standardEvents.dragObjectOut.id, this.lastDropCandidate);
+                this.emit(this.lastDropCandidate, Events.standardEvents.dragObjectOut.id, this.item);
+            }
+
+            if (!dropItem) {
+                return;
+            }
+
+            this.emit(this.item, Events.standardEvents.dragObjectIn.id, dropItem);
+            this.emit(dropItem, Events.standardEvents.dragObjectIn.id, this.item);
+
+            this.lastDropCandidate = dropItem;
+        }
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.emit(this.item, Events.standardEvents.dragEnd.id);
         if (!this.moved) {
             this.parentState.handleItemClick(this.item, mx, my);
             this.migrateToPreviousSubState();
             return;
         }
         if (this.item.behavior.dragging === DragType.dragndrop.id) {
-            const dropItem = this.findDesignatedDropItem();
+            const dropItem = this.lastDropCandidate;
             if (dropItem) {
                 // centering item inside drop item
                 const wp = worldPointOnItem(dropItem.area.w / 2, dropItem.area.h / 2, dropItem);
@@ -93,6 +120,8 @@ class DragItemState extends SubState {
                     this.item.area.x = p.x;
                     this.item.area.y = p.y;
                 }
+                this.emit(this.item, Events.standardEvents.drop.id, dropItem);
+                this.emit(dropItem, Events.standardEvents.receiveDrop.id, this.item);
             } else {
                 // resetting back to old position since we can only drop the item
                 // to specified designated items
@@ -298,8 +327,8 @@ class IdleState extends SubState {
         shape.onMouseOut(this.editorId, item);
     }
 
-    emit(element, eventName) {
-        this.parentState.emit(element, eventName);
+    emit(element, eventName, ...args) {
+        this.parentState.emit(element, eventName, ...args);
     }
 
     dragScreen(x, y) {
