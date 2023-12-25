@@ -5,11 +5,12 @@
 import State, { isEventMiddleClick, SubState } from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
-import {hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
+import {DragType, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
-import { localPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { getBoundingBoxOfItems, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
+import myMath from '../../../myMath.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -32,6 +33,26 @@ class StateInteract extends State {
     reset() {
         this.migrateSubState(new IdleState(this, this.listener, this.userEventBus));
     }
+
+    handleItemClick(item, mx, my) {
+        this.emit(item, CLICKED);
+        if (item.links && item.links.length > 0) {
+            this.listener.onItemLinksShowRequested(item);
+        }
+        if (hasItemDescription(item)) {
+            if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
+                this.listener.onItemSidePanelRequested(item);
+            } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
+                this.listener.onItemTooltipRequested(item, mx, my);
+            }
+        }
+    }
+
+    emit(element, eventName) {
+        if (element && element.id) {
+            this.userEventBus.emitItemEvent(element.id, eventName);
+        }
+    }
 }
 
 
@@ -43,9 +64,11 @@ class DragItemState extends SubState {
         this.initialClickPoint = {x, y};
         this.originalItemPosition = {x: item.area.x, y: item.area.y};
         this.item = item;
+        this.moved = false;
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        this.moved = true;
         const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
         this.item.area.x = this.originalItemPosition.x + p1.x - p0.x;
@@ -54,12 +77,54 @@ class DragItemState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (this.item.behavior.dragging !== 'free') {
-            this.item.area.x = this.originalItemPosition.x;
-            this.item.area.y = this.originalItemPosition.y;
+        if (!this.moved) {
+            this.parentState.handleItemClick(this.item, mx, my);
+            this.migrateToPreviousSubState();
+            return;
+        }
+        if (this.item.behavior.dragging === DragType.dragndrop.id) {
+            const dropItem = this.findDesignatedDropItem();
+            if (dropItem) {
+                // centering item inside drop item
+                const wp = worldPointOnItem(dropItem.area.w / 2, dropItem.area.h / 2, dropItem);
+
+                const p = myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w/2, this.item.area.h/2, this.item.area, this.item.meta.transformMatrix);
+                if (p) {
+                    this.item.area.x = p.x;
+                    this.item.area.y = p.y;
+                }
+            } else {
+                // resetting back to old position since we can only drop the item
+                // to specified designated items
+                this.item.area.x = this.originalItemPosition.x;
+                this.item.area.y = this.originalItemPosition.y;
+            }
         }
         EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
         this.migrateToPreviousSubState();
+    }
+
+    findDesignatedDropItem() {
+        if (this.item.behavior.dropTo === 'self') {
+            return null;
+        }
+        const designatedDropItems = this.schemeContainer.findElementsBySelector(this.item.behavior.dropTo, null);
+
+        const draggedItemBox = getBoundingBoxOfItems([this.item]);
+
+        let candidateDrop = null;
+        const draggedSquare = draggedItemBox.w * draggedItemBox.h;
+        designatedDropItems.forEach(item => {
+            const box = getBoundingBoxOfItems([item]);
+            const overlap = myMath.overlappingArea(draggedItemBox, box);
+            if (overlap) {
+                const overlapSquare = overlap.w * overlap.h;
+                if (overlapSquare > draggedSquare / 2) {
+                    candidateDrop = item;
+                }
+            }
+        });
+        return candidateDrop;
     }
 }
 
@@ -130,8 +195,7 @@ class IdleState extends SubState {
                         const localPoint = localPointOnItem(x, y, object.item);
                         shape.onMouseDown(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
                     }
-                    this.emit(object.item, CLICKED);
-                    this.handleItemClick(object.item, mx, my);
+                    this.parentState.handleItemClick(object.item, mx, my);
                 } else {
                     // checking whether user clicked on the item link or not
                     // if it was item link - then we don't want to remove them from DOM
@@ -166,19 +230,6 @@ class IdleState extends SubState {
                 }
             }
             this.handleItemHoverEvents(object);
-        }
-    }
-
-    handleItemClick(item, mx, my) {
-        if (item.links && item.links.length > 0) {
-            this.listener.onItemLinksShowRequested(item);
-        }
-        if (hasItemDescription(item)) {
-            if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {
-                this.listener.onItemSidePanelRequested(item);
-            } else if (item.interactionMode === ItemInteractionMode.TOOLTIP) {
-                this.listener.onItemTooltipRequested(item, mx, my);
-            }
         }
     }
 
@@ -248,9 +299,7 @@ class IdleState extends SubState {
     }
 
     emit(element, eventName) {
-        if (element && element.id) {
-            this.userEventBus.emitItemEvent(element.id, eventName);
-        }
+        this.parentState.emit(element, eventName);
     }
 
     dragScreen(x, y) {
@@ -265,6 +314,9 @@ class IdleState extends SubState {
         );
     }
 
+    handleItemClick(item, mx, my) {
+        this.parentState.handleItemClick(item, mx, my);
+    }
 }
 
 export default StateInteract;

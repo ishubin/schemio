@@ -129,6 +129,11 @@ export function getLocalBoundingBoxOfItems(items) {
     return schemeBoundaryBox;
 }
 
+/**
+ *
+ * @param {Array<Item>} items
+ * @returns {Area}
+ */
 export function getBoundingBoxOfItems(items) {
     if (!items || items.length === 0) {
         return {x: 0, y: 0, w: 0, h: 0};

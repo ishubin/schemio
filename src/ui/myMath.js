@@ -855,7 +855,12 @@ export default {
         //      | B21*Xw + B22*Yw + B23 | = | Yt*(Xo*A31 + Yo*A32 + A33) + Xo*A21 + Yo*A22 + A23 |
         //      |    B31 + B32 + B33    |   |              Xo*A31 + Yo*A32 + A33                 |
         //
-        // from the above equation we can take out the relevant parts and finally get our complete formula
+        // from the above equation we can take out the relevant parts
+        //
+        //      B11*Xw + B12*Yw + B13  =  Xt*(Xo*A31 + Yo*A32 + A33) + Xo*A11 + Yo*A12 + A13
+        //      B21*Xw + B22*Yw + B23  =  Yt*(Xo*A31 + Yo*A32 + A33) + Xo*A21 + Yo*A22 + A23
+        //
+        // and finally get our complete formula
         //
         //      Xt = (B11*Xw + B12*Yw + B13 - Xo*A11 - Yo*A12 - A13) / (Xo*A31 + Yo*A32 + A33)
         //      Yt = (B21*Xw + B22*Yw + B23 - Xo*A21 - Yo*A22 - A23) / (Xo*A31 + Yo*A32 + A33)

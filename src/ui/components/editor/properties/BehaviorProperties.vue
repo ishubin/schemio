@@ -941,6 +941,15 @@ export default {
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
             return createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer);
+        },
+
+        toPrettyDraggingOptionName(id) {
+            const option = DragType[id];
+            if (!option) {
+                return DragType.none.name;
+            }
+
+            return option.name;
         }
     },
 
@@ -951,16 +960,6 @@ export default {
         itemTags() {
             return map(this.item.tags, tag => {return {text: tag}});
         },
-    },
-    filters: {
-        toPrettyDraggingOptionName(id) {
-            const option = DragType[id];
-            if (!option) {
-                return DragType.none.name;
-            }
-
-            return option.name;
-        }
     }
 }
 </script>
