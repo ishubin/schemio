@@ -81,28 +81,51 @@ class DragItemState extends SubState {
         this.moved = true;
         const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
-        this.item.area.x = this.originalItemPosition.x + p1.x - p0.x;
-        this.item.area.y = this.originalItemPosition.y + p1.y - p0.y;
+        const nx = this.originalItemPosition.x + p1.x - p0.x;
+        const ny = this.originalItemPosition.y + p1.y - p0.y;
         EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
 
         if (this.item.behavior.dragging === DragType.dragndrop.id) {
-            const dropItem = this.findDesignatedDropItem();
-
-            if (this.lastDropCandidate && (!dropItem || dropItem.id !== this.lastDropCandidate.id)) {
-                this.emit(this.item, Events.standardEvents.dragObjectOut.id, this.lastDropCandidate);
-                this.emit(this.lastDropCandidate, Events.standardEvents.dragObjectOut.id, this.item);
-            }
-
-            if (!dropItem) {
-                this.lastDropCandidate = null;
-                return;
-            }
-
-            this.emit(this.item, Events.standardEvents.dragObjectIn.id, dropItem);
-            this.emit(dropItem, Events.standardEvents.dragObjectIn.id, this.item);
-
-            this.lastDropCandidate = dropItem;
+            this.handleDroppableMouseMove(nx, ny);
+        } else {
+            this.item.area.x = nx;
+            this.item.area.y = ny;
         }
+    }
+
+    handleDroppableMouseMove(x, y) {
+        this.item.area.x = x;
+        this.item.area.y = y;
+        const dropItem = this.findDesignatedDropItem();
+
+        if (this.lastDropCandidate && (!dropItem || dropItem.id !== this.lastDropCandidate.id)) {
+            this.emit(this.item, Events.standardEvents.dragObjectOut.id, this.lastDropCandidate);
+            this.emit(this.lastDropCandidate, Events.standardEvents.dragObjectOut.id, this.item);
+        }
+
+        if (!dropItem) {
+            this.lastDropCandidate = null;
+            return;
+        }
+
+        const p = this.getDropPosition(dropItem);
+        if (p) {
+            this.item.area.x = p.x;
+            this.item.area.y = p.y;
+        }
+
+        this.emit(this.item, Events.standardEvents.dragObjectIn.id, dropItem);
+        this.emit(dropItem, Events.standardEvents.dragObjectIn.id, this.item);
+
+        this.lastDropCandidate = dropItem;
+
+    }
+
+    getDropPosition(dropItem) {
+        // centering item inside drop item
+        const wp = worldPointOnItem(dropItem.area.w / 2, dropItem.area.h / 2, dropItem);
+        return myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w/2, this.item.area.h/2, this.item.area, this.item.meta.transformMatrix);
+
     }
 
     mouseUp(x, y, mx, my, object, event) {
@@ -115,10 +138,7 @@ class DragItemState extends SubState {
         if (this.item.behavior.dragging === DragType.dragndrop.id) {
             const dropItem = this.lastDropCandidate;
             if (dropItem) {
-                // centering item inside drop item
-                const wp = worldPointOnItem(dropItem.area.w / 2, dropItem.area.h / 2, dropItem);
-
-                const p = myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w/2, this.item.area.h/2, this.item.area, this.item.meta.transformMatrix);
+                const p = this.getDropPosition(dropItem);
                 if (p) {
                     this.item.area.x = p.x;
                     this.item.area.y = p.y;
