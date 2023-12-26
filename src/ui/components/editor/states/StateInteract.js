@@ -75,7 +75,9 @@ class DragItemState extends SubState {
 
 
     mouseMove(x, y, mx, my, object, event) {
-        this.emit(this.item, Events.standardEvents.dragStart.id);
+        if (!this.moved) {
+            this.emit(this.item, Events.standardEvents.dragStart.id);
+        }
         this.moved = true;
         const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
@@ -92,6 +94,7 @@ class DragItemState extends SubState {
             }
 
             if (!dropItem) {
+                this.lastDropCandidate = null;
                 return;
             }
 

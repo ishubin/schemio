@@ -23,8 +23,8 @@
                             </dropdown>
                         </td>
                     </tr>
-                    <tr>
-                        <td class="label" :class="{disabled: item.behavior.dragging !== 'dragndrop' }" width="50%">Drop to</td>
+                    <tr v-if="item.behavior.dragging === 'dragndrop'">
+                        <td class="label" width="50%">Drop to</td>
                         <td class="value" width="50%">
                             <ElementPicker
                                 :editorId="editorId"
@@ -39,8 +39,8 @@
                                 />
                         </td>
                     </tr>
-                    <tr>
-                        <td class="label" :class="{disabled: item.behavior.dragging !== 'path' }" width="50%">Drag path</td>
+                    <tr v-if="item.behavior.dragging === 'path'">
+                        <td class="label" width="50%">Drag path</td>
                         <td class="value" width="50%">
                             <ElementPicker
                                 :editorId="editorId"
@@ -236,8 +236,6 @@ function byName(a, b) {
 }
 
 const standardItemEvents = Object.values(Events.standardEvents);
-standardItemEvents.sort(byName);
-
 const standardItemEventIds = map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = createSettingStorageFromLocalStorage('behavior-collapse', 400);
@@ -565,7 +563,9 @@ export default {
         copyEvent(eventIndex) {
             const event = this.item.behavior.events[eventIndex];
             copyObjectToClipboard('behavior-events', [sanitizeEvent(event)]).then(() => {
-                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${event.event}" event`);
+                const e = Events.standardEvents[event.event];
+                const name = e ? e.name : event.event;
+                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${name}" event`);
             });
         },
 
