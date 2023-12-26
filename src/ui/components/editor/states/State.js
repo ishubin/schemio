@@ -421,24 +421,6 @@ class State {
         animateZoom(this.schemeContainer, newScale, (screenTransform) => {
             this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
         });
-
-        // let schemeContainer = this.schemeContainer;
-        // const xo = schemeContainer.screenTransform.x;
-        // const yo = schemeContainer.screenTransform.y;
-
-        // const svgRect = document.getElementById(`svg-plot-${this.schemeContainer.editorId}`).getBoundingClientRect();
-        // const cx = svgRect.width / 2;
-        // const cy = svgRect.height / 2;
-
-        // const sx = cx - newScale * (cx - xo) / schemeContainer.screenTransform.scale;
-        // const sy = cy - newScale * (cy - yo) / schemeContainer.screenTransform.scale;
-
-        // schemeContainer.screenTransform.scale = newScale;
-
-        // schemeContainer.screenTransform.x = sx;
-        // schemeContainer.screenTransform.y = sy;
-
-        // this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
     }
 
     dragScreenOffset(dx, dy) {

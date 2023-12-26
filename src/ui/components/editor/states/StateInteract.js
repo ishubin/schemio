@@ -57,6 +57,53 @@ class StateInteract extends State {
 }
 
 
+function startDraggingLoop(looper, timeMarker) {
+    window.requestAnimationFrame(() => {
+        const nextTimeMarker = performance.now();
+        if (looper.loop(nextTimeMarker - timeMarker)) {
+            startDraggingLoop(looper, nextTimeMarker);
+        }
+    });
+}
+
+class DragItemLooper {
+    constructor(schemeContainer) {
+        this.schemeContainer = schemeContainer;
+        this.shouldLoop = true;
+        this.mx = 0;
+        this.my = 0;
+    }
+
+    start() {
+        startDraggingLoop(this, performance.now());
+    }
+
+    updateMousePosition(mx, my) {
+        this.mx = mx;
+        this.my = my;
+    }
+
+    loop(dt) {
+        const padding = 20;
+        if (this.mx < padding) {
+            this.schemeContainer.screenTransform.x += dt/2;
+        }
+        if (this.my < padding) {
+            this.schemeContainer.screenTransform.y += dt/ 2;
+        }
+        if (this.mx > this.schemeContainer.screenSettings.width - padding) {
+            this.schemeContainer.screenTransform.x -= dt/2;
+        }
+        if (this.my > this.schemeContainer.screenSettings.height - padding) {
+            this.schemeContainer.screenTransform.y -= dt/ 2;
+        }
+        return this.shouldLoop;
+    }
+
+    stop() {
+        this.shouldLoop = false;
+    }
+}
 
 class DragItemState extends SubState {
     constructor(parentState, listener, item, x, y) {
@@ -67,6 +114,12 @@ class DragItemState extends SubState {
         this.item = item;
         this.moved = false;
         this.lastDropCandidate = null;
+        this.looper = new DragItemLooper(this.schemeContainer);
+    }
+
+    cancel() {
+        super.cancel();
+        this.looper.stop();
     }
 
     emit(element, eventName, ...args) {
@@ -74,10 +127,14 @@ class DragItemState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        this.looper.updateMousePosition(mx, my);
+
         if (!this.moved) {
             this.emit(this.item, Events.standardEvents.dragStart.id);
+            this.looper.start();
         }
         this.moved = true;
+
         const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
         const nx = this.originalItemPosition.x + p1.x - p0.x;
@@ -216,6 +273,7 @@ class DragItemState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.looper.stop();
         this.emit(this.item, Events.standardEvents.dragEnd.id);
         if (!this.moved) {
             this.parentState.handleItemClick(this.item, mx, my);
