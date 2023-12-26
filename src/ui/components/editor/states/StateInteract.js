@@ -11,6 +11,7 @@ import Shape from '../items/shapes/Shape.js';
 import { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
 import myMath from '../../../myMath.js';
+import { indexOf } from '../../../collections.js';
 
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
@@ -107,6 +108,11 @@ class DragItemState extends SubState {
         let closestPathDistance = -1;
 
         pathItems.forEach(item => {
+            // it should not be possible to drag item along itself
+            if (item.id === this.item.id || (item.meta.ancestorIds && indexOf(item.meta.ancestorIds) >= 0)) {
+                return;
+            }
+
             // re-calculating item outline for every mouse move event is not optimal
             // but if we calculate it only at the start of the drag
             // and the path is changing (e.g. stretching), it will not be the same path
@@ -247,6 +253,10 @@ class DragItemState extends SubState {
         let candidateDrop = null;
         const draggedSquare = draggedItemBox.w * draggedItemBox.h;
         designatedDropItems.forEach(item => {
+            // it should not be possible to drop item to itself or to its own descendants
+            if (item.id === this.item.id || (item.meta.ancestorIds && indexOf(item.meta.ancestorIds) >= 0)) {
+                return;
+            }
             const box = getBoundingBoxOfItems([item]);
             const overlap = myMath.overlappingArea(draggedItemBox, box);
             if (overlap) {
