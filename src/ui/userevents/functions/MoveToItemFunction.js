@@ -4,12 +4,12 @@
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
-import { worldPointOnItem, worldVectorOnItem, relativePointForItem } from '../../scheme/SchemeContainer';
+import { worldPointOnItem, worldVectorOnItem} from '../../scheme/SchemeContainer';
 import myMath from '../../myMath';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
 
-function calculateItemPositionToMatchAnotherItem(item, destinationItem, matchPointType) {
+function calculateItemPositionToMatchAnotherItem(item, destinationItem, matchPointType, schemeContainer) {
     const dstLocalPoint = {x: 0, y: 0};
     const srcLocalPoint = {x: 0, y: 0};
 
@@ -47,7 +47,7 @@ function calculateItemPositionToMatchAnotherItem(item, destinationItem, matchPoi
     }
 
     // fallback if for some reason could not calculate translation point
-    return relativePointForItem(worldPoint.x, worldPoint.y, item);
+    return schemeContainer.relativePointForItem(worldPoint.x, worldPoint.y, item);
 }
 
 class MoveToItemAnimation extends Animation {
@@ -154,7 +154,7 @@ export default {
             let destinationHeight = item.area.h;
 
             if (destinationItem && destinationItem.id !== item.id) {
-                destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, args.matchPoint);
+                destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, args.matchPoint, schemeContainer);
 
                 const v1 = worldVectorOnItem(item.area.w, 0, item);
                 const v2 = worldVectorOnItem(destinationItem.area.w, 0, destinationItem);

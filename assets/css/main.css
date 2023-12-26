@@ -991,6 +991,9 @@ textarea.in-place-text-editor {
 .sub-state-drag-screen * {
     cursor: grab !important;
 }
+.sub-state-drag-item * {
+    cursor: grabbing !important;
+}
 
 [data-type='path-segment'],
 [data-type='path-point'],

@@ -18,6 +18,36 @@ export default {
         init: {
             id: 'init',
             name: 'Init'
+        },
+        dragStart: {
+            id: 'dragStart',
+            name: 'Dragging: Start',
+            description: 'When user starts dragging the object'
+        },
+        dragEnd: {
+            id: 'dragEnd',
+            name: 'Dragging: End',
+            description: 'When user stops dragging the object. It is invoked even if user drops the object in non-designated area and the dragging is canceled'
+        },
+        drop: {
+            id: 'drop',
+            name: 'Dragging: Dropped',
+            description: 'When user drops the object into a designated area'
+        },
+        receiveDrop: {
+            id: 'receiveDrop',
+            name: 'Dragging: Receive',
+            description: 'When user drops another object into this one'
+        },
+        dragObjectIn: {
+            id: 'dragObjectIn',
+            name: 'Dragging: Object In',
+            description: 'When use drags an object into another designated drop object'
+        },
+        dragObjectOut: {
+            id: 'dragObjectOut',
+            name: 'Dragging: Object Out',
+            description: 'When use drags an object away from another designated drop object'
         }
     }
 }

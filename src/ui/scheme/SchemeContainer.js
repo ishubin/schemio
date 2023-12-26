@@ -129,6 +129,11 @@ export function getLocalBoundingBoxOfItems(items) {
     return schemeBoundaryBox;
 }
 
+/**
+ *
+ * @param {Array<Item>} items
+ * @returns {Area}
+ */
 export function getBoundingBoxOfItems(items) {
     if (!items || items.length === 0) {
         return {x: 0, y: 0, w: 0, h: 0};
@@ -179,25 +184,6 @@ export function getBoundingBoxOfItems(items) {
     return schemeBoundaryBox;
 }
 
-
-/**
- * converts worlds coords to local point in the transform of the parent of the item
- * In case item has no parents - it returns the world coords
- * @param {*} x world position x
- * @param {*} y world position y
- * @param {*} item
- */
-export function relativePointForItem(x, y, item) {
-    if (item.meta.parentId) {
-        const parentItem = this.findItemById(item.meta.parentId);
-        if (parentItem) {
-            return this.localPointOnItem(x, y, parentItem);
-        }
-    }
-
-    return {x, y};
-}
-
 /**
  * Calculates scaling effect of the item relative to the world
  * This is needed for proper computation of control points for scaled items
@@ -218,6 +204,26 @@ export function itemCompleteTransform(item) {
     const parentTransform = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
     return myMath.standardTransformWithArea(parentTransform, item.area);
 }
+
+/**
+ * Creates svg path element for item outline
+ * @param {Item} item
+ * @returns {SVGPathElement}
+ */
+export function getItemOutlineSVGPath(item) {
+    log.info('Computing shape outline for item', item.id, item.name);
+    const shape = Shape.find(item.shape);
+    if (shape) {
+        const path = shape.computeOutline(item);
+        if (path) {
+            const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shadowSvgPath.setAttribute('d', path);
+            return shadowSvgPath;
+        }
+    }
+    return null;
+}
+
 
 function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
@@ -348,19 +354,7 @@ class SchemeContainer {
 
         this.outlinePointsCache = new Map(); // stores points of item outlines so that it doesn't have to recompute it for items that were not changed
 
-        this.svgOutlinePathCache = new ItemCache((item) => {
-            log.info('Computing shape outline for item', item.id, item.name);
-            const shape = Shape.find(item.shape);
-            if (shape) {
-                const path = shape.computeOutline(item);
-                if (path) {
-                    const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    shadowSvgPath.setAttribute('d', path);
-                    return shadowSvgPath;
-                }
-            }
-            return null;
-        });
+        this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
 
         // stores all snapping rules for items (used when user drags an item)
         this.relativeSnappers = {
@@ -1134,7 +1128,14 @@ class SchemeContainer {
      * @param {*} item
      */
     relativePointForItem(x, y, item) {
-        return relativePointForItem(x, y, item);
+        if (item.meta.parentId) {
+            const parentItem = this.findItemById(item.meta.parentId);
+            if (parentItem) {
+                return this.localPointOnItem(x, y, parentItem);
+            }
+        }
+
+        return {x, y};
     }
 
     /**

@@ -3,12 +3,72 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div :class="{'actions-being-dragged': dragging.eventIndex >= 0}">
-        <panel v-if="!extended" uid="behavior-tags" name="Tags">
+        <panel v-if="!extended" uid="behavior-tags" name="General">
             <vue-tags-input v-model="itemTag"
                 :tags="itemTags"
                 :autocomplete-items="filteredItemTagsSuggestions"
                 @tags-changed="onItemTagsChange"
                 ></vue-tags-input>
+
+            <table class="properties-table">
+                <tbody>
+                    <tr>
+                        <td class="label" width="50%">Dragging</td>
+                        <td class="value" width="50%">
+                            <dropdown
+                                :options="draggingOptions"
+                                @selected="onItemDraggingChange"
+                            >
+                                {{ item.behavior.dragging | toPrettyDraggingOptionName }}
+                            </dropdown>
+                        </td>
+                    </tr>
+                    <tr v-if="item.behavior.dragging === 'dragndrop'">
+                        <td class="label" width="50%">Drop to</td>
+                        <td class="value" width="50%">
+                            <ElementPicker
+                                :editorId="editorId"
+                                :element="item.behavior.dropTo"
+                                :scheme-container="schemeContainer"
+                                :useSelf="false"
+                                :allowNone="true"
+                                :inline="true"
+                                :borderless="true"
+                                :disabled="item.behavior.dragging !== 'dragndrop'"
+                                @selected="onItemDraggingDropToSelected"
+                                />
+                        </td>
+                    </tr>
+                    <tr v-if="item.behavior.dragging === 'path'">
+                        <td class="label" width="50%">Drag path</td>
+                        <td class="value" width="50%">
+                            <ElementPicker
+                                :editorId="editorId"
+                                :element="item.behavior.dragPath"
+                                :scheme-container="schemeContainer"
+                                :useSelf="false"
+                                :allowNone="true"
+                                :inline="true"
+                                :borderless="true"
+                                :disabled="item.behavior.dragging !== 'path'"
+                                @selected="onItemDraggingPathSelected"
+                                />
+                        </td>
+                    </tr>
+                    <tr v-if="item.behavior.dragging === 'path'">
+                        <td class="label" width="50%">Align to path while dragging</td>
+                        <td class="value" width="50%">
+                            <input class="checkbox" type="checkbox" :checked="item.behavior.dragPathAlign" @input="onItemDragAlignChange($event.target.checked)"/>
+                        </td>
+                    </tr>
+                    <tr v-if="item.behavior.dragging === 'path'">
+                        <td class="label" width="50%">Drag rotation</td>
+                        <td class="value" width="50%">
+                            <NumberTextfield :value="item.behavior.dragPathRotation" @changed="onItemDragRotationChange"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </panel>
 
         <div class="hint" v-if="item.behavior.events.length === 0">There are no events defined for this item yet. Start by adding an event</div>
@@ -161,6 +221,7 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
+import NumberTextfield from '../../NumberTextfield.vue';
 import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
 import {supportsAnimationForSetFunction} from '../../../userevents/functions/SetFunction';
@@ -170,7 +231,7 @@ import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties, getItemPropertyDescriptionForShape} from '../../../scheme/Item';
+import {textSlotProperties, getItemPropertyDescriptionForShape, DragType, coreItemPropertyTypes} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
@@ -188,8 +249,6 @@ function byName(a, b) {
 }
 
 const standardItemEvents = Object.values(Events.standardEvents);
-standardItemEvents.sort(byName);
-
 const standardItemEventIds = map(standardItemEvents, event => event.id);
 
 const behaviorCollapseStateStorage = createSettingStorageFromLocalStorage('behavior-collapse', 400);
@@ -207,11 +266,9 @@ function sanitizeEvent(event) {
 }
 
 function createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
-    //TODO cache all item properties instead of fetching them over and over again
-    if (propertyPath === 'opacity') {
-        return 'Opacity';
-    } else if (propertyPath === 'selfOpacity') {
-        return 'Self opacity';
+    const coreProp = coreItemPropertyTypes[propertyPath];
+    if (coreProp) {
+        return coreProp.name;
     } else if (propertyPath.indexOf('shapeProps.') === 0) {
         let item = null;
         if (element === 'self') {
@@ -249,7 +306,7 @@ export default {
         extended       : { type: Boolean, default: false }
     },
 
-    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor, VueTagsInput, Modal},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor, VueTagsInput, Modal, NumberTextfield},
 
     data() {
         const items = map(this.schemeContainer.getItems(), item => {return {id: item.id, name: item.name || 'Unnamed'}});
@@ -267,6 +324,9 @@ export default {
         if (shape.getEvents) {
             shapeEvents = shape.getEvents(this.item).map(shapeEvent => shapeEvent.name);
         }
+
+        const draggingOptions = [];
+        forEach(DragType, (value) => draggingOptions.push(value));
 
         return {
             items: items,
@@ -298,7 +358,9 @@ export default {
                     eventIndex: -1,
                     actionIndex: -1,
                 }
-            }
+            },
+
+            draggingOptions
         };
     },
 
@@ -417,27 +479,15 @@ export default {
                 }
             });
 
-            const properties= [{
-                method: 'set',
-                name: 'Opacity',
-                fieldPath: 'opacity',
-                iconClass: 'fas fa-cog'
-            },{
-                method: 'set',
-                name: 'Self opacity',
-                fieldPath: 'selfOpacity',
-                iconClass: 'fas fa-cog'
-            }, {
-                method: 'set',
-                name: 'Visible',
-                fieldPath: 'visible',
-                iconClass: 'fas fa-cog'
-            }, {
-                method: 'set',
-                name: 'Clip',
-                fieldPath: 'clip',
-                iconClass: 'fas fa-cog'
-            }];
+            const properties = [];
+            forEach(coreItemPropertyTypes, (arg, name) => {
+                properties.push({
+                    method: 'set',
+                    name: arg.name ? arg.name : name,
+                    fieldPath: name,
+                    iconClass: 'fas fa-cog'
+                });
+            });
 
             const shape = Shape.find(item.shape);
             if (shape) {
@@ -512,7 +562,9 @@ export default {
         copyEvent(eventIndex) {
             const event = this.item.behavior.events[eventIndex];
             copyObjectToClipboard('behavior-events', [sanitizeEvent(event)]).then(() => {
-                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${event.event}" event`);
+                const e = Events.standardEvents[event.event];
+                const name = e ? e.name : event.event;
+                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${name}" event`);
             });
         },
 
@@ -837,6 +889,36 @@ export default {
             const action = this.item.behavior.events[eventIndex].actions[actionIndex];
             action.on = !action.on;
             this.$forceUpdate();
+        },
+
+        onItemDraggingChange(option) {
+            this.item.behavior.dragging = option.id;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onItemDraggingDropToSelected(element) {
+            this.item.behavior.dropTo = element;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onItemDraggingPathSelected(element) {
+            this.item.behavior.dragPath = element;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onItemDragAlignChange(aligned) {
+            this.item.behavior.dragPathAlign = aligned;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onItemDragRotationChange(angle) {
+            this.item.behavior.dragPathRotation = angle;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         }
     },
 
@@ -873,6 +955,15 @@ export default {
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
             return createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer);
+        },
+
+        toPrettyDraggingOptionName(id) {
+            const option = DragType[id];
+            if (!option) {
+                return DragType.none.name;
+            }
+
+            return option.name;
         }
     },
 
@@ -882,7 +973,7 @@ export default {
         },
         itemTags() {
             return map(this.item.tags, tag => {return {text: tag}});
-        }
+        },
     }
 }
 </script>
