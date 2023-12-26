@@ -73,7 +73,6 @@ class DragItemState extends SubState {
         this.parentState.emit(element, eventName, ...args);
     }
 
-
     mouseMove(x, y, mx, my, object, event) {
         if (!this.moved) {
             this.emit(this.item, Events.standardEvents.dragStart.id);
@@ -200,8 +199,10 @@ class DragItemState extends SubState {
             this.item.area.y = p.y;
         }
 
-        this.emit(this.item, Events.standardEvents.dragObjectIn.id, dropItem);
-        this.emit(dropItem, Events.standardEvents.dragObjectIn.id, this.item);
+        if (!this.lastDropCandidate || this.lastDropCandidate.id !== dropItem.id) {
+            this.emit(this.item, Events.standardEvents.dragObjectIn.id, dropItem);
+            this.emit(dropItem, Events.standardEvents.dragObjectIn.id, this.item);
+        }
 
         this.lastDropCandidate = dropItem;
 
