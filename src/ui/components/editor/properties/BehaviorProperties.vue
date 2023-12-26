@@ -55,6 +55,18 @@
                                 />
                         </td>
                     </tr>
+                    <tr v-if="item.behavior.dragging === 'path'">
+                        <td class="label" width="50%">Align to path while dragging</td>
+                        <td class="value" width="50%">
+                            <input class="checkbox" type="checkbox" :checked="item.behavior.dragPathAlign" @input="onItemDragAlignChange($event.target.checked)"/>
+                        </td>
+                    </tr>
+                    <tr v-if="item.behavior.dragging === 'path'">
+                        <td class="label" width="50%">Drag rotation</td>
+                        <td class="value" width="50%">
+                            <NumberTextfield :value="item.behavior.dragPathRotation" @changed="onItemDragRotationChange"/>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </panel>
@@ -209,6 +221,7 @@ import VueTagsInput from '@johmun/vue-tags-input';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
+import NumberTextfield from '../../NumberTextfield.vue';
 import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
 import {supportsAnimationForSetFunction} from '../../../userevents/functions/SetFunction';
@@ -295,7 +308,7 @@ export default {
         extended       : { type: Boolean, default: false }
     },
 
-    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor, VueTagsInput, Modal},
+    components: {Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor, VueTagsInput, Modal, NumberTextfield},
 
     data() {
         const items = map(this.schemeContainer.getItems(), item => {return {id: item.id, name: item.name || 'Unnamed'}});
@@ -895,17 +908,32 @@ export default {
         onItemDraggingChange(option) {
             this.item.behavior.dragging = option.id;
             this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         onItemDraggingDropToSelected(element) {
             this.item.behavior.dropTo = element;
             this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         onItemDraggingPathSelected(element) {
             this.item.behavior.dragPath = element;
             this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
+
+        onItemDragAlignChange(aligned) {
+            this.item.behavior.dragPathAlign = aligned;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onItemDragRotationChange(angle) {
+            this.item.behavior.dragPathRotation = angle;
+            this.$forceUpdate();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        }
     },
 
     filters: {

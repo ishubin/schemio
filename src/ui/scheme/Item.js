@@ -143,6 +143,10 @@ export const defaultItemDefinition = {
         dropTo: '',
         // element selector that contraints the dragging within the outline of specified item or group of items
         dragPath: '',
+        // specifies whether it should align itself according to the path vector
+        dragPathAlign: false,
+        // correction angle for when the item is dragged by the path
+        dragPathRotation: 0
     },
     shapeProps: {},
     tooltipBackground: 'rgba(230,230,230,1.0)',

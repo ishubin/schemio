@@ -102,6 +102,9 @@ class DragItemState extends SubState {
 
         let bestDistance = -1;
         let closestPoint = null;
+        let closestPathItem = null;
+        let closestPath = null;
+        let closestPathDistance = -1;
 
         pathItems.forEach(item => {
             // re-calculating item outline for every mouse move event is not optimal
@@ -127,6 +130,9 @@ class DragItemState extends SubState {
             if (squareDistance < bestDistance || bestDistance < 0) {
                 bestDistance = squareDistance;
                 closestPoint = wp;
+                closestPathItem = item;
+                closestPath = svgPath;
+                closestPathDistance = p.distance;
             }
         });
 
@@ -134,9 +140,37 @@ class DragItemState extends SubState {
             return;
         }
 
-        const localPoint = myMath.findTranslationMatchingWorldPoint(closestPoint.x, closestPoint.y, this.item.area.w/2, this.item.area.h/2, this.item.area, this.item.meta.transformMatrix);
+        const localPoint = myMath.findTranslationMatchingWorldPoint(
+            closestPoint.x, closestPoint.y,
+            this.item.area.w * this.item.area.px, this.item.area.h * this.item.area.py,
+            this.item.area, this.item.meta.transformMatrix
+        );
         this.item.area.x = localPoint.x;
         this.item.area.y = localPoint.y;
+
+
+        if (this.item.behavior.dragPathAlign) {
+            const nextPoint = closestPath.getPointAtLength(closestPathDistance + 1);
+            const prevPoint = closestPath.getPointAtLength(closestPathDistance - 1);
+            const worldNextPoint = worldPointOnItem(nextPoint.x, nextPoint.y, closestPathItem);
+            const worldPrevPoint = worldPointOnItem(prevPoint.x, prevPoint.y, closestPathItem);
+            const Vx = worldNextPoint.x - worldPrevPoint.x;
+            const Vy = worldNextPoint.y - worldPrevPoint.y;
+            const dSquared = Vx * Vx + Vy * Vy;
+            if (!myMath.tooSmall(dSquared)) {
+                const d = Math.sqrt(dSquared);
+
+                const vx = Vx / d;
+                const vy = Vy / d;
+                const angle = myMath.fullAngleForNormalizedVector(vx, vy) * 180 / Math.PI;
+
+                this.item.area.r = angle;
+
+                if (isFinite(this.item.behavior.dragPathRotation)) {
+                    this.item.area.r += this.item.behavior.dragPathRotation;
+                };
+            }
+        }
     }
 
     handleDroppableMouseMove(x, y) {
