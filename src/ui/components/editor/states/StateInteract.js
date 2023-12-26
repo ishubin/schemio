@@ -60,7 +60,7 @@ class StateInteract extends State {
 
 class DragItemState extends SubState {
     constructor(parentState, listener, item, x, y) {
-        super(parentState, 'drag-item-state');
+        super(parentState, 'drag-item');
         this.listener = listener;
         this.initialClickPoint = {x, y};
         this.originalItemPosition = {x: item.area.x, y: item.area.y};

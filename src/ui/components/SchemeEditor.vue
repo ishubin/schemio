@@ -155,6 +155,7 @@
 
                 <SvgEditor
                     v-if="interactiveSchemeContainer && mode === 'view'"
+                    :class="['state-' + state, 'sub-state-' + editorSubStateName]"
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
                     :editorId="editorId"
                     :schemeContainer="interactiveSchemeContainer"
