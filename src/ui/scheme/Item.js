@@ -108,10 +108,15 @@ const defaultArea = {
 };
 
 export const coreItemPropertyTypes = {
-    opacity    : {type: 'number'},
-    selfOpacity: {type: 'number'},
-    visible    : {type: 'boolean'},
-    clip       : {type: 'boolean'},
+    opacity                    : {type: 'number', name: 'Opacity'},
+    selfOpacity                : {type: 'number', name: 'Self opacity'},
+    visible                    : {type: 'boolean', name: 'Visible'},
+    clip                       : {type: 'boolean', name: 'Clip'},
+    'behavior.dragging'        : {type: 'choice', name: 'Dragging', options: ['none', 'free', 'path', 'dragndrop']},
+    // 'behavior.dropTo'          : {type: 'element', name: 'Drop to'},
+    // 'behavior.dragPath'        : {type: 'element', name: 'Drag path'},
+    // 'behavior.dragPathAlign'   : {type: 'boolean', name: 'Drag path align'},
+    // 'behavior.dragPathRotation': {type: 'number', name: 'Drag path rotation'},
 };
 
 export const defaultItemDefinition = {
@@ -138,7 +143,7 @@ export const defaultItemDefinition = {
         //     - none        = no dragging
         //     - free        = free dragging
         //     - path        = user can drag the item but it is constrained by the path of specified items
-        //     - drag-n-drop = user can only drag from one place to another
+        //     - dragndrop = user can only drag from one place to another
         dragging: 'none',
         dropTo: '',
         // element selector that contraints the dragging within the outline of specified item or group of items

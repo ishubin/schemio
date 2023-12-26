@@ -231,7 +231,7 @@ import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties, getItemPropertyDescriptionForShape, DragType} from '../../../scheme/Item';
+import {textSlotProperties, getItemPropertyDescriptionForShape, DragType, coreItemPropertyTypes} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
@@ -266,11 +266,9 @@ function sanitizeEvent(event) {
 }
 
 function createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
-    //TODO cache all item properties instead of fetching them over and over again
-    if (propertyPath === 'opacity') {
-        return 'Opacity';
-    } else if (propertyPath === 'selfOpacity') {
-        return 'Self opacity';
+    const coreProp = coreItemPropertyTypes[propertyPath];
+    if (coreProp) {
+        return coreProp.name;
     } else if (propertyPath.indexOf('shapeProps.') === 0) {
         let item = null;
         if (element === 'self') {
@@ -481,27 +479,15 @@ export default {
                 }
             });
 
-            const properties= [{
-                method: 'set',
-                name: 'Opacity',
-                fieldPath: 'opacity',
-                iconClass: 'fas fa-cog'
-            },{
-                method: 'set',
-                name: 'Self opacity',
-                fieldPath: 'selfOpacity',
-                iconClass: 'fas fa-cog'
-            }, {
-                method: 'set',
-                name: 'Visible',
-                fieldPath: 'visible',
-                iconClass: 'fas fa-cog'
-            }, {
-                method: 'set',
-                name: 'Clip',
-                fieldPath: 'clip',
-                iconClass: 'fas fa-cog'
-            }];
+            const properties = [];
+            forEach(coreItemPropertyTypes, (arg, name) => {
+                properties.push({
+                    method: 'set',
+                    name: arg.name ? arg.name : name,
+                    fieldPath: name,
+                    iconClass: 'fas fa-cog'
+                });
+            });
 
             const shape = Shape.find(item.shape);
             if (shape) {
