@@ -8,7 +8,7 @@ import Events from '../../../userevents/Events.js';
 import {DragType, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
-import { getBoundingBoxOfItems, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
 import myMath from '../../../myMath.js';
 
@@ -66,7 +66,6 @@ class DragItemState extends SubState {
         this.item = item;
         this.moved = false;
         this.lastDropCandidate = null;
-
     }
 
     emit(element, eventName, ...args) {
@@ -87,10 +86,57 @@ class DragItemState extends SubState {
 
         if (this.item.behavior.dragging === DragType.dragndrop.id) {
             this.handleDroppableMouseMove(nx, ny);
+        } else if (this.item.behavior.dragging === DragType.path.id && this.item.behavior.dragPath) {
+            this.handlePathMouseMove(nx, ny);
         } else {
             this.item.area.x = nx;
             this.item.area.y = ny;
         }
+    }
+
+    handlePathMouseMove(x, y) {
+        const pathItems = this.schemeContainer.findElementsBySelector(this.item.behavior.dragPath);
+        if (pathItems.length === 0) {
+            return;
+        }
+
+        let bestDistance = -1;
+        let closestPoint = null;
+
+        pathItems.forEach(item => {
+            // re-calculating item outline for every mouse move event is not optimal
+            // but if we calculate it only at the start of the drag
+            // and the path is changing (e.g. stretching), it will not be the same path
+            // as the one that is rendered on screen
+            const svgPath = getItemOutlineSVGPath(item);
+            if (!svgPath) {
+                return;
+            }
+
+            const localPoint = localPointOnItem(x, y, item);
+            const p = myMath.closestPointOnPath(localPoint.x, localPoint.y, svgPath);
+
+            if (!p) {
+                return;
+            }
+
+            const wp = worldPointOnItem(p.x, p.y, item);
+
+            const squareDistance = (wp.x - x) * (wp.x - x) + (wp.y - y) * (wp.y - y);
+
+            if (squareDistance < bestDistance || bestDistance < 0) {
+                bestDistance = squareDistance;
+                closestPoint = wp;
+            }
+        });
+
+        if (!closestPoint) {
+            return;
+        }
+
+        const localPoint = myMath.findTranslationMatchingWorldPoint(closestPoint.x, closestPoint.y, this.item.area.w/2, this.item.area.h/2, this.item.area, this.item.meta.transformMatrix);
+        this.item.area.x = localPoint.x;
+        this.item.area.y = localPoint.y;
     }
 
     handleDroppableMouseMove(x, y) {

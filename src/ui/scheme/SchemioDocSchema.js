@@ -71,7 +71,10 @@ const baseSchema = {
                 }},
                 textSlots: {type: 'map', of: 'object', patching: ['patch-map'], fields: { /* built dynamically */ }},
                 behavior: {type: 'object', patching: ['modify'], fields: {
-                    events: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
+                    dragging: {type: 'string', patching: ['replace']},
+                    dropTo  : {type: 'string', patching: ['replace']},
+                    dragPath: {type: 'string', patching: ['replace']},
+                    events  : {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
                         id   : {type: 'string'},
                         event: {type: 'string', patching: ['replace']},
                         actions: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {

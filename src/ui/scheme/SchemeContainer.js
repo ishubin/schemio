@@ -205,6 +205,26 @@ export function itemCompleteTransform(item) {
     return myMath.standardTransformWithArea(parentTransform, item.area);
 }
 
+/**
+ * Creates svg path element for item outline
+ * @param {Item} item
+ * @returns {SVGPathElement}
+ */
+export function getItemOutlineSVGPath(item) {
+    log.info('Computing shape outline for item', item.id, item.name);
+    const shape = Shape.find(item.shape);
+    if (shape) {
+        const path = shape.computeOutline(item);
+        if (path) {
+            const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shadowSvgPath.setAttribute('d', path);
+            return shadowSvgPath;
+        }
+    }
+    return null;
+}
+
+
 function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
     item.shape = 'rect';
@@ -334,19 +354,7 @@ class SchemeContainer {
 
         this.outlinePointsCache = new Map(); // stores points of item outlines so that it doesn't have to recompute it for items that were not changed
 
-        this.svgOutlinePathCache = new ItemCache((item) => {
-            log.info('Computing shape outline for item', item.id, item.name);
-            const shape = Shape.find(item.shape);
-            if (shape) {
-                const path = shape.computeOutline(item);
-                if (path) {
-                    const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                    shadowSvgPath.setAttribute('d', path);
-                    return shadowSvgPath;
-                }
-            }
-            return null;
-        });
+        this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
 
         // stores all snapping rules for items (used when user drags an item)
         this.relativeSnappers = {
