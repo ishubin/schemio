@@ -138,7 +138,7 @@
                             :key="`qhp-path-cap-source-${firstSelectedItem.meta.revision}`"
                             :value="pathSourceCap"
                             :is-source="true"
-                            :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
+                            :is-thick="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.thick"
                             width="16px"
                             :height="15"
                             @selected="emitShapePropChange('sourceCap', 'path-cap', arguments[0])"/>
@@ -148,7 +148,7 @@
                             :key="`qhp-path-cap-destination-${firstSelectedItem.meta.revision}`"
                             :value="pathDestinationCap"
                             :is-source="false"
-                            :is-fat="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.fat"
+                            :is-thick="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.thick"
                             width="16px"
                             :height="15"
                             @selected="emitShapePropChange('destinationCap', 'path-cap', arguments[0])"/>

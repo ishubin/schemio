@@ -767,13 +767,13 @@ class IdleState extends SubState {
 
         const shadowSvgPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
         let path = '';
-        if (item.shapeProps.fat && item.shapeProps.points.length > 1) {
+        if (item.shapeProps.thick && item.shapeProps.points.length > 1) {
             const points = item.shapeProps.points;
             path = `M ${points[0].x} ${points[0].y}`
             for (let i = 1; i < points.length; i++) {
                 path += ` L ${points[i].x} ${points[i].y}`;
             }
-            minDistance += item.shapeProps.fatWidth;
+            minDistance += item.shapeProps.thickWidth;
         } else {
             path = shape.computeOutline(item);
         }

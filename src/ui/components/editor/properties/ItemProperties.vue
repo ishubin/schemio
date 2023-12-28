@@ -108,7 +108,7 @@
                             </td>
                             <td class="value" width="50%">
                                 <PropertyInput
-                                    :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.fat}`"
+                                    :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.thick}`"
                                     :editorId="editorId"
                                     :descriptor="arg"
                                     :value="item.shapeProps[argName]"

@@ -12,7 +12,7 @@
             style="stroke-linejoin: round;"
             :fill="svgFill"></path>
 
-        <g v-if="!item.shapeProps.fat">
+        <g v-if="!item.shapeProps.thick">
             <path v-for="cap in caps" :d="cap.path"
                 :data-item-id="item.id"
                 :stroke="item.shapeProps.strokeColor"
@@ -476,7 +476,7 @@ function computeSmoothPath(item) {
     return { path, caps };
 }
 
-function computeFatPath(item) {
+function computeThickPath(item) {
     if (item.shapeProps.points.length < 2) {
         return '';
     }
@@ -509,8 +509,8 @@ function computeFatPath(item) {
             }
             // rotating W by 90 degrees
             A[i] = {
-                x: W[i].y * item.shapeProps.fatWidth,
-                y: -W[i].x * item.shapeProps.fatWidth
+                x: W[i].y * item.shapeProps.thickWidth,
+                y: -W[i].x * item.shapeProps.thickWidth
             };
             B[i] = {
                 x: -A[i].x,
@@ -540,11 +540,11 @@ function computeFatPath(item) {
     forEach(item.shapeProps.points, (point, i) => {
         if (i === 0) {
             const d = V[0].x * V[0].x + V[0].y * V[0].y;
-            const arrowLength = item.shapeProps.fatWidth * M;
+            const arrowLength = item.shapeProps.thickWidth * M;
             if (item.shapeProps.sourceCap === 'triangle' && Math.sqrt(d) > arrowLength) {
                 shouldDrawSourceArrow = true;
-                const Sx = point.x + W[0].x * item.shapeProps.fatWidth * M;
-                const Sy = point.y + W[0].y * item.shapeProps.fatWidth * M;
+                const Sx = point.x + W[0].x * item.shapeProps.thickWidth * M;
+                const Sy = point.y + W[0].y * item.shapeProps.thickWidth * M;
                 path += ` M ${round(point.x)} ${round(point.y)}  L ${Sx + A[0].x * K} ${Sy + A[0].y * K} L ${Sx + A[0].x} ${Sy + A[0].y}`
             } else {
                 path = `M ${round(Pa[i].x)} ${round(Pa[i].y)}`;
@@ -575,7 +575,7 @@ function computeFatPath(item) {
         // last point
         if (i === item.shapeProps.points.length - 1 && i > 0) {
             const d = V[i - 1].x * V[i - 1].x + V[i - 1].y * V[i - 1].y;
-            const arrowLength = item.shapeProps.fatWidth * M;
+            const arrowLength = item.shapeProps.thickWidth * M;
             if (item.shapeProps.destinationCap === 'triangle' && Math.sqrt(d) > arrowLength) {
                 shouldDrawEndArrow = true;
                 const Sx = point.x - W[i-1].x * arrowLength;
@@ -591,8 +591,8 @@ function computeFatPath(item) {
         const point = item.shapeProps.points[i];
         if (i === item.shapeProps.points.length - 1) {
             if (shouldDrawEndArrow) {
-                const Sx = point.x - W[i-1].x * item.shapeProps.fatWidth * M;
-                const Sy = point.y - W[i-1].y * item.shapeProps.fatWidth * M;
+                const Sx = point.x - W[i-1].x * item.shapeProps.thickWidth * M;
+                const Sy = point.y - W[i-1].y * item.shapeProps.thickWidth * M;
                 path += ` L ${Sx + B[i-1].x * K} ${Sy + B[i-1].y * K} L ${Sx + B[i-1].x} ${Sy + B[i-1].y}`
             } else {
                 path += ` L ${point.x + B[i-1].x} ${point.y + B[i-1].y}`;
@@ -615,8 +615,8 @@ function computeFatPath(item) {
             }
         } else if (i === 0) {
             if (shouldDrawSourceArrow) {
-                const Sx = point.x + W[0].x * item.shapeProps.fatWidth * M;
-                const Sy = point.y + W[0].y * item.shapeProps.fatWidth * M;
+                const Sx = point.x + W[0].x * item.shapeProps.thickWidth * M;
+                const Sy = point.y + W[0].y * item.shapeProps.thickWidth * M;
                 path += ` L ${Sx + B[0].x} ${Sy + B[0].y} L ${Sx + B[0].x * K} ${Sy + B[0].y * K} Z`;
             } else {
                 path += `L ${point.x + B[i].x} ${point.y + B[i].y} z`;
@@ -678,9 +678,9 @@ function computePathAndCaps(item) {
         return null;
     }
 
-    if (item.shapeProps.fat) {
+    if (item.shapeProps.thick) {
         return {
-            path: computeFatPath(item),
+            path: computeThickPath(item),
             caps: []
         };
     }
@@ -978,7 +978,7 @@ export default {
             iconUrl: '/assets/images/items/connector-empty.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'empty',
                     destinationCap: 'empty',
                     points: menuItemPoints,
@@ -990,7 +990,7 @@ export default {
             iconUrl: '/assets/images/items/connector-step.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'empty',
                     destinationCap: 'empty',
                     smoothing: 'step',
@@ -1003,7 +1003,7 @@ export default {
             iconUrl: '/assets/images/items/connector-step-smooth.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'empty',
                     destinationCap: 'empty',
                     smoothing: 'step-smooth',
@@ -1016,7 +1016,7 @@ export default {
             iconUrl: '/assets/images/items/connector-triangle.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'empty',
                     destinationCap: 'triangle',
                     points: menuItemPoints
@@ -1028,7 +1028,7 @@ export default {
             iconUrl: '/assets/images/items/connector-triangle-white.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'empty',
                     destinationCap: 'triangle-h',
                     points: menuItemPoints,
@@ -1040,7 +1040,7 @@ export default {
             iconUrl: '/assets/images/items/connector-arrow.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'empty',
                     destinationCap: 'arrow',
                     points: menuItemPoints
@@ -1052,7 +1052,7 @@ export default {
             iconUrl: '/assets/images/items/connector-triangle-both.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'triangle',
                     destinationCap: 'triangle',
                     points: menuItemPoints
@@ -1064,7 +1064,7 @@ export default {
             iconUrl: '/assets/images/items/connector-triangle-white-both.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'triangle-h',
                     destinationCap: 'triangle-h',
                     points: menuItemPoints,
@@ -1076,7 +1076,7 @@ export default {
             iconUrl: '/assets/images/items/connector-arrow-both.svg',
             item: {
                 shapeProps: {
-                    fat: false,
+                    thick: false,
                     sourceCap: 'arrow',
                     destinationCap: 'arrow',
                     points: menuItemPoints
@@ -1084,28 +1084,28 @@ export default {
             }
         }, {
             group: groupName,
-            name: 'Fat Connector',
-            iconUrl: '/assets/images/items/connector-arrow-fat.svg',
+            name: 'Thick Connector',
+            iconUrl: '/assets/images/items/connector-arrow-thick.svg',
             item: {
                 shapeProps: {
                     sourceCap: 'empty',
                     destinationCap: 'triangle',
                     points: menuItemPoints,
-                    fat: true,
-                    fatWidth: 10
+                    thick: true,
+                    thickWidth: 10
                 }
             }
         }, {
             group: groupName,
-            name: 'Fat Connector (Both Arrows)',
-            iconUrl: '/assets/images/items/connector-arrow-fat-both.svg',
+            name: 'Thick Connector (Both Arrows)',
+            iconUrl: '/assets/images/items/connector-arrow-thick-both.svg',
             item: {
                 shapeProps: {
                     sourceCap: 'triangle',
                     destinationCap: 'triangle',
                     points: menuItemPoints,
-                    fat: true,
-                    fatWidth: 10
+                    thick: true,
+                    thickWidth: 10
                 }
             }
         }],
@@ -1165,9 +1165,9 @@ export default {
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Smoothing Type'},
             stepSize          : {type: 'number',        value: 10, name: 'Step size', depends: {smoothing: ['step-cut', 'step-smooth']}},
 
-            fat               : {type: 'boolean',       value: false, name: 'Fat'},
-            fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {fat: true}},
-            fatWidth          : {type: 'number',        value: 10, name: 'Fat Width', min: 1, max: 1000, depends: {fat: true}},
+            thick               : {type: 'boolean',       value: false, name: 'Thick'},
+            fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {thick: true}},
+            thickWidth          : {type: 'number',        value: 10, name: 'Thick Width', min: 1, max: 1000, depends: {thick: true}},
 
             sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
             destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
@@ -1211,7 +1211,7 @@ export default {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
         svgFill() {
-            if (this.item.shapeProps.fat) {
+            if (this.item.shapeProps.thick) {
                 return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
             }
             return 'none';

@@ -24,7 +24,7 @@
         <PathCapDropdown v-if="descriptor.type === 'path-cap'"
             :value="value"
             :is-source="!leftOriented"
-            :is-fat="isFatConnector"
+            :is-thick="isThickConnector"
             width="16px"
             :height="16"
             :disabled="disabled"
@@ -72,7 +72,7 @@ export default {
         disabled       : {type: Boolean, default: false},
         leftOriented   : {type: Boolean, default: false},
         itemId         : {type: String, defalut: null, required: false},
-        shapeProps     : {type: Object, required: false} // this is an ugly way of propagating fat connectors into the PathCapDropdown
+        shapeProps     : {type: Object, required: false} // this is an ugly way of propagating thick connectors into the PathCapDropdown
     },
 
     components: {
@@ -105,8 +105,8 @@ export default {
             return null;
         },
 
-        isFatConnector() {
-            if (this.shapeProps && this.shapeProps.fat) {
+        isThickConnector() {
+            if (this.shapeProps && this.shapeProps.thick) {
                 return true;
             }
             return false;

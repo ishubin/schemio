@@ -433,7 +433,7 @@ export default {
                     return 'none';
                 }
             }
-            if (this.item.shape === 'connector' && !this.item.shapeProps.fat) {
+            if (this.item.shape === 'connector' && !this.item.shapeProps.thick) {
                 return 'none';
             }
             return 'rgba(255, 255, 255, 0)';

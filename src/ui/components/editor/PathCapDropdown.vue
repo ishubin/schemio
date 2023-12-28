@@ -67,7 +67,7 @@ export default {
         isSource: { type: Boolean, default: false },
         width : {type: String, default: '30px'},
         height: {type: Number, default: 20},
-        isFat: {type: Boolean, default: false},
+        isThick: {type: Boolean, default: false},
     },
     components: {Dropdown},
 
@@ -77,7 +77,7 @@ export default {
             caps = leftCaps;
         }
         let capOptions = [];
-        if (this.isFat) {
+        if (this.isThick) {
             capOptions = generateCapOptions(filter(caps, cap => cap.name === 'empty' || cap.name === 'triangle'), this.isSource);
         } else {
             capOptions = generateCapOptions(caps, this.isSource);
