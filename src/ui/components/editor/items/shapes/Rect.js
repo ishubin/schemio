@@ -101,7 +101,8 @@ export default {
                 },
                 textSlots: {
                     body: {
-                        text: '<p><strong>Button</strong></p>',
+                        bold: true,
+                        text: '<p>Button</p>',
                         color: 'rgba(255, 255, 255, 1)',
                         halign: 'center',
                         valign: 'middle',

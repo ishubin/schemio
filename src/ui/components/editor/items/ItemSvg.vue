@@ -335,7 +335,9 @@ export default {
                 this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
             }
 
-            this.itemSvgOutlinePath = shape.computeOutline(this.item);
+            if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
+                this.itemSvgOutlinePath = shape.computeOutline(this.item);
+            }
         },
 
         onItemChanged(propertyPath) {
@@ -354,7 +356,10 @@ export default {
                     this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                     this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
                 }
-                this.itemSvgOutlinePath = shape.computeOutline(this.item);
+
+                if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
+                    this.itemSvgOutlinePath = shape.computeOutline(this.item);
+                }
                 this.customAreas = shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [];
             }
 

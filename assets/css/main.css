@@ -929,7 +929,7 @@ ul.pagination li a.current {
 }
 
 .item-text-container p, .in-place-edit-editor-wrapper [contenteditable="true"] p {
-    min-height: var(--min-paragraph-height);
+    /* min-height: var(--min-paragraph-height); */
     margin-top: var(--paragraph-top-margin);
     margin-bottom: 0;
     padding: 0;

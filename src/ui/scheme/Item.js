@@ -77,6 +77,7 @@ export const DragType = {
 
 export const defaultTextSlotProps = {
     text         : '',
+    bold         : false,
     color        : 'rgba(0,0,0,1.0)',
     halign       : 'center',            // can be: left, center, right
     valign       : 'middle',            // can be: top, middle, bottom,

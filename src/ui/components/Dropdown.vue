@@ -91,7 +91,6 @@ export default {
             searchKeyword: '',
             x: 0, y: 0,
             maxHeight: 300,
-            maxPopupHieght: Math.max(100, Math.min(300, window.innerHeight - 100)),
             searchTextfieldHeight: 30,
             maxWidth: 400,
             elementRect: null,

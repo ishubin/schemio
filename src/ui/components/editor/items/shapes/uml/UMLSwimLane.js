@@ -218,7 +218,7 @@ export default {
                     col3: { text: 'Done', bold: true},
                 }
             },
-            previewArea: { x: 5, y: 5, w: 250, h: 100},
+            previewArea: { x: 5, y: 5, w: 200, h: 100},
             size: {w: 800, h: 400}
         }, {
             group: 'Tables',
@@ -239,7 +239,7 @@ export default {
                     col3: { text: 'Done', bold: true},
                 }
             },
-            previewArea: { x: 5, y: 5, w: 250, h: 100},
+            previewArea: { x: 5, y: 5, w: 200, h: 100},
             size: {w: 800, h: 400}
         }],
 

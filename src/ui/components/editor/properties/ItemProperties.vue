@@ -296,7 +296,7 @@ export default {
         knownShapes.sort();
         return {
             tabs: ALL_TABS,
-            knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait'],
+            knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait', 'text'],
 
             knownShapes,
             currentTab: 'description',

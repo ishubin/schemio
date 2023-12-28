@@ -30,6 +30,7 @@ let _shapes = [
 
     require('./StickyNote.vue').default,
     require('./Component.vue').default,
+    require('./Textfield.vue').default,
 
     require('./Table.vue').default,
 
@@ -65,7 +66,10 @@ function defaultGetEventsFunc(item) {
 const defaultEditorProps = {
     description: 'rich',
     onlyEditMode: false,
-    customTextRendering: false
+    customTextRendering: false,
+
+    // disables event layer in view mode but keeps it in edit mode
+    disableEventLayer: false,
 };
 
 const standardShapeProps = {

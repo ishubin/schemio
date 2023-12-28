@@ -31,7 +31,7 @@ export function copyToClipboard(text) {
  * Returns promise with text as a first argument
  */
 export function getTextFromClipboard() {
-    if (navigator.clipboard && window.isSecureContext) {
+    if (navigator.clipboard && window.isSecureContext && navigator.clipboard.readText) {
         return navigator.clipboard.readText().catch(err => {
             return fallbackCopyBuffer;
         });

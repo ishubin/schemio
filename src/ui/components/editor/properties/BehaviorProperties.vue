@@ -33,7 +33,7 @@
                                 :useSelf="false"
                                 :allowNone="true"
                                 :inline="true"
-                                :borderless="true"
+                                :borderless="false"
                                 :disabled="item.behavior.dragging !== 'dragndrop'"
                                 @selected="onItemDraggingDropToSelected"
                                 />
@@ -49,7 +49,7 @@
                                 :useSelf="false"
                                 :allowNone="true"
                                 :inline="true"
-                                :borderless="true"
+                                :borderless="false"
                                 :disabled="item.behavior.dragging !== 'path'"
                                 @selected="onItemDraggingPathSelected"
                                 />

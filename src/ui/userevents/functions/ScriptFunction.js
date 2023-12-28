@@ -121,7 +121,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         emitItemChanged();
     };
 
-    return {
+    const itemScope = {
         exists() {
             return item !== null;
         },
@@ -205,7 +205,14 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         findChildItemByName: (name) => {
             return createItemScriptWrapper(findChildItemByName(item, name), schemeContainer, userEventBus);
         },
+    };
+
+    if (item.shape === 'textfield') {
+        itemScope.getValue = () => getTextfieldValue(item);
+        itemScope.setValue = (value) => setTextfieldValue(item, value);
     }
+
+    return itemScope;
 }
 
 
