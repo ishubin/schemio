@@ -31,11 +31,11 @@ const K = 3;
 
 function computePath(item) {
     const h = myMath.clamp(item.shapeProps.size, 0, item.area.h);
-    if (item.shapeProps.type === 'entity') {
+    if (item.shapeProps.lifelineType === 'entity') {
         const r = Math.min(item.area.w / 2, h / 2);
         return `M ${item.area.w/2} ${r}  m ${r}, 0 a ${r},${r} 0 1,0 -${r*2},0 a ${r},${r} 0 1,0  ${r*2},0  M ${item.area.w/2-r} ${r*2} l ${r*2} 0`;
 
-    } else if (item.shapeProps.type === 'border') {
+    } else if (item.shapeProps.lifelineType === 'border') {
         let r = Math.min(item.area.w / 2, h / 2);
         let d = r / K;
         const w = item.area.w /2;
@@ -47,14 +47,14 @@ function computePath(item) {
             + `M ${item.area.w/2 - r - d} 0 l 0 ${r*2}`
             + `M ${item.area.w/2 - r - d} ${r} l ${d} 0`;
 
-    } else if (item.shapeProps.type === 'control') {
+    } else if (item.shapeProps.lifelineType === 'control') {
         const r = Math.min(item.area.w / 2, h / 2);
         const d = r / 4;
         return `M ${item.area.w/2} ${r}  m ${r}, 0 a ${r},${r} 0 1,0 -${r*2},0 a ${r},${r} 0 1,0  ${r*2},0 `
             + `M ${item.area.w/2} 0 l ${d} ${-d} `
             + `M ${item.area.w/2} 0 l ${d} ${d}`;
 
-    } else if (item.shapeProps.type === 'actor') {
+    } else if (item.shapeProps.lifelineType === 'actor') {
         return computeActorPath(item.area.w, h);
     }
     return createRoundRectPath(item.area.w, h, item.shapeProps.cornerRadius);
@@ -77,7 +77,7 @@ export default {
             iconUrl: '/assets/images/items/lifeline-rect.svg',
             item: {
                 shapeProps: {
-                    type: 'rect'
+                    lifelineType: 'rect'
                 }
             },
             size: {w: 120, h: 300}
@@ -88,7 +88,7 @@ export default {
             item: {
                 area: {x: 0, y:0, w: 60, h: 200},
                 shapeProps: {
-                    type: 'entity'
+                    lifelineType: 'entity'
                 }
             },
             size: {w: 80, h: 300}
@@ -99,7 +99,7 @@ export default {
             item: {
                 area: {x: 0, y:0, w: 60, h: 200},
                 shapeProps: {
-                    type: 'border'
+                    lifelineType: 'border'
                 }
             },
             size: {w: 80, h: 300}
@@ -110,7 +110,7 @@ export default {
             item: {
                 area: {x: 0, y:0, w: 60, h: 200},
                 shapeProps: {
-                    type: 'control'
+                    lifelineType: 'control'
                 }
             },
             size: {w: 80, h: 300}
@@ -121,7 +121,7 @@ export default {
             item: {
                 area: {x: 0, y:0, w: 60, h: 200},
                 shapeProps: {
-                    type: 'actor'
+                    lifelineType: 'actor'
                 }
             },
             size: {w: 20, h: 300},
@@ -141,10 +141,10 @@ export default {
         getTextSlots(item) {
             const h = myMath.clamp(item.shapeProps.size, 0, item.area.h);
             let area = null;
-            if (item.shapeProps.type === 'entity' || item.shapeProps.type === 'control') {
+            if (item.shapeProps.lifelineType === 'entity' || item.shapeProps.lifelineType === 'control') {
                 const r = Math.min(item.area.w / 2, h / 2);
                 area = { x: item.area.w/2 - r, y: 0, w: r*2, h: r*2};
-            } else if (item.shapeProps.type === 'border') {
+            } else if (item.shapeProps.lifelineType === 'border') {
                 const r = Math.min((item.area.w * K / (K+1)) / 2, h / 2);
                 area = { x: item.area.w/2 - r, y: 0, w: r*2, h: r*2};
             } else {
@@ -164,7 +164,7 @@ export default {
                         y: myMath.clamp(item.shapeProps.size, 0, item.area.h)
                     }
                 };
-                if (item.shapeProps.type === 'rect') {
+                if (item.shapeProps.lifelineType === 'rect') {
                     controls.cornerRadius = {
                         x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
                         y: 0
@@ -176,11 +176,11 @@ export default {
                 if (controlPointName === 'cornerRadius') {
                     item.shapeProps.cornerRadius = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
                 } else if (controlPointName === 'size') {
-                    if (item.shapeProps.type === 'entity' || item.shapeProps.type === 'control') {
+                    if (item.shapeProps.lifelineType === 'entity' || item.shapeProps.lifelineType === 'control') {
                         item.shapeProps.size = myMath.clamp(originalY+dy, 0, Math.min(item.area.h, item.area.w));
                         return;
                     }
-                    if (item.shapeProps.type === 'border') {
+                    if (item.shapeProps.lifelineType === 'border') {
                         item.shapeProps.size = myMath.clamp(originalY+dy, 0, Math.min(item.area.h, item.area.w * K / (K+1)));
                         return;
                     }
@@ -190,13 +190,13 @@ export default {
         },
 
         args: {
-            size          : {name: 'Size', type: 'number', value: 40, min: 0},
-            fill          : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
-            type          : {name: 'Type', type: 'choice', value: 'rect', options: ['rect', 'entity', 'border', 'control', 'actor']},
-            strokeColor   : {name: 'Stroke', type: 'color', value: 'rgba(0, 0, 0, 1)'},
-            strokePattern : {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
-            strokeSize    : {name: 'Stroke Size', type: 'number', value: 2},
-            cornerRadius  : {name: 'Stroke Size', type: 'number', value: 1, depends: {type: 'rect'}},
+            size         : {name: 'Size', type: 'number', value: 40, min: 0},
+            fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
+            lifelineType : {name: 'Type', type: 'choice', value: 'rect', options: ['rect', 'entity', 'border', 'control', 'actor']},
+            strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(0, 0, 0, 1)'},
+            strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
+            strokeSize   : {name: 'Stroke Size', type: 'number', value: 2},
+            cornerRadius : {name: 'Stroke Size', type: 'number', value: 1, depends: {type: 'rect'}, min: 0},
         },
     },
 
