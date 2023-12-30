@@ -20,3 +20,9 @@ export function getStandardRectPins(item) {
         nx: 1, ny: 0
     }];
 }
+
+export function createRoundRectPath(w, h, cornerRadius) {
+    const R = Math.min(cornerRadius, w/2, h/2);
+
+    return `M ${w-R} ${h}  L ${R} ${h} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${w-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${w} ${h-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+}

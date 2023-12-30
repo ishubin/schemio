@@ -1707,6 +1707,7 @@ export default {
             this.schemeContainer.reindexItems();
             this.commitHistory();
             this.updateRevision();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         bringSelectedItemsToBack() {
@@ -1714,6 +1715,7 @@ export default {
             this.schemeContainer.reindexItems();
             this.commitHistory();
             this.updateRevision();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         toggleGrabScreen() {

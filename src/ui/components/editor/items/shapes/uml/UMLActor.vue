@@ -4,23 +4,25 @@
 <template>
     <g>
         <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-
-        
         <path
-            :d="`M ${item.area.w/2} ${headRadius*2}  L ${item.area.w/2} ${bodyY}  M 0 ${armY} L ${item.area.w} ${armY}  M 0 ${item.area.h} L ${item.area.w/2} ${bodyY} L ${item.area.w} ${item.area.h}`" 
-            fill="none"
+            :d="shapePath"
+            :fill="fill"
             :stroke="item.shapeProps.strokeColor"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             />
-
-        <circle :cx="item.area.w/2" :cy="headRadius" :r="headRadius" :fill="fill" :stroke="item.shapeProps.strokeColor" :stroke-width="item.shapeProps.strokeSize + 'px'" />
-
     </g>
 </template>
 
 <script>
 import AdvancedFill from '../../AdvancedFill.vue';
 
+export function computeActorPath(w, h) {
+    const armY = h/4;
+    const bodyY = h*2/3;
+    const r = Math.min(w/4, h/8);
+    return `M ${w/2} ${r*2}  L ${w/2} ${bodyY}  M 0 ${armY} L ${w} ${armY}  M 0 ${h} L ${w/2} ${bodyY} M ${w/2} ${bodyY} L ${w} ${h} `
+        + ` M ${w/2} ${r} m ${r} 0 a ${r},${r} 0 1,0 -${r*2},0 a ${r},${r} 0 1,0  ${r*2},0`;
+}
 
 export default {
     props: ['item'],
@@ -39,7 +41,7 @@ export default {
             previewArea: {x: 0, y: 0, w: 30, h: 90, r: 0},
         }],
 
-        computePath(item) {
+        computeOutline(item) {
             return `M 0 0  l ${item.area.w} 0  l 0 ${item.area.h}  l ${-item.area.w} 0 z`;
         },
 
@@ -56,17 +58,10 @@ export default {
     },
 
     computed: {
-        headRadius() {
-            return Math.min(this.item.area.w/4, this.item.area.h/8);
+        shapePath() {
+            return computeActorPath(this.item.area.w, this.item.area.h);
         },
 
-        armY() {
-            return this.item.area.h/4;
-        },
-
-        bodyY() {
-            return this.item.area.h - this.item.area.h/3;
-        },
 
         fill() {
             return AdvancedFill.computeStandardFill(this.item);

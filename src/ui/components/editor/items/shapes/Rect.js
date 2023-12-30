@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../../../myMath';
-import {getStandardRectPins} from './ShapeDefaults'
+import {createRoundRectPath, getStandardRectPins} from './ShapeDefaults'
 
 export default {
     shapeConfig: {
@@ -140,11 +140,7 @@ export default {
         },
 
         computePath(item) {
-            const W = item.area.w;
-            const H = item.area.h;
-            const R = Math.min(item.shapeProps.cornerRadius, item.area.w/2, item.area.h/2);
-
-            return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+            return createRoundRectPath(item.area.w, item.area.h, item.shapeProps.cornerRadius);
         },
 
         editorProps: {},

@@ -55,6 +55,7 @@ let _shapes = [
     require('./uml/UMLActor.vue').default,
     require('./uml/UMLSwimLane.js').default,
     require('./uml/UMLGroup.js').default,
+    require('./uml/UMLLifeline.vue').default,
 ];
 
 _shapes = _shapes.concat(basicShapeGroup.shapes);
