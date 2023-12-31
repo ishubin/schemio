@@ -252,7 +252,7 @@ function _traverseItems(items, parentItem, callback) {
  */
 
 /**
- * Finds item using the breadth-first search algorithm
+ * Finds item that matches the predicate using the breadth-first search algorithm
  * @param {Array<Item>} items
  * @param {ItemPredicate} predicate
  * @returns {Item}
@@ -272,6 +272,38 @@ export function findFirstItemBreadthFirst(items, predicate) {
             queue = queue.concat(item._childItems);
         }
     }
+    return null;
+}
+
+/**
+ * Finds item that matches the predicate using backwards depth-first search
+ * This is usefull for testing elements in the order of top rendered first
+ * @param {Array<Item>} items
+ * @param {ItemPredicate} predicate
+ * @returns {Item}
+ */
+export function findFirstItemBackwards(items, predicate) {
+    for(let i = items.length - 1; i >= 0; i--) {
+        const item = items[i];
+
+        if (item.childItems) {
+            const result = findFirstItemBackwards(item.childItems, predicate);
+            if (result) {
+                return result;
+            }
+        }
+        if (item._childItems) {
+            const result = findFirstItemBackwards(item._childItems, predicate);
+            if (result) {
+                return result;
+            }
+        }
+
+        if (predicate(item)) {
+            return item;
+        }
+    }
+
     return null;
 }
 

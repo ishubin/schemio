@@ -278,6 +278,16 @@ const EditorEventBus = {
             $off: (editorId, callback) => $off(editorId, 'edit-box-items-updated', [], callback),
             $emit: (editorId) => $emit(editorId, 'edit-box-items-updated', []),
         },
+        fillEnabled: {
+            $on: (editorId, callback) => $on(editorId, 'edit-box-fill-enabled', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'edit-box-fill-enabled', [], callback),
+            $emit: (editorId) => $emit(editorId, 'edit-box-fill-enabled', []),
+        },
+        fillDisabled: {
+            $on: (editorId, callback) => $on(editorId, 'edit-box-fill-disabled', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'edit-box-fill-disabled', [], callback),
+            $emit: (editorId) => $emit(editorId, 'edit-box-fill-disabled', []),
+        }
     },
 
     framePlayer: {

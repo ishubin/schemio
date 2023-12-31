@@ -13,7 +13,9 @@ import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
-import { worldScalingVectorOnItem } from '../../../scheme/SchemeContainer.js';
+import { worldScalingVectorOnItem, localPointOnItem } from '../../../scheme/SchemeContainer.js';
+import EditorEventBus from '../EditorEventBus.js';
+import {findFirstItemBackwards} from '../../../scheme/Item';
 
 const log = new Logger('StateDragItem');
 
@@ -640,6 +642,14 @@ class IdleState extends SubState {
             this.zoomIn();
         } else if (key === Keys.CTRL_ZERO) {
             this.resetZoom();
+        } else if (key === Keys.CMD || key === Keys.CTRL || key === Keys.SHIFT) {
+            EditorEventBus.editBox.fillDisabled.$emit(this.editorId);
+        }
+    }
+
+    keyUp(key, keyOptions) {
+        if (key === Keys.CMD || key === Keys.CTRL || key === Keys.SHIFT) {
+            EditorEventBus.editBox.fillEnabled.$emit(this.editorId);
         }
     }
 
@@ -701,7 +711,7 @@ class IdleState extends SubState {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.clickedObject) {
-            if (this.clickedObject.type === 'item' && this.schemeContainer.multiItemEditBox) {
+            if ((this.clickedObject.type === 'item' || this.clickedObject.type === 'multi-item-edit-box') && this.schemeContainer.multiItemEditBox) {
                 this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.multiItemEditBox, x, y, mx, my));
                 this.reset();
                 return;
@@ -725,8 +735,23 @@ class IdleState extends SubState {
         }
     }
 
-    mouseUp() {
+    mouseUp(x, y, mx, my, object, event) {
         this.clickedObject = null;
+
+        if (object.type === 'multi-item-edit-box') {
+            this.handleSimpleClickOnEditBox(x, y, event);
+        }
+    }
+
+    handleSimpleClickOnEditBox(x, y, event) {
+        const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
+            const p = localPointOnItem(x, y, item);
+            return p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility;
+        });
+        if (!clickedItem) {
+            return;
+        }
+        this.schemeContainer.selectItem(clickedItem, isMultiSelectKey(event));
     }
 
     handleRightClick(x, y, mx, my, object, event) {
@@ -735,6 +760,8 @@ class IdleState extends SubState {
                 this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
             }
             this.listener.onItemRightClick(object.item, mx, my);
+        } else if (object.type === 'multi-item-edit-box') {
+            this.listener.onItemRightClick(object.multiItemEditBox.items[0], mx, my);
         } else if (object.type === 'void') {
             this.schemeContainer.deselectAllItems();
             this.listener.onVoidRightClicked(mx, my);

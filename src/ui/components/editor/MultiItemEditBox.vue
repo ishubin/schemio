@@ -2,12 +2,12 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g data-preview-ignore="true">
+    <g data-preview-ignore="true" :style="{opacity: useFill ? 1 : 0.5}">
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
             :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
             data-type="multi-item-edit-box"
             :stroke-width="1/safeZoom"
-            fill="none"
+            :fill="editBoxFill"
             :stroke="boundaryBoxColor"
             style="opacity: 0.8;"/>
         <!-- rendering item custom control points -->
@@ -438,6 +438,7 @@ function templateArgsFromEditBox(editBox) {
 
 export default {
     props: {
+        useFill: {type: Boolean, default: true},
         apiClient: {type: Object, required: true},
         editorId: {type: String, required: true},
         cursor: {type: Object},
@@ -493,7 +494,7 @@ export default {
             templateArgs: templateArgsFromEditBox(this.editBox),
 
             customControls: [],
-            templateControls: []
+            templateControls: [],
         };
     },
 
@@ -604,6 +605,13 @@ export default {
     },
 
     computed: {
+        editBoxFill() {
+            if (this.editBox.items.length > 1 && this.useFill) {
+                return 'rgba(255,255,255,0.0)';
+            }
+            return 'none';
+        },
+
         svgItemCompleteTransform() {
             const m = itemCompleteTransform(this.editBox.items[0]);
             return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`

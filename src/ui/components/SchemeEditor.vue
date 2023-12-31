@@ -99,6 +99,7 @@
                     <g slot="scene-transform">
                         <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`multi-item-edit-box-${editorRevision}-${schemeContainer.multiItemEditBox.id}`"
+                            :useFill="editBoxUseFill"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :apiClient="apiClient"
@@ -864,6 +865,8 @@ export default {
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.editorResized.$on(this.editorId, this.onWindowResize);
         EditorEventBus.schemeRebased.$on(this.editorId, this.rebaseScheme);
+        EditorEventBus.editBox.fillDisabled.$on(this.editorId, this.onEditBoxFillDisabled);
+        EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -880,6 +883,8 @@ export default {
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.editorResized.$off(this.editorId, this.onWindowResize);
         EditorEventBus.schemeRebased.$off(this.editorId, this.rebaseScheme);
+        EditorEventBus.editBox.fillDisabled.$off(this.editorId, this.onEditBoxFillDisabled);
+        EditorEventBus.editBox.fillEnabled.$off(this.editorId, this.onEditBoxFillEnabled);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1031,7 +1036,9 @@ export default {
             exportTemplateModal: {
                 item: null,
                 shown: false,
-            }
+            },
+
+            editBoxUseFill: true
         }
     },
     methods: {
@@ -2865,6 +2872,14 @@ export default {
         changeTab(tab) {
             this.currentTab = tab;
             this.saveSchemeSettings();
+        },
+
+        onEditBoxFillDisabled() {
+            this.editBoxUseFill = false;
+        },
+
+        onEditBoxFillEnabled() {
+            this.editBoxUseFill = true;
         },
 
         //calculates from world to screen

@@ -8,23 +8,26 @@ import Vue from 'vue';
 
 
 export const Keys = {
-    ESCAPE: 'escape',
-    DELETE: 'delete',
-    CTRL_A: 'ctrl-a',
-    CTRL_C: 'ctrl-c',
-    CTRL_V: 'ctrl-v',
-    CTRL_S: 'ctrl-s',
-    CTRL_X: 'ctrl-x',
-    CTRL_Z: 'ctrl-z',
-    CTRL_ZERO: 'ctrl-0',
+    ESCAPE      : 'escape',
+    DELETE      : 'delete',
+    CTRL        : 'ctrl',
+    CMD         : 'cmd',
+    SHIFT       : 'shift',
+    CTRL_A      : 'ctrl-a',
+    CTRL_C      : 'ctrl-c',
+    CTRL_V      : 'ctrl-v',
+    CTRL_S      : 'ctrl-s',
+    CTRL_X      : 'ctrl-x',
+    CTRL_Z      : 'ctrl-z',
+    CTRL_ZERO   : 'ctrl-0',
     CTRL_SHIFT_Z: 'ctrl-shift-z',
-    UP: 'arrow-up',
-    DOWN: 'arrow-down',
-    LEFT: 'arrow-left',
-    RIGHT: 'arrow-right',
-    SPACE: 'space',
-    MINUS: 'minus',
-    EQUALS: 'equals'
+    UP          : 'arrow-up',
+    DOWN        : 'arrow-down',
+    LEFT        : 'arrow-left',
+    RIGHT       : 'arrow-right',
+    SPACE       : 'space',
+    MINUS       : 'minus',
+    EQUALS      : 'equals'
 };
 
 const keyMap = {};
@@ -45,6 +48,9 @@ keyMap[Keys.DOWN] = event => event.key === 'ArrowDown';
 keyMap[Keys.SPACE] = event => event.key === ' ' || event.keyCode === 32;
 keyMap[Keys.MINUS] = event => event.key === '-' || event.keyCode === 189;
 keyMap[Keys.EQUALS] = event => event.key === '=' || event.keyCode === 187;
+keyMap[Keys.CTRL] = event => event.key === 'Control';
+keyMap[Keys.CMD] = event => event.key === 'Meta';
+keyMap[Keys.SHIFT] = event => event.key === 'Shift';
 /**
  *
  * @param {MouseEvent} event

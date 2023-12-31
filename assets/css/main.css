@@ -2472,9 +2472,6 @@ ul.links-editor .edit-link:hover {
     opacity: 0.5;
 }
 
-.item-selector .item-row .item .item-right-panel .icon {
-    background: var(--base-weak);
-}
 .item-selector .item-row .item .item-right-panel .icon .icon-unlocked {
     opacity: 0.3;
 }
