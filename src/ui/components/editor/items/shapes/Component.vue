@@ -216,7 +216,7 @@ export default {
             name: 'Component',
             iconUrl: '/assets/images/items/component.svg',
             description: `
-                Lets you embed other schemes into this item.
+                Lets you embed other documents into this item.
             `,
             item: {
                 textSlots: {

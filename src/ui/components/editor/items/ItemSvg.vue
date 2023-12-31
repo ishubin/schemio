@@ -71,9 +71,7 @@
         <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
 
 
-        <g v-if="item._childItems && item.visible && mode === 'edit'"
-            :style="childrenLayerStyle"
-            >
+        <g v-if="item._childItems && item.visible && mode === 'edit'" :style="componentChildrenLayerStyle">
             <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible"
                 :key="`itsvg-${childItem.id}-${childItem.shape}-${item.meta.revision}`"
@@ -123,7 +121,7 @@
             :fill="hoverPathFill" />
 
 
-        <defs v-if="item.clip">
+        <defs v-if="item.clip || item.shape === 'component'">
             <clipPath :id="`item-clip-path-${item.id}`">
                 <path v-if="itemSvgOutlinePath"
                     class="svg-event-layer"
@@ -144,9 +142,7 @@
             :stroke="patchOutline"
             fill="none" />
 
-        <g v-if="item.childItems && item.visible"
-            :style="childrenLayerStyle"
-            >
+        <g v-if="item.childItems && item.visible" :style="childrenLayerStyle">
             <ItemSvg v-for="childItem in item.childItems"
                 v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
                 :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
@@ -159,9 +155,7 @@
                 />
         </g>
 
-        <g v-if="item._childItems && item.visible && mode === 'view'"
-            :style="childrenLayerStyle"
-            >
+        <g v-if="item._childItems && item.visible && mode === 'view'" :style="componentChildrenLayerStyle">
             <ItemSvg v-for="childItem in item._childItems"
                 v-if="childItem.visible && childItem.shape !== 'hud'"
                 :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
@@ -451,6 +445,15 @@ export default {
                 return false;
             }
             return true;
+        },
+
+        componentChildrenLayerStyle() {
+            if (this.item.clip || this.item.shape === 'component') {
+                return {
+                    'clip-path': `url(#item-clip-path-${this.item.id})`
+                };
+            }
+            return {};
         },
 
         childrenLayerStyle() {

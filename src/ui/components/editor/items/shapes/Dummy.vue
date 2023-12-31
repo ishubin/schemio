@@ -3,12 +3,10 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g data-preview-ignore="true">
-        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-
         <foreignObject v-if="item.shapeProps.showName"
-            :x="0" :y="-20" :width="item.area.w" :height="20">
+            :x="0" :y="-20 - boundsCorrection" :width="item.area.w" :height="20">
             <div :style="{background: item.shapeProps.strokeColor, color: 'white'}"
-                style="font-size: 12px; font-weight: bold; display: inline-block; padding: 2px 5px; height: 20px; font-family: Arial, Helvetica, sans-serif; text-align: left; vertical-align: bottom; white-space: normal; display: table-cell;"
+                style="font-size: 12px; font-weight: bold; display: inline-block; padding: 2px 5px; height: 20px; font-family: Arial, Helvetica, sans-serif; text-align: left; vertical-align: bottom; white-space: nowrap; display: table-cell;"
                 :data-item-id="item.id"
                 >
                 {{item.name}}
@@ -19,12 +17,19 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="fill"></path>
+            :data-item-id="item.id"
+            fill="none"></path>
+
+        <path v-if="item.shapeProps.componentBounds" :d="componentBoundsPath"
+            :stroke-width="item.shapeProps.strokeSize*2 + 'px'"
+            :stroke="item.shapeProps.strokeColor"
+            fill="none"
+            :data-item-id="item.id"
+            ></path>
 
     </g>
 </template>
 <script>
-import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 
 function computePath(item) {
@@ -52,11 +57,23 @@ export default {
                 It is only visible in the edit mode and completely transparent in view mode.
             `,
             item: {
+                name: 'Dummy',
                 shapeProps: {cornerRadius: 0}
-            }
+            },
+            previewArea: {x: 3, y: 30, w: 150, h: 120},
+        }, {
+            group: 'General',
+            name: 'Component bounds',
+            iconUrl: '/assets/images/items/component-bounds.svg',
+            description: `
+                Component bounds can be used to limit the view when the document is loaded in a component
+            `,
+            item: {
+                name: 'Bounds',
+                shapeProps: {cornerRadius: 0, componentBounds: true, strokeColor: '#E8821B87', strokePattern: 'dotted'}
+            },
+            previewArea: {x: 3, y: 30, w: 150, h: 120},
         }],
-
-        components: {AdvancedFill},
 
         // it doesn't support text slots
         getTextSlots(item) {
@@ -65,18 +82,29 @@ export default {
 
         computePath,
 
+        computeOutline(item) {
+            const w = item.area.w;
+            const h = item.area.h;
+            // doing these broken lines so that event layer gets created without any fill
+            // we don't want to keep selecting this shape when clicking inside of it
+            // to make it easier to select its child items
+            return `M 0 0 L ${w} 0  M ${w} 0 L ${w} ${h} M ${w} ${h} L 0 ${h} M 0 ${h} L 0 0`;
+        },
+
         editorProps: {
             // flag to specify that it should only be rendered in edit mode
             onlyEditMode: true
         },
 
         args: {
-            fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(159, 227, 249, 0.1)'}},
-            strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
-            strokeSize   : {name: 'Stroke Size', type: 'number', value: 1},
-            strokePattern: {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
-            cornerRadius : {type: 'number', value: 0, name: 'Corner radius', min: 0},
-            showName     : {type: 'boolean', value: true, name: 'Display Name'},
+            strokeColor    : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
+            strokeSize     : {name: 'Stroke Size', type: 'number', value: 2},
+            strokePattern  : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
+            cornerRadius   : {type: 'number', value: 0, name: 'Corner radius', min: 0},
+            showName       : {type: 'boolean', value: true, name: 'Display Name'},
+            componentBounds: {type: 'boolean', value: false, name: 'Component bounds',
+                description: 'When current document is loaded inside of a component, this dummy should be used as document bounds.'
+            },
         },
     },
 
@@ -85,12 +113,25 @@ export default {
             return computePath(this.item);
         },
 
+        componentBoundsPath() {
+            const w = this.item.area.w;
+            const h = this.item.area.h;
+            const d = Math.min(w, h) / 6;
+            return `M 0 ${d} l 0 ${-d} l ${d} 0 `
+                + `M ${w - d} 0 l ${d} 0 l 0 ${d}`
+                + `M ${w} ${h-d} l 0 ${d} l ${-d} 0`
+                + `M ${d} ${h} l ${-d} 0 l 0 ${-d}`;
+        },
+
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
 
-        fill() {
-            return AdvancedFill.computeStandardFill(this.item);
+        boundsCorrection() {
+            if (this.item.shapeProps.componentBounds) {
+                return this.item.shapeProps.strokeSize + 1;
+            }
+            return 0;
         }
     }
 }

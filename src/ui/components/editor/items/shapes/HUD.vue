@@ -3,8 +3,6 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g data-preview-ignore="true">
-        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-
         <foreignObject
             :x="0" :y="-20" :width="item.area.w" :height="20">
             <div :style="{background: item.shapeProps.strokeColor, color: 'white'}"
@@ -15,16 +13,15 @@
             </div>
         </foreignObject>
 
-        <path :d="shapePath" 
+        <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
-            :fill="fill"></path>
+            fill="none"></path>
 
     </g>
 </template>
 <script>
-import AdvancedFill from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 
 function computePath(item) {
@@ -39,7 +36,7 @@ export default {
     shapeConfig: {
         shapeType: 'vue',
 
-        components: {AdvancedFill},
+        components: {},
 
         id: 'hud',
 
@@ -60,15 +57,24 @@ export default {
 
         computePath,
 
+        computeOutline(item) {
+            const w = item.area.w;
+            const h = item.area.h;
+            // doing these broken lines so that event layer gets created without any fill
+            // we don't want to keep selecting this shape when clicking inside of it
+            // to make it easier to select its child items
+            return `M 0 0 L ${w} 0  M ${w} 0 L ${w} ${h} M ${w} ${h} L 0 ${h} M 0 ${h} L 0 0`;
+        },
+
+
         editorProps: {
             // flag to specify that it should only be rendered in edit mode
             onlyEditMode: true
         },
 
         args: {
-            fill              : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(159, 227, 249, 0.1)'}},
             strokeColor       : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
-            strokeSize        : {name: 'Stroke Size', type: 'number', value: 1},
+            strokeSize        : {name: 'Stroke Size', type: 'number', value: 2},
             strokePattern     : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
             horizontalPosition: {type: 'choice', value: 'left', options: ['left', 'right', 'center'], name: 'Horizontal Position'},
             verticalPosition  : {type: 'choice', value: 'top', options: ['top', 'bottom', 'center'], name: 'Vertical Position'},
@@ -84,10 +90,6 @@ export default {
         strokeDashArray() {
             return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
         },
-
-        fill() {
-            return AdvancedFill.computeStandardFill(this.item);
-        }
     }
 }
 </script>

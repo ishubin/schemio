@@ -23,6 +23,14 @@
  * @property {number} y - y coordinate
  * @property {number} w - width
  * @property {number} h - height
+ */
+
+/**
+ * @typedef {Object} ItemArea
+ * @property {number} x - x coordinate
+ * @property {number} y - y coordinate
+ * @property {number} w - width
+ * @property {number} h - height
  * @property {number} r - rotation in degrees
  * @property {number} px - pivot point on x axis (relatively to area width)
  * @property {number} py - pivot point on y axis (relatively to area width)

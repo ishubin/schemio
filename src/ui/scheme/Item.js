@@ -245,6 +245,36 @@ function _traverseItems(items, parentItem, callback) {
     });
 }
 
+/**
+ * @callback ItemPredicate
+ * @param {Item} item
+ * @returns {Boolean}
+ */
+
+/**
+ * Finds item using the breadth-first search algorithm
+ * @param {Array<Item>} items
+ * @param {ItemPredicate} predicate
+ * @returns {Item}
+ */
+export function findFirstItemBreadthFirst(items, predicate) {
+    let queue = [].concat(items);
+    while(queue.length > 0) {
+        const item = queue.shift();
+
+        if (predicate(item)) {
+            return item;
+        }
+        if (item.childItems && item.childItems.length > 0) {
+            queue = queue.concat(item.childItems);
+        }
+        if (item._childItems && item._childItems.length > 0) {
+            queue = queue.concat(item._childItems);
+        }
+    }
+    return null;
+}
+
 
 /**
  *

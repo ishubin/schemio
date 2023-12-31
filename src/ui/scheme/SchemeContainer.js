@@ -12,7 +12,7 @@ import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import {generateComponentGoBackButton} from '../components/editor/items/shapes/Component.vue';
-import { Item, traverseItems, defaultItemDefinition, defaultItem} from './Item';
+import { Item, traverseItems, defaultItemDefinition, defaultItem, findFirstItemBreadthFirst} from './Item';
 import { enrichItemWithDefaults } from './ItemFixer';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
@@ -79,14 +79,24 @@ export function worldVectorOnItem(x, y, item) {
     };
 }
 
-export function getLocalBoundingBoxOfItems(items) {
-    if (!items || items.length === 0) {
+/**
+ * This function is only used for calculating bounds of reference items
+ * so that they can be properly fit inside of an component
+ * @param {Array} items
+ * @returns {Area}
+ */
+function getLocalBoundingBoxOfItems(items) {
+    const boundsItem = findFirstItemBreadthFirst(items, item => item.shape === 'dummy' && item.shapeProps.componentBounds);
+
+    const filteredItems = boundsItem ? [boundsItem] : items;
+
+    if (!filteredItems || filteredItems.length === 0) {
         return {x: 0, y: 0, w: 0, h: 0};
     }
 
     let range = null;
 
-    forEach(items, item => {
+    forEach(filteredItems, item => {
         const points = [
             {x: item.area.x, y: item.area.y},
             {x: item.area.x + item.area.w, y: item.area.y},
