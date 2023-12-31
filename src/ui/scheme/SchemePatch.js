@@ -472,7 +472,7 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
     const scanThroughRemainingItems = (items, callback, parentId) => {
         callback(items, parentId ? parentId : null);
         for (let i = 0; i < items.length; i++) {
-            if (!deletedItemIds.has(items[i].id) && patchSchemaEntry.childrenField && items[i][patchSchemaEntry.childrenField]) {
+            if (patchSchemaEntry.childrenField && items[i][patchSchemaEntry.childrenField]) {
                 scanThroughRemainingItems(items[i][patchSchemaEntry.childrenField], callback, items[i].id);
             }
         }
@@ -481,6 +481,9 @@ function generateIdArrayPatch(originItems, modifiedItems, patchSchemaEntry) {
     // next we are going to detect modifications of items and reorder of items in their parent array
     scanThroughRemainingItems(originItems, (items, parentId) => {
         items.forEach(item => {
+            if (deletedItemIds.has(item.id)) {
+                return;
+            }
             const modEntry = modIndex.get(item.id);
             if (!modEntry) {
                 // item was deleted
