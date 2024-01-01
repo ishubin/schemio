@@ -401,7 +401,7 @@ class IdleState extends SubState {
             this.mobilePinchToZoom(event);
             return;
         }
-        if (this.initialClickPoint && Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
+        if (this.initialClickPoint && Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) > 3) {
             this.mouseMovedAfterClick = true;
             event.preventDefault();
             if (event.buttons === 0) {
