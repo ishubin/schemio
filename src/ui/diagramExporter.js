@@ -174,16 +174,17 @@ export function diagramImageExporter(items) {
             svg.setAttribute('width', `${imageWidth}px`);
             svg.setAttribute('height', `${imageHeight}px`);
 
-            const html = new XMLSerializer().serializeToString(svg);
-
             return rasterizeAllImagesToDataURL(svg)
             .then(() => insertCustomFonts(svg))
-            .then(() => svgToImage(html, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
+            .then(() => {
+                const html = new XMLSerializer().serializeToString(svg);
+                return svgToImage(html, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor);
+            });
         }
     };
 }
 
-function insertCustomFonts(svg) {
+export function insertCustomFonts(svg) {
     return axios.get('/assets/custom-fonts/all-fonts-embedded.css')
     .then(data => {
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');

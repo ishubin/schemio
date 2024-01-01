@@ -61,11 +61,9 @@
 
         <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
 
-        <export-picture-modal v-if="exportPictureModal.shown"
-            :exported-items="exportPictureModal.exportedItems"
+        <ExportPictureModal v-if="exportPictureModal.shown"
+            :items="exportPictureModal.items"
             :kind="exportPictureModal.kind"
-            :width="exportPictureModal.width"
-            :height="exportPictureModal.height"
             :background-color="exportPictureModal.backgroundColor"
             @close="exportPictureModal.shown = false"/>
 
@@ -91,7 +89,6 @@ import ExportJSONModal from './editor/ExportJSONModal.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import History from '../history/History.js';
-import { prepareDiagramForPictureExport } from '../diagramExporter';
 import EditorEventBus from './editor/EditorEventBus';
 
 const defaultHistorySize = 30;
@@ -190,10 +187,8 @@ export default {
 
             exportPictureModal: {
                 kind: 'svg',
-                width: 100,
-                height: 100,
                 shown: false,
-                exportedItems: [],
+                items: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
@@ -242,14 +237,7 @@ export default {
                 StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
                 return;
             }
-            const result = prepareDiagramForPictureExport(items);
-            if (!result) {
-                return;
-            }
-
-            this.exportPictureModal.exportedItems = result.exportedItems;
-            this.exportPictureModal.width = result.width;
-            this.exportPictureModal.height = result.height;
+            this.exportPictureModal.items = items;
             this.exportPictureModal.backgroundColor = this.scheme.style.backgroundColor;
             this.exportPictureModal.kind = kind;
             this.exportPictureModal.shown = true;

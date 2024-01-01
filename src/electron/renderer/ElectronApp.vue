@@ -117,11 +117,9 @@
             @close="importSchemeModal.shown = false"
             @import-scheme-submitted="importDiagramSubmitted"/>
 
-        <export-picture-modal v-if="exportPictureModal.shown"
-            :exported-items="exportPictureModal.exportedItems"
+        <ExportPictureModal v-if="exportPictureModal.shown"
+            :items="exportPictureModal.items"
             :kind="exportPictureModal.kind"
-            :width="exportPictureModal.width"
-            :height="exportPictureModal.height"
             :background-color="exportPictureModal.backgroundColor"
             @close="exportPictureModal.shown = false"/>
 
@@ -148,7 +146,6 @@ import ImportSchemeModal from '../../ui/components/editor/ImportSchemeModal.vue'
 import ExportPictureModal from '../../ui/components/editor/ExportPictureModal.vue';
 import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree, findParentEntryInFileTree } from '../../common/fs/fileTree';
 import StoreUtils from '../../ui/store/StoreUtils';
-import { prepareDiagramForPictureExport } from '../../ui/diagramExporter';
 import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
@@ -294,10 +291,8 @@ export default {
 
             exportPictureModal: {
                 kind: 'svg',
-                width: 100,
-                height: 100,
                 shown: false,
-                exportedItems: [],
+                items: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
@@ -713,15 +708,8 @@ export default {
                 StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
                 return;
             }
-            const result = prepareDiagramForPictureExport(items);
 
-            if (!result) {
-                return;
-            }
-
-            this.exportPictureModal.exportedItems = result.exportedItems;
-            this.exportPictureModal.width = result.width;
-            this.exportPictureModal.height = result.height;
+            this.exportPictureModal.items = items;
             this.exportPictureModal.backgroundColor = file.document.style.backgroundColor;
             this.exportPictureModal.kind = kind;
             this.exportPictureModal.shown = true;

@@ -68,17 +68,14 @@ import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import {forEach, map} from '../../collections';
 import {rasterizeAllImagesToDataURL} from '../../svgPreview';
-import {svgToImage} from '../../diagramExporter';
+import {svgToImage, insertCustomFonts, prepareDiagramForPictureExport, diagramImageExporter} from '../../diagramExporter';
 import { encode } from 'js-base64';
 
 
 
 export default {
     props: {
-        // array of {item, html} elements
-        exportedItems  : { value: [], type: Array },
-        width          : { value: 300, type: Number },
-        height         : { value: 300, type: Number },
+        items : { value: [], type: Array },
 
         // kind can be either svg or png
         kind           : { value: 'svg', type: String},
@@ -88,12 +85,13 @@ export default {
     components: {Modal, NumberTextfield},
 
     data() {
-        const svgHtml = map(this.exportedItems, e => e.html).join('\n');
+        const box = prepareDiagramForPictureExport(this.items);
+        const svgHtml = map(box.exportedItems, e => e.html).join('\n');
 
         let largestStrokeSize = 0;
-        forEach(this.exportedItems, item => {
-            if (!isNaN(item.item.shapeProps.strokeSize) && item.item.shapeProps.strokeSize > largestStrokeSize) {
-                largestStrokeSize = item.item.shapeProps.strokeSize;
+        forEach(this.items, item => {
+            if (!isNaN(item.shapeProps.strokeSize) && item.shapeProps.strokeSize > largestStrokeSize) {
+                largestStrokeSize = item.shapeProps.strokeSize;
             }
         });
 
@@ -103,7 +101,7 @@ export default {
         let paddingRight = defaultPadding;
         let paddingBottom = defaultPadding;
 
-        if (this.width < 60 || this.height < 60) {
+        if (box.width < 60 || box.height < 60) {
             paddingTop = 2 * largestStrokeSize;
             paddingLeft = 2 * largestStrokeSize;
             paddingRight = 2 * largestStrokeSize;
@@ -121,8 +119,10 @@ export default {
             svgHtml: svgHtml,
             previewPadding: 20,
 
-            rasterWidth: this.width,
-            rasterHeight: this.height
+            width: box.width,
+            height: box.height,
+            rasterWidth: box.width,
+            rasterHeight: box.height
         };
     },
 
@@ -141,6 +141,10 @@ export default {
             .catch(err => {
                 console.error('Failed to rasterize some images', err);
             })
+            .then(() => insertCustomFonts(svgDom))
+            .catch(err => {
+                console.error('Failed to embedd custom fonts', err);
+            })
             .then(() => {
                 const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
                 const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
@@ -157,12 +161,12 @@ export default {
 
                 if (this.kind === 'svg') {
                     const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
-                    this.downloadViaLink( `${this.exportedItems[0].item.name}.svg`, svgDataUrl);
+                    this.downloadViaLink( `${this.items[0].name}.svg`, svgDataUrl);
                 } else {
                     const backgroundColor = this.shouldExportBackground ? this.backgroundColor : null;
                     svgToImage(svgCode, this.rasterWidth, this.rasterHeight, this.paddingLeft, this.paddingTop, backgroundColor)
                     .then(imageDataUrl => {
-                        this.downloadViaLink(`${this.exportedItems[0].item.name}.png`, imageDataUrl);
+                        this.downloadViaLink(`${this.items[0].name}.png`, imageDataUrl);
                     })
                     .catch(err => {
                         console.error(err);
