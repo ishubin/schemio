@@ -86,7 +86,7 @@ export function worldVectorOnItem(x, y, item) {
  * @returns {Area}
  */
 function getLocalBoundingBoxOfItems(items) {
-    const boundsItem = findFirstItemBreadthFirst(items, item => item.shape === 'dummy' && item.shapeProps.componentBounds);
+    const boundsItem = findFirstItemBreadthFirst(items, item => item.shape === 'dummy' && item.shapeProps.screenBounds);
 
     const filteredItems = boundsItem ? [boundsItem] : items;
 

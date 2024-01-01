@@ -642,8 +642,7 @@ export class DragScreenState extends SubState {
                 return;
             }
             this.parentState.registerInertiaPositions(mx, my);
-            this.schemeContainer.screenTransform.x = Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx);
-            this.schemeContainer.screenTransform.y = Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my);
+            this.dragScreenTo(Math.floor(this.originalScreenOffset.x + mx - this.originalClickPoint.mx), Math.floor(this.originalScreenOffset.y + my - this.originalClickPoint.my));
         }
     }
 

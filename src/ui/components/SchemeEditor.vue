@@ -576,7 +576,7 @@ import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
 import {MobileDebugger} from '../logger';
-import {traverseItems} from '../scheme/Item';
+import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -2020,7 +2020,9 @@ export default {
                 this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
             }
 
-            const boundingBox = getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
+            const nonHUDItems = this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems());
+            const boundsItem = findFirstItemBreadthFirst(nonHUDItems, item => item.shape === 'dummy' && item.shapeProps.screenBounds);
+            const boundingBox = getBoundingBoxOfItems(boundsItem ? [boundsItem] : nonHUDItems);
 
             this.interactiveSchemeContainer.screenSettings.boundingBox = boundingBox;
             this.animationRegistry.enableAnimations();

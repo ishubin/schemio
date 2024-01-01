@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import State, { isEventMiddleClick, SubState } from './State.js';
+import State, { DragScreenState, isEventMiddleClick, SubState } from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
 import {DragType, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
@@ -335,10 +335,8 @@ class IdleState extends SubState {
     constructor(parentState, listener, userEventBus) {
         super(parentState, 'idle');
         this.listener = listener;
-        this.startedDragging = false;
+        this.mouseMovedAfterClick = false;
         this.initialClickPoint = null;
-        this.originalOffset = {x:0, y: 0};
-        this.originalZoom = 1.0;
 
         // used in order to track whether mousein or mouseout event can be produced
         this.currentHoveredItem = null;
@@ -353,25 +351,8 @@ class IdleState extends SubState {
     }
 
     softReset() {
+        this.mouseMovedAfterClick = false;
         this.initialClickPoint = null;
-        this.startedDragging = false;
-    }
-
-    mouseDown(x, y, mx, my, object, event){
-        super.mouseDown(x, y, mx, my, object, event);
-        if (!isEventMiddleClick(event) && object && object.type === 'item' && object.item.behavior.dragging !== 'none') {
-            this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y));
-            return;
-        }
-        this.initScreenDrag(mx, my);
-    }
-
-    initScreenDrag(x, y) {
-        this.startedDragging = true;
-        this.initialClickPoint = {x, y};
-        this.originalOffset = {x: this.schemeContainer.screenTransform.x, y: this.schemeContainer.screenTransform.y};
-        this.originalZoom = this.schemeContainer.screenTransform.scale;
-        this.resetInertiaDrag();
     }
 
     keyPressed(key, keyOptions) {
@@ -384,25 +365,31 @@ class IdleState extends SubState {
         }
     }
 
-    mouseUp(x, y, mx, my, object, event) {
-        if (this.startedDragging && this.initialClickPoint) {
-            this.initScreenInertia();
+    mouseDown(x, y, mx, my, object, event){
+        super.mouseDown(x, y, mx, my, object, event);
+        this.mouseMovedAfterClick = false;
+        this.initialClickPoint = {x: mx, y: my};
+        if (!isEventMiddleClick(event) && object && object.type === 'item' && object.item.behavior.dragging !== 'none') {
+            this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y));
+            return;
+        }
+    }
 
-            if (Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
-                if (object && object.item) {
-                    this.listener.onItemClicked(object.item, x, y);
-                    const shape = Shape.find(object.item.shape);
-                    if (shape && shape.onMouseDown) {
-                        const localPoint = localPointOnItem(x, y, object.item);
-                        shape.onMouseDown(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
-                    }
-                    this.parentState.handleItemClick(object.item, mx, my);
-                } else {
-                    // checking whether user clicked on the item link or not
-                    // if it was item link - then we don't want to remove them from DOM
-                    if (!event.target || !event.target.closest('.item-link')) {
-                        this.listener.onVoidClicked();
-                    }
+    mouseUp(x, y, mx, my, object, event) {
+        if (!this.mouseMovedAfterClick) {
+            if (object && object.item) {
+                this.listener.onItemClicked(object.item, x, y);
+                const shape = Shape.find(object.item.shape);
+                if (shape && shape.onMouseDown) {
+                    const localPoint = localPointOnItem(x, y, object.item);
+                    shape.onMouseDown(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
+                }
+                this.parentState.handleItemClick(object.item, mx, my);
+            } else {
+                // checking whether user clicked on the item link or not
+                // if it was item link - then we don't want to remove them from DOM
+                if (!event.target || !event.target.closest('.item-link')) {
+                    this.listener.onVoidClicked();
                 }
             }
             this.softReset();
@@ -414,13 +401,14 @@ class IdleState extends SubState {
             this.mobilePinchToZoom(event);
             return;
         }
-        if (this.startedDragging && this.initialClickPoint) {
+        if (this.initialClickPoint && Math.abs(mx - this.initialClickPoint.x) + Math.abs(my - this.initialClickPoint.y) < 3) {
+            this.mouseMovedAfterClick = true;
             event.preventDefault();
             if (event.buttons === 0) {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.softReset();
             } else {
-                this.dragScreen(mx, my);
+                this.migrate(new DragScreenState(this.parentState, true, {x, y, mx, my}));
             }
         } else {
             if (object.item) {
@@ -501,18 +489,6 @@ class IdleState extends SubState {
 
     emit(element, eventName, ...args) {
         this.parentState.emit(element, eventName, ...args);
-    }
-
-    dragScreen(x, y) {
-        this.registerInertiaPositions(x, y);
-
-        if (!this.schemeContainer.scheme.settings.screen.draggable) {
-            return;
-        }
-        this.dragScreenTo(
-            Math.floor(this.originalOffset.x + x - this.initialClickPoint.x),
-            Math.floor(this.originalOffset.y + y - this.initialClickPoint.y)
-        );
     }
 
     handleItemClick(item, mx, my) {

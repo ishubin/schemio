@@ -20,7 +20,7 @@
             :data-item-id="item.id"
             fill="none"></path>
 
-        <path v-if="item.shapeProps.componentBounds" :d="componentBoundsPath"
+        <path v-if="item.shapeProps.screenBounds" :d="screenBoundsPath"
             :stroke-width="item.shapeProps.strokeSize*2 + 'px'"
             :stroke="item.shapeProps.strokeColor"
             fill="none"
@@ -63,14 +63,15 @@ export default {
             previewArea: {x: 3, y: 30, w: 150, h: 120},
         }, {
             group: 'General',
-            name: 'Component bounds',
-            iconUrl: '/assets/images/items/component-bounds.svg',
+            name: 'Screen bounds',
+            iconUrl: '/assets/images/items/screen-bounds.svg',
             description: `
-                Component bounds can be used to limit the view when the document is loaded in a component
+                Specifies the bounds of the screen. Users will not be able to scroll outside of it in view mode.
+                If the document is loaded inside of a component it will also work as view box and limit the rendering of the component items to the view box area.
             `,
             item: {
                 name: 'Bounds',
-                shapeProps: {cornerRadius: 0, componentBounds: true, strokeColor: '#E8821B87', strokePattern: 'dotted'}
+                shapeProps: {cornerRadius: 0, screenBounds: true, strokeColor: '#E8821B87', strokePattern: 'dotted'}
             },
             previewArea: {x: 3, y: 30, w: 150, h: 120},
         }],
@@ -102,8 +103,10 @@ export default {
             strokePattern  : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
             cornerRadius   : {type: 'number', value: 0, name: 'Corner radius', min: 0},
             showName       : {type: 'boolean', value: true, name: 'Display Name'},
-            componentBounds: {type: 'boolean', value: false, name: 'Component bounds',
-                description: 'When current document is loaded inside of a component, this dummy should be used as document bounds.'
+            screenBounds   : {type: 'boolean', value: false, name: 'Screen bounds',
+                description: 'If set to true than this item will specifies the bounds of the screen. Users will not be able to scroll outside of it in view mode.'
+                            +'If the document is loaded inside of a component it will also work as view box and limit '
+                            +'the rendering of the component items to the view box area.'
             },
         },
     },
@@ -113,7 +116,7 @@ export default {
             return computePath(this.item);
         },
 
-        componentBoundsPath() {
+        screenBoundsPath() {
             const w = this.item.area.w;
             const h = this.item.area.h;
             const d = Math.min(w, h) / 6;
@@ -128,7 +131,7 @@ export default {
         },
 
         boundsCorrection() {
-            if (this.item.shapeProps.componentBounds) {
+            if (this.item.shapeProps.screenBounds) {
                 return this.item.shapeProps.strokeSize + 1;
             }
             return 0;
