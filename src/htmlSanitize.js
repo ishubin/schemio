@@ -4,9 +4,9 @@
 const sanitizeHtml = require('sanitize-html');
 
 export default function (html) {
-    const fixed = html.replaceAll(/<p><\/p>/g, '<p>&nbsp;</p>');
+    const fixed = html.replaceAll(/<p>\s*<\/p>/g, '<br/>');
     return sanitizeHtml(fixed, {
-        allowedTags: ['blockquote', 'code', 'div', 'em', 'li', 'ol', 'p', 'strong', 'b', 's', 'i', 'u', 'ul', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+        allowedTags: ['blockquote', 'code', 'div', 'em', 'li', 'ol', 'br', 'p', 'strong', 'b', 's', 'i', 'u', 'ul', 'img', 'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
         allowedSchemes: [ 'http', 'https'],
         allowedAttributes: {
             'a': [ 'href' ],

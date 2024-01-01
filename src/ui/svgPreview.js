@@ -135,6 +135,6 @@ export function snapshotSvg(selector, viewArea) {
 
         filterOutPreviewSvgElements(svgElement);
 
-        return '<?xml version="1.0" ?>' + svgElement.outerHTML.replace(/&nbsp;/g, ' ');
+        return '<?xml version="1.0" ?>' + new XMLSerializer().serializeToString(svgElement);
     });
 }

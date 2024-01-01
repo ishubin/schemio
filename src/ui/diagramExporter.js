@@ -81,7 +81,7 @@ export function prepareDiagramForPictureExport(items) {
         const y = worldPoint.y - minP.y;
 
         itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
-        const html = itemDom.outerHTML;
+        const html = new XMLSerializer().serializeToString(itemDom);
         exportedItems.push({item, html})
     });
 
@@ -174,9 +174,11 @@ export function diagramImageExporter(items) {
             svg.setAttribute('width', `${imageWidth}px`);
             svg.setAttribute('height', `${imageHeight}px`);
 
+            const html = new XMLSerializer().serializeToString(svg);
+
             return rasterizeAllImagesToDataURL(svg)
             .then(() => insertCustomFonts(svg))
-            .then(() => svgToImage(svg.outerHTML, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
+            .then(() => svgToImage(html, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor));
         }
     };
 }

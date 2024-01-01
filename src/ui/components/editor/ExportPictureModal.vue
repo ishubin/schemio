@@ -153,7 +153,7 @@ export default {
                     svgDom.setAttribute('height', `${this.rasterHeight}px`);
                 }
 
-                const svgCode = svgDom.outerHTML;
+                const svgCode = new XMLSerializer().serializeToString(svgDom);
 
                 if (this.kind === 'svg') {
                     const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
