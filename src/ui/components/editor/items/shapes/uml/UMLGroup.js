@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from "../../../../../myMath";
+import { computeBrokenRectPath } from "../../../../../scheme/Item";
 import {getStandardRectPins} from '../ShapeDefaults'
 
 export default {
@@ -69,17 +70,7 @@ export default {
             }
         },
 
-        computeOutline(item) {
-            const W = item.area.w;
-            const H = item.area.h;
-            const cornerRadius = Math.max(0, item.shapeProps.cornerRadius);
-            const R = Math.min(cornerRadius, item.area.w/4, item.area.h/4);
-
-            return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  `
-                +`L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}  `
-                +`L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  `
-                +`L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
-        },
+        computeOutline: computeBrokenRectPath,
 
         getTextSlots(item) {
             const R = Math.min(Math.max(0, item.shapeProps.cornerRadius), item.area.w/4, item.area.h/4);

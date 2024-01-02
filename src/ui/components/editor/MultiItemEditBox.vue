@@ -606,7 +606,7 @@ export default {
 
     computed: {
         editBoxFill() {
-            if (this.editBox.items.length > 1 && this.useFill) {
+            if (this.useFill) {
                 return 'rgba(255,255,255,0.0)';
             }
             return 'none';
