@@ -14,6 +14,7 @@
                         @click="selectEntry(entry, entryIdx)">
                         {{entry.name}}
                         <span v-if="entry.used" class="added">added</span>
+                        <span v-else-if="selectedEntryIdx === entryIdx" class="btn btn-add btn-primary" @click="registerSelectedShapeGroup()">Add</span>
                     </li>
                 </ul>
                 <div v-else class="missing-extra-shapes">
@@ -29,9 +30,6 @@
                     <div class="preview-icon" v-for="imageUrl in selectedEntry.previewImages">
                         <img :src="imageUrl" />
                     </div>
-                </div>
-                <div class="buttons">
-                    <span v-if="!selectedEntry.used" class="btn btn-primary" @click="registerSelectedShapeGroup()">Add</span>
                 </div>
             </div>
             <div v-else class="external-shape-preview">

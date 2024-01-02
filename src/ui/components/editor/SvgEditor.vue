@@ -395,14 +395,19 @@ export default {
                 return null;
             }
 
-            let filteredItems = filter(items, item => item.visible && item.meta.calculatedVisibility);
+            let filteredItems = filter(items, item => {
+                if (this.mode === 'view' && item.shape === 'dummy') {
+                    return false;
+                }
+                return item.visible && item.meta.calculatedVisibility;
+            });
 
             if (filteredItems.length === 0 && items.length > 0) {
                 // this check is needed because in edit mode a user might select an item that is not visible
                 // (e.g. in item selector componnent) and click 'zoom to it'
                 filteredItems = items;
             }
-            return this.schemeContainer.getBoundingBoxOfItems(filteredItems);
+            return getBoundingBoxOfItems(filteredItems);
         },
 
         updateSvgSize() {
@@ -636,7 +641,7 @@ export default {
                 const hasItemClickEvents = find(item.behavior.events, event => event.event === Events.standardEvents.clicked.id);
 
                 if (hasItemDescription(item) || hasItemLinks || hasItemClickEvents) {
-                    const box = this.schemeContainer.getBoundingBoxOfItems([item]);
+                    const box = getBoundingBoxOfItems([item]);
                     markers.push({
                         x: box.x + box.w,
                         y: box.y,

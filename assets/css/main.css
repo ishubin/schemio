@@ -3851,6 +3851,11 @@ ul.patch-field-list {
 .external-shapes .external-shapes-list li {
     position: relative;
 }
+.external-shapes .external-shapes-list li .btn-add {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+}
 .external-shapes .external-shapes-list li .added {
     position: absolute;
     right: 10px;
@@ -3878,9 +3883,6 @@ ul.patch-field-list {
 }
 .external-shapes .external-shape-preview .preview {
     flex: 1;
-}
-.external-shapes .external-shape-preview .buttons {
-    padding-top: 10px;
 }
 .external-shapes .external-shape-preview .preview img.large {
     max-width: 90%;
