@@ -45,9 +45,9 @@ export default {
             name: 'HUD',
             iconUrl: '/assets/images/items/hud.svg',
             description: `
-                HUD stands for Heads Up Display. 
+                HUD stands for Heads Up Display.
                 When going into view mode, HUD item will always be rendered in the viewport.
-                This lets you design your own menu on top of the scheme which will always stay in the same place even if you drag screen`,
+                This lets you design your own menu on top of the scene, which will always stay in the same spot`,
         }],
 
         // it doesn't support text slots

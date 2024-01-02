@@ -3806,15 +3806,25 @@ ul.patch-field-list {
 
 /****************** Progress bar ******************/
 
+.progress-bar-container {
+    height: 10px;
+    position: relative;
+}
+.progress-bar.progress-bar-hovering {
+    position: absolute;
+    width: 100%;
+    margin: 0;
+    height: 5px;
+}
 .progress-bar {
     display: block;
     height: 100%;
     animation: progress-animation 30s linear infinite;
+    background: linear-gradient(90deg, var(--accent-strong-down) 0%, var(--accent-faint-up) 25%, var(--accent-faint-up) 50%, var(--accent-strong-down) 75%) 0% 0% / 60% 100%;
 }
 .progress-bar.progress-bar-default {
     margin-top: 10px;
     margin-bottom: 10px;
-    background: linear-gradient(90deg, var(--accent-strong-down) 0%, var(--accent-faint-up) 25%, var(--accent-faint-up) 50%, var(--accent-strong-down) 75%) 0% 0% / 60% 100%;
     height: 5px;
 }
 
@@ -3992,6 +4002,12 @@ ul.patch-field-list {
 }
 .padded {
     padding: 4px;
+}
+.row.centered {
+    align-items: center;
+}
+.row.gap {
+    gap: 5px;
 }
 
 

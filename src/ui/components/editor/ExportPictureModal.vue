@@ -2,48 +2,59 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <modal :title="title" @close="$emit('close')" primary-button="Save" @primary-submit="saveIt">
-        <table>
-            <tbody>
-                <tr>
-                    <td>
-                        <number-textfield :value="paddingLeft" name="Left" @changed="paddingLeft = arguments[0]"/>
-                    </td>
-                    <td>
-                        <number-textfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
-                    </td>
-                    <td>
-                        <number-textfield :value="paddingRight" name="Right" @changed="paddingRight = arguments[0]"/>
-                    </td>
-                    <td>
-                        <number-textfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = arguments[0]"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        Placement
-                        <select v-model="placement">
-                            <option value="top-left">Top Left</option>
-                            <option value="centered">Centered</option>
-                            <option value="stretched">Stretched</option>
-                        </select>
-                    </td>
-                    <td colspan="2">
-                        <input type="checkbox" v-model="shouldExportBackground" id="chk-export-svg-background"/><label for="chk-export-svg-background"> Export SVG Background</label>
-                    </td>
-                </tr>
-                <tr v-if="kind === 'png'">
-                    <td>
-                        <number-textfield :value="rasterWidth" name="Width" @changed="rasterWidth = arguments[0]"/>
-                    </td>
-                    <td>
-                        <number-textfield :value="rasterHeight" name="Height" @changed="rasterHeight = arguments[0]"/>
-                    </td>
-                    <td colspan="2">
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <modal :title="title" @close="$emit('close')" primary-button="Save" @primary-submit="saveIt" :width="800">
+        <div class="progress-bar-container">
+            <div v-if="isLoading" class="progress-bar progress-bar-hovering"></div>
+        </div>
+        <div v-if="errorMessage" class="msg msg-danger">
+            {{ errorMessage }}
+        </div>
+        <div class="row">
+            <div class="col-1">
+                <div v-if="simplePadding" class="row padded centered gap">
+                    <i @click="simplePadding=false" class="fa-solid fa-border-none" style="cursor:pointer" title="Advanced padding"></i>
+                    <number-textfield :value="padding" name="Padding" @changed="padding = arguments[0]" style="max-width: 150px;"/>
+                </div>
+                <div v-else class="row centered gap">
+                    <i @click="simplePadding=true" class="fa-solid fa-border-all" style="cursor:pointer" title="Simple padding"></i>
+                    <div class="col-1">
+                        <div class="row padded centered gap">
+                            <number-textfield :value="paddingLeft" name="Left" @changed="paddingLeft = arguments[0]"/>
+                            <number-textfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
+                        </div>
+                        <div class="row padded centered gap">
+                            <number-textfield :value="paddingRight" name="Right" @changed="paddingRight = arguments[0]"/>
+                            <number-textfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = arguments[0]"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="row padded centered gap">
+                    <number-textfield :value="rasterWidth" name="Width" @changed="rasterWidth = arguments[0]"/>
+                    <number-textfield :value="rasterHeight" name="Height" @changed="rasterHeight = arguments[0]"/>
+                </div>
+                <div class="row padded centered gap">
+                    <div class="col-1">
+                        <div v-if="kind === 'svg'" class="row centered gap">
+                            <span>Placement</span>
+                            <select v-model="placement">
+                                <option value="top-left">Top Left</option>
+                                <option value="centered">Centered</option>
+                                <option value="stretched">Stretched</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="row padded centered gap">
+                            <input type="checkbox" v-model="shouldExportBackground" id="chk-export-svg-background"/><label for="chk-export-svg-background"> Export Background</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+        </div>
 
         <svg ref="svgContainer" class="export-svg-preview"
             width="100%" height="300px"
@@ -66,9 +77,9 @@
 <script>
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
-import {forEach, map} from '../../collections';
+import {forEach} from '../../collections';
 import {rasterizeAllImagesToDataURL} from '../../svgPreview';
-import {svgToImage, insertCustomFonts, prepareDiagramForPictureExport, diagramImageExporter} from '../../diagramExporter';
+import {svgToImage, insertCustomFonts, diagramImageExporter} from '../../diagramExporter';
 import { encode } from 'js-base64';
 
 
@@ -85,9 +96,7 @@ export default {
     components: {Modal, NumberTextfield},
 
     data() {
-        const box = prepareDiagramForPictureExport(this.items);
-        const svgHtml = map(box.exportedItems, e => e.html).join('\n');
-
+        const exporter = diagramImageExporter(this.items);
         let largestStrokeSize = 0;
         forEach(this.items, item => {
             if (!isNaN(item.shapeProps.strokeSize) && item.shapeProps.strokeSize > largestStrokeSize) {
@@ -95,13 +104,13 @@ export default {
             }
         });
 
-        const defaultPadding = Math.max(40, 2 * largestStrokeSize);
+        const defaultPadding = Math.max(2, 2 * largestStrokeSize);
         let paddingTop = defaultPadding;
         let paddingLeft = defaultPadding;
         let paddingRight = defaultPadding;
         let paddingBottom = defaultPadding;
 
-        if (box.width < 60 || box.height < 60) {
+        if (exporter.width < 60 || exporter.height < 60) {
             paddingTop = 2 * largestStrokeSize;
             paddingLeft = 2 * largestStrokeSize;
             paddingRight = 2 * largestStrokeSize;
@@ -109,25 +118,55 @@ export default {
         }
 
         return {
+            exporter,
             shouldExportBackground: false,
+
+            simplePadding: true,
+            padding: paddingTop,
             paddingTop,
             paddingLeft,
             paddingBottom,
             paddingRight,
             largestStrokeSize,
             placement: 'centered', // can be top-left, centered, stretched
-            svgHtml: svgHtml,
+            svgHtml: exporter.previewSvgHtml,
             previewPadding: 20,
 
-            width: box.width,
-            height: box.height,
-            rasterWidth: box.width,
-            rasterHeight: box.height
+            width: exporter.width,
+            height: exporter.height,
+            rasterWidth: exporter.width,
+            rasterHeight: exporter.height,
+
+            isLoading: false,
+            errorMessage: null,
         };
     },
 
     methods: {
         saveIt() {
+            this.isLoading = true;
+            this.errorMessage = null;
+            this.exporter.exportImage({
+                width: this.width,
+                height: this.height,
+                paddingLeft: this.paddingLeft,
+                paddingRight: this.paddingRight,
+                paddingTop: this.paddingTop,
+                paddingBottom: this.paddingBottom,
+                backgroundColor: this.shouldExportBackground ? this.backgroundColor : null,
+                format: this.kind,
+            }).then(imageDataUrl => {
+                this.isLoading = false;
+                this.downloadViaLink(`${this.items[0].name}.${this.kind}`, imageDataUrl);
+            })
+            .catch(err => {
+                console.error('Failed to generate image', err);
+                this.isLoading = false;
+                this.errorMessage = 'Something went wrong, was not able to generate image';
+            });
+        },
+
+        _saveIt() {
             const svgDom = this.$refs.svgContainer.cloneNode(true);
             forEach(svgDom.childNodes, child => {
                 if (child && child.nodeType === Node.ELEMENT_NODE) {
@@ -163,7 +202,6 @@ export default {
                     const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
                     this.downloadViaLink( `${this.items[0].name}.svg`, svgDataUrl);
                 } else {
-                    const backgroundColor = this.shouldExportBackground ? this.backgroundColor : null;
                     svgToImage(svgCode, this.rasterWidth, this.rasterHeight, this.paddingLeft, this.paddingTop, backgroundColor)
                     .then(imageDataUrl => {
                         this.downloadViaLink(`${this.items[0].name}.png`, imageDataUrl);
@@ -188,6 +226,23 @@ export default {
                 console.error(e);
             }
             setTimeout(() => document.body.removeChild(link), 100);
+        }
+    },
+
+    watch: {
+        padding(value) {
+            this.paddingLeft = value;
+            this.paddingRight = value;
+            this.paddingTop = value;
+            this.paddingBottom = value;
+        },
+        simplePadding(value) {
+            if (value) {
+                this.paddingLeft = this.padding;
+                this.paddingRight = this.padding;
+                this.paddingTop = this.padding;
+                this.paddingBottom = this.padding;
+            }
         }
     },
 

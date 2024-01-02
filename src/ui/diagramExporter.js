@@ -4,6 +4,7 @@ import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./sch
 import { filterOutPreviewSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
 import { encode } from 'js-base64';
 import axios from "axios";
+import { defaultifyObject } from "../defaultify";
 
 
 /**
@@ -124,67 +125,77 @@ function calculateBoundingBoxOfAllSubItems(parentItem) {
     return getBoundingBoxOfItems(items);
 }
 
+
 /**
- * Exports specified svg code as png image
- * @param {String} svgHtml outer HTML of SVG element
- * @param {*} imageWidth width of resulting image
- * @param {*} imageHeight height of resulting image
- * @param {*} paddingLeft left padding in the image
- * @param {*} paddingTop top padding in the image
- * @param {*} backgroundColor background color of the image, if set as null then it will not be used and the background will be transparent
+ * @typedef {Object} DiagramExporterOptions
+ * @property {Number} width
+ * @property {Number} height
+ * @property {Number} paddingLeft
+ * @property {Number} paddingRight
+ * @property {Number} paddingTop
+ * @property {Number} paddingBottom
+ * @property {String} backgroundColor
+ * @property {String} format - Image format. Either "svg" or "png"
  */
-export function svgToImage(svgHtml, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor) {
-    return new Promise((resolve, reject) => {
-        const svgDataUrl = `data:image/svg+xml;base64,${encode(svgHtml)}`;
-        const canvas = document.createElement('canvas');
-        canvas.width = imageWidth;
-        canvas.height = imageHeight;
 
-        const ctx = canvas.getContext('2d');
-        const img = new Image;
-
-        img.onload = () => {
-            if (backgroundColor) {
-                ctx.fillStyle = backgroundColor;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            ctx.drawImage(img, paddingLeft, paddingTop);
-            resolve(canvas.toDataURL('image/png'));
-        };
-        img.src = svgDataUrl;
-
-        img.onerror = (err) => reject(err);
-    });
+const defaultDiagramExporterOptions = {
+    width: 100,
+    height: 100,
+    paddingLeft: 0,
+    paddingRight: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    backgroundColor: null,
+    format: 'svg'
 }
 
 export function diagramImageExporter(items) {
     const result = prepareDiagramForPictureExport(items);
+    const previewSvgHtml = map(result.exportedItems, e => e.html).join('\n');
+
     return {
-        exportImage(imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor) {
-            const box = getBoundingBoxOfItems(items);
-            const svgHtml = map(result.exportedItems, e => e.html).join('\n');
+        previewSvgHtml,
+        width: result.width,
+        height: result.height,
+
+        /**
+         *
+         * @param {DiagramExporterOptions} options
+         * @returns {Promise<String>} image data url
+         */
+        exportImage(options) {
+            options = defaultifyObject(options, defaultDiagramExporterOptions);
 
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            svg.innerHTML = svgHtml;
+            svg.innerHTML = previewSvgHtml;
             svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
             svg.setAttribute('xmlns:xhtml', "http://www.w3.org/1999/xhtml");
             svg.setAttribute('xmlns:xlink', "http://www.w3.org/1999/xlink");
-            svg.setAttribute('viewBox', `${-paddingLeft} ${-paddingTop} ${box.w + paddingLeft} ${box.h + paddingTop}`);
-            svg.setAttribute('preserveAspectRatio', 'xMidYMid');
-            svg.setAttribute('width', `${imageWidth}px`);
-            svg.setAttribute('height', `${imageHeight}px`);
+            const viewBoxWidth = result.width + options.paddingRight + options.paddingLeft;
+            const viewBoxHeight = result.height + options.paddingBottom + options.paddingTop;
+            svg.setAttribute('viewBox', `${-options.paddingLeft} ${-options.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
+            // svg.setAttribute('preserveAspectRatio', 'xMidYMid');
+
+            if (options.format === 'png') {
+                svg.setAttribute('width', `${options.width}px`);
+                svg.setAttribute('height', `${options.height}px`);
+            }
 
             return rasterizeAllImagesToDataURL(svg)
             .then(() => insertCustomFonts(svg))
             .then(() => {
-                const html = new XMLSerializer().serializeToString(svg);
-                return svgToImage(html, imageWidth, imageHeight, paddingLeft, paddingTop, backgroundColor);
+                const svgCode = new XMLSerializer().serializeToString(svg);
+                if (options.format === 'png') {
+                    return svgToImage(svgCode, options);
+                } else {
+                    return `data:image/svg+xml;base64,${encode(svgCode)}`;
+                }
             });
         }
     };
 }
 
-export function insertCustomFonts(svg) {
+function insertCustomFonts(svg) {
     return axios.get('/assets/custom-fonts/all-fonts-embedded.css')
     .then(data => {
         const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -193,5 +204,34 @@ export function insertCustomFonts(svg) {
     })
     .catch(err => {
         console.error(err);
+    });
+}
+
+/**
+ * Exports specified svg code as png image
+ * @param {String} svgHtml outer HTML of SVG element
+ * @param {DiagramExporterOptions} options
+ */
+function svgToImage(svgHtml, options) {
+    return new Promise((resolve, reject) => {
+        const svgDataUrl = `data:image/svg+xml;base64,${encode(svgHtml)}`;
+        const canvas = document.createElement('canvas');
+        canvas.width = options.width;
+        canvas.height = options.height;
+
+        const ctx = canvas.getContext('2d');
+        const img = new Image;
+
+        img.onload = () => {
+            if (options.backgroundColor) {
+                ctx.fillStyle = options.backgroundColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(img, options.paddingLeft, options.paddingTop);
+            resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = svgDataUrl;
+
+        img.onerror = (err) => reject(err);
     });
 }
