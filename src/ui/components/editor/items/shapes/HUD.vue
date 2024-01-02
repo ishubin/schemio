@@ -23,12 +23,7 @@
 </template>
 <script>
 import StrokePattern from '../StrokePattern.js';
-
-function computePath(item) {
-    const W = item.area.w;
-    const H = item.area.h;
-    return `M ${W} ${H}  L 0 ${H} L 0 ${0}  L ${W} 0  L ${W} ${H} Z`;
-}
+import {computeBrokenRectPath, computeRectPath} from '../../../../scheme/Item';
 
 export default {
     props: ['item'],
@@ -55,16 +50,9 @@ export default {
             return [];
         },
 
-        computePath,
+        computePath: computeRectPath,
 
-        computeOutline(item) {
-            const w = item.area.w;
-            const h = item.area.h;
-            // doing these broken lines so that event layer gets created without any fill
-            // we don't want to keep selecting this shape when clicking inside of it
-            // to make it easier to select its child items
-            return `M 0 0 L ${w} 0  M ${w} 0 L ${w} ${h} M ${w} ${h} L 0 ${h} M 0 ${h} L 0 0`;
-        },
+        computeOutline: computeBrokenRectPath,
 
 
         editorProps: {
@@ -73,7 +61,7 @@ export default {
         },
 
         args: {
-            strokeColor       : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
+            strokeColor       : {name: 'Stroke', type: 'color', value: '#32D143'},
             strokeSize        : {name: 'Stroke Size', type: 'number', value: 2},
             strokePattern     : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
             horizontalPosition: {type: 'choice', value: 'left', options: ['left', 'right', 'center'], name: 'Horizontal Position'},
@@ -84,7 +72,7 @@ export default {
 
     computed: {
         shapePath() {
-            return computePath(this.item);
+            return computeRectPath(this.item);
         },
 
         strokeDashArray() {

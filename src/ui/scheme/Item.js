@@ -114,10 +114,6 @@ export const coreItemPropertyTypes = {
     visible                    : {type: 'boolean', name: 'Visible'},
     clip                       : {type: 'boolean', name: 'Clip'},
     'behavior.dragging'        : {type: 'choice', name: 'Dragging', options: ['none', 'free', 'path', 'dragndrop']},
-    // 'behavior.dropTo'          : {type: 'element', name: 'Drop to'},
-    // 'behavior.dragPath'        : {type: 'element', name: 'Drag path'},
-    // 'behavior.dragPathAlign'   : {type: 'boolean', name: 'Drag path align'},
-    // 'behavior.dragPathRotation': {type: 'number', name: 'Drag path rotation'},
 };
 
 export const defaultItemDefinition = {
@@ -393,4 +389,22 @@ export function getItemPropertyDescriptionForShape(shape, propertyPath) {
         }
     }
     return null;
+}
+
+
+export function computeRectPath(item) {
+    const W = item.area.w;
+    const H = item.area.h;
+    return `M ${W} ${H}  L 0 ${H} L 0 ${0}  L ${W} 0  L ${W} ${H} Z`;
+}
+
+/**
+ * Computes rect path in such a way that it cannot be filled. Used for items that don't need even layer (e.g. hud, dummy)
+ * @param {*} item
+ * @returns
+ */
+export function computeBrokenRectPath(item) {
+    const w = item.area.w;
+    const h = item.area.h;
+    return `M 0 0 L ${w} 0  M ${w} 0 L ${w} ${h} M ${w} ${h} L 0 ${h} M 0 ${h} L 0 0`;
 }
