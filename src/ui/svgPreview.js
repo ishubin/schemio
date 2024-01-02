@@ -30,47 +30,46 @@ export function filterOutPreviewSvgElements(svgElement) {
     }
 }
 
-function convertImageToDataURL(imageElement) {
-    const imageUrl = imageElement.getAttribute('xlink:href');
+function toDataURL(url) {
     return new Promise((resolve, reject) => {
-        const img = document.createElement('img');
-        img.setAttribute('crossorigin', 'anonymous');
-        img.onload = () => {
-            try {
-                const canvas = document.createElement('canvas');
-                const width = imageElement.getAttribute('width');
-                const height = imageElement.getAttribute('height');
-
-                canvas.width = width;
-                canvas.height = height;
-
-                let x = 0, y = 0, w = width, h = height;
-
-                if (imageElement.getAttribute('preserveAspectRatio') !== 'none' && img.width > 0 && img.height > 0) {
-                    const k = Math.min(width / img.width, height / img.height);
-                    x = width/2 - img.width/2 * k;
-                    y = height/2 - img.height/2 * k;
-                    w = img.width * k;
-                    h = img.height * k;
-                }
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, x, y, w, h);
-                const dataURL = canvas.toDataURL('image/png');
-                imageElement.setAttribute('xlink:href', dataURL);
-                resolve();
-            } catch(err) {
-                console.error('Could not convert image ' + imageUrl + ' to dataURL', err);
-                reject();
-            }
+        const xhr = new XMLHttpRequest();
+        xhr.open('get', url);
+        xhr.responseType = 'blob';
+        xhr.onload = function() {
+            const fr = new FileReader();
+            fr.onload = function() {
+                resolve(this.result);
+            };
+            fr.onerror = function(err) {
+                reject(err);
+            };
+            fr.readAsDataURL(xhr.response);
         };
-        img.onerror = () => {
-            reject();
+        xhr.onerror = function(err) {
+            reject(err);
         };
-        img.src = imageUrl;
-    });
+        xhr.send();
+    })
 }
 
+
+function imageToDataURL(imageElement) {
+    // adding unique get parameter because Chrome may cache the image when it was loaded without passing the origin
+    // so in its cache there might be an image without the CORS allow header.
+    const imageUrl = imageElement.getAttribute('xlink:href');
+    const argName = imageUrl.indexOf('?') < 0 ? '?_schuid=' : '&_schuid=';
+    const uniqueUrl = imageUrl + argName + new Date().getTime() + '' + Math.round(Math.random()*10000);
+
+    const corsUrl = 'https://corsproxy.io/?' + encodeURIComponent(uniqueUrl);
+    return toDataURL(corsUrl)
+    .catch(err => {
+        // doing this fallback just in case corsproxy.io fails
+        return toDataURL(uniqueUrl);
+    })
+    .then((dataURL) => {
+        imageElement.setAttribute('xlink:href', dataURL);
+    })
+}
 
 /**
  * @param {SVGElement} svgElement
@@ -105,7 +104,9 @@ export function rasterizeAllImagesToDataURL(svgElement) {
 
     const promises = [];
     forEach(imageElements, imageElement => {
-        promises.push(convertImageToDataURL(imageElement).catch(() => {}));
+        promises.push(imageToDataURL(imageElement).catch(err => {
+            console.error(err);
+        }));
     });
 
     return Promise.all(promises);
