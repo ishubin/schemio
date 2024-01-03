@@ -308,6 +308,7 @@ export default {
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
 
 
+            lastClickPoint: null,
             doubleClickLastTime: performance.now(),
 
             // the following two properties are going to be updated in mounted hook
@@ -606,13 +607,21 @@ export default {
             let newClickTime = performance.now();
             // implementing own double click event hanlding
             // as for some reason the native dblclick event is not reliable
-            if (newClickTime - this.doubleClickLastTime < DOUBLE_CLICK_REACTION_MILLIS) {
+            let moveOffset = 0;
+            if (this.lastClickPoint) {
+                moveOffset = Math.abs(event.pageX - this.lastClickPoint.x) + Math.abs(event.pageY - this.lastClickPoint.y);
+            }
+            this.lastClickPoint = {x: event.pageX, y: event.pageY};
+
+            const dt = newClickTime - this.doubleClickLastTime;
+            if (moveOffset <= 2 && dt < DOUBLE_CLICK_REACTION_MILLIS) {
                 this.doubleClickLastTime = newClickTime;
                 this.mouseDoubleClick(event);
             } else {
                 this.doubleClickLastTime = newClickTime;
                 this.mouseEvent('mouse-down', event);
             }
+
         },
         mouseUp(event) {
             this.mouseEvent('mouse-up', event);
