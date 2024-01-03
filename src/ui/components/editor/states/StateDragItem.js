@@ -692,24 +692,27 @@ class IdleState extends SubState {
         }
     }
 
+    onItemDoubleClick(item, x, y) {
+        if (item.shape === 'path') {
+            this.listener.onEditPathRequested(item);
+        } else if (item.shape === 'connector') {
+            this.handleDoubleClickOnConnector(item, x, y);
+        } else {
+            this.findTextSlotAndEmitInPlaceEdit(item, x, y)
+        }
+    }
+
     mouseDoubleClick(x, y, mx, my, object, event) {
         if (object.item) {
-            if (object.item.shape === 'path') {
-                this.listener.onEditPathRequested(object.item);
-            } else if (object.item.shape === 'connector') {
-                this.handleDoubleClickOnConnector(object.item, x, y);
-            } else {
-                this.findTextSlotAndEmitInPlaceEdit(object.item, x, y)
-            }
+            this.onItemDoubleClick(object.item, x, y);
+        } else if (object.type === 'multi-item-edit-box' && object.multiItemEditBox.items.length === 1) {
+            this.onItemDoubleClick(object.multiItemEditBox.items[0], x, y);
         } else if (object.controlPoint && object.controlPoint.item.shape === 'connector') {
             this.handleDoubleClickOnConnectorControlPoint(object.controlPoint.item, object.controlPoint.pointId);
         } else if (object.itemTextElement) {
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
         } else if (object.type === 'void') {
             this.listener.onVoidDoubleClicked(x, y, mx, my);
-        } else if (object.type === 'multi-item-edit-box' && object.multiItemEditBox.items.length === 1 && object.multiItemEditBox.items[0].shape === 'path') {
-            // if user double clicks on the path but hits its edit box instead
-            this.listener.onEditPathRequested(object.multiItemEditBox.items[0]);
         }
     }
 

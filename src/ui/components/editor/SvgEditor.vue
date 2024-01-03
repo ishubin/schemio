@@ -14,7 +14,6 @@
             @touchmove="touchMove"
             @mousedown="mouseDown"
             @mouseup="mouseUp"
-            @dblclick="mouseDoubleClick"
             @dragenter="onDragEnter"
             @dragover="onDragOver"
             @dragleave="onDragLeave"
@@ -196,6 +195,9 @@ const LINK_FONT_SYMBOL_SIZE = 10;
 
 const behaviorCompiler = new Compiler();
 
+// milliseconds between mouse down events that should trigger double click event
+const DOUBLE_CLICK_REACTION_MILLIS = 400;
+
 /**
  * This variable is used for storing the last known position of mouse cursor
  * The reason this is needed is because some items handle click event themselves.
@@ -304,6 +306,9 @@ export default {
         return {
             mouseEventsEnabled: !(this.mode === 'view' && this.textSelectionEnabled),
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
+
+
+            doubleClickLastTime: performance.now(),
 
             // the following two properties are going to be updated in mounted hook
             width: window.innerWidth,
@@ -598,7 +603,16 @@ export default {
             this.mouseEvent('mouse-move', event);
         },
         mouseDown(event) {
-            this.mouseEvent('mouse-down', event);
+            let newClickTime = performance.now();
+            // implementing own double click event hanlding
+            // as for some reason the native dblclick event is not reliable
+            if (newClickTime - this.doubleClickLastTime < DOUBLE_CLICK_REACTION_MILLIS) {
+                this.doubleClickLastTime = newClickTime;
+                this.mouseDoubleClick(event);
+            } else {
+                this.doubleClickLastTime = newClickTime;
+                this.mouseEvent('mouse-down', event);
+            }
         },
         mouseUp(event) {
             this.mouseEvent('mouse-up', event);
