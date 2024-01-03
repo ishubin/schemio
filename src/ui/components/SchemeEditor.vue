@@ -1590,7 +1590,7 @@ export default {
             }
         },
 
-        pasteItemsFromClipboard() {
+        pasteItemsFromClipboardAt(mx, my) {
             getTextFromClipboard().then(text => {
                 if (text) {
                     const items = this.schemeContainer.decodeItemsFromText(text);
@@ -1604,14 +1604,18 @@ export default {
                         })
                         .then(() => {
                             this.isLoading = false;
-                            const centerX = (this.schemeContainer.screenSettings.width/2 - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
-                            const centerY = (this.schemeContainer.screenSettings.height/2 - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                            const centerX = (mx - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                            const centerY = (my - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
                             this.schemeContainer.pasteItems(items, centerX, centerY);
                             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         });
                     }
                 }
             })
+        },
+
+        pasteItemsFromClipboard() {
+            this.pasteItemsFromClipboardAt(this.schemeContainer.screenSettings.width/2, this.schemeContainer.screenSettings.height/2);
         },
 
         onInteractVoidClicked() {
@@ -2260,7 +2264,10 @@ export default {
             if (this.mode === 'edit') {
                 this.onContextMenuRequested(mouseX, mouseY, [{
                     name: 'Paste',
-                    clicked: () => {this.pasteItemsFromClipboard();}
+                    clicked: () => this.pasteItemsFromClipboardAt(mouseX, mouseY)
+                }, {
+                    name: 'Select all',
+                    clicked: () => this.schemeContainer.selectAllItems()
                 }]);
             }
         },
