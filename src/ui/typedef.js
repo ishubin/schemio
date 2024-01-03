@@ -49,10 +49,11 @@
 /**
  * A context that is used to determine what kind of operations were done to an item
  * @typedef {Object} ItemModificationContext
- * @property {String} id - unique context it. It is used so that Curve shape is able to remember initial curve point and store it in its cache temporarily.
+ * @property {String} id - unique context it. It is used so that Path shape is able to remember initial curve point and store it in its cache temporarily.
  * @property {Boolean} moved - specifies whether item was moved
  * @property {Boolean} rotated - specifies whether item was rotated
  * @property {Boolean} resized - specifies whether item was resized
+ * @property {Boolean} controlPoint - specifies whether items control point was moved
  */
 
 

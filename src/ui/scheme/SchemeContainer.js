@@ -2264,6 +2264,12 @@ class SchemeContainer {
         const changedItemIds = new Set();
 
         forEach(multiItemEditBox.items, item => {
+            if (item.shape === 'connector' && context && !context.controlPoint) {
+                // since the connector item was moved, rotated or scaled completely we need to disconect it from another item
+                // otherwise it will not let us move it
+                item.shapeProps.sourceItem = null;
+                item.shapeProps.destinationItem = null;
+            }
             changedItemIds.add(item.id)
 
 

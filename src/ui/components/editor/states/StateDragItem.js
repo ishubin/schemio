@@ -28,6 +28,14 @@ const ITEM_MODIFICATION_CONTEXT_MOVED = {
     resized: false,
     id: ''
 };
+
+const ITEM_MODIFICATION_CONTEXT_CONTROL_POINT = {
+    moved: false,
+    rotated: false,
+    resized: false,
+    controlPoint: true,
+    id: ''
+};
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = ITEM_MODIFICATION_CONTEXT_MOVED;
 
 
@@ -77,9 +85,6 @@ class EditBoxState extends SubState {
         let items = [];
         if (this.multiItemEditBox && this.multiItemEditBox.items) {
             items = this.multiItemEditBox.items;
-        }
-        if (this.lastModifiedItem) {
-            items.push(this.lastModifiedItem);
         }
 
         let shouldUpdateMultiItemEditBox = false;
@@ -170,7 +175,10 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_CONTROL_POINT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
+        this.schemeContainer.updateMultiItemEditBox();
+        StoreUtils.setItemControlPoints(this.store, this.item);
         this.listener.onSchemeChangeCommitted();
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         this.migrateToPreviousSubState();
@@ -218,8 +226,6 @@ class DragControlPointState extends SubState {
 
                 // updating all control points as they might affect one another
                 StoreUtils.setItemControlPoints(this.store, this.item);
-                this.reindexNeeded = true;
-                this.lastModifiedItem = this.item;
                 this.schemeContainer.updateItemClones(this.item);
             }
         }
@@ -315,8 +321,6 @@ class DragControlPointState extends SubState {
 
         this.listener.onItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.reindexNeeded = true;
-        this.lastModifiedItem = this.item;
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
@@ -415,7 +419,6 @@ class ResizeEditBoxState extends EditBoxState {
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
         }
         updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
-        this.reindexNeeded = true;
     }
 }
 
@@ -453,7 +456,6 @@ class RotateEditBoxState extends EditBoxState {
             resized: false
         }, this.getUpdatePrecision());
 
-        this.reindexNeeded = true;
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
 
