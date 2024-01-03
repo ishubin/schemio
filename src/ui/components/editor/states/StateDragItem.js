@@ -170,6 +170,7 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.schemeContainer.reindexItems();
         this.listener.onSchemeChangeCommitted();
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         this.migrateToPreviousSubState();
@@ -277,7 +278,8 @@ class DragControlPointState extends SubState {
         const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
 
         // Not letting connectors attach to themselves
-        if (closestPointToItem && closestPointToItem.itemId !== this.item.id) {
+        if (closestPointToItem && closestPointToItem.itemId !== this.item.id
+            && !this.schemeContainer.doesItemDependOn(closestPointToItem.itemId, this.item.id)) {
             const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
 
             curvePoint.x = localCurvePoint.x;

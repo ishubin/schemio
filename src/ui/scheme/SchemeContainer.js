@@ -1340,6 +1340,15 @@ class SchemeContainer {
         });
     }
 
+    doesItemDependOn(itemId, dependantId) {
+        const ids = this.dependencyItemMap[dependantId];
+        if (!ids) {
+            return false;
+        }
+
+        return indexOf(ids, itemId) >= 0;
+    }
+
     remountItemToRoot(itemId) {
         const position = this.scheme.items.length;
         this.remountItemInsideOtherItem(itemId, null, position);
