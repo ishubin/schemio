@@ -2484,6 +2484,9 @@ export default {
         },
         mouseMove(worldX, worldY, screenX, screenY, object, event) {
             if (this.active) {
+                if (!this.editBoxUseFill && !(event.ctrlKey || event.metaKey || event.shiftKey)) {
+                    this.editBoxUseFill = true;
+                }
                 this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
                 if (this.state === 'dragItem') {
                     this.cursorX = worldX;
@@ -2515,6 +2518,7 @@ export default {
             if (this.state !== 'dragItem'
                 || !this.states.dragItem.shouldAllowFloatingHelperPanel()
                 || this.schemeContainer.selectedItems.length !== 1
+                || this.schemeContainer.selectedConnectorPoints.length > 0
                 || this.inPlaceTextEditor.shown) {
                 this.resetFloatingHelperPanel();
                 return;

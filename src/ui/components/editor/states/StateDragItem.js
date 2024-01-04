@@ -87,18 +87,6 @@ class EditBoxState extends SubState {
             items = this.multiItemEditBox.items;
         }
 
-        let shouldUpdateMultiItemEditBox = false;
-        forEach(items, item => {
-            // Now doing hard readjustment (this is needed for curve items so that they can update their area)
-            this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-
-            if (item.shape === 'path' || item.shape === 'connector') {
-                shouldUpdateMultiItemEditBox = true;
-            }
-        });
-        if (shouldUpdateMultiItemEditBox) {
-            this.schemeContainer.updateMultiItemEditBox();
-        }
         this.schemeContainer.reindexItems();
 
         this.listener.onSchemeChangeCommitted();
@@ -106,7 +94,7 @@ class EditBoxState extends SubState {
     }
 
     /**
-     * Creates a lines for box which will be used for snapping when draging this box.
+     * Creates lines for box which will be used for snapping when draging this box.
      * In case the box is rotated it will generate vertical and horizontal lines that are surrounding the box from the outside
      * @param {*} box
      * @returns {SnappingPoints} {vertical: [], horizontal: []}
@@ -501,6 +489,7 @@ class RotateEditBoxState extends EditBoxState {
 }
 
 class DragEditBoxState extends EditBoxState {
+
     constructor(parentState, multiItemEditBox, x, y, mx, my) {
         super(parentState, 'drag-edit-box', multiItemEditBox, x, y, mx, my);
         this.proposedItemForMounting = null;
@@ -532,6 +521,7 @@ class DragEditBoxState extends EditBoxState {
 
         this.multiItemEditBox.area.x = this.multiItemEditBoxOriginalArea.x + snapResult.dx;
         this.multiItemEditBox.area.y = this.multiItemEditBoxOriginalArea.y + snapResult.dy;
+
         this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
 
         // Fixing bug #392 where connector outline is rendered stale while connector itself gets readjusted
@@ -708,7 +698,7 @@ class IdleState extends SubState {
         } else if (object.type === 'multi-item-edit-box' && object.multiItemEditBox.items.length === 1) {
             this.onItemDoubleClick(object.multiItemEditBox.items[0], x, y);
         } else if (object.controlPoint && object.controlPoint.item.shape === 'connector') {
-            this.handleDoubleClickOnConnectorControlPoint(object.controlPoint.item, object.controlPoint.pointId);
+            this.handleDoubleClickOnConnectorControlPoint(object.controlPoint.item, parseInt(object.controlPoint.pointId));
         } else if (object.itemTextElement) {
             this.findTextSlotAndEmitInPlaceEdit(object.itemTextElement.item, x, y)
         } else if (object.type === 'void') {
@@ -850,7 +840,20 @@ class IdleState extends SubState {
         return 0;
     }
 
+    /**
+     * @param {Item} item
+     * @param {Number} pointId
+     * @returns
+     */
     handleDoubleClickOnConnectorControlPoint(item, pointId) {
+        if (item.shape !== 'connector') {
+            return;
+        }
+        if (pointId === 0 || pointId >= item.shapeProps.points.length - 1) {
+            // should not allow to delete first and last connector points
+            return;
+        }
+
         item.shapeProps.points.splice(pointId, 1);
         this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
@@ -885,29 +888,7 @@ class IdleState extends SubState {
     }
 
     selectByBoundaryBox(box, inclusive) {
-        const selectedItems = [];
-
-        forEach(this.schemeContainer.getItems(), item => {
-            const points = [
-                {x: 0, y: 0},
-                {x: item.area.w, y: 0},
-                {x: item.area.w, y: item.area.h},
-                {x: 0, y: item.area.h},
-            ];
-
-            let isInArea = true;
-
-            for(let i = 0; i < points.length && isInArea; i++) {
-                const wolrdPoint = this.schemeContainer.worldPointOnItem(points[i].x, points[i].y, item);
-
-                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
-            }
-
-            if (isInArea) {
-                selectedItems.push(item);
-            }
-        });
-        this.schemeContainer.selectMultipleItems(selectedItems, inclusive);
+        this.schemeContainer.selectByBoundaryBox(box, inclusive);
     }
 }
 

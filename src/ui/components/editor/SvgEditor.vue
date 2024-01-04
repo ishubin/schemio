@@ -615,7 +615,7 @@ export default {
 
             const dt = newClickTime - this.doubleClickLastTime;
             if (moveOffset <= 2 && dt < DOUBLE_CLICK_REACTION_MILLIS) {
-                this.doubleClickLastTime = newClickTime;
+                this.doubleClickLastTime = 0;
                 this.mouseDoubleClick(event);
             } else {
                 this.doubleClickLastTime = newClickTime;

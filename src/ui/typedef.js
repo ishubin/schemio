@@ -56,14 +56,31 @@
  * @property {Boolean} controlPoint - specifies whether items control point was moved
  */
 
+/**
+ * A reference to a connector point
+ * @typedef {Object} ConnectorPointRef
+ * @property {String} itemId - id of connector item
+ * @property {Number} pointIdx - index of the point in the connector
+ */
+
+/**
+ * A connector point with world x and y and reference to a point in connector points array
+ * @typedef {Object} ConnectorPointProjection
+ * @property {Number} x - world x
+ * @property {Number} y - world y
+ * @property {String} itemId - id of connector item
+ * @property {Number} pointIdx - index of the point in the connector
+ * @property {Point} projection - projected point on edit box
+ */
 
 /**
  * @typedef {Object} MultiItemEditBox
  * @property {String} id - unique id of edit box
  * @property {Array} items - array of items that are selected for this edit box
- * @property {Area}  area  - area of edit box
+ * @property {ItemArea}  area  - area of edit box
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)
  * @property {Object} itemProjections - map of item ids to item projections
+ * @property {Array<ConnectorPointProjection>} connectorPoints
  */
 
 
@@ -74,8 +91,8 @@
 
 /**
  * @typedef {Object} Item
- * @property {String} id 
- * @property {String} name 
+ * @property {String} id
+ * @property {String} name
  * @property {String} description
  * @property {Area}   area
  * @property {String} shape

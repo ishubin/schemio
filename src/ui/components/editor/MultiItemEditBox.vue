@@ -11,7 +11,7 @@
             :stroke="boundaryBoxColor"
             style="opacity: 0.8;"/>
         <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1 && kind === 'regular'">
+        <g v-if="editBox.items.length === 1 && editBox.connectorPoints.length === 0 && kind === 'regular'">
             <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
                :transform="svgItemCompleteTransform"
                >
@@ -398,8 +398,12 @@ import { processJSONTemplate, processTemplateExpressions } from '../../templater
 import utils from '../../utils';
 
 
-function isItemConnector(items) {
-    return items.length === 1 && items[0].shape === 'connector';
+/**
+ *
+ * @param {MultiItemEditBox} editBox
+ */
+function isItemConnector(editBox) {
+    return editBox.items.length === 1 && editBox.connectorPoints.length === 0 && editBox.items[0].shape === 'connector';
 }
 
 function createCustomControlAxis(place) {
@@ -442,7 +446,10 @@ export default {
         apiClient: {type: Object, required: true},
         editorId: {type: String, required: true},
         cursor: {type: Object},
+
+        /** @type {MultiItemEditBox} */
         editBox: {type: Object, required: true},
+
         zoom: {type: Number},
         boundaryBoxColor: {type: String},
         controlPointsColor: {type: String},
@@ -651,7 +658,7 @@ export default {
         },
 
         isItemConnector() {
-            return isItemConnector(this.editBox.items);
+            return isItemConnector(this.editBox);
         },
 
         shouldShowControlPoints() {

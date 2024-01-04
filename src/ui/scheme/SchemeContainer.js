@@ -12,7 +12,7 @@ import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
 import {generateComponentGoBackButton} from '../components/editor/items/shapes/Component.vue';
-import { Item, traverseItems, defaultItemDefinition, defaultItem, findFirstItemBreadthFirst} from './Item';
+import { traverseItems, defaultItemDefinition, defaultItem, findFirstItemBreadthFirst} from './Item';
 import { enrichItemWithDefaults } from './ItemFixer';
 import { enrichSchemeWithDefaults } from './Scheme';
 import { Debugger, Logger } from '../logger';
@@ -137,6 +137,51 @@ function getLocalBoundingBoxOfItems(items) {
     };
 
     return schemeBoundaryBox;
+}
+
+function createMultiItemEditBoxAveragedArea(items) {
+    let minP = null;
+    let maxP = null;
+
+    // iterating over all corners of items area to calculate the boundary box
+    const pointGenerators = [
+        (item) => {return {x: 0, y: 0}},
+        (item) => {return {x: item.area.w, y: 0}},
+        (item) => {return {x: item.area.w, y: item.area.h}},
+        (item) => {return {x: 0, y: item.area.h}},
+    ];
+
+    forEach(items, item => {
+        forEach(pointGenerators, pointGenerator => {
+            const localPoint = pointGenerator(item);
+            const p = worldPointOnItem(localPoint.x, localPoint.y, item);
+            if (minP) {
+                minP.x = Math.min(minP.x, p.x);
+                minP.y = Math.min(minP.y, p.y);
+            } else {
+                minP = {x: p.x, y: p.y};
+            }
+
+            if (maxP) {
+                maxP.x = Math.max(maxP.x, p.x);
+                maxP.y = Math.max(maxP.y, p.y);
+            } else {
+                maxP = {x: p.x, y: p.y};
+            }
+        });
+    });
+
+    return {
+        x: minP.x,
+        y: minP.y,
+        w: maxP.x - minP.x,
+        h: maxP.y - minP.y,
+        r: 0,
+        px: 0,
+        py: 0,
+        sx: 1.0,
+        sy: 1.0
+    };
 }
 
 /**
@@ -334,8 +379,16 @@ class SchemeContainer {
         this.scheme = scheme;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
-        // contains an array of items that were selected
+        /**
+         * array of items that were selected
+         * @type {Array<Item>} @private */
         this.selectedItems = [];
+
+        /**
+         * array of seleced connector points
+         * @type {Array<ConnectorPointRef>} @private */
+        this.selectedConnectorPoints = [];
+
         // used to quick access to item selection state
         this.selectedItemsMap = {};
         this.activeBoundaryBox = null;
@@ -356,6 +409,7 @@ class SchemeContainer {
 
         this.spatialIndex = new SpatialIndex(); // used for indexing item path points
         this.pinSpatialIndex = new SpatialIndex(); // used for indexing item pins
+        this.connectorSpatialIndex = new SpatialIndex(); // stores connector points so that it is possible to multi-select individual points of connectors
 
         // contains mapping of frame player id to its compiled animations
         this.framesAnimations = {};
@@ -422,6 +476,7 @@ class SchemeContainer {
         this.relativeSnappers.vertical = [];
         this.spatialIndex = new SpatialIndex();
         this.pinSpatialIndex = new SpatialIndex();
+        this.connectorSpatialIndex = new SpatialIndex();
         this.dependencyItemMap = {};
         this.itemCloneIds = new Map();
         this.itemCloneReferenceIds = new Map();
@@ -807,6 +862,10 @@ class SchemeContainer {
                 this.indexItemOutlinePoints(item);
             }
 
+            if (item.shape === 'connector') {
+                this.indexConnectorPoints(item);
+            }
+
             this.worldItemAreas.set(item.id, this.calculateItemWorldArea(item));
         }, transformMatrix, parentItem, ancestorIds, isIndexable);
 
@@ -910,6 +969,121 @@ class SchemeContainer {
             return worldPinPoint;
         }
         return null;
+    }
+
+    indexConnectorPoints(item) {
+        if (!Array.isArray(item.shapeProps.points)) {
+            return;
+        }
+        item.shapeProps.points.forEach((localPoint, pointIdx) => {
+            const p = worldPointOnItem(localPoint.x, localPoint.y, item);
+            this.connectorSpatialIndex.addPoint(p.x, p.y, {
+                itemId: item.id,
+                pointIdx
+            });
+        });
+    }
+
+    /**
+     * @param {Area} box
+     * @param {Boolean} inclusive
+     */
+    selectByBoundaryBox(box, inclusive) {
+        if (!inclusive) {
+            this.deselectAllItems();
+        }
+        const selectedItems = [];
+        const fullySelectedItemIds = new Map();
+
+        forEach(this.getItems(), item => {
+            const points = [
+                {x: 0, y: 0},
+                {x: item.area.w, y: 0},
+                {x: item.area.w, y: item.area.h},
+                {x: 0, y: item.area.h},
+            ];
+
+            let isInArea = true;
+
+            for(let i = 0; i < points.length && isInArea; i++) {
+                const wolrdPoint = worldPointOnItem(points[i].x, points[i].y, item);
+
+                isInArea = myMath.isPointInArea(wolrdPoint.x, wolrdPoint.y, box);
+            }
+
+            if (isInArea) {
+                selectedItems.push(item);
+                fullySelectedItemIds.set(item.id);
+            }
+        });
+
+        this.connectorSpatialIndex.forEachInRange(box.x, box.y, box.x + box.w, box.y + box.h, point => {
+            if (!fullySelectedItemIds.has(point.itemId)) {
+                this.selectConnectorPoint(point.itemId, point.pointIdx);
+            }
+        });
+
+        // in case all connector points were selected for some connectors, we need to move the connector into selected items instead
+
+        const connectorsForReselection = new Set();
+        const connectorTotalPointNumbers = new Map();
+        this.selectedConnectorPoints.forEach(p => {
+            if (!connectorTotalPointNumbers.has(p.itemId)) {
+                const item = this.findItemById(p.itemId);
+                // using arithmetic progression formula as we are going to removed each poindIdx+1 from the total sum
+                // and once 0 is left - that means that all points were selected
+                connectorTotalPointNumbers.set(p.itemId, item.shapeProps.points.length * (item.shapeProps.points.length + 1) / 2);
+            }
+
+            const leftSum = connectorTotalPointNumbers.get(p.itemId) - p.pointIdx - 1;
+            if (leftSum <= 0) {
+                connectorsForReselection.add(p.itemId);
+            }
+
+            connectorTotalPointNumbers.set(p.itemId, leftSum);
+        });
+
+        connectorsForReselection.forEach(itemId => {
+            const item = this.findItemById(itemId);
+            selectedItems.push(item);
+        });
+
+        for (let i = this.selectedConnectorPoints.length - 1; i >= 0; i--) {
+            const p = this.selectedConnectorPoints[i];
+            if (connectorsForReselection.has(p.itemId)) {
+                this.selectedConnectorPoints.splice(i, 1);
+                delete this.selectedItemsMap[`${p.itemId}.points.${p.pointIdx}`];
+            }
+        }
+
+        this.selectMultipleItems(selectedItems, true);
+    }
+
+    /**
+     * Selected specified point in a connector item, but only in case connector item itself was not yet fully selected
+     * @param {*} itemId - id of connector item
+     * @param {*} pointIdx - index of the point in the connector
+     */
+    selectConnectorPoint(itemId, pointIdx) {
+        if (pointIdx < 0) {
+            return;
+        }
+        const key = `${itemId}.points.${pointIdx}`;
+        if (this.selectedItemsMap[key] || this.selectedItemsMap[itemId]) {
+            return;
+        }
+
+        const item = this.findItemById(itemId);
+        if (!item || item.shape !== 'connector') {
+            return;
+        }
+
+        if (pointIdx >= item.shapeProps.points.length) {
+            return;
+        }
+
+        this.selectedConnectorPoints.push({itemId, pointIdx});
+        this.selectedItemsMap[key] = true;
     }
 
     indexItemPins(item, shape) {
@@ -1664,13 +1838,39 @@ class SchemeContainer {
                 delete this.selectedItemsMap[item.id];
                 this._deleteItem(item);
             });
-
-            this.selectedItems = [];
-            this.multiItemEditBox = null;
-            this.reindexItems();
-            // This event is needed to inform some components that they need to update their state because selection has dissapeared
-            EditorEventBus.item.deselected.any.$emit(this.editorId);
         }
+
+        const changedItems = new Map();
+        // sorting all points by their indices so that we start deleting points from the latest one for every item
+        this.selectedConnectorPoints.sort((a, b) => b.pointIdx - a.pointIdx).forEach(p => {
+            const item = this.findItemById(p.itemId);
+            if (!item || item.shape !== 'connector') {
+                return;
+            }
+            item.shapeProps.points.splice(p.pointIdx, 1);
+
+            if (item.shapeProps.points.length < 2) {
+                this._deleteItem(item);
+                changedItems.delete(item.id);
+            } else {
+                changedItems.set(item.id, item);
+            }
+        });
+
+        changedItems.forEach(item => {
+            item.meta.revision += 1;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id)
+        });
+
+        this.selectedConnectorPoints = [];
+        this.selectedItemsMap = {};
+        this.selectedItems = [];
+
+        this.reindexItems();
+
+        this.multiItemEditBox = null;
+        // This event is needed to inform some components that they need to update their state because selection has dissapeared
+        EditorEventBus.item.deselected.any.$emit(this.editorId);
     }
 
     enrichItem(item) {
@@ -1753,6 +1953,7 @@ class SchemeContainer {
             this.selectedItemsMap[item.id] = true;
             EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         } else {
+            this.deselectConnectorPoints();
             const deselectedItemIds = [];
             forEach(this.selectedItems, selectedItem => {
                 if (selectedItem.id !== item.id) {
@@ -1823,10 +2024,19 @@ class SchemeContainer {
         }
     }
 
+    deselectConnectorPoints() {
+        forEach(this.selectedConnectorPoints, cp => {
+            this.selectedItemsMap[`${cp.itemId}.points.${cp.pointIdx}`] = false;
+        });
+        this.selectedConnectorPoints = [];
+    }
+
     /**
      * Deselect all previously selected items
      */
     deselectAllItems() {
+        this.deselectConnectorPoints();
+
         const itemIds = map(this.selectedItems, item => item.id);
         forEach(this.selectedItems, item => {
             this.selectedItemsMap[item.id] = false;
@@ -1906,6 +2116,11 @@ class SchemeContainer {
         return null;
     }
 
+    /**
+     *
+     * @param {String} itemId
+     * @returns {Item}
+     */
     findItemById(itemId) {
         return this.itemMap[itemId];
     }
@@ -2263,6 +2478,27 @@ class SchemeContainer {
         // so that we can skip dragging or rotating an item
         const changedItemIds = new Set();
 
+        /**
+         * @param {Point} point
+         * @returns {Point}
+         */
+        const projectBack = (point) => {
+            return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);
+        };
+
+        multiItemEditBox.connectorPoints.forEach(p => {
+            const item = this.findItemById(p.itemId);
+            const newPoint = projectBack(p.projection);
+            const localPoint = localPointOnItem(newPoint.x, newPoint.y, item);
+            item.shapeProps.points[p.pointIdx].x = localPoint.x;
+            item.shapeProps.points[p.pointIdx].y = localPoint.y;
+
+            changedItemIds.add(item.id);
+            updateItemRevision(item);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'shapeProps.points');
+        });
+
+
         forEach(multiItemEditBox.items, item => {
             if (item.shape === 'connector' && context && !context.controlPoint) {
                 // since the connector item was moved, rotated or scaled completely we need to disconect it from another item
@@ -2288,10 +2524,6 @@ class SchemeContainer {
                 if (!parentWasAlreadyUpdated) {
                     item.area.r = itemProjection.r + multiItemEditBox.area.r;
                 }
-
-                const projectBack = (point) => {
-                    return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);
-                };
 
                 let parentTransform = myMath.identityMatrix();
                 const parent = this.findItemById(item.meta.parentId);
@@ -2365,8 +2597,8 @@ class SchemeContainer {
     }
 
     updateMultiItemEditBox() {
-        if (this.selectedItems.length > 0) {
-            this.multiItemEditBox = this.generateMultiItemEditBox(this.selectedItems);
+        if (this.selectedItems.length > 0 || this.selectedConnectorPoints.length > 0) {
+            this.multiItemEditBox = this.generateMultiItemEditBox(this.selectedItems, this.selectedConnectorPoints);
         } else {
             this.multiItemEditBox = null;
         }
@@ -2378,7 +2610,7 @@ class SchemeContainer {
      */
     updateMultiItemEditBoxAreaOnly() {
         if (this.multiItemEditBox && this.selectedItems.length > 0) {
-            const box = this.generateMultiItemEditBox(this.selectedItems);
+            const box = this.generateMultiItemEditBox(this.selectedItems, this.selectedConnectorPoints);
             this.multiItemEditBox.area.x = box.area.x;
             this.multiItemEditBox.area.y = box.area.y;
             this.multiItemEditBox.area.w = box.area.w;
@@ -2389,57 +2621,15 @@ class SchemeContainer {
         }
     }
 
-    createMultiItemEditBoxAveragedArea(items) {
-        let minP = null;
-        let maxP = null;
-
-        // iterating over all corners of items area to calculate the boundary box
-        const pointGenerators = [
-            (item) => {return {x: 0, y: 0}},
-            (item) => {return {x: item.area.w, y: 0}},
-            (item) => {return {x: item.area.w, y: item.area.h}},
-            (item) => {return {x: 0, y: item.area.h}},
-        ];
-
-        forEach(items, item => {
-            forEach(pointGenerators, pointGenerator => {
-                const localPoint = pointGenerator(item);
-                const p = this.worldPointOnItem(localPoint.x, localPoint.y, item);
-                if (minP) {
-                    minP.x = Math.min(minP.x, p.x);
-                    minP.y = Math.min(minP.y, p.y);
-                } else {
-                    minP = {x: p.x, y: p.y};
-                }
-
-                if (maxP) {
-                    maxP.x = Math.max(maxP.x, p.x);
-                    maxP.y = Math.max(maxP.y, p.y);
-                } else {
-                    maxP = {x: p.x, y: p.y};
-                }
-            });
-        });
-
-        return {
-           x: minP.x,
-           y: minP.y,
-           w: maxP.x - minP.x,
-           h: maxP.y - minP.y,
-           r: 0,
-           px: 0,
-           py: 0,
-           sx: 1.0,
-           sy: 1.0
-        };
-    }
 
     /**
      *
-     * @param {Array} items
+     * @param {Array<Item>} items
+     * @param {Array<ConnectorPointRef} connectorPointRefs
      * @returns {MultiItemEditBox}
      */
-    generateMultiItemEditBox(items) {
+    generateMultiItemEditBox(items, connectorPointRefs) {
+        /** @type {ItemArea} */
         let area = null;
         let locked = true;
 
@@ -2450,9 +2640,9 @@ class SchemeContainer {
 
         if (items.length === 1) {
             // we want the item edit box to be aligned with item only if that item was selected
-            const   p0 = this.worldPointOnItem(0, 0, items[0]),
-                    p1 = this.worldPointOnItem(items[0].area.w, 0, items[0]),
-                    p3 = this.worldPointOnItem(0, items[0].area.h, items[0]);
+            const   p0 = worldPointOnItem(0, 0, items[0]),
+                    p1 = worldPointOnItem(items[0].area.w, 0, items[0]),
+                    p3 = worldPointOnItem(0, items[0].area.h, items[0]);
 
             // angle has to be calculated with taking width inot account
             // if the width is too small (e.g. vertical path line), then the computed angle will be incorrect
@@ -2476,11 +2666,54 @@ class SchemeContainer {
             };
             pivotPoint.x = items[0].area.px;
             pivotPoint.y = items[0].area.py;
-
-
-        } else {
+        } else if (items.length > 1) {
             // otherwise item edit box area will be an average of all other items
-            area = this.createMultiItemEditBoxAveragedArea(items);
+            area = createMultiItemEditBoxAveragedArea(items);
+        }
+
+        /** @type {Array<ConnectorPointProjection>} */
+        const connectorPoints = [];
+
+        if (Array.isArray(connectorPointRefs)) {
+            connectorPointRefs.forEach(pointRef => {
+                const item = this.findItemById(pointRef.itemId);
+                if (!item || item.shape !== 'connector') {
+                    return;
+                }
+
+                if (pointRef.pointIdx < 0 || pointRef.pointIdx >= item.shapeProps.points.length) {
+                    return;
+                }
+
+                const localPoint = item.shapeProps.points[pointRef.pointIdx];
+                const p = worldPointOnItem(localPoint.x, localPoint.y, item);
+
+                if (!area) {
+                    area = {...p, r: 0, w: 0, h: 0, px: 0.5, py: 0.5, sx: 1.0, sy: 1.0};
+                } else {
+                    // TODO reconstruct area in case only a single item was selected. It could be that the item is rotated so the edit box get rotated as well
+                    if (area.x > p.x) {
+                        area.w += area.x - p.x;
+                        area.x = p.x;
+                    } else if (area.x + area.w < p.x) {
+                        area.w = p.x - area.x;
+                    }
+                    if (area.y > p.y) {
+                        area.h += area.y - p.y;
+                        area.y = p.y;
+                    } else if (area.y + area.h < p.y) {
+                        area.h = p.y - area.y;
+                    }
+                }
+                connectorPoints.push({
+                    ...p,
+                    ...pointRef
+                });
+            });
+        }
+
+        if (!area) {
+            throw new Error('Could not calculate edit box area');
         }
 
         const itemProjections = {};
@@ -2490,6 +2723,21 @@ class SchemeContainer {
 
         //storing ids of all items that are included in the box
         const itemIds = new Set();
+
+        const projectPoint = (x, y) => {
+            const localPoint = myMath.localPointInArea(x, y, area);
+            if (area.w > 0) {
+                localPoint.x = localPoint.x / area.w;
+            }
+            if (area.h > 0) {
+                localPoint.y = localPoint.y / area.h;
+            }
+            return localPoint;
+        };
+
+        connectorPoints.forEach(p => {
+            p.projection = projectPoint(p.x, p.y);
+        });
 
         forEach(items, item => {
             itemData[item.id] = {
@@ -2506,17 +2754,6 @@ class SchemeContainer {
             const worldTopLeftPoint = this.worldPointOnItem(0, 0, item);
             const worldBottomRightPoint = this.worldPointOnItem(item.area.w, item.area.h, item);
 
-            const projectPoint = (x, y) => {
-                const localPoint = myMath.localPointInArea(x, y, area);
-                if (area.w > 0) {
-                    localPoint.x = localPoint.x / area.w;
-                }
-                if (area.h > 0) {
-                    localPoint.y = localPoint.y / area.h;
-                }
-                return localPoint;
-            };
-
             itemProjections[item.id] = {
                 topLeft: projectPoint(worldTopLeftPoint.x, worldTopLeftPoint.y),
                 bottomRight: projectPoint(worldBottomRightPoint.x, worldBottomRightPoint.y),
@@ -2532,6 +2769,10 @@ class SchemeContainer {
             }
         });
 
+        if (connectorPoints.length > 0) {
+            locked = false;
+        }
+
         return {
             id: shortid.generate(),
             locked,
@@ -2541,6 +2782,7 @@ class SchemeContainer {
             area,
             itemProjections,
             pivotPoint,
+            connectorPoints,
 
             // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
             // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world

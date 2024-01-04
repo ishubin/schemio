@@ -8,6 +8,7 @@ import '../../../typedef';
 import {forEach} from '../../../collections';
 import { Keys } from '../../../events';
 import { Interpolations, convertTime } from '../../../animations/ValueAnimation';
+import SchemeContainer from '../../../scheme/SchemeContainer';
 
 const SUB_STATE_STACK_LIMIT = 10;
 
@@ -94,6 +95,7 @@ class State {
      * @param {Vuex.Store} store - a Vuex store object
      */
     constructor(editorId, store, name, listener) {
+        /** @type {SchemeContainer} */
         this.schemeContainer = null;
         this.name = name || '';
         this.store = store;
@@ -235,6 +237,9 @@ class State {
         this.previousSubStates = [];
     }
 
+    /**
+     * @param {SchemeContainer} schemeContainer
+     */
     setSchemeContainer(schemeContainer) {
         this.schemeContainer = schemeContainer;
     }
@@ -589,6 +594,8 @@ class State {
 export class SubState extends State {
     constructor(parentState, name) {
         super(parentState.editorId, parentState.store, name);
+
+        /** @type {SchemeContainer} */
         this.schemeContainer = parentState.schemeContainer;
         this.parentState = parentState;
     }
