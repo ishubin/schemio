@@ -6,7 +6,7 @@
         <AdvancedFill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="rectArea"/>
         <path
             :d="shapePath"
-            :stroke="item.shapeProps.strokeColor"
+            :stroke="shapeStroke"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :fill="svgFill"
             />
@@ -194,6 +194,7 @@ export default {
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
             lifelineType : {name: 'Type', type: 'choice', value: 'rect', options: ['rect', 'entity', 'border', 'control', 'actor']},
             strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(0, 0, 0, 1)'},
+            rectStroke   : {name: 'Rect stroke', type: 'boolean', value: true, depends: {lifelineType: 'rect'}},
             strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 2},
             cornerRadius : {name: 'Stroke Size', type: 'number', value: 1, depends: {type: 'rect'}, min: 0},
@@ -218,6 +219,13 @@ export default {
             return {
                 x: 0, y: 0, w: this.item.area.w, h: h
             };
+        },
+
+        shapeStroke() {
+            if (this.item.shapeProps.lifelineType === 'rect' && !this.item.shapeProps.rectStroke) {
+                return 'none';
+            }
+            return this.item.shapeProps.strokeColor;
         }
     }
 }
