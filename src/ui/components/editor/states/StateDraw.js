@@ -26,6 +26,17 @@ export default class StateDraw extends State {
         this.isDrawing = false;
         this.strokeColor = null;
         this.currentPathId = 0;
+        this.isPen = false;
+    }
+
+    startPen() {
+        this.reset();
+        this.isPen = true;
+    }
+
+    startPencil() {
+        this.reset();
+        this.isPen = false;
     }
 
     reset() {

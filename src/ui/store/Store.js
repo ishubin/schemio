@@ -104,7 +104,7 @@ const store = new Vuex.Store({
         systemMessages: [],
 
         draw: {
-            epsilon: 5
+            epsilon: 3
         },
     },
     mutations: {

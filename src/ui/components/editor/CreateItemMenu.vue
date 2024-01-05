@@ -17,7 +17,13 @@
                     >
                     <img :src="`${assetsPath}/images/icons/create-curve.svg`" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiateDrawing()" title="Draw"
+                <div class="item-container" @click="initiatePencilDrawing()" title="Pencil"
+                    @mouseover="showPreviewGif($event, 'draw')"
+                    @mouseleave="stopPreviewGif('draw')"
+                    >
+                    <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
+                </div>
+                <div class="item-container" @click="initiatePenDrawing()" title="Pen"
                     @mouseover="showPreviewGif($event, 'draw')"
                     @mouseleave="stopPreviewGif('draw')"
                     >
@@ -588,9 +594,14 @@ export default {
             this.$emit(PATH_EDITED, item);
         },
 
-        initiateDrawing(name) {
+        initiatePencilDrawing(name) {
             this.previewItem.shown = false;
-            this.$emit('drawing-requested');
+            this.$emit('drawing-pencil-requested');
+        },
+
+        initiatePenDrawing(name) {
+            this.previewItem.shown = false;
+            this.$emit('drawing-pen-requested');
         },
 
         preventEvent(event) {
