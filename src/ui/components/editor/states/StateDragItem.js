@@ -13,7 +13,7 @@ import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
-import { worldScalingVectorOnItem, localPointOnItem } from '../../../scheme/SchemeContainer.js';
+import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_ITEM_MODIFICATION_CONTEXT } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
 import {findFirstItemBackwards} from '../../../scheme/Item';
 
@@ -72,7 +72,11 @@ class EditBoxState extends SubState {
     constructor(parentState, name, multiItemEditBox, x, y, mx, my) {
         super(parentState, name);
         this.originalPoint = { x, y, mx, my };
+
+        /** @type {SchemeContainer} */
         this.schemeContainer = parentState.schemeContainer;
+
+        /** @type {MultiItemEditBox} */
         this.multiItemEditBox = multiItemEditBox;
         this.multiItemEditBoxOriginalArea = utils.clone(multiItemEditBox.area);
         this.boxPointsForSnapping = this.generateBoxPointsForSnapping(multiItemEditBox);
@@ -82,9 +86,12 @@ class EditBoxState extends SubState {
     mouseUp(x, y, mx, my, object, event) {
         StoreUtils.clearItemSnappers(this.store);
 
-        let items = [];
-        if (this.multiItemEditBox && this.multiItemEditBox.items) {
-            items = this.multiItemEditBox.items;
+        if (this.multiItemEditBox && this.multiItemEditBox.connectorPoints.length > 0) {
+            const context = {
+                ...DEFAULT_ITEM_MODIFICATION_CONTEXT,
+                id: this.modificationContextId
+            };
+            this.schemeContainer.updateMultiItemEditBoxItems(this.multiItemEditBox, IS_NOT_SOFT, context, this.getUpdatePrecision());
         }
 
         this.schemeContainer.reindexItems();

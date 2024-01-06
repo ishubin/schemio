@@ -2552,26 +2552,32 @@ class SchemeContainer {
                         this.readjustComponentContainerRect(item);
                     }
                 }
-
-                this.updateChildTransforms(item);
-
-                // changing item revision so that its shape gets recomputed
-                updateItemRevision(item);
-
-                this.readjustItemAndDescendants(item.id, isSoft, context, precision);
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
-
-                this.updatePropertyForClones(item, clone => {
-                    clone.area.x = item.area.x;
-                    clone.area.y = item.area.y;
-                    clone.area.w = item.area.w;
-                    clone.area.h = item.area.h;
-                    clone.area.r = item.area.r;
-                    clone.area.px = item.area.px;
-                    clone.area.py = item.area.py;
-                }, true);
             }
         });
+
+        changedItemIds.forEach(itemId => {
+            const item = this.findItemById(itemId);
+            if (!item) {
+                return;
+            }
+            this.updateChildTransforms(item);
+
+            // changing item revision so that its shape gets recomputed
+            updateItemRevision(item);
+
+            this.readjustItemAndDescendants(item.id, isSoft, context, precision);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
+
+            this.updatePropertyForClones(item, clone => {
+                clone.area.x = item.area.x;
+                clone.area.y = item.area.y;
+                clone.area.w = item.area.w;
+                clone.area.h = item.area.h;
+                clone.area.r = item.area.r;
+                clone.area.px = item.area.px;
+                clone.area.py = item.area.py;
+            }, true);
+        })
 
         EditorEventBus.editBox.updated.$emit(this.editorId);
     }
