@@ -10,8 +10,9 @@
             :fill="editBoxFill"
             :stroke="boundaryBoxColor"
             style="opacity: 0.8;"/>
+
         <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1 && editBox.connectorPoints.length === 0 && kind === 'regular'">
+        <g v-if="kind === 'regular'">
             <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
                :transform="svgItemCompleteTransform"
                >
@@ -32,6 +33,18 @@
                     :stroke-dasharray="createStrokeDashArray(editBox.items[0].shapeProps.strokePattern, editBox.items[0].shapeProps.strokeSize)"
                     fill="none"/>
             </g>
+
+            <circle v-for="connectorPoint in editBox.connectorPoints"
+                :key="`item-control-point-${connectorPoint.itemId}-${connectorPoint.id}`"
+                class="item-control-point"
+                :data-control-point-item-id="connectorPoint.itemId"
+                :data-control-point-id="connectorPoint.pointIdx"
+                :cx="connectorPoint.x" :cy="connectorPoint.y"
+                fill="#ffffff"
+                :stroke="controlPointsColor"
+                :stroke-size="1/safeZoom"
+                :r="controlPointSize/safeZoom"
+                />
 
             <g :transform="svgEditBoxTransform" v-if="shouldShowControlPoints">
                 <circle v-for="controlPoint in controlPoints"
@@ -396,6 +409,7 @@ import myMath from '../../myMath';
 import { itemCompleteTransform } from '../../scheme/SchemeContainer';
 import { processJSONTemplate, processTemplateExpressions } from '../../templater/templater';
 import utils from '../../utils';
+import EditorEventBus from './EditorEventBus';
 
 
 /**
@@ -403,7 +417,7 @@ import utils from '../../utils';
  * @param {MultiItemEditBox} editBox
  */
 function isItemConnector(editBox) {
-    return editBox.items.length === 1 && editBox.connectorPoints.length === 0 && editBox.items[0].shape === 'connector';
+    return editBox.items.length === 1 && editBox.itemIds.size === 1 && editBox.items[0].shape === 'connector';
 }
 
 function createCustomControlAxis(place) {

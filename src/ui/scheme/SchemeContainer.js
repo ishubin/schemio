@@ -1539,6 +1539,11 @@ class SchemeContainer {
     }
 
     _readjustConnectorItem(item, context, precision) {
+        log.info('readjusting connector item', item.id);
+        if (context.controlPoint) {
+            // user can drag edge point so we should not try to reattach connector, the attaching is handled in StateDragItem
+            return;
+        }
         const findAttachmentPoint = (attachmentSelector, positionOnPath) => {
             const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
             if (!attachmentItem) {
@@ -2547,6 +2552,7 @@ class SchemeContainer {
      * @param {ItemModificationContext} context
      */
     updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context, precision) {
+        log.info('updating edit box items', 'isSoft:', isSoft)
         if (precision === undefined) {
             precision = 4;
         }
@@ -2573,37 +2579,36 @@ class SchemeContainer {
         /** @type {Map<String,{pointIdx, item}>} */
         const connectorAttachmentPoints = new Map();
 
+
         multiItemEditBox.connectorPoints.forEach(p => {
             const item = this.findItemById(p.itemId);
-            const newPoint = projectBack(p.projection);
-            const localPoint = localPointOnItem(newPoint.x, newPoint.y, item);
-            item.shapeProps.points[p.pointIdx].x = localPoint.x;
-            item.shapeProps.points[p.pointIdx].y = localPoint.y;
-
             changedItemIds.add(item.id);
-            updateItemRevision(item);
-            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'shapeProps.points');
-
             if (p.pointIdx === 0 || p.pointIdx === item.shapeProps.points.length - 1) {
                 connectorAttachmentPoints.set(`${item.id}.points.${p.pointIdx}`,{
                     item,
                     pointIdx: p.pointIdx
                 });
             }
+
+            // if we are already dragging connectors point
+            // we don't need to recompute all points
+            if (context.controlPoint) {
+                return;
+            }
+
+            const newPoint = projectBack(p.projection);
+            const localPoint = localPointOnItem(newPoint.x, newPoint.y, item);
+            item.shapeProps.points[p.pointIdx].x = localPoint.x;
+            item.shapeProps.points[p.pointIdx].y = localPoint.y;
         });
 
         forEach(multiItemEditBox.items, item => {
-            changedItemIds.add(item.id)
-            if (item.shape === 'connector' && item.shapeProps.points.length > 1) {
-                connectorAttachmentPoints.set(`${item.id}.points.0`,{
-                    item,
-                    pointIdx: 0,
-                });
-                connectorAttachmentPoints.set(`${item.id}.points.${item.shapeProps.points.length - 1}`,{
-                    item,
-                    pointIdx: item.shapeProps.points.length - 1,
-                });
+            if (item.shape === 'connector') {
+                // when generating edit box we ensure that all fully selected connectors get their points
+                // added to the box.
+                return;
             }
+            changedItemIds.add(item.id);
 
             // checking whether the item in the box list is actually a descendant of the other item that was also in the same box
             // this is needed to build proper reindexing of items and not to double rotate child items in case their parent was already rotated
@@ -2694,6 +2699,7 @@ class SchemeContainer {
      * @param {Number} pointIdx
      */
     tryReattachingConnector(item, editBox, pointIdx) {
+        log.info('trying to reattach connector', 'pointIdx:', pointIdx);
         // since the connector item was moved, rotated or scaled completely we need
         // to try to attach it back with the following steps:
         // 1) first try to attach it at the same spot as before (x,y not by distance on path)
@@ -2799,6 +2805,7 @@ class SchemeContainer {
      * @returns {MultiItemEditBox}
      */
     generateMultiItemEditBox(items, connectorPointRefs) {
+        log.info('generating edit box', 'items:', items.length, 'connectorPointRefs:', connectorPointRefs.length);
         /** @type {ItemArea} */
         let area = null;
         let locked = true;
@@ -2807,6 +2814,17 @@ class SchemeContainer {
             x: 0.5,
             y: 0.5
         };
+
+        /** @type {Array<ConnectorPointRef>} */
+        const allConnectorPointRefs = [].concat(connectorPointRefs);
+        items.forEach(item => {
+            if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points)) {
+                return;
+            }
+            item.shapeProps.points.forEach((p, pointIdx) => {
+                allConnectorPointRefs.push({itemId: item.id, pointIdx});
+            });
+        })
 
         if (items.length === 1) {
             // we want the item edit box to be aligned with item only if that item was selected
@@ -2845,42 +2863,40 @@ class SchemeContainer {
         /** @type {Array<ConnectorPointProjection>} */
         const connectorPoints = [];
 
-        if (Array.isArray(connectorPointRefs)) {
-            connectorPointRefs.forEach(pointRef => {
-                const item = this.findItemById(pointRef.itemId);
-                if (!item || item.shape !== 'connector') {
-                    return;
-                }
+        allConnectorPointRefs.forEach(pointRef => {
+            const item = this.findItemById(pointRef.itemId);
+            if (!item || item.shape !== 'connector') {
+                return;
+            }
 
-                if (pointRef.pointIdx < 0 || pointRef.pointIdx >= item.shapeProps.points.length) {
-                    return;
-                }
+            if (pointRef.pointIdx < 0 || pointRef.pointIdx >= item.shapeProps.points.length) {
+                return;
+            }
 
-                const localPoint = item.shapeProps.points[pointRef.pointIdx];
-                const p = worldPointOnItem(localPoint.x, localPoint.y, item);
+            const localPoint = item.shapeProps.points[pointRef.pointIdx];
+            const p = worldPointOnItem(localPoint.x, localPoint.y, item);
 
-                if (!area) {
-                    area = {...p, r: 0, w: 0, h: 0, px: 0.5, py: 0.5, sx: 1.0, sy: 1.0};
-                } else {
-                    if (area.x > p.x) {
-                        area.w += area.x - p.x;
-                        area.x = p.x;
-                    } else if (area.x + area.w < p.x) {
-                        area.w = p.x - area.x;
-                    }
-                    if (area.y > p.y) {
-                        area.h += area.y - p.y;
-                        area.y = p.y;
-                    } else if (area.y + area.h < p.y) {
-                        area.h = p.y - area.y;
-                    }
+            if (!area) {
+                area = {...p, r: 0, w: 0, h: 0, px: 0.5, py: 0.5, sx: 1.0, sy: 1.0};
+            } else {
+                if (area.x > p.x) {
+                    area.w += area.x - p.x;
+                    area.x = p.x;
+                } else if (area.x + area.w < p.x) {
+                    area.w = p.x - area.x;
                 }
-                connectorPoints.push({
-                    ...p,
-                    ...pointRef
-                });
+                if (area.y > p.y) {
+                    area.h += area.y - p.y;
+                    area.y = p.y;
+                } else if (area.y + area.h < p.y) {
+                    area.h = p.y - area.y;
+                }
+            }
+            connectorPoints.push({
+                ...p,
+                ...pointRef
             });
-        }
+        });
 
         if (!area) {
             throw new Error('Could not calculate edit box area');
@@ -2935,12 +2951,10 @@ class SchemeContainer {
             p.projection = projectPoint(p.x, p.y);
             const item = this.findItemById(p.itemId);
             registerConnectorOriginalAttachments(item);
+            itemIds.add(p.itemId);
         });
 
         forEach(items, item => {
-            if (item.shape === 'connector') {
-                registerConnectorOriginalAttachments(item);
-            }
             itemData[item.id] = {
                 originalArea: utils.clone(item.area)
             };

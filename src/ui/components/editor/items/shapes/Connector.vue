@@ -989,28 +989,6 @@ export default {
             description: 'rich',
         },
 
-        controlPoints: {
-            make(item, pointId) {
-                if (!pointId) {
-                    const controlPoints = {};
-                    forEach(item.shapeProps.points, (point, pointIndex) => {
-                        controlPoints[pointIndex] = {x: point.x, y: point.y, isEdgeStart: pointIndex === 0, isEdgeEnd: pointIndex === item.shapeProps.points.length - 1};
-                    });
-                    return controlPoints;
-                } else {
-                    const pId = parseInt(pointId);
-                    if (item.shapeProps.points[pointId]) {
-                        return {x: item.shapeProps.points[pointId].x, y: item.shapeProps.points[pointId].y, isEdgeStart: pId === 0, isEdgeEnd: pId === item.shapeProps.points.length - 1};
-                    }
-                }
-            },
-
-            handleDrag(item, pointId, originalX, originalY, dx, dy, snapper, schemeContainer) {
-                //do nothing as control point dragging is handled in StateDragItem.js
-            }
-        },
-
-
         args: {
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
             strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
