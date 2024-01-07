@@ -14,7 +14,7 @@
         <!-- rendering item custom control points -->
         <g v-if="kind === 'regular'">
             <g v-if="editBox.items.length > 0 && editBox.items[0].shape === 'connector' && selectedConnectorPath"
-               :transform="svgItemCompleteTransform"
+               :transform="svgConnectorCompleteTransform"
                >
                 <path :d="selectedConnectorPath"
                     :stroke-width="`${editBox.items[0].shapeProps.strokeSize + 3}px`"
@@ -40,7 +40,7 @@
                 :data-control-point-item-id="connectorPoint.itemId"
                 :data-control-point-id="connectorPoint.pointIdx"
                 :cx="connectorPoint.x" :cy="connectorPoint.y"
-                fill="#ffffff"
+                fill="rgba(255,255,255,0.7)"
                 :stroke="controlPointsColor"
                 :stroke-size="1/safeZoom"
                 :r="controlPointSize/safeZoom"
@@ -474,7 +474,7 @@ export default {
 
     beforeMount() {
         // reseting selected connector if it was set previously
-        StoreUtils.setSelectedConnectorPath(this.$store, null);
+        StoreUtils.setSelectedConnector(this.$store, null);
 
         if (this.editBox.items.length === 1) {
             const item = this.editBox.items[0];
@@ -487,7 +487,7 @@ export default {
             this.configureCustomControls(item, shape.editorProps);
 
             if (item.shape === 'connector') {
-                StoreUtils.setSelectedConnectorPath(this.$store, shape.computeOutline(item));
+                StoreUtils.setSelectedConnector(this.$store, item);
             }
 
             StoreUtils.setItemControlPoints(this.$store, item);
@@ -633,8 +633,11 @@ export default {
             return 'none';
         },
 
-        svgItemCompleteTransform() {
-            const m = itemCompleteTransform(this.editBox.items[0]);
+        svgConnectorCompleteTransform() {
+            if (!this.$store.getters.selectedConnector) {
+                return '';
+            }
+            const m = itemCompleteTransform(this.$store.getters.selectedConnector);
             return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
         },
 

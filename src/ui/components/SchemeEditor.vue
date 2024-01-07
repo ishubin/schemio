@@ -1845,7 +1845,7 @@ export default {
                 const item = this.schemeContainer.selectedItems[0];
                 if (item.shape === 'connector') {
                     // updating selected connector highlight path
-                    StoreUtils.setSelectedConnectorPath(this.$store, Shape.find(item.shape).computeOutline(item));
+                    StoreUtils.setSelectedConnector(this.$store, item);
                 }
             }
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.shapeProps.${name}`);

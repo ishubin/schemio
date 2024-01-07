@@ -280,7 +280,7 @@ class DragControlPointState extends SubState {
 
             // since this function can only be called if the connector is selected
             // we should update connector path so that it can be rendered in multi item edit box
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.item.shape).computeOutline(this.item));
+            StoreUtils.setSelectedConnector(this.store, this.item);
         }
     }
 
@@ -368,7 +368,7 @@ class DragControlPointState extends SubState {
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
-        StoreUtils.setSelectedConnectorPath(this.store, shape.computeOutline(this.item));
+        StoreUtils.setSelectedConnector(this.store, this.item);
     }
 }
 
@@ -583,7 +583,7 @@ class DragEditBoxState extends EditBoxState {
         // Fixing bug #392 where connector outline is rendered stale while connector itself gets readjusted
         if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));
+            StoreUtils.setSelectedConnector(this.store, this.multiItemEditBox.items[0]);
         }
 
         // checking if it can fit into another item
@@ -879,7 +879,7 @@ class IdleState extends SubState {
             this.listener.onItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.setItemControlPoints(this.store, item);
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
+            StoreUtils.setSelectedConnector(this.store, item);
             this.listener.onSchemeChangeCommitted();
         }
     }
@@ -913,8 +913,7 @@ class IdleState extends SubState {
         item.shapeProps.points.splice(pointId, 1);
         this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.setItemControlPoints(this.store, item);
-        StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
+        StoreUtils.setSelectedConnector(this.store, item);
         this.listener.onSchemeChangeCommitted();
     }
 
