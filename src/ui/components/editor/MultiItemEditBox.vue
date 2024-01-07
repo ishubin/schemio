@@ -13,7 +13,7 @@
 
         <!-- rendering item custom control points -->
         <g v-if="kind === 'regular'">
-            <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
+            <g v-if="editBox.items.length > 0 && editBox.items[0].shape === 'connector' && selectedConnectorPath"
                :transform="svgItemCompleteTransform"
                >
                 <path :d="selectedConnectorPath"
