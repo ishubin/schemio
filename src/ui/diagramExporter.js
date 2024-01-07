@@ -4,7 +4,7 @@ import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./sch
 import { filterOutPreviewSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
 import { encode } from 'js-base64';
 import axios from "axios";
-import { defaultifyObject } from "../defaultify";
+import { enrichObjectWithDefaults } from "../defaultify";
 
 
 /**
@@ -164,7 +164,7 @@ export function diagramImageExporter(items) {
          * @returns {Promise<String>} image data url
          */
         exportImage(options) {
-            options = defaultifyObject(options, defaultDiagramExporterOptions);
+            options = enrichObjectWithDefaults(options, defaultDiagramExporterOptions);
 
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             svg.innerHTML = previewSvgHtml;
