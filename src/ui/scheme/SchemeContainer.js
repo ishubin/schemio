@@ -2772,7 +2772,25 @@ class SchemeContainer {
         return this.generateUniqueName(name);
     }
 
+    /**
+     * @returns Updates positions of connector points in the edit box
+     */
+    updateMultiItemEditBoxConnectorPoints() {
+        if (!this.multiItemEditBox) {
+            return;
+        }
+        this.multiItemEditBox.connectorPoints.forEach(cp => {
+            const item = this.findItemById(cp.itemId);
+            const point = item.shapeProps.points[cp.pointIdx];
+            const worldPoint = worldPointOnItem(point.x, point.y, item);
+            const localPoint = myMath.localPointInArea(worldPoint.x, worldPoint.y, this.multiItemEditBox.area);
+            cp.x = localPoint.x;
+            cp.y = localPoint.y;
+        });
+    }
+
     updateMultiItemEditBox() {
+        log.info('updateMultiItemEditBox');
         if (this.selectedItems.length > 0 || this.selectedConnectorPoints.length > 0) {
             this.multiItemEditBox = this.generateMultiItemEditBox(this.selectedItems, this.selectedConnectorPoints);
         } else {
@@ -2949,6 +2967,12 @@ class SchemeContainer {
 
         connectorPoints.forEach(p => {
             p.projection = projectPoint(p.x, p.y);
+
+            // transforming connector point coords from world to edit box local coords
+            const lp = myMath.localPointInArea(p.x, p.y, area);
+            p.x = lp.x;
+            p.y = lp.y;
+
             const item = this.findItemById(p.itemId);
             registerConnectorOriginalAttachments(item);
             itemIds.add(p.itemId);

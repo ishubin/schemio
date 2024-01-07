@@ -34,17 +34,19 @@
                     fill="none"/>
             </g>
 
-            <circle v-for="connectorPoint in editBox.connectorPoints"
-                :key="`item-control-point-${connectorPoint.itemId}-${connectorPoint.id}`"
-                class="item-control-point"
-                :data-control-point-item-id="connectorPoint.itemId"
-                :data-control-point-id="connectorPoint.pointIdx"
-                :cx="connectorPoint.x" :cy="connectorPoint.y"
-                fill="rgba(255,255,255,0.7)"
-                :stroke="controlPointsColor"
-                :stroke-size="1/safeZoom"
-                :r="controlPointSize/safeZoom"
-                />
+            <g :transform="svgEditBoxTransform" v-if="editBox.connectorPoints.length > 0">
+                <circle v-for="connectorPoint in editBox.connectorPoints"
+                    :key="`item-control-point-${connectorPoint.itemId}-${connectorPoint.id}`"
+                    class="item-control-point"
+                    :data-control-point-item-id="connectorPoint.itemId"
+                    :data-control-point-id="connectorPoint.pointIdx"
+                    :cx="connectorPoint.x" :cy="connectorPoint.y"
+                    fill="rgba(255,255,255,0.7)"
+                    :stroke="controlPointsColor"
+                    :stroke-size="1/safeZoom"
+                    :r="controlPointSize/safeZoom"
+                    />
+            </g>
 
             <g :transform="svgEditBoxTransform" v-if="shouldShowControlPoints">
                 <circle v-for="controlPoint in controlPoints"

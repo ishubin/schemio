@@ -95,7 +95,7 @@ class EditBoxState extends SubState {
         }
 
         this.schemeContainer.reindexItems();
-
+        this.schemeContainer.updateMultiItemEditBox();
         this.listener.onSchemeChangeCommitted();
         this.migrateToPreviousSubState();
     }
@@ -274,8 +274,9 @@ class DragControlPointState extends SubState {
             point.y = localPoint.y;
 
             if (this.controlPoint.editBoxConnectorPointIdx >= 0) {
-                this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = wx;
-                this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = wy;
+                const lp = myMath.localPointInArea(wx, wy, this.schemeContainer.multiItemEditBox.area);
+                this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = lp.x;
+                this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
             }
 
             // since this function can only be called if the connector is selected
@@ -356,8 +357,9 @@ class DragControlPointState extends SubState {
         }
 
         if (this.controlPoint.editBoxConnectorPointIdx >= 0) {
-            this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = worldX;
-            this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = worldY;
+            const lp = myMath.localPointInArea(worldX, worldY, this.schemeContainer.multiItemEditBox.area);
+            this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = lp.x;
+            this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
         }
 
 
@@ -462,6 +464,7 @@ class ResizeEditBoxState extends EditBoxState {
             // But setting it from scratch is safer
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
         }
+        this.schemeContainer.updateMultiItemEditBoxConnectorPoints();
         updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
     }
 }
@@ -499,6 +502,8 @@ class RotateEditBoxState extends EditBoxState {
             rotated: true,
             resized: false
         }, this.getUpdatePrecision());
+
+        this.schemeContainer.updateMultiItemEditBoxConnectorPoints();
 
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
@@ -602,6 +607,7 @@ class DragEditBoxState extends EditBoxState {
             this.proposedToRemountToRoot = true;
         }
 
+        this.schemeContainer.updateMultiItemEditBoxConnectorPoints();
         updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
     }
 
@@ -878,8 +884,8 @@ class IdleState extends SubState {
             });
             this.listener.onItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-            StoreUtils.setItemControlPoints(this.store, item);
             StoreUtils.setSelectedConnector(this.store, item);
+            this.schemeContainer.updateMultiItemEditBox();
             this.listener.onSchemeChangeCommitted();
         }
     }
@@ -914,6 +920,7 @@ class IdleState extends SubState {
         this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.setSelectedConnector(this.store, item);
+        this.schemeContainer.updateMultiItemEditBox();
         this.listener.onSchemeChangeCommitted();
     }
 
