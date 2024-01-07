@@ -83,23 +83,6 @@ export function simplifyPathPoints(points, epsilon) {
     return newPoints;
 }
 
-/**
- * @property {Item} item
- * @property {Object} schemeContainer
- * @property {Boolean} isSoft
- * @property {ItemModificationContext} context
- * @property {Number} precision - number of digits after point which it should round to
- */
-function readjustItem(item, schemeContainer, isSoft, context, precision) {
-    log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
-
-    if (!isSoft) {
-        // readjustItemArea(item, precision);
-    }
-
-    return true;
-}
-
 function getSnappers(item) {
     const snappers = [];
 
@@ -135,7 +118,6 @@ export default {
         menuItems: [],
 
         computePath,
-        readjustItem,
         getSnappers,
 
         getPins(item) {

@@ -31,6 +31,11 @@ const log = new Logger('SchemeContainer');
 // Therefore we need to compensate for that and use this const value as the minimum search range
 const minSpatialIndexDistance = 20;
 
+// When connector is moved by an edit box or if its points are moved partially by edit box
+// and it tries to reattach it to previously attached item, there should be some threshold that gives
+// user a possibility to completelly dettach the connector
+const connectorStickyThreshold = 50;
+
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
     moved: true,
@@ -79,6 +84,21 @@ export function worldVectorOnItem(x, y, item) {
     };
 }
 
+/**
+ *
+ * @param {Item} item
+ * @param {SVGPathElement} shadowSvgPath
+ * @param {Number} positionOnPath
+ * @returns {Point}
+ */
+export function pointOnItemPath(item, shadowSvgPath, positionOnPath) {
+    if (shadowSvgPath) {
+        const point = shadowSvgPath.getPointAtLength(positionOnPath);
+        return worldPointOnItem(point.x, point.y, item);
+    }
+    // returning the center of item if it failed to find its path
+    return worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+}
 /**
  * This function is only used for calculating bounds of reference items
  * so that they can be properly fit inside of an component
@@ -250,7 +270,7 @@ export function worldScalingVectorOnItem(item) {
     const leftLengthVector = worldVectorOnItem(0, 1, item);
 
     return {
-        x:  myMath.vectorLength(topLengthVector.x, topLengthVector.y),
+        x: myMath.vectorLength(topLengthVector.x, topLengthVector.y),
         y: myMath.vectorLength(leftLengthVector.x, leftLengthVector.y)
     }
 }
@@ -1493,6 +1513,10 @@ class SchemeContainer {
             return;
         }
 
+        if (item.shape === 'connector') {
+            this._readjustConnectorItem(item, context, precision);
+        }
+
         const shape = Shape.find(item.shape);
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
@@ -1512,6 +1536,60 @@ class SchemeContainer {
         forEach(item.childItems, childItem => {
             this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
         });
+    }
+
+    _readjustConnectorItem(item, context, precision) {
+        const findAttachmentPoint = (attachmentSelector, positionOnPath) => {
+            const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
+            if (!attachmentItem) {
+                return;
+            }
+
+            if (positionOnPath < 0) {
+                const shape = Shape.find(attachmentItem.shape);
+                if (!shape || !shape.getPins) {
+                    return;
+                }
+
+                const pins = shape.getPins(attachmentItem);
+                if (!pins) {
+                    return;
+                }
+                const pinId = parseInt(Math.abs(positionOnPath)) - 1;
+                if (pinId < 0 || pinId > pins.length - 1) {
+                    return;
+                }
+
+                const wp = worldPointOnItem(pins[pinId].x, pins[pinId].y, attachmentItem);
+                const lp = localPointOnItem(wp.x, wp.y, item);
+                return {
+                    x: lp.x,
+                    y: lp.y,
+                };
+            }
+
+            const svgPath = this.getSvgOutlineOfItem(attachmentItem);
+            if (!svgPath) {
+                return;
+            }
+
+            const lap = svgPath.getPointAtLength(positionOnPath);
+            const wp = worldPointOnItem(lap.x, lap.y, attachmentItem);
+            const lp = localPointOnItem(wp.x, wp.y, item);
+            return {
+                x: lp.x,
+                y: lp.y,
+            };
+        };
+
+        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition);
+        if (sourcePoint) {
+            item.shapeProps.points[0] = sourcePoint;
+        }
+        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition);
+        if (dstPoint) {
+            item.shapeProps.points[item.shapeProps.points.length - 1] = dstPoint;
+        }
     }
 
     doesItemDependOn(itemId, dependantId) {
@@ -1696,7 +1774,7 @@ class SchemeContainer {
      * @param {*} item
      * @param {Point} globalPoint
      * @param {Object} settings specifies whether it should calculate the normal vector on the point on specified path
-     * @param {ItemClosestPoint}
+     * @returns {ItemClosestPoint}
      */
     closestPointToItemOutline(item, globalPoint, {withNormal, startDistance, stopDistance, precision}) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
@@ -2153,6 +2231,9 @@ class SchemeContainer {
      * @param {SchemeItem} selfItem
      */
     findElementsBySelector(selector, selfItem) {
+        if (!selector) {
+            return [];
+        }
         if (selector === 'self') {
             return [selfItem];
         }
@@ -2486,6 +2567,12 @@ class SchemeContainer {
             return myMath.worldPointInArea(point.x * multiItemEditBox.area.w, point.y * multiItemEditBox.area.h, multiItemEditBox.area);
         };
 
+        // connectorAttachmentPoints is used for collecting source and destination connector points that were moved
+        // since there are two ways of moving connectors with editbox (full item and partial)
+        // we need to check if the attachment point was actually affected by edit box
+        /** @type {Map<String,{pointIdx, item}>} */
+        const connectorAttachmentPoints = new Map();
+
         multiItemEditBox.connectorPoints.forEach(p => {
             const item = this.findItemById(p.itemId);
             const newPoint = projectBack(p.projection);
@@ -2496,18 +2583,27 @@ class SchemeContainer {
             changedItemIds.add(item.id);
             updateItemRevision(item);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'shapeProps.points');
+
+            if (p.pointIdx === 0 || p.pointIdx === item.shapeProps.points.length - 1) {
+                connectorAttachmentPoints.set(`${item.id}.points.${p.pointIdx}`,{
+                    item,
+                    pointIdx: p.pointIdx
+                });
+            }
         });
 
-
         forEach(multiItemEditBox.items, item => {
-            if (item.shape === 'connector' && context && !context.controlPoint) {
-                // since the connector item was moved, rotated or scaled completely we need to disconect it from another item
-                // otherwise it will not let us move it
-                item.shapeProps.sourceItem = null;
-                item.shapeProps.destinationItem = null;
-            }
             changedItemIds.add(item.id)
-
+            if (item.shape === 'connector' && item.shapeProps.points.length > 1) {
+                connectorAttachmentPoints.set(`${item.id}.points.0`,{
+                    item,
+                    pointIdx: 0,
+                });
+                connectorAttachmentPoints.set(`${item.id}.points.${item.shapeProps.points.length - 1}`,{
+                    item,
+                    pointIdx: item.shapeProps.points.length - 1,
+                });
+            }
 
             // checking whether the item in the box list is actually a descendant of the other item that was also in the same box
             // this is needed to build proper reindexing of items and not to double rotate child items in case their parent was already rotated
@@ -2555,6 +2651,15 @@ class SchemeContainer {
             }
         });
 
+
+        // trying to reattach or detach all displaced connectors
+        // but only if user is not already dragging the single connector point
+        if (!context.controlPoint) {
+            connectorAttachmentPoints.forEach(cap => {
+                this.tryReattachingConnector(cap.item, this.multiItemEditBox, cap.pointIdx);
+            });
+        }
+
         changedItemIds.forEach(itemId => {
             const item = this.findItemById(itemId);
             if (!item) {
@@ -2580,6 +2685,65 @@ class SchemeContainer {
         })
 
         EditorEventBus.editBox.updated.$emit(this.editorId);
+    }
+
+    /**
+     *
+     * @param {Item} item
+     * @param {MultiItemEditBox} editBox
+     * @param {Number} pointIdx
+     */
+    tryReattachingConnector(item, editBox, pointIdx) {
+        // since the connector item was moved, rotated or scaled completely we need
+        // to try to attach it back with the following steps:
+        // 1) first try to attach it at the same spot as before (x,y not by distance on path)
+        // 2) if above doesn't (distance to the attachmend point is above threshold) work try to attach it as close as possible to the same path
+        // 3) if the above also didn't work - remove the attachment
+        const originalAttachments = editBox.connectorOriginalAttachments.get(item.id);
+        if (!originalAttachments || item.shapeProps.points.length < 2) {
+            return;
+        }
+
+        const reattach = (selector, projectionPoint) => {
+            const attachmentItem = this.findFirstElementBySelector(selector);
+            if (!attachmentItem) {
+                return null;
+            }
+
+            const originalPoint = myMath.worldPointInArea(projectionPoint.x * editBox.area.w, projectionPoint.y * editBox.area.h, editBox.area);
+
+            const closestPoint = this.closestPointToItemOutline(attachmentItem, originalPoint, {precision: 4});
+            if (!closestPoint) {
+                return null;
+            }
+
+            const stickyThreshold = myMath.tooSmall(this.screenTransform.scale) ? connectorStickyThreshold : connectorStickyThreshold/this.screenTransform.scale;
+
+            if (myMath.distanceBetweenPoints(originalPoint.x, originalPoint.y, closestPoint.x, closestPoint.y) > stickyThreshold) {
+                return null;
+            }
+            return closestPoint;
+        };
+
+        const fieldPrefix = pointIdx === 0 ? 'source' : 'destination'
+        const attachmentSelector = pointIdx === 0 ? originalAttachments.sourceItem : originalAttachments.destinationItem;
+        const projection = pointIdx === 0 ? originalAttachments.sourceProjection : originalAttachments.destinationProjection;
+        const result = reattach(attachmentSelector, projection);
+        if (result) {
+            item.shapeProps[`${fieldPrefix}Item`] = attachmentSelector;
+            item.shapeProps[`${fieldPrefix}ItemPosition`] = result.distanceOnPath;
+            const p = localPointOnItem(result.x, result.y, item);
+            item.shapeProps.points[pointIdx].x = p.x;
+            item.shapeProps.points[pointIdx].y = p.y;
+        } else {
+            item.shapeProps[`${fieldPrefix}Item`] = null;
+            if (projection) {
+                const correctedPoint = myMath.worldPointInArea(projection.x * editBox.area.w, projection.y * editBox.area.h, editBox.area);
+                const correctedLocalPoint = localPointOnItem(correctedPoint.x, correctedPoint.y, item);
+                item.shapeProps.points[pointIdx].x = correctedLocalPoint.x;
+                item.shapeProps.points[pointIdx].y = correctedLocalPoint.y;
+            }
+        }
     }
 
     /**
@@ -2650,7 +2814,7 @@ class SchemeContainer {
                     p1 = worldPointOnItem(items[0].area.w, 0, items[0]),
                     p3 = worldPointOnItem(0, items[0].area.h, items[0]);
 
-            // angle has to be calculated with taking width inot account
+            // angle has to be calculated with taking width into account
             // if the width is too small (e.g. vertical path line), then the computed angle will be incorrect
             let angle = 0;
             if (myMath.tooSmall(items[0].area.w)) {
@@ -2677,6 +2841,7 @@ class SchemeContainer {
             area = createMultiItemEditBoxAveragedArea(items);
         }
 
+
         /** @type {Array<ConnectorPointProjection>} */
         const connectorPoints = [];
 
@@ -2697,7 +2862,6 @@ class SchemeContainer {
                 if (!area) {
                     area = {...p, r: 0, w: 0, h: 0, px: 0.5, py: 0.5, sx: 1.0, sy: 1.0};
                 } else {
-                    // TODO reconstruct area in case only a single item was selected. It could be that the item is rotated so the edit box get rotated as well
                     if (area.x > p.x) {
                         area.w += area.x - p.x;
                         area.x = p.x;
@@ -2741,11 +2905,42 @@ class SchemeContainer {
             return localPoint;
         };
 
+        /** @type {Map<String,ConnectorAttachments>} */
+        const connectorOriginalAttachments = new Map();
+        const registerConnectorOriginalAttachments = (item) => {
+            if (connectorOriginalAttachments.has(item.id)) {
+                return;
+            }
+
+            if (item.shapeProps.points.length < 2) {
+                return;
+            }
+
+            const firstPoint = item.shapeProps.points[0];
+            const lastPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
+            const sourceWorldPoint = worldPointOnItem(firstPoint.x, firstPoint.y, item);
+            const destinationWorldPoint = worldPointOnItem(lastPoint.x, lastPoint.y, item);
+
+            connectorOriginalAttachments.set(item.id, {
+                sourceItem: item.shapeProps.sourceItem,
+                sourceItemPosition: item.shapeProps.sourceItemPosition,
+                destinationItem: item.shapeProps.destinationItem,
+                destinationItemPosition: item.shapeProps.destinationItemPosition,
+                sourceProjection: projectPoint(sourceWorldPoint.x, sourceWorldPoint.y),
+                destinationProjection: projectPoint(destinationWorldPoint.x, destinationWorldPoint.y)
+            });
+        };
+
         connectorPoints.forEach(p => {
             p.projection = projectPoint(p.x, p.y);
+            const item = this.findItemById(p.itemId);
+            registerConnectorOriginalAttachments(item);
         });
 
         forEach(items, item => {
+            if (item.shape === 'connector') {
+                registerConnectorOriginalAttachments(item);
+            }
             itemData[item.id] = {
                 originalArea: utils.clone(item.area)
             };
@@ -2789,6 +2984,7 @@ class SchemeContainer {
             itemProjections,
             pivotPoint,
             connectorPoints,
+            connectorOriginalAttachments,
 
             // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
             // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world

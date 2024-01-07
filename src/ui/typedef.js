@@ -74,6 +74,17 @@
  */
 
 /**
+ * A connector attachments for source and destination points
+ * @typedef {Object} ConnectorAttachments
+ * @property {String} sourceItem - element selector for another item for attachment on first point
+ * @property {Number} sourceItemPosition - distance on path on source item
+ * @property {String} destinationItem - element selector for another item for attachment of last point
+ * @property {Number} destinationItemPosition - distance on path on destination item
+ * @property {Point} sourceProjection - projection of the world source point to edit box area
+ * @property {Point} destinationProjection - projection of the world destination point to edit box area
+ */
+
+/**
  * @typedef {Object} MultiItemEditBox
  * @property {String} id - unique id of edit box
  * @property {Array} items - array of items that are selected for this edit box
@@ -81,6 +92,14 @@
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)
  * @property {Object} itemProjections - map of item ids to item projections
  * @property {Array<ConnectorPointProjection>} connectorPoints
+ * @property {Map<String,ConnectorAttachments} connectorOriginalAttachments - stores original attachment data of connectors.
+ * This is used for reattaching and detaching the connector during edit box movements
+ */
+
+/**
+ * @typedef {Object} Shape
+ * @property {Function} getTextSlots
+ * @property {Function} getPins
  */
 
 

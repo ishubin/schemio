@@ -34,18 +34,11 @@ import '../../../../typedef';
 import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
+import { worldPointOnItem } from '../../../../scheme/SchemeContainer';
 
 const log = new Logger('Connector');
 
 
-function getPointOnItemPath(item, shadowSvgPath, positionOnPath, schemeContainer) {
-    if (shadowSvgPath) {
-        const point = shadowSvgPath.getPointAtLength(positionOnPath);
-        return schemeContainer.worldPointOnItem(point.x, point.y, item);
-    }
-    // returning the center of item if it failed to find its path
-    return schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
-}
 
 function round(value) {
     return myMath.roundPrecise2(value);
@@ -720,11 +713,6 @@ function computeCapByPosition(x1, y1, x2, y2, capSize, capType) {
 }
 
 
-const DST_READJUST_CTX = Symbol('dstReadjustCtx');
-const SRC_READJUST_CTX = Symbol('srcReadjustCtx');
-
-
-
 function realignNormal(point, secondPoint) {
     if (point.hasOwnProperty('bx') && point.hasOwnProperty('by') && secondPoint) {
         const dx = secondPoint.x - point.x;
@@ -739,101 +727,10 @@ function realignNormal(point, secondPoint) {
     }
 };
 
-/**
- * @param {SchemeContainer} schemeContainer
- * @param {Item} item
- * @param {CurvePoint} curvePoint
- * @param {CurvePoint} secondCurvePoint - for source edge it would be second, for destination edge it would the the one before last
- * @param {String} attachmentItemSelector
- * @param {Number} attachmentItemPosition
- * @param {ItemModificationContext} context
- * @param {Boolean} isSource
- * @param {Function} callback - function which is used to pass changed attachment item position
- */
-function readjustCurveAttachment(schemeContainer, item, curvePoint, secondCurvePoint, attachmentItemSelector, attachmentItemPosition, context, isSource, callback) {
-    const attachmentItem = schemeContainer.findFirstElementBySelector(attachmentItemSelector);
-    if (attachmentItem && attachmentItem.id !== item.id && attachmentItem.shape) {
-        if (attachmentItemPosition < 0) {
-            // this means that connector is attached to item pin
-
-            const pinIndex = Math.round(-attachmentItemPosition - 1);
-            const pinPoint = schemeContainer.getItemWorldPinPoint(attachmentItem, pinIndex);
-            if (pinPoint) {
-                const localPinPoint = schemeContainer.localPointOnItem(pinPoint.x, pinPoint.y, item)
-                const newPoint = {
-                    t: 'L',
-                    x: localPinPoint.x,
-                    y: localPinPoint.y,
-                };
-                if (pinPoint.hasOwnProperty('nx')) {
-                    newPoint.bx = pinPoint.nx;
-                    newPoint.by = pinPoint.ny;
-                }
-
-                callback(newPoint, attachmentItemPosition);
-
-            }
-            return;
-        }
-
-        const shadowSvgPath = schemeContainer.getSvgOutlineOfItem(attachmentItem);
-        if (!shadowSvgPath) {
-            return;
-        }
-
-        let oldPoint = null;
-        let worldOldPoint = null;
-        let metaCtxKey = SRC_READJUST_CTX;
-        if (!isSource) {
-            metaCtxKey = DST_READJUST_CTX;
-        }
-        if (context && context.id) {
-            if (item.meta[metaCtxKey] && item.meta[metaCtxKey].id === context.id) {
-                oldPoint  = item.meta[metaCtxKey].oldPoint;
-                worldOldPoint  = item.meta[metaCtxKey].worldOldPoint;
-            } else {
-                oldPoint = curvePoint;
-                worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
-                item.meta[metaCtxKey] = { id: context.id, oldPoint, worldOldPoint };
-            }
-        } else {
-            oldPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
-            worldOldPoint = schemeContainer.worldPointOnItem(oldPoint.x, oldPoint.y, item);
-        }
-        let attachmentPoint = null;
-
-        let distanceOnPath = attachmentItemPosition;
-
-        if (context && (context.rotated || context.resized)) {
-            const localToAttachmentItemOldPoint = schemeContainer.localPointOnItem(worldOldPoint.x, worldOldPoint.y, attachmentItem);
-            const closestPointOnPath = myMath.closestPointOnPath(localToAttachmentItemOldPoint.x, localToAttachmentItemOldPoint.y, shadowSvgPath);
-
-            // readjusting destination attachment to try to keep it in the same world point while the item is rotated, resized or moved
-            distanceOnPath = closestPointOnPath.distance;
-
-            const attachmentWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, distanceOnPath, schemeContainer);
-            attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
-        } else {
-            const attachmentWorldPoint = getPointOnItemPath(attachmentItem, shadowSvgPath, attachmentItemPosition, schemeContainer);
-            attachmentPoint = schemeContainer.localPointOnItem(attachmentWorldPoint.x, attachmentWorldPoint.y, item);
-        }
-
-        const normal = schemeContainer.calculateNormalOnPointInItemOutline(attachmentItem, distanceOnPath, shadowSvgPath);
-        const newPoint = {
-            t: oldPoint.t,
-            x: attachmentPoint.x,
-            y: attachmentPoint.y,
-            bx: normal.x,
-            by: normal.y,
-        };
-
-        callback(newPoint, distanceOnPath);
-    }
-}
 
 /**
  * @property {Item} item
- * @property {Object} schemeContainer
+ * @property {SchemeContainer} schemeContainer
  * @property {Boolean} isSoft
  * @property {ItemModificationContext} context
  * @property {Number} precision - number of digits after point which it should round to
@@ -843,39 +740,6 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
 
     if (!isSoft) {
         readjustItemArea(item, precision);
-    }
-
-
-    if (item.shapeProps.sourceItem) {
-        readjustCurveAttachment(schemeContainer,
-            item,
-            item.shapeProps.points[0],
-            item.shapeProps.points[1],
-            item.shapeProps.sourceItem,
-            item.shapeProps.sourceItemPosition,
-            context,
-            true,
-            (newPoint, newSourceItemPosition) => {
-                item.shapeProps.points[0] = newPoint;
-                item.shapeProps.sourceItemPosition = newSourceItemPosition;
-            }
-        );
-    }
-
-    if (item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        readjustCurveAttachment(schemeContainer,
-            item,
-            item.shapeProps.points[item.shapeProps.points.length - 1],
-            item.shapeProps.points[item.shapeProps.points.length - 2],
-            item.shapeProps.destinationItem,
-            item.shapeProps.destinationItemPosition,
-            context,
-            false,
-            (newPoint, newDestinationItemPosition) => {
-                item.shapeProps.points[item.shapeProps.points.length - 1] = newPoint;
-                item.shapeProps.destinationItemPosition = newDestinationItemPosition;
-            }
-        );
     }
 
     if (item.shapeProps.sourceItem && item.shapeProps.points.length > 1) {
@@ -950,11 +814,6 @@ function getSnappers(item) {
     });
     return snappers;
 }
-
-function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
-}
-
 
 const menuItemPoints = [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}];
 const groupName = 'Connections';
@@ -1165,13 +1024,13 @@ export default {
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Smoothing Type'},
             stepSize          : {type: 'number',        value: 10, name: 'Step size', depends: {smoothing: ['step-cut', 'step-smooth']}},
 
-            thick               : {type: 'boolean',       value: false, name: 'Thick'},
-            fill              : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {thick: true}},
-            thickWidth          : {type: 'number',        value: 10, name: 'Thick Width', min: 1, max: 1000, depends: {thick: true}},
+            thick     : {type: 'boolean',       value: false, name: 'Thick'},
+            fill      : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {thick: true}},
+            thickWidth: {type: 'number',        value: 10, name: 'Thick Width', min: 1, max: 1000, depends: {thick: true}},
 
-            sourceItem        : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
-            destinationItem   : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
-            sourceItemPosition: {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+            sourceItem             : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
+            destinationItem        : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
+            sourceItemPosition     : {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
             destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
         },
     },
