@@ -1553,7 +1553,9 @@ class SchemeContainer {
      */
     _readjustConnectorItem(item, context, precision) {
         log.info('readjusting connector item', item.id);
-        const findAttachmentPoint = (attachmentSelector, positionOnPath, currentPoint) => {
+        const findAttachmentPoint = (attachmentSelector, positionOnPath, pointIdx) => {
+            const currentPoint = item.shapeProps.points[pointIdx];
+
             const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
             if (!attachmentItem) {
                 return null;
@@ -1590,17 +1592,31 @@ class SchemeContainer {
             }
 
             if (context.resized || context.controlPoint || attachmentItem.shape === 'connector' || attachmentItem.shape === 'path') {
-                const wp = worldPointOnItem(currentPoint.x, currentPoint.y, item);
+                const originalPointKey = `${item.id}-points-${pointIdx}`;
+                let originalPoint = currentPoint;
+                if (this.multiItemEditBox.cache.has(originalPointKey)) {
+                    originalPoint = this.multiItemEditBox.cache.get(originalPointKey);
+                } else {
+                    // checking whether the item is part of the edit box
+                    // in such case we don't want to take its original point and instead let user modify it
+
+                    if (!this.multiItemEditBox.itemIds.has(item.id)) {
+                        this.multiItemEditBox.cache.set(originalPointKey, currentPoint);
+                    }
+                }
+
+                const wp = worldPointOnItem(originalPoint.x, originalPoint.y, item);
+
                 const closestPoint = this.closestPointToItemOutline(attachmentItem, wp, {withNormal: true, precision});
                 if (!closestPoint) {
                     return;
                 }
                 const lp = localPointOnItem(closestPoint.x, closestPoint.y, item);
 
-                // trying to minize jittering movements of attached items and keep it in the same spot
+                // trying to minimize jitter movements of attached items and keep it in the same spot
                 if (myMath.distanceBetweenPoints(wp.x, wp.y, closestPoint.x, closestPoint.y) < 0.8) {
-                    lp.x = currentPoint.x;
-                    lp.y = currentPoint.y;
+                    lp.x = originalPoint.x;
+                    lp.y = originalPoint.y;
                 }
                 return {
                     x: lp.x,
@@ -1622,11 +1638,11 @@ class SchemeContainer {
             };
         };
 
-        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, item.shapeProps.points[0]);
+        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, 0);
         if (sourcePoint) {
             item.shapeProps.points[0] = sourcePoint;
         }
-        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, item.shapeProps.points[item.shapeProps.points.length - 1]);
+        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, item.shapeProps.points.length - 1);
         if (dstPoint) {
             item.shapeProps.points[item.shapeProps.points.length - 1] = dstPoint;
         }
@@ -3058,6 +3074,7 @@ class SchemeContainer {
             pivotPoint,
             connectorPoints,
             connectorOriginalAttachments,
+            cache: new Map(),
 
             // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
             // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world

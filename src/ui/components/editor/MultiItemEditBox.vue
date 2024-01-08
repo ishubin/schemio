@@ -13,7 +13,7 @@
 
         <!-- rendering item custom control points -->
         <g v-if="kind === 'regular'">
-            <g v-if="editBox.items.length > 0 && editBox.items[0].shape === 'connector' && selectedConnectorPath"
+            <g v-if="editBox.items.length === 1 && editBox.items[0].shape === 'connector' && selectedConnectorPath"
                :transform="svgConnectorCompleteTransform"
                >
                 <path :d="selectedConnectorPath"
@@ -488,7 +488,7 @@ export default {
 
             this.configureCustomControls(item, shape.editorProps);
 
-            if (item.shape === 'connector') {
+            if (item.shape === 'connector' && this.editBox.itemIds.size === 1) {
                 StoreUtils.setSelectedConnector(this.$store, item);
             }
 

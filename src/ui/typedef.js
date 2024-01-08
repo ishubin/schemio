@@ -94,6 +94,7 @@
  * @property {Object} itemProjections - map of item ids to item projections
  * @property {Array<ConnectorPointProjection>} connectorPoints
  * @property {Map<String,ConnectorAttachments} connectorOriginalAttachments - stores original attachment data of connectors.
+ * @property {Map<String,Object} cache - used for temporary storage of various objects (for now this is used for reattaching connectors to the same spot)
  * This is used for reattaching and detaching the connector during edit box movements
  */
 
