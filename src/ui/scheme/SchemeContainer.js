@@ -1589,13 +1589,19 @@ class SchemeContainer {
                 return null;
             }
 
-            if (context.resized) {
+            if (context.resized || context.controlPoint || attachmentItem.shape === 'connector' || attachmentItem.shape === 'path') {
                 const wp = worldPointOnItem(currentPoint.x, currentPoint.y, item);
                 const closestPoint = this.closestPointToItemOutline(attachmentItem, wp, {withNormal: true, precision});
                 if (!closestPoint) {
                     return;
                 }
                 const lp = localPointOnItem(closestPoint.x, closestPoint.y, item);
+
+                // trying to minize jittering movements of attached items and keep it in the same spot
+                if (myMath.distanceBetweenPoints(wp.x, wp.y, closestPoint.x, closestPoint.y) < 0.8) {
+                    lp.x = currentPoint.x;
+                    lp.y = currentPoint.y;
+                }
                 return {
                     x: lp.x,
                     y: lp.y,
