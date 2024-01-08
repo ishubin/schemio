@@ -1415,7 +1415,8 @@ class SchemeContainer {
             const closestPoint = this.closestPointToItemOutline(item, globalPoint, {
                 startDistance: Math.max(0, pathLocation.pathDistance - searchDistance),
                 stopDistance: pathLocation.pathDistance + searchDistance,
-                precision: Math.min(d / 2, 0.5)
+                precision: Math.min(d / 2, 0.5),
+                withNormal: true,
             });
 
             if (!closestPoint) {
@@ -1429,6 +1430,11 @@ class SchemeContainer {
                     distanceOnPath    : closestPoint.distanceOnPath,
                     itemId            : item.id
                 };
+
+                if (closestPoint.hasOwnProperty('nx')) {
+                    candidatePoint.nx = closestPoint.nx;
+                    candidatePoint.ny = closestPoint.ny;
+                }
 
                 if (!foundPoint || bestSquaredDistance > squaredDistance) {
                     foundPoint = candidatePoint;
@@ -1547,43 +1553,48 @@ class SchemeContainer {
         const findAttachmentPoint = (attachmentSelector, positionOnPath) => {
             const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
             if (!attachmentItem) {
-                return;
+                return null;
             }
 
             if (positionOnPath < 0) {
                 const shape = Shape.find(attachmentItem.shape);
                 if (!shape || !shape.getPins) {
-                    return;
+                    return null;
                 }
 
-                const pins = shape.getPins(attachmentItem);
-                if (!pins) {
-                    return;
-                }
                 const pinId = parseInt(Math.abs(positionOnPath)) - 1;
-                if (pinId < 0 || pinId > pins.length - 1) {
-                    return;
+                const pinPoint = this.getItemWorldPinPoint(attachmentItem, pinId);
+                if (!pinPoint) {
+                    return null;
                 }
 
-                const wp = worldPointOnItem(pins[pinId].x, pins[pinId].y, attachmentItem);
-                const lp = localPointOnItem(wp.x, wp.y, item);
-                return {
+                const lp = localPointOnItem(pinPoint.x, pinPoint.y, item);
+                const point = {
                     x: lp.x,
                     y: lp.y,
                 };
+
+                if (pinPoint.hasOwnProperty('nx')) {
+                    point.bx = pinPoint.nx;
+                    point.by = pinPoint.ny;
+                }
+                return point;
             }
 
             const svgPath = this.getSvgOutlineOfItem(attachmentItem);
             if (!svgPath) {
-                return;
+                return null;
             }
 
             const lap = svgPath.getPointAtLength(positionOnPath);
             const wp = worldPointOnItem(lap.x, lap.y, attachmentItem);
             const lp = localPointOnItem(wp.x, wp.y, item);
+            const normal = this.calculateNormalOnPointInItemOutline(attachmentItem, positionOnPath, svgPath);
             return {
                 x: lp.x,
                 y: lp.y,
+                bx: normal.x,
+                by: normal.y,
             };
         };
 
@@ -1800,8 +1811,8 @@ class SchemeContainer {
 
         if (withNormal) {
             const normal = this.calculateNormalOnPointInItemOutline(item, closestPoint.distance, shadowSvgPath);
-            worldPoint.bx = normal.x;
-            worldPoint.by = normal.y;
+            worldPoint.nx = normal.x;
+            worldPoint.ny = normal.y;
         }
         return worldPoint;
     }
@@ -2552,7 +2563,7 @@ class SchemeContainer {
      * @param {ItemModificationContext} context
      */
     updateMultiItemEditBoxItems(multiItemEditBox, isSoft, context, precision) {
-        log.info('updating edit box items', 'isSoft:', isSoft)
+        log.info('updateMultiItemEditBoxItems', 'isSoft:', isSoft)
         if (precision === undefined) {
             precision = 4;
         }

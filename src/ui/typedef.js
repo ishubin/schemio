@@ -166,6 +166,8 @@
  * @property {Number} y - value on y axis
  * @property {Number} distanceOnPath - distance on the item path from its beginning to the closest point on that path
  * @property {String} itemId - id of item
+ * @property {Number} nx - normal x, may be undefined if the pin does not have normal
+ * @property {Number} ny - normal y, may be undefined if the pin does not have normal
  */
 
 

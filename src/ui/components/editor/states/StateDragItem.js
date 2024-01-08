@@ -329,6 +329,11 @@ class DragControlPointState extends SubState {
             point.x = localPoint.x;
             point.y = localPoint.y;
 
+            if (closestPointToItem.hasOwnProperty('nx')) {
+                point.bx = closestPointToItem.nx;
+                point.by = closestPointToItem.ny;
+            }
+
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;

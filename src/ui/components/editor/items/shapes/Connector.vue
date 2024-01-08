@@ -778,8 +778,10 @@ function readjustItemArea(item, precision) {
     });
 
     const newPoints = [];
-    forEach(worldPoints, p => {
+    forEach(worldPoints, (p, pointIdx) => {
+        const originPoint = item.shapeProps.points[pointIdx];
         newPoints.push({
+            ...originPoint,
             x: p.x - minX,
             y: p.y - minY,
         });
