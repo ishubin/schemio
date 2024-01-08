@@ -359,6 +359,11 @@ class DragControlPointState extends SubState {
                 this.item.shapeProps.destinationItem = null;
                 this.item.shapeProps.destinationItemPosition = 0;
             }
+
+            if (point.hasOwnProperty('bx')) {
+                delete point.bx;
+                delete point.by;
+            }
         }
 
         if (this.controlPoint.editBoxConnectorPointIdx >= 0) {

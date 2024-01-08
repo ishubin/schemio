@@ -2794,6 +2794,8 @@ class SchemeContainer {
             item.shapeProps.points[pointIdx].y = p.y;
         } else {
             item.shapeProps[`${fieldPrefix}Item`] = null;
+            delete item.shapeProps.points[pointIdx].bx;
+            delete item.shapeProps.points[pointIdx].by;
             if (projection) {
                 const correctedPoint = myMath.worldPointInArea(projection.x * editBox.area.w, projection.y * editBox.area.h, editBox.area);
                 const correctedLocalPoint = localPointOnItem(correctedPoint.x, correctedPoint.y, item);
