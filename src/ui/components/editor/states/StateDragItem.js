@@ -800,17 +800,28 @@ class IdleState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.clickedObject = null;
-
         if (object.type === 'multi-item-edit-box') {
             this.handleSimpleClickOnEditBox(x, y, event);
         }
+        this.clickedObject = null;
     }
 
+    /**
+     * We need this function because edit box has its own fill on top of all items.
+     * There can be a situation when another item is rendered on top of the selected item
+     * and user wants to select that item. When user clicks inside of existing edit box,
+     * the other item does not register click.
+     * In this case we need to iterate over all bounding boxes of all items respective of their layering order
+     * and check if user clicked inside of them. The only exception needs to be done to connectors.
+     * @param {*} x
+     * @param {*} y
+     * @param {*} event
+     * @returns
+     */
     handleSimpleClickOnEditBox(x, y, event) {
         const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
             const p = localPointOnItem(x, y, item);
-            return p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility;
+            return item.shape !== 'connector' && p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility;
         });
         if (!clickedItem) {
             return;

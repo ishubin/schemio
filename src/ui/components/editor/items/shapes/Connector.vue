@@ -713,7 +713,7 @@ function computeCapByPosition(x1, y1, x2, y2, capSize, capType) {
 }
 
 
-function realignNormal(point, secondPoint) {
+export function realignConnectorNormal(point, secondPoint) {
     if (point.hasOwnProperty('bx') && point.hasOwnProperty('by') && secondPoint) {
         const dx = secondPoint.x - point.x;
         const dy = secondPoint.y - point.y;
@@ -743,11 +743,11 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     }
 
     if (item.shapeProps.sourceItem && item.shapeProps.points.length > 1) {
-        realignNormal(item.shapeProps.points[0], item.shapeProps.points[1]);
+        realignConnectorNormal(item.shapeProps.points[0], item.shapeProps.points[1]);
     }
 
     if (item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
-        realignNormal(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[item.shapeProps.points.length - 2]);
+        realignConnectorNormal(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[item.shapeProps.points.length - 2]);
     }
 
     return true;

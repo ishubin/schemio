@@ -1553,10 +1553,6 @@ class SchemeContainer {
      */
     _readjustConnectorItem(item, context, precision) {
         log.info('readjusting connector item', item.id);
-        if (context.controlPoint) {
-            // user can drag edge point so we should not try to reattach connector, the attaching is handled in StateDragItem
-            return;
-        }
         const findAttachmentPoint = (attachmentSelector, positionOnPath, currentPoint) => {
             const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
             if (!attachmentItem) {
