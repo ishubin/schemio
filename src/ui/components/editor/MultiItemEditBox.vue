@@ -411,7 +411,6 @@ import myMath from '../../myMath';
 import { itemCompleteTransform } from '../../scheme/SchemeContainer';
 import { processJSONTemplate, processTemplateExpressions } from '../../templater/templater';
 import utils from '../../utils';
-import EditorEventBus from './EditorEventBus';
 
 
 /**
@@ -419,7 +418,8 @@ import EditorEventBus from './EditorEventBus';
  * @param {MultiItemEditBox} editBox
  */
 function isItemConnector(editBox) {
-    return editBox.items.length === 1 && editBox.itemIds.size === 1 && editBox.items[0].shape === 'connector';
+    return (editBox.items.length === 1 && editBox.itemIds.size === 1 && editBox.items[0].shape === 'connector')
+        || (editBox.items.length === 0 && editBox.connectorPoints.length === 1);
 }
 
 function createCustomControlAxis(place) {
