@@ -1544,13 +1544,20 @@ class SchemeContainer {
         });
     }
 
+    /**
+     *
+     * @param {Item} item
+     * @param {ItemModificationContext} context
+     * @param {Number} precision
+     * @returns
+     */
     _readjustConnectorItem(item, context, precision) {
         log.info('readjusting connector item', item.id);
         if (context.controlPoint) {
             // user can drag edge point so we should not try to reattach connector, the attaching is handled in StateDragItem
             return;
         }
-        const findAttachmentPoint = (attachmentSelector, positionOnPath) => {
+        const findAttachmentPoint = (attachmentSelector, positionOnPath, currentPoint) => {
             const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
             if (!attachmentItem) {
                 return null;
@@ -1586,6 +1593,21 @@ class SchemeContainer {
                 return null;
             }
 
+            if (context.resized) {
+                const wp = worldPointOnItem(currentPoint.x, currentPoint.y, item);
+                const closestPoint = this.closestPointToItemOutline(attachmentItem, wp, {withNormal: true, precision});
+                if (!closestPoint) {
+                    return;
+                }
+                const lp = localPointOnItem(closestPoint.x, closestPoint.y, item);
+                return {
+                    x: lp.x,
+                    y: lp.y,
+                    bx: closestPoint.nx,
+                    by: closestPoint.ny,
+                };
+            }
+
             const lap = svgPath.getPointAtLength(positionOnPath);
             const wp = worldPointOnItem(lap.x, lap.y, attachmentItem);
             const lp = localPointOnItem(wp.x, wp.y, item);
@@ -1598,11 +1620,11 @@ class SchemeContainer {
             };
         };
 
-        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition);
+        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, item.shapeProps.points[0]);
         if (sourcePoint) {
             item.shapeProps.points[0] = sourcePoint;
         }
-        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition);
+        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, item.shapeProps.points[item.shapeProps.points.length - 1]);
         if (dstPoint) {
             item.shapeProps.points[item.shapeProps.points.length - 1] = dstPoint;
         }
