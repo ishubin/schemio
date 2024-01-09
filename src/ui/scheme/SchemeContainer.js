@@ -2569,7 +2569,7 @@ class SchemeContainer {
      * @param {ItemModificationContext} context
      */
     updateEditBoxItems(editBox, isSoft, context, precision) {
-        log.info('updateEditBoxItems', 'isSoft:', isSoft)
+        log.info('updateEditBoxItems', 'isSoft:', isSoft, 'precision:', precision);
         if (precision === undefined) {
             precision = 4;
         }
