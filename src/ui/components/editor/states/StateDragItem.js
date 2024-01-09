@@ -170,6 +170,7 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.item.meta.revision += 1;
         this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_CONTROL_POINT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
         this.schemeContainer.updateMultiItemEditBox();

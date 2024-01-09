@@ -1809,6 +1809,7 @@ export default {
             let reindexingNeeded = false;
 
             forEach(this.schemeContainer.selectedItems, item => {
+                item.meta.revision += 1;
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     const propDescriptor = Shape.getShapePropDescriptor(shape, name);
@@ -1818,7 +1819,6 @@ export default {
                             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `shapeProps.${name}`);
                         });
 
-                        item.meta.revision += 1;
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
                     }
@@ -1873,6 +1873,7 @@ export default {
         onItemShapeChanged(shapeName) {
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
+                item.meta.revision += 1;
                 this.schemeContainer.setPropertyForItem(item, item => {
                     item.shape = shapeName;
                     cleanupShapeProps(item);
