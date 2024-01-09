@@ -331,8 +331,8 @@ class DragControlPointState extends SubState {
             point.y = localPoint.y;
 
             if (closestPointToItem.hasOwnProperty('nx')) {
-                point.bx = closestPointToItem.nx;
-                point.by = closestPointToItem.ny;
+                point.nx = closestPointToItem.nx;
+                point.ny = closestPointToItem.ny;
             }
 
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
@@ -361,9 +361,9 @@ class DragControlPointState extends SubState {
                 this.item.shapeProps.destinationItemPosition = 0;
             }
 
-            if (point.hasOwnProperty('bx')) {
-                delete point.bx;
-                delete point.by;
+            if (point.hasOwnProperty('nx')) {
+                delete point.nx;
+                delete point.ny;
             }
         }
 

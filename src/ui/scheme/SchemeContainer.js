@@ -1552,8 +1552,8 @@ class SchemeContainer {
                 };
 
                 if (pinPoint.hasOwnProperty('nx')) {
-                    point.bx = pinPoint.nx;
-                    point.by = pinPoint.ny;
+                    point.nx = pinPoint.nx;
+                    point.ny = pinPoint.ny;
                 }
                 return point;
             }
@@ -1593,8 +1593,8 @@ class SchemeContainer {
                 return {
                     x: lp.x,
                     y: lp.y,
-                    bx: closestPoint.nx,
-                    by: closestPoint.ny,
+                    nx: closestPoint.nx,
+                    ny: closestPoint.ny,
                 };
             }
 
@@ -1605,8 +1605,8 @@ class SchemeContainer {
             return {
                 x: lp.x,
                 y: lp.y,
-                bx: normal.x,
-                by: normal.y,
+                nx: normal.x,
+                ny: normal.y,
             };
         };
 
@@ -2760,8 +2760,8 @@ class SchemeContainer {
             item.shapeProps.points[pointIdx].y = p.y;
         } else {
             item.shapeProps[`${fieldPrefix}Item`] = null;
-            delete item.shapeProps.points[pointIdx].bx;
-            delete item.shapeProps.points[pointIdx].by;
+            delete item.shapeProps.points[pointIdx].nx;
+            delete item.shapeProps.points[pointIdx].ny;
             if (projection) {
                 const correctedPoint = myMath.worldPointInArea(projection.x * editBox.area.w, projection.y * editBox.area.h, editBox.area);
                 const correctedLocalPoint = localPointOnItem(correctedPoint.x, correctedPoint.y, item);

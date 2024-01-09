@@ -191,8 +191,8 @@ function createFieldSchemaForArg(argDef) {
             x : {type: 'number'},
             y : {type: 'number'},
             t : {type: 'string'},
-            bx : {type: 'number'},
-            by : {type: 'number'},
+            nx : {type: 'number'},
+            ny : {type: 'number'},
         }};
     }
     if (argDef.type === 'animations') {

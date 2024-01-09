@@ -210,13 +210,13 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
     let firstPointDirection = UP;
     let lastPointDirection = ANY;
 
-    if (points[0].hasOwnProperty('bx')) {
-        firstPointDirection = identifyDirection(points[0].bx, points[0].by);
+    if (points[0].hasOwnProperty('nx')) {
+        firstPointDirection = identifyDirection(points[0].nx, points[0].ny);
     }
 
     const lastPoint = points[points.length - 1];
-    if (lastPoint.hasOwnProperty('bx')) {
-        lastPointDirection = identifyDirection(lastPoint.bx, lastPoint.by);
+    if (lastPoint.hasOwnProperty('nx')) {
+        lastPointDirection = identifyDirection(lastPoint.nx, lastPoint.ny);
     }
 
     if (item.shapeProps.sourceCap && item.shapeProps.sourceCap !== 'empty') {
@@ -342,9 +342,9 @@ function computeSmoothPath(item) {
 
     if (item.shapeProps.sourceCap && item.shapeProps.sourceCap !== 'empty') {
         let x2 = points[1].x, y2 = points[1].y;
-        if (typeof points[0].bx !== 'undefined') {
-            x2 = points[0].x + points[0].bx * item.shapeProps.sourceCapSize;
-            y2 = points[0].y + points[0].by * item.shapeProps.sourceCapSize;
+        if (typeof points[0].nx !== 'undefined') {
+            x2 = points[0].x + points[0].nx * item.shapeProps.sourceCapSize;
+            y2 = points[0].y + points[0].ny * item.shapeProps.sourceCapSize;
         }
 
         firstCap = computeCapByPosition(points[0].x, points[0].y, x2, y2, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
@@ -357,9 +357,9 @@ function computeSmoothPath(item) {
     if (item.shapeProps.destinationCap && item.shapeProps.destinationCap !== 'empty') {
         const id = points.length - 1;
         let x2 = points[id - 1].x, y2 = points[id - 1].y;
-        if (typeof points[id].bx !== 'undefined') {
-            x2 = points[id].x + points[id].bx * item.shapeProps.destinationCapSize;
-            y2 = points[id].y + points[id].by * item.shapeProps.destinationCapSize;
+        if (typeof points[id].nx !== 'undefined') {
+            x2 = points[id].x + points[id].nx * item.shapeProps.destinationCapSize;
+            y2 = points[id].y + points[id].ny * item.shapeProps.destinationCapSize;
         }
 
         lastCap = computeCapByPosition(points[id].x, points[id].y, x2, y2, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap, item.shapeProps.fill);
@@ -372,7 +372,7 @@ function computeSmoothPath(item) {
 
     // special situation, it is easier to handle it separately
     if (points.length === 2 && item.shapeProps.sourceItem && item.shapeProps.destinationItem
-         && typeof points[0].bx !== 'undefined' && typeof points[1].bx !== 'undefined') {
+         && typeof points[0].nx !== 'undefined' && typeof points[1].nx !== 'undefined') {
 
         const k = myMath.distanceBetweenPoints(points[0].x, points[0].y, points[1].x, points[1].y) / 3;
 
@@ -385,8 +385,8 @@ function computeSmoothPath(item) {
             path =  `M ${round(points[0].x)} ${round(points[0].y)} `;
         }
 
-        path += `C ${round(points[0].x + k * points[0].bx)} ${round(points[0].y + k * points[0].by)}`
-                + ` ${round(points[1].x + k * points[1].bx)}  ${round(points[1].y + k * points[1].by)}`
+        path += `C ${round(points[0].x + k * points[0].nx)} ${round(points[0].y + k * points[0].ny)}`
+                + ` ${round(points[1].x + k * points[1].nx)}  ${round(points[1].y + k * points[1].ny)}`
                 + ` ${round(points[1].x)} ${round(points[1].y)} `;
 
         if (lastCap && lastCap.prolongLine) {
@@ -430,7 +430,7 @@ function computeSmoothPath(item) {
                 path = `M ${round(point.x)} ${round(point.y)} `;
             }
 
-        } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.bx !== 'undefined') {
+        } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.nx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let vx = 0;
             let vy = 0;
@@ -438,9 +438,9 @@ function computeSmoothPath(item) {
                 vx = vectors[i].x;
                 vy = vectors[i].y;
             }
-            path += ` C ${round(previousPoint.x + k * previousPoint.bx)} ${round(previousPoint.y + k * previousPoint.by)} ${round(point.x - k * vx)} ${round(point.y - k * vy)} ${round(point.x)} ${round(point.y)}`;
+            path += ` C ${round(previousPoint.x + k * previousPoint.nx)} ${round(previousPoint.y + k * previousPoint.ny)} ${round(point.x - k * vx)} ${round(point.y - k * vy)} ${round(point.x)} ${round(point.y)}`;
 
-        } else if (i === points.length - 1 && item.shapeProps.destinationItem && typeof point.bx !== 'undefined') {
+        } else if (i === points.length - 1 && item.shapeProps.destinationItem && typeof point.nx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let vx = 0;
             let vy = 0;
@@ -448,7 +448,7 @@ function computeSmoothPath(item) {
                 vx = vectors[i-1].x;
                 vy = vectors[i-1].y;
             }
-            path += ` C ${round(previousPoint.x + k * vx)} ${round(previousPoint.y + k *vy)}  ${round(point.x + k*point.bx)} ${round(point.y + k*point.by)} ${round(point.x)} ${round(point.y)}`;
+            path += ` C ${round(previousPoint.x + k * vx)} ${round(previousPoint.y + k *vy)}  ${round(point.x + k*point.nx)} ${round(point.y + k*point.ny)} ${round(point.x)} ${round(point.y)}`;
 
         } else {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
@@ -714,15 +714,15 @@ function computeCapByPosition(x1, y1, x2, y2, capSize, capType) {
 
 
 export function realignConnectorNormal(point, secondPoint) {
-    if (point.hasOwnProperty('bx') && point.hasOwnProperty('by') && secondPoint) {
+    if (point.hasOwnProperty('nx') && point.hasOwnProperty('ny') && secondPoint) {
         const dx = secondPoint.x - point.x;
         const dy = secondPoint.y - point.y;
-        const angle = myMath.cosineAngleBetweenVectors(point.bx, point.by, dx, dy) * 180 / Math.PI;
+        const angle = myMath.cosineAngleBetweenVectors(point.nx, point.ny, dx, dy) * 180 / Math.PI;
 
         if (angle > 90) {
             // inverting the normal
-            point.bx = -point.bx;
-            point.by = -point.by;
+            point.nx = -point.nx;
+            point.ny = -point.ny;
         }
     }
 };
