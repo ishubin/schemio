@@ -3,12 +3,29 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g data-preview-ignore="true" :style="{opacity: useFill ? 1 : 0.5}">
+        <path v-if="!isItemConnector && isThin" :transform="svgEditBoxTransform"
+            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            data-type="multi-item-edit-box"
+            class="edit-box-outline"
+            :stroke-width="5/safeZoom"
+            fill="none"
+            stroke="rgba(255,255,255,0.0)" />
+
+        <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
+            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            data-type="multi-item-edit-box"
+            :class="{'edit-box-outline': isThin}"
+            :stroke-width="1/safeZoom"
+            fill="none"
+            :stroke="boundaryBoxColor"
+            style="opacity: 0.8;"/>
+
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
             :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
             data-type="multi-item-edit-box"
             :stroke-width="1/safeZoom"
             :fill="editBoxFill"
-            :stroke="boundaryBoxColor"
+            stroke="none"
             style="opacity: 0.8;"/>
 
         <!-- rendering item custom control points -->
@@ -697,6 +714,11 @@ export default {
 
         showPivot() {
             return this.$store.getters.showPivot;
+        },
+
+        isThin() {
+            const safeZoom = this.zoom > 0.001 ? this.zoom : 1.0;
+            return this.editBox.area.w/safeZoom < 3 || this.editBox.area.h/safeZoom < 3;
         }
     }
 }

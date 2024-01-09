@@ -806,7 +806,7 @@ class IdleState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (object.type === 'multi-item-edit-box') {
+        if (object.type === 'multi-item-edit-box' && this.clickedObject && this.clickedObject.type === object.type) {
             this.handleSimpleClickOnEditBox(x, y, event);
         }
         this.clickedObject = null;
@@ -827,7 +827,14 @@ class IdleState extends SubState {
     handleSimpleClickOnEditBox(x, y, event) {
         const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
             const p = localPointOnItem(x, y, item);
-            return item.shape !== 'connector' && p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility;
+            if (p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility) {
+                if (item.shape === 'connector') {
+                    const closestPoint = this.schemeContainer.closestPointToItemOutline(item, {x, y}, {});
+                    const d = myMath.distanceBetweenPoints(x, y, closestPoint.x, closestPoint.y);
+                    return d / this.schemeContainer.screenTransform.scale < 5;
+                }
+                return true;
+            }
         });
         if (!clickedItem) {
             return;
