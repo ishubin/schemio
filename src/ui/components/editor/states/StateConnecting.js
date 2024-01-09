@@ -6,6 +6,7 @@ import State from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
+import {realignConnectorNormal} from '../items/shapes/Connector.vue';
 import {enrichItemWithDefaults} from '../../../scheme/ItemFixer';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
@@ -544,6 +545,9 @@ export default class StateConnecting extends State {
                 this.item.shapeProps.destinationItemPosition = 0;
             }
         }
+
+        realignConnectorNormal(this.item.shapeProps.points[0], this.item.shapeProps.points[1]);
+        realignConnectorNormal(this.item.shapeProps.points[this.item.shapeProps.points.length - 1], this.item.shapeProps.points[this.item.shapeProps.points.length - 2]);
     }
 
     submitItem() {

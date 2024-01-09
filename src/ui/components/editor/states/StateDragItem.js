@@ -95,7 +95,7 @@ class EditBoxState extends SubState {
         }
 
         this.schemeContainer.reindexItems();
-
+        this.schemeContainer.updateMultiItemEditBox();
         this.listener.onSchemeChangeCommitted();
         this.migrateToPreviousSubState();
     }
@@ -170,6 +170,7 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
+        this.item.meta.revision += 1;
         this.schemeContainer.updateMultiItemEditBoxItems(this.schemeContainer.multiItemEditBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_CONTROL_POINT, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
         this.schemeContainer.updateMultiItemEditBox();
@@ -180,6 +181,23 @@ class DragControlPointState extends SubState {
     }
 
     findItemControlPoint(pointId) {
+        if (this.item.shape === 'connector') {
+            pointId = parseInt(pointId);
+            const p = this.item.shapeProps.points[pointId];
+            if (!p) {
+                return null;
+            }
+
+            return {
+                id: pointId,
+                x: p.x,
+                y: p.y,
+                editBoxConnectorPointIdx: this.findEditBoxConnectorPointIdx(this.item.id, pointId),
+                isEdgeStart: pointId === 0,
+                isEdgeEnd: pointId === this.item.shapeProps.points.length - 1
+            };
+        }
+
         for(let i = 0; i < this.store.state.itemControlPoints.length; i++) {
             const controlPoint = this.store.state.itemControlPoints[i];
             if (controlPoint.id === pointId) {
@@ -190,12 +208,25 @@ class DragControlPointState extends SubState {
         return null;
     }
 
+    findEditBoxConnectorPointIdx(itemId, pointId) {
+        if (!this.schemeContainer.multiItemEditBox) {
+            return -1;
+        }
+        for(let i = 0; i < this.schemeContainer.multiItemEditBox.connectorPoints.length; i++) {
+            const cp = this.schemeContainer.multiItemEditBox.connectorPoints[i];
+            if (cp.itemId === itemId && cp.pointIdx === pointId) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     handleControlPointDrag(x, y) {
         StoreUtils.clearItemSnappers(this.store);
 
         if (this.controlPoint) {
             if (this.item.shape === 'connector' && (this.controlPoint.isEdgeStart || this.controlPoint.isEdgeEnd)) {
-                this.handleCurveConnectorEdgeControlPointDrag(x, y, this.controlPoint);
+                this.handleConnectorEdgeControlPointDrag(x, y, this.controlPoint);
                 this.schemeContainer.updateItemClones(this.item);
             } else {
                 const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.item);
@@ -236,17 +267,26 @@ class DragControlPointState extends SubState {
                 horizontal: [worldPoint],
             }, new Set(), 0, 0);
 
-            const localPoint = this.schemeContainer.localPointOnItem(worldPoint.x + newOffset.dx, worldPoint.y + newOffset.dy, this.item);
+            const wx = worldPoint.x + newOffset.dx;
+            const wy = worldPoint.y + newOffset.dy;
+
+            const localPoint = this.schemeContainer.localPointOnItem(wx, wy, this.item);
             point.x = localPoint.x;
             point.y = localPoint.y;
 
+            if (this.controlPoint.editBoxConnectorPointIdx >= 0) {
+                const lp = myMath.localPointInArea(wx, wy, this.schemeContainer.multiItemEditBox.area);
+                this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = lp.x;
+                this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
+            }
+
             // since this function can only be called if the connector is selected
             // we should update connector path so that it can be rendered in multi item edit box
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(this.item.shape).computeOutline(this.item));
+            StoreUtils.setSelectedConnector(this.store, this.item);
         }
     }
 
-    handleCurveConnectorEdgeControlPointDrag(x, y, controlPoint) {
+    handleConnectorEdgeControlPointDrag(x, y, controlPoint) {
         // this function implements the same logic as in StateEditPath.handleEdgeCurvePointDrag
         // but it also modifies a control point in the end
         // so it is not that easy to share code
@@ -258,8 +298,8 @@ class DragControlPointState extends SubState {
 
         const includeOnlyVisibleItems = true;
 
-        const curvePoint = this.item.shapeProps.points[this.pointId];
-        if (!curvePoint) {
+        const point = this.item.shapeProps.points[this.pointId];
+        if (!point) {
             return;
         }
 
@@ -278,13 +318,22 @@ class DragControlPointState extends SubState {
 
         const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
 
+
+        let worldX, worldY;
         // Not letting connectors attach to themselves
         if (closestPointToItem && closestPointToItem.itemId !== this.item.id
             && !this.schemeContainer.doesItemDependOn(closestPointToItem.itemId, this.item.id)) {
-            const localCurvePoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+            worldX = closestPointToItem.x;
+            worldY = closestPointToItem.y;
+            const localPoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
 
-            curvePoint.x = localCurvePoint.x;
-            curvePoint.y = localCurvePoint.y;
+            point.x = localPoint.x;
+            point.y = localPoint.y;
+
+            if (closestPointToItem.hasOwnProperty('nx')) {
+                point.bx = closestPointToItem.nx;
+                point.by = closestPointToItem.ny;
+            }
 
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (controlPoint.isEdgeStart) {
@@ -295,10 +344,12 @@ class DragControlPointState extends SubState {
                 this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
             }
         } else {
-            const localPoint = this.schemeContainer.localPointOnItem(x + snappedOffset.dx, y + snappedOffset.dy, this.item);
+            worldX = x + snappedOffset.dx;
+            worldY = y + snappedOffset.dy;
+            const localPoint = this.schemeContainer.localPointOnItem(worldX, worldY, this.item);
 
-            curvePoint.x = localPoint.x;
-            curvePoint.y = localPoint.y;
+            point.x = localPoint.x;
+            point.y = localPoint.y;
 
             // nothing to attach to so reseting highlights in case it was set previously
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
@@ -309,17 +360,28 @@ class DragControlPointState extends SubState {
                 this.item.shapeProps.destinationItem = null;
                 this.item.shapeProps.destinationItemPosition = 0;
             }
+
+            if (point.hasOwnProperty('bx')) {
+                delete point.bx;
+                delete point.by;
+            }
         }
 
+        if (this.controlPoint.editBoxConnectorPointIdx >= 0) {
+            const lp = myMath.localPointInArea(worldX, worldY, this.schemeContainer.multiItemEditBox.area);
+            this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = lp.x;
+            this.schemeContainer.multiItemEditBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
+        }
+
+
         const shape = Shape.find(this.item.shape);
-        StoreUtils.setItemControlPoints(this.store, this.item);
 
         this.listener.onItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, {...ITEM_MODIFICATION_CONTEXT_DEFAULT, controlPoint: true}, this.getUpdatePrecision());
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
-        StoreUtils.setSelectedConnectorPath(this.store, shape.computeOutline(this.item));
+        StoreUtils.setSelectedConnector(this.store, this.item);
     }
 }
 
@@ -413,6 +475,7 @@ class ResizeEditBoxState extends EditBoxState {
             // But setting it from scratch is safer
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
         }
+        this.schemeContainer.updateMultiItemEditBoxConnectorPoints();
         updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
     }
 }
@@ -450,6 +513,8 @@ class RotateEditBoxState extends EditBoxState {
             rotated: true,
             resized: false
         }, this.getUpdatePrecision());
+
+        this.schemeContainer.updateMultiItemEditBoxConnectorPoints();
 
         log.info('Rotated multi item edit box', this.multiItemEditBox);
     }
@@ -534,7 +599,7 @@ class DragEditBoxState extends EditBoxState {
         // Fixing bug #392 where connector outline is rendered stale while connector itself gets readjusted
         if (this.multiItemEditBox.items.length === 1 && this.multiItemEditBox.items[0].shape === 'connector') {
             StoreUtils.setItemControlPoints(this.store, this.multiItemEditBox.items[0]);
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find('connector').computeOutline(this.multiItemEditBox.items[0]));
+            StoreUtils.setSelectedConnector(this.store, this.multiItemEditBox.items[0]);
         }
 
         // checking if it can fit into another item
@@ -553,6 +618,7 @@ class DragEditBoxState extends EditBoxState {
             this.proposedToRemountToRoot = true;
         }
 
+        this.schemeContainer.updateMultiItemEditBoxConnectorPoints();
         updateMultiItemEditBoxWorldPivot(this.multiItemEditBox);
     }
 
@@ -740,17 +806,28 @@ class IdleState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.clickedObject = null;
-
         if (object.type === 'multi-item-edit-box') {
             this.handleSimpleClickOnEditBox(x, y, event);
         }
+        this.clickedObject = null;
     }
 
+    /**
+     * We need this function because edit box has its own fill on top of all items.
+     * There can be a situation when another item is rendered on top of the selected item
+     * and user wants to select that item. When user clicks inside of existing edit box,
+     * the other item does not register click.
+     * In this case we need to iterate over all bounding boxes of all items respective of their layering order
+     * and check if user clicked inside of them. The only exception needs to be done to connectors.
+     * @param {*} x
+     * @param {*} y
+     * @param {*} event
+     * @returns
+     */
     handleSimpleClickOnEditBox(x, y, event) {
         const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
             const p = localPointOnItem(x, y, item);
-            return p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility;
+            return item.shape !== 'connector' && p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility;
         });
         if (!clickedItem) {
             return;
@@ -829,8 +906,9 @@ class IdleState extends SubState {
             });
             this.listener.onItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-            StoreUtils.setItemControlPoints(this.store, item);
-            StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
+            StoreUtils.setSelectedConnector(this.store, item);
+            this.schemeContainer.reindexItems();
+            this.schemeContainer.updateMultiItemEditBox();
             this.listener.onSchemeChangeCommitted();
         }
     }
@@ -864,8 +942,9 @@ class IdleState extends SubState {
         item.shapeProps.points.splice(pointId, 1);
         this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        StoreUtils.setItemControlPoints(this.store, item);
-        StoreUtils.setSelectedConnectorPath(this.store, Shape.find(item.shape).computeOutline(item));
+        StoreUtils.setSelectedConnector(this.store, item);
+        this.schemeContainer.reindexItems();
+        this.schemeContainer.updateMultiItemEditBox();
         this.listener.onSchemeChangeCommitted();
     }
 

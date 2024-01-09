@@ -37,8 +37,9 @@ export default {
         store.dispatch('setMultiSelectBox', box);
     },
 
-    setSelectedConnectorPath(store, path) {
-        store.dispatch('setSelectedConnectorPath', path);
+    setSelectedConnector(store, item) {
+        const path = item ? Shape.find(item.shape).computeOutline(item) : null;
+        store.dispatch('setSelectedConnectorWithPath', {item, path});
     },
 
     /**

@@ -614,11 +614,13 @@ export default {
             this.lastClickPoint = {x: event.pageX, y: event.pageY};
 
             const dt = newClickTime - this.doubleClickLastTime;
-            if (moveOffset <= 2 && dt < DOUBLE_CLICK_REACTION_MILLIS) {
+            if (event.button === 0 && moveOffset <= 2 && dt < DOUBLE_CLICK_REACTION_MILLIS) {
                 this.doubleClickLastTime = 0;
                 this.mouseDoubleClick(event);
             } else {
-                this.doubleClickLastTime = newClickTime;
+                if (event.button === 0) {
+                    this.doubleClickLastTime = newClickTime;
+                }
                 this.mouseEvent('mouse-down', event);
             }
 
