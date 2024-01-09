@@ -126,10 +126,10 @@
             </panel>
 
             <PositionPanel
-                v-if="schemeContainer.multiItemEditBox"
-                :key="`position-panel-${item.id}-${schemeContainer.multiItemEditBox.id}`"
+                v-if="schemeContainer.editBox"
+                :key="`position-panel-${item.id}-${schemeContainer.editBox.id}`"
                 :editorId="editorId"
-                :edit-box="schemeContainer.multiItemEditBox"
+                :edit-box="schemeContainer.editBox"
                 :item="item"
                 @area-changed="onPositionPanelAreaChanged"
                 @scale-changed="onPositionPanelScaleChanged"
@@ -351,7 +351,7 @@ export default {
                 }
             }
 
-            this.schemeContainer.updateMultiItemEditBox();
+            this.schemeContainer.updateEditBox();
             this.$emit('shape-prop-changed', name, type, value);
             this.updateShapePropsDependencies();
 
@@ -394,12 +394,12 @@ export default {
         },
 
         onPositionPanelAreaChanged(areaProperty, value) {
-            const box = this.schemeContainer.multiItemEditBox;
+            const box = this.schemeContainer.editBox;
 
             if (box) {
                 if (areaProperty === 'w' || areaProperty === 'h') {
                     box.area[areaProperty] = value;
-                    this.schemeContainer.updateMultiItemEditBoxItems(box, false, ITEM_MODIFICATION_CONTEXT_RESIZED);
+                    this.schemeContainer.updateEditBoxItems(box, false, ITEM_MODIFICATION_CONTEXT_RESIZED);
                     if (box.items.length === 1) {
                         StoreUtils.setItemControlPoints(this.$store, box.items[0]);
                     }
@@ -409,19 +409,19 @@ export default {
                     box.area.x += box.worldPivotPoint.x - worldPivotPoint.x;
                     box.area.y += box.worldPivotPoint.y - worldPivotPoint.y;
 
-                    this.schemeContainer.updateMultiItemEditBoxItems(box, false, ITEM_MODIFICATION_CONTEXT_ROTATED);
+                    this.schemeContainer.updateEditBoxItems(box, false, ITEM_MODIFICATION_CONTEXT_ROTATED);
                 } else {
                     box.area[areaProperty] = value;
-                    this.schemeContainer.updateMultiItemEditBoxItems(box, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+                    this.schemeContainer.updateEditBoxItems(box, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
                 }
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `editbox.area.${areaProperty}`);
             }
         },
 
         onPositionPanelScaleChanged(sx, sy) {
-            if (this.schemeContainer.multiItemEditBox) {
-                if (this.schemeContainer.multiItemEditBox.items.length === 1) {
-                    const item = this.schemeContainer.multiItemEditBox.items[0];
+            if (this.schemeContainer.editBox) {
+                if (this.schemeContainer.editBox.items.length === 1) {
+                    const item = this.schemeContainer.editBox.items[0];
 
                     if (sx > 0) {
                         item.area.sx = sx;
@@ -432,8 +432,8 @@ export default {
 
                     EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area.sx');
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `editbox.area.s`);
-                    this.schemeContainer.updateMultiItemEditBoxAreaOnly();
-                    this.schemeContainer.updateChildTransforms(this.schemeContainer.multiItemEditBox.items[0]);
+                    this.schemeContainer.updateEditBoxAreaOnly();
+                    this.schemeContainer.updateChildTransforms(this.schemeContainer.editBox.items[0]);
                     EditorEventBus.editBox.updated.$emit(this.editorId);
                 }
             }

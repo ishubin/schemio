@@ -2,7 +2,7 @@ import shortid from 'shortid';
 import myMath from "../../../myMath";
 import utils from "../../../utils";
 import State from "./State";
-import { dragMultiItemEditBoxByDragger } from "./StateDragItem";
+import { dragEditBoxByDragger } from "./StateDragItem";
 
 const IS_SOFT = true;
 const IS_NOT_SOFT = false;
@@ -41,10 +41,10 @@ export default class StateCropImage extends State {
 
     mouseDown(x, y, mx, my, object, event) {
         this.modificationContextId = shortid.generate();
-        if (object.type === 'multi-item-edit-box-resize-dragger') {
+        if (object.type === 'edit-box-resize-dragger') {
             this.initMultiItemBoxResize(object.draggerEdges, x, y, mx, my);
 
-        } else if (object.type === 'multi-item-edit-box-reset-image-crop-link'){
+        } else if (object.type === 'edit-box-reset-image-crop-link'){
             this.resetCrop();
         } else {
             this.cancel();
@@ -58,7 +58,7 @@ export default class StateCropImage extends State {
 
     submit() {
         this.schemeContainer.reindexItems();
-        this.schemeContainer.updateMultiItemEditBox();
+        this.schemeContainer.updateEditBox();
     }
 
     initDragging(x, y, mx, my) {
@@ -71,25 +71,25 @@ export default class StateCropImage extends State {
 
     initMultiItemBoxResize(draggerEdges, x, y, mx, my) {
         this.initDragging(x, y, mx, my);
-        this.initOriginalAreasForMultiItemEditBox(this.editBox);
+        this.initOriginalAreasForEditBox(this.editBox);
         this.draggerEdges = draggerEdges;
     }
 
-    initOriginalAreasForMultiItemEditBox(multiItemEditBox) {
-        this.editBoxOriginalArea = utils.clone(multiItemEditBox.area);
+    initOriginalAreasForEditBox(editBox) {
+        this.editBoxOriginalArea = utils.clone(editBox.area);
     }
 
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
             if (this.draggerEdges) {
-                this.dragMultiItemEditBoxByDragger(x, y, this.draggerEdges, event);
+                this.dragEditBoxByDragger(x, y, this.draggerEdges, event);
             }
         }
     }
 
-    dragMultiItemEditBoxByDragger(x, y, draggerEdges, event) {
-        dragMultiItemEditBoxByDragger(
+    dragEditBoxByDragger(x, y, draggerEdges, event) {
+        dragEditBoxByDragger(
             this.editBox,
             this.editBoxOriginalArea,
             this.originalPoint,
@@ -110,7 +110,7 @@ export default class StateCropImage extends State {
         const w0 = this.originalItemArea.w * (1 + this.originalItemCrop.x + this.originalItemCrop.w);
         const h0 = this.originalItemArea.h * (1 + this.originalItemCrop.y + this.originalItemCrop.h);
 
-        this.schemeContainer.updateMultiItemEditBoxItems(this.editBox, IS_SOFT, {
+        this.schemeContainer.updateEditBoxItems(this.editBox, IS_SOFT, {
             moved: false,
             rotated: false,
             resized: true,

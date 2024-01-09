@@ -85,7 +85,7 @@
  */
 
 /**
- * @typedef {Object} MultiItemEditBox
+ * @typedef {Object} EditBox
  * @property {String} id - unique id of edit box
  * @property {Array} items - array of items that are selected for this edit box
  * @property {Set} itemIds - ids of items that are included in the edit box

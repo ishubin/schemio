@@ -97,21 +97,21 @@
                     @screen-transform-updated="onScreenTransformUpdated"
                     >
                     <g slot="scene-transform">
-                        <MultiItemEditBox  v-if="schemeContainer.multiItemEditBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
-                            :key="`multi-item-edit-box-${editorRevision}-${schemeContainer.multiItemEditBox.id}`"
+                        <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
+                            :key="`edit-box-${editorRevision}-${schemeContainer.editBox.id}`"
                             :useFill="editBoxUseFill"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :apiClient="apiClient"
-                            :edit-box="schemeContainer.multiItemEditBox"
+                            :edit-box="schemeContainer.editBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
-                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"
+                            @custom-control-clicked="onEditBoxCustomControlClicked"
                             @template-rebuild-requested="onTemplateRebuildRequested"
                             />
 
-                        <MultiItemEditBox  v-if="state === 'cropImage' && cropImage.editBox"
+                        <EditBox  v-if="state === 'cropImage' && cropImage.editBox"
                             :key="`crop-image-edit-box-${editorRevision}`"
                             kind="crop-image"
                             :editorId="editorId"
@@ -121,7 +121,7 @@
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
-                            @custom-control-clicked="onMultiItemEditBoxCustomControlClicked"/>
+                            @custom-control-clicked="onEditBoxCustomControlClicked"/>
 
                         <g v-if="state === 'editPath' && curveEditing.item && curveEditing.item.meta">
                             <PathEditBox
@@ -526,7 +526,7 @@ import {enrichItemWithDefaults, cleanupShapeProps} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
-import MultiItemEditBox from './editor/MultiItemEditBox.vue';
+import EditBox from './editor/EditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
@@ -711,7 +711,7 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        MultiItemEditBox, ElementPicker, DiagramPicker, ExportTemplateModal
+        EditBox, ElementPicker, DiagramPicker, ExportTemplateModal
     },
 
     props: {
@@ -1274,7 +1274,7 @@ export default {
 
             this.states[this.state].schemeContainer = this.schemeContainer;
             this.states.cropImage.reset();
-            this.cropImage.editBox = this.schemeContainer.generateMultiItemEditBox([item]);
+            this.cropImage.editBox = this.schemeContainer.generateEditBox([item]);
             this.cropImage.item = item;
             this.states.cropImage.setImageEditBox(this.cropImage.editBox);
             this.states.cropImage.setImageItem(item);
@@ -1339,7 +1339,7 @@ export default {
             if (item.shape === 'none') {
                 item.area.w = width;
                 item.area.h = height;
-                this.schemeContainer.updateMultiItemEditBox();
+                this.schemeContainer.updateEditBox();
             }
         },
 
@@ -2074,7 +2074,7 @@ export default {
             const x = this.x_(mouseX);
             const y = this.y_(mouseY);
 
-            const selectedOnlyOne = this.schemeContainer.multiItemEditBox && this.schemeContainer.multiItemEditBox.items.length === 1 || !this.schemeContainer.multiItemEditBox;
+            const selectedOnlyOne = this.schemeContainer.editBox && this.schemeContainer.editBox.items.length === 1 || !this.schemeContainer.editBox;
 
             let contextMenuOptions = [{
                 name: 'Bring to Front',
@@ -2140,13 +2140,13 @@ export default {
                 }
             } else {
                 let allCurves = true;
-                for (let i = 0; i < this.schemeContainer.multiItemEditBox.items.length && allCurves; i++) {
-                    allCurves = this.schemeContainer.multiItemEditBox.items[i].shape === 'path';
+                for (let i = 0; i < this.schemeContainer.editBox.items.length && allCurves; i++) {
+                    allCurves = this.schemeContainer.editBox.items[i].shape === 'path';
                 }
                 if (allCurves) {
                     contextMenuOptions.push({
                         name: 'Merge paths',
-                        clicked: () => this.mergePaths(this.schemeContainer.multiItemEditBox.items)
+                        clicked: () => this.mergePaths(this.schemeContainer.editBox.items)
                     })
                 }
             }
@@ -2178,8 +2178,8 @@ export default {
 
 
             let items = [item];
-            if (this.schemeContainer.multiItemEditBox) {
-                items = this.schemeContainer.multiItemEditBox.items;
+            if (this.schemeContainer.editBox) {
+                items = this.schemeContainer.editBox.items;
             }
             const alignSubOptions = [{
                 name: 'Horizontally in parent',
@@ -2256,7 +2256,7 @@ export default {
                 if (clickHandler()) {
                     EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-                    this.schemeContainer.updateMultiItemEditBox();
+                    this.schemeContainer.updateEditBox();
                 }
             };
         },
@@ -2306,7 +2306,7 @@ export default {
          * It also remounts the selected item to the new rect
          */
         surroundSelectedItems() {
-            const box = this.schemeContainer.multiItemEditBox;
+            const box = this.schemeContainer.editBox;
             if (box !== null && box.items.length > 0) {
                 const padding = this.$store.state.itemSurround.padding;
                 const rect = utils.clone(defaultItem);
@@ -2390,10 +2390,10 @@ export default {
         },
 
         collectSelectedItems() {
-            if (!this.schemeContainer.multiItemEditBox) {
+            if (!this.schemeContainer.editBox) {
                 return [];
             }
-            const box = this.schemeContainer.multiItemEditBox;
+            const box = this.schemeContainer.editBox;
             if (box.items.length === 0) {
                 return [];
             }
@@ -2837,10 +2837,10 @@ export default {
             this.$forceUpdate();
         },
 
-        onMultiItemEditBoxCustomControlClicked(item) {
+        onEditBoxCustomControlClicked(item) {
             this.schemeContainer.reindexSpecifiedItems([item]);
             this.schemeContainer.reindexItems();
-            this.schemeContainer.updateMultiItemEditBox();
+            this.schemeContainer.updateEditBox();
         },
 
         onWindowResize() {
