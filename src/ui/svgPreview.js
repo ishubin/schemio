@@ -60,15 +60,21 @@ function imageToDataURL(imageElement) {
     const argName = imageUrl.indexOf('?') < 0 ? '?_schuid=' : '&_schuid=';
     const uniqueUrl = imageUrl + argName + new Date().getTime() + '' + Math.round(Math.random()*10000);
 
-    const corsUrl = 'https://corsproxy.io/?' + encodeURIComponent(uniqueUrl);
-    return toDataURL(corsUrl)
-    .catch(err => {
-        // doing this fallback just in case corsproxy.io fails
-        return toDataURL(uniqueUrl);
-    })
-    .then((dataURL) => {
+    let chain = null;
+    if (uniqueUrl.charAt(0) !== '/') {
+        const corsUrl = 'https://corsproxy.io/?' + encodeURIComponent(uniqueUrl);
+        chain = toDataURL(corsUrl)
+        .catch(err => {
+            // doing this fallback just in case corsproxy.io fails
+            return toDataURL(uniqueUrl);
+        });
+    } else {
+        chain = toDataURL(uniqueUrl);
+    }
+
+    return chain.then((dataURL) => {
         imageElement.setAttribute('xlink:href', dataURL);
-    })
+    });
 }
 
 /**
