@@ -1380,7 +1380,8 @@ class SchemeContainer {
 
         // compensating for sparse points in the quad tree because originally,
         // when the index was created, it was using the distance of 20 between points on path
-        const searchDistance = Math.max(d, minSpatialIndexDistance);
+        // We want to ensure that our search distance is always bigger than the minSpatialIndexDistance
+        const searchDistance = Math.max(d, minSpatialIndexDistance*1.3);
 
 
         this.spatialIndex.forEachInRange(x - searchDistance, y - searchDistance, x + searchDistance, y + searchDistance, ({itemId, pathDistance}, point) => {

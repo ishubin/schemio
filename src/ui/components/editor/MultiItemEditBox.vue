@@ -42,7 +42,7 @@
                     :data-control-point-id="connectorPoint.pointIdx"
                     :cx="connectorPoint.x" :cy="connectorPoint.y"
                     fill="rgba(255,255,255,0.7)"
-                    :stroke="controlPointsColor"
+                    :stroke="boundaryBoxColor"
                     :stroke-size="1/safeZoom"
                     :r="controlPointSize/safeZoom"
                     />

@@ -906,6 +906,7 @@ class IdleState extends SubState {
             this.listener.onItemChanged(item.id);
             this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             StoreUtils.setSelectedConnector(this.store, item);
+            this.schemeContainer.reindexItems();
             this.schemeContainer.updateMultiItemEditBox();
             this.listener.onSchemeChangeCommitted();
         }
@@ -941,6 +942,7 @@ class IdleState extends SubState {
         this.listener.onItemChanged(item.id);
         this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
         StoreUtils.setSelectedConnector(this.store, item);
+        this.schemeContainer.reindexItems();
         this.schemeContainer.updateMultiItemEditBox();
         this.listener.onSchemeChangeCommitted();
     }
