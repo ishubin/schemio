@@ -6,6 +6,7 @@ import State from './State.js';
 import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import Shape from '../items/shapes/Shape.js';
+import {realignConnectorNormal} from '../items/shapes/Connector.vue';
 import {enrichItemWithDefaults} from '../../../scheme/ItemFixer';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
@@ -142,8 +143,8 @@ export default class StateConnecting extends State {
         }];
 
         if (typeof closestPoint.nx != 'undefined') {
-            curveItem.shapeProps.points[0].bx = myMath.roundPrecise(closestPoint.nx, 4);
-            curveItem.shapeProps.points[0].by = myMath.roundPrecise(closestPoint.ny, 4);
+            curveItem.shapeProps.points[0].nx = myMath.roundPrecise(closestPoint.nx, 4);
+            curveItem.shapeProps.points[0].ny = myMath.roundPrecise(closestPoint.ny, 4);
         }
 
         this.item = curveItem;
@@ -513,12 +514,12 @@ export default class StateConnecting extends State {
 
             const item = this.schemeContainer.findItemById(closestPointToItem.itemId);
             if (closestPointToItem.hasOwnProperty('nx')) {
-                curvePoint.bx = closestPointToItem.nx;
-                curvePoint.by = closestPointToItem.ny;
+                curvePoint.nx = closestPointToItem.nx;
+                curvePoint.ny = closestPointToItem.ny;
             } else {
                 const normal = this.schemeContainer.calculateNormalOnPointInItemOutline(item, closestPointToItem.distanceOnPath);
-                curvePoint.bx = normal.x;
-                curvePoint.by = normal.y;
+                curvePoint.nx = normal.x;
+                curvePoint.ny = normal.y;
             }
 
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
@@ -530,9 +531,9 @@ export default class StateConnecting extends State {
                 this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
             }
         } else {
-            if (curvePoint.hasOwnProperty('bx')) {
-                delete curvePoint.bx;
-                delete curvePoint.by;
+            if (curvePoint.hasOwnProperty('nx')) {
+                delete curvePoint.nx;
+                delete curvePoint.ny;
             }
             // nothing to attach to so reseting highlights in case it was set previously
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
@@ -544,6 +545,9 @@ export default class StateConnecting extends State {
                 this.item.shapeProps.destinationItemPosition = 0;
             }
         }
+
+        realignConnectorNormal(this.item.shapeProps.points[0], this.item.shapeProps.points[1]);
+        realignConnectorNormal(this.item.shapeProps.points[this.item.shapeProps.points.length - 1], this.item.shapeProps.points[this.item.shapeProps.points.length - 2]);
     }
 
     submitItem() {

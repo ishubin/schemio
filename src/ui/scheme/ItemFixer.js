@@ -161,6 +161,21 @@ export function cleanupShapeProps(item) {
     });
 }
 
+export function fixConnectorItem(item) {
+    if (!item.shapeProps || !Array.isArray(item.shapeProps.points)) {
+        return;
+    }
+
+    item.shapeProps.points.forEach(p => {
+        if (p.hasOwnProperty('bx') || p.hasOwnProperty('by')) {
+            p.nx = p.bx;
+            p.ny = p.by;
+            delete p.bx;
+            delete p.by;
+        }
+    });
+}
+
 export function enrichItemWithDefaults(item) {
     if (!item.textSlots)  {
         item.textSlots = {};
@@ -177,6 +192,9 @@ export function enrichItemWithDefaults(item) {
     // fixing old documents before curves were moved into multi-path shapes
     if (item.shape === 'curve') {
         fixOldCurveItem(item);
+    }
+    if (item.shape === 'connector') {
+        fixConnectorItem(item);
     }
     if (item.shape === 'path') {
         fixPath(item);

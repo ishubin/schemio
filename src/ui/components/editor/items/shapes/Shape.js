@@ -274,9 +274,15 @@ export default {
     getShapeIds() {
         return Object.keys(shapeRegistry);
     },
+
+    /**
+     * @param {String} id - id of shape
+     * @returns {Shape}
+     */
     find(id) {
         return shapeRegistry[id];
     },
+
     standardShapeProps,
     getShapePropDescriptor,
     getRegistry,

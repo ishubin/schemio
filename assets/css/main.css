@@ -3994,6 +3994,9 @@ ul.patch-field-list {
 .edit-box-controls-leave-from {
     opacity: 1.0;
 }
+.edit-box-outline {
+    cursor: grab;
+}
 
 
 .row {

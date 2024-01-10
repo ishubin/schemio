@@ -478,19 +478,19 @@ export default {
                         pathIndex: parseInt(element.getAttribute('data-path-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-path-control-point-index'))
                     };
-                } else if (elementType === 'multi-item-edit-box'
-                        || elementType === 'multi-item-edit-box-rotational-dragger'
-                        || elementType === 'multi-item-edit-box-pivot-dragger'
-                        || elementType === 'multi-item-edit-box-reset-image-crop-link'
-                        || elementType === 'multi-item-edit-box-context-menu-button') {
+                } else if (elementType === 'edit-box'
+                        || elementType === 'edit-box-rotational-dragger'
+                        || elementType === 'edit-box-pivot-dragger'
+                        || elementType === 'edit-box-reset-image-crop-link'
+                        || elementType === 'edit-box-context-menu-button') {
                     return {
                         type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBox
+                        editBox: this.schemeContainer.editBox
                     };
-                } else if (elementType === 'multi-item-edit-box-resize-dragger') {
+                } else if (elementType === 'edit-box-resize-dragger') {
                     return {
                         type: elementType,
-                        multiItemEditBox: this.schemeContainer.multiItemEditBox,
+                        editBox: this.schemeContainer.editBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
                 } else if (elementType === 'custom-item-area') {
@@ -614,11 +614,13 @@ export default {
             this.lastClickPoint = {x: event.pageX, y: event.pageY};
 
             const dt = newClickTime - this.doubleClickLastTime;
-            if (moveOffset <= 2 && dt < DOUBLE_CLICK_REACTION_MILLIS) {
+            if (event.button === 0 && moveOffset <= 2 && dt < DOUBLE_CLICK_REACTION_MILLIS) {
                 this.doubleClickLastTime = 0;
                 this.mouseDoubleClick(event);
             } else {
-                this.doubleClickLastTime = newClickTime;
+                if (event.button === 0) {
+                    this.doubleClickLastTime = newClickTime;
+                }
                 this.mouseEvent('mouse-down', event);
             }
 

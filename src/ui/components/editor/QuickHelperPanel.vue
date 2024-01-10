@@ -440,7 +440,7 @@ export default {
 
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
 
-            this.schemeContainer.updateMultiItemEditBox();
+            this.schemeContainer.updateEditBox();
 
             forEach(item.childItems, childItem => {
                 const originalWorldPoint = this.itemSurround.childItemOriginalPositions[childItem.id];

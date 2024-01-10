@@ -879,7 +879,7 @@ export default class StateEditPath extends State {
                 }
                 this.schemeContainer.reindexItems();
             }
-            this.schemeContainer.updateMultiItemEditBox();
+            this.schemeContainer.updateEditBox();
         }
         this.listener.onSchemeChangeCommitted();
         super.cancel();

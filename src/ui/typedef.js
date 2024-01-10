@@ -74,13 +74,34 @@
  */
 
 /**
- * @typedef {Object} MultiItemEditBox
+ * A connector attachments for source and destination points
+ * @typedef {Object} ConnectorAttachments
+ * @property {String} sourceItem - element selector for another item for attachment on first point
+ * @property {Number} sourceItemPosition - distance on path on source item
+ * @property {String} destinationItem - element selector for another item for attachment of last point
+ * @property {Number} destinationItemPosition - distance on path on destination item
+ * @property {Point} sourceProjection - projection of the world source point to edit box area
+ * @property {Point} destinationProjection - projection of the world destination point to edit box area
+ */
+
+/**
+ * @typedef {Object} EditBox
  * @property {String} id - unique id of edit box
  * @property {Array} items - array of items that are selected for this edit box
+ * @property {Set} itemIds - ids of items that are included in the edit box
  * @property {ItemArea}  area  - area of edit box
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)
  * @property {Object} itemProjections - map of item ids to item projections
  * @property {Array<ConnectorPointProjection>} connectorPoints
+ * @property {Map<String,ConnectorAttachments} connectorOriginalAttachments - stores original attachment data of connectors.
+ * @property {Map<String,Object} cache - used for temporary storage of various objects (for now this is used for reattaching connectors to the same spot)
+ * This is used for reattaching and detaching the connector during edit box movements
+ */
+
+/**
+ * @typedef {Object} Shape
+ * @property {Function} getTextSlots
+ * @property {Function} getPins
  */
 
 
@@ -146,6 +167,8 @@
  * @property {Number} y - value on y axis
  * @property {Number} distanceOnPath - distance on the item path from its beginning to the closest point on that path
  * @property {String} itemId - id of item
+ * @property {Number} nx - normal x, may be undefined if the pin does not have normal
+ * @property {Number} ny - normal y, may be undefined if the pin does not have normal
  */
 
 

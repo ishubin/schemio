@@ -314,7 +314,7 @@ function playAnimations(schemeContainer, animations, startFrame, fps, maxFrames,
         forEach(animations, animation => {
             animation.toggleFrame(frame);
         });
-        schemeContainer.updateMultiItemEditBox();
+        schemeContainer.updateEditBox();
 
 
         if (nextFrame < maxFrames && _isPlayingAnimation) {
@@ -445,7 +445,7 @@ export default {
                 compiledAnimation.toggleFrame(frame);
             });
 
-            this.schemeContainer.updateMultiItemEditBox();
+            this.schemeContainer.updateEditBox();
 
             if (this.selectedFrameControl.trackIdx >= 0 ) {
                 this.selectFrameControl(this.selectedFrameControl.trackIdx, frame - 1);
@@ -1243,7 +1243,7 @@ export default {
                         EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, animation.property);
 
                         if (animation.property.startsWith('area.')) {
-                            this.schemeContainer.updateMultiItemEditBox();
+                            this.schemeContainer.updateEditBox();
                         }
                     }
                 } else if (animation.kind === 'scheme') {

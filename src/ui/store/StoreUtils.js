@@ -12,7 +12,7 @@ export default {
         if (shape && shape.controlPoints) {
             const controlPoints = shape.controlPoints.make(item);
 
-            // since item control points are supposed to be used by multi-item edit box
+            // since item control points are supposed to be used by edit box
             // and it uses scale of 1 always
             // we need to convert positions of those points
             // by recalculating the complete scaling effect of the item relative to the world
@@ -37,8 +37,9 @@ export default {
         store.dispatch('setMultiSelectBox', box);
     },
 
-    setSelectedConnectorPath(store, path) {
-        store.dispatch('setSelectedConnectorPath', path);
+    setSelectedConnector(store, item) {
+        const path = item ? Shape.find(item.shape).computeOutline(item) : null;
+        store.dispatch('setSelectedConnectorWithPath', {item, path});
     },
 
     /**

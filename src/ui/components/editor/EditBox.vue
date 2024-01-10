@@ -3,17 +3,35 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g data-preview-ignore="true" :style="{opacity: useFill ? 1 : 0.5}">
+        <path v-if="!isItemConnector && isThin" :transform="svgEditBoxTransform"
+            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            data-type="edit-box"
+            class="edit-box-outline"
+            :stroke-width="5/safeZoom"
+            fill="none"
+            stroke="rgba(255,255,255,0.0)" />
+
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
             :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
-            data-type="multi-item-edit-box"
+            data-type="edit-box"
+            :class="{'edit-box-outline': isThin}"
             :stroke-width="1/safeZoom"
-            :fill="editBoxFill"
+            fill="none"
             :stroke="boundaryBoxColor"
             style="opacity: 0.8;"/>
+
+        <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
+            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            data-type="edit-box"
+            :stroke-width="1/safeZoom"
+            :fill="editBoxFill"
+            stroke="none"
+            style="opacity: 0.8;"/>
+
         <!-- rendering item custom control points -->
-        <g v-if="editBox.items.length === 1 && editBox.connectorPoints.length === 0 && kind === 'regular'">
-            <g v-if="editBox.items[0].shape === 'connector' && selectedConnectorPath"
-               :transform="svgItemCompleteTransform"
+        <g v-if="kind === 'regular'">
+            <g v-if="editBox.items.length === 1 && editBox.items[0].shape === 'connector' && selectedConnectorPath"
+               :transform="svgConnectorCompleteTransform"
                >
                 <path :d="selectedConnectorPath"
                     :stroke-width="`${editBox.items[0].shapeProps.strokeSize + 3}px`"
@@ -31,6 +49,20 @@
                     :data-item-id="editBox.items[0].id"
                     :stroke-dasharray="createStrokeDashArray(editBox.items[0].shapeProps.strokePattern, editBox.items[0].shapeProps.strokeSize)"
                     fill="none"/>
+            </g>
+
+            <g :transform="svgEditBoxTransform" v-if="editBox.connectorPoints.length > 0">
+                <circle v-for="connectorPoint in editBox.connectorPoints"
+                    :key="`item-control-point-${connectorPoint.itemId}-${connectorPoint.id}`"
+                    class="item-control-point"
+                    :data-control-point-item-id="connectorPoint.itemId"
+                    :data-control-point-id="connectorPoint.pointIdx"
+                    :cx="connectorPoint.x" :cy="connectorPoint.y"
+                    fill="rgba(255,255,255,0.7)"
+                    :stroke="boundaryBoxColor"
+                    :stroke-size="1/safeZoom"
+                    :r="controlPointSize/safeZoom"
+                    />
             </g>
 
             <g :transform="svgEditBoxTransform" v-if="shouldShowControlPoints">
@@ -68,7 +100,7 @@
                         :r="10/safeZoom"
                         fill="rgba(255, 255, 255, 0.0)"
                         :title="control.name"
-                        data-type="multi-item-edit-box"
+                        data-type="edit-box"
                         @click="onCustomControlClick(idx)"
                         >
                     </circle>
@@ -103,7 +135,7 @@
                             :height="control.height/safeZoom"
                             fill="rgba(0,0,0,0)"
                             :rx="10/safeZoom"
-                            data-type="multi-item-edit-box"
+                            data-type="edit-box"
                             @click="onTemplateControlClick(idx)"
                             />
                     </g>
@@ -114,7 +146,7 @@
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
             <ellipse v-if="kind === 'regular'" class="boundary-box-dragger"
-                data-type="multi-item-edit-box-rotational-dragger"
+                data-type="edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
                 :cy="-60/safeZoom"
@@ -152,7 +184,7 @@
 
             <g v-if="kind === 'regular'">
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,left"
                     :fill="boundaryBoxColor"
                     :x="-(draggerSize*2 + 10) / safeZoom"
@@ -162,7 +194,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="top"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w / 2 - draggerSize / safeZoom"
@@ -172,7 +204,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,right"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w + 10 / safeZoom"
@@ -182,7 +214,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="left"
                     :fill="boundaryBoxColor"
                     :x="-(draggerSize*2 + 10) / safeZoom"
@@ -192,7 +224,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="right"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w + 10 / safeZoom"
@@ -202,7 +234,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="bottom,left"
                     :fill="boundaryBoxColor"
                     :x="-(draggerSize*2 + 10) / safeZoom"
@@ -212,7 +244,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="bottom"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w / 2 - draggerSize / safeZoom"
@@ -222,7 +254,7 @@
                 />
 
                 <rect class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="bottom,right"
                     :fill="boundaryBoxColor"
                     :x="editBox.area.w + 10 / safeZoom"
@@ -249,7 +281,7 @@
                     />
 
                     <circle
-                        data-type="multi-item-edit-box-pivot-dragger"
+                        data-type="edit-box-pivot-dragger"
                         fill="rgba(255,255,255,0.0)"
                         :stroke="boundaryBoxColor"
                         :stroke-width="1/safeZoom"
@@ -261,7 +293,7 @@
 
                 <g class="boundary-box-context-menu-button">
                     <rect
-                        data-type="multi-item-edit-box-context-menu-button"
+                        data-type="edit-box-context-menu-button"
                         :fill="boundaryBoxColor"
                         :x="editBox.area.w + 6 * 5 / safeZoom"
                         :y="-10 * 5 / safeZoom"
@@ -270,7 +302,7 @@
                         :rx="2 / safeZoom"
                     />
                     <rect
-                        data-type="multi-item-edit-box-context-menu-button"
+                        data-type="edit-box-context-menu-button"
                         fill="#ffffff"
                         :x="editBox.area.w + 6 * 5 / safeZoom + 3.5 / safeZoom"
                         :y="-10 * 5 / safeZoom + 4/safeZoom"
@@ -279,7 +311,7 @@
                         :rx="1 / safeZoom"
                     />
                     <rect
-                        data-type="multi-item-edit-box-context-menu-button"
+                        data-type="edit-box-context-menu-button"
                         fill="#ffffff"
                         :x="editBox.area.w + 6 * 5 / safeZoom + 3.5 / safeZoom"
                         :y="-10 * 5 / safeZoom + 9/safeZoom"
@@ -288,7 +320,7 @@
                         :rx="1 / safeZoom"
                     />
                     <rect
-                        data-type="multi-item-edit-box-context-menu-button"
+                        data-type="edit-box-context-menu-button"
                         fill="#ffffff"
                         :x="editBox.area.w + 6 * 5 / safeZoom + 3.5 / safeZoom"
                         :y="-10 * 5 / safeZoom + 14/safeZoom"
@@ -297,7 +329,7 @@
                         :rx="1 / safeZoom"
                     />
                     <rect
-                        data-type="multi-item-edit-box-context-menu-button"
+                        data-type="edit-box-context-menu-button"
                         fill="rgba(255,255,255,0.0)"
                         :x="editBox.area.w + 6 * 5 / safeZoom"
                         :y="-10 * 5 / safeZoom"
@@ -312,13 +344,13 @@
                 <g :transform="`translate(${10/safeZoom}, ${-20/safeZoom}) scale(${1/safeZoom})`">
                     <foreignObject :x="0" :y="0" width="100" height="20">
                         <div>
-                            <span class="link" data-type="multi-item-edit-box-reset-image-crop-link">Reset</span>
+                            <span class="link" data-type="edit-box-reset-image-crop-link">Reset</span>
                         </div>
                     </foreignObject>
                 </g>
                 <path :transform="`translate(${editBox.area.w/2}, 0) rotate(0)`" :d="`M ${-cdsB} ${-cds} L ${cdsB} ${-cds}  L ${cdsB} ${cds} L ${-cdsB} ${cds} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="top"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -326,7 +358,7 @@
                 />
                 <path :transform="`translate(${editBox.area.w}, ${editBox.area.h/2}) rotate(90)`" :d="`M ${-cdsB} ${-cds} L ${cdsB} ${-cds}  L ${cdsB} ${cds} L ${-cdsB} ${cds} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="right"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -334,7 +366,7 @@
                 />
                 <path :transform="`translate(${editBox.area.w/2}, ${editBox.area.h}) rotate(0)`" :d="`M ${-cdsB} ${-cds} L ${cdsB} ${-cds}  L ${cdsB} ${cds} L ${-cdsB} ${cds} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="bottom"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -342,7 +374,7 @@
                 />
                 <path :transform="`translate(0, ${editBox.area.h/2}) rotate(90)`" :d="`M ${-cdsB} ${-cds} L ${cdsB} ${-cds}  L ${cdsB} ${cds} L ${-cdsB} ${cds} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="left"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -350,7 +382,7 @@
                 />
                 <path :d="`M ${-cds} ${-cds} L ${cdsB} ${-cds} L ${cdsB} ${cds} L ${cds} ${cds} L ${cds} ${cdsB} L ${-cds} ${cdsB} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,left"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -358,7 +390,7 @@
                 />
                 <path :transform="`translate(${editBox.area.w}, 0) rotate(90)`" :d="`M ${-cds} ${-cds} L ${cdsB} ${-cds} L ${cdsB} ${cds} L ${cds} ${cds} L ${cds} ${cdsB} L ${-cds} ${cdsB} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,right"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -366,7 +398,7 @@
                 />
                 <path :transform="`translate(${editBox.area.w}, ${editBox.area.h}) rotate(180)`" :d="`M ${-cds} ${-cds} L ${cdsB} ${-cds} L ${cdsB} ${cds} L ${cds} ${cds} L ${cds} ${cdsB} L ${-cds} ${cdsB} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="bottom,right"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -374,7 +406,7 @@
                 />
                 <path :transform="`translate(0, ${editBox.area.h}) rotate(-90)`" :d="`M ${-cds} ${-cds} L ${cdsB} ${-cds} L ${cdsB} ${cds} L ${cds} ${cds} L ${cds} ${cdsB} L ${-cds} ${cdsB} Z`"
                     class="boundary-box-dragger"
-                    data-type="multi-item-edit-box-resize-dragger"
+                    data-type="edit-box-resize-dragger"
                     data-dragger-edges="bottom,left"
                     :fill="boundaryBoxColor"
                     stroke="rgba(255,255,255,1.0)"
@@ -400,10 +432,11 @@ import utils from '../../utils';
 
 /**
  *
- * @param {MultiItemEditBox} editBox
+ * @param {EditBox} editBox
  */
 function isItemConnector(editBox) {
-    return editBox.items.length === 1 && editBox.connectorPoints.length === 0 && editBox.items[0].shape === 'connector';
+    return (editBox.items.length === 1 && editBox.itemIds.size === 1 && editBox.items[0].shape === 'connector')
+        || (editBox.items.length === 0 && editBox.connectorPoints.length === 1);
 }
 
 function createCustomControlAxis(place) {
@@ -447,7 +480,7 @@ export default {
         editorId: {type: String, required: true},
         cursor: {type: Object},
 
-        /** @type {MultiItemEditBox} */
+        /** @type {EditBox} */
         editBox: {type: Object, required: true},
 
         zoom: {type: Number},
@@ -460,7 +493,7 @@ export default {
 
     beforeMount() {
         // reseting selected connector if it was set previously
-        StoreUtils.setSelectedConnectorPath(this.$store, null);
+        StoreUtils.setSelectedConnector(this.$store, null);
 
         if (this.editBox.items.length === 1) {
             const item = this.editBox.items[0];
@@ -472,8 +505,8 @@ export default {
 
             this.configureCustomControls(item, shape.editorProps);
 
-            if (item.shape === 'connector') {
-                StoreUtils.setSelectedConnectorPath(this.$store, shape.computeOutline(item));
+            if (item.shape === 'connector' && this.editBox.itemIds.size === 1) {
+                StoreUtils.setSelectedConnector(this.$store, item);
             }
 
             StoreUtils.setItemControlPoints(this.$store, item);
@@ -619,8 +652,11 @@ export default {
             return 'none';
         },
 
-        svgItemCompleteTransform() {
-            const m = itemCompleteTransform(this.editBox.items[0]);
+        svgConnectorCompleteTransform() {
+            if (!this.$store.getters.selectedConnector) {
+                return '';
+            }
+            const m = itemCompleteTransform(this.$store.getters.selectedConnector);
             return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
         },
 
@@ -678,6 +714,11 @@ export default {
 
         showPivot() {
             return this.$store.getters.showPivot;
+        },
+
+        isThin() {
+            const safeZoom = this.zoom > 0.001 ? this.zoom : 1.0;
+            return this.editBox.area.w/safeZoom < 3 || this.editBox.area.h/safeZoom < 3;
         }
     }
 }

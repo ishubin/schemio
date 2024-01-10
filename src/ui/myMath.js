@@ -419,7 +419,8 @@ export default {
     closestPointOnPath(x, y, svgPath, settings) {
         let startDistance = undefined;
         let stopDistance = undefined;
-        let precision = 0.5;
+        let precision = 2;
+        let minSegmentWidth = 0.5;
 
         if (settings && settings.startDistance !== undefined) {
             startDistance = settings.startDistance;
@@ -430,6 +431,8 @@ export default {
         if (settings && settings.precision !== undefined) {
             precision = settings.precision;
         }
+
+        minSegmentWidth = 1/Math.max(precision, 2);
 
         const pathLength = svgPath.getTotalLength();
         if (pathLength < 0.0000001) {
@@ -483,7 +486,7 @@ export default {
         let closestPoint = svgPath.getPointAtLength(closestSegmentLeft);
         closestPoint.distance = closestSegmentLeft;
 
-        while(segmentWidth > precision) {
+        while(segmentWidth > minSegmentWidth) {
             const middle = segmentWidth / 2;
             let pointLeft = svgPath.getPointAtLength(leftSegment[0] + middle);
             pointLeft.distance = leftSegment[0] + middle;

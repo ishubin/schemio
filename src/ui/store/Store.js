@@ -73,6 +73,7 @@ const store = new Vuex.Store({
         // used when only single connector is selected
         // in this case we need to render its path to make it highlighted
         selectedConnectorPath: null,
+        selectedConnector: null,
 
         multiSelectBox: null,
 
@@ -164,8 +165,9 @@ const store = new Vuex.Store({
             state.multiSelectBox = box;
         },
 
-        SET_SELECTED_CONNECTOR_PATH(state, path) {
+        SET_SELECTED_CONNECTOR_WITH_PATH(state, {item, path}) {
             state.selectedConnectorPath = path;
+            state.selectedConnector = item;
         },
 
         /************ Snappers ****************/
@@ -399,8 +401,8 @@ const store = new Vuex.Store({
             commit('SET_MULTI_SELECT_BOX', box);
         },
 
-        setSelectedConnectorPath({commit}, path) {
-            commit('SET_SELECTED_CONNECTOR_PATH', path);
+        setSelectedConnectorWithPath({commit}, {item, path}) {
+            commit('SET_SELECTED_CONNECTOR_WITH_PATH', {item, path});
         },
 
         setItemSnapper({commit}, snapper) {
@@ -509,6 +511,7 @@ const store = new Vuex.Store({
         statusMessage: state => state.statusMessage,
 
         selectedConnectorPath: state => state.selectedConnectorPath,
+        selectedConnector: state => state.selectedConnector,
 
         systemMessages: state => state.systemMessages,
 
