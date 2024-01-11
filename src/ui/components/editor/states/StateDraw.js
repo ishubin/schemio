@@ -8,6 +8,7 @@ import {simplifyPathPoints} from '../items/shapes/Path.vue';
 import { readjustItemAreaAndPoints } from './StateEditPath.js';
 import { convertCurvePointToRelative } from '../items/shapes/StandardCurves.js';
 import shortid from 'shortid';
+import { getStroke } from 'perfect-freehand';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -26,20 +27,24 @@ export default class StateDraw extends State {
         this.isDrawing = false;
         this.strokeColor = null;
         this.currentPathId = 0;
-        this.isPen = false;
+        this.isBrush = false;
+
+        /** @type {Array<Array<Point>>} */
+        this.recordedPaths = [];
     }
 
-    startPen() {
+    startBrush() {
         this.reset();
-        this.isPen = true;
+        this.isBrush = true;
     }
 
     startPencil() {
         this.reset();
-        this.isPen = false;
+        this.isBrush = false;
     }
 
     reset() {
+        this.recordedPaths = [];
         this.item = null;
         this.isDrawing = false;
         this.currentPathId = 0;
@@ -49,16 +54,20 @@ export default class StateDraw extends State {
         if (!this.item) {
             this.initFirstClick(x, y);
         } else {
+            const point = {
+                x: this.round(x),
+                y: this.round(y)
+            };
+            this.recordedPaths.push([point]);
             this.item.shapeProps.paths.push({
                 id: shortid.generate(),
                 pos: 'relative',
                 points: [ convertCurvePointToRelative({
-                    x: this.round(x),
-                    y: this.round(y),
+                    ...point,
                     t: 'L'
                 }, this.item.area.w, this.item.area.h)]
             });
-            this.currentPathId = this.item.shapeProps.paths.length - 1;
+            this.currentPathId = this.recordedPaths.length - 1;
         }
         this.isDrawing = true;
         this.listener.onItemChanged(this.item.id, 'shapeProps.points');
@@ -78,7 +87,7 @@ export default class StateDraw extends State {
                     points: []
                 }],
                 strokeSize: 3,
-                fill: {type: 'none'}
+                fill: this.isBrush ? {type: 'solid', color: '#000000'} : {type: 'none'}
             }
         };
 
@@ -90,11 +99,14 @@ export default class StateDraw extends State {
 
         this.item = item;
 
+        const currentPoint = {x: this.round(x), y: this.round(y)};
+
         this.item.shapeProps.paths[0].points.push(convertCurvePointToRelative({
-            x: this.round(x),
-            y: this.round(y),
+            ...currentPoint,
             t: 'L'
         }, this.item.area.w, this.item.area.h));
+
+        this.recordedPaths = [[currentPoint]];
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -106,18 +118,17 @@ export default class StateDraw extends State {
                 return;
             }
 
-            const lastPoint = this.item.shapeProps.paths[this.currentPathId].points[this.item.shapeProps.paths[this.currentPathId].points.length - 1];
+            const currentRecordedPathPoints = this.recordedPaths[this.currentPathId];
+
+            const lastPoint = currentRecordedPathPoints[currentRecordedPathPoints.length - 1];
             const px = this.round(x);
             const py = this.round(y);
             if (!myMath.sameFloatingValue(px, lastPoint.x) || !myMath.sameFloatingValue(py, lastPoint.y) ) {
-                const point = {
-                    x: px,
-                    y: py,
-                    t: 'L'
-                };
-                this.item.shapeProps.paths[this.currentPathId].points.push(convertCurvePointToRelative(point, this.item.area.w, this.item.area.h));
+                this.recordedPaths[this.currentPathId].push({
+                    x: px, y: py
+                });
 
-                this.listener.onItemChanged(this.item.id, `shapeProps.paths`);
+                this.buildCurrentItem();
             }
         }
     }
@@ -150,19 +161,51 @@ export default class StateDraw extends State {
         }
     }
 
+    buildCurrentItem() {
+        if (this.isBrush) {
+            this.buildBrushDrawing();
+        } else {
+            this.bulidRegularDrawing();
+        }
+    }
+
+    buildBrushDrawing() {
+        const inputPoints = this.recordedPaths[this.currentPathId].map(p => [p.x, p.y]);
+        const outlinePoints = getStroke(inputPoints, {
+            thinning: 0.7,
+            size: 10,
+        });
+        const rawPoints = outlinePoints.map(p => {
+            return {
+                x: p[0],
+                y: p[1],
+                t: 'L'
+            };
+        });
+
+        const simplifiedPoints = simplifyPathPoints(rawPoints, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+        this.item.shapeProps.paths[this.currentPathId].closed = true;
+        this.item.shapeProps.paths[this.currentPathId].points = simplifiedPoints.map(p => convertCurvePointToRelative(p, this.item.area.w, this.item.area.h));
+        this.listener.onItemChanged(this.item.id, 'shapeProps.points');
+    }
+
+    bulidRegularDrawing() {
+        const lastPath = this.item.shapeProps.paths[this.currentPathId]
+        const rawPoints = simplifyPathPoints(this.recordedPaths[this.currentPathId], myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+        lastPath.points = rawPoints.map(p => convertCurvePointToRelative(p, this.item.area.w, this.item.area.h));
+        this.listener.onItemChanged(this.item.id, 'shapeProps.points');
+    }
+
     submitDrawing() {
         if (this.item) {
-            //TODO proper cleanup of all paths if they have less than two points
-            this.item.shapeProps.paths.forEach(path => {
-                path.points = simplifyPathPoints(path.points, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
-            });
+            this.buildCurrentItem();
             readjustItemAreaAndPoints(this.item);
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();
             this.listener.onSchemeChangeCommitted();
+            this.listener.onItemChanged(this.item.id, 'shapeProps.points');
             return this.item;
         }
         return null;
     }
-
 }

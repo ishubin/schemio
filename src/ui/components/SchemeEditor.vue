@@ -321,7 +321,7 @@
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
                             @drawing-pencil-requested="switchStatePencilDrawing"
-                            @drawing-pen-requested="switchStatePenDrawing"
+                            @drawing-brush-requested="switchStateBrushDrawing"
                             @state-drag-item-requested="cancelCurrentState"
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
@@ -1217,13 +1217,13 @@ export default {
             this.updateFloatingHelperPanel();
         },
 
-        switchStatePenDrawing() {
+        switchStateBrushDrawing() {
             this.resetItemHighlight();
 
             this.states[this.state].cancel();
             this.state = 'draw';
             this.states.draw.schemeContainer = this.schemeContainer;
-            this.states.draw.startPen();
+            this.states.draw.startBrush();
             this.updateFloatingHelperPanel();
         },
 

@@ -23,11 +23,11 @@
                     >
                     <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
                 </div>
-                <div class="item-container" @click="initiatePenDrawing()" title="Pen"
+                <div class="item-container" @click="initiateBrushDrawing()" title="Pen"
                     @mouseover="showPreviewGif($event, 'draw')"
                     @mouseleave="stopPreviewGif('draw')"
                     >
-                    <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
+                    <img :src="`${assetsPath}/images/icons/brush-draw.svg`" width="35" height="30"/>
                 </div>
             </div>
 
@@ -599,9 +599,9 @@ export default {
             this.$emit('drawing-pencil-requested');
         },
 
-        initiatePenDrawing(name) {
+        initiateBrushDrawing(name) {
             this.previewItem.shown = false;
-            this.$emit('drawing-pen-requested');
+            this.$emit('drawing-brush-requested');
         },
 
         preventEvent(event) {
