@@ -2008,6 +2008,7 @@ export default {
         },
 
         switchToViewMode(screenTransform) {
+            this.hideSidePanelRight();
             this.animationRegistry.stopAllAnimations();
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
