@@ -99,7 +99,7 @@
                     <g slot="scene-transform">
                         <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
                             :key="`edit-box-${editorRevision}-${schemeContainer.editBox.id}`"
-                            :useFill="editBoxUseFill"
+                            :useFill="state !== 'pickElement' && editBoxUseFill"
                             :editorId="editorId"
                             :cursor="{x: cursorX, y: cursorY}"
                             :apiClient="apiClient"
@@ -1267,7 +1267,7 @@ export default {
 
             this.states[this.state].schemeContainer = this.schemeContainer;
             this.states.cropImage.reset();
-            this.cropImage.editBox = this.schemeContainer.generateEditBox([item]);
+            this.cropImage.editBox = this.schemeContainer.generateEditBox([item], []);
             this.cropImage.item = item;
             this.states.cropImage.setImageEditBox(this.cropImage.editBox);
             this.states.cropImage.setImageItem(item);
