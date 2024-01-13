@@ -25,7 +25,7 @@ export default class StateDraw extends State {
         super(editorId, store, 'draw', listener);
         this.item = null;
         this.isDrawing = false;
-        this.strokeColor = null;
+        this.color = null;
         this.currentPathId = 0;
         this.isBrush = false;
 
@@ -75,6 +75,8 @@ export default class StateDraw extends State {
 
     initFirstClick(x, y) {
         this.currentPathId = 0;
+
+        const color = this.color || '#000000';
         const item = {
             area: {x: 0, y: 0, w: 100, h: 100, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1},
             name: this.schemeContainer.generateUniqueName('Drawing'),
@@ -86,13 +88,14 @@ export default class StateDraw extends State {
                     closed: false,
                     points: []
                 }],
-                strokeSize: 3,
-                fill: this.isBrush ? {type: 'solid', color: '#000000'} : {type: 'none'}
+                strokeSize: this.isBrush ? 0 : this.store.getters.drawPencilSize,
+                fill: this.isBrush ? {type: 'solid', color} : {type: 'none'},
+                strokeColor: color,
             }
         };
 
-        if (this.strokeColor) {
-            item.shapeProps.strokeColor = this.strokeColor;
+        if (this.color) {
+            item.shapeProps.strokeColor = this.color;
         }
 
         this.schemeContainer.addItem(item);
@@ -135,30 +138,20 @@ export default class StateDraw extends State {
 
     mouseUp(x, y, mx, my, object, event) {
         this.isDrawing = false;
-        this.listener.onItemChanged(this.item.id, 'shapeProps.paths');
+        if (this.item && this.item.shapeProps.paths[this.currentPathId].points.length > 0) {
+            this.submitDrawing();
+            this.listener.onItemChanged(this.item.id, 'shapeProps.paths');
+            this.reset();
+        }
     }
 
     cancel() {
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
-        const item = this.submitDrawing();
-        if (item) {
-            this.schemeContainer.selectItem(item);
-        }
         super.cancel();
     }
 
     pickColor(color) {
-        this.strokeColor = color;
-
-        if (this.item && this.item.shapeProps.paths[this.currentPathId].points.length > 0) {
-            if (this.item.shapeProps.paths[this.currentPathId].points.length === 0) {
-            } else {
-                this.submitDrawing();
-                this.reset();
-            }
-        } else if (this.item) {
-            this.item.shapeProps.strokeColor = color;
-        }
+        this.color = color;
     }
 
     buildCurrentItem() {
@@ -172,8 +165,18 @@ export default class StateDraw extends State {
     buildBrushDrawing() {
         const inputPoints = this.recordedPaths[this.currentPathId].map(p => [p.x, p.y]);
         const outlinePoints = getStroke(inputPoints, {
-            thinning: 0.7,
-            size: 10,
+            size: this.store.getters.drawBrushSize,
+            smoothing: 0.99,
+            thinning: 0.12,
+            streamline: 0.28,
+            start: {
+                taper: 31,
+                cap: false,
+            },
+            end: {
+                taper: 30,
+                cap: false,
+            },
         });
         const rawPoints = outlinePoints.map(p => {
             return {
@@ -183,7 +186,7 @@ export default class StateDraw extends State {
             };
         });
 
-        const simplifiedPoints = simplifyPathPoints(rawPoints, myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
+        const simplifiedPoints = simplifyPathPoints(rawPoints, myMath.clamp(this.store.getters.drawEpsilon, 0.5, 1000));
         this.item.shapeProps.paths[this.currentPathId].closed = true;
         this.item.shapeProps.paths[this.currentPathId].points = simplifiedPoints.map(p => convertCurvePointToRelative(p, this.item.area.w, this.item.area.h));
         this.listener.onItemChanged(this.item.id, 'shapeProps.points');
@@ -191,8 +194,10 @@ export default class StateDraw extends State {
 
     bulidRegularDrawing() {
         const lastPath = this.item.shapeProps.paths[this.currentPathId]
-        const rawPoints = simplifyPathPoints(this.recordedPaths[this.currentPathId], myMath.clamp(this.store.getters.drawEpsilon, 1, 1000));
-        lastPath.points = rawPoints.map(p => convertCurvePointToRelative(p, this.item.area.w, this.item.area.h));
+        const rawPoints = this.recordedPaths[this.currentPathId];
+        const simplifiedPoints = simplifyPathPoints(rawPoints, myMath.clamp(this.store.getters.drawEpsilon, 0.5, 1000));
+
+        lastPath.points = simplifiedPoints.map(p => convertCurvePointToRelative(p, this.item.area.w, this.item.area.h));
         this.listener.onItemChanged(this.item.id, 'shapeProps.points');
     }
 

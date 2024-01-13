@@ -24,8 +24,8 @@
                     <img :src="`${assetsPath}/images/icons/draw.svg`" width="35" height="30"/>
                 </div>
                 <div class="item-container" @click="initiateBrushDrawing()" title="Pen"
-                    @mouseover="showPreviewGif($event, 'draw')"
-                    @mouseleave="stopPreviewGif('draw')"
+                    @mouseover="showPreviewGif($event, 'brush-draw')"
+                    @mouseleave="stopPreviewGif('brush-draw')"
                     >
                     <img :src="`${assetsPath}/images/icons/brush-draw.svg`" width="35" height="30"/>
                 </div>

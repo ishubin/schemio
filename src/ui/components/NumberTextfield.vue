@@ -3,10 +3,10 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="number-textfield-container" :class="{disabled: disabled}">
-        <div v-if="name" class="label" ref="label">{{name}}</div>
+        <div v-if="name" class="label" ref="label" @click="onLabelClicked">{{name}}</div>
         <div v-if="!name && icon" class="label" ref="icon"><i :class="icon"></i></div>
         <div class="wrapper">
-            <input type="text" v-model="text" @blur="submitEvent" @keydown.enter="submitEvent" :disabled="disabled"/>
+            <input ref="textfield" type="text" v-model="text" @blur="submitEvent" @keydown.enter="submitEvent" :disabled="disabled"/>
 
             <div class="step-controls">
                 <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
@@ -67,6 +67,10 @@ export default {
     },
 
     methods: {
+        onLabelClicked() {
+            this.$refs.textfield.focus();
+        },
+
         textToFloat(text) {
             const value = parseFloat(text.replace(/[^\d.-]/g, ''));
             if (isFinite(value)) {

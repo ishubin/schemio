@@ -375,7 +375,11 @@
                     <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
 
                     <div class="tabs-body" v-if="state === 'draw'">
-                        <div v-for="color in drawColorPallete" class="draw-color-pallete-option" :style="{background: color}" @click="onDrawColorPicked(color)"></div>
+                        <DrawingControlsPanel
+                            :isBrush="isDrawingBrush"
+                            @color-picked="onDrawColorPicked"
+                            @stop-drawing-requested="stopDrawing"
+                            />
                     </div>
                     <div v-else class="tabs-body">
                         <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.shown">
@@ -521,6 +525,7 @@ import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
+import DrawingControlsPanel from './DrawingControlsPanel.vue';
 
 import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
 import {enrichItemWithDefaults, cleanupShapeProps} from '../scheme/ItemFixer';
@@ -679,31 +684,6 @@ function timeoutPromise(timeInMillis) {
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
 
-const drawColorPallete = [
-    "rgba(0, 0, 0, 1)",
-    "rgba(76, 76, 76, 1)",
-    "rgba(128, 128, 128, 1)",
-    "rgba(170, 170, 170, 1)",
-    "rgba(255, 255, 255, 1)",
-    "rgba(254, 0, 0, 1)",
-    "rgba(254, 154, 0, 1)",
-    "rgba(255, 220, 0, 1)",
-    "rgba(82, 237, 0, 1)",
-    "rgba(0, 255, 215, 1)",
-    "rgba(0, 236, 254, 1)",
-    "rgba(0, 9, 254, 1)",
-    "rgba(200, 0, 254, 1)",
-    "rgba(254, 93, 93, 1)",
-    "rgba(252, 176, 58, 1)",
-    "rgba(249, 225, 78, 1)",
-    "rgba(141, 241, 88, 1)",
-    "rgba(93, 246, 222, 1)",
-    "rgba(118, 241, 251, 1)",
-    "rgba(137, 141, 242, 1)",
-    "rgba(228, 156, 247, 1)",
-];
-
-
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
@@ -712,7 +692,8 @@ export default {
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
-        EditBox, ElementPicker, DiagramPicker, ExportTemplateModal
+        EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
+        DrawingControlsPanel,
     },
 
     props: {
@@ -1002,8 +983,6 @@ export default {
                 shown: false
             },
 
-            drawColorPallete,
-
             selectedItem: null,
 
             floatingHelperPanel: {
@@ -1039,7 +1018,8 @@ export default {
                 shown: false,
             },
 
-            editBoxUseFill: true
+            editBoxUseFill: true,
+            isDrawingBrush: false
         }
     },
     methods: {
@@ -1210,6 +1190,7 @@ export default {
         switchStatePencilDrawing() {
             this.resetItemHighlight();
 
+            this.isDrawingBrush = false;
             this.states[this.state].cancel();
             this.state = 'draw';
             this.states.draw.schemeContainer = this.schemeContainer;
@@ -1220,6 +1201,7 @@ export default {
         switchStateBrushDrawing() {
             this.resetItemHighlight();
 
+            this.isDrawingBrush = true;
             this.states[this.state].cancel();
             this.state = 'draw';
             this.states.draw.schemeContainer = this.schemeContainer;
@@ -2057,12 +2039,6 @@ export default {
             this.switchStateDragItem();
             if (this.sidePanelRightWidth === 0) {
                 this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
-            }
-        },
-
-        onDrawColorPicked(color) {
-            if (this.state === 'draw') {
-                this.states.draw.pickColor(color);
             }
         },
 

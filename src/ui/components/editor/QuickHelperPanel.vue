@@ -168,13 +168,6 @@
             <div v-if="(mode === 'edit' && isDrawing)" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <number-textfield :value="drawEpsilon" name="Smoothing" @changed="onDrawEpsilonChanged" :min="1" :max="1000"/>
-                    </li>
-                </ul>
-            </div>
-            <div v-if="(mode === 'edit' && isDrawing)" class="quick-helper-panel-section">
-                <ul class="button-group">
-                    <li>
                         <span @click="stopDrawing" class="btn btn-small btn-secondary" title="Stop drawing">Stop drawing</span>
                     </li>
                 </ul>
@@ -541,10 +534,6 @@ export default {
             this.$emit('zoomed-to-items', this.searchHighlights);
         },
 
-        onDrawEpsilonChanged(value) {
-            this.$store.dispatch('updateDrawEpsilon', value);
-        },
-
         toggleTextSelection() {
             this.$emit('text-selection-changed', !this.textSelectionEnabled);
         }
@@ -663,10 +652,6 @@ export default {
 
         showClickableMarkers() {
             return this.$store.getters.showClickableMarkers;
-        },
-
-        drawEpsilon() {
-            return this.$store.getters.drawEpsilon;
         },
     }
 }

@@ -105,7 +105,9 @@ const store = new Vuex.Store({
         systemMessages: [],
 
         draw: {
-            epsilon: 3
+            epsilon: 0,
+            pencilSize: 3,
+            brushSize: 5,
         },
     },
     mutations: {
@@ -295,6 +297,16 @@ const store = new Vuex.Store({
             }
         },
 
+        UPDATE_DRAW_PENCIL_SIZE(state, size) {
+            if (!isNaN(size)) {
+                state.draw.pencilSize = size;
+            }
+        },
+        UPDATE_DRAW_BRUSH_SIZE(state, size) {
+            if (!isNaN(size)) {
+                state.draw.brushSize = size;
+            }
+        },
         UPDATE_DRAW_EPSILON(state, epsilon) {
             if (!isNaN(epsilon)) {
                 state.draw.epsilon = epsilon;
@@ -459,6 +471,12 @@ const store = new Vuex.Store({
         updateDrawEpsilon({commit}, epsilon) {
             commit('UPDATE_DRAW_EPSILON', epsilon);
         },
+        updateDrawPencilSize({commit}, epsilon) {
+            commit('UPDATE_DRAW_PENCIL_SIZE', epsilon);
+        },
+        updateDrawBrushSize({commit}, epsilon) {
+            commit('UPDATE_DRAW_BRUSH_SIZE', epsilon);
+        },
 
         copyItemStyle({commit}, item) {
             commit('COPY_ITEM_STYLE', item);
@@ -516,6 +534,8 @@ const store = new Vuex.Store({
         systemMessages: state => state.systemMessages,
 
         drawEpsilon: state => state.draw.epsilon,
+        drawPencilSize: state => state.draw.pencilSize,
+        drawBrushSize: state => state.draw.brushSize,
 
         editorSubStateName: state => state.editorSubStateName,
 
