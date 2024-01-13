@@ -43,7 +43,7 @@
             class="dropdown-option-tooltip"
             :style="{'top': `${hoveredOption.y}px`, 'left': `${hoveredOption.x}px`, 'width': `${hoveredOption.w}px`, 'height': `${hoveredOption.h}px`}"
             >
-            <h3> 
+            <h3>
                 <i v-if="hoveredOption.iconClass" :class="hoveredOption.iconClass"/>
                 {{hoveredOption.title}}
             </h3>
@@ -57,8 +57,8 @@ import {filter, find} from '../collections';
 
 
 export default {
-    /* options is an array of {name and any other fields} */
     props: {
+        /* options is an array of {name and any other fields} */
         options        : {type: Array, required: true},
         value          : {type: String, default: null},
         hoverEffect    : {type: Boolean, default: true},

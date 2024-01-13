@@ -9,7 +9,6 @@ import { folderPathFromPath, mediaFolder, supportedMediaExtensions, getFileExten
 import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
 import { ProjectService } from '../../common/fs/projectService.js';
-import templateService from '../../common/fs/templateService.js';
 
 const fsMediaPrefix = '/media/';
 const electronMediaPrefix = 'media://local/';

@@ -202,7 +202,7 @@ function _indexScheme(index, schemeId, scheme, fsPath, previewURL) {
     index.indexDocument(schemeId, {
         id: schemeId,
         fsPath,
-        name: scheme.name,
+        name: scheme.name || path.basename(fsPath),
         lowerName: scheme.name.toLowerCase(),
         modifiedTime: scheme.modifiedTime,
         link: `/docs/${schemeId}`,
@@ -272,7 +272,7 @@ function createIndexFromScratch(index, rootPath, isElectron, fileReader) {
                     id: scheme.id,
                     kind: 'schemio:doc',
                     path: path.relative(rootPath, filePath),
-                    name: scheme.name,
+                    name: scheme.name || path.basename(filePath),
                     previewURL,
                     modifiedTime: scheme.modifiedTime
                 });

@@ -461,6 +461,8 @@ input.textfield.missing-field-error {
     top: 0;
     left: 0;
     color: var(--faint-strong);
+    user-select: none;
+    -moz-user-select: none;
 }
 .number-textfield-container .step-controls {
     display: flex;

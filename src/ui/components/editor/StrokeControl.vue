@@ -125,7 +125,7 @@ export default {
                 this.strokePattern = props.strokePattern;
                 this.vuePickerColor.hex = props.strokeColor;
 
-                this.strokePatterns = this.buildStrokePatterns(props.strokeSize);
+                this.strokePatterns = this.buildStrokePatterns(Math.max(1, props.strokeSize));
 
             }
         },
