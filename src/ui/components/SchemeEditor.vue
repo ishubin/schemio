@@ -2286,6 +2286,7 @@ export default {
             this.schemeContainer.readjustItem(mainItem.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             this.schemeContainer.deleteItems(allItems);
             this.schemeContainer.selectItem(mainItem);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, mainItem.id);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
