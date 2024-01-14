@@ -121,7 +121,7 @@
             :fill="hoverPathFill" />
 
 
-        <defs v-if="item.clip || item.shape === 'component'">
+        <defs v-if="item.clip || (item.shape === 'component' && item.shapeProps.kind !== 'embedded')">
             <clipPath :id="`item-clip-path-${item.id}`">
                 <path v-if="itemSvgOutlinePath"
                     class="svg-event-layer"
