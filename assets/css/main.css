@@ -3537,7 +3537,7 @@ ul.breadcrumbs li .breadcrumb-separator {
 
 /*********************** Home ******************************/
 .home-page > h1,
-.home-page .home-option > p,
+.home-option > p,
 .home-buttons {
     text-align: center;
 }
