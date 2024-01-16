@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="color-picker" :style="{width: width, height: height}" :title="hint" :class="[`color-picker-uid-${uid}`]">
+    <div class="color-picker" :style="{width: width, 'min-width': width, height: height}" :title="hint" :class="[`color-picker-uid-${uid}`]">
         <div ref="toggleButton" class="color-picker-toggle-button" :class="{disabled: disabled}">
             <span class="color-picker-toggle-button-background"></span>
 

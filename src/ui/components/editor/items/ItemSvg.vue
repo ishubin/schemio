@@ -3,137 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <g :transform="svgItemTransform"
-        :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}"
-        :data-svg-item-container-id="item.id" :data-item-id="item.id">
-
-        <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML"></g>
-
-        <defs>
-            <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html" x="-50%" y="-50%" width="200%" height="200%"></filter>
-        </defs>
-
-        <g :filter="filterUrl">
-            <component
-                :key="`item-component-${item.id}-${item.shape}-${revision}`"
-                v-if="shouldBeDrawn && shapeComponent && item.visible"
-                :is="shapeComponent"
-                :item="item"
-                :editorId="editorId"
-                :mode="mode"
-                :style="{'opacity': item.selfOpacity/100.0}"
-                @frame-animator="onFrameAnimatorEvent">
-            </component>
-
-            <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
-                :style="{'opacity': item.selfOpacity/100.0}">
-
-                <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
-
-                <path v-for="curve in itemStandardCurves" :d="curve.path"
-                    :stroke-width="curve.strokeSize + 'px'"
-                    :stroke="curve.strokeColor"
-                    :stroke-dasharray="strokeDashArray"
-                    :data-item-id="item.id"
-                    stroke-linejoin="round"
-                    :fill="curve.fill"></path>
-            </g>
-
-            <g v-if="shapeType === 'missing' && item.visible" class="missing-shape">
-                <rect x="0" y="0" :width="item.area.w" :height="item.area.h" />
-                <foreignObject x="0" y="0"  :width="item.area.w" :height="item.area.h">
-                    <div xmlns="http://www.w3.org/1999/xhtml" :style="{width: `${item.area.w}px`, height: `${item.area.h}px`}">
-                        <div :style="missingShapeTextStyle">Missing Shape</div>
-                    </div>
-                </foreignObject>
-            </g>
-
-            <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName" :style="{'opacity': item.selfOpacity/100.0}">
-                <foreignObject
-                    ref="textSlots"
-                    :data-text-slot-name="slot.name"
-                    :id="`item-text-slot-${item.id}-${slot.name}`"
-                    :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
-                    <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
-                        :class="slot.cssClass"
-                        :style="slot.style"
-                        :data-item-id="item.id"
-                        >
-                        <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
-                    </div>
-                </foreignObject>
-            </g>
-        </g>
-
-        <g v-for="foregroundEffectHTML in foregroundEffects" v-html="foregroundEffectHTML"></g>
-
-
-        <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
-
-
-        <g v-if="item._childItems && item.visible && mode === 'edit'" :style="componentChildrenLayerStyle">
-            <ItemSvg v-for="childItem in item._childItems"
-                v-if="childItem.visible"
-                :key="`itsvg-${childItem.id}-${childItem.shape}-${item.meta.revision}`"
-                :item="childItem"
-                :editorId="editorId"
-                :patchIndex="patchIndex"
-                :mode="mode"
-                @frame-animator="onFrameAnimatorEvent"
-                />
-        </g>
-
-        <path v-if="itemSvgOutlinePath && !textSelectionEnabled"
-            class="svg-event-layer"
-            data-preview-ignore="true"
-            :id="`item-svg-path-${item.id}`"
-            :d="itemSvgOutlinePath"
-            :data-item-id="item.id"
-            :stroke-width="hoverPathStrokeWidth"
-            :style="{'cursor': (!item.behavior.dragging || item.behavior.dragging === 'none' ) ? item.cursor : 'grab'}"
-            stroke="rgba(255, 255, 255, 0)"
-            :fill="hoverPathFill" />
-
-        <g v-if="mode === 'view' && !textSelectionEnabled">
-            <path v-for="customArea in customAreas"
-                class="svg-event-layer"
-                data-preview-ignore="true"
-                :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
-                :id="`item-svg-path-${item.id}`"
-                :d="customArea.path"
-                data-type="custom-item-area"
-                :data-item-id="item.id"
-                :data-custom-area-id="customArea.id"
-                :stroke-width="hoverPathStrokeWidth"
-                stroke="rgba(255, 255, 255, 0)"
-                :fill="hoverPathFill" />
-        </g>
-
-
-        <rect v-if="shapeType === 'missing'"
-            class="svg-event-layer"
-            data-preview-ignore="true"
-            :data-item-id="item.id"
-            x="0" y="0"
-            :width="item.area.w"
-            :height="item.area.h"
-            stroke="rgba(255, 255, 255, 0)"
-            :fill="hoverPathFill" />
-
-
-        <defs v-if="item.clip || (item.shape === 'component' && item.shapeProps.kind !== 'embedded')">
-            <clipPath :id="`item-clip-path-${item.id}`">
-                <path v-if="itemSvgOutlinePath"
-                    class="svg-event-layer"
-                    :d="itemSvgOutlinePath"
-                    :data-item-id="item.id"
-                    stroke-width="0px"
-                    stroke="rgba(255, 255, 255, 0)"
-                    fill="rgba(255, 255, 255, 0)" />
-                    </clipPath>
-        </defs>
-
-
+    <g :transform="svgItemTransform" :data-svg-item-container-id="item.id" :data-item-id="item.id">
         <path v-if="itemSvgOutlinePath && patchOutline && patchIsDiffColoringEnabled"
             data-preview-ignore="true"
             :d="itemSvgOutlinePath"
@@ -142,29 +12,159 @@
             :stroke="patchOutline"
             fill="none" />
 
-        <g v-if="item.childItems && item.visible" :style="childrenLayerStyle">
-            <ItemSvg v-for="childItem in item.childItems"
-                v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
-                :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
-                :item="childItem"
-                :editorId="editorId"
-                :textSelectionEnabled="textSelectionEnabled"
-                :patchIndex="patchIndex"
-                :mode="mode"
-                @frame-animator="onFrameAnimatorEvent"
-                />
-        </g>
 
-        <g v-if="item._childItems && item.visible && mode === 'view'" :style="componentChildrenLayerStyle">
-            <ItemSvg v-for="childItem in item._childItems"
-                v-if="childItem.visible && childItem.shape !== 'hud'"
-                :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
-                :item="childItem"
-                :editorId="editorId"
-                :textSelectionEnabled="textSelectionEnabled"
-                :mode="mode"
-                @frame-animator="onFrameAnimatorEvent"
-                />
+        <g :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}">
+            <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML"></g>
+
+            <defs>
+                <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html" x="-50%" y="-50%" width="200%" height="200%"></filter>
+            </defs>
+
+            <g :filter="filterUrl">
+                <component
+                    :key="`item-component-${item.id}-${item.shape}-${revision}`"
+                    v-if="shouldBeDrawn && shapeComponent && item.visible"
+                    :is="shapeComponent"
+                    :item="item"
+                    :editorId="editorId"
+                    :mode="mode"
+                    :style="{'opacity': item.selfOpacity/100.0}"
+                    @frame-animator="onFrameAnimatorEvent">
+                </component>
+
+                <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
+                    :style="{'opacity': item.selfOpacity/100.0}">
+
+                    <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+
+                    <path v-for="curve in itemStandardCurves" :d="curve.path"
+                        :stroke-width="curve.strokeSize + 'px'"
+                        :stroke="curve.strokeColor"
+                        :stroke-dasharray="strokeDashArray"
+                        :data-item-id="item.id"
+                        stroke-linejoin="round"
+                        :fill="curve.fill"></path>
+                </g>
+
+                <g v-if="shapeType === 'missing' && item.visible" class="missing-shape">
+                    <rect x="0" y="0" :width="item.area.w" :height="item.area.h" />
+                    <foreignObject x="0" y="0"  :width="item.area.w" :height="item.area.h">
+                        <div xmlns="http://www.w3.org/1999/xhtml" :style="{width: `${item.area.w}px`, height: `${item.area.h}px`}">
+                            <div :style="missingShapeTextStyle">Missing Shape</div>
+                        </div>
+                    </foreignObject>
+                </g>
+
+                <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName" :style="{'opacity': item.selfOpacity/100.0}">
+                    <foreignObject
+                        ref="textSlots"
+                        :data-text-slot-name="slot.name"
+                        :id="`item-text-slot-${item.id}-${slot.name}`"
+                        :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
+                        <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
+                            :class="slot.cssClass"
+                            :style="slot.style"
+                            :data-item-id="item.id"
+                            >
+                            <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
+                        </div>
+                    </foreignObject>
+                </g>
+            </g>
+
+            <g v-for="foregroundEffectHTML in foregroundEffects" v-html="foregroundEffectHTML"></g>
+
+
+            <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
+
+
+            <g v-if="item._childItems && item.visible && mode === 'edit'" :style="componentChildrenLayerStyle">
+                <ItemSvg v-for="childItem in item._childItems"
+                    v-if="childItem.visible"
+                    :key="`itsvg-${childItem.id}-${childItem.shape}-${item.meta.revision}`"
+                    :item="childItem"
+                    :editorId="editorId"
+                    :patchIndex="patchIndex"
+                    :mode="mode"
+                    @frame-animator="onFrameAnimatorEvent"
+                    />
+            </g>
+
+            <path v-if="itemSvgOutlinePath && !textSelectionEnabled"
+                class="svg-event-layer"
+                data-preview-ignore="true"
+                :id="`item-svg-path-${item.id}`"
+                :d="itemSvgOutlinePath"
+                :data-item-id="item.id"
+                :stroke-width="hoverPathStrokeWidth"
+                :style="{'cursor': (!item.behavior.dragging || item.behavior.dragging === 'none' ) ? item.cursor : 'grab'}"
+                stroke="rgba(255, 255, 255, 0)"
+                :fill="hoverPathFill" />
+
+            <g v-if="mode === 'view' && !textSelectionEnabled">
+                <path v-for="customArea in customAreas"
+                    class="svg-event-layer"
+                    data-preview-ignore="true"
+                    :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
+                    :id="`item-svg-path-${item.id}`"
+                    :d="customArea.path"
+                    data-type="custom-item-area"
+                    :data-item-id="item.id"
+                    :data-custom-area-id="customArea.id"
+                    :stroke-width="hoverPathStrokeWidth"
+                    stroke="rgba(255, 255, 255, 0)"
+                    :fill="hoverPathFill" />
+            </g>
+
+
+            <rect v-if="shapeType === 'missing'"
+                class="svg-event-layer"
+                data-preview-ignore="true"
+                :data-item-id="item.id"
+                x="0" y="0"
+                :width="item.area.w"
+                :height="item.area.h"
+                stroke="rgba(255, 255, 255, 0)"
+                :fill="hoverPathFill" />
+
+
+            <defs v-if="item.clip || (item.shape === 'component' && item.shapeProps.kind !== 'embedded')">
+                <clipPath :id="`item-clip-path-${item.id}`">
+                    <path v-if="itemSvgOutlinePath"
+                        class="svg-event-layer"
+                        :d="itemSvgOutlinePath"
+                        :data-item-id="item.id"
+                        stroke-width="0px"
+                        stroke="rgba(255, 255, 255, 0)"
+                        fill="rgba(255, 255, 255, 0)" />
+                        </clipPath>
+            </defs>
+
+
+            <g v-if="item.childItems && item.visible" :style="childrenLayerStyle">
+                <ItemSvg v-for="childItem in item.childItems"
+                    v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
+                    :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                    :item="childItem"
+                    :editorId="editorId"
+                    :textSelectionEnabled="textSelectionEnabled"
+                    :patchIndex="patchIndex"
+                    :mode="mode"
+                    @frame-animator="onFrameAnimatorEvent"
+                    />
+            </g>
+
+            <g v-if="item._childItems && item.visible && mode === 'view'" :style="componentChildrenLayerStyle">
+                <ItemSvg v-for="childItem in item._childItems"
+                    v-if="childItem.visible && childItem.shape !== 'hud'"
+                    :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                    :item="childItem"
+                    :editorId="editorId"
+                    :textSelectionEnabled="textSelectionEnabled"
+                    :mode="mode"
+                    @frame-animator="onFrameAnimatorEvent"
+                    />
+            </g>
         </g>
     </g>
 </template>

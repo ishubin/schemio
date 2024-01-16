@@ -83,16 +83,16 @@
                 <div v-else>
                     <span @click="patch.menuCollapsed = true" style="cursor: pointer"><i class="fa-solid fa-angle-up"></i></span>
                     <div class="toggle-group">
-                        <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="showPatchOrigin" >Origin</span>
-                        <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="showPatchModified" >Modified</span>
+                        <span class="toggle-button" :class="[patch.isToggled ? 'toggled':'']" @click="showPatchModified" title="Displays the changed document">Modified</span>
+                        <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="showPatchOrigin" title="Original document without changes" >Origin</span>
                     </div>
 
                     <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring(arguments[0].target.checked)"/>
-                    <label for="chk-patch-menu-toggle-diff-coloring">Highlight diff</label>
+                    <label for="chk-patch-menu-toggle-diff-coloring">diff</label>
 
-                    <color-picker :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', arguments[0])" width="26px" hint="Additions"></color-picker>
-                    <color-picker :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', arguments[0])" width="26px" hint="Deletions"></color-picker>
-                    <color-picker :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="26px" hint="Modifications"></color-picker>
+                    <ColorPicker :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', arguments[0])" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', arguments[0])" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
 
                     <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
 
@@ -183,7 +183,7 @@ export default{
                 index                  : null,
                 patch                  : null,
                 patchedScheme          : null,
-                isToggled              : false,
+                isToggled              : true,
                 stats                  : null,
                 originSchemeContainer  : null,
                 modifiedSchemeContainer: null,
@@ -216,7 +216,7 @@ export default{
 
                 this.patch.patchedScheme = applySchemePatch(this.scheme, patch);
                 this.$emit('patch-modified-generated', this.patch.patchedScheme);
-                this.showPatchOrigin();
+                this.showPatchModified();
                 this.patch.originSchemeContainer = new SchemeContainer(this.scheme, this.editorId);
                 this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme, this.editorId);
                 this.$forceUpdate();
