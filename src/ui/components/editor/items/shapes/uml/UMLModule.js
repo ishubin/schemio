@@ -45,21 +45,27 @@ export default {
             const h = item.area.h;
             const W = item.area.w - bw;
 
-            return [{
-                x: bw + W /2, y: h/2
-            }, {
-                x: bw + W / 2, y: 0,
-                nx: 0, ny: -1
-            }, {
-                x: bw + W / 2, y: h,
-                nx: 0, ny: 1
-            }, {
-                x: bw, y: h/2,
-                nx: -1, ny: 0
-            }, {
-                x: w, y: h/2,
-                nx: 1, ny: 0
-            }];
+            return {
+                c: {
+                    x: bw + W /2, y: h/2
+                },
+                t: {
+                    x: bw + W / 2, y: 0,
+                    nx: 0, ny: -1
+                },
+                b: {
+                    x: bw + W / 2, y: h,
+                    nx: 0, ny: 1
+                },
+                r: {
+                    x: bw, y: h/2,
+                    nx: -1, ny: 0
+                },
+                l: {
+                    x: w, y: h/2,
+                    nx: 1, ny: 0
+                }
+            };
         },
 
         computePath(item) {

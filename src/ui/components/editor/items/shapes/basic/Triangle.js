@@ -34,28 +34,36 @@ export default {
 
         getPins(item) {
             const s = item.area.w * item.shapeProps.skewP / 100;
-            return [{
-                x: (s + item.area.w)/3,
-                y: item.area.h*2/3
-            }, {
-                x: s,
-                y: 0,
-            }, {
-                x: item.area.w,
-                y: item.area.h
-            }, {
-                x: 0,
-                y: item.area.h
-            }, {
-                x: s/2,
-                y: item.area.h/2
-            }, {
-                x: s + (item.area.w - s) / 2,
-                y: item.area.h/2
-            }, {
-                x: item.area.w/2,
-                y: item.area.h
-            }];
+            return {
+                c: {
+                    x: (s + item.area.w)/3,
+                    y: item.area.h*2/3
+                },
+                c1: {
+                    x: s,
+                    y: 0,
+                },
+                c2: {
+                    x: item.area.w,
+                    y: item.area.h
+                },
+                c3: {
+                    x: 0,
+                    y: item.area.h
+                },
+                e1: {
+                    x: s/2,
+                    y: item.area.h/2
+                },
+                e2: {
+                    x: s + (item.area.w - s) / 2,
+                    y: item.area.h/2
+                },
+                e3: {
+                    x: item.area.w/2,
+                    y: item.area.h
+                }
+            };
         },
 
         menuItems: [{

@@ -979,12 +979,14 @@ export default {
         },
 
         getPins(item) {
-            return map(item.shapeProps.points, point => {
-                return {
+            const pins = {};
+            forEach(item.shapeProps.points, point => {
+                pins[point.id] = {
                     x: point.x,
                     y: point.y
                 };
             });
+            return pins;
         },
 
         editorProps: {
@@ -1008,10 +1010,12 @@ export default {
             fill      : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {thick: true}},
             thickWidth: {type: 'number',        value: 10, name: 'Thick Width', min: 1, max: 1000, depends: {thick: true}},
 
-            sourceItem             : {type: 'element',       value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
-            destinationItem        : {type: 'element',       value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
-            sourceItemPosition     : {type: 'number',        value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+            sourceItem             : {type: 'element',  value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
+            destinationItem        : {type: 'element',  value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
+            sourceItemPosition     : {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
             destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+            sourcePin              : {type: 'string', value: '', name: 'Source Item Pin', description: 'If non-empty it means that the connector is attached to a specific pin', hidden: true},
+            destinationPin         : {type: 'string', value: '', name: 'Destination Item Pin', description: 'If non-empty it means that the connector is attached to a specific pin', hidden: true},
         },
     },
 

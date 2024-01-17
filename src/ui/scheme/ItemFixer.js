@@ -88,14 +88,20 @@ function fixPath(item) {
             if (!path.id) {
                 path.id = shortid.generate();
             }
+            if (!Array.isArray(path.points)) {
+                path.points = [];
+            }
             if (path.pos !== 'relative') {
                 path.pos = 'relative';
-                if (Array.isArray(path.points)) {
-                    path.points = path.points.map(point =>{
-                        return convertCurvePointToRelative(point, item.area.w, item.area.h);
-                    });
-                }
+                path.points = path.points.map(point =>{
+                    return convertCurvePointToRelative(point, item.area.w, item.area.h);
+                });
             }
+            path.points.forEach(p => {
+                if (!p.hasOwnProperty('id')) {
+                    p.id = shortid.generate();
+                }
+            });
         });
     }
 }
@@ -167,6 +173,9 @@ export function fixConnectorItem(item) {
     }
 
     item.shapeProps.points.forEach(p => {
+        if (!p.hasOwnProperty('id')) {
+            p.id = shortid.generate();
+        }
         if (p.hasOwnProperty('bx') || p.hasOwnProperty('by')) {
             p.nx = p.bx;
             p.ny = p.by;

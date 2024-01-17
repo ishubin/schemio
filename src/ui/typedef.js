@@ -169,6 +169,7 @@
  * @property {String} itemId - id of item
  * @property {Number} nx - normal x, may be undefined if the pin does not have normal
  * @property {Number} ny - normal y, may be undefined if the pin does not have normal
+ * @property {String} pinId - id of items attachment pin.
  */
 
 

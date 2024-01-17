@@ -297,7 +297,10 @@ export function mergeAllItemPaths(mainItem, otherItems) {
                     p.x2 = p2.x - p.x;
                     p.y2 = p2.y - p.y;
                 }
-                newPath.points.push(convertCurvePointToRelative(p, mainItem.area.w, mainItem.area.h));
+                newPath.points.push({
+                    ...convertCurvePointToRelative(p, mainItem.area.w, mainItem.area.h),
+                    id: shortid.generate(),
+                });
             });
             mainItem.shapeProps.paths.push(newPath);
         });
@@ -337,8 +340,11 @@ class BezierConversionState extends SubState {
     mouseUp(x, y, mx, my, object, event) {
         this.updateBezierPoint(x, y);
         const newPoint = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
-        newPoint.t = 'L';
-        this.item.shapeProps.paths[this.pathId].points.push(newPoint);
+        this.item.shapeProps.paths[this.pathId].points.push({
+            ...newPoint,
+            t: 'L',
+            id: shortid.generate(),
+        });
         this.migrate(new CreatingPathState(this.parentState, this.pathId));
     }
 }
@@ -386,7 +392,7 @@ class CreatingPathState extends SubState {
         }, this.item.area.w, this.item.area.h);
 
         if (points.length === 0) {
-            points.push(convertedCurvePoint);
+            points.push({...convertedCurvePoint, id: shortid.generate});
         } else {
             const pointId = points.length - 1;
             points[pointId].x = convertedCurvePoint.x;
@@ -463,7 +469,7 @@ class CreatingPathState extends SubState {
             t: 'L'
         }, this.item.area.w, this.item.area.h);
 
-        this.item.shapeProps.paths[this.pathId].points.push(convertedCurvePoint);
+        this.item.shapeProps.paths[this.pathId].points.push({...convertedCurvePoint, id: shortid.generate()});
 
         this.listener.onItemChanged(this.item.id);
         this.listener.updateAllCurveEditPoints(this.item);
@@ -475,6 +481,7 @@ class CreatingPathState extends SubState {
                 this.item.shapeProps.paths[this.pathId].points.pop();
             }
         }
+        this.schemeContainer.reindexItems();
     }
 }
 
@@ -880,6 +887,7 @@ export default class StateEditPath extends State {
                 this.schemeContainer.reindexItems();
             }
             this.schemeContainer.updateEditBox();
+            this.listener.onItemChanged(this.item.id);
         }
         this.listener.onSchemeChangeCommitted();
         super.cancel();
@@ -1287,6 +1295,7 @@ export default class StateEditPath extends State {
     insertPointAtCoords(x, y, pathId, segmentId) {
         const p = convertCurvePointToRelative(localPointOnItem(x, y, this.item), this.item.area.w, this.item.area.h);
         this.item.shapeProps.paths[pathId].points.splice(segmentId + 1, 0, {
+            id: shortid.generate(),
             x: p.x,
             y: p.y,
             t: 'L'

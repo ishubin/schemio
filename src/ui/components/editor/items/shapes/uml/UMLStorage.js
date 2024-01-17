@@ -35,21 +35,27 @@ export default {
             const h = item.area.h;
             const s = myMath.clamp(item.shapeProps.skew, 0, item.area.w/maxSkewRatioToHeight);
 
-            return [{
-                x: w/2, y: h/2,
-            }, {
-                x: w / 2, y: 0,
-                nx: 0, ny: -1
-            }, {
-                x: w / 2, y: h,
-                nx: 0, ny: 1
-            }, {
-                x: 0, y: h/2,
-                nx: -1, ny: 0
-            }, {
-                x: w-s, y: h/2,
-                nx: 1, ny: 0
-            }];
+            return {
+                c: {
+                    x: w/2, y: h/2,
+                },
+                t: {
+                    x: w / 2, y: 0,
+                    nx: 0, ny: -1
+                },
+                b: {
+                    x: w / 2, y: h,
+                    nx: 0, ny: 1
+                },
+                l: {
+                    x: 0, y: h/2,
+                    nx: -1, ny: 0
+                },
+                r: {
+                    x: w-s, y: h/2,
+                    nx: 1, ny: 0
+                }
+            };
         },
 
         computePath(item) {

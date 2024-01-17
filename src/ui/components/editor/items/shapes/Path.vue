@@ -20,7 +20,7 @@ import StrokePattern from '../StrokePattern.js';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import '../../../../typedef';
-import { computeCurvePath } from './StandardCurves';
+import { computeCurvePath, convertCurvePointToItemScale } from './StandardCurves';
 import EditorEventBus from '../../EditorEventBus';
 
 const log = new Logger('Path');
@@ -121,7 +121,18 @@ export default {
         getSnappers,
 
         getPins(item) {
-            return [];
+            const pins = {};
+
+            item.shapeProps.paths.forEach(path => {
+                path.points.forEach(p => {
+                    const cp = convertCurvePointToItemScale(p, item.area.w, item.area.h);
+                    pins[p.id] = {
+                        x: cp.x,
+                        y: cp.y
+                    };
+                });
+            });
+            return pins;
         },
 
         /**

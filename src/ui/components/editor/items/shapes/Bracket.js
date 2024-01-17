@@ -98,7 +98,7 @@ export default {
         }],
 
         getPins(item) {
-            return [];
+            return {};
         },
 
         getTextSlots(item) {

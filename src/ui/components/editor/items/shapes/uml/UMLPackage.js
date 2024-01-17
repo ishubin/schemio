@@ -41,21 +41,27 @@ export default {
             const bh = Math.min(Math.max(0, item.shapeProps.brickHeight), item.area.h/2);
             const H = h - bh;
 
-            return [{
-                x: w/2, y: bh + H/2,
-            }, {
-                x: w / 2, y: bh,
-                nx: 0, ny: -1
-            }, {
-                x: w / 2, y: h,
-                nx: 0, ny: 1
-            }, {
-                x: 0, y: bh + H/2,
-                nx: -1, ny: 0
-            }, {
-                x: w, y: bh + H/2,
-                nx: 1, ny: 0
-            }];
+            return {
+                c: {
+                    x: w/2, y: bh + H/2,
+                }, 
+                t: {
+                    x: w / 2, y: bh,
+                    nx: 0, ny: -1
+                },
+                b: {
+                    x: w / 2, y: h,
+                    nx: 0, ny: 1
+                },
+                l: {
+                    x: 0, y: bh + H/2,
+                    nx: -1, ny: 0
+                },
+                r: {
+                    x: w, y: bh + H/2,
+                    nx: 1, ny: 0
+                }
+            };
 
         },
 

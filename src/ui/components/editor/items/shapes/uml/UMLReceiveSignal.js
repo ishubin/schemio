@@ -28,21 +28,27 @@ export default {
             const h = item.area.h;
             const s = myMath.clamp(h/2, 0, w);
 
-            return [{
-                x: w/2, y: h/2,
-            }, {
-                x: w / 2, y: 0,
-                nx: 0, ny: -1
-            }, {
-                x: w / 2, y: h,
-                nx: 0, ny: 1
-            }, {
-                x: s, y: h/2,
-                nx: -1, ny: 0
-            }, {
-                x: w, y: h/2,
-                nx: 1, ny: 0
-            }];
+            return {
+                c: {
+                    x: w/2, y: h/2,
+                },
+                t: {
+                    x: w / 2, y: 0,
+                    nx: 0, ny: -1
+                },
+                b: {
+                    x: w / 2, y: h,
+                    nx: 0, ny: 1
+                },
+                l: {
+                    x: s, y: h/2,
+                    nx: -1, ny: 0
+                },
+                r: {
+                    x: w, y: h/2,
+                    nx: 1, ny: 0
+                }
+            };
         },
 
         computePath(item) {

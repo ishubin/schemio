@@ -151,6 +151,7 @@ class DragControlPointState extends SubState {
         this.item = item;
         this.pointId = pointId;
         this.originalPoint = {x, y, mx, my};
+        /** @type {SchemeContainer} */
         this.schemeContainer = parentState.schemeContainer;
         this.controlPoint = this.findItemControlPoint(this.pointId);
         if (this.controlPoint) {
@@ -318,7 +319,6 @@ class DragControlPointState extends SubState {
 
         const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
 
-
         let worldX, worldY;
         // Not letting connectors attach to themselves
         if (closestPointToItem && closestPointToItem.itemId !== this.item.id
@@ -338,10 +338,22 @@ class DragControlPointState extends SubState {
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+                if (closestPointToItem.pinId) {
+                    this.item.shapeProps.sourcePin = closestPointToItem.pinId;
+                    this.item.shapeProps.sourceItemPosition = 0;
+                } else {
+                    this.item.shapeProps.sourcePin = '';
+                    this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+                }
             } else {
                 this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+                if (closestPointToItem.pinId) {
+                    this.item.shapeProps.destinationPin = closestPointToItem.pinId;
+                    this.item.shapeProps.destinationItemPosition = 0;
+                } else {
+                    this.item.shapeProps.destinationPin = '';
+                    this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+                }
             }
         } else {
             worldX = x + snappedOffset.dx;
@@ -355,9 +367,11 @@ class DragControlPointState extends SubState {
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (controlPoint.isEdgeStart) {
                 this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourcePin = '';
                 this.item.shapeProps.sourceItemPosition = 0;
             } else {
                 this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationPin = '';
                 this.item.shapeProps.destinationItemPosition = 0;
             }
 
@@ -908,6 +922,7 @@ class IdleState extends SubState {
         if (d <= minDistance) {
             const index = this.findClosestLineSegment(closestPoint.distance, item.shapeProps.points, shadowSvgPath);
             item.shapeProps.points.splice(index + 1, 0, {
+                id: shortid.generate(),
                 x: closestPoint.x,
                 y: closestPoint.y,
             });

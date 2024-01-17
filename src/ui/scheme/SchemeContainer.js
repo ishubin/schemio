@@ -965,28 +965,31 @@ class SchemeContainer {
         return area;
     }
 
-    getItemWorldPinPoint(item, pinIndex) {
+    getItemWorldPinPoint(item, pinId) {
         const shape = Shape.find(item.shape);
         if (!shape) {
             return null;
         }
 
         const pins = shape.getPins(item);
-        if (pinIndex >= 0 && pinIndex < pins.length) {
-            const pinPoint = pins[pinIndex]
-            const worldPinPoint = this.worldPointOnItem(pinPoint.x, pinPoint.y, item);
-
-            // we need to recalculate pins as the item might be rotated
-            if (pinPoint.nx || pinPoint.ny) {
-                const p0 = this.worldPointOnItem(0, 0, item);
-                const p1 = this.worldPointOnItem(pinPoint.nx, pinPoint.ny, item);
-
-                worldPinPoint.nx = p1.x - p0.x;
-                worldPinPoint.ny = p1.y - p0.y;
-            }
-            return worldPinPoint;
+        if (!pins) {
+            return null;
         }
-        return null;
+        const pinPoint = pins[pinId];
+        if (!pinPoint) {
+            return null;
+        };
+        const worldPinPoint = this.worldPointOnItem(pinPoint.x, pinPoint.y, item);
+
+        // we need to recalculate pins as the item might be rotated
+        if (pinPoint.nx || pinPoint.ny) {
+            const p0 = this.worldPointOnItem(0, 0, item);
+            const p1 = this.worldPointOnItem(pinPoint.nx, pinPoint.ny, item);
+
+            worldPinPoint.nx = p1.x - p0.x;
+            worldPinPoint.ny = p1.y - p0.y;
+        }
+        return worldPinPoint;
     }
 
     indexConnectorPoints(item) {
@@ -1109,8 +1112,8 @@ class SchemeContainer {
             return;
         }
 
-        const points = shape.getPins(item);
-        forEach(points, (p, idx) => {
+
+        forEach(shape.getPins(item), (p, pinId) => {
             const worldPoint = this.worldPointOnItem(p.x, p.y, item);
 
             // checking if pin point has normals and converting normal to world transform
@@ -1123,7 +1126,7 @@ class SchemeContainer {
 
             this.pinSpatialIndex.addPoint(worldPoint.x, worldPoint.y, {
                 itemId: item.id,
-                pinIndex: idx,
+                pinId: pinId,
                 worldPinPoint: worldPoint
             });
         });
@@ -1324,11 +1327,11 @@ class SchemeContainer {
      */
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         let closestPin = null;
-        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinIndex, worldPinPoint}, point) => {
+        this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinId, worldPinPoint}, point) => {
             if (itemId !== excludedId) {
                 const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
                 if (!closestPin || closestPin.distance > distance) {
-                    closestPin = { itemId, pinIndex, point: worldPinPoint, distance };
+                    closestPin = { itemId, pinId, point: worldPinPoint, distance };
                 }
             }
         });
@@ -1337,8 +1340,9 @@ class SchemeContainer {
             const result = {
                 x                 : closestPin.point.x,
                 y                 : closestPin.point.y,
-                distanceOnPath    : -closestPin.pinIndex - 1, // converting it to the negative space, yeah yeah, that's hacky, I know.
-                itemId            : closestPin.itemId
+                distanceOnPath    : 0,
+                itemId            : closestPin.itemId,
+                pinId             : closestPin.pinId,
             };
             if (closestPin.point.hasOwnProperty('nx')) {
                 result.nx = closestPin.point.nx;
@@ -1514,6 +1518,8 @@ class SchemeContainer {
         forEach(item.childItems, childItem => {
             this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
         });
+
+        item.meta.revision = (item.meta.revision || 1) + 1;
     }
 
     /**
@@ -1525,7 +1531,7 @@ class SchemeContainer {
      */
     _readjustConnectorItem(item, context, precision) {
         log.info('readjusting connector item', item.id);
-        const findAttachmentPoint = (attachmentSelector, positionOnPath, pointIdx) => {
+        const findAttachmentPoint = (attachmentSelector, positionOnPath, pinId, pointIdx) => {
             const currentPoint = item.shapeProps.points[pointIdx];
 
             const attachmentItem = this.findFirstElementBySelector(attachmentSelector);
@@ -1533,13 +1539,12 @@ class SchemeContainer {
                 return null;
             }
 
-            if (positionOnPath < 0) {
+            if (pinId) {
                 const shape = Shape.find(attachmentItem.shape);
                 if (!shape || !shape.getPins) {
                     return null;
                 }
 
-                const pinId = parseInt(Math.abs(positionOnPath)) - 1;
                 const pinPoint = this.getItemWorldPinPoint(attachmentItem, pinId);
                 if (!pinPoint) {
                     return null;
@@ -1566,14 +1571,16 @@ class SchemeContainer {
             if (context.resized || context.controlPoint || attachmentItem.shape === 'connector' || attachmentItem.shape === 'path') {
                 const originalPointKey = `${item.id}-points-${pointIdx}`;
                 let originalPoint = currentPoint;
-                if (this.editBox.cache.has(originalPointKey)) {
-                    originalPoint = this.editBox.cache.get(originalPointKey);
-                } else {
-                    // checking whether the item is part of the edit box
-                    // in such case we don't want to take its original point and instead let user modify it
+                if (this.editBox) {
+                    if (this.editBox.cache.has(originalPointKey)) {
+                        originalPoint = this.editBox.cache.get(originalPointKey);
+                    } else {
+                        // checking whether the item is part of the edit box
+                        // in such case we don't want to take its original point and instead let user modify it
 
-                    if (!this.editBox.itemIds.has(item.id)) {
-                        this.editBox.cache.set(originalPointKey, currentPoint);
+                        if (!this.editBox.itemIds.has(item.id)) {
+                            this.editBox.cache.set(originalPointKey, currentPoint);
+                        }
                     }
                 }
 
@@ -1610,11 +1617,11 @@ class SchemeContainer {
             };
         };
 
-        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, 0);
+        const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, item.shapeProps.sourcePin, 0);
         if (sourcePoint) {
             item.shapeProps.points[0] = sourcePoint;
         }
-        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, item.shapeProps.points.length - 1);
+        const dstPoint = findAttachmentPoint(item.shapeProps.destinationItem, item.shapeProps.destinationItemPosition, item.shapeProps.destinationPin, item.shapeProps.points.length - 1);
         if (dstPoint) {
             item.shapeProps.points[item.shapeProps.points.length - 1] = dstPoint;
         }

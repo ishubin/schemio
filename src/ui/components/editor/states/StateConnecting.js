@@ -12,6 +12,7 @@ import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {forEach} from '../../../collections';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import shortid from 'shortid';
 
 const IS_NOT_SOFT = false;
 const IS_SOFT = true;
@@ -124,7 +125,13 @@ export default class StateConnecting extends State {
         }
 
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
-        curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
+        if (closestPoint.pinId) {
+            curveItem.shapeProps.sourcePin = closestPoint.pinId;
+            curveItem.shapeProps.sourceItemPosition = 0;
+        } else {
+            curveItem.shapeProps.sourcePin = '';
+            curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
+        }
 
 
         let firstPoint = closestPoint;
@@ -213,7 +220,7 @@ export default class StateConnecting extends State {
         let foundPin = null;
         let minDistance = 0;
 
-        forEach(pins, (pin, index) => {
+        forEach(pins, (pin, pinId) => {
             const worldPinPoint = this.schemeContainer.worldPointOnItem(pin.x, pin.y, item);
             const distance = (worldPinPoint.x - worldPoint.x)*(worldPinPoint.x - worldPoint.x) + (worldPinPoint.y - worldPoint.y)*(worldPinPoint.y - worldPoint.y);
             if (!foundPin || minDistance > distance) {
@@ -221,10 +228,11 @@ export default class StateConnecting extends State {
                 foundPin = {
                     x: worldPinPoint.x,
                     y: worldPinPoint.y,
-                    distanceOnPath: -index - 1 // converting it to netagive space on path field. hacky but it allows us to use only single field for this
+                    distanceOnPath: 0,
+                    pinId: pinId
                 };
 
-                if (pin.nx || pin.ny) {
+                if (pin.hasOwnProperty('nx')) {
                     foundPin.nx = pin.nx;
                     foundPin.ny = pin.ny;
                 }
@@ -244,11 +252,13 @@ export default class StateConnecting extends State {
         const snappedCurvePoint = this.snapCurvePoint(-1, x, y);
 
         this.item.shapeProps.points.push({
+            id: shortid.generate(),
             x: snappedCurvePoint.x,
             y: snappedCurvePoint.y,
             t: 'L'
         });
         this.item.shapeProps.points.push({
+            id: shortid.generate(),
             x: snappedCurvePoint.x,
             y: snappedCurvePoint.y,
             t: 'L'
@@ -393,6 +403,7 @@ export default class StateConnecting extends State {
                 const snappedLocalCurvePoint = this.snapCurvePoint(-1, realX, realY);
 
                 this.item.shapeProps.points.push({
+                    id: shortid.generate(),
                     x: this.round(snappedLocalCurvePoint.x),
                     y: this.round(snappedLocalCurvePoint.y),
                     t: 'L'
@@ -478,10 +489,17 @@ export default class StateConnecting extends State {
         if (closestPointToItem) {
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-            this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            if (closestPointToItem.pinId) {
+                this.item.shapeProps.sourcePin = closestPointToItem.pinId;
+                this.item.shapeProps.sourceItemPosition = 0;
+            } else {
+                this.item.shapeProps.sourcePin = '';
+                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+            }
         } else {
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             this.item.shapeProps.sourceItem = null;
+            this.item.shapeProps.sourcePin = '';
             this.item.shapeProps.sourceItemPosition = 0;
         }
     }
@@ -525,10 +543,22 @@ export default class StateConnecting extends State {
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (isSource) {
                 this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+                if (closestPointToItem.pinId) {
+                    this.item.shapeProps.sourcePin = closestPointToItem.pinId;
+                    this.item.shapeProps.sourceItemPosition = 0;
+                } else {
+                    this.item.shapeProps.sourcePin = '';
+                    this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+                }
             } else {
                 this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
-                this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+                if (closestPointToItem.pinId) {
+                    this.item.shapeProps.destinationPin = closestPointToItem.pinId;
+                    this.item.shapeProps.destinationItemPosition = 0;
+                } else {
+                    this.item.shapeProps.destinationPin = '';
+                    this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+                }
             }
         } else {
             if (curvePoint.hasOwnProperty('nx')) {
@@ -539,9 +569,11 @@ export default class StateConnecting extends State {
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (isSource) {
                 this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourcePin = '';
                 this.item.shapeProps.sourceItemPosition = 0;
             } else {
                 this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationPin = '';
                 this.item.shapeProps.destinationItemPosition = 0;
             }
         }
@@ -628,10 +660,18 @@ export default class StateConnecting extends State {
 
         // this is a hack but have to do it as when user cancels state edit curve
         // it actually deletes the last point since it is considered as not submited
-        this.item.shapeProps.points.push(utils.clone(this.item.shapeProps.points[this.item.shapeProps.points.length - 1]));
+        const latestPoint = utils.clone(this.item.shapeProps.points[this.item.shapeProps.points.length - 1]);
+        latestPoint.id = shortid.generate();
+        this.item.shapeProps.points.push(latestPoint);
 
         this.item.shapeProps.destinationItem = `#${destinationItem.id}`;
-        this.item.shapeProps.destinationItemPosition = closestPoint.distanceOnPath;
+        if (closestPoint.pinId) {
+            this.item.shapeProps.destinationPin = closestPoint.pinId;
+            this.item.shapeProps.destinationItemPosition = 0;
+        } else {
+            this.item.shapeProps.destinationPin = '';
+            this.item.shapeProps.destinationItemPosition = closestPoint.distanceOnPath;
+        }
         this.item.name += destinationItem.name;
         this.cancel();
     }
