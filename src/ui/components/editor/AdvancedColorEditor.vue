@@ -41,7 +41,7 @@
                     </div>
 
                     <div class="ctrl-group">
-                        <input type="checkbox" :checked="color.stretch" @input="onImageStretchChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
+                        <input type="checkbox" :checked="color.stretch || false" @input="onImageStretchChange" :id="`image-stretch-${id}`"/><label :for="`image-stretch-${id}`"> Stretch</label>
                     </div>
 
                     <div class="msg msg-info" v-if="isUploading">
@@ -223,6 +223,7 @@ export default {
             if (colorType === 'image' && !this.color.image) {
                 this.color.image = '';
                 this.color.stretch = false;
+                this.color.imageBox = {x: 0, y: 0, w: 1, h: 1};
             }
             if (colorType === 'solid' && !this.color.color) {
                 this.color.color = 'rgba(255,255,255,1.0)';

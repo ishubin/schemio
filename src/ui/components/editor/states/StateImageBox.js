@@ -3,22 +3,28 @@ import myMath from "../../../myMath";
 import utils from "../../../utils";
 import State from "./State";
 import { dragEditBoxByDragger } from "./StateDragItem";
+import { localPointOnItem } from '../../../scheme/SchemeContainer';
 
-const IS_SOFT = true;
-const IS_NOT_SOFT = false;
-
-export default class StateCropImage extends State {
+export default class StateImageBox extends State {
     constructor(editorId, store, listener) {
-        super(editorId, store, 'crop-image', listener);
+        super(editorId, store, 'image-box', listener);
+
         /** @type {Item} */
         this.item = null;
+
         /** @type {EditBox} */
         this.editBox = null;
+
+        /** @type {Area} */
+        this.originalImageBox = {x: 0, y: 0, w: 1, h: 1};
         this.originalPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.startedDragging = true;
         // array of edge names. used to resize multi item edit box using its edge draggers
         this.draggerEdges = null;
+
+        /** @type {ItemArea} */
         this.editBoxOriginalArea = null;
+
         this.modificationContextId = null;
     }
 
@@ -35,9 +41,10 @@ export default class StateCropImage extends State {
      */
     setImageItem(item) {
         this.item = item;
-        this.originalItemCrop = utils.clone(item.shapeProps.crop);
-        this.originalItemArea = utils.clone(item.area);
-        this.origianlItemTransformMatrix = utils.clone(item.meta.transformMatrix);
+        if (!item.shapeProps.fill.imageBox) {
+            item.shapeProps.fill.imageBox = {x: 0, y: 0, w: 1, h: 1};
+        }
+        this.originalImageBox = utils.clone(item.shapeProps.fill.imageBox);
     }
 
     setImageEditBox(editBox) {
@@ -48,9 +55,8 @@ export default class StateCropImage extends State {
         this.modificationContextId = shortid.generate();
         if (object.type === 'edit-box-resize-dragger') {
             this.initMultiItemBoxResize(object.draggerEdges, x, y, mx, my);
-
         } else if (object.type === 'edit-box-reset-image-crop-link'){
-            this.resetCrop();
+            this.resetImageBox();
         } else {
             this.cancel();
         }
@@ -88,7 +94,12 @@ export default class StateCropImage extends State {
     mouseMove(x, y, mx, my, object, event) {
         if (this.startedDragging) {
             if (this.draggerEdges) {
+                if (event.buttons === 0) {
+                    this.mouseUp(x, y, mx, my, object, event);
+                    return;
+                }
                 this.dragEditBoxByDragger(x, y, this.draggerEdges, event);
+                this.updateItemImageBox();
             }
         }
     }
@@ -103,49 +114,30 @@ export default class StateCropImage extends State {
             x, y, draggerEdges);
     }
 
-    mouseUp(x, y, mx, my, object, event) {
-        const changeCommitted = this.startedDragging;
-        this.reset();
-
-        const worldPoint = myMath.worldPointInArea(0, 0, this.editBox.area);
-        const localPoint = myMath.localPointInArea(worldPoint.x, worldPoint.y, this.originalItemArea, this.origianlItemTransformMatrix);
-
-        const x0 = -this.originalItemCrop.x * this.originalItemArea.w;
-        const y0 = -this.originalItemCrop.y * this.originalItemArea.h;
-        const w0 = this.originalItemArea.w * (1 + this.originalItemCrop.x + this.originalItemCrop.w);
-        const h0 = this.originalItemArea.h * (1 + this.originalItemCrop.y + this.originalItemCrop.h);
-
-        this.schemeContainer.updateEditBoxItems(this.editBox, IS_SOFT, {
-            moved: false,
-            rotated: false,
-            resized: true,
-            id: this.modificationContextId
-        }, this.getUpdatePrecision());
+    updateItemImageBox() {
+        const p0 = localPointOnItem(this.editBox.area.x, this.editBox.area.y, this.item);
+        const p1 = localPointOnItem(this.editBox.area.x + this.editBox.area.w, this.editBox.area.y + this.editBox.area.h, this.item);
 
         if (!myMath.tooSmall(this.item.area.w)) {
-            this.item.shapeProps.crop.x = (localPoint.x - x0) / this.item.area.w;
-            this.item.shapeProps.crop.w = w0 / this.item.area.w - this.item.shapeProps.crop.x - 1;
+            this.item.shapeProps.fill.imageBox.x = p0.x / this.item.area.w;
+            this.item.shapeProps.fill.imageBox.w = Math.abs(p1.x - p0.x) / this.item.area.w;
         }
         if (!myMath.tooSmall(this.item.area.h)) {
-            this.item.shapeProps.crop.y = (localPoint.y - y0) / this.item.area.h;
-            this.item.shapeProps.crop.h = h0 / this.item.area.h - this.item.shapeProps.crop.y - 1;
+            this.item.shapeProps.fill.imageBox.y = p0.y / this.item.area.h;
+            this.item.shapeProps.fill.imageBox.h = Math.abs(p1.y - p0.y) / this.item.area.h;
         }
 
-        if (changeCommitted) {
-            this.listener.onSchemeChangeCommitted();
-        }
+        this.listener.onItemChanged(this.item.id, 'shapeProps.fill');
+        this.listener.onSchemeChangeCommitted();
     }
 
-    resetCrop() {
-        this.item.area.x -= this.item.shapeProps.crop.x * this.item.area.w;
-        this.item.area.y -= this.item.shapeProps.crop.y * this.item.area.h;
+    mouseUp(x, y, mx, my, object, event) {
+        this.updateItemImageBox();
+        this.reset();
+    }
 
-        this.item.area.w = this.item.area.w * (1 + this.item.shapeProps.crop.x + this.item.shapeProps.crop.w);
-        this.item.area.h = this.item.area.h * (1 + this.item.shapeProps.crop.y + this.item.shapeProps.crop.h);
-        this.item.shapeProps.crop.x = 0;
-        this.item.shapeProps.crop.y = 0;
-        this.item.shapeProps.crop.w = 0;
-        this.item.shapeProps.crop.h = 0;
+    resetImageBox() {
+        this.item.shapeProps.fill.imageBox = {x: 0, y: 0, w: 1, h: 1};
 
         this.listener.onSchemeChangeCommitted();
         this.cancel();

@@ -97,7 +97,7 @@
                     @screen-transform-updated="onScreenTransformUpdated"
                     >
                     <g slot="scene-transform">
-                        <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && !inPlaceTextEditor.shown"
+                        <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && state !== 'imageBox' && !inPlaceTextEditor.shown"
                             :key="`edit-box-${editorRevision}-${schemeContainer.editBox.id}`"
                             :useFill="state !== 'pickElement' && editBoxUseFill"
                             :editorId="editorId"
@@ -118,6 +118,18 @@
                             :cursor="{x: cursorX, y: cursorY}"
                             :apiClient="apiClient"
                             :edit-box="cropImage.editBox"
+                            :zoom="schemeContainer.screenTransform.scale"
+                            :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
+                            :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @custom-control-clicked="onEditBoxCustomControlClicked"/>
+
+                        <EditBox  v-if="state === 'imageBox' && imageBox.editBox"
+                            :key="`image-box-edit-box-${editorRevision}`"
+                            kind="crop-image"
+                            :editorId="editorId"
+                            :cursor="{x: cursorX, y: cursorY}"
+                            :apiClient="apiClient"
+                            :edit-box="imageBox.editBox"
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
@@ -536,7 +548,7 @@ import EditBox from './editor/EditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
-import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems } from '../scheme/SchemeContainer.js';
+import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem } from '../scheme/SchemeContainer.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import TemplateProperties from './editor/properties/TemplateProperties.vue';
@@ -576,6 +588,7 @@ import { mergeAllItemPaths } from './editor/states/StateEditPath.js';
 import StateConnecting from './editor/states/StateConnecting.js';
 import StatePickElement from './editor/states/StatePickElement.js';
 import StateCropImage from './editor/states/StateCropImage.js';
+import StateImageBox from './editor/states/StateImageBox.js';
 import UserEventBus from '../userevents/UserEventBus.js';
 import ExportTemplateModal from './editor/ExportTemplateModal.vue';
 import {applyItemStyle} from './editor/properties/ItemStyles';
@@ -823,6 +836,14 @@ export default {
                 onSubStateMigrated,
                 onScreenTransformUpdated
             }),
+            imageBox: new StateImageBox(this.editorId, this.$store, {
+                onCancel,
+                onSchemeChangeCommitted,
+                onItemChanged,
+                onItemsHighlighted,
+                onSubStateMigrated,
+                onScreenTransformUpdated
+            }),
             draw: new StateDraw(this.editorId, this.$store, {
                 onCancel,
                 onSchemeChangeCommitted,
@@ -911,6 +932,11 @@ export default {
             zoomToItemsTrigger: "",
 
             cropImage: {
+                editBox: null,
+                item: null
+            },
+
+            imageBox: {
                 editBox: null,
                 item: null
             },
@@ -1271,6 +1297,38 @@ export default {
             this.cropImage.item = item;
             this.states.cropImage.setImageEditBox(this.cropImage.editBox);
             this.states.cropImage.setImageItem(item);
+            this.updateFloatingHelperPanel();
+        },
+
+        startImageBoxEdit(item) {
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
+            this.state = 'imageBox';
+            if (!item.shapeProps.fill.imageBox) {
+                item.shapeProps.fill.imageBox = {x: 0, y: 0, w: 1, h: 1};
+            }
+            const imageBox = item.shapeProps.fill.imageBox;
+
+            this.states.imageBox.schemeContainer = this.schemeContainer;
+            this.states.imageBox.reset();
+            const editBox = this.schemeContainer.generateEditBox([item], []);
+
+            const p0 = worldPointOnItem(item.area.w * imageBox.x, item.area.h * imageBox.y, item);
+            const pr = worldPointOnItem(item.area.w * imageBox.w, 0, item);
+            const pd = worldPointOnItem(0, item.area.h * imageBox.h, item);
+
+
+            editBox.area.x = p0.x;
+            editBox.area.y = p0.y;
+            editBox.area.w = myMath.distanceBetweenPoints(p0.x, p0.y, pr.x, pr.y);
+            editBox.area.h = myMath.distanceBetweenPoints(p0.x, p0.y, pd.x, pd.y);
+            editBox.area.r = worldAngleOfItem(item);
+
+            this.imageBox.editBox = editBox;
+
+            this.imageBox.item = item;
+            this.states.imageBox.setImageEditBox(this.imageBox.editBox);
+            this.states.imageBox.setImageItem(item);
             this.updateFloatingHelperPanel();
         },
 
@@ -2110,6 +2168,16 @@ export default {
 
             if (selectedOnlyOne) {
                 const shape = Shape.find(item.shape);
+
+                const shapeArgs = Shape.getShapeArgs(shape);
+
+                if (item.shape !== 'image' && shapeArgs.hasOwnProperty('fill') && shapeArgs.fill.type === 'advanced-color' && item.shapeProps.fill.type === 'image') {
+                    contextMenuOptions.push({
+                        name: 'Edit fill image box',
+                        iconClass: 'fa-regular fa-image',
+                        clicked: () => this.startImageBoxEdit(item)
+                    });
+                }
 
                 if (shape.editorProps && shape.editorProps.contextMenu) {
                     const point = localPointOnItem(x, y, item);

@@ -5,7 +5,12 @@
     <g>
         <defs v-if="fill.type === 'image' && fill.image">
             <pattern :id="fillId" patternUnits="userSpaceOnUse" :width="area.w" :height="area.h">
-                <image :xlink:href="fill.image" x="0" y="0" :width="area.w" :height="area.h" :preserveAspectRatio="imagePreserveAspectRatio"/>
+                <image :xlink:href="fill.image"
+                    :x="area.w*imageBox.x"
+                    :y="area.h*imageBox.y"
+                    :width="area.w * imageBox.w"
+                    :height="area.h * imageBox.h"
+                    :preserveAspectRatio="imagePreserveAspectRatio"/>
             </pattern>
         </defs>
 
@@ -67,7 +72,14 @@ export default {
                 return 'none';
             }
             return 'xMidYMid meet';
-        }
+        },
+
+        imageBox() {
+            if (this.fill.type === 'image' && this.fill.imageBox) {
+                return this.fill.imageBox;
+            }
+            return {x: 0, y: 0, w: 1, h: 1};
+        },
     }
 }
 </script>
