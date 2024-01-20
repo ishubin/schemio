@@ -20,6 +20,7 @@ import { fsClientProvider } from './app/client/fsClient';
 import { offlineClientProvider } from './app/client/offlineClient';
 import { Scope, testAST } from './templater/ast';
 import { generateSchemePatch } from './scheme/SchemePatch';
+import { processJSONTemplate } from './templater/templater.js';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -33,6 +34,7 @@ function route(name, path, component, props) {
 
 window.generateSchemePatch = generateSchemePatch;
 window.testAST = testAST;
+window.processJSONTemplate = processJSONTemplate;
 window.testEvalAST = (expr, data) => {
     return testAST(expr).evalNode(new Scope(data));
 };
