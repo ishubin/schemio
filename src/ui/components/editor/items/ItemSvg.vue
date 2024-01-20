@@ -32,7 +32,7 @@
                     @frame-animator="onFrameAnimatorEvent">
                 </component>
 
-                <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
+                <g v-if="!shapeComponent && item.visible && (shapeType === 'standard' || shapeType === 'templated-path') && itemStandardCurves"
                     :style="{'opacity': item.selfOpacity/100.0}">
 
                     <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
@@ -324,7 +324,10 @@ export default {
                 this.shapeComponent = null;
             }
 
-            if (shape.shapeType === 'standard') {
+            if (shape.shapeType === 'templated-path') {
+                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                this.itemStandardCurves = shape.computeCurves(this.item);
+            } else if (shape.shapeType === 'standard') {
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                 this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
             }
@@ -346,7 +349,10 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape) {
                 // re-computing item svg path for event layer
-                if (shape.shapeType === 'standard') {
+                if (shape.shapeType === 'templated-path') {
+                    this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                    this.itemStandardCurves = shape.computeCurves(this.item);
+                } else if (shape.shapeType === 'standard') {
                     this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                     this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
                 }

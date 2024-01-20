@@ -78,7 +78,11 @@ function processObject(obj, scope) {
 }
 
 function processExpression(expr, scope) {
-    return parseAST(tokenizeExpression(expr), expr).evalNode(scope);
+    try {
+        return parseAST(tokenizeExpression(expr), expr).evalNode(scope);
+    } catch(err) {
+        throw new Error(`Failed to process expression. error: ${err}. Expression:\n    ${expr}`);
+    }
 }
 
 function processStringExpression(text, scope) {
