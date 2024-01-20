@@ -15,8 +15,7 @@
  * */
 
 import myMath from "../../../../myMath";
-import { computeFill } from '../AdvancedFill.vue';
-import { processJSONTemplate } from "../../../../templater/templater";
+import { compileJSONTemplate } from "../../../../templater/templater";
 import { convertCurvePointToRelative, convertRawPathShapeForRender } from "./StandardCurves";
 
 /**
@@ -76,32 +75,20 @@ function createTemplateData(item) {
  * @property {Point} end - the ending point of the control point that corresponds to max value
  */
 
-/**
- *
- * @param {*} item
- * @param {*} initBlock
- * @param {*} controlPointTemplates
- * @returns {Array<TemplatedControlPoint>}
- * @returns
- */
-function compileControlPoints(item, initBlock, controlPointTemplates) {
-    if (!Array.isArray(controlPointTemplates)) {
-        return [];
-    }
-
-    const processed = processJSONTemplate({
-        '$-eval': initBlock || [],
-        controlPoints: controlPointTemplates
-    }, createTemplateData(item));
-
-    return processed.controlPoints;
-}
-
 function createControlPoints(initBlock, controlPointTemplates) {
+    const processor = compileJSONTemplate({
+        '$-eval': initBlock || [],
+        controlPoints: controlPointTemplates || []
+    });
+
+    const renderControlPoints = (item) => {
+        return processor(createTemplateData(item)).controlPoints;
+    };
+
     return {
         make(item) {
             const controlPoints = {};
-            const cpDefs = compileControlPoints(item, initBlock, controlPointTemplates);
+            const cpDefs = renderControlPoints(item);
             cpDefs.forEach(cpDef => {
                 const value = myMath.clamp(item.shapeProps[cpDef.updates], cpDef.min, cpDef.max);
                 const t = (value - cpDef.min) / (cpDef.max - cpDef.min);
@@ -114,7 +101,7 @@ function createControlPoints(initBlock, controlPointTemplates) {
             return controlPoints;
         },
         handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-            const cpDefs = compileControlPoints(item, initBlock, controlPointTemplates);
+            const cpDefs = renderControlPoints(item);
             const cpDef = cpDefs.find(cpDef => cpDef.id === controlPointName);
             if (!cpDef) {
                 return;
@@ -141,11 +128,13 @@ function createGetPinsFunc(initBlock, pinTemplates) {
         return null;
     }
 
+    const processor = compileJSONTemplate({
+        '$-eval': initBlock || [],
+        pins: pinTemplates
+    });
+
     return (item) => {
-        const processed = processJSONTemplate({
-            '$-eval': initBlock || [],
-            pins: pinTemplates
-        }, createTemplateData(item));
+        const processed = processor(createTemplateData(item));
 
         const pins = {};
         processed.pins.forEach(pin => {
@@ -162,25 +151,29 @@ function createTemplatedFunc(initBlock, obj) {
         return null;
     }
 
+    const processor = compileJSONTemplate({
+        '$-eval': initBlock || [],
+        obj: obj
+    });
+
     return (item) => {
-        const processed = processJSONTemplate({
-            '$-eval': initBlock || [],
-            obj: obj
-        }, createTemplateData(item));
+        const processed = processor(createTemplateData(item));
         return processed.obj;
     };
 }
 
 function createComputePathsFunc(initBlock, pathTemplates) {
+    const processor = compileJSONTemplate({
+        '$-eval': initBlock || [],
+        pathTemplates
+    });
+
     return (item) => {
         if (!Array.isArray(pathTemplates)) {
             return [];
         }
 
-        const processed = processJSONTemplate({
-            '$-eval': initBlock || [],
-            pathTemplates
-        }, createTemplateData(item));
+        const processed = processor(createTemplateData(item));
 
         return processed.pathTemplates.map(path => {
             path.points = path.points.map(point => convertCurvePointToRelative(point, item.area.w, item.area.h));
@@ -197,15 +190,16 @@ function createComputePathsFunc(initBlock, pathTemplates) {
 }
 
 function createComputeOutlineFunc(initBlock, outlines) {
+    const processor = compileJSONTemplate({
+        '$-eval': initBlock || [],
+        outlines
+    });
+
     return (item) => {
         if (!Array.isArray(outlines)) {
             return [];
         }
-
-        const processed = processJSONTemplate({
-            '$-eval': initBlock || [],
-            outlines
-        }, createTemplateData(item));
+        const processed = processor(createTemplateData(item));
 
         processed.outlines.forEach(path => {
             path.points = path.points.map(point => convertCurvePointToRelative(point, item.area.w, item.area.h));
