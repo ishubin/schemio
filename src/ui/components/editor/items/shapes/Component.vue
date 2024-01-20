@@ -61,6 +61,7 @@
 import {getStandardRectPins} from './ShapeDefaults'
 import StrokePattern from '../StrokePattern.js';
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeSvgFill} from '../AdvancedFill.vue';
 import {generateTextStyle} from '../../text/ItemText';
 import htmlSanitize from '../../../../../htmlSanitize';
 import myMath from '../../../../myMath';
@@ -501,13 +502,13 @@ export default {
         },
 
         svgFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
         svgButtonFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.buttonFill, `fill-pattern-button-${this.item.id}`);
+            return computeSvgFill(this.item.shapeProps.buttonFill, `fill-pattern-button-${this.item.id}`);
         },
         svgButtonHoverFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.buttonHoverFill, `fill-pattern-button-hovered-${this.item.id}`);
+            return computeSvgFill(this.item.shapeProps.buttonHoverFill, `fill-pattern-button-hovered-${this.item.id}`);
         },
 
         strokeDashArray() {

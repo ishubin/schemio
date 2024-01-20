@@ -25,28 +25,32 @@
     </g>
 </template>
 <script>
+
+/**
+ * Generates the value for the svg fill argument.
+ * It can be either "none", rgba-encoded color or a url to
+ * a pattern with specified id
+ * @param {AdvancedColor} fill
+ * @param {String} fillId
+ */
+export function computeSvgFill(fill, fillId) {
+    if (!fill) {
+        return 'none';
+    }
+    if (fill.type === 'solid') {
+        return fill.color;
+    } else if ((fill.type === 'image' && fill.image) || (fill.type === 'gradient' && fill.gradient)) {
+        return `url(#${fillId})`;
+    }
+    return 'none';
+}
+
 export default {
     props: ['fillId', 'fill', 'area'],
 
-    computeSvgFill(fill, fillId) {
-        if (!fill) {
-            return 'none';
-        }
-        if (fill.type === 'solid') {
-            return fill.color;
-        } else if ((fill.type === 'image' && fill.image) || (fill.type === 'gradient' && fill.gradient)) {
-            return `url(#${fillId})`;
-        }
-        return 'none';
-    },
-
     // Uses 'fill' property of shapeProps
     computeStandardFill(item) {
-        return this.computeStandardFillForValue(item.shapeProps.fill, `fill-pattern-${item.id}`);
-    },
-
-    computeStandardFillForValue(fill, fillId) {
-        return this.computeSvgFill(fill, fillId);
+        return computeSvgFill(item.shapeProps.fill, `fill-pattern-${item.id}`);
     },
 
     computed: {

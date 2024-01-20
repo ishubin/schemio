@@ -32,7 +32,7 @@
                     @frame-animator="onFrameAnimatorEvent">
                 </component>
 
-                <g v-if="!shapeComponent && item.visible && (shapeType === 'standard' || shapeType === 'templated-path') && itemStandardCurves"
+                <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
                     :style="{'opacity': item.selfOpacity/100.0}">
 
                     <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
@@ -44,6 +44,23 @@
                         :data-item-id="item.id"
                         stroke-linejoin="round"
                         :fill="curve.fill"></path>
+                </g>
+
+                <g v-if="!shapeComponent && item.visible && (shapeType === 'templated-path') && itemStandardCurves"
+                    :style="{'opacity': item.selfOpacity/100.0}">
+
+                    <g v-for="(curve,curveIdx) in itemStandardCurves">
+                        <advanced-fill :key="`advanced-fill-${item.id}-${curveIdx}-${revision}`" :fillId="`fill-templated-path-${item.id}-${curveIdx}`" :fill="curve.fill" :area="item.area"/>
+
+                        <path v-for="curve in itemStandardCurves" :d="curve.path"
+                            :stroke-width="curve.strokeSize + 'px'"
+                            :stroke="curve.strokeColor"
+                            :stroke-dasharray="strokeDashArray"
+                            :data-item-id="item.id"
+                            stroke-linejoin="round"
+                            :fill="computeSvgFill(curve.fill, `fill-templated-path-${item.id}-${curveIdx}`)"></path>
+                    </g>
+
                 </g>
 
                 <g v-if="shapeType === 'missing' && item.visible" class="missing-shape">
@@ -171,6 +188,7 @@
 
 <script>
 import AdvancedFill from './AdvancedFill.vue';
+import {computeSvgFill} from './AdvancedFill.vue';
 import StrokePattern from './StrokePattern.js';
 import Shape from './shapes/Shape.js';
 import utils from '../../../utils';
@@ -417,6 +435,10 @@ export default {
                 this.hiddenTextSlotName = null;
             }
         },
+
+        computeSvgFill(fill, fillId) {
+            return computeSvgFill(fill, fillId);
+        }
     },
 
     computed: {

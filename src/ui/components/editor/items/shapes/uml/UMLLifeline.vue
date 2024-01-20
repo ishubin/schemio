@@ -23,6 +23,7 @@
 <script>
 import myMath from '../../../../../myMath';
 import AdvancedFill from '../../AdvancedFill.vue';
+import {computeSvgFill} from '../../AdvancedFill.vue';
 import StrokePattern from '../../StrokePattern';
 import {createRoundRectPath} from '../ShapeDefaults';
 import {computeActorPath} from './UMLActor.vue';
@@ -211,7 +212,7 @@ export default {
         },
 
         svgFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
 
         rectArea() {

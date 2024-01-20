@@ -960,4 +960,21 @@ export default {
     rotateVector90CounterClockwise(x, y) {
         return {x: y, y: -x};
     },
+
+    /**
+     * Calculates the projection of one vector (1) to another (2)
+     * @param {Number} x1
+     * @param {Number} y1
+     * @param {Number} x2
+     * @param {Number} y2
+     * @returns {Number} the projection value of vector 1 on vector 2
+     */
+    projectVectorToVector(x1, y1, x2, y2) {
+        const dSquared = x2 * x2 + y2 * y2;
+        if (this.tooSmall(dSquared)) {
+            return 0;
+        }
+
+        return (x1 * x2 + y1 * y2) / Math.sqrt(dSquared);
+    }
 }

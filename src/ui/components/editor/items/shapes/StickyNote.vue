@@ -33,6 +33,7 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeSvgFill} from '../AdvancedFill.vue';
 import {map} from '../../../../collections';
 
 function computePath(item) {
@@ -138,7 +139,7 @@ export default {
         },
 
         svgFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
     }
 

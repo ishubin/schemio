@@ -23,6 +23,7 @@
 
 <script>
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeSvgFill} from '../AdvancedFill.vue';
 import myMath from '../../../../myMath';
 import EditorEventBus from '../../EditorEventBus';
 import TablePropertiesEditor from './TablePropertiesEditor.vue';
@@ -870,7 +871,7 @@ export default {
 
     computed: {
         svgFill() {
-            return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
 
         outlinePath() {
@@ -909,9 +910,9 @@ export default {
         },
 
         cells() {
-            const fill = AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
-            const headerFill = AdvancedFill.computeSvgFill(this.item.shapeProps.headerFill, `fill-pattern-${this.item.id}-header`);
-            const secondaryFill = AdvancedFill.computeSvgFill(this.item.shapeProps.rowSecondaryFill, `fill-pattern-${this.item.id}-secondary-fill`);
+            const fill = computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+            const headerFill = computeSvgFill(this.item.shapeProps.headerFill, `fill-pattern-${this.item.id}-header`);
+            const secondaryFill = computeSvgFill(this.item.shapeProps.rowSecondaryFill, `fill-pattern-${this.item.id}-secondary-fill`);
             return generateCells(this.item).map(cell => {
                 if (cell.row === 0 && (this.item.shapeProps.header === 'columns' || this.item.shapeProps.header === 'both')) {
                     cell.fill = headerFill;

@@ -14,6 +14,8 @@
  * @property {Array<Object>} textSlots
  * */
 
+import myMath from "../../../../myMath";
+import { computeFill } from '../AdvancedFill.vue';
 import { processJSONTemplate } from "../../../../templater/templater";
 import { convertCurvePointToRelative, convertRawPathShapeForRender } from "./StandardCurves";
 
@@ -39,6 +41,8 @@ export function convertTemplatePathShape(shapeConfig) {
             getPins: createGetPinsFunc(shapeConfig.init, shapeConfig.pins),
             getTextSlots: createTemplatedFunc(shapeConfig.init, shapeConfig.textSlots),
 
+            controlPoints: createControlPoints(shapeConfig.init, shapeConfig.controlPoints),
+
             args: {
                 fill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
                 strokeColor  : {type: 'color', value: '#111111', name: 'Stroke color'},
@@ -60,6 +64,76 @@ function createTemplateData(item) {
         height: item.area.h,
         args: item.shapeProps
     };
+}
+
+/**
+ * @typedef {Object} TemplatedControlPoint
+ * @property {String} id - id of the control point
+ * @property {String} updates - the name of the field in item.shapeProps that this control point effects
+ * @property {Number} min - minimum value of the fields that is affected by the control point drag
+ * @property {Number} max - maximum value of the fields that is affected by the control point drag
+ * @property {Point} start - the starting point of the control point that corresponds to min value
+ * @property {Point} end - the ending point of the control point that corresponds to max value
+ */
+
+/**
+ *
+ * @param {*} item
+ * @param {*} initBlock
+ * @param {*} controlPointTemplates
+ * @returns {Array<TemplatedControlPoint>}
+ * @returns
+ */
+function compileControlPoints(item, initBlock, controlPointTemplates) {
+    if (!Array.isArray(controlPointTemplates)) {
+        return [];
+    }
+
+    const processed = processJSONTemplate({
+        '$-eval': initBlock || [],
+        controlPoints: controlPointTemplates
+    }, createTemplateData(item));
+
+    return processed.controlPoints;
+}
+
+function createControlPoints(initBlock, controlPointTemplates) {
+    return {
+        make(item) {
+            const controlPoints = {};
+            const cpDefs = compileControlPoints(item, initBlock, controlPointTemplates);
+            cpDefs.forEach(cpDef => {
+                const value = myMath.clamp(item.shapeProps[cpDef.updates], cpDef.min, cpDef.max);
+                const t = (value - cpDef.min) / (cpDef.max - cpDef.min);
+
+                controlPoints[cpDef.id] = {
+                    x: cpDef.start.x * (1 - t) + cpDef.end.x * t,
+                    y: cpDef.start.y * (1 - t) + cpDef.end.y * t,
+                };
+            });
+            return controlPoints;
+        },
+        handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+            const cpDefs = compileControlPoints(item, initBlock, controlPointTemplates);
+            const cpDef = cpDefs.find(cpDef => cpDef.id === controlPointName);
+            if (!cpDef) {
+                return;
+            }
+
+            const vx = cpDef.end.x - cpDef.start.x;
+            const vy = cpDef.end.y - cpDef.start.y;
+            const x = originalX + dx - cpDef.start.x;
+            const y = originalY + dy - cpDef.start.y;
+            const projection = Math.abs(myMath.projectVectorToVector(x, y, vx, vy));
+            const dSquared = vx*vx + vy*vy;
+            if (myMath.tooSmall(dSquared)) {
+                return;
+            }
+
+            const t = myMath.clamp(projection / Math.sqrt(dSquared), 0, 1);
+            item.shapeProps[cpDef.updates] = cpDef.min * (1 - t) + cpDef.max * t;
+        }
+    }
 }
 
 function createGetPinsFunc(initBlock, pinTemplates) {
