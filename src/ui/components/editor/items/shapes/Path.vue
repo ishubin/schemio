@@ -16,6 +16,7 @@
 
 <script>
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeSvgFill} from '../AdvancedFill.vue';
 import StrokePattern from '../StrokePattern.js';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
@@ -186,7 +187,7 @@ export default {
         },
 
         fill() {
-            return AdvancedFill.computeStandardFill(this.item);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         }
     }
 }

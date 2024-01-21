@@ -5,7 +5,7 @@ import {forEach} from '../../../../collections';
 import myMath from '../../../../myMath.js';
 import { convertStandardCurveShape } from './StandardCurves.js';
 import utils from '../../../../utils.js';
-import AdvancedFill from '../AdvancedFill.vue';
+import {computeStandardFill} from '../AdvancedFill.vue';
 import { convertTemplatePathShape } from './TemplatedPath.js';
 
 const basicShapeGroup = require('./basic/basic-shapes.js').default;
@@ -262,7 +262,7 @@ function computeStandardCurves(item, shape) {
     } else if (shape.computePath) {
         return [{
             path: shape.computePath(item),
-            fill: AdvancedFill.computeStandardFill(item),
+            fill: computeStandardFill(item),
             strokeColor: item.shapeProps.strokeColor,
             strokeSize: item.shapeProps.strokeSize
         }];

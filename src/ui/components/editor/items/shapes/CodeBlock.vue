@@ -18,6 +18,7 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeStandardFill} from '../AdvancedFill.vue';
 
 const computePath = (item) => {
     const W = item.area.w;
@@ -198,7 +199,7 @@ export default {
         },
 
         svgFill() {
-            return AdvancedFill.computeStandardFill(this.item);
+            return computeStandardFill(this.item);
         },
     },
 }

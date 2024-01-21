@@ -44,6 +44,7 @@
 <script>
 import {getStandardRectPins} from './ShapeDefaults'
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeSvgFill} from '../AdvancedFill.vue';
 import { generateTextStyle } from '../../text/ItemText';
 import EditorEventBus from '../../EditorEventBus';
 import htmlSanitize from '../../../../../htmlSanitize';
@@ -236,7 +237,7 @@ export default {
         },
 
         svgFill() {
-            return AdvancedFill.computeStandardFill(this.item);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         },
 
         sanitizedBodyText() {

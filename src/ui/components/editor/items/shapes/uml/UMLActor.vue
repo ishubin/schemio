@@ -15,6 +15,7 @@
 
 <script>
 import AdvancedFill from '../../AdvancedFill.vue';
+import {computeSvgFill} from '../../AdvancedFill.vue';
 
 export function computeActorPath(w, h) {
     const armY = h/4;
@@ -64,7 +65,7 @@ export default {
 
 
         fill() {
-            return AdvancedFill.computeStandardFill(this.item);
+            return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
         }
     }
 }

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../../../../myMath';
-import AdvancedFill from '../../AdvancedFill.vue';
+import {computeStandardFill} from '../../AdvancedFill.vue';
 import {enrichItemTextSlotWithDefaults} from '../../../../../scheme/ItemFixer';
 
 function swimLaneWidth(item) {
@@ -35,7 +35,7 @@ function computeCurves(item) {
 
     const curves = [{
         path: computeOutline(item),
-        fill: AdvancedFill.computeStandardFill(item),
+        fill: computeStandardFill(item),
         strokeColor: item.shapeProps.strokeColor,
         strokeSize: item.shapeProps.strokeSize,
     }, {
@@ -45,7 +45,7 @@ function computeCurves(item) {
         strokeSize: item.shapeProps.strokeSize,
     }];
 
-    
+
     let previousColumnRatio = 0;
 
     for (let i = 1; i < item.shapeProps.columns; i++) {

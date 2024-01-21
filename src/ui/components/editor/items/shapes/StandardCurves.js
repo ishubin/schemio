@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import {forEach, map} from '../../../../collections';
-import AdvancedFill from '../AdvancedFill.vue';
+import {computeStandardFill} from '../AdvancedFill.vue';
 import myMath from '../../../../myMath';
 
 function round(value) {
@@ -304,7 +304,7 @@ function convertRawShapeForRender(item, itemDef) {
 
     let fill = 'none';
     if (itemDef.fillArg === 'fill') {
-        fill = AdvancedFill.computeStandardFill(item);
+        fill = computeStandardFill(item);
     } else if (itemDef.fillArg === 'none') {
         fill = 'none';
     } else if (itemDef.fillArg) {

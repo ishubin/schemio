@@ -45,13 +45,19 @@ export function computeSvgFill(fill, fillId) {
     return 'none';
 }
 
+/**
+ * Generates a value for SVG fill attribute based on item.shapeProps.fill value
+ * @param {Item} item
+ * @returns {String}
+ */
+export function computeStandardFill(item) {
+    return computeSvgFill(item.shapeProps.fill, `fill-pattern-${item.id}`);
+}
+
 export default {
     props: ['fillId', 'fill', 'area'],
 
     // Uses 'fill' property of shapeProps
-    computeStandardFill(item) {
-        return computeSvgFill(item.shapeProps.fill, `fill-pattern-${item.id}`);
-    },
 
     computed: {
         direction() {
