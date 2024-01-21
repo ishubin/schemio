@@ -2,14 +2,15 @@ export default {
     name: "Star",
 
     shapeConfig: {
-        id: "ts_star",
+        id: "basic_star",
         shapeType: "templated-path",
         init: ["R = max(min(width, height) / 2, 0.0001)"],
         menuItems: [{
             group: "Basic Shapes",
             name: "Star",
             size: { w: 80, h: 80 },
-            previewArea: { x: 0, y: 0, w: 130, h: 130, r: 0 }
+            previewArea: { x: 0, y: 0, w: 130, h: 130, r: 0 },
+            iconUrl: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMzIgMzIiIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIzMnB4IiBoZWlnaHQ9IjMycHgiPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMsIDMpIj48cGF0aCBkPSJNIDEzIDAgTCAxNS40OSA3IEwgMjIuMTkgMy44MSBMIDE5LjAxIDEwLjUyIEwgMjYgMTMgTCAxOS4wMSAxNS40OCBMIDIyLjE5IDIyLjE5IEwgMTUuNDkgMTkuMDEgTCAxMyAyNiBMIDEwLjUyIDE5LjAxIEwgMy44MSAyMi4xOSBMIDYuOTkgMTUuNDggTCAwIDEzIEwgNi45OSAxMC41MiBMIDMuODEgMy44MSBMIDEwLjUyIDYuOTkgTCAxMyAwICBaICIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjMTExMTExIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L3N2Zz4="
         }],
         pins: [{
             id: "c",
