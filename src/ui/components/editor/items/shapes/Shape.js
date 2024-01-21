@@ -90,11 +90,12 @@ function defaultGetTextSlots(item) {
 }
 
 function defaultGetPins(item) {
-    return [{
-        id: 'c',
-        x: item.area.w/2,
-        y: item.area.h/2
-    }];
+    return {
+        c: {
+            x: item.area.w/2,
+            y: item.area.h/2
+        }
+    };
 }
 
 function worldPointOnItem(x, y, item) {
