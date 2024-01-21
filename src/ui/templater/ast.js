@@ -269,6 +269,51 @@ class ASTAssign extends ASTOperator {
     }
 }
 
+class ASTIncrementWith extends ASTOperator {
+    constructor(a, b) { super('incrementWith', '+=', a, b); }
+    evalNode(scope) {
+        if (this.a.type !== VAR_REF) {
+            throw new Error('Cannot use assign operator on non-var');
+        }
+        const value = this.a.evalNode(scope) + this.b.evalNode(scope);
+        scope.set(this.a.varName, value);
+    }
+}
+
+class ASTDecrementWith extends ASTOperator {
+    constructor(a, b) { super('decrementWith', '-=', a, b); }
+    evalNode(scope) {
+        if (this.a.type !== VAR_REF) {
+            throw new Error('Cannot use assign operator on non-var');
+        }
+        const value = this.a.evalNode(scope) - this.b.evalNode(scope);
+        scope.set(this.a.varName, value);
+    }
+}
+
+class ASTMultiplyWith extends ASTOperator {
+    constructor(a, b) { super('multiplyWith', '*=', a, b); }
+    evalNode(scope) {
+        if (this.a.type !== VAR_REF) {
+            throw new Error('Cannot use assign operator on non-var');
+        }
+        const value = this.a.evalNode(scope) * this.b.evalNode(scope);
+        scope.set(this.a.varName, value);
+    }
+}
+
+class ASTDivideWith extends ASTOperator {
+    constructor(a, b) { super('divideWith', '/=', a, b); }
+    evalNode(scope) {
+        if (this.a.type !== VAR_REF) {
+            throw new Error('Cannot use assign operator on non-var');
+        }
+        const value = this.a.evalNode(scope) / this.b.evalNode(scope);
+        scope.set(this.a.varName, value);
+    }
+}
+
+
 class ASTObjectFieldAccesser extends ASTOperator {
     constructor(a, b) { super('field', '.', a, b); }
     evalNode(scope) {
@@ -416,6 +461,10 @@ const operatorClasses = new Map(Object.entries({
     '&&': ASTBoolAnd,
     '||': ASTBoolOr,
     '=': ASTAssign,
+    '+=': ASTIncrementWith,
+    '-=': ASTDecrementWith,
+    '*=': ASTMultiplyWith,
+    '/=': ASTDivideWith,
 }));
 
 function operatorClass(operator) {

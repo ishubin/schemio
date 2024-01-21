@@ -38,7 +38,11 @@ describe('templater ast parser', () => {
             ['x + pow(y + 1, 3)', {x: 7, y: 2}, 34],
             ['min(x, 3) + max(y, 7)', {x: 7, y: 2}, 10],
             ['min(x, 3) + max(y, 7)', {x: 2, y: 10}, 12],
-            ['x = (a = 1; b = 2; a + b); x*10', {}, 30]
+            ['x = (a = 1; b = 2; a + b); x*10', {}, 30],
+            ['x = 3; x += 1; x', {}, 4],
+            ['x = 3; x -= 1; x', {}, 2],
+            ['x = 4; x *= 3; x', {}, 12],
+            ['x = 12; x /= 3; x', {}, 4],
         ].forEach(([input, data, expected]) => {
             const ast = parseExpression(input);
             const result = ast.evalNode(new Scope(data));
