@@ -151,7 +151,7 @@
   */
 
 
- /** 
+ /**
   * Interface for snapping points on X and Y axis. Used for snapping to grid
   * @interface Snapper
   */
@@ -185,3 +185,55 @@
  * @property {Number} dy
  */
 
+/**
+ * @typedef {Object} GradientPoint
+ * @property {}
+ */
+
+/**
+ * @typedef {Object} Gradient
+ * @property {Array<GradientPoint} colors - array of gradient points
+ * @property {String} type - gradient type. Can be "linear" or "radial"
+ * @property {Number} direction - specifies the rotation degrees of liner gradient vector. Used only for "linear" type.
+ */
+
+/**
+ * @typedef {Object} AdvancedColor
+ * @property {String} type - can be "none", "solid", "image", "gradient"
+ * @property {String} color - used for "solid" type
+ * @property {String} image - path to image for "image" type
+ * @property {Boolean} stretch - specified whether the image should be stretched to fit item area
+ * @property {Area} imageBox - represents the cropping area of the image. Used only with "image" type
+ * @property {Gradient} gradient - gradient struct for "gradient" type
+ */
+
+/**
+ * A struct that represents a single path with its own fill and stroke
+ * @typedef {Object} StandardCurvePath
+ * @property {String} path - SVG path formatted string (e.g. "M 0 100 L 400 500")
+ * @property {AdvancedColor} fill - fill of the path
+ * @property {String} strokeColor
+ * @property {Number} strokeSize
+ * @property {String} strokePattern
+ */
+
+
+/**
+ * @typedef {Object} SchemioPathPoint
+ * @property {String} id
+ * @property {String} t - type of point can be 'L' (line), 'B' (beizer) or 'A' (arc)
+ * @property {Number} x
+ * @property {Number} y
+ * @property {Number} x1 - used only for beizer point types
+ * @property {Number} y1 - used only for beizer point types
+ * @property {Number} x2 - used only for beizer point types
+ * @property {Number} y2 - used only for beizer point types
+ * @property {Number} h - used only for arc point types
+ */
+
+/**
+ * @typedef {Object} SchemioPath
+ * @property {String} id
+ * @property {Boolean} closed
+ * @property {Array<SchemioPathPoint>} points
+ */

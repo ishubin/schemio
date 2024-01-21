@@ -46,6 +46,23 @@
                         :fill="curve.fill"></path>
                 </g>
 
+                <g v-if="!shapeComponent && item.visible && (shapeType === 'templated-path') && itemStandardCurves"
+                    :style="{'opacity': item.selfOpacity/100.0}">
+
+                    <g v-for="(curve,curveIdx) in itemStandardCurves">
+                        <advanced-fill :key="`advanced-fill-${item.id}-${curveIdx}-${revision}`" :fillId="`fill-templated-path-${item.id}-${curveIdx}`" :fill="curve.fill" :area="item.area"/>
+
+                        <path v-for="curve in itemStandardCurves" :d="curve.path"
+                            :stroke-width="curve.strokeSize + 'px'"
+                            :stroke="curve.strokeColor"
+                            :stroke-dasharray="strokeDashArray"
+                            :data-item-id="item.id"
+                            stroke-linejoin="round"
+                            :fill="computeSvgFill(curve.fill, `fill-templated-path-${item.id}-${curveIdx}`)"></path>
+                    </g>
+
+                </g>
+
                 <g v-if="shapeType === 'missing' && item.visible" class="missing-shape">
                     <rect x="0" y="0" :width="item.area.w" :height="item.area.h" />
                     <foreignObject x="0" y="0"  :width="item.area.w" :height="item.area.h">
@@ -171,6 +188,7 @@
 
 <script>
 import AdvancedFill from './AdvancedFill.vue';
+import {computeSvgFill} from './AdvancedFill.vue';
 import StrokePattern from './StrokePattern.js';
 import Shape from './shapes/Shape.js';
 import utils from '../../../utils';
@@ -324,7 +342,10 @@ export default {
                 this.shapeComponent = null;
             }
 
-            if (shape.shapeType === 'standard') {
+            if (shape.shapeType === 'templated-path') {
+                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                this.itemStandardCurves = shape.computeCurves(this.item);
+            } else if (shape.shapeType === 'standard') {
                 this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                 this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
             }
@@ -346,7 +367,10 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape) {
                 // re-computing item svg path for event layer
-                if (shape.shapeType === 'standard') {
+                if (shape.shapeType === 'templated-path') {
+                    this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+                    this.itemStandardCurves = shape.computeCurves(this.item);
+                } else if (shape.shapeType === 'standard') {
                     this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
                     this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
                 }
@@ -411,6 +435,10 @@ export default {
                 this.hiddenTextSlotName = null;
             }
         },
+
+        computeSvgFill(fill, fillId) {
+            return computeSvgFill(fill, fillId);
+        }
     },
 
     computed: {

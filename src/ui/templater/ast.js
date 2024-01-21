@@ -55,7 +55,7 @@ export class Scope {
 
 
 
-class ASTNode {
+export class ASTNode {
     constructor(type) {
         this.type = type;
     }

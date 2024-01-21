@@ -146,7 +146,7 @@ function createComputeOutlineFunc(shapeConfig) {
             let svgPath = '';
 
             forEach(shapeConfig.outlines, outlineDef => {
-                const outlinePath = convertRawShapeToSvgPath(item, shapeConfig, outlineDef);
+                const outlinePath = convertRawShapeToSvgPath(item, outlineDef);
                 if (outlinePath) {
                     svgPath += outlinePath;
                 }
@@ -160,9 +160,15 @@ function createComputeOutlineFunc(shapeConfig) {
     };
 }
 
-function convertRawPathShapeForRender(item, shapeConfig, itemDef) {
+/**
+ *
+ * @param {Item} item
+ * @param {Array<SchemioPath>} paths
+ * @returns
+ */
+export function convertRawPathShapeForRender(item, paths) {
     let svgPath = '';
-    forEach(itemDef.paths, pathDef => {
+    forEach(paths, pathDef => {
         const svgSegmentPath = computeCurvePath(item.area.w, item.area.h, pathDef.points, pathDef.closed);
         svgPath += svgSegmentPath + ' ';
     });
@@ -177,7 +183,7 @@ function projectPointToItemArea(x, y, item) {
     };
 }
 
-function convertRawEllipseShapeForRender(item, shapeConfig, itemDef) {
+function convertRawEllipseShapeForRender(item, itemDef) {
     const {p0, pw, ph} = itemDef.projection;
 
     const pLeftX = (ph.x - p0.x) / 2 + p0.x;
@@ -197,7 +203,7 @@ function convertRawEllipseShapeForRender(item, shapeConfig, itemDef) {
     return `M ${Pl.x} ${Pl.y} A ${rx} ${ry} 0 1 1 ${Pr.x} ${Pr.y}  A ${rx} ${ry} 0 1 1 ${Pl.x} ${Pl.y} Z`;
 }
 
-function convertRawRectShapeForRender(item, shapeConfig, itemDef) {
+function convertRawRectShapeForRender(item, itemDef) {
 
     /*
         Vw
@@ -271,21 +277,27 @@ function convertRawRectShapeForRender(item, shapeConfig, itemDef) {
     return path + line(points[0]) + ' Z';
 }
 
-function convertRawShapeToSvgPath(item, shapeConfig, itemDef) {
+function convertRawShapeToSvgPath(item, itemDef) {
     if (itemDef.type === 'path') {
-        return convertRawPathShapeForRender(item, shapeConfig, itemDef);
+        return convertRawPathShapeForRender(item, itemDef.paths);
     } else if (itemDef.type === 'ellipse') {
-        return convertRawEllipseShapeForRender(item, shapeConfig, itemDef);
+        return convertRawEllipseShapeForRender(item, itemDef);
     } else if (itemDef.type === 'rect') {
-        return convertRawRectShapeForRender(item, shapeConfig, itemDef);
+        return convertRawRectShapeForRender(item, itemDef);
     } else {
         console.error('Uknown raw shape type: ' + itemDef.type);
         return null;
     }
 }
 
-export function convertRawShapeForRender(item, shapeConfig, itemDef) {
-    const svgPath = convertRawShapeToSvgPath(item, shapeConfig, itemDef);
+/**
+ *
+ * @param {Item} item
+ * @param {*} itemDef
+ * @returns {StandardCurvePath}
+ */
+function convertRawShapeForRender(item, itemDef) {
+    const svgPath = convertRawShapeToSvgPath(item, itemDef);
     if (!svgPath) {
         return null;
     }
@@ -302,7 +314,7 @@ export function convertRawShapeForRender(item, shapeConfig, itemDef) {
             fill = otherFill;
         }
     }
-    
+
     return {
         path: svgPath,
         fill,
@@ -311,12 +323,17 @@ export function convertRawShapeForRender(item, shapeConfig, itemDef) {
     };
 }
 
+/**
+ *
+ * @param {*} shapeConfig
+ * @returns {function(): Array<StandardCurvePath>}
+ */
 function createComputeCurvesFunc(shapeConfig) {
     return (item) => {
         if (shapeConfig.items) {
             const computedPaths = [];
             forEach(shapeConfig.items, itemDef => {
-                const p = convertRawShapeForRender(item, shapeConfig, itemDef)
+                const p = convertRawShapeForRender(item, itemDef)
                 if (p) {
                     computedPaths.push(p);
                 }

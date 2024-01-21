@@ -35,6 +35,7 @@
 <script>
 import {map} from '../../../collections';
 import AdvancedFill from '../items/AdvancedFill.vue';
+import {computeSvgFill} from '../items/AdvancedFill.vue';
 import {defaultStyles} from './ItemStyles';
 
 let cachedUserStyles = null;
@@ -77,7 +78,7 @@ export default {
         convertStyleToPreview(style) {
             return {
                 style,
-                previewFill: AdvancedFill.computeSvgFill(style.fill, style.id),
+                previewFill: computeSvgFill(style.fill, style.id),
                 previewStroke: style.strokeColor
             };
         },

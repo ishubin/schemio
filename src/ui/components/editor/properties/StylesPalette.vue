@@ -42,6 +42,7 @@
 import {map, filter} from '../../../collections';
 import Panel from '../Panel.vue';
 import AdvancedFill from '../items/AdvancedFill.vue';
+import {computeSvgFill} from '../items/AdvancedFill.vue';
 import Shape from '../items/shapes/Shape';
 import {defaultStyles} from './ItemStyles';
 import StoreUtils from '../../../store/StoreUtils';
@@ -94,7 +95,7 @@ export default {
         convertStyleToPreview(style) {
             return {
                 style,
-                previewFill: AdvancedFill.computeSvgFill(style.fill, style.id),
+                previewFill: computeSvgFill(style.fill, style.id),
                 previewStroke: style.strokeColor
             };
         },

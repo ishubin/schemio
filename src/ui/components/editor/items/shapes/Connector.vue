@@ -33,6 +33,7 @@ import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
 import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
+import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
 import { worldPointOnItem } from '../../../../scheme/SchemeContainer';
 
@@ -1055,7 +1056,7 @@ export default {
         },
         svgFill() {
             if (this.item.shapeProps.thick) {
-                return AdvancedFill.computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
+                return computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
             }
             return 'none';
         }

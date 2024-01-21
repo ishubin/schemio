@@ -6,6 +6,7 @@ import myMath from '../../../../myMath.js';
 import { convertStandardCurveShape } from './StandardCurves.js';
 import utils from '../../../../utils.js';
 import AdvancedFill from '../AdvancedFill.vue';
+import { convertTemplatePathShape } from './TemplatedPath.js';
 
 const basicShapeGroup = require('./basic/basic-shapes.js').default;
 
@@ -27,6 +28,7 @@ let _shapes = [
 
     require('./basic/Triangle.js').default,
     require('./basic/Diamond.js').default,
+    require('./templated/star.js').default,
 
     require('./StickyNote.vue').default,
     require('./Component.vue').default,
@@ -89,6 +91,7 @@ function defaultGetTextSlots(item) {
 
 function defaultGetPins(item) {
     return [{
+        id: 'c',
         x: item.area.w/2,
         y: item.area.h/2
     }];
@@ -215,6 +218,8 @@ function registerShape(shape) {
 
     if (shape.shapeConfig.shapeType === 'raw') {
         registerRawShape(shape.shapeConfig.id, shape.shapeConfig);
+    } else if (shape.shapeConfig.shapeType === 'templated-path') {
+        registerTemplatedPathShape(shape.shapeConfig.id, shape.shapeConfig);
     } else {
         shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
     }
@@ -222,6 +227,12 @@ function registerShape(shape) {
 
 function registerRawShape(shapeId, shapeConfig) {
     const shape = convertStandardCurveShape(shapeConfig);
+    shape.shapeConfig.id = shapeId;
+    shapeRegistry[shapeId] = enrichShape(shape);
+}
+
+function registerTemplatedPathShape(shapeId, shapeConfig) {
+    const shape = convertTemplatePathShape(shapeConfig);
     shape.shapeConfig.id = shapeId;
     shapeRegistry[shapeId] = enrichShape(shape);
 }
