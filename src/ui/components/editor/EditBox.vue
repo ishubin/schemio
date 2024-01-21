@@ -100,7 +100,7 @@
                         :r="10/safeZoom"
                         fill="rgba(255, 255, 255, 0.0)"
                         :title="control.name"
-                        data-type="edit-box"
+                        data-type="edit-box-custom-control"
                         @click="onCustomControlClick(idx)"
                         >
                     </circle>
@@ -135,7 +135,7 @@
                             :height="control.height/safeZoom"
                             fill="rgba(0,0,0,0)"
                             :rx="10/safeZoom"
-                            data-type="edit-box"
+                            data-type="edit-box-template-control"
                             @click="onTemplateControlClick(idx)"
                             />
                     </g>

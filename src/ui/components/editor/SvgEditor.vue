@@ -479,6 +479,8 @@ export default {
                         controlPointIndex: parseInt(element.getAttribute('data-path-control-point-index'))
                     };
                 } else if (elementType === 'edit-box'
+                        || elementType === 'edit-box-template-control'
+                        || elementType === 'edit-box-custom-control'
                         || elementType === 'edit-box-rotational-dragger'
                         || elementType === 'edit-box-pivot-dragger'
                         || elementType === 'edit-box-reset-image-crop-link'
