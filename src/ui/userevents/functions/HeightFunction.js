@@ -4,6 +4,7 @@
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation, { convertTime } from '../../animations/ValueAnimation';
 import EditorEventBus from '../../components/editor/EditorEventBus';
+import SchemeContainer from '../../scheme/SchemeContainer';
 
 
 export default {
@@ -19,6 +20,15 @@ export default {
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
     },
 
+    /**
+     *
+     * @param {Item} item
+     * @param {*} args
+     * @param {SchemeContainer} schemeContainer
+     * @param {*} userEventBus
+     * @param {*} resultCallback
+     * @returns
+     */
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animated) {
@@ -31,6 +41,7 @@ export default {
                         item.area.h = initialHeight * (1 - t) + args.height * t;
                         schemeContainer.reindexItemTransforms(item);
                         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+                        schemeContainer.readjustItemAndDescendants(item.id);
                     },
                     destroy: () => {
                         if (!args.inBackground) {
@@ -46,6 +57,7 @@ export default {
                 item.area.h = args.height;
                 schemeContainer.reindexItemTransforms(item);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+                schemeContainer.readjustItemAndDescendants(item.id);
             }
         }
         resultCallback();

@@ -18,7 +18,7 @@ import Header from './app/components/Header.vue';
 import Footer from './app/components/Footer.vue';
 import { fsClientProvider } from './app/client/fsClient';
 import { offlineClientProvider } from './app/client/offlineClient';
-import { Scope, testAST } from './templater/ast';
+import { Scope, testAST, testASTEval } from './templater/ast';
 import { generateSchemePatch } from './scheme/SchemePatch';
 import { processJSONTemplate } from './templater/templater.js';
 

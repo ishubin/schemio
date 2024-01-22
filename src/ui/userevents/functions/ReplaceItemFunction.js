@@ -23,12 +23,12 @@ export default {
             let destinationPosition = null;
             if (destinationItem && destinationItem.id !== item.id) {
                 destinationPosition = calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer);
-            
                 destinationItem.visible = false;
                 item.visible = true;
                 item.area.x = destinationPosition.x;
                 item.area.y = destinationPosition.y;
                 schemeContainer.reindexItemTransforms(item);
+                schemeContainer.readjustItemAndDescendants(item.id);
             }
         }
         resultCallback();

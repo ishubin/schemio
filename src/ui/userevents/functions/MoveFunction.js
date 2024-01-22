@@ -5,9 +5,18 @@ import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
 import EditorEventBus from '../../components/editor/EditorEventBus';
+import SchemeContainer from '../../scheme/SchemeContainer';
 
 
 class MoveAnimation extends Animation {
+
+    /**
+     *
+     * @param {Item} item
+     * @param {Object} args
+     * @param {SchemeContainer} schemeContainer
+     * @param {function} resultCallback
+     */
     constructor(item, args, schemeContainer, resultCallback) {
         super();
         this.item = item;
@@ -49,12 +58,14 @@ class MoveAnimation extends Animation {
             this.schemeContainer.reindexItemTransforms(this.item);
 
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
             return true;
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
             this.schemeContainer.reindexItemTransforms(this.item);
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
         return false;
     }
@@ -86,6 +97,15 @@ export default {
         return `x: ${args.x}, y: ${args.y} ` + (args.animated ? 'animated' : '');
     },
 
+    /**
+     *
+     * @param {Item} item
+     * @param {*} args
+     * @param {SchemeContainer} schemeContainer
+     * @param {*} userEventBus
+     * @param {*} resultCallback
+     * @returns
+     */
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             if (args.animated) {
@@ -99,6 +119,7 @@ export default {
                 item.area.y = args.y;
                 schemeContainer.reindexItemTransforms(item);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+                schemeContainer.readjustItemAndDescendants(item.id);
             }
         }
         resultCallback();

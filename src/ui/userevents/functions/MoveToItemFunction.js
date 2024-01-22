@@ -4,7 +4,7 @@
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
-import { worldPointOnItem, worldVectorOnItem} from '../../scheme/SchemeContainer';
+import SchemeContainer, { worldPointOnItem, worldVectorOnItem} from '../../scheme/SchemeContainer';
 import myMath from '../../myMath';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 
@@ -55,6 +55,7 @@ class MoveToItemAnimation extends Animation {
         super();
         this.item = item;
         this.args = args;
+        /** @type {SchemeContainer} */
         this.schemeContainer = schemeContainer;
         this.resultCallback = resultCallback;
         this.elapsedTime = 0.0;
@@ -105,6 +106,7 @@ class MoveToItemAnimation extends Animation {
             }
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
 
             return shouldProceedAnimating;
         } else {
@@ -112,6 +114,7 @@ class MoveToItemAnimation extends Animation {
             this.item.area.y = this.destinationPosition.y;
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
         return false;
     }
@@ -196,6 +199,7 @@ export default {
                     }
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                     schemeContainer.reindexItemTransforms(item);
+                    schemeContainer.readjustItemAndDescendants(item.id);
                 }
             }
         }

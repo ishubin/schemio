@@ -67,12 +67,14 @@ class MoveRandomlyAnimation extends Animation {
 
             this.schemeContainer.reindexItemTransforms(this.item);
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
             return true;
         } else {
             this.item.area.x = this.itemInitialPosition.x;
             this.item.area.y = this.itemInitialPosition.y;
             this.schemeContainer.reindexItemTransforms(this.item);
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
         return false;
     }
@@ -83,6 +85,7 @@ class MoveRandomlyAnimation extends Animation {
         this.item.area.x = this.itemInitialPosition.x;
         this.item.area.y = this.itemInitialPosition.y;
         this.schemeContainer.reindexItemTransforms(this.item);
+        this.schemeContainer.readjustItemAndDescendants(this.item.id);
 
         if (!this.args.inBackground) {
             this.resultCallback();

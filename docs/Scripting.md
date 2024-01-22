@@ -7,6 +7,10 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
 - [Boolean expressions](#boolean-expressions)
 - [Templated strings](#templated-strings)
 - [If statements](#if-statements)
+- [Vector](#vector)
+    - [Vector functions](#vector-functions)
+      - [length](#length)
+      - [normalized](#normalized)
 - [Functions](#functions)
     - [abs](#abs)
     - [min](#min)
@@ -33,6 +37,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getVar](#getvar)
       - [getPosX](#getposx)
       - [getPosY](#getposy)
+      - [getWorldPos](#getworldpos)
+      - [setWorldPos](#setworldpos)
       - [getWidth](#getwidth)
       - [getHeight](#getheight)
       - [getAngle](#getangle)
@@ -60,6 +66,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [findItemById](#finditembyid)
       - [findChildItemByName](#findchilditembyname)
       - [findParent](#findparent)
+      - [getValue](#getvalue)
+      - [setValue](#setvalue)
 
 
 Basic syntax
@@ -143,6 +151,51 @@ x = if (x < 100) {
     step = 4
     x + step
 } else { 0 }
+```
+
+
+Vector
+------------
+
+SchemioScript introduces a 2D Vector structure that makes it easier to handle vector math. You may use `+`, `-`, `*` and `/` operators on vectors, SchemioScript also handles scalar and vector mixed operations such as scalar multiplied by vector or vector divided by scalar.
+
+```js
+v1 = Vector(3, 4)
+v2 = Vector(1, -2)
+
+dx = v1.x - v2.x
+
+dv = v1 - v2
+
+v3 = v1 + 10 * v2
+
+length = v3.length()
+
+normal = v3.normalized()
+```
+
+`Vector` struct has two properties `x` and `y`. To create a new vector and assign it to a variable just use `v = Vector(0, 0)`.
+
+
+#### Vector functions
+
+##### length
+
+`length()` returns the length of the current vector
+
+Example
+```js
+v = Vector(3, 5)
+d = v.length()
+```
+
+##### normalized
+
+`normalized()` returns a new vector which has the same direction as the currect vector but its length is equal to 1
+
+```js
+v = Vector(10, -2)
+normal = v.normalized()
 ```
 
 
@@ -356,12 +409,22 @@ dstX = getVar('dstX')
 
 ##### getPosX
 
-`getPosX()` returns the `x` value of current item position
+`getPosX()` returns the `x` value of current item position in its local transform
 
 
 ##### getPosY
 
-`getPosX()` returns the `y` value of current item position
+`getPosX()` returns the `y` value of current item position in its local transform
+
+
+##### getWorldPos
+
+`getWorldPos()` returns [Vector](#vector) that represents the position of item's pivot point in world coordinates
+
+
+##### setWorldPos
+
+`setWorldPos(x, y)` sets the position of item such that its pivot point matches the specified `x` and `y` in world coordinates
 
 
 ##### getWidth
@@ -541,3 +604,24 @@ it.setTextSize('body', 30)
 ##### findParent
 
 `findParent()` searches for parent item of the current item
+
+
+##### getValue
+
+`getValue()` function is only available for `textfield` items and returns the value that was typed into the textfield
+
+Example:
+```js
+textfield = findItemByName('Name textfield')
+name = textfield.getValue()
+```
+
+##### setValue
+
+`setValue(value)` function is only available for `textfield` items and sets the value in the textfield
+
+Example:
+```js
+textfield = findItemByName('Name textfield')
+textfield.setValue('John')
+```

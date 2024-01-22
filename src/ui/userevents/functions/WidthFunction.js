@@ -31,6 +31,7 @@ export default {
                         item.area.w = initialWidth * (1 - t) + args.width * t;
                         schemeContainer.reindexItemTransforms(item);
                         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+                        schemeContainer.readjustItemAndDescendants(item.id);
                     },
                     destroy: () => {
                         if (!args.inBackground) {
@@ -46,6 +47,7 @@ export default {
                 item.area.w = args.width;
                 schemeContainer.reindexItemTransforms(item);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+                schemeContainer.readjustItemAndDescendants(item.id);
             }
         }
         resultCallback();

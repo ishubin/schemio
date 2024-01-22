@@ -1,5 +1,6 @@
 import expect from 'expect';
 import { Scope, parseExpression } from '../../src/ui/templater/ast';
+import { Vector } from '../../src/ui/templater/vector';
 
 
 
@@ -281,5 +282,80 @@ describe('templater ast parser', () => {
             expr.evalNode(new Scope(data));
             expect(data.x).toBe(expected);
         });
-    })
+    });
+
+    it('should let assign values to child fields of object', () => {
+        const script = `
+            v = Vector(0, 0)
+            v.y = 45
+            result = v.y
+        `;
+
+        const expr = parseExpression(script);
+        const data = {};
+        expr.evalNode(new Scope(data));
+        expect(data.result).toBe(45);
+    });
+
+    it('should perform math operations on vectors', () => {
+        const script = `
+            v1 = Vector(1, 2)
+            v2 = Vector(4, 6)
+            r1 = v1 * 3
+            r2 = 4 * v1
+            r3 = v1 + v2
+            r4 = v1 - v2
+            r5 = v1 + 2 * v2
+            r6 = v1 + v2 * 2
+            r7 = v1 * 2 + v2
+            r8 = 2 * v1 + v2
+            r9 = -v1
+            r10 = v1 * v2
+            r11 = v1.length()
+            r12 = v1.normalized()
+
+            r13 = Vector(2, 3)
+            r13 += Vector(5, 6)
+
+            r14 = Vector(5, 6)
+            r14 -= Vector(1, 3)
+
+            r15 = Vector(2, 3)
+            r15 *= 3
+
+            r16 = Vector(4, 6)
+            r16 /= 2
+        `;
+
+        const expr = parseExpression(script);
+        const data = {};
+        expr.evalNode(new Scope(data));
+        expect(data.r1.toString()).toBe('{x: 3, y: 6}');
+        expect(data.r2.toString()).toBe('{x: 4, y: 8}');
+        expect(data.r3.toString()).toBe('{x: 5, y: 8}');
+        expect(data.r4.toString()).toBe('{x: -3, y: -4}');
+        expect(data.r5.toString()).toBe('{x: 9, y: 14}');
+        expect(data.r6.toString()).toBe('{x: 9, y: 14}');
+        expect(data.r7.toString()).toBe('{x: 6, y: 10}');
+        expect(data.r8.toString()).toBe('{x: 6, y: 10}');
+        expect(data.r9.toString()).toBe('{x: -1, y: -2}');
+        expect(data.r10).toBe(16);
+        expect(data.r11).toBeCloseTo(Math.sqrt(5), 5);
+
+        expect(data.r12).toBeInstanceOf(Vector);
+        expect(data.r12.x).toBeCloseTo(1/Math.sqrt(5), 5);
+        expect(data.r12.y).toBeCloseTo(2/Math.sqrt(5), 5);
+
+        expect(data.r13).toBeInstanceOf(Vector);
+        expect(data.r13.toString()).toBe('{x: 7, y: 9}');
+
+        expect(data.r14).toBeInstanceOf(Vector);
+        expect(data.r14.toString()).toBe('{x: 4, y: 3}');
+
+        expect(data.r15).toBeInstanceOf(Vector);
+        expect(data.r15.toString()).toBe('{x: 6, y: 9}');
+
+        expect(data.r16).toBeInstanceOf(Vector);
+        expect(data.r16.toString()).toBe('{x: 2, y: 3}');
+    });
 });

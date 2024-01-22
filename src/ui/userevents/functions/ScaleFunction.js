@@ -47,6 +47,7 @@ class ScaleAnimation extends Animation {
 
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
 
             return proceed;
         } else {
@@ -54,6 +55,7 @@ class ScaleAnimation extends Animation {
             this.item.area.sy = this.destinationScale.sy;
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
         return false;
     }
@@ -98,6 +100,7 @@ export default {
                 item.area.sy = parseFloat(args.scaleY);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 schemeContainer.reindexItemTransforms(item);
+                schemeContainer.readjustItemAndDescendants(item.id);
             }
         }
         resultCallback();

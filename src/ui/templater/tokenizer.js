@@ -289,5 +289,5 @@ export function tokenizeExpression(text) {
         token = scanner.scanToken();
     }
 
-    return tokens.filter(token => token.t !== TokenTypes.WHITESPACE);
+    return tokens.filter(token => token.t !== TokenTypes.WHITESPACE && token.t !== TokenTypes.COMMENT);
 }

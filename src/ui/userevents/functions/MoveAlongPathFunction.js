@@ -7,13 +7,22 @@ import Shape from '../../components/editor/items/shapes/Shape';
 import { convertTime } from '../../animations/ValueAnimation';
 import MoveAlongPathAnimationFunction from '../../animations/functions/MoveAlongPathAnimationFunction';
 import EditorEventBus from '../../components/editor/EditorEventBus';
+import SchemeContainer from '../../scheme/SchemeContainer';
 
 
 class MoveAlongPathAnimation extends Animation {
+    /**
+     *
+     * @param {Item} item
+     * @param {*} args
+     * @param {SchemeContainer} schemeContainer
+     * @param {*} resultCallback
+     */
     constructor(item, args, schemeContainer, resultCallback) {
         super();
         this.item = item;
         this.args = args;
+        /** @type {SchemeContainer} */
         this.schemeContainer = schemeContainer;
         this.resultCallback = resultCallback;
         this.elapsedTime = 0.0;
@@ -65,6 +74,7 @@ class MoveAlongPathAnimation extends Animation {
             this.moveToPathLength(this.pathTotalLength * (this.args.startPosition * (1.0 - convertedT) + this.args.endPosition * convertedT) / 100.0);
 
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
+            this.schemeContainer.readjustItemAndDescendants(this.item.id);
             return true;
         }
         return false;

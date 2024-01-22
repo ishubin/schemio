@@ -4,7 +4,7 @@
 <template>
     <div>
         <table class="properties-table">
-            <tr v-for="(arg, argName) in argsDefinition" v-if="argumentControlStates[argName]">
+            <tr v-for="(arg, argName) in argsDefinition" v-if="argumentControlStates[argName] && !isDisabledScript(arg, argName)">
                 <td v-if="arg.type !== 'script'" class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
                     {{arg.name}}
                     <tooltip v-if="arg.description">{{arg.description}}</tooltip>
@@ -127,6 +127,14 @@ export default {
         emitArgumentChange(argName) {
             this.$emit('argument-changed', argName, this.argumentValues[argName]);
         },
+
+        /**
+         * determines whether the argument is of script type and it is disabled
+         * In this case we don't want to render it at all as it is taking too much space
+         */
+        isDisabledScript(arg, argName) {
+            return arg.type === 'script' && !this.argumentControlStates[argName].shown;
+        }
     }
 }
 </script>

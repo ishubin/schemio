@@ -1435,7 +1435,7 @@ class SchemeContainer {
      * @param {ItemModificationContext} context
      * @param {Number} precision - number of digits after point which it should round to
      */
-    readjustItemAndDescendants(itemId, isSoft, context, precision) {
+    readjustItemAndDescendants(itemId, isSoft = false, context = DEFAULT_ITEM_MODIFICATION_CONTEXT, precision = 1) {
         this._readjustItemAndDescendants(itemId, {}, isSoft, context, precision);
     }
 

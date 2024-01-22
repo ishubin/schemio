@@ -1,6 +1,7 @@
 import shortid from "shortid";
 import { ReservedTerms, TokenTypes, tokenizeExpression } from "./tokenizer";
 import { StringTemplate, parseStringExpression } from "./strings";
+import { Vector } from "./vector";
 
 
 const FUNC_INVOKE = 'funcInvoke';
@@ -108,6 +109,10 @@ class ASTVarRef extends ASTNode {
     print() {
         return this.varName;
     }
+
+    assignValue(scope, value) {
+        scope.set(this.varName, value);
+    }
 }
 
 class ASTOperator extends ASTNode {
@@ -120,30 +125,48 @@ class ASTOperator extends ASTNode {
     print() {
         return `(${this.a.print()} ${this.sign} ${this.b.print()})`;
     }
+
+    evalNode(scope) {
+        const aVal = this.a.evalNode(scope);
+        const bVal = this.b.evalNode(scope);
+        if (aVal instanceof Vector) {
+            return aVal._operator(this.sign, bVal);
+        } if (bVal instanceof Vector) {
+            return bVal._rightOperator(this.sign, aVal);
+        }
+         else {
+            return this.evaluate(aVal, bVal);
+        }
+    }
+
+    evaluate(aVal, bVal) {
+        throw new Error(`operator ${this.sign} is not implemented`);
+    }
 }
+
 class ASTAdd extends ASTOperator {
     constructor(a, b) { super('add', '+', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) + this.b.evalNode(scope); }
+    evaluate(aVal, bVal) { return aVal + bVal};
 }
 
 class ASTSubtract extends ASTOperator {
     constructor(a, b) { super('subtract', '-', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) - this.b.evalNode(scope); }
+    evaluate(aVal, bVal) { return aVal - bVal};
 }
 
 class ASTMultiply extends ASTOperator {
     constructor(a, b) { super('multiply', '*', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) * this.b.evalNode(scope); }
+    evaluate(aVal, bVal) { return aVal * bVal};
 }
 
 class ASTDivide extends ASTOperator {
     constructor(a, b) { super('divide', '/', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) / this.b.evalNode(scope); }
+    evaluate(aVal, bVal) { return aVal / bVal};
 }
 
 class ASTMod extends ASTOperator {
     constructor(a, b) { super('mod', '%', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) % this.b.evalNode(scope); }
+    evaluate(aVal, bVal) { return aVal % bVal};
 }
 
 class ASTNegate extends ASTNode {
@@ -153,6 +176,9 @@ class ASTNegate extends ASTNode {
     }
     evalNode(scope) {
         const v = this.node.evalNode(scope);
+        if (v instanceof Vector) {
+            return v.inverse();
+        }
         return -v;
     }
     print() {
@@ -217,7 +243,6 @@ class ASTStringTemplate extends ASTNode {
     }
 }
 
-
 class ASTLessThen extends ASTOperator {
     constructor(a, b) { super('lessThan', '<', a, b); }
     evalNode(scope) { return this.a.evalNode(scope) < this.b.evalNode(scope); }
@@ -261,55 +286,91 @@ class ASTBoolAnd extends ASTOperator {
 class ASTAssign extends ASTOperator {
     constructor(a, b) { super('assign', '=', a, b); }
     evalNode(scope) {
-        if (this.a.type !== VAR_REF) {
+        if (!this.a.assignValue) {
             throw new Error('Cannot use assign operator on non-var');
         }
         const value = this.b.evalNode(scope);
-        scope.set(this.a.varName, value);
+        this.a.assignValue(scope, value);
     }
 }
 
 class ASTIncrementWith extends ASTOperator {
     constructor(a, b) { super('incrementWith', '+=', a, b); }
     evalNode(scope) {
-        if (this.a.type !== VAR_REF) {
+        if (!this.a.assignValue) {
             throw new Error('Cannot use assign operator on non-var');
         }
-        const value = this.a.evalNode(scope) + this.b.evalNode(scope);
-        scope.set(this.a.varName, value);
+        const aVal = this.a.evalNode(scope);
+        const bVal = this.b.evalNode(scope);
+
+        let value;
+        if (aVal instanceof Vector) {
+            value = aVal._operator('+', bVal);
+        } else {
+            value = aVal + bVal;
+        }
+        this.a.assignValue(scope, value);
     }
 }
 
 class ASTDecrementWith extends ASTOperator {
     constructor(a, b) { super('decrementWith', '-=', a, b); }
     evalNode(scope) {
-        if (this.a.type !== VAR_REF) {
+        if (!this.a.assignValue) {
             throw new Error('Cannot use assign operator on non-var');
         }
-        const value = this.a.evalNode(scope) - this.b.evalNode(scope);
-        scope.set(this.a.varName, value);
+        const aVal = this.a.evalNode(scope);
+        const bVal = this.b.evalNode(scope);
+
+        let value;
+        if (aVal instanceof Vector) {
+            value = aVal._operator('-', bVal);
+        } else {
+            value = aVal - bVal;
+        }
+        this.a.assignValue(scope, value);
     }
 }
 
 class ASTMultiplyWith extends ASTOperator {
     constructor(a, b) { super('multiplyWith', '*=', a, b); }
     evalNode(scope) {
-        if (this.a.type !== VAR_REF) {
+        if (!this.a.assignValue) {
             throw new Error('Cannot use assign operator on non-var');
         }
-        const value = this.a.evalNode(scope) * this.b.evalNode(scope);
-        scope.set(this.a.varName, value);
+        const aVal = this.a.evalNode(scope);
+        const bVal = this.b.evalNode(scope);
+
+        let value;
+        if (aVal instanceof Vector) {
+            value = aVal._operator('*', bVal);
+        } else if (bVal instanceof Vector) {
+            value = bVal._rightOperator('*', aVal);
+        } else {
+            value = aVal * bVal;
+        }
+        this.a.assignValue(scope, value);
     }
 }
 
 class ASTDivideWith extends ASTOperator {
     constructor(a, b) { super('divideWith', '/=', a, b); }
     evalNode(scope) {
-        if (this.a.type !== VAR_REF) {
+        if (!this.a.assignValue) {
             throw new Error('Cannot use assign operator on non-var');
         }
-        const value = this.a.evalNode(scope) / this.b.evalNode(scope);
-        scope.set(this.a.varName, value);
+        const aVal = this.a.evalNode(scope);
+        const bVal = this.b.evalNode(scope);
+
+        let value;
+        if (aVal instanceof Vector) {
+            value = aVal._operator('/', bVal);
+        } else if (bVal instanceof Vector) {
+            value = bVal._rightOperator('/', aVal);
+        } else {
+            value = aVal / bVal;
+        }
+        this.a.assignValue(scope, value);
     }
 }
 
@@ -331,36 +392,47 @@ class ASTObjectFieldAccesser extends ASTOperator {
         }
         throw new Error('Invalid use for dot operator. Expected field reference but got: ' + this.b.type);
     }
+
+    assignValue(scope, value) {
+        const obj = this.a.evalNode(scope);
+        if (typeof obj === 'undefined' || obj === null) {
+            throw new Error(`Cannot assign "${fieldName}" on ${obj}`);
+        }
+        if (this.b.type !== VAR_REF) {
+            throw new Error(`Cannot assign value on object, invalid field reference (${this.b.type})`);
+        }
+
+        const fieldName = this.b.varName;
+        obj[fieldName] = value;
+    }
 }
 
 
 const reservedFunctions = new Map(Object.entries({
-    min   : args => Math.min(...args),
-    max   : args => Math.max(...args),
-    pow   : args => Math.pow(...args),
-    sqrt  : args => Math.sqrt(...args),
-    cos   : args => Math.cos(...args),
-    sin   : args => Math.sin(...args),
-    acos  : args => Math.acos(...args),
-    asin  : args => Math.asin(...args),
-    abs   : args => Math.abs(...args),
-    uid   : args => shortid.generate(),
-    log   : args => console.log(...args),
-    round : args => Math.round(...args),
-    ceil  : args => Math.ceil(...args),
-    floor : args => Math.floor(...args),
-    rnd   : args => Math.random(),
+    min   : Math.min,
+    Vector: (x, y) => new Vector(x, y),
+    max   : Math.max,
+    pow   : Math.pow,
+    sqrt  : Math.sqrt,
+    cos   : Math.cos,
+    sin   : Math.sin,
+    acos  : Math.acos,
+    asin  : Math.asin,
+    abs   : Math.abs,
+    uid   : () => shortid.generate(),
+    log   : console.log,
+    round : Math.round,
+    ceil  : Math.ceil,
+    floor : Math.floor,
+    rnd   : Math.random,
     rndInt: (a, b) => Math.round(Math.random()* (b-a)) + a,
     rgba  : (r, g, b, a) => `rgba(${r},${g},${b},${a})`,
     PI    : () => Math.PI,
-    ifcond: args => {
-        if (args.length !== 3) {
-            throw new Error('cond function is taking exactly 3 arguments');
+    ifcond: (condition, trueValue, falseValue) => {
+        if (condition) {
+            return trueValue;
         }
-        if (args[0]) {
-            return args[1]
-        }
-        return args[2];
+        return falseValue;
     },
 }));
 
@@ -377,7 +449,7 @@ class ASTFunctionInvocation extends ASTNode {
     evalNode(scope) {
         const args = this.args.map(arg => arg.evalNode(scope));
         if (reservedFunctions.has(this.name)) {
-            return reservedFunctions.get(this.name)(args);
+            return reservedFunctions.get(this.name)(...args);
         }
         return scope.get(this.name)(...args);
     }
@@ -388,8 +460,8 @@ class ASTFunctionInvocation extends ASTNode {
             throw new Error(`Cannot invoke "${this.name}" function on non-object`);
         }
 
-        if (!obj.hasOwnProperty(this.name)) {
-            throw new Error(`Function "${this.name}" is not defined on object`);
+        if (typeof obj[this.name] !== 'function') {
+            throw new Error(`Function "${this.name}" is not defined on object ` + obj);
         }
 
         const f = obj[this.name];
@@ -491,9 +563,12 @@ class ASTParser {
     }
 
     parse() {
+        if (!this.tokens || this.tokens.length === 0) {
+            return new ASTString("");
+        }
         const node = this.parseExpression();
         if (!node) {
-            throw new Error('Failed parsing expression');
+            throw new Error('Failed parsing expression: \n' + this.originalText);
         }
         if (this.idx < this.tokens.length) {
             throw new Error('Failed to parse entire expression');
@@ -878,7 +953,7 @@ export function parseAST(tokens, originalText) {
  * @returns {ASTNode}
  */
 export function parseExpression(expression) {
-    return parseAST(tokenizeExpression(expression).filter(token => token.t !== TokenTypes.COMMENT), expression);
+    return parseAST(tokenizeExpression(expression), expression);
 }
 
 
