@@ -40,7 +40,9 @@ export default {
     },
 
     argsToShortString(args) {
-        const script = args.script.trim();
+        const s1 = args.initScript || '';
+        const s2 = args.script || '';
+        const script = s1.trim() + '\n' + s2.trim();
         if (!script) {
             return '(...)';
         }

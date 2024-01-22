@@ -48,7 +48,7 @@
             <div class="editor-content" @click="onEditorClick" :style="{width, height}">
                 <editor-content :editor="editor" />
             </div>
-            <span class="editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>
+            <span class="text-editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>
         </div>
 
 

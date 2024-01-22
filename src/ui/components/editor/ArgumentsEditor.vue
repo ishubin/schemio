@@ -53,11 +53,11 @@
                         <a class="link" target="_blank" href="https://github.com/ishubin/schemio/blob/master/docs/Scripting.md">(documentation)</a>
                     </div>
 
-                    <div v-if="arg.type === 'script'" class="script-property-container">
-                        <textarea :value="argumentValues[argName]"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @input="onValueChange(argName, arguments[0].target.value)"></textarea>
-                    </div>
+                    <ScriptEditor v-if="arg.type === 'script'"
+                        :key="`script-editor-${argName}-${editorId}`"
+                        :value="argumentValues[argName]"
+                        @changed="onValueChange(argName, arguments[0])"
+                    />
                 </td>
             </tr>
         </table>
@@ -71,6 +71,7 @@ import Modal from '../Modal.vue';
 import ElementPicker from './ElementPicker.vue';
 import Tooltip from '../Tooltip.vue';
 import NumberTextfield from '../NumberTextfield.vue';
+import ScriptEditor from './ScriptEditor.vue';
 
 export default {
     props: {
@@ -81,7 +82,7 @@ export default {
         apiClient          : {type: Object, default: null}
     },
 
-    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor},
+    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor, ScriptEditor},
 
     beforeMount() {
         this.updateArgumentControlDependencies();
@@ -99,6 +100,7 @@ export default {
         return {
             argumentValues,
             argumentControlStates: mapObjectValues(this.argsDefinition, () => {return {shown: true};}),
+            scriptEnlarged: false,
         };
     },
 
