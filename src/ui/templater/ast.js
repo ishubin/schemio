@@ -571,7 +571,9 @@ class ASTParser {
             throw new Error('Failed parsing expression: \n' + this.originalText);
         }
         if (this.idx < this.tokens.length) {
-            throw new Error('Failed to parse entire expression');
+            const token = this.scanToken();
+            throw new Error(`Failed to parse entire expression. `
+                + `Unexpected token in expression (at ${token.idx}, line ${token.line}): ${token.t} "${token.text}"`);
         }
         return node;
     }
@@ -661,6 +663,8 @@ class ASTParser {
             }
         };
 
+        const isEndToken = (token) => token === null || token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY || token.t === TokenTypes.COMMA;
+
         const startNewExpression = () => {
             processLeftovers();
             expressions.push(a);
@@ -670,13 +674,12 @@ class ASTParser {
             this.skipNewlines();
 
             const nextToken = this.peekToken();
-            if (nextToken && nextToken.t !== TokenTypes.OPERATOR) {
+            if (nextToken && nextToken.t !== TokenTypes.OPERATOR && !isEndToken(nextToken)) {
                 return startNewExpression();
             }
             return a ? true : false;
         };
 
-        const isEndToken = (token) => token === null || token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY || token.t === TokenTypes.COMMA;
 
         while(this.idx < this.tokens.length) {
             let token = this.peekToken();
@@ -770,10 +773,14 @@ class ASTParser {
 
     parseTerm() {
         this.skipNewlines();
-        const token = this.scanToken();
+        const token = this.peekToken();
         if (token === null) {
             return null;
         }
+        if (token.t === TokenTypes.END_CURLY) {
+            return null;
+        }
+        this.skipToken();
 
         if (token.t === TokenTypes.START_BRACKET) {
             const expr = this.parseExpression();

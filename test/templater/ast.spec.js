@@ -358,4 +358,22 @@ describe('templater ast parser', () => {
         expect(data.r16).toBeInstanceOf(Vector);
         expect(data.r16.toString()).toBe('{x: 2, y: 3}');
     });
+
+    it('should parse expressions in if statements correctly', () => {
+        // there was a bug when it did not expect the '}' closing the if statement
+        const node = parseExpression(`
+            s = true
+            if (s) {
+                say('Hello')
+                say('world')
+            }
+        `);
+
+        const said = [];
+        node.evalNode(new Scope({
+            say: (word) => said.push(word)
+        }));
+
+        expect(said).toStrictEqual(['Hello', 'world']);
+    });
 });
