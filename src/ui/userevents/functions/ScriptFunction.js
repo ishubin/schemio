@@ -8,12 +8,14 @@ import ValueAnimation from "../../animations/ValueAnimation";
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import { Scope, parseAST } from "../../templater/ast";
 import { tokenizeExpression } from "../../templater/tokenizer";
-import htmlSanitize from "../../../htmlSanitize";
+import htmlSanitize, { stripAllHtml } from "../../../htmlSanitize";
 import { sendEventToChildren } from "./SendEventToChildrenFunction";
 import { sendEventToParent } from "./SendEventToParentFuction";
 import SchemeContainer, {worldPointOnItem} from '../../scheme/SchemeContainer';
 import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
+
+import {getTextfieldValue, setTextfieldValue} from '../../components/editor/items/shapes/Textfield.vue';
 
 const INFINITE_LOOP = 'inifinite-loop';
 
@@ -237,6 +239,13 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         setOpacity: withFloatValue(opacity => item.opacity = opacity),
         setSelfOpacity: withFloatValue(opacity => item.SelfOpacity = opacity),
 
+        getText: (slotName) => {
+            if (!item.textSlots || !item.textSlots[slotName]) {
+                return '';
+            }
+            const text = item.textSlots[slotName].text || '';
+            return stripAllHtml(text.trim());
+        },
         setText: (slotName, text) => withTextSlot(slotName, slot => slot.text = htmlSanitize('' + text)),
         setTextColor: (slotName, color) => withTextSlot(slotName, slot => slot.color = '' + color),
         setTextSize: (slotName, size) => {
@@ -278,7 +287,10 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
     if (item.shape === 'textfield') {
         itemScope.getValue = () => getTextfieldValue(item);
-        itemScope.setValue = (value) => setTextfieldValue(item, value);
+        itemScope.setValue = (value) => {
+            setTextfieldValue(item, value);
+            emitItemChanged();
+        };
     }
 
     return itemScope;

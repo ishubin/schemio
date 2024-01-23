@@ -62,7 +62,6 @@ export function setTextfieldValue(item, value) {
         item.args = {};
     }
     item.args._textfieldInput = value;
-    EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id, 'args._textfieldInput');
 }
 
 export function getTextfieldValue(item) {

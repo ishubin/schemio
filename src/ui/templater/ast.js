@@ -409,26 +409,28 @@ class ASTObjectFieldAccesser extends ASTOperator {
 
 
 const reservedFunctions = new Map(Object.entries({
-    min   : Math.min,
-    Vector: (x, y) => new Vector(x, y),
-    max   : Math.max,
-    pow   : Math.pow,
-    sqrt  : Math.sqrt,
-    cos   : Math.cos,
-    sin   : Math.sin,
-    acos  : Math.acos,
-    asin  : Math.asin,
-    abs   : Math.abs,
-    uid   : () => shortid.generate(),
-    log   : console.log,
-    round : Math.round,
-    ceil  : Math.ceil,
-    floor : Math.floor,
-    rnd   : Math.random,
-    rndInt: (a, b) => Math.round(Math.random()* (b-a)) + a,
-    rgba  : (r, g, b, a) => `rgba(${r},${g},${b},${a})`,
-    PI    : () => Math.PI,
-    ifcond: (condition, trueValue, falseValue) => {
+    min       : Math.min,
+    Vector    : (x, y) => new Vector(x, y),
+    max       : Math.max,
+    pow       : Math.pow,
+    sqrt      : Math.sqrt,
+    cos       : Math.cos,
+    sin       : Math.sin,
+    acos      : Math.acos,
+    asin      : Math.asin,
+    abs       : Math.abs,
+    uid       : () => shortid.generate(),
+    log       : console.log,
+    round     : Math.round,
+    ceil      : Math.ceil,
+    floor     : Math.floor,
+    rnd       : Math.random,
+    parseInt  : parseInt,
+    parseFloat: parseFloat,
+    rndInt    : (a, b) => Math.round(Math.random()* (b-a)) + a,
+    rgba      : (r, g, b, a) => `rgba(${r},${g},${b},${a})`,
+    PI        : () => Math.PI,
+    ifcond    : (condition, trueValue, falseValue) => {
         if (condition) {
             return trueValue;
         }

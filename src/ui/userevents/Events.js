@@ -29,6 +29,11 @@ export default {
             name: 'Dragging: End',
             description: 'When user stops dragging the object. It is invoked even if user drops the object in non-designated area and the dragging is canceled'
         },
+        drag: {
+            id: 'drag',
+            name: 'Dragging: Move',
+            description: 'Invoked every time user moves the dragged item'
+        },
         drop: {
             id: 'drop',
             name: 'Dragging: Dropped',

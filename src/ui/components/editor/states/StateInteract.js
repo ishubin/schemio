@@ -135,6 +135,8 @@ class DragItemState extends SubState {
         }
         this.moved = true;
 
+        this.emit(this.item, Events.standardEvents.drag.id);
+
         const p0 = this.schemeContainer.relativePointForItem(this.initialClickPoint.x, this.initialClickPoint.y, this.item);
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
         const nx = this.originalItemPosition.x + p1.x - p0.x;

@@ -37,6 +37,15 @@ export class Vector {
         return new Vector(-this.x, -this.y);
     }
 
+    /**
+     *
+     * @param {Vector} v
+     * @returns {Number}
+     */
+    projection(v) {
+        return myMath.projectVectorToVector(this.x, this.y, v.x, v.y);
+    }
+
     _operator(operator, value) {
         if (operator === '+') {
             if (value instanceof Vector) {
