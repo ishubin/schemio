@@ -407,6 +407,23 @@ class ASTObjectFieldAccesser extends ASTOperator {
     }
 }
 
+function customParseInt(text) {
+    const value = parseInt(text);
+    return alwaysNumber(value, 0);
+}
+
+function customParseFloat(text) {
+    const value = parseFloat(text);
+    return alwaysNumber(value, 0);
+}
+
+function alwaysNumber(value, defaultValue) {
+    if (isNaN(value)) {
+        return defaultValue
+    }
+    return value;
+}
+
 
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
@@ -425,8 +442,8 @@ const reservedFunctions = new Map(Object.entries({
     ceil      : Math.ceil,
     floor     : Math.floor,
     rnd       : Math.random,
-    parseInt  : parseInt,
-    parseFloat: parseFloat,
+    parseInt  : customParseInt,
+    parseFloat: customParseFloat,
     rndInt    : (a, b) => Math.round(Math.random()* (b-a)) + a,
     rgba      : (r, g, b, a) => `rgba(${r},${g},${b},${a})`,
     PI        : () => Math.PI,
