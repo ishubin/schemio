@@ -60,6 +60,14 @@ const EditorEventBus = {
             $off: (eventName, editorId, itemId, callback) => $off(editorId, eventName, [itemId], callback),
             $emit: (eventName, editorId, itemId, ...args) => $emit(editorId, eventName, [itemId], ...args),
         },
+        userEvent: {
+            $on: (editorId, callback) => $on(editorId, 'shape-custom-event', [], callback),
+            $off: (editorId, callback) => $off(editorId,  'shape-custom-event', [], callback),
+            $emit: (editorId, itemId, eventName, ...args) => {
+                const allArgs = [itemId, eventName].concat(args);
+                $emit(editorId,   'shape-custom-event', [], ...allArgs);
+            },
+        },
         selected: {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-item-selected', [], callback),

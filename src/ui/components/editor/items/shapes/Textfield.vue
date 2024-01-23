@@ -74,6 +74,8 @@ export function getTextfieldValue(item) {
     return item.args._textfieldInput;
 }
 
+export const TEXTFIELD_TYPE_EVENT = 'Typed';
+
 export default {
     props: ['item', 'editorId', 'mode'],
     components: {AdvancedFill},
@@ -103,6 +105,13 @@ export default {
 
         getPins(item) {
             return getStandardRectPins(item);
+        },
+
+        getEvents(item) {
+            return [{
+                name: TEXTFIELD_TYPE_EVENT,
+                description: 'Called when user types text into textfield'
+            }];
         },
 
         getTextSlots(item) {
@@ -227,6 +236,7 @@ export default {
                 this.item.args = {};
             }
             this.item.args._textfieldInput = event.target.value;
+            EditorEventBus.item.userEvent.$emit(this.editorId, this.item.id, TEXTFIELD_TYPE_EVENT, this.item.args._textfieldInput);
         }
     },
 

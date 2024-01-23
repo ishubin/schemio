@@ -870,6 +870,7 @@ export default {
         EditorEventBus.schemeRebased.$on(this.editorId, this.rebaseScheme);
         EditorEventBus.editBox.fillDisabled.$on(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
+        EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -888,6 +889,7 @@ export default {
         EditorEventBus.schemeRebased.$off(this.editorId, this.rebaseScheme);
         EditorEventBus.editBox.fillDisabled.$off(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$off(this.editorId, this.onEditBoxFillEnabled);
+        EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -2951,6 +2953,12 @@ export default {
 
         onEditBoxFillEnabled() {
             this.editBoxUseFill = true;
+        },
+
+        onCustomShapeEvent(itemId, eventName, ...args) {
+            if (this.mode === 'view') {
+                this.userEventBus.emitItemEvent(itemId, eventName, ...args);
+            }
         },
 
         //calculates from world to screen
