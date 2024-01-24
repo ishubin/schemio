@@ -115,6 +115,11 @@ class DragItemState extends SubState {
         this.moved = false;
         this.lastDropCandidate = null;
         this.looper = new DragItemLooper(this.schemeContainer);
+        const worldPivot = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
+        this.worldPivotCorrection = {
+            x: x - worldPivot.x,
+            y: y - worldPivot.y,
+        };
     }
 
     cancel() {
@@ -141,16 +146,16 @@ class DragItemState extends SubState {
         const p1 = this.schemeContainer.relativePointForItem(x, y, this.item);
         const nx = this.originalItemPosition.x + p1.x - p0.x;
         const ny = this.originalItemPosition.y + p1.y - p0.y;
-        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
 
         if (this.item.behavior.dragging === DragType.dragndrop.id) {
             this.handleDroppableMouseMove(nx, ny);
         } else if (this.item.behavior.dragging === DragType.path.id && this.item.behavior.dragPath) {
-            this.handlePathMouseMove(nx, ny);
+            this.handlePathMouseMove(x, y);
         } else {
             this.item.area.x = nx;
             this.item.area.y = ny;
         }
+        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
     }
 
     handlePathMouseMove(x, y) {
@@ -180,7 +185,7 @@ class DragItemState extends SubState {
                 return;
             }
 
-            const localPoint = localPointOnItem(x, y, item);
+            const localPoint = localPointOnItem(x - this.worldPivotCorrection.x, y - this.worldPivotCorrection.y, item);
             const p = myMath.closestPointOnPath(localPoint.x, localPoint.y, svgPath);
 
             if (!p) {
