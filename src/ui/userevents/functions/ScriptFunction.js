@@ -285,10 +285,10 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         }
     };
 
-    if (item.shape === 'textfield') {
+    if (item && item.shape === 'textfield') {
         itemScope.getValue = () => getTextfieldValue(item);
         itemScope.setValue = (value) => {
-            setTextfieldValue(item, value);
+            setTextfieldValue(item, '' + value);
             emitItemChanged();
         };
     }

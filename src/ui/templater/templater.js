@@ -5,6 +5,7 @@ import { tokenizeExpression } from "./tokenizer";
 
 const $_EXPR = '$-expr';
 const $_STR = '$-str';
+const $_RAWSTR = '$-rawstr';
 const $_IF = '$-if';
 const $_ELSE_IF = '$-else-if';
 const $_ELSE = '$-else';
@@ -42,6 +43,13 @@ export function processTemplateExpressions(expressions, data) {
     return scope.getData();
 }
 
+function compileRawString(obj) {
+    if (Array.isArray(obj)) {
+        return (scope) => obj.join('\n');
+    }
+    return (scope) => obj;
+}
+
 
 /**
  * @param {Array|Object} obj
@@ -55,6 +63,8 @@ function compile(obj) {
             return compileExpression(obj[$_EXPR])
         } else if (obj.hasOwnProperty($_STR)) {
             return compileStringExpression(obj[$_STR]);
+        } else if (obj.hasOwnProperty($_RAWSTR)) {
+            return compileRawString(obj[$_RAWSTR]);
         }
 
         const objectProcessor = compileObjectProcessor(obj);

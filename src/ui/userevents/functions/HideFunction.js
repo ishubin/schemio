@@ -44,7 +44,7 @@ export default {
                         resultCallback();
                     }
                 }
-            }), item.id, this.name);
+            }), item.id, 'visibility-animation');
 
             if (args.inBackground) {
                 resultCallback();

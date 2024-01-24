@@ -2288,7 +2288,6 @@ class SchemeContainer {
     copySelectedItems() {
         const copyBuffer = [];
         forEach(this.selectedItems, item => {
-            // const itemCopy = utils.clone(item);
             copyBuffer.push(utils.clone(item));
         });
 
@@ -2447,6 +2446,10 @@ class SchemeContainer {
             if (item.shape === 'connector') {
                 item.shapeProps.sourceItem = rebuildElementSelector(item.shapeProps.sourceItem);
                 item.shapeProps.destinationItem = rebuildElementSelector(item.shapeProps.destinationItem);
+            }
+
+            if (item.behavior.dragPath) {
+                item.behavior.dragPath = rebuildElementSelector(item.behavior.dragPath);
             }
 
             if (item.shape === 'frame_player') {
