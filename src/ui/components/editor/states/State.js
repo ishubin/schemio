@@ -439,13 +439,25 @@ class State {
         const padding = 10; // we use padding to so that small part of the scheme stays visible and user does not get lost
 
         if (bbox) {
-            const minScreenX = - (bbox.x + bbox.w) * scale + padding;
-            const maxScreenX = this.schemeContainer.screenSettings.width - bbox.x * scale - padding;
-            const minScreenY = - (bbox.y + bbox.h) * scale + padding;
-            const maxScreenY = this.schemeContainer.screenSettings.height - bbox.y * scale - padding;
 
-            this.schemeContainer.screenTransform.x = Math.max(minScreenX, Math.min(sx, maxScreenX));
-            this.schemeContainer.screenTransform.y = Math.max(minScreenY, Math.min(sy, maxScreenY));
+            const x1 = - bbox.x * scale;
+            const y1 = - bbox.y * scale;
+            const x2 = this.schemeContainer.screenSettings.width - (bbox.x + bbox.w) * scale;
+            const y2 = this.schemeContainer.screenSettings.height - (bbox.y + bbox.h) * scale;
+
+
+            const xBounds = {
+                min: Math.min(x1, x2),
+                max: Math.max(x1, x2),
+            };
+            const yBounds = {
+                min: Math.min(y1, y2),
+                max: Math.max(y1, y2),
+            };
+
+            this.schemeContainer.screenTransform.x = Math.max(xBounds.min - padding, Math.min(sx, xBounds.max + padding));
+            this.schemeContainer.screenTransform.y = Math.max(yBounds.min - padding, Math.min(sy, yBounds.max + padding));
+
         } else {
             this.schemeContainer.screenTransform.x = sx;
             this.schemeContainer.screenTransform.y = sy;
