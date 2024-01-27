@@ -7,6 +7,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
 - [Boolean expressions](#boolean-expressions)
 - [Templated strings](#templated-strings)
 - [If statements](#if-statements)
+- [Loops](#loops)
 - [Vector](#vector)
     - [Vector functions](#vector-functions)
       - [length](#length)
@@ -151,6 +152,21 @@ x = if (x < 100) {
     step = 4
     x + step
 } else { 0 }
+```
+
+
+Loops
+--------------
+
+SchemioScript supports `while` type loops like in the example below:
+
+```js
+i = 0
+sum = 0
+while (i < 10) {
+    sum += i
+    i += 1
+}
 ```
 
 

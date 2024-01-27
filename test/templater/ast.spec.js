@@ -376,4 +376,22 @@ describe('templater ast parser', () => {
 
         expect(said).toStrictEqual(['Hello', 'world']);
     });
+
+    it('should parse and execute while loops', () => {
+        // there was a bug when it did not expect the '}' closing the if statement
+        const node = parseExpression(`
+            i = 0
+            sum = 0
+            while (i < 10) {
+                sum += i
+                i += 1
+            }
+            sum
+        `);
+
+        const said = [];
+        const result = node.evalNode(new Scope({}));
+
+        expect(result).toBe(45);
+    });
 });

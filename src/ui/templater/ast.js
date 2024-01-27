@@ -201,6 +201,32 @@ class ASTNot extends ASTNode {
 }
 
 
+class ASTWhileStatement extends ASTNode {
+    /**
+     * @param {ASTNode} whileExpression
+     * @param {ASTNode} whileBlock
+     */
+    constructor(whileExpression, whileBlock) {
+        super('while');
+        this.whileExpression = whileExpression;
+        this.whileBlock = whileBlock;
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        let lastResult = null;
+        while (this.whileExpression.evalNode(scope.newScope())) {
+            lastResult = this.whileBlock.evalNode(scope.newScope());
+        }
+        return lastResult;
+    }
+    print() {
+        const whileBlock = this.whileBlock ? this.whileBlock.print() : '';
+        return `while (${this.whileExpression.print()}) {${whileBlock}}`;
+    }
+}
 class ASTIFStatement extends ASTNode {
     constructor(conditionExpression, trueBlock, falseBlock) {
         super('if');
@@ -813,6 +839,8 @@ class ASTParser {
             return new ASTValue(token.v);
         } else if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
             return this.parseIfExpression();
+        } else if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.WHILE) {
+            return this.parseWhileExpression();
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
             if (nextToken && nextToken.t === TokenTypes.START_BRACKET) {
@@ -894,6 +922,43 @@ class ASTParser {
         }
 
         return indentation + this.originalText.substring(start, end) + '\n' + indentation + ' '.repeat(idx - start) + '^';
+    }
+
+    parseWhileExpression() {
+        this.skipNewlines();
+        let token = this.peekToken();
+        if (!token) {
+            throw new Error('Invalid if statement');
+        }
+        if (token.t !== TokenTypes.START_BRACKET) {
+            throw new Error(`Expected "(" symbol after while (at ${token.idx}, line ${token.line})`);
+        }
+
+        this.skipToken();
+
+        const whileExpression = this.parseExpression();
+        if (!whileExpression) {
+            throw new Error(`Missing condition expression for while statement (at ${token.idx}, line ${token.line})`);
+        }
+
+        this.skipNewlines();
+        token = this.scanToken();
+        if (!token || token.t !== TokenTypes.END_BRACKET) {
+            throw new Error(`Missing ")" for if statement`);
+        }
+        this.skipNewlines();
+
+        token = this.scanToken();
+        if (!token || token.t !== TokenTypes.START_CURLY) {
+            throw new Error(`Missing "{" for while statement`);
+        }
+
+        const whileBlock = this.parseExpression();
+        token = this.scanToken();
+        if (!token || token.t !== TokenTypes.END_CURLY) {
+            throw new Error(`Missing "}" for while statement (line ${this.line})`);
+        }
+        return new ASTWhileStatement(whileExpression, whileBlock);
     }
 
     parseIfExpression() {

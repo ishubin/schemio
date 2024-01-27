@@ -21,7 +21,8 @@ export const TokenTypes = {
 
 export const ReservedTerms = {
     IF: 'if',
-    ELSE: 'else'
+    ELSE: 'else',
+    WHILE: 'while'
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
