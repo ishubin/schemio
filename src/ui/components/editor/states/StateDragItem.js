@@ -15,7 +15,8 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
 import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_ITEM_MODIFICATION_CONTEXT } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
-import {findFirstItemBackwards} from '../../../scheme/Item';
+import {findFirstItemBackwards, traverseItems} from '../../../scheme/Item';
+import { compileItemTemplate } from '../items/ItemTemplate.js';
 
 const log = new Logger('StateDragItem');
 
@@ -442,6 +443,16 @@ class DragPivotEditBoxState extends EditBoxState {
 }
 
 class ResizeEditBoxState extends EditBoxState {
+    /**
+     *
+     * @param {*} parentState
+     * @param {EditBox} editBox
+     * @param {*} draggerEdges
+     * @param {*} x
+     * @param {*} y
+     * @param {*} mx
+     * @param {*} my
+     */
     constructor(parentState, editBox, draggerEdges, x, y, mx, my) {
         super(parentState, 'resize-edit-box', editBox, x, y, mx, my);
         this.draggerEdges = draggerEdges
@@ -451,6 +462,15 @@ class ResizeEditBoxState extends EditBoxState {
             ratio = editBox.area.w / editBox.area.h;
         }
         this.originalRatio = ratio;
+        /** @type {CompiledItemTemplate|undefined} */
+        this.template = null;
+        if (editBox.templateRef) {
+            if (this.store.state.apiClient && this.store.state.apiClient.getTemplate) {
+                this.store.state.apiClient.getTemplate(editBox.templateRef).then(templateDef => {
+                    this.template = compileItemTemplate(templateDef, editBox.templateRef);
+                });
+            }
+        }
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -491,6 +511,12 @@ class ResizeEditBoxState extends EditBoxState {
         }
         this.schemeContainer.updateEditBoxConnectorPoints();
         updateEditBoxWorldPivot(this.editBox);
+
+        if (this.editBox.templateItemRoot && this.template && this.editBox.templateItemRoot.args && this.editBox.templateItemRoot.args.templateArgs) {
+            const item = this.editBox.templateItemRoot;
+            this.schemeContainer.regenerateTemplatedItem(item, this.template, item.args.templateArgs, item.area.w, item.area.h);
+            traverseItems([item], item => EditorEventBus.item.changed.specific.$emit(this.editorId, item.id));
+        }
     }
 }
 
