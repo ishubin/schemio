@@ -425,9 +425,8 @@ import Shape from './items/shapes/Shape';
 import StoreUtils from '../../store/StoreUtils';
 import StrokePattern from './items/StrokePattern';
 import myMath from '../../myMath';
-import { itemCompleteTransform } from '../../scheme/SchemeContainer';
-import { processJSONTemplate, processTemplateExpressions } from '../../templater/templater';
-import utils from '../../utils';
+import { itemCompleteTransform, worldPointOnItem } from '../../scheme/SchemeContainer';
+import { compileItemTemplate } from './items/ItemTemplate';
 
 
 /**
@@ -460,19 +459,6 @@ function createCustomControlAxis(place) {
     };
 }
 
-function templateArgsFromEditBox(editBox) {
-    if (editBox.items.length !== 1) {
-        return null;
-    }
-
-    const item = editBox.items[0];
-    if (!item.args || !item.args.templateArgs) {
-        return null;
-    }
-
-    return item.args.templateArgs;
-}
-
 export default {
     props: {
         useFill: {type: Boolean, default: true},
@@ -494,14 +480,14 @@ export default {
     beforeMount() {
         // reseting selected connector if it was set previously
         StoreUtils.setSelectedConnector(this.$store, null);
+        if (this.editBox.templateRef && this.editBox.templateItemRoot) {
+            this.fetchTemplate(this.editBox.templateRef);
+        }
+
 
         if (this.editBox.items.length === 1) {
             const item = this.editBox.items[0];
             const shape = Shape.find(item.shape);
-
-            if (item.args && item.args.templateRef) {
-                this.fetchTemplate(item.args.templateRef);
-            }
 
             this.configureCustomControls(item, shape.editorProps);
 
@@ -531,8 +517,6 @@ export default {
             connectionStarterTimerId: null,
 
             template: null,
-            templateArgs: templateArgsFromEditBox(this.editBox),
-
             customControls: [],
             templateControls: [],
         };
@@ -543,8 +527,8 @@ export default {
             if (!this.apiClient.getTemplate) {
                 return;
             }
-            this.apiClient.getTemplate(templateRef).then(template => {
-                this.template = template;
+            this.apiClient.getTemplate(templateRef).then(templateDef => {
+                this.template = compileItemTemplate(templateDef, templateRef);
                 this.buildTemplateControls();
             });
         },
@@ -599,42 +583,33 @@ export default {
         },
 
         buildTemplateControls() {
-            if (!this.template.controls || this.editBox.items.length !== 1) {
+            if (!this.template || this.editBox.items.length !== 1 || !this.editBox.templateItemRoot) {
                 return;
             }
+            const rootItem = this.editBox.templateItemRoot;
+            const templateArgs = rootItem.args && rootItem.args.templateArgs ? rootItem.args.templateArgs : {};
+            this.templateControls = this.template.buildControls(templateArgs, rootItem.area.w, rootItem.area.h);
 
-            const result = processJSONTemplate({'$-eval': this.template.init || [], controls: this.template.controls || []}, this.getFullTemplateArgs());
-            this.templateControls = result.controls;
-        },
-
-        getFullTemplateArgs() {
-            const userArgs = this.templateArgs || {};
-            const args = {...userArgs};
-
-            // initializing default args just in case there were some missed in item.args.templateArgs field
-            if (this.template.args) {
-                for(let name in this.template.args) {
-                    if (this.template.args.hasOwnProperty(name) && !args.hasOwnProperty(name)) {
-                        args[name] = utils.clone(this.template.args[name].value);
-                    }
-                }
-            }
-            const width = this.editBox.items[0].area.w;
-            const height = this.editBox.items[0].area.h;
-            return {...args, width, height};
+            this.templateControls.forEach(control => {
+                const wp = worldPointOnItem(control.x, control.y, this.editBox.templateItemRoot);
+                const lp = myMath.localPointInArea(wp.x, wp.y, this.editBox.area);
+                control.x = lp.x;
+                control.y = lp.y;
+            });
         },
 
         onTemplateControlClick(idx) {
-            const control = this.templateControls[idx];
-            if (!control.click) {
-                return;
+            const updatedArgs = this.templateControls[idx].click();
+
+            const item = this.editBox.templateItemRoot;
+            if (item.args && item.args.templateArgs) {
+                for (let key in item.args.templateArgs) {
+                    if (updatedArgs.hasOwnProperty(key)) {
+                        item.args.templateArgs[key] = updatedArgs[key];
+                    }
+                }
             }
-            const args = this.getFullTemplateArgs();
-            const expressions = (this.template.init || []).concat(control.click);
-
-            const updatedArgs = processTemplateExpressions(expressions, args);
-
-            this.$emit('template-rebuild-requested', this.editBox.items[0], this.template, updatedArgs);
+            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, updatedArgs);
         }
     },
 

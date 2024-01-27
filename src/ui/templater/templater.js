@@ -12,6 +12,12 @@ const $_ELSE = '$-else';
 const $_FOR = '$-for';
 const $_EVAL = '$-eval';
 
+
+/**
+ * Compiles the specified template and returns a function that will generated the template object
+ * @param {Object} obj - template object
+ * @returns {function(Object): Object} - function that takes an object as input scope and returns processed object from template
+ */
 export function compileJSONTemplate(obj) {
     const compiled = compile(obj);
     return (data) => {
@@ -32,15 +38,18 @@ export function processJSONTemplate(obj, data) {
  * It executes init and control expressions and returns the updated template argument values
  * @param {Array<String>} expressions - an array of strings which represent template expressions
  * @param {Object} data - an object with initial arguments
- * @returns {Object} - mutated arguments that were changed by the executed epxressions
+ * @returns {function(): Object} - a function that, when invoked, will execute the expressions and will return the updated data with arguments
  */
-export function processTemplateExpressions(expressions, data) {
+export function compileTemplateExpressions(expressions, data) {
     if (!Array.isArray(expressions)) {
         return;
     }
-    const scope = new Scope(data);
-    expressions.forEach(expr => processExpression(expr, scope));
-    return scope.getData();
+
+    return () => {
+        const scope = new Scope(data);
+        expressions.forEach(expr => processExpression(expr, scope));
+        return scope.getData();
+    };
 }
 
 function compileRawString(obj) {

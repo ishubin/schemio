@@ -108,7 +108,7 @@
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
                             @custom-control-clicked="onEditBoxCustomControlClicked"
-                            @template-rebuild-requested="onTemplateRebuildRequested"
+                            @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
                             />
 
                         <EditBox  v-if="state === 'cropImage' && cropImage.editBox"
@@ -440,7 +440,7 @@
                                 :item="schemeContainer.selectedItems[0]"
                                 :schemeContainer="schemeContainer"
                                 :templateRef="schemeContainer.selectedItems[0].args.templateRef"
-                                @updated="onTemplateItemRegenerated"
+                                @updated="onTemplatePropertiesUpdated"
                             />
                         </div>
 
@@ -1181,7 +1181,11 @@ export default {
         },
 
 
-        switchStateCreateItem(item, template, templateRef, templateArgs) {
+        /**
+         * @param {Item} item
+         * @param {CompiledItemTemplate|undefined} template
+         */
+        switchStateCreateItem(item, template) {
             this.resetItemHighlight();
             this.states[this.state].cancel();
             if (item.shape === 'path') {
@@ -1197,7 +1201,7 @@ export default {
             }
             this.states[this.state].schemeContainer = this.schemeContainer;
             this.states[this.state].reset();
-            this.states[this.state].setItem(item, template, templateRef, templateArgs);
+            this.states[this.state].setItem(item, template);
             this.updateFloatingHelperPanel();
         },
 
@@ -1997,45 +2001,29 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
-        onTemplateRebuildRequested(item, template, args) {
-            const templateRef = item.args.templateRef;
-            const updatedItem = this.schemeContainer.regenerateTemplatedItem(item, template, templateRef, args);
-            this.onTemplateItemRegenerated(item.id, updatedItem);
+        onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
+            this.rebuildTemplate(originItemId, template, templateArgs);
+            const originItem = this.schemeContainer.findItemById(originItemId);
+            this.schemeContainer.selectItem(originItem);
+            this.schemeContainer.reindexItems();
         },
 
-        onTemplateItemRegenerated(originItemId, item) {
-            this.schemeContainer.deselectAllItems();
+        onTemplatePropertiesUpdated(originItemId, template, templateArgs) {
+            this.rebuildTemplate(originItemId, template, templateArgs);
+            // delaying full reindex to optimize performance, when user changes color in color picker we don't need to reindex all items right away
+            this.schemeContainer.delayFullReindex();
+        },
 
+        rebuildTemplate(originItemId, template, templateArgs) {
             const originItem = this.schemeContainer.findItemById(originItemId);
             if (!originItem) {
                 return;
             }
-
-            traverseItems([item], enrichItemWithDefaults);
-
-            // doing this in order to regenerate all item ids and fix their references
-            const [clonnedItem] = this.schemeContainer.cloneItems([item]);
-
-            originItem.id = clonnedItem.id;
-            originItem.args = clonnedItem.args;
-            originItem.shapeProps = clonnedItem.shapeProps;
-            originItem.childItems = clonnedItem.childItems;
-            originItem.links = clonnedItem.links;
-            originItem.textSlots = clonnedItem.textSlots;
-            originItem.tags = clonnedItem.tags;
-            originItem.behavior = clonnedItem.behavior;
-            originItem.effects = clonnedItem.effects;
-
-            const idsMapping = new Map();
-            idsMapping.set(originItemId, clonnedItem.id);
-            this.schemeContainer.fixItemsReferences(this.scheme.items, idsMapping);
-            this.schemeContainer.reindexItems();
-
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-
-            this.schemeContainer.selectItem(originItem, false);
-
-            this.currentTab = 'template';
+            this.schemeContainer.regenerateTemplatedItem(originItem, template, templateArgs, originItem.area.w, originItem.area.h);
+            this.editorRevision++;
+            traverseItems(originItem, item => {
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+            });
         },
 
         convertCurvePointToSimple() {
@@ -2481,7 +2469,13 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
-        itemCreationDraggedToSvgEditor(item, pageX, pageY, template, templateRef) {
+        /**
+         * @param {Item} item
+         * @param {Number} pageX
+         * @param {Number} pageY
+         * @param {CompiledItemTemplate} template
+         */
+        itemCreationDraggedToSvgEditor(item, pageX, pageY, template) {
             const coords = this.mouseCoordsFromPageCoords(pageX, pageY);
             const p = this.toLocalPoint(coords.x, coords.y);
             item.area.x = p.x;
@@ -2510,6 +2504,7 @@ export default {
             item.area.h = worldHeight / Math.max(0.0000001, sv.y);
 
             this.schemeContainer.selectItem(item);
+            this.schemeContainer.readjustItem(item, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
 
             if (template && item.args && item.args.templateRef) {

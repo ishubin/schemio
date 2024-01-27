@@ -203,6 +203,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
+import { compileItemTemplate } from './items/ItemTemplate';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -506,7 +507,11 @@ export default {
             this.customArtUploadModalShown = false;
         },
 
-        onItemPicked(item, template, templateRef, templateArgs) {
+        /**
+         * @param {ItemMenuEntry} item
+         * @param {CompiledItemTemplate|undefined} template
+         */
+        onItemPicked(item, template) {
             if (this.itemCreationDragged.startedDragging) {
                 return;
             }
@@ -525,7 +530,7 @@ export default {
                 this.imageCreation.popupShown = true;
                 return;
             } else {
-                this.$emit(ITEM_PICKED_FOR_CREATION, clonedItem, template, templateRef, templateArgs);
+                this.$emit(ITEM_PICKED_FOR_CREATION, clonedItem, template);
             }
         },
 
@@ -641,12 +646,13 @@ export default {
                 return;
             }
             this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
-                const templatedItem = this.schemeContainer.generateItemFromTemplate(template, templateEntry.path);
+                const compiledTemplate = compileItemTemplate(template, templateEntry.path);
+                const templatedItem = this.schemeContainer.generateItemFromTemplate(compiledTemplate, compiledTemplate.getDefaultArgs(), compiledTemplate.defaultArea.w, compiledTemplate.defaultArea.h);
 
                 this.onItemMouseDown(event, {
                     item: templatedItem,
                     name: templatedItem.name
-                }, true, template, templateEntry.path);
+                }, true, compiledTemplate);
             })
             .catch(err => {
                 console.error(err);
@@ -654,7 +660,14 @@ export default {
             });
         },
 
-        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template, templateRef) {
+        /**
+         *
+         * @param {*} originalEvent
+         * @param {ItemMenuEntry} item
+         * @param {Boolean} shouldIgnoreRecentProps
+         * @param {CompiledItemTemplate} template
+         */
+        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template) {
             this.previewItem.shown = false;
 
             const itemClone = utils.clone(item.item);
@@ -709,28 +722,13 @@ export default {
             })
             .onSimpleClick(() => {
                 if (template) {
-                    if (template.preview) {
-                        const previewItem = {
-                            name: template.name,
-                            item: {
-                                id: shortid.generate(),
-                                shape: 'image',
-                                shapeProps: {
-                                    image: template.preview
-                                }
-                            }
-                        };
-                        enrichItemWithDefaults(previewItem.item);
-                        this.onItemPicked(previewItem, template, templateRef, item.item.args.templateArgs);
-                    } else {
-                        this.onItemPicked({
-                            name: template.name,
-                            item: itemClone
-                        }, template, templateRef, item.item.args.templateArgs);
-                    }
-                    return;
+                    this.onItemPicked({
+                        name: template.name,
+                        item: itemClone
+                    }, template);
+                } else {
+                    this.onItemPicked(item);
                 }
-                this.onItemPicked(item);
             })
             .onDrop((event, element, pageX, pageY) => {
                 this.itemCreationDragged.pageX = pageX;
@@ -749,9 +747,9 @@ export default {
                     return;
                 }
 
-                itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h};
+                itemClone.area = { x: 0, y: 0, w: itemClone.area.w, h: itemClone.area.h, r: 0,  px: 0.5, px: 0.5, sx: 1, sy: 1};
                 itemClone.name = this.makeUniqueName(item.name);
-                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template, templateRef);
+                this.$emit('item-creation-dragged-to-editor', itemClone, pageX, pageY, template);
             })
             .build();
         },

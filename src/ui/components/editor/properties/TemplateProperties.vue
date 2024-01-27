@@ -15,13 +15,13 @@
                 @argument-changed="onArgChanged"
             />
         </div>
-        <span v-if="template" class="btn btn-primary btn-wide" @click="regenerateTemplateItem()">Update</span>
     </div>
 </template>
 
 <script>
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {forEach} from '../../../collections';
+import {compileItemTemplate} from '../items/ItemTemplate';
 
 export default {
     props: {
@@ -43,7 +43,6 @@ export default {
             errorMessage: null,
             templateNotFound: false,
             template: null,
-            modified: false,
             args: this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {}
         }
     },
@@ -55,7 +54,7 @@ export default {
             if (this.$store.state.apiClient && this.$store.state.apiClient.getTemplate) {
                 this.$store.state.apiClient.getTemplate(this.templateRef).then(template => {
                     this.isLoading = false;
-                    this.template = template;
+                    this.template = compileItemTemplate(template, this.templateRef);
                     if (template.args) {
                         forEach(template.args, (arg, argName) => {
                             if (!this.args.hasOwnProperty(argName)) {
@@ -77,15 +76,9 @@ export default {
 
         onArgChanged(name, value) {
             this.args[name] = value;
-            this.modified = true;
+            this.$emit('updated', this.item.id, this.template, this.args);
             this.$forceUpdate();
         },
-
-        regenerateTemplateItem() {
-            const item = this.schemeContainer.regenerateTemplatedItem(this.item, this.template, this.templateRef, this.args);
-            this.modified = false;
-            this.$emit('updated', this.item.id, item);
-        }
     },
 
     computed: {

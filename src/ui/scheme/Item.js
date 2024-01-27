@@ -221,17 +221,27 @@ export function defaultifyItem(item) {
     return resultedItem;
 }
 
+/**
+ * @param {Array<Item>} items
+ * @param {TraverseItemCallback} callback
+ */
 export function traverseItems(items, callback) {
     _traverseItems(items, null, callback);
 }
 
+/**
+ *
+ * @param {Array<Item>} items
+ * @param {Item} parentItem
+ * @param {TraverseItemCallback} callback
+ */
 function _traverseItems(items, parentItem, callback) {
     if (!Array.isArray(items)) {
         return;
     }
 
-    items.forEach(item => {
-        callback(item, parentItem);
+    items.forEach((item, sortOrder) => {
+        callback(item, parentItem, sortOrder);
         if (item.childItems) {
             _traverseItems(item.childItems, item, callback);
         }

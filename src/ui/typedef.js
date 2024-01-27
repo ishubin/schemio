@@ -92,6 +92,8 @@
  * @property {ItemArea}  area  - area of edit box
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)
  * @property {Object} itemProjections - map of item ids to item projections
+ * @property {String|undefined} templateRef - a reference to a template that was used to generate templated items
+ * @property {Item|undefined} templateItemRoot - the root of templated item on scene
  * @property {Array<ConnectorPointProjection>} connectorPoints
  * @property {Map<String,ConnectorAttachments} connectorOriginalAttachments - stores original attachment data of connectors.
  * @property {Map<String,Object} cache - used for temporary storage of various objects (for now this is used for reattaching connectors to the same spot)
@@ -123,6 +125,7 @@
  * @property {Array}  links
  * @property {Object} textSlots
  * @property {ItemBehavior} behavior
+ * @property {Array<Item>} childItems
  */
 
  /**
@@ -236,4 +239,57 @@
  * @property {String} id
  * @property {Boolean} closed
  * @property {Array<SchemioPathPoint>} points
+ */
+
+/**
+ * @typedef {Object} ItemMenuEntry
+ * @property {Item} item
+ * @property {String} name
+ * @property {Area|undefined} previewArea
+ */
+
+
+/**
+ * @typedef {Object} ItemTemplateControl
+ * @property {String} name
+ * @property {String} type - for now only "button" is supported
+ * @property {String} text
+ * @property {Number} x
+ * @property {Number} y
+ * @property {Number} width
+ * @property {Number} height
+ * @property {Array<String>|String} click - SchemioScript expressions which will be invoked once the user clicks this template button in edit mode
+ */
+
+/**
+ * Represents uncompiled template of an item
+ * @typedef {Object} ItemTemplate
+ * @property {String} name
+ * @property {String} description
+ * @property {Object} args
+ * @property {Array<String>|String|undefined} init
+ * @property {String} preview
+ * @property {Item} item
+ * @property {Array<ItemTemplateControl>|undefined} controls
+ */
+
+/**
+ * @typedef {Object} CompiledItemTemplate
+ * @property {String} templateRef
+ * @property {ItemArea} defaultArea - the default area of the root of the templated item that will be used when templated item is dragged from ment into scene
+ * @property {String|undefined} preview - dataURL embedded preview of templated item
+ * @property {String} name
+ * @property {String} description
+ * @property {Object} args - contains template argument descriptors
+ * @property {function(Object): Item} buildItem
+ * @property {function(Object): Array<ItemTemplateControl>} buildControls
+ * @property {function(): Object} getDefaultArgs - returns the object with default arg values
+ */
+
+
+/**
+ * @callback TraverseItemCallback
+ * @param {Item} item
+ * @param {Item|undefined} parentItem
+ * @param {Number} sortOrder - position index in the parent item array
  */
