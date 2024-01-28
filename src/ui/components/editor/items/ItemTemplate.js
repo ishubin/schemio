@@ -61,10 +61,14 @@ export function generateItemFromTemplate(template, args, width, height) {
     item.area.w = width;
     item.area.h = height;
 
-    traverseItems([item], it => {
+    traverseItems([item], (it, parentItem) => {
         if (!it.args) {
             it.args = {};
         }
+        if (parentItem !== null) {
+            it.locked = true;
+        }
+
         // Storing id of every item in its args so that later, when regenerating templated item that is already in scene,
         // we can reconstruct other user made items that user attached to templated items
         it.args.templatedId = it.id;

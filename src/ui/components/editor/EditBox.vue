@@ -145,7 +145,7 @@
         </g>
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
-            <ellipse v-if="kind === 'regular'" class="boundary-box-dragger"
+            <ellipse v-if="kind === 'regular' && !isLocked" class="boundary-box-dragger"
                 data-type="edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
@@ -154,7 +154,7 @@
                 :ry="controlPointSize/safeZoom"
             />
 
-            <transition name="edit-box-controls" v-if="editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+            <transition name="edit-box-controls" v-if="!isLocked && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
                 <g>
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
@@ -182,7 +182,7 @@
                 </g>
             </transition>
 
-            <g v-if="kind === 'regular'">
+            <g v-if="kind === 'regular' && !isLocked">
                 <rect class="boundary-box-dragger"
                     data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,left"
@@ -290,7 +290,8 @@
                         :r="10/safeZoom"
                     />
                 </g>
-
+            </g>
+            <g v-if="kind === 'regular'">
                 <g class="boundary-box-context-menu-button">
                     <rect
                         data-type="edit-box-context-menu-button"
@@ -694,6 +695,19 @@ export default {
         isThin() {
             const safeZoom = this.zoom > 0.001 ? this.zoom : 1.0;
             return this.editBox.area.w/safeZoom < 3 || this.editBox.area.h/safeZoom < 3;
+        },
+
+        isLocked() {
+            if (this.editBox.connectorPoints && this.editBox.connectorPoints.length > 0) {
+                return false;
+            }
+
+            let locked = true;
+
+            this.editBox.items.forEach(item => {
+                locked = locked & item.locked;
+            });
+            return locked;
         }
     }
 }
