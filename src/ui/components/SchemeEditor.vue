@@ -376,7 +376,7 @@
                                 @click="changeTab(itemTextSlotTab.tabName)"
                                 >&#167; {{itemTextSlotTab.slotName}}</span>
                         </li>
-                        <li v-if="mode !== 'view' && schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
+                        <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
                             <span class="tab"
                                 :class="{active: currentTab === 'template'}"
                                 @click="changeTab('template')"
@@ -433,13 +433,13 @@
 
                             <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
                         </div>
-                        <div v-if="mode !== 'view' && currentTab === 'template' && !inPlaceTextEditor.shown && schemeContainer.selectedItems.length === 1 && schemeContainer.selectedItems[0].args && schemeContainer.selectedItems[0].args.templateRef">
+                        <div v-if="mode !== 'view' && currentTab === 'template' && !inPlaceTextEditor.shown && selectedTemplateRootItem && selectedTemplateRef">
                             <TemplateProperties
-                                :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}`"
                                 :editorId="editorId"
-                                :item="schemeContainer.selectedItems[0]"
+                                :item="selectedTemplateRootItem"
                                 :schemeContainer="schemeContainer"
-                                :templateRef="schemeContainer.selectedItems[0].args.templateRef"
+                                :templateRef="selectedTemplateRef"
                                 @updated="onTemplatePropertiesUpdated"
                             />
                         </div>
@@ -1047,7 +1047,10 @@ export default {
             },
 
             editBoxUseFill: true,
-            isDrawingBrush: false
+            isDrawingBrush: false,
+
+            selectedTemplateRootItem: null,
+            selectedTemplateRef: null
         }
     },
     methods: {
@@ -1809,6 +1812,9 @@ export default {
          * Triggered when any item got selected or deselected
          */
         onItemSelectionUpdated() {
+            let selectedTemplateRef = null;
+            let selectedTemplateRootItem = null;
+
             if (this.schemeContainer.selectedItems.length > 0) {
                 this.$emit('items-selected');
                 this.currentTab = 'Item';
@@ -1840,6 +1846,23 @@ export default {
                 this.$emit('items-deselected');
                 this.selectedItem = null;
                 this.itemTextSlotsAvailable.length = 0;
+            }
+
+            if (this.schemeContainer.selectedItems.length === 1) {
+                const item = this.schemeContainer.selectedItems[0];
+                if (item.args.templated && item.args.templateRef) {
+                    selectedTemplateRef = item.args.templateRef;
+                    selectedTemplateRootItem = item;
+                } else if (item.meta.templated && item.meta.templateRef) {
+                    selectedTemplateRootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
+                    selectedTemplateRef = item.meta.templateRef;
+                }
+            }
+
+            this.selectedTemplateRef = selectedTemplateRef;
+            this.selectedTemplateRootItem = selectedTemplateRootItem;
+            if (selectedTemplateRef && selectedTemplateRootItem) {
+                this.currentTab = 'template';
             }
 
             this.updateFloatingHelperPanel();

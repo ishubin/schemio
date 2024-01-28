@@ -281,6 +281,47 @@ export function itemCompleteTransform(item) {
 }
 
 /**
+ * Copies templateRef to item meta so that it is easier to access this information in the editor components
+ * @param {Item} item
+ * @param {String} templateRef
+ */
+function markTemplateRef(item, templateRef) {
+    if (!item.args || !item.args.templated || (item.args.templateRef && item.args.templateRef !== templateRef)) {
+        return;
+    }
+    _markTemplateRef([item], templateRef, item.id);
+}
+
+/**
+ * Copies templateRef to item meta so that it is easier to access this information in the editor components
+ * @param {Array<Item>} items
+ * @param {String} templateRef
+ * @param {String} templateRootId
+ */
+function _markTemplateRef(items, templateRef, templateRootId) {
+    items.forEach(item => {
+        if (!item.args || !item.args.templated || (item.args.templateRef && item.args.templateRef !== templateRef)) {
+            return;
+        }
+
+        if (!item.meta) {
+            item.meta = {};
+        }
+
+        item.meta.templated = true;
+        item.meta.templateRef = templateRef;
+        item.meta.templateRootId = templateRootId;
+
+        if (Array.isArray(item.childItems)) {
+            _markTemplateRef(item.childItems, templateRef, templateRootId);
+        }
+        if (Array.isArray(item._childItems)) {
+            _markTemplateRef(item._childItems, templateRef, templateRootId);
+        }
+    })
+}
+
+/**
  * Creates svg path element for item outline
  * @param {Item} item
  * @returns {SVGPathElement}
@@ -827,6 +868,10 @@ class SchemeContainer {
         visitItems(items, (item, transformMatrix, parentItem, ancestorIds, isIndexable) => {
             if (isIndexable) {
                 this._itemArray.push(item);
+            }
+
+            if (item.args && item.args.templateRef && item.args.templated) {
+                markTemplateRef(item, item.args.templateRef);
             }
 
             enrichItemWithDefaults(item);

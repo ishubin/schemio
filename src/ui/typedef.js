@@ -113,9 +113,30 @@
  */
 
 /**
+ * Various information about the item that is needed all over the place in various editor components
+ * This structure is created in SchemeContainer during items reindex
+ * @typedef {Object} ItemMeta
+ * @property {String|undefined} parentId
+ * @property {Array<String>} ancestorIds
+ * @property {Array<Array<Number>} transformMatrix
+ * @property {Number} revision - used for registering update of the item so that some editor components could be reloaded
+ * @property {Boolean} componentRoot - true if the current item is the root of the component
+ * @property {Boolean} componentLoadFailed - true if loading of component has failed
+ * @property {Boolean} isInHUD - true if item is located in HUD
+ * @property {Boolean} calculatedVisibility - true if it is visibile, false if item is either has visible set to false or is placed in the item that is hidden
+ * @property {Number} collapseBitMask
+ * @property {Boolean} collapsed
+ * @property {Boolean} templated
+ * @property {String|undefined} templateRef
+ * @property {String|undefined} templateRootId
+ */
+
+
+/**
  * @typedef {Object} Item
  * @property {String} id
  * @property {String} name
+ * @property {ItemMeta} meta
  * @property {String} description
  * @property {Area}   area
  * @property {String} shape
@@ -126,6 +147,7 @@
  * @property {Object} textSlots
  * @property {ItemBehavior} behavior
  * @property {Array<Item>} childItems
+ * @property {Array<Item>} _childItems - child items that were mounted as part of dynamic component. These items are not shown as editable int the editor
  */
 
  /**

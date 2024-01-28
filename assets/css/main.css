@@ -2437,6 +2437,12 @@ ul.links-editor .edit-link:hover {
 .item-selector .item-row {
     white-space: nowrap;
 }
+.item-selector .item-row .templated-item {
+    color: #943e92;
+}
+.item-selector .item-row .templated-item.templated-item-root {
+    color: #3161a9;
+}
 .item-selector .item-row .item-level-spacing {
     display: inline-block;
     width: 20px;
