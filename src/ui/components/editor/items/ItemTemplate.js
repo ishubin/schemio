@@ -1,6 +1,6 @@
 import shortid from "shortid";
 import { forEachObject } from "../../../collections";
-import { traverseItems } from "../../../scheme/Item";
+import { traverseItems, traverseItemsConditionally } from "../../../scheme/Item";
 import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
 import { compileJSONTemplate, compileTemplateExpressions } from "../../../templater/templater";
 
@@ -100,9 +100,15 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
     // stores ids of templated items that were present in the origin rootItem
     // this way we can find out whether new templated items were added
     const existingTemplatedIds = new Set();
-    traverseItems([rootItem], (item, parentItem, sortOrder) => {
+    traverseItemsConditionally([rootItem], (item, parentItem, sortOrder) => {
         if (!item.args || !item.args.templatedId) {
-            return;
+            return false;
+        }
+
+        if (parentItem && item.args.templateRef) {
+            // this means that another template was attached to this template
+            // therefor it should stop traversing its children so it does not confuse it for items of current template
+            return false;
         }
 
         existingTemplatedIds.add(item.args.templatedId);
@@ -111,11 +117,12 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         const regeneratedItem = regeneratedItemsById.get(item.args.templatedId);
         if (!regeneratedItem) {
             if (!parentItem || !Array.isArray(parentItem.childItems)) {
-                return;
+                // we don't want to delete root item but we do want to keep traversing its children
+                return true;
             }
 
             parentItem.childItems.splice(sortOrder, 1);
-            return;
+            return false;
         }
 
         for (let key in regeneratedItem) {
@@ -128,6 +135,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
                 item[key] = regeneratedItem[key];
             }
         }
+        return true;
     });
 
     const findItemByTemplatedId = (items, templatedId) => {

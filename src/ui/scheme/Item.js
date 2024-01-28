@@ -230,23 +230,37 @@ export function traverseItems(items, callback) {
 }
 
 /**
+ * @param {Array<Item>} items
+ * @param {TraverseItemCallback} callback
+ */
+export function traverseItemsConditionally(items, callback) {
+    _traverseItems(items, null, callback, true);
+}
+
+/**
  *
  * @param {Array<Item>} items
  * @param {Item} parentItem
  * @param {TraverseItemCallback} callback
+ * @param {Boolean} conditionalTraversing whether to traverse items conditionally
  */
-function _traverseItems(items, parentItem, callback) {
+function _traverseItems(items, parentItem, callback, conditionalTraversing) {
     if (!Array.isArray(items)) {
         return;
     }
 
     items.forEach((item, sortOrder) => {
-        callback(item, parentItem, sortOrder);
+        const result = callback(item, parentItem, sortOrder);
+        if (conditionalTraversing && !result) {
+            // not traversing child items
+            return;
+        }
+
         if (item.childItems) {
-            _traverseItems(item.childItems, item, callback);
+            _traverseItems(item.childItems, item, callback, conditionalTraversing);
         }
         if (item._childItems) {
-            _traverseItems(item._childItems, item, callback);
+            const result = _traverseItems(item._childItems, item, callback, conditionalTraversing);
         }
     });
 }

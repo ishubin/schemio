@@ -314,4 +314,5 @@
  * @param {Item} item
  * @param {Item|undefined} parentItem
  * @param {Number} sortOrder - position index in the parent item array
+ * @returns {Boolean} true if it should keeps traversing items
  */
