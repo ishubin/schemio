@@ -49,6 +49,9 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getScaleY](#getscaley)
       - [getOpacity](#getopacity)
       - [getSelfOpacity](#getselfopacity)
+      - [matchWorld](#matchworld)
+      - [mount](#mount)
+      - [mountRoot](#mountroot)
       - [setPosX](#setposx)
       - [setPosY](#setposy)
       - [setWidth](#setwidth)
@@ -487,6 +490,21 @@ dstX = getVar('dstX')
 ##### getSelfOpacity
 
 `getSelfOpacity()` returns the self opacity (percent of visibility without effecting attached child items) value of the item (from 0 to 100)
+
+
+##### matchWorld
+
+`matchWorld(x, y, worldX, worldY)` moves it such that its local point at `(x, y)` matches world point at `(worldX, worldY)`
+
+
+##### mount
+
+`mount(otherItem)` mounts item to another item
+
+
+##### mountRoot
+
+`mountRoot()` mounts current item to root.
 
 
 ##### setPosX

@@ -50,6 +50,7 @@
             "strokePattern": "solid"
         },
         "args": {
+            "isVertical": {"$-expr": "isVertical"},
             "lowPos": {
                 "x": {"$-expr": "lowPos.x"},
                 "y": {"$-expr": "lowPos.y"}
@@ -68,6 +69,24 @@
         "links": [],
         "behavior": {
             "events": [ {
+                "id": {"$-expr": "uid()"},
+                "event": "init",
+                "actions": [ {
+                    "id": {"$-expr": "uid()"},
+                    "element": "self",
+                    "method": "script",
+                    "on": true,
+                    "args": {
+                        "initScript": "",
+                        "script": {"$-rawstr": [
+                            "label = findChildItemByName('slider-label')",
+                            "setVar('labelId', label.getId())",
+                            "label.mountRoot()"
+                        ] },
+                        "animated": false
+                    }
+                } ]
+            },{
                 "id": "lzl3ZvEsX",
                 "event": "slider-dragged",
                 "actions": [ {
@@ -80,8 +99,9 @@
                         "script": {"$-rawstr": [
                             "maxVal = getArg('maxVal', 100)",
                             "minVal = getArg('minVal', 0)",
+                            "isVertical = getArg('isVertical', true)",
                             "knob = findChildItemByName('slider-knob')",
-                            "label = findChildItemByName('slider-label')",
+                            "label = findItemById(getVar('labelId'))",
                             "pos = knob.getWorldPos()",
                             "root = findParent()",
                             "argLowPos = getArg('lowPos')",
@@ -98,6 +118,12 @@
                             "if (label) { ",
                             "    label.setText('body', '' + value)",
                             "}",
+                            "labelPos = if (isVertical) {",
+                            "     knob.worldPoint(knob.getWidth(), knob.getHeight()/2) + Vector(20, 0)",
+                            "} else {",
+                            "     knob.worldPoint(knob.getWidth()/2, 0) - Vector(0, 20)",
+                            "}",
+                            "label.setWorldPos(labelPos.x, labelPos.y)",
                             "setValue(value)"
                         ] },
                         "animated": false
@@ -277,8 +303,8 @@
                     "w": {"$-expr": "labelWidth"},
                     "h": {"$-expr": "labelHeight"},
                     "r": 0,
-                    "px": 0.5,
-                    "py": 0.5,
+                    "px": {"$-expr": "if (isVertical) { 0 } else { 0.5 }"},
+                    "py": {"$-expr": "if (isVertical) { 0.5 } else { 1 }"},
                     "sx": 1,
                     "sy": 1
                 },

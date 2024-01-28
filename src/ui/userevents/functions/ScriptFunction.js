@@ -15,6 +15,8 @@ import SchemeContainer, {localPointOnItem, worldPointOnItem} from '../../scheme/
 import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
 import Events from "../Events";
+import shortid from "shortid";
+import utils from "../../utils";
 
 
 const INFINITE_LOOP = 'inifinite-loop';
@@ -181,9 +183,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
     const itemScope = {
         getId() {
-            if (!item) {
-                return item.id;
-            }
+            return item.id;
         },
 
         setVar(name, value) {
@@ -237,6 +237,22 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
                 item.args = {};
             }
             item.args[argName] = value;
+        },
+
+        /**
+         * Changes item translation so that its specified local point matches world point
+         * @param {Number} x - x axis in local coordinates
+         * @param {Number} y - y axis in local coordinates
+         * @param {Number} wx - x axis in world coordinates
+         * @param {Number} wy - y axis in world coordinates
+         */
+        matchWorld: (x, y, wx, wy) => {
+            const translation = myMath.findTranslationMatchingWorldPoint( wx, wy, x, y, item.area, item.meta.transformMatrix);
+            if (!translation) {
+                return;
+            }
+            item.area.x = translation.x;
+            item.area.y = translation.y;
         },
 
         getWorldPos: () => Vector.fromPoint(worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item)),
@@ -322,7 +338,17 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             item.args.value = value;
             EditorEventBus.item.userEvent.$emit(schemeContainer.editorId, item.id, Events.standardEvents.valueChange.id, value);
             emitItemChanged();
-        }
+        },
+
+        // remounts item to another item
+        mount: (otherItem) => {
+            if (!otherItem) {
+                schemeContainer.remountItemToRoot(item.id)
+            } else {
+                schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, otherItem.getId());
+            }
+        },
+        mountRoot: () => schemeContainer.remountItemToRoot(item.id)
     };
 
 

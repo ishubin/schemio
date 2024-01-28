@@ -2004,6 +2004,11 @@ class SchemeContainer {
         }
     }
 
+    /**
+     * Adds item to scene and returns a reference to it
+     * @param {Item} item 
+     * @returns {Item}
+     */
     addItem(item) {
         this.enrichItem(item);
         this.scheme.items.push(item);
