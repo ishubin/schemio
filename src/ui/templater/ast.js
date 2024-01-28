@@ -468,6 +468,7 @@ const reservedFunctions = new Map(Object.entries({
     ceil      : Math.ceil,
     floor     : Math.floor,
     rnd       : Math.random,
+    isNumber  : (text) => Number.isFinite(parseFloat(text)) || Number.isFinite(parseInt(text)),
     parseInt  : customParseInt,
     parseFloat: customParseFloat,
     rndInt    : (a, b) => Math.round(Math.random()* (b-a)) + a,

@@ -19,6 +19,11 @@ export default {
             id: 'init',
             name: 'Init'
         },
+        valueChange: {
+            id: 'valueChange',
+            name: 'Value Change',
+            description: 'When the value of the item is changed with "setValue" script function'
+        },
         dragStart: {
             id: 'dragStart',
             name: 'Dragging: Start',

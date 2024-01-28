@@ -81,7 +81,7 @@ export function generateItemFromTemplate(template, args, width, height) {
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
     const regeneratedRootItem = generateItemFromTemplate(template, templateArgs, width, height);
     const regeneratedItemsById = new Map();
-    traverseItems(regeneratedRootItem.childItems, (item, parentItem) => {
+    traverseItems([regeneratedRootItem], (item, parentItem) => {
         if (parentItem) {
             item.meta.parentId = parentItem.id;
         }
@@ -116,9 +116,9 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
 
         for (let key in regeneratedItem) {
             let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'childItems' && key !== '_childItems';
-            // for root item we should ignore area as it is defined by user and not by template
-            if (!parentItem && key === 'area') {
-                shouldCopyField = false;
+            // for root item we should ignore area, name, tags, description as it is defined by user and not by template
+            if (shouldCopyField && !parentItem) {
+                shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
             }
             if (shouldCopyField) {
                 item[key] = regeneratedItem[key];

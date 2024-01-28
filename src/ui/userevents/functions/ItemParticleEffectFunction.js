@@ -8,6 +8,7 @@ import Shape from '../../components/editor/items/shapes/Shape';
 import { worldPointOnItem } from '../../scheme/SchemeContainer';
 import myMath from '../../myMath';
 import EditorEventBus from '../../components/editor/EditorEventBus';
+import shortid from 'shortid';
 
 const PI_2 = Math.PI * 2.0;
 
@@ -123,7 +124,7 @@ class ItemParticle extends Particle {
         this.particleItem.area.sy = this.scale;
         this.particleItem.area.r = this.angle;
         this.particleItem.opacity = this.opacity * 100;
-        EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, this.particleItem.id);
+        EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.particleItem.id);
     }
 
     destroy() {
@@ -401,7 +402,9 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
-            playInAnimationRegistry(schemeContainer.editorId, new ItemParticleEffectAnimation(item, args, schemeContainer, resultCallback), item.id, this.name);
+            // using unique id to allow for concurrent particle effects
+            const animationId = this.name + shortid.generate();
+            playInAnimationRegistry(schemeContainer.editorId, new ItemParticleEffectAnimation(item, args, schemeContainer, resultCallback), item.id, animationId);
         }
         if (args.inBackground) {
             resultCallback();

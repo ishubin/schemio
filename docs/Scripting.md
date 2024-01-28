@@ -40,6 +40,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getPosY](#getposy)
       - [getWorldPos](#getworldpos)
       - [setWorldPos](#setworldpos)
+      - [worldPoint](#worldpoint)
+      - [localPoint](#localpoint)
       - [getWidth](#getwidth)
       - [getHeight](#getheight)
       - [getAngle](#getangle)
@@ -61,7 +63,6 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [setText](#settext)
       - [setTextColor](#settextcolor)
       - [setTextSize](#settextsize)
-      - [exists](#exists)
       - [sendEvent](#sendevent)
       - [findItemByName](#finditembyname)
       - [findItemById](#finditembyid)
@@ -443,6 +444,16 @@ dstX = getVar('dstX')
 `setWorldPos(x, y)` sets the position of item such that its pivot point matches the specified `x` and `y` in world coordinates
 
 
+##### worldPoint
+
+`worldPoint(x, y)` converts the specified point from local coordinates of the item to the world coordinates and returns it as [Vector](#vector).
+
+
+##### localPoint
+
+`localPoint(x, y)` converts the specified point from world coordinates of the item to the local coordinates and returns it as [Vector](#vector).
+
+
 ##### getWidth
 
 `getWidth()` returns the width of current item
@@ -562,10 +573,6 @@ setTextColor("body", rgba(r, g, b, 1.0))
 
 `setTextSize(textSlotName, size)` changes text font size for the specified text slot (`textSlotName`).
 
-
-##### exists
-
-`exists()` returns true if item exists in the document
 
 
 ##### sendEvent

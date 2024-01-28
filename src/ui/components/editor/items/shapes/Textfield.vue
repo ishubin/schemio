@@ -31,7 +31,7 @@
         </foreignObject>
 
         <foreignObject
-            v-if="hideTextSlot !== 'placeholder' && (!item.args || !item.args._textfieldInput)"
+            v-if="hideTextSlot !== 'placeholder' && (!item.args || !item.args.value)"
             @click="onPlaceholderClick"
             :x="item.shapeProps.cornerRadius"
             :y="0"
@@ -48,6 +48,7 @@ import {computeSvgFill} from '../AdvancedFill.vue';
 import { generateTextStyle } from '../../text/ItemText';
 import EditorEventBus from '../../EditorEventBus';
 import htmlSanitize from '../../../../../htmlSanitize';
+import Events from '../../../../userevents/Events';
 
 function computePath(item) {
     const W = item.area.w;
@@ -56,25 +57,6 @@ function computePath(item) {
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
-
-export function setTextfieldValue(item, value) {
-    if (!item.args) {
-        item.args = {};
-    }
-    item.args._textfieldInput = value;
-}
-
-export function getTextfieldValue(item) {
-    if (!item.args) {
-        return '';
-    }
-    if (!item.args._textfieldInput) {
-        return '';
-    }
-    return item.args._textfieldInput;
-}
-
-export const TEXTFIELD_TYPE_EVENT = 'Typed';
 
 export default {
     props: ['item', 'editorId', 'mode'],
@@ -105,13 +87,6 @@ export default {
 
         getPins(item) {
             return getStandardRectPins(item);
-        },
-
-        getEvents(item) {
-            return [{
-                name: TEXTFIELD_TYPE_EVENT,
-                description: 'Called when user types text into textfield'
-            }];
         },
 
         getTextSlots(item) {
@@ -235,8 +210,8 @@ export default {
             if (!this.item.args) {
                 this.item.args = {};
             }
-            this.item.args._textfieldInput = event.target.value;
-            EditorEventBus.item.userEvent.$emit(this.editorId, this.item.id, TEXTFIELD_TYPE_EVENT, this.item.args._textfieldInput);
+            this.item.args.value = event.target.value;
+            EditorEventBus.item.userEvent.$emit(this.editorId, this.item.id, Events.standardEvents.valueChange.id, this.item.args.value);
         }
     },
 
@@ -257,8 +232,8 @@ export default {
         },
 
         itemInputValue() {
-            if (this.item.args && this.item.args._textfieldInput) {
-                return this.item.args._textfieldInput;
+            if (this.item.args && this.item.args.hasOwnProperty('value')) {
+                return this.item.args.value;
             }
             return '';
         }

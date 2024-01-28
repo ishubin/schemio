@@ -11,11 +11,11 @@ import { tokenizeExpression } from "../../templater/tokenizer";
 import htmlSanitize, { stripAllHtml } from "../../../htmlSanitize";
 import { sendEventToChildren } from "./SendEventToChildrenFunction";
 import { sendEventToParent } from "./SendEventToParentFuction";
-import SchemeContainer, {worldPointOnItem} from '../../scheme/SchemeContainer';
+import SchemeContainer, {localPointOnItem, worldPointOnItem} from '../../scheme/SchemeContainer';
 import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
+import Events from "../Events";
 
-import {getTextfieldValue, setTextfieldValue} from '../../components/editor/items/shapes/Textfield.vue';
 
 const INFINITE_LOOP = 'inifinite-loop';
 
@@ -150,9 +150,12 @@ export default {
  * @param {Item} item
  * @param {SchemeContainer} schemeContainer
  * @param {Object} userEventBus
- * @returns
+ * @returns {Object|null}
  */
 function createItemScriptWrapper(item, schemeContainer, userEventBus) {
+    if (!item) {
+        return null;
+    }
     const emitItemChanged = () => {
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     };
@@ -177,10 +180,6 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
     };
 
     const itemScope = {
-        exists() {
-            return item !== null;
-        },
-
         getId() {
             if (!item) {
                 return item.id;
@@ -212,6 +211,33 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         getAngle: () => item.area.r,
         getScaleX: () => item.area.sx,
         getScaleY: () => item.area.sy,
+
+        /**
+         * Converts local point to world
+         * @param {Number} x
+         * @param {Number} y
+         */
+        worldPoint: (x, y) => Vector.fromPoint(worldPointOnItem(x, y, item)),
+
+        /**
+         * Converts world point to local
+         * @param {Number} x
+         * @param {Number} y
+         */
+        localPoint: (x, y) => Vector.fromPoint(localPointOnItem(x, y, item)),
+
+        getArg: (argName, defaultValue) => {
+            if (item.args && item.args.hasOwnProperty(argName)) {
+                return item.args[argName];
+            }
+            return defaultValue;
+        },
+        setArg: (argName, value) => {
+            if (!item.args) {
+                item.args = {};
+            }
+            item.args[argName] = value;
+        },
 
         getWorldPos: () => Vector.fromPoint(worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item)),
         setWorldPos: (x, y) => {
@@ -282,16 +308,23 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
         distanceToItem: (anotherItem) => {
             return distanceBetweenItems(item, anotherItem);
+        },
+        getValue: () => {
+            if (item.args && item.args.hasOwnProperty('value')) {
+                return item.args.value;
+            }
+            return 0;
+        },
+        setValue: (value) => {
+            if (!item.args) {
+                item.args = {};
+            }
+            item.args.value = value;
+            EditorEventBus.item.userEvent.$emit(schemeContainer.editorId, item.id, Events.standardEvents.valueChange.id, value);
+            emitItemChanged();
         }
     };
 
-    if (item && item.shape === 'textfield') {
-        itemScope.getValue = () => getTextfieldValue(item);
-        itemScope.setValue = (value) => {
-            setTextfieldValue(item, '' + value);
-            emitItemChanged();
-        };
-    }
 
     return itemScope;
 }
