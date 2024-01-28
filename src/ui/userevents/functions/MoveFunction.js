@@ -47,7 +47,7 @@ class MoveAnimation extends Animation {
             if (t >= 1.0){
                 this.item.area.x = this.destinationPosition.x;
                 this.item.area.y = this.destinationPosition.y;
-                this.schemeContainer.reindexItemTransforms(this.item);
+                this.schemeContainer.updateChildTransforms(this.item);
                 return false;
             }
 
@@ -55,7 +55,7 @@ class MoveAnimation extends Animation {
 
             this.item.area.x = this.originalPosition.x * (1.0 - convertedT) + this.destinationPosition.x * convertedT;
             this.item.area.y = this.originalPosition.y * (1.0 - convertedT) + this.destinationPosition.y * convertedT;
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
 
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
@@ -63,7 +63,7 @@ class MoveAnimation extends Animation {
         } else {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
@@ -117,7 +117,7 @@ export default {
             } else {
                 item.area.x = args.x;
                 item.area.y = args.y;
-                schemeContainer.reindexItemTransforms(item);
+                schemeContainer.updateChildTransforms(item);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 schemeContainer.readjustItemAndDescendants(item.id);
             }

@@ -4,23 +4,24 @@
 
 <template lang="html">
     <panel name="General">
-
         <h5>Name</h5>
-        <input class="textfield" type="text" v-model="item.name" @input="commitSchemeChange('name')"/>
+        <input class="textfield" :class="{disabled: isTemplatedChild}" type="text" v-model="item.name" @input="commitSchemeChange('name')" :disabled="isTemplatedChild"/>
 
-        <div>
-            <h5>Tags</h5>
-            <vue-tags-input v-model="itemTag"
-                :tags="itemTags"
-                :autocomplete-items="filteredItemTags"
-                @tags-changed="onItemTagChange"
-                ></vue-tags-input>
-        </div>
+        <div v-if="!isTemplatedChild">
+            <div>
+                <h5>Tags</h5>
+                <vue-tags-input v-model="itemTag"
+                    :tags="itemTags"
+                    :autocomplete-items="filteredItemTags"
+                    @tags-changed="onItemTagChange"
+                    ></vue-tags-input>
+            </div>
 
-        <div v-if="descriptionType === 'rich'">
-            <h5 class="section">Description</h5>
-            <div class="textarea-wrapper">
-                <rich-text-editor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+            <div v-if="descriptionType === 'rich'">
+                <h5 class="section">Description</h5>
+                <div class="textarea-wrapper">
+                    <rich-text-editor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+                </div>
             </div>
         </div>
     </panel>
@@ -77,6 +78,12 @@ export default {
         },
         itemTags() {
             return map(this.item.tags, tag => {return {text: tag}});
+        },
+
+        // determins whether this is a templated item that is not a root of the template
+        // Users may change the name of the templated item
+        isTemplatedChild() {
+            return this.item.args && this.item.args.templated && !this.item.args.templateRef;
         }
     },
 }

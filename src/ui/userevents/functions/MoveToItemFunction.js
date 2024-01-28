@@ -105,7 +105,7 @@ class MoveToItemAnimation extends Animation {
                 this.item.area.h = this.originalHeight * (1.0 - convertedT) + this.destinationHeight * convertedT;
             }
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
 
             return shouldProceedAnimating;
@@ -113,7 +113,7 @@ class MoveToItemAnimation extends Animation {
             this.item.area.x = this.destinationPosition.x;
             this.item.area.y = this.destinationPosition.y;
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
         return false;
@@ -198,7 +198,7 @@ export default {
                         item.area.h = destinationHeight;
                     }
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
-                    schemeContainer.reindexItemTransforms(item);
+                    schemeContainer.updateChildTransforms(item);
                     schemeContainer.readjustItemAndDescendants(item.id);
                 }
             }

@@ -39,7 +39,7 @@ export default {
                     animationType: args.animationType,
                     update: (t) => {
                         item.area.h = initialHeight * (1 - t) + args.height * t;
-                        schemeContainer.reindexItemTransforms(item);
+                        schemeContainer.updateChildTransforms(item);
                         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                         schemeContainer.readjustItemAndDescendants(item.id);
                     },
@@ -55,7 +55,7 @@ export default {
                 return;
             } else {
                 item.area.h = args.height;
-                schemeContainer.reindexItemTransforms(item);
+                schemeContainer.updateChildTransforms(item);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 schemeContainer.readjustItemAndDescendants(item.id);
             }

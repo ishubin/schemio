@@ -116,6 +116,13 @@ const EditorEventBus = {
                 $off: (editorId, callback) => $off(editorId, 'item-links-show-requested', [], callback),
                 $emit: (editorId, item) => $emit(editorId, 'item-links-show-requested', [], item),
             }
+        },
+        templateSelected: {
+            $on: (editorId, callback) => $on(editorId, 'item-template-selected', [], callback),
+            $off: (editorId, callback) => $off(editorId,  'item-template-selected', [], callback),
+            $emit: (editorId, templateRootItem, templateRef) => {
+                $emit(editorId,   'item-template-selected', [], templateRootItem, templateRef);
+            },
         }
     },
 

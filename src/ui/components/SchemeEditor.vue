@@ -380,7 +380,7 @@
                             <span class="tab"
                                 :class="{active: currentTab === 'template'}"
                                 @click="changeTab('template')"
-                                >Template</span>
+                                ><i class="fa-solid fa-scroll"></i>Template</span>
                         </li>
                     </ul>
 
@@ -861,6 +861,7 @@ export default {
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
         EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionUpdated);
         EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionUpdated);
+        EditorEventBus.item.templateSelected.$on(this.editorId, this.onItemTemplateSelected);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
         EditorEventBus.textSlot.triggered.any.$on(this.editorId, this.onItemTextSlotEditTriggered);
         EditorEventBus.elementPick.requested.$on(this.editorId, this.switchStatePickElement);
@@ -880,6 +881,7 @@ export default {
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionUpdated);
         EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionUpdated);
+        EditorEventBus.item.templateSelected.$off(this.editorId, this.onItemTemplateSelected);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         EditorEventBus.textSlot.triggered.any.$off(this.editorId, this.onItemTextSlotEditTriggered);
         EditorEventBus.elementPick.requested.$off(this.editorId, this.switchStatePickElement);
@@ -1049,7 +1051,9 @@ export default {
             editBoxUseFill: true,
             isDrawingBrush: false,
 
+            /** @type {Item|undefined} */
             selectedTemplateRootItem: null,
+            /** @type {String|undefined} */
             selectedTemplateRef: null
         }
     },
@@ -1806,15 +1810,38 @@ export default {
             }
         },
 
+        /**
+         * @param {Item} templateRootItem
+         * @param {String} templateRef
+         */
+        onItemTemplateSelected(templateRootItem, templateRef) {
+            let newTemplateClicked = ! this.selectedTemplateRootItem || this.selectedTemplateRootItem.id !== templateRootItem.id;
+            this.selectedTemplateRef = templateRef;
+            this.selectedTemplateRootItem = templateRootItem;
+            if (newTemplateClicked) {
+                this.currentTab = 'template';
+            }
+        },
 
+        updateSelectedTemplate() {
+            if (this.schemeContainer.selectedItems.length !== 1) {
+                this.selectedTemplateRef = null;
+                this.selectedTemplateRootItem = null;
+                return;
+            }
+
+            const item = this.schemeContainer.selectedItems[0];
+            let hasTemplate = (item.args && item.args.templated) || (item.meta && item.meta.templated);
+            if (!hasTemplate) {
+                this.selectedTemplateRef = null;
+                this.selectedTemplateRootItem = null;
+            }
+        },
 
         /**
          * Triggered when any item got selected or deselected
          */
         onItemSelectionUpdated() {
-            let selectedTemplateRef = null;
-            let selectedTemplateRootItem = null;
-
             if (this.schemeContainer.selectedItems.length > 0) {
                 this.$emit('items-selected');
                 this.currentTab = 'Item';
@@ -1842,27 +1869,13 @@ export default {
                 } else {
                     this.itemTextSlotsAvailable.length = 0;
                 }
+                this.updateSelectedTemplate();
             } else {
                 this.$emit('items-deselected');
+                this.selectedTemplateRef = null;
+                this.selectedTemplateRootItem = null;
                 this.selectedItem = null;
                 this.itemTextSlotsAvailable.length = 0;
-            }
-
-            if (this.schemeContainer.selectedItems.length === 1) {
-                const item = this.schemeContainer.selectedItems[0];
-                if (item.args.templated && item.args.templateRef) {
-                    selectedTemplateRef = item.args.templateRef;
-                    selectedTemplateRootItem = item;
-                } else if (item.meta.templated && item.meta.templateRef) {
-                    selectedTemplateRootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
-                    selectedTemplateRef = item.meta.templateRef;
-                }
-            }
-
-            this.selectedTemplateRef = selectedTemplateRef;
-            this.selectedTemplateRootItem = selectedTemplateRootItem;
-            if (selectedTemplateRef && selectedTemplateRootItem) {
-                this.currentTab = 'template';
             }
 
             this.updateFloatingHelperPanel();
@@ -2639,6 +2652,13 @@ export default {
                 screenY = maxScreen.y;
             }
             if (screenY < 5 || screenY > svgRect.height - panelExpectedHeight) {
+                this.resetFloatingHelperPanel();
+                return;
+            }
+
+            // there is no use for floating helper panel as we don't want users
+            // to edit templated items unless they are the root of the template
+            if (item.args && item.args.templated && !item.args.templateRef) {
                 this.resetFloatingHelperPanel();
                 return;
             }

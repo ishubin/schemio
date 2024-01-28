@@ -27,7 +27,7 @@ export default {
                 item.visible = true;
                 item.area.x = destinationPosition.x;
                 item.area.y = destinationPosition.y;
-                schemeContainer.reindexItemTransforms(item);
+                schemeContainer.updateChildTransforms(item);
                 schemeContainer.readjustItemAndDescendants(item.id);
             }
         }

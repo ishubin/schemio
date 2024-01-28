@@ -4,7 +4,9 @@
         <div v-if="errorMessage" class="msg msg-error">{{ errorMessage }}</div>
         <div v-if="templateNotFound" class="msg msg-error">Template for this item could not be found</div>
 
+
         <div v-if="template">
+            <h4>{{ template.name }}</h4>
             <p class="hint hint-small" v-if="template.description">{{ template.description }}</p>
 
             <ArgumentsEditor v-if="template.args"

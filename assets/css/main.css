@@ -164,6 +164,9 @@ a:hover, .link:hover {
     margin-top: 10px;
     margin-bottom: 10px;
 }
+.msg.msg-small {
+    font-size: 12px;
+}
 .msg.msg-info {
     color: var(--accent-strong);
     background: var(--accent-weak-up);

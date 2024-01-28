@@ -38,6 +38,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getVar](#getvar)
       - [getPosX](#getposx)
       - [getPosY](#getposy)
+      - [getPos](#getpos)
       - [getWorldPos](#getworldpos)
       - [setWorldPos](#setworldpos)
       - [worldPoint](#worldpoint)
@@ -54,6 +55,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [mountRoot](#mountroot)
       - [setPosX](#setposx)
       - [setPosY](#setposy)
+      - [setPos](#setpos)
       - [setWidth](#setwidth)
       - [setHeight](#setheight)
       - [setScaleX](#setscalex)
@@ -437,6 +439,11 @@ dstX = getVar('dstX')
 `getPosX()` returns the `y` value of current item position in its local transform
 
 
+##### getPos
+
+`getPos()` returns [Vector](#vector) that represents the item's position in its local coordinates
+
+
 ##### getWorldPos
 
 `getWorldPos()` returns [Vector](#vector) that represents the position of item's pivot point in world coordinates
@@ -509,11 +516,16 @@ dstX = getVar('dstX')
 
 ##### setPosX
 
-`setPosX(x)` sets the items position in X axis
+`setPosX(x)` sets the items position in X axis in its local coordinates
 
 ##### setPosY
 
-`setPosY(y)` sets the items position in Y axis
+`setPosY(y)` sets the items position in Y axis in its local coordinates
+
+
+##### setPos
+
+`setPos(pos)` takes `pos` [Vector](#vector) argument and sets the items position in its local coordinates
 
 
 ##### setWidth

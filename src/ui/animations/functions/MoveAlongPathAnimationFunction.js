@@ -106,7 +106,7 @@ export default {
         item.area.x = localPoint.x - item.area.w/2;
         item.area.y = localPoint.y - item.area.h/2;
 
-        schemeContainer.reindexItemTransforms(item);
+        schemeContainer.updateChildTransforms(item);
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     }
 }

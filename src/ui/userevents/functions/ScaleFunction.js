@@ -46,7 +46,7 @@ class ScaleAnimation extends Animation {
             this.item.area.sy = this.originalArea.sy * (1.0 - convertedT) + this.destinationScale.sy * convertedT;
 
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
 
             return proceed;
@@ -54,7 +54,7 @@ class ScaleAnimation extends Animation {
             this.item.area.sx = this.destinationScale.sx;
             this.item.area.sy = this.destinationScale.sy;
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
         return false;
@@ -99,7 +99,7 @@ export default {
                 item.area.sx = parseFloat(args.scaleX);
                 item.area.sy = parseFloat(args.scaleY);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
-                schemeContainer.reindexItemTransforms(item);
+                schemeContainer.updateChildTransforms(item);
                 schemeContainer.readjustItemAndDescendants(item.id);
             }
         }

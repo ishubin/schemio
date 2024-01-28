@@ -776,7 +776,11 @@ class IdleState extends SubState {
 
             if (object.type === 'item' && object.item) {
                 if (!this.schemeContainer.isItemSelected(object.item)) {
-                    this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
+                    const isInclusive = isMultiSelectKey(event);
+                    this.schemeContainer.selectItem(object.item, isInclusive);
+                    if (!isInclusive) {
+                        this.handleItemClick(object.item);
+                    }
                 }
             } else if (object.connectorStarter) {
                 this.listener.onStartConnecting(object.connectorStarter.item, object.connectorStarter.point)
@@ -792,6 +796,56 @@ class IdleState extends SubState {
             }
             this.migrate(new MultiSelectState(this.parentState, x, y, mx, my, (box, inclusive) => this.selectByBoundaryBox(box, inclusive)));
             return;
+        }
+    }
+
+    handleItemClick(item) {
+        let templateRef = null;
+        let templateRootItem = null;
+        if (item.args && item.args.templated && item.args.templateRef) {
+            templateRef = item.args.templateRef;
+            templateRootItem = item;
+        } else if (item.meta && item.meta.templated && item.meta.templateRef) {
+            templateRootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
+            templateRef = item.meta.templateRef;
+        }
+
+        if (templateRef && templateRootItem) {
+            EditorEventBus.item.templateSelected.$emit(this.editorId, templateRootItem, templateRef);
+        }
+    }
+
+    /**
+     * We need this function because edit box has its own fill on top of all items.
+     * There can be a situation when another item is rendered on top of the selected item
+     * and user wants to select that item. When user clicks inside of existing edit box,
+     * the other item does not register click.
+     * In this case we need to iterate over all bounding boxes of all items respective of their layering order
+     * and check if user clicked inside of them. The only exception needs to be done to connectors.
+     * @param {*} x
+     * @param {*} y
+     * @param {*} event
+     * @returns
+     */
+    handleSimpleClickOnEditBox(x, y, event) {
+        const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
+            const p = localPointOnItem(x, y, item);
+            if (p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility) {
+                if (item.shape === 'connector') {
+                    const closestPoint = this.schemeContainer.closestPointToItemOutline(item, {x, y}, {});
+                    const d = myMath.distanceBetweenPoints(x, y, closestPoint.x, closestPoint.y);
+                    return d / this.schemeContainer.screenTransform.scale < 5;
+                }
+                return true;
+            }
+        });
+        if (!clickedItem) {
+            return;
+        }
+        const isMultiSelect = isMultiSelectKey(event);
+        this.schemeContainer.selectItem(clickedItem, isMultiSelect);
+        if (!isMultiSelect) {
+            this.handleItemClick(clickedItem);
         }
     }
 
@@ -850,36 +904,6 @@ class IdleState extends SubState {
             this.handleSimpleClickOnEditBox(x, y, event);
         }
         this.clickedObject = null;
-    }
-
-    /**
-     * We need this function because edit box has its own fill on top of all items.
-     * There can be a situation when another item is rendered on top of the selected item
-     * and user wants to select that item. When user clicks inside of existing edit box,
-     * the other item does not register click.
-     * In this case we need to iterate over all bounding boxes of all items respective of their layering order
-     * and check if user clicked inside of them. The only exception needs to be done to connectors.
-     * @param {*} x
-     * @param {*} y
-     * @param {*} event
-     * @returns
-     */
-    handleSimpleClickOnEditBox(x, y, event) {
-        const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
-            const p = localPointOnItem(x, y, item);
-            if (p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility) {
-                if (item.shape === 'connector') {
-                    const closestPoint = this.schemeContainer.closestPointToItemOutline(item, {x, y}, {});
-                    const d = myMath.distanceBetweenPoints(x, y, closestPoint.x, closestPoint.y);
-                    return d / this.schemeContainer.screenTransform.scale < 5;
-                }
-                return true;
-            }
-        });
-        if (!clickedItem) {
-            return;
-        }
-        this.schemeContainer.selectItem(clickedItem, isMultiSelectKey(event));
     }
 
     handleRightClick(x, y, mx, my, object, event) {

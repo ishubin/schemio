@@ -15,10 +15,10 @@ import SchemeContainer, {localPointOnItem, worldPointOnItem} from '../../scheme/
 import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
 import Events from "../Events";
-import shortid from "shortid";
-import utils from "../../utils";
 
 
+const IS_SOFT = true;
+const IS_NOT_SOFT = false;
 const INFINITE_LOOP = 'inifinite-loop';
 
 const initScriptDescription = `
@@ -173,6 +173,19 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         };
     };
 
+    const withTransformUpdate = (callback) => {
+        return (value) => {
+            const fValue = parseFloat(value);
+            if (isNaN(fValue)) {
+                return;
+            }
+            callback(fValue);
+            emitItemChanged();
+            schemeContainer.updateChildTransforms(item);
+            schemeContainer.readjustItemAndDescendants(item.id, IS_SOFT);
+        };
+    };
+
     const withTextSlot = (name, callback) => {
         if (!item || !item.textSlots || !item.textSlots.hasOwnProperty(name)) {
             return;
@@ -206,6 +219,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
         getPosX: () => item.area.x,
         getPosY: () => item.area.y,
+        getPos: () => new Vector(item.area.x, item.area.y),
         getWidth: () => item.area.w,
         getHeight: () => item.area.h,
         getAngle: () => item.area.r,
@@ -253,6 +267,9 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             }
             item.area.x = translation.x;
             item.area.y = translation.y;
+            emitItemChanged();
+            schemeContainer.updateChildTransforms(item);
+            schemeContainer.readjustItemAndDescendants(item.id, IS_SOFT);
         },
 
         getWorldPos: () => Vector.fromPoint(worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item)),
@@ -264,15 +281,27 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             item.area.x = p.x;
             item.area.y = p.y;
             emitItemChanged();
-            schemeContainer.readjustItemAndDescendants(item.id, false);
+            schemeContainer.updateChildTransforms(item);
+            schemeContainer.readjustItemAndDescendants(item.id, IS_SOFT);
         },
 
-        setPosX: withFloatValue(x => item.area.x = x),
-        setPosY: withFloatValue(y => item.area.y = y),
-        setWidth: withFloatValue(w => item.area.w = w),
-        setHeight: withFloatValue(h => item.area.h = h),
-        setScaleX: withFloatValue(sx => item.area.sx = sx),
-        setScaleY: withFloatValue(sy => item.area.sy = sy),
+        setPosX: withTransformUpdate(x => item.area.x = x),
+        setPosY: withTransformUpdate(y => item.area.y = y),
+        setPos: (v) => {
+            if (! v instanceof Vector) {
+                throw new Error('setPos support only vector');
+            }
+
+            item.area.x = v.x;
+            item.area.y = v.y;
+            emitItemChanged();
+            schemeContainer.updateChildTransforms(item);
+            schemeContainer.readjustItemAndDescendants(item.id, IS_SOFT);
+        },
+        setWidth: withTransformUpdate(w => item.area.w = w),
+        setHeight: withTransformUpdate(h => item.area.h = h),
+        setScaleX: withTransformUpdate(sx => item.area.sx = sx),
+        setScaleY: withTransformUpdate(sy => item.area.sy = sy),
 
         getOpacity: () => item.opacity,
         getSelfOpacity: () => item.selfOpacity,

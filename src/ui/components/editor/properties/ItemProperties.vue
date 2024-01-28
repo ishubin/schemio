@@ -14,6 +14,12 @@
             </li>
         </ul>
 
+        <div class="msg msg-info msg-small" v-if="isTemplatedChild">
+            This item was generated with template. Modifications to this item are discouraged.
+            Consider applying changes to the item in the "Template" tab.
+        </div>
+
+
         <GeneralPanel v-if="currentTab === 'description'"
             :key="`general-panel-${item.id}`"
             :editorId="editorId"
@@ -547,6 +553,9 @@ export default {
         }
     },
     computed: {
+        isTemplatedChild() {
+            return (this.item.args && this.item.args.templated && !this.item.args.templateRef);
+        },
         hasShapeArgs() {
             const shape = Shape.find(this.item.shape);
             if (shape && shape.args) {

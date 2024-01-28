@@ -65,14 +65,14 @@ class MoveRandomlyAnimation extends Animation {
             this.item.area.x = Math.pow(1 - t, 2) * this.point1.x  + 2 * (1 - t) * t * this.point2.x + t * t * this.point3.x;
             this.item.area.y = Math.pow(1 - t, 2) * this.point1.y  + 2 * (1 - t) * t * this.point2.y + t * t * this.point3.y;
 
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
             return true;
         } else {
             this.item.area.x = this.itemInitialPosition.x;
             this.item.area.y = this.itemInitialPosition.y;
-            this.schemeContainer.reindexItemTransforms(this.item);
+            this.schemeContainer.updateChildTransforms(this.item);
             EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
         }
@@ -84,7 +84,7 @@ class MoveRandomlyAnimation extends Animation {
     destroy() {
         this.item.area.x = this.itemInitialPosition.x;
         this.item.area.y = this.itemInitialPosition.y;
-        this.schemeContainer.reindexItemTransforms(this.item);
+        this.schemeContainer.updateChildTransforms(this.item);
         this.schemeContainer.readjustItemAndDescendants(this.item.id);
 
         if (!this.args.inBackground) {

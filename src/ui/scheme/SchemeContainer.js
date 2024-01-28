@@ -503,27 +503,28 @@ class SchemeContainer {
      * @param {Item} mainItem
      */
     updateChildTransforms(mainItem) {
-        if (mainItem.childItems) {
-            let parentTransform = myMath.identityMatrix();
-
-            if (mainItem.meta && mainItem.meta.parentId) {
-                const parentItem = this.findItemById(mainItem.meta.parentId);
-                if (parentItem) {
-                    parentTransform = itemCompleteTransform(parentItem);
-                }
-            }
-
-            const recalculatedTransform = myMath.standardTransformWithArea(parentTransform, mainItem.area);
-
-            const callback = (item, transformMatrix, parentItem, ancestorIds) => {
-                if (!item.meta) {
-                    item.meta = {};
-                }
-                item.meta.transformMatrix = transformMatrix;
-            };
-
-            visitItems(mainItem.childItems, callback, recalculatedTransform, mainItem, mainItem.meta.ancestorIds);
+        if (!mainItem.childItems) {
+            return;
         }
+        let parentTransform = myMath.identityMatrix();
+
+        if (mainItem.meta && mainItem.meta.parentId) {
+            const parentItem = this.findItemById(mainItem.meta.parentId);
+            if (parentItem) {
+                parentTransform = itemCompleteTransform(parentItem);
+            }
+        }
+
+        const recalculatedTransform = myMath.standardTransformWithArea(parentTransform, mainItem.area);
+
+        const callback = (item, transformMatrix, parentItem, ancestorIds) => {
+            if (!item.meta) {
+                item.meta = {};
+            }
+            item.meta.transformMatrix = transformMatrix;
+        };
+
+        visitItems(mainItem.childItems, callback, recalculatedTransform, mainItem, mainItem.meta.ancestorIds);
     }
 
     delayFullReindex() {
@@ -1283,21 +1284,6 @@ class SchemeContainer {
                 registerDependants(mainItem.id, dependants);
             }
         });
-    }
-
-    /**
-     * Used in case an item was moved. This is needed so that we only update transforms (in meta) for objects that are children of this item
-     * @param {Item} item - item that was moved or rotated
-     */
-    reindexItemTransforms(item) {
-        if (!item.childItems) {
-            return;
-        }
-        const callback = (childItem, transformMatrix, parentItem, ancestorIds) => {
-            childItem.meta.transformMatrix = transformMatrix;
-        };
-        const parentItem = this.findItemById(item.meta.parentId);
-        visitItems(item.childItems, callback, item.meta.transformMatrix, parentItem, item.meta.ancestorIds);
     }
 
     indexItemTags(itemId, tags) {
