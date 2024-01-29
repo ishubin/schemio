@@ -1066,6 +1066,14 @@ export default {
             this.initSchemeContainer(this.scheme);
         },
 
+        getInitialZoom() {
+            const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
+            if (schemeSettings && schemeSettings.screenPosition) {
+                return parseFloat(schemeSettings.screenPosition.zoom);
+            }
+            return 100;
+        },
+
         getInitialScreenTransform() {
             let screenTransform = { x: 0, y: 0, scale: 1.0 };
 
@@ -1111,6 +1119,8 @@ export default {
                 } else {
                     this.switchToEditMode(initialScreenTransform);
                 }
+
+                this.zoom = this.getInitialZoom();
 
                 // Text tab is only rendered when in place text edit is triggered
                 // therefore it does not make sense to set it as current on scheme load
