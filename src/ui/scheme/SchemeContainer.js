@@ -2542,15 +2542,14 @@ class SchemeContainer {
 
     /**
      *
-     * @param {*} items array of items that should be copied and pasted
-     * @param {*} centerX x in relative transform for which items should put pasted to
-     * @param {*} centerY y in relative transform for which items should put pasted to
+     * @param {Array<Item>} items array of items that should be copied and pasted
+     * @param {Number} centerX x in relative transform for which items should put pasted to
+     * @param {Number} centerY y in relative transform for which items should put pasted to
      */
     pasteItems(items, centerX, centerY) {
         if (!items || items.length === 0) {
             return;
         }
-        this.deselectAllItems();
 
         const copiedItems = this.cloneItems(items);
         const copiedIds = new Set();
@@ -2564,8 +2563,6 @@ class SchemeContainer {
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
         forEach(copiedItems, item => {
-            this.selectItem(item, true);
-
             // the following code address issue: https://github.com/ishubin/schemio/issues/571
             if (item.shape === 'connector') {
                 const isAttachedToCopiedItem = (itemSelector) => {
@@ -2584,6 +2581,8 @@ class SchemeContainer {
             }
         });
 
+        this.selectMultipleItems(copiedItems, false);
+
         //since all items are already selected, the relative multi item edit box should be centered on the specified center point
         if (this.editBox) {
             const boxArea = this.editBox.area;
@@ -2594,7 +2593,6 @@ class SchemeContainer {
 
             boxArea.x += dx;
             boxArea.y += dy;
-            this.updateEditBoxItems(this.editBox, true, DEFAULT_ITEM_MODIFICATION_CONTEXT);
             this.updateEditBoxItems(this.editBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
         }
 
@@ -2636,6 +2634,16 @@ class SchemeContainer {
             context = DEFAULT_ITEM_MODIFICATION_CONTEXT;
         }
 
+        // this is need as there is a situation when user pastes new items to the scene and the reindex was not run yet
+        // It uses edit box to move the newly pasted items. Because of the missing reindex it SchemeContainer
+        // is not able to find these items by id
+        const itemsMap = new Map();
+        if (Array.isArray(editBox.items)) {
+            editBox.items.forEach(item => {
+                itemsMap.set(item.id, item);
+            });
+        }
+
         // storing ids of dragged or rotated items in a map
         // this way we will be able to figure out whether any items ancestors were dragged already
         // so that we can skip dragging or rotating an item
@@ -2657,7 +2665,7 @@ class SchemeContainer {
 
 
         editBox.connectorPoints.forEach(p => {
-            const item = this.findItemById(p.itemId);
+            const item = itemsMap.has(p.itemId) ? itemsMap.get(p.itemId) : this.findItemById(p.itemId);
             changedItemIds.add(item.id);
             if (p.pointIdx === 0 || p.pointIdx === item.shapeProps.points.length - 1) {
                 connectorAttachmentPoints.set(`${item.id}.points.${p.pointIdx}`,{
@@ -2703,7 +2711,7 @@ class SchemeContainer {
                 }
 
                 let parentTransform = myMath.identityMatrix();
-                const parent = this.findItemById(item.meta.parentId);
+                const parent = itemsMap.has(item.meta.parentId) ? itemsMap.get(item.meta.parentId) : this.findItemById(item.meta.parentId);
                 if (parent) {
                     parentTransform = itemCompleteTransform(parent);
                 }
@@ -2911,9 +2919,15 @@ class SchemeContainer {
             y: 0.5
         };
 
+        // this is need as there is a situation when user pastes new items to the scene and the reindex was not run yet
+        // It uses edit box to move the newly pasted items. Because of the missing reindex it SchemeContainer
+        // is not able to find these items by id
+        const connectorItemsMap = new Map();
+
         /** @type {Array<ConnectorPointRef>} */
         const allConnectorPointRefs = [].concat(connectorPointRefs);
         items.forEach(item => {
+            connectorItemsMap.set(item.id, item);
             if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points)) {
                 return;
             }
@@ -2960,7 +2974,7 @@ class SchemeContainer {
         const connectorPoints = [];
 
         allConnectorPointRefs.forEach(pointRef => {
-            const item = this.findItemById(pointRef.itemId);
+            const item = connectorItemsMap.has(pointRef.itemId) ? connectorItemsMap.get(pointRef.itemId) : this.findItemById(pointRef.itemId);
             if (!item || item.shape !== 'connector') {
                 return;
             }
@@ -3051,7 +3065,7 @@ class SchemeContainer {
             p.x = lp.x;
             p.y = lp.y;
 
-            const item = this.findItemById(p.itemId);
+            const item = connectorItemsMap.has(p.itemId) ? connectorItemsMap.get(p.itemId) : this.findItemById(p.itemId);
             registerConnectorOriginalAttachments(item);
             itemIds.add(p.itemId);
         });
