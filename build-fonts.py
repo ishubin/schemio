@@ -10,20 +10,25 @@ def read_file(file_path):
         return f.readlines()
 
 
+def font_format(ext):
+    if ext == 'ttf':
+        return 'truetype'
+    return ext
+
 def convert_font_url(text):
-    if not text.startswith('url(') or not text.endswith(')'):
+    if not text.startswith('url('):
         return text
 
-    font_path = 'assets/custom-fonts/' + text[5:-2]
+    bracket_idx = text.index(')')
+    font_path = 'assets/custom-fonts/' + text[5:bracket_idx-1]
 
-    ext = 'woff2'
+    ext = font_path[font_path.rfind('.')+1:]
     font_path = font_path[:font_path.rfind('.')] + '.' + ext
-    # ext = font_path[font_path.rfind('.')+1:]
 
     with open(font_path, 'rb') as f:
         data = f.read()
         encoded = base64.b64encode(data).decode("utf-8")
-        return f'url(\'data:font/{ext};base64,{encoded}\') format(\'{ext}\')'
+        return f'url(\'data:font/{ext};base64,{encoded}\') format(\'{font_format(ext)}\')'
 
 
 if __name__ == '__main__':

@@ -28,7 +28,11 @@ const FONTS_ENCODED = [
     'Josefin Sans',
     'Cherry Swash',
     'Josefin Sans',
-    'Knewave'
+    'Knewave',
+    'Nunito',
+    'Caveat',
+    'Indie-Flower',
+    'Single-Day',
 ];
 
 function loadFonts() {
@@ -45,7 +49,7 @@ function loadFonts() {
         fonts[fontName] = FONTS_ENCODED[i];
     }
 
-    return fonts;    
+    return fonts;
 }
 
 function createFontsList(fonts) {
@@ -55,7 +59,7 @@ function createFontsList(fonts) {
             fontsList.push({name: fontName, family: fonts[fontName]});
         }
     }
-    
+
     fontsList.sort((a,b) => {
         if (a.name < b.name) {
             return -1;
