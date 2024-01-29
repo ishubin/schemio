@@ -13,7 +13,7 @@ import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
-import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_ITEM_MODIFICATION_CONTEXT } from '../../../scheme/SchemeContainer.js';
+import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_ITEM_MODIFICATION_CONTEXT, isItemDescendantOf } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
 import {findFirstItemBackwards, traverseItems} from '../../../scheme/Item';
 import { compileItemTemplate } from '../items/ItemTemplate.js';
@@ -645,7 +645,14 @@ class DragEditBoxState extends EditBoxState {
         // checking if it can fit into another item
         if (this.store.state.autoRemount && !this.parentState.isRecording ) {
             const fakeItem = {meta: {}, area: this.editBox.area};
-            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => !this.editBox.itemIds.has(item.id));
+            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => {
+                if (this.editBox.itemIds.has(item.id)) {
+                    return false;
+                }
+
+                const editBoxItemIds = Array.from(this.editBox.itemIds);
+                return editBoxItemIds.findIndex(potentialAncestorId => isItemDescendantOf(item, potentialAncestorId)) < 0;
+            });
         } else {
             this.proposedItemForMounting = null;
         }

@@ -281,6 +281,19 @@ export function itemCompleteTransform(item) {
 }
 
 /**
+ * Checks whether the item is a descendant of ancestorItem
+ * @param {Item} item
+ * @param {String} ancestorItemId
+ * @returns {Boolean}
+ */
+export function isItemDescendantOf(item, ancestorItemId) {
+    if (!item.meta || !Array.isArray(item.meta.ancestorIds)) {
+        return false;
+    }
+    return item.meta.ancestorIds.indexOf(ancestorItemId) >= 0;
+}
+
+/**
  * Copies templateRef to item meta so that it is easier to access this information in the editor components
  * @param {Item} item
  * @param {String} templateRef
@@ -3179,10 +3192,10 @@ class SchemeContainer {
     /**
      * Searches for item that is able to fit item inside it and that has the min area out of all specified items
      * @param {Item} area  - item that it needs to fit into another parent item (should be in world transform)
-     * @param {Function} itemConsiderCallback - callback function which should return true for specified item if it should be considered
+     * @param {function(Item): Boolean} itemPredicate - callback function which should return true for specified item if it should be considered
      * @returns {Item}
      */
-    findItemSuitableForParent(item, itemConsiderCallback) {
+    findItemSuitableForParent(item, itemPredicate) {
         const area = this.calculateItemWorldArea(item);
         const items = this.getItems();
 
@@ -3191,7 +3204,7 @@ class SchemeContainer {
             const item = items[i];
 
             // connectors should not be parent of any other items
-            if (item.visible && item.shape !== 'connector' && (!itemConsiderCallback || itemConsiderCallback(item))) {
+            if (item.visible && item.shape !== 'connector' && (!itemPredicate || itemPredicate(item))) {
 
                 const worldArea = this.worldItemAreas.get(item.id);
 
