@@ -24,17 +24,9 @@ import '../../../../typedef';
 import { computeCurvePath, convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 import EditorEventBus from '../../EditorEventBus';
 import {Vector} from '../../../../templater/vector';
+import { localPointOnItem, worldPointOnItem } from '../../../../scheme/SchemeContainer';
 
 const log = new Logger('Path');
-
-
-function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
-}
-
-function localPointOnItem(x, y, item) {
-    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
-}
 
 
 function computePath(item) {
@@ -113,10 +105,12 @@ function getSnappers(item) {
 
 /**
  * @param {String} editorId
+ * @param {SchemeContainer} schemeContainer
  * @param {Item} item
  */
-function scriptFunctions(editorId, item) {
+function scriptFunctions(editorId, schemeContainer, item) {
     const emitItemChanged = () => {
+        schemeContainer.readjustItemAndDescendants(item.id, true);
         EditorEventBus.item.changed.specific.$emit(editorId, item.id);
     };
 

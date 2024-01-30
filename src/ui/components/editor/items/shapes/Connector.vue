@@ -35,7 +35,9 @@ import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
 import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
-import { worldPointOnItem } from '../../../../scheme/SchemeContainer';
+import { localPointOnItem, worldPointOnItem } from '../../../../scheme/SchemeContainer';
+import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
+import { Vector } from '../../../../templater/vector';
 
 const log = new Logger('Connector');
 
@@ -821,6 +823,50 @@ function getSnappers(item) {
 const menuItemPoints = [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}];
 const groupName = 'Connections';
 
+
+/**
+ * @param {String} editorId
+ * @param {SchemeContainer} schemeContainer
+ * @param {Item} item
+ */
+function scriptFunctions(editorId, schemeContainer, item) {
+    const withPoint = (pointIdx, callback) => {
+        if (pointIdx < 0 || pointIdx >= item.shapeProps.points.length) {
+            throw new Error(`Invalid point index: ${pointIdx}`);
+        }
+
+        return callback(item.shapeProps.points[pointIdx]);
+    }
+
+    const emitItemChanged = () => {
+        schemeContainer.readjustItemAndDescendants(item.id, true);
+        EditorEventBus.item.changed.specific.$emit(editorId, item.id);
+    };
+
+    return {
+        totalPoints() {
+            return item.shapeProps.points.length;
+        },
+
+        getPointWorldPos(pointIdx) {
+            return withPoint(pointIdx, point => {
+                const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
+            });
+        },
+
+        setPointWorldPos(pointIdx, x, y) {
+            return withPoint(pointIdx, point => {
+                const localPoint = localPointOnItem(x, y, item);
+                const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                point.x = p.x;
+                point.y = p.y;
+                emitItemChanged();
+            });
+        },
+    };
+}
+
 export default {
     props: ['item', 'editorId'],
     components: {AdvancedFill},
@@ -833,6 +879,7 @@ export default {
         computePath: computeRawPath,
         readjustItem,
         getSnappers,
+        scriptFunctions,
 
         menuItems: [{
             group: groupName,

@@ -384,7 +384,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
     const shape = Shape.find(item.shape);
 
     if (shape && shape.scriptFunctions) {
-        return {...itemScope, ...shape.scriptFunctions(schemeContainer.editorId, item)};
+        return {...itemScope, ...shape.scriptFunctions(schemeContainer.editorId, schemeContainer, item)};
     }
 
     return itemScope;
