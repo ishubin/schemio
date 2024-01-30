@@ -15,6 +15,7 @@ import SchemeContainer, {localPointOnItem, worldPointOnItem} from '../../scheme/
 import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
 import Events from "../Events";
+import Shape from "../../components/editor/items/shapes/Shape";
 
 
 const IS_SOFT = true;
@@ -380,6 +381,11 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         mountRoot: () => schemeContainer.remountItemToRoot(item.id)
     };
 
+    const shape = Shape.find(item.shape);
+
+    if (shape && shape.scriptFunctions) {
+        return {...itemScope, ...shape.scriptFunctions(schemeContainer.editorId, item)};
+    }
 
     return itemScope;
 }

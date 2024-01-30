@@ -197,6 +197,9 @@ function enrichShape(shapeComponent, shapeName) {
         onMouseOut              : shapeConfig.onMouseOut,
         computeCustomAreas      : shapeConfig.computeCustomAreas,
 
+        // used for providing shape specific item functions
+        scriptFunctions         : shapeConfig.scriptFunctions || null,
+
         argType(argName) {
             if (this.args && this.args[argName]) {
                 return this.args[argName].type;

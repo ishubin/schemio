@@ -21,14 +21,19 @@ import StrokePattern from '../StrokePattern.js';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import '../../../../typedef';
-import { computeCurvePath, convertCurvePointToItemScale } from './StandardCurves';
+import { computeCurvePath, convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 import EditorEventBus from '../../EditorEventBus';
+import {Vector} from '../../../../templater/vector';
 
 const log = new Logger('Path');
 
 
 function worldPointOnItem(x, y, item) {
     return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+}
+
+function localPointOnItem(x, y, item) {
+    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 
 
@@ -106,6 +111,81 @@ function getSnappers(item) {
     return snappers;
 }
 
+/**
+ * @param {String} editorId
+ * @param {Item} item
+ */
+function scriptFunctions(editorId, item) {
+    const emitItemChanged = () => {
+        EditorEventBus.item.changed.specific.$emit(editorId, item.id);
+    };
+
+    const withPath = (pathIdx, callback) => {
+        if (pathIdx < 0 || pathIdx >= item.shapeProps.length) {
+            throw new Error(`Invalid path index: ${pathIdx}`);
+        }
+
+        return callback(item.shapeProps.paths[pathIdx]);
+    };
+
+    const withPoint = (path, pointIdx, callback) => {
+        if (pointIdx < 0 || pointIdx >= path.points.length) {
+            throw new Error(`Invalid point index: ${pointIdx}`);
+        }
+
+        return callback(path.points[pointIdx]);
+    }
+
+    return {
+        totalPaths() {
+            return item.shapeProps.paths.length;
+        },
+
+        totalPathPoints(pathIdx) {
+            return withPath(pathIdx, path => path.points.length);
+        },
+
+        isPathClosed(pathIdx) {
+            return withPath(pathIdx, path => path.closed);
+        },
+
+        closePath(pathIdx) {
+            withPath(pathIdx, path => {
+                path.closed = true;
+                emitItemChanged();
+            });
+        },
+
+        openPath(pathIdx) {
+            withPath(pathIdx, path => {
+                path.closed = false;
+                emitItemChanged();
+            });
+        },
+
+        getPathPointWorldPos(pathIdx, pointIdx) {
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                    return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
+                })
+            });
+        },
+
+        setPathPointWorldPos(pathIdx, pointIdx, x, y) {
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    const localPoint = localPointOnItem(x, y, item);
+                    const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                    point.x = p.x;
+                    point.y = p.y;
+                    emitItemChanged();
+                });
+            });
+        },
+    };
+}
+
 
 export default {
     props: ['item', 'editorId'],
@@ -156,6 +236,8 @@ export default {
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             paths             : {type: 'path-array',   value: [], name: 'Paths', hidden: true},
         },
+
+        scriptFunctions
     },
 
     mounted() {
