@@ -8,7 +8,7 @@ import Events from '../../../userevents/Events.js';
 import {DragType, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
-import { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import SchemeContainer, { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
 import myMath from '../../../myMath.js';
 import { indexOf } from '../../../collections.js';
@@ -67,34 +67,47 @@ function startDraggingLoop(looper, timeMarker) {
 }
 
 class DragItemLooper {
-    constructor(schemeContainer) {
+    /**
+     *
+     * @param {SchemeContainer} schemeContainer
+     * @param {Point} localClickPoint
+     */
+    constructor(schemeContainer, localClickPoint) {
         this.schemeContainer = schemeContainer;
         this.shouldLoop = true;
-        this.mx = 0;
-        this.my = 0;
+        this.pos = {x: 0, y: 0};
+        this.localClickPoint = localClickPoint;
     }
 
     start() {
         startDraggingLoop(this, performance.now());
     }
 
-    updateMousePosition(mx, my) {
-        this.mx = mx;
-        this.my = my;
+    /**
+     *
+     * @param {Item} item
+     */
+    updateItemPosition(item) {
+        this.pos = worldPointOnItem(this.localClickPoint.x, this.localClickPoint.y, item);
     }
 
     loop(dt) {
+        const mx = this.pos.x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x;
+        const my = this.pos.y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y;
+
+        console.log(mx, my);
+
         const padding = 20;
-        if (this.mx < padding) {
+        if (mx < padding) {
             this.schemeContainer.screenTransform.x += dt/2;
         }
-        if (this.my < padding) {
+        if (my < padding) {
             this.schemeContainer.screenTransform.y += dt/ 2;
         }
-        if (this.mx > this.schemeContainer.screenSettings.width - padding) {
+        if (mx > this.schemeContainer.screenSettings.width - padding) {
             this.schemeContainer.screenTransform.x -= dt/2;
         }
-        if (this.my > this.schemeContainer.screenSettings.height - padding) {
+        if (my > this.schemeContainer.screenSettings.height - padding) {
             this.schemeContainer.screenTransform.y -= dt/ 2;
         }
         return this.shouldLoop;
@@ -114,7 +127,7 @@ class DragItemState extends SubState {
         this.item = item;
         this.moved = false;
         this.lastDropCandidate = null;
-        this.looper = new DragItemLooper(this.schemeContainer);
+        this.looper = new DragItemLooper(this.schemeContainer, localPointOnItem(x, y, item));
         const worldPivot = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
         this.worldPivotCorrection = {
             x: x - worldPivot.x,
@@ -132,8 +145,6 @@ class DragItemState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
-        this.looper.updateMousePosition(mx, my);
-
         if (!this.moved) {
             this.emit(this.item, Events.standardEvents.dragStart.id);
             this.looper.start();
@@ -155,6 +166,8 @@ class DragItemState extends SubState {
             this.item.area.x = nx;
             this.item.area.y = ny;
         }
+
+        this.looper.updateItemPosition(this.item);
         EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
     }
 
