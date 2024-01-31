@@ -92,7 +92,7 @@ function handleKeyPress(event, isDown) {
 
         keyEventBus.$emit('key-press', isDown, key, {
             ctrlCmdPressed: event.metaKey || event.ctrlKey
-        });
+        }, event);
     }
 }
 

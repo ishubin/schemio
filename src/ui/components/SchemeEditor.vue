@@ -1565,19 +1565,22 @@ export default {
             }
         },
 
-        keyPressHandler(isDown, key, keyOptions) {
+        keyPressHandler(isDown, key, keyOptions, event) {
             if (!this.active) {
                 return;
             }
 
             if (isDown) {
-                this.onKeyPressed(key, keyOptions);
+                this.onKeyPressed(key, keyOptions, event);
             } else {
-                this.onKeyUp(key, keyOptions);
+                this.onKeyUp(key, keyOptions, event);
             }
         },
 
-        onKeyPressed(key, keyOptions) {
+        onKeyPressed(key, keyOptions, event) {
+            if (event.target && event.target.classList.contrains('script-editor')) {
+                return;
+            }
             if (this.mode === 'edit') {
                 if (this.state === 'dragItem') {
                     if (key === Keys.CTRL_C) {
