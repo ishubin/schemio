@@ -1944,6 +1944,7 @@ ul.links-editor .edit-link:hover {
     min-width: 100px;
     min-height: 400px;
     border-radius: var(--middle-border-radius);
+    outline: none;
 }
 
 ul.script-options {

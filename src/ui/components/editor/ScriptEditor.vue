@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="script-editor-container">
-        <textarea ref="textarea" class="script-editor"
+        <textarea class="script-editor"
             v-model="script"
             @input="$emit('changed', arguments[0].target.value)"
             @keydown="onTextareaKeydown"
@@ -20,7 +20,11 @@
                 <span class="btn btn-secondary action-close" @click="enlarged = false">Close</span>
             </div>
             <div class="editor-frame">
-                <textarea class="script-editor" v-model="script" @input="$emit('changed', arguments[0].target.value)"></textarea>
+                <textarea class="script-editor"
+                    v-model="script"
+                    @input="$emit('changed', arguments[0].target.value)"
+                    @keydown="onTextareaKeydown"
+                ></textarea>
             </div>
         </div>
     </div>
@@ -116,7 +120,7 @@ export default {
 
     methods: {
         onTextareaKeydown(event) {
-            onTextareaKeydown(this.$refs.textarea, event);
+            onTextareaKeydown(event.target, event);
         }
     },
 

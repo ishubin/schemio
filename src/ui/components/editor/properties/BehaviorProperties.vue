@@ -188,7 +188,7 @@
         <modal v-if="functionArgumentsEditor.shown"
             :title="`${functionArgumentsEditor.functionDescription.name} arguments`"
             @close="functionArgumentsEditor.shown = false"
-            :width="600"
+            :width="functionArgumentsEditor.width"
             :use-mask="false"
             >
             <div v-if="functionArgumentsEditor.functionDescription.editorComponent">
@@ -199,7 +199,7 @@
                     @argument-changed="onFunctionArgumentsEditorChange"
                 ></component>
             </div>
-            <div v-else style="max-width: 600px;">
+            <div v-else :style="{'max-width': `${functionArgumentsEditor.width}px`}">
                 <p>{{ functionArgumentsEditor.functionDescription.description }}</p>
                 <ArgumentsEditor
                     :editorId="editorId"
@@ -342,6 +342,7 @@ export default {
             eventMetas: eventMetas,
             functionArgumentsEditor: {
                 shown: false,
+                width: 600,
                 functionDescription: null,
                 eventIndex: 0,
                 actionIndex: 0,
@@ -746,6 +747,11 @@ export default {
             this.functionArgumentsEditor.args = action.args;
             this.functionArgumentsEditor.eventIndex = eventIndex;
             this.functionArgumentsEditor.actionIndex = actionIndex;
+            if (functionDescription.editorComponent) {
+                this.functionArgumentsEditor.width = 900;
+            } else {
+                this.functionArgumentsEditor.width = 600;
+            }
             this.functionArgumentsEditor.shown = true;
         },
 
