@@ -191,8 +191,16 @@
             :width="600"
             :use-mask="false"
             >
-            <p>{{ functionArgumentsEditor.functionDescription.description }}</p>
-            <div style="max-width: 600px;">
+            <div v-if="functionArgumentsEditor.functionDescription.editorComponent">
+                <component
+                    :is="functionArgumentsEditor.functionDescription.editorComponent"
+                    :editorId="editorId"
+                    :args="functionArgumentsEditor.args"
+                    @argument-changed="onFunctionArgumentsEditorChange"
+                ></component>
+            </div>
+            <div v-else style="max-width: 600px;">
+                <p>{{ functionArgumentsEditor.functionDescription.description }}</p>
                 <ArgumentsEditor
                     :editorId="editorId"
                     :argsDefinition="functionArgumentsEditor.functionDescription.args"

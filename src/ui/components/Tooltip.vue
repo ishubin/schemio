@@ -2,8 +2,8 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="tooltip" :class="{disabled: disabled}">
-        <i @mouseover="onMouseOver" class="tooltip-icon fas fa-info-circle"></i>
+    <div  @mouseover="onMouseOver" class="tooltip" :class="{disabled: disabled}">
+        <i class="tooltip-icon fas fa-info-circle"></i>
 
         <div v-if="!disabled" :id="`tooltip-wrapper-${id}`" class="tooltip-wrapper" :style="{left: x+'px', top: y+'px'}">
             <div class="tooltip-text">

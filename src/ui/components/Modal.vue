@@ -113,8 +113,15 @@ export default {
     },
 
     methods: {
+        /**
+         * @param {KeyboardEvent} event
+         */
         onKeyPress(event) {
             if (event.key === 'Escape') {
+                // preventing from modal close if user is typing in script editor
+                if (event.target.classList.contains('script-editor')) {
+                    return;
+                }
                 this.$emit('close');
             }
         },

@@ -16,6 +16,7 @@ import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
 import Events from "../Events";
 import Shape from "../../components/editor/items/shapes/Shape";
+import ScriptFunctionEditor from '../../components/editor/properties/behavior/ScriptFunctionEditor.vue';
 
 
 const IS_SOFT = true;
@@ -43,6 +44,8 @@ export default {
         transition          : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true, animationType: 'animation'}},
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
+
+    editorComponent: ScriptFunctionEditor,
 
     argsToShortString(args) {
         const s1 = args.initScript || '';
@@ -146,6 +149,31 @@ export default {
             resultCallback();
         }
     }
+}
+
+/**
+ * @param {Item} item
+ * @param {SchemeContainer} schemeContainer
+ */
+function getItemOutlineFunction(item, schemeContainer) {
+    const svgPath = schemeContainer.getSvgOutlineOfItem(item);
+    if (!svgPath) {
+        return null;
+    }
+
+    return {
+        getLength() {
+            return svgPath.getTotalLength();
+        },
+
+        /**
+         * @param {Number} length - length of the path
+         */
+        getWorldPointAtLength(length) {
+            const p = svgPath.getPointAtLength(length);
+            return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
+        }
+    };
 }
 
 /**
@@ -378,7 +406,9 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
                 schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, otherItem.getId());
             }
         },
-        mountRoot: () => schemeContainer.remountItemToRoot(item.id)
+        mountRoot: () => schemeContainer.remountItemToRoot(item.id),
+
+        getOutline: () => getItemOutlineFunction(item, schemeContainer),
     };
 
     const shape = Shape.find(item.shape);
