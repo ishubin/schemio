@@ -74,13 +74,13 @@ Don't forget to pull latest changes as Schemio is frequently updated.
 Desktop version
 ------------------
 
-From version 0.9.0 Schemio is also distributed as a desktop application on Linux, Mac and Windows. You can download a binary for your OS from the release page https://github.com/ishubin/schemio/releases/tag/v0.11.1.
+From version 0.9.0 Schemio is also distributed as a desktop application on Linux, Mac and Windows. You can download a binary for your OS from the release page https://github.com/ishubin/schemio/releases/tag/v0.12.0.
 
-* Mac: [schemio-darwin-x64-0.11.1.zip](https://github.com/ishubin/schemio/releases/download/v0.11.1/schemio-darwin-x64-0.11.1.zip)
-* Windows: [schemio-0.11.1.Setup.exe](https://github.com/ishubin/schemio/releases/download/v0.11.1/schemio-0.11.1.Setup.exe)
+* Mac: [schemio-darwin-x64-0.12.0.zip](https://github.com/ishubin/schemio/releases/download/v0.12.0/schemio-darwin-x64-0.12.0.zip)
+* Windows: [schemio-0.12.0.Setup.exe](https://github.com/ishubin/schemio/releases/download/v0.12.0/schemio-0.12.0.Setup.exe)
 * Linux:
-    * RPM: [schemio-0.11.1-1.x86_64.rpm](https://github.com/ishubin/schemio/releases/download/v0.11.1/schemio-0.11.1-1.x86_64.rpm)
-    * DEB: [schemio_0.11.1_amd64.deb](https://github.com/ishubin/schemio/releases/download/v0.11.1/schemio_0.11.1_amd64.deb)
+    * RPM: [schemio-0.12.0-1.x86_64.rpm](https://github.com/ishubin/schemio/releases/download/v0.12.0/schemio-0.12.0-1.x86_64.rpm)
+    * DEB: [schemio_0.12.0_amd64.deb](https://github.com/ishubin/schemio/releases/download/v0.12.0/schemio_0.12.0_amd64.deb)
 
 
 
