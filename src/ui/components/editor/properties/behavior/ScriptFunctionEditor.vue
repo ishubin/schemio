@@ -18,7 +18,7 @@
         <div v-if="selectedOptionIdx > 0" class="script-parameters">
             <div v-if="selectedOptionIdx === 1" class="script-parameter">
                 <span>Duration</span>
-                <NumberTextfield :value="args.animationDuration"/>
+                <NumberTextfield :value="args.animationDuration" @changed="emitArgChange('animationDuration', arguments[0])"/>
             </div>
             <div v-if="selectedOptionIdx === 1" class="script-parameter">
                 <span>Transition</span>
