@@ -75,7 +75,7 @@ function removeIndentation(textarea) {
     const endLine = value.substring(0, selectionEnd).split('\n').length - 1;
     const newValue = value
         .split('\n')
-        .map((line, i) => i >= startLine && i <= endLine && line.startsWith('\t') ? line.substring(1) : line)
+        .map((line, lineIdx) => startLine <= lineIdx  && lineIdx <= endLine && line.startsWith('\t') ? line.substring(1) : line)
         .join('\n');
     textarea.value = newValue;
 
@@ -87,12 +87,54 @@ function removeIndentation(textarea) {
 }
 
 /**
+ * @param {String} text
+ * @param {Number} idx
+ * @returns {String}
+ */
+function getLastLine(text, idx) {
+    let end = idx;
+    if (text.charAt(idx) === '\n') {
+        end = idx - 1;
+    }
+
+    for (let i = end; i >= 0; i--) {
+        if (text.charAt(i) === '\n') {
+            return text.substring(i+1, idx);
+        }
+    }
+    return text.substring(0, idx);
+}
+
+/**
+ * @param {HTMLTextAreaElement} textarea
+ * @param {Number} idx
+ */
+function insertNewLineAt(textarea, idx) {
+    const value = textarea.value;
+    const line = getLastLine(value, idx).replaceAll('\n', '');
+    const trimmedLine = line.trim();
+    const lastChar = trimmedLine.length > 0 ? trimmedLine.charAt(trimmedLine.length - 1) : '';
+    let indentation = line.replace(/^(\s*).*$/, '$1');
+
+    const shouldIndent = lastChar === '{' || lastChar === '(';
+    if (shouldIndent) {
+        indentation += '\t';
+    }
+
+    textarea.value = value.substring(0, idx) + '\n' + indentation + value.substring(idx);
+
+    textarea.selectionStart = idx + 1 + indentation.length;
+    textarea.selectionEnd = textarea.selectionStart;
+
+}
+
+/**
  *
  * @param {HTMLTextAreaElement} textarea
  * @param {*} event
  */
 function onTextareaKeydown(textarea, event) {
-    if (event.key == 'Tab') {
+    if (event.key === 'Tab') {
         event.preventDefault();
         const {selectionStart, selectionEnd} = textarea;
 
@@ -102,6 +144,12 @@ function onTextareaKeydown(textarea, event) {
             insertTabCharacter(textarea);
         } else {
             indentSelectedLines(textarea);
+        }
+    } else if (event.key === 'Enter') {
+        const {selectionStart, selectionEnd} = textarea;
+        if (selectionStart === selectionEnd) {
+            event.preventDefault();
+            insertNewLineAt(textarea, selectionStart);
         }
     }
 }
