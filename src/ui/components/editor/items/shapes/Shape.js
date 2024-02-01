@@ -195,6 +195,7 @@ function enrichShape(shapeComponent, shapeName) {
         onMouseDown             : shapeConfig.onMouseDown,
         onMouseMove             : shapeConfig.onMouseMove,
         onMouseOut              : shapeConfig.onMouseOut,
+        onTextSlotTextUpdate    : shapeConfig.onTextSlotTextUpdate,
         computeCustomAreas      : shapeConfig.computeCustomAreas,
 
         // used for providing shape specific item functions

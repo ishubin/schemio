@@ -1892,6 +1892,11 @@ ul.links-editor .edit-link:hover {
     opacity: 1.0;
 }
 
+/* ensuring that the cursor is always visible when triggering text edit from void double click */
+.ProseMirror {
+    min-width: 20px;
+}
+
 .rich-text-editor-container .ProseMirror > p:first-child {
     margin-top: 0;
 }

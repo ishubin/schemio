@@ -309,7 +309,9 @@ export default {
 
 
             lastClickPoint: null,
-            doubleClickLastTime: performance.now(),
+            // setting last click time to -1000 as performance.now() returns 0 when the page just loaded
+            // because of this it might register a double click when user clicks immediatelly after page loaded
+            doubleClickLastTime: -1000,
 
             // the following two properties are going to be updated in mounted hook
             width: window.innerWidth,

@@ -7,7 +7,9 @@
             :value="text"
             :style="editorCssStyle"
             @keydown="onTextareaKeyDown"
-            @input="onTextareaInput"></textarea>
+            @input="onTextareaInput"
+            autofocus
+        ></textarea>
         <div v-else-if="editor" ref="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
             <editor-content :editor="editor" />
         </div>
@@ -54,14 +56,7 @@ export default {
         EditorEventBus.textSlot.moved.$off(this.editorId, this.closeEditBox);
     },
 
-    mounted() {
-        if (this.markupDisabled) {
-            this.$refs.textarea.focus();
-        }
-    },
-
     data() {
-
         return {
             editor: null,
             editorCssStyle: this.generateStyle(this.cssStyle)

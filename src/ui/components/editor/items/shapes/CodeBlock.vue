@@ -160,6 +160,20 @@ export default {
 
         computePath,
 
+        /**
+         * Invoked when in place text editor was closed
+         * @param {*} $store
+         * @param {Item} item
+         * @param {String} slotName
+         * @param {HTMLElement} element
+         */
+        onTextSlotTextUpdate($store, item, slotName, element) {
+            if (slotName !== 'body') {
+                return;
+            }
+            highlightItemTextSlot($store, item, element);
+        },
+
         getTextSlots(item) {
             return [{
                 name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
@@ -174,7 +188,7 @@ export default {
         editorProps: {},
         args: {
             theme       : {type: 'choice', value: 'dark', options: ['dark', 'light'], name: 'Theme', onUpdate: onThemeUpdate },
-            lang        : {type: 'choice', value: 'Text', options: allLanguages, name: 'Language', onUpdate: onLangUpdate},
+            lang        : {type: 'choice', value: 'JavaScript', options: allLanguages, name: 'Language', onUpdate: onLangUpdate},
             fill        : {type: 'advanced-color', value: {type: 'solid', color: darkBackground}, name: 'Fill'},
             strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
             strokeSize  : {type: 'number', value: 1, name: 'Stroke size'},
@@ -182,14 +196,21 @@ export default {
             headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0},
         },
 
-        mounted($store, item, elements) {
-            if (Array.isArray(elements.textSlots)) {
-                elements.textSlots.forEach(foreignObject => {
-                    if (foreignObject.getAttribute('data-text-slot-name') === 'body') {
-                        highlightItemTextSlot($store, item, foreignObject);
-                    }
-                });
+        /**
+         * `mounted` function is called from ItemSvg component when the item component is mounted
+         * @param {*} $store
+         * @param {Item} item
+         * @param {Array<HTMLElement>} textSlots
+         */
+        mounted($store, item, textSlots) {
+            if (!Array.isArray(textSlots)) {
+                return;
             }
+            textSlots.forEach(foreignObject => {
+                if (foreignObject.getAttribute('data-text-slot-name') === 'body') {
+                    highlightItemTextSlot($store, item, foreignObject);
+                }
+            });
         }
     },
 

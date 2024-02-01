@@ -259,9 +259,7 @@ export default {
 
         const shape = Shape.find(this.item.shape);
         if (shape && shape.shapeEvents.mounted) {
-            shape.shapeEvents.mounted(this.$store, this.item, {
-                textSlots: this.$refs.textSlots
-            });
+            shape.shapeEvents.mounted(this.$store, this.item, this.$refs.textSlots);
         }
     },
 
@@ -434,6 +432,17 @@ export default {
             if (this.hiddenTextSlotName === slotName) {
                 this.hiddenTextSlotName = null;
             }
+
+            this.$nextTick(() => {
+                const shape = Shape.find(this.item.shape);
+                if (shape && shape.onTextSlotTextUpdate) {
+                    const element = this.$refs.textSlots.find(element => element.getAttribute('data-text-slot-name') === slotName);
+                    if (!element) {
+                        return;
+                    }
+                    shape.onTextSlotTextUpdate(this.$store, this.item, slotName, element);
+                }
+            });
         },
 
         computeSvgFill(fill, fillId) {
