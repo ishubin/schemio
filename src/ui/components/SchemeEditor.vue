@@ -1578,7 +1578,7 @@ export default {
         },
 
         onKeyPressed(key, keyOptions, event) {
-            if (event.target && event.target.classList.contrains('script-editor')) {
+            if (event.target && event.target.classList.contains('script-editor')) {
                 return;
             }
             if (this.mode === 'edit') {

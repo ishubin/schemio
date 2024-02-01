@@ -95,8 +95,6 @@ class DragItemLooper {
         const mx = this.pos.x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x;
         const my = this.pos.y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y;
 
-        console.log(mx, my);
-
         const padding = 20;
         if (mx < padding) {
             this.schemeContainer.screenTransform.x += dt/2;
