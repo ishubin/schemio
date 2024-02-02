@@ -452,10 +452,21 @@ function alwaysNumber(value, defaultValue) {
 }
 
 
+function createHashMap(...args) {
+    const map = new Map();
+    for (let i = 1; i < args.length; i += 2) {
+        map.set(args[i-1], args[i]);
+    }
+    return map;
+}
+
+
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     Vector    : (x, y) => new Vector(x, y),
     List      : (...items) => new List(...items),
+    Map       : (...args) => createHashMap(...args),
+    Set       : (...items) => new Set(items),
     max       : Math.max,
     pow       : Math.pow,
     sqrt      : Math.sqrt,

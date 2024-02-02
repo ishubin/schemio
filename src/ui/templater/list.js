@@ -48,7 +48,7 @@ export class List {
         return this.items.shift();
     }
 
-    size() {
+    get size() {
         return this.items.length;
     }
 }

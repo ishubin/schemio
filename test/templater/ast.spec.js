@@ -416,4 +416,56 @@ describe('templater ast parser', () => {
         expect(result).toBeInstanceOf(List);
         expect(result.items).toStrictEqual([2, 0, 3, 5, 7, 10, 7]);
     });
+
+    it('should correctly return the size of list', () => {
+        const node = parseExpression(`
+            i = 0
+            items = List(2, 3)
+                .add(5)
+                .add(7)
+                .add(9)
+                .add(10)
+                .remove(4)
+                .insert(1, 0)
+
+            x = items.get(4);
+            items.add(x)
+            items.size
+        `);
+
+        const result = node.evalNode(new Scope({}));
+
+        expect(result).toBe(7);
+    });
+
+
+    it ('should allow to use javascript Map class', () => {
+        const node = parseExpression(`
+            m = Map('name', 'john', 'age', 27)
+            m.set('type', 'regular')
+            age = m.get('age')
+            name = m.get('name')
+            type = m.get('type')
+        `);
+
+        const data = {};
+        node.evalNode(new Scope(data));
+        expect(data.age).toBe(27);
+        expect(data.name).toBe('john');
+        expect(data.type).toBe('regular');
+    });
+
+    it ('should allow to use javascript Set class', () => {
+        const node = parseExpression(`
+            s = Set(3, 4, 5)
+            s.add(1)
+            s.add(4)
+            s.add(5)
+            s
+        `);
+
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBeInstanceOf(Set);
+        expect(result).toStrictEqual(new Set([1, 3, 4, 5]));
+    });
 });
