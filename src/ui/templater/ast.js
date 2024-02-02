@@ -2,6 +2,7 @@ import shortid from "shortid";
 import { ReservedTerms, TokenTypes, tokenizeExpression } from "./tokenizer";
 import { StringTemplate, parseStringExpression } from "./strings";
 import { Vector } from "./vector";
+import { List } from "./list";
 
 
 const FUNC_INVOKE = 'funcInvoke';
@@ -454,6 +455,7 @@ function alwaysNumber(value, defaultValue) {
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     Vector    : (x, y) => new Vector(x, y),
+    List      : (...items) => new List(...items),
     max       : Math.max,
     pow       : Math.pow,
     sqrt      : Math.sqrt,

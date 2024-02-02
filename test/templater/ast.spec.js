@@ -1,6 +1,7 @@
 import expect from 'expect';
 import { Scope, parseExpression } from '../../src/ui/templater/ast';
 import { Vector } from '../../src/ui/templater/vector';
+import { List } from '../../src/ui/templater/list';
 
 
 
@@ -389,9 +390,30 @@ describe('templater ast parser', () => {
             sum
         `);
 
-        const said = [];
         const result = node.evalNode(new Scope({}));
 
         expect(result).toBe(45);
+    });
+
+    it('should support basic list', () => {
+        const node = parseExpression(`
+            i = 0
+            items = List(2, 3)
+                .add(5)
+                .add(7)
+                .add(9)
+                .add(10)
+                .remove(4)
+                .insert(1, 0)
+
+            x = items.get(4);
+            items.add(x)
+            items
+        `);
+
+        const result = node.evalNode(new Scope({}));
+
+        expect(result).toBeInstanceOf(List);
+        expect(result.items).toStrictEqual([2, 0, 3, 5, 7, 10, 7]);
     });
 });
