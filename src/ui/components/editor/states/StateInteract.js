@@ -143,6 +143,10 @@ class DragItemState extends SubState {
     }
 
     mouseMove(x, y, mx, my, object, event) {
+        if (event.buttons === 0) {
+            this.mouseUp(x, y, mx, my, object, event);
+            return;
+        }
         if (!this.moved) {
             this.emit(this.item, Events.standardEvents.dragStart.id);
             this.looper.start();
