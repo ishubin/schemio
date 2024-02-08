@@ -18,6 +18,8 @@
             </select>
         </div>
 
+        <div class="hint hint-small" v-if="description">{{ description }}</div>
+
         <div class="ctrl-label">Name</div>
         <input class="textfield" v-model="effectName"/>
 
@@ -65,6 +67,7 @@ export default {
         return {
             knownEffects: getKnownEffects(),
             effectName: effect.name,
+            description: effect.description
         };
     },
 

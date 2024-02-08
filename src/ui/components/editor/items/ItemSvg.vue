@@ -12,6 +12,7 @@
             :stroke="patchOutline"
             fill="none" />
 
+        <advanced-fill v-if="effectFill" :key="`effect-fill-${item.id}-${revision}`" :fillId="`effect-fill-${item.id}`" :fill="effectFill" :area="item.area"/>
 
         <g :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}">
             <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML"></g>
@@ -312,6 +313,8 @@ export default {
         }
 
         const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
+
+        data.effectFill = this.getEffectFill();
         data.svgFilters = svgFilters;
         data.filterUrl = filterUrl;
         data.backgroundEffects = backgroundEffects;
@@ -321,6 +324,16 @@ export default {
     },
 
     methods: {
+        getEffectFill() {
+            const shape = Shape.find(this.item.shape);
+            if (!shape) {
+                return null;
+            }
+            const shapeArgs = Shape.getShapeArgs(shape);
+            const hasEffects = this.item.effects && this.item.effects.length > 0;
+            return hasEffects && shapeArgs.fill.type === 'advanced-color' ? this.item.shapeProps.fill : null;
+        },
+
         calculateSVGItemTransform() {
             const m = myMath.standardTransformWithArea(myMath.identityMatrix(), this.item.area);
             return `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`
@@ -355,6 +368,8 @@ export default {
                 }];
             }
 
+            this.effectFill = this.getEffectFill();
+
             if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
@@ -366,6 +381,8 @@ export default {
 
         onItemChanged(propertyPath) {
             this.svgItemTransform = this.calculateSVGItemTransform();
+
+            this.effectFill = this.getEffectFill();
 
             const shape = Shape.find(this.item.shape);
             if (!shape) {

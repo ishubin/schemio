@@ -27,8 +27,8 @@ export function convertTemplateShape(shapeConfig) {
 
             computeOutline: createComputeOutlineFunc(shapeConfig.init, shapeConfig.outlines),
 
-            // templated shape does not use computePath function but instead they rely on computeCurves function
-            // since each curve might have its own fill and stroke
+            // templated shape does not use computePath function but instead they rely on computePrimitives function
+            // since each primitive might have its own fill and stroke
             computePrimitives: createComputePrimitivesFunc(shapeConfig.init, shapeConfig.primitives),
 
             getPins: createGetPinsFunc(shapeConfig.init, shapeConfig.pins),

@@ -5,6 +5,7 @@ import utils from '../../utils';
 import {forEach} from '../../collections';
 import Shape from '../editor/items/shapes/Shape';
 import StrokePattern from '../editor/items/StrokePattern';
+import {computeSvgFill} from '../editor/items/AdvancedFill.vue';
 
 
 function svgElement(name, attrs, childElements) {
@@ -113,6 +114,7 @@ const effects = {
 
     'glow': {
         name: 'Glow',
+        description: 'Some shapes do not support this effect',
         args: {
             color  : {type: 'color', value: 'rgba(126,237,255,1.0)', name: 'Color'},
             size   : {type: 'number', value: 3, name: 'Size', min: 0, max: 100},
@@ -166,6 +168,7 @@ const effects = {
 
     'repeat': {
         name: 'Repeat',
+        description: 'Some shapes do not support this effect',
         args: {
             repeat: {type: 'number', value: 3, name: 'Repeat', min: 1, max: 20},
             dx    : {type: 'number', value: 10, name: 'Offset X'},
@@ -176,14 +179,29 @@ const effects = {
 
         applyEffect(item, effectIdx, effectArgs) {
             const shape = Shape.find(item.shape);
-            if (!shape) {
+            if (!shape || !shape.computeOutline) {
                 return null;
             }
 
-            const itemStandardCurves = Shape.computeStandardCurves(item, shape);
-            if (!itemStandardCurves) {
+            const outlinePath = shape.computeOutline(item);
+            if (!outlinePath) {
                 return null;
             }
+
+            const args = Shape.getShapeArgs(shape);
+            let fill = 'none';
+            if (args.fill && args.fill.type === 'advanced-color') {
+                fill = computeSvgFill(item.shapeProps.fill, `effect-fill-${item.id}`);
+            } else if (args.fill && args.fill.type === 'color') {
+                fill = item.shapeProps.fill;
+            }
+            const strokeColor = args.strokeColor && args.strokeColor.type === 'color' ? item.shapeProps.strokeColor : '#111111';
+            const strokeSize = args.strokeSize && args.strokeSize.type === 'number' ? item.shapeProps.strokeSize : 1;
+            let strokeDashArray = '';
+            if (args.strokePattern && args.strokePattern.type === 'stroke-pattern') {
+                strokeDashArray = StrokePattern.createDashArray(item.shapeProps.strokePattern, strokeSize);
+            }
+
             const root = svgElement('g', {});
             for (let i = 0; i < effectArgs.repeat; i++) {
                 const x = (effectArgs.repeat - i) * effectArgs.dx;
@@ -200,23 +218,15 @@ const effects = {
                     style: `opacity: ${opacity}`
                 });
 
-                let strokeDashArray = '';
-                if (shape.shapeType === 'standard') {
-                    strokeDashArray = StrokePattern.createDashArray(item.shapeProps.strokePattern, item.shapeProps.strokeSize);
-                }
-
-
-
-                forEach(itemStandardCurves, curve => {
-                    g.appendChild(svgElement('path', {
-                        d: curve.path,
-                        fill: curve.fill,
-                        stroke: curve.strokeColor,
-                        'stroke-width': `${curve.strokeSize}px`,
-                        'stroke-dasharray': strokeDashArray,
-                        'stroke-linejoin': 'round',
-                    }));
-                });
+                g.appendChild(svgElement('path', {
+                    d: outlinePath,
+                    fill: fill,
+                    stroke: strokeColor,
+                    'stroke-width': `${strokeSize}px`,
+                    'stroke-dasharray': strokeDashArray,
+                    'stroke-linejoin': 'round',
+                    'data-item-id': item.id
+                }));
                 root.appendChild(g);
             }
             return {
