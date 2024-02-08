@@ -82,14 +82,8 @@ function compile(obj) {
         const evalASTs = [];
 
         if (obj.hasOwnProperty($_EVAL)) {
-            const $eval = obj[$_EVAL];
-            if (Array.isArray($eval)) {
-                $eval.forEach(expr => {
-                    evalASTs.push(compileExpression(expr));
-                });
-            } else {
-                evalASTs.push(compileExpression($eval));
-            }
+            const $eval = Array.isArray(obj[$_EVAL]) ? obj[$_EVAL].join('\n') : obj[$_EVAL];
+            evalASTs.push(compileExpression($eval));
         }
 
         /**

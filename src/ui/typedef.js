@@ -100,12 +100,35 @@
  * This is used for reattaching and detaching the connector during edit box movements
  */
 
+
 /**
- * @typedef {Object} Shape
- * @property {Function} getTextSlots
- * @property {Function} getPins
+ * @typedef {Object} TextSlot
+ * @property {String} name
+ * @property {Area} area
  */
 
+/**
+ * @typedef {Object} ShapePin
+ * @property {String} id
+ * @property {Number} x
+ * @property {Number} y
+ * @property {Number|undefined} nx - x part of pin normal
+ * @property {Number|undefined} ny - y part of pin normal
+ */
+
+/**
+ * @typedef {Object} Shape
+ * @property {function(Item): Array<TextSlot>} getTextSlots
+ * @property {function(Item): Array<ShapePin>} getPins
+ * @property {function(Item): Array<ShapeSVGPrimitive>} computePrimitives
+ * @property {function(Item): String} computePath
+ * @property {function(Item): String} computeOutline
+ */
+
+/**
+ * @typedef {Object} ShapeConfig
+ * @property {Shape} shapeConfig
+ */
 
 /**
  * @typedef {Object} ItemBehavior
@@ -138,7 +161,7 @@
  * @property {String} name
  * @property {ItemMeta} meta
  * @property {String} description
- * @property {Area}   area
+ * @property {ItemArea} area
  * @property {String} shape
  * @property {String} blendMode
  * @property {Object} shapeProps
@@ -150,6 +173,7 @@
  * @property {Array<Item>} _childItems - child items that were mounted as part of dynamic component. These items are not shown as editable int the editor
  */
 
+
  /**
   * @typedef {Object} ScreenTransform
   * @property {Number} x - offset on X axis
@@ -157,15 +181,6 @@
   * @property {Number} scale - scale of the zoom where 1.0 is normal zoom.
   */
 
-
-/**
- * @interface SchemeContainer
- */
-/**
- * @function
- * @name SchemeContainer#addItem
- * @param {Item} item
- */
 
 
  /**
@@ -261,6 +276,58 @@
  * @property {String} id
  * @property {Boolean} closed
  * @property {Array<SchemioPathPoint>} points
+ */
+
+
+/**
+ * Represents raw uncompiled templated shape definition
+ * @typedef {Object} TemplatedShapeConfig
+ * @property {String} id
+ * @property {String} shapeType
+ * @property {String|Array<String>} init
+ * @property {Array<Object>} menuItems
+ * @property {Object} args
+ * @property {Array<Object>} pins
+ * @property {Array<Object>} paths
+ * @property {Array<Object>} outlines
+ * @property {Array<Object>} controlPoints
+ * @property {Array<Object>} textSlots
+ * @property {Boolean} includeStandardArgs
+ */
+
+/**
+ * @typedef {Object} TemplatedShape
+ * @property {TemplatedShapeConfig} shapeConfig
+ */
+
+
+/**
+ * @typedef {Object} ShapePrimitive
+ * @property {AdvancedColor} fill
+ * @property {String} strokeColor
+ * @property {Number} strokeSize
+ * @property {String} strokePattern
+ * @property {String} type - supported types are "path", "rect", "ellipse"
+ * @property {Array<SchemioPath>|undefined} paths
+ * @property {Area|undefined} area - area that is used for non-path primitives (e.g. ellipse, rect or text)
+ * @property {String|undefined} transformType - can be one of the two: "absolute" or "relative". Only used for "path" or "text" types
+ * @property {String|undefined} fontColor - color of a text primitive
+ * @property {Number|undefined} fontSize - font size of a text primitive
+ */
+
+/**
+ * Used to build svg out of the compiled shape primitive
+ * @typedef {Object} ShapeSVGPrimitive
+ * @property {AdvancedColor} fill
+ * @property {String} strokeColor
+ * @property {Number} strokeSize
+ * @property {String} strokePattern
+ * @property {String} type
+ * @property {String|undefined} svgPath
+ * @property {String|undefined} text
+ * @property {Number} fontSize
+ * @property {String} fontColor
+ * @property {Area} area
  */
 
 /**

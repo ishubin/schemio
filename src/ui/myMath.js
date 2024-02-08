@@ -186,6 +186,11 @@ export default {
         return Math.sqrt(x*x + y*y);
     },
 
+    /**
+     * @param {Point} v1
+     * @param {Point} v2
+     * @returns {Point}
+     */
     vectorPlusVector(v1, v2) {
         return {
             x: v1.x + v2.x,
@@ -193,6 +198,11 @@ export default {
         };
     },
 
+    /**
+     * @param {Point} v1
+     * @param {Point} v2
+     * @returns {Point}
+     */
     vectorMinusVector(v1, v2) {
         return {
             x: v1.x - v2.x,
@@ -204,6 +214,11 @@ export default {
         return Math.sqrt((x2 - x1)*(x2 - x1) + (y2 -y1)*(y2 - y1));
     },
 
+    /**
+     * @param {Number} x 
+     * @param {Number} y 
+     * @returns {Point}
+     */
     normalizedVector(x, y) {
         const dSquared = x * x + y * y;
         if (this.tooSmall(dSquared)) {
@@ -690,6 +705,20 @@ export default {
             [1, 0, 0],
             [0, 1, 0],
             [0, 0, 1],
+        ];
+    },
+
+    /**
+     * Matrix that represent specified point
+     * @param {Number} x
+     * @param {Number} y
+     * @returns {Array<Array<Number>>}
+     */
+    pointMatrix(x, y) {
+        return [
+            [ x ],
+            [ y ],
+            [ 1 ]
         ];
     },
 

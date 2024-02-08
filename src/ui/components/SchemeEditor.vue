@@ -400,7 +400,6 @@
                                 :editorId="editorId"
                                 :schemeTagsEnabled="schemeTagsEnabled"
                                 @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
-                                @export-all-shapes="openExportAllShapesModal"
                                 @delete-diagram-requested="$emit('delete-diagram-requested')"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
@@ -497,7 +496,7 @@
             :scheme-container="schemeContainer"
         />
 
-        <shape-exporter-modal v-if="exportShapeModal.shown" :scheme="exportShapeModal.scheme" @close="exportShapeModal.shown = false"/>
+        <ShapeExporterModal v-if="exportShapeModal.shown" :shapeGroupItem="exportShapeModal.shapeGroupItem" @close="exportShapeModal.shown = false"/>
 
         <modal title="hello" v-if="mobileDebuggerShown" @close="mobileDebuggerShown = false">
             <ul class="mobile-debugger-log">
@@ -596,6 +595,7 @@ import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShape
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
 import {MobileDebugger} from '../logger';
 import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
+import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -1006,7 +1006,7 @@ export default {
 
             exportShapeModal: {
                 shown: false,
-                scheme: null
+                shapeGroupItem: null
             },
 
             advancedBehaviorProperties: {
@@ -2263,12 +2263,23 @@ export default {
                     name: 'Export as PNG ...',
                     iconClass: 'fas fa-file-export',
                     clicked: () => { this.exportSelectedItemsAsPNG(); }
-                }].concat(selectedOnlyOne ? [{
+                }]
+                .concat(selectedOnlyOne ? [{
                     name: 'Export as template ...',
                     iconClass: 'fa-solid fa-object-group',
                     clicked: () => { this.exportSelectedItemsAsTemplate(item); }
                 }]: [])
-            }]);
+                .concat(selectedOnlyOne && item.shape === 'ext:group:shape_designer' ? [{
+                    name: 'Export Shape Group ...',
+                    iconClass: 'fa-solid fa-shapes',
+                    clicked: () => { this.openExportAllShapesModal(item); }
+                }]: [])
+            }])
+            .concat(selectedOnlyOne && item.shape === 'ext:container:shape_designer' ? [{
+                name: 'Test shape',
+                iconClass: 'fa-solid fa-flask',
+                clicked: () => { this.testUserDesignedShape(item); }
+            }]: []) ;
 
 
 
@@ -2697,9 +2708,26 @@ export default {
             .build();
         },
 
-        openExportAllShapesModal() {
-            this.exportShapeModal.scheme = this.schemeContainer.scheme;
+        /**
+         * @param {Item} shapeGroupItem
+         */
+        openExportAllShapesModal(shapeGroupItem) {
+            this.exportShapeModal.shapeGroupItem = shapeGroupItem;
             this.exportShapeModal.shown = true;
+        },
+
+        testUserDesignedShape(shapeContainerItem) {
+            const convertedShape = convertItemToTemplatedShape(shapeContainerItem);
+            const shapeId = 'test-shape-'+shapeContainerItem.id;
+            Shape.registerTemplatedShape(shapeId, convertedShape.shapeConfig);
+            const item = {
+                ...utils.clone(defaultItem),
+                name: 'Test shape: ' + shapeContainerItem.name,
+                shape: shapeId,
+                shapeProps: {}
+            };
+            enrichItemWithDefaults(item);
+            this.switchStateCreateItem(item);
         },
 
         hideSidePanelRight() {

@@ -1,7 +1,7 @@
 import { map } from "./collections";
 import { traverseItems } from "./scheme/Item";
 import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./scheme/SchemeContainer";
-import { filterOutPreviewSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
+import { filterOutIgnoredSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
 import { encode } from 'js-base64';
 import axios from "axios";
 import { enrichObjectWithDefaults } from "../defaultify";
@@ -65,7 +65,7 @@ export function prepareDiagramForPictureExport(items) {
                     };
                 }
                 const itemDom = domElement.cloneNode(true);
-                filterOutPreviewSvgElements(itemDom);
+                filterOutIgnoredSvgElements(itemDom);
                 collectedItems.push({
                     item, itemDom
                 });
@@ -135,6 +135,7 @@ function calculateBoundingBoxOfAllSubItems(parentItem) {
  * @property {Number} paddingTop
  * @property {Number} paddingBottom
  * @property {String} backgroundColor
+ * @property {Boolean} ignoreCustomFonts - flag that tells exporter to not embedd custom fonts into the image
  * @property {String} format - Image format. Either "svg" or "png"
  */
 
@@ -174,7 +175,6 @@ export function diagramImageExporter(items) {
             const viewBoxWidth = result.width + options.paddingRight + options.paddingLeft;
             const viewBoxHeight = result.height + options.paddingBottom + options.paddingTop;
             svg.setAttribute('viewBox', `${-options.paddingLeft} ${-options.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
-            // svg.setAttribute('preserveAspectRatio', 'xMidYMid');
 
             if (options.format === 'png') {
                 svg.setAttribute('width', `${options.width}px`);
@@ -182,7 +182,11 @@ export function diagramImageExporter(items) {
             }
 
             return rasterizeAllImagesToDataURL(svg)
-            .then(() => insertCustomFonts(svg))
+            .then(() => {
+                if (!options.ignoreCustomFonts) {
+                    return insertCustomFonts(svg);
+                }
+            })
             .then(() => {
                 const svgCode = new XMLSerializer().serializeToString(svg);
                 if (options.format === 'png') {

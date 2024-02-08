@@ -1,0 +1,605 @@
+{
+    "group": "Shape Designer",
+    "shapes": [{
+        "name": "Shape Group",
+
+        "shapeConfig": {
+            "id": "group",
+            "shapeType": "templated",
+            "menuItems": [{
+                "group": "Shape Designer",
+                "name": "Shape Group",
+                "size": { "w": 30, "h": 30 },
+                "description": "Used to group various shape containers and allows to export shape groups",
+                "item": {
+                    "name": "Shape group",
+                    "shapeProps": {}
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 150, "h": 120},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMzEgMjkiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTMuMjcwMTU5ODE2NTMxMTkwNywtNC4wNjg3NDc3MTU2MjMyODkpIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9InpiZTlydm1CMCIgZGF0YS1pdGVtLWlkPSJ6YmU5cnZtQjAiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gICA8L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDMuMjcwMTU5ODE2NTMxMTkwNyw0LjA2ODc0NzcxNTYyMzI4OSkiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDIzLjQ1OTY4MDM2NjkzNzYyIDIwLjk4MTA0Nzk0NDk1OTM1ICBMIDAgMjAuOTgxMDQ3OTQ0OTU5MzUgYSAwIDAgMCAwIDEgMCAwICBMIDAgMCAgYSAwIDAgMCAwIDEgMCAwICAgTCAyMy40NTk2ODAzNjY5Mzc2MiAwICAgYSAwIDAgMCAwIDEgMCAwICBMIDIzLjQ1OTY4MDM2NjkzNzYyIDIwLjk4MTA0Nzk0NDk1OTM1ICAgYSAwIDAgMCAwIDEgMCAwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDIuNzI5ODQwMTgzNDY4ODA5MywxMS45MzEyNTIyODQzNzY3MTEpIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAzLjUgMCBMIDQuOTIgMS41NCBMIDYuODMgMi40MiBMIDUuOCA0LjI1IEwgNS41NiA2LjMzIEwgMy41IDUuOTIgTCAxLjQ0IDYuMzMgTCAxLjIgNC4yNSBMIDAuMTcgMi40MiBMIDIuMDggMS41NCBMIDMuNSAwICBaICIgc3Ryb2tlLXdpZHRoPSIycHgiIHN0cm9rZT0iIzExMTExMSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDE3LCAxNywgMTcsIDEpIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICAgICAgICAgPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDcuNzI5ODQwMTgzNDY4ODA5LDIuOTMxMjUyMjg0Mzc2NzExMykiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDMuNSAwICBMIDMuNSAwIEwgNi41MzEwODg5MTMyNDU1MzUgMS41IEwgNi41MzEwODg5MTMyNDU1MzYgNC41IEwgMy41IDYgTCAwLjQ2ODkxMTA4Njc1NDQ2NTI1IDQuNTAwMDAwMDAwMDAwMDAxIEwgMC40Njg5MTEwODY3NTQ0NjQ4IDEuNDk5OTk5OTk5OTk5OTk5NiBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgzMCwgMzAsIDMwLCAxKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgICAgICAgIDwvZz48L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxNC43Mjk4NDAxODM0Njg4MSwxMS45MzEyNTIyODQzNzY3MTEpIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDQgIEwgMyAwICBMIDYgNCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgzMCwgMzAsIDMwLCAxKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgICAgICAgIDwvZz48L2c+PC9nPiA8L2c+PC9nPjwvZz4gPC9nPjwvZz48L3N2Zz4="
+            }],
+            "pins": [],
+            "includeStandardArgs": false,
+            "args": {
+                "strokeColor"    : {"name": "Stroke", "type": "color", "value": "#32D156"},
+                "strokeSize"     : {"name": "Stroke Size", "type": "number", "value": 2},
+                "strokePattern"  : {"type": "stroke-pattern", "value": "dashed", "name": "Stroke pattern"},
+                "showName"       : {"type": "boolean", "value": true, "name": "Display Name"}
+            },
+            "init": [ ],
+            "primitives": [ {
+                "type": "path",
+                "fill": {"type": "none"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"},
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": 0,
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }, {
+                        "x": 0,
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }]
+                }]
+            }, {
+                "type": "path",
+                "fill": {"type": "solid", "color": {"$-expr": "args.strokeColor"}},
+                "strokeSize": 0,
+                "strokePattern": "solid",
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": 0,
+                        "y": -20,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": -20,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": 0,
+                        "y": 0,
+                        "t": "L"
+                    }]
+                }]
+            }, {
+                "$-if": "width > 4",
+                "type": "text",
+                "text": {"$-expr": "name"},
+                "fontSize": 12,
+                "fontColor": "rgba(255, 255, 255, 1.0)",
+                "transformType": "absolute",
+                "area": {"x": 2, "y": -18, "w": {"$-expr": "width - 4"}, "h": 16}
+            }],
+            "text": [{
+                "x": 0,
+                "y": {"$-expr": -20},
+                "w": {"$-expr": "max(name.length*10, width)"},
+                "h": 20,
+                "text": {"$-expr": "name"},
+                "fontSize": 12
+            }],
+            "editorProps": {
+                "onlyEditMode": true
+            }
+        }
+    }, {
+        "name": "Shape Container",
+
+        "shapeConfig": {
+            "id": "container",
+            "shapeType": "templated",
+            "menuItems": [{
+                "group": "Shape Designer",
+                "name": "Shape Container",
+                "size": { "w": 30, "h": 30 },
+                "description": "This shape is used to define the boundaries of individual shape, designed by the user. Each user designed shape should be place in a single shape container.",
+                "item": {
+                    "name": "shape-01",
+                    "shapeProps": {}
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 150, "h": 120},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMzEgMjkiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTMuMjcwMTU5ODE2NTMxMTkwNywtNC4wNjg3NDc3MTU2MjMyODkpIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9InBDOFhVNGJyRyIgZGF0YS1pdGVtLWlkPSJwQzhYVTRickciPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gICA8L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDMuMjcwMTU5ODE2NTMxMTkwNyw0LjA2ODc0NzcxNTYyMzI4OSkiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDIzLjQ1OTY4MDM2NjkzNzYyIDIwLjk4MTA0Nzk0NDk1OTM1ICBMIDAgMjAuOTgxMDQ3OTQ0OTU5MzUgYSAwIDAgMCAwIDEgMCAwICBMIDAgMCAgYSAwIDAgMCAwIDEgMCAwICAgTCAyMy40NTk2ODAzNjY5Mzc2MiAwICAgYSAwIDAgMCAwIDEgMCAwICBMIDIzLjQ1OTY4MDM2NjkzNzYyIDIwLjk4MTA0Nzk0NDk1OTM1ICAgYSAwIDAgMCAwIDEgMCAwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPjwvZz4gICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsNC45OTkyODYzMTY0MjM5OSw0LjA2NDQ4Mjk2OTQwMDE0MykiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDYuOTkgMCBMIDkuODIgMy4wOCBMIDEzLjYzIDQuODMgTCAxMS41OCA4LjQ4IEwgMTEuMDkgMTIuNjQgTCA2Ljk5IDExLjgyIEwgMi44OCAxMi42NCBMIDIuMzkgOC40OCBMIDAuMzQgNC44MyBMIDQuMTUgMy4wOCBMIDYuOTkgMCAgWiAiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgxNywgMTcsIDE3LCAxKSIvPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICAgICAgICAgPC9nPjwvZz48L2c+IDwvZz48L2c+PC9nPiA8L2c+PC9nPjwvc3ZnPg=="
+            }],
+            "pins": [],
+            "includeStandardArgs": false,
+            "args": {
+                "shapeId"        : {"name": "Shape ID", "value": "shape-1", "type": "string", "description": "Shape ID Must be unique within the shape group"},
+                "strokeColor"    : {"name": "Stroke", "type": "color", "value": "#987DD6"},
+                "strokeSize"     : {"name": "Stroke Size", "type": "number", "value": 2},
+                "strokePattern"  : {"type": "stroke-pattern", "value": "dashed", "name": "Stroke pattern"},
+                "showName"       : {"type": "boolean", "value": true, "name": "Display Name"},
+                "useBodyTextSlot": {"name": "Default Body Text", "type": "boolean", "value": true, "description":
+                    "Specifies whether the shape has a default full sized text slot. Disable it if you don't want your shape to display user defined text"
+                }
+            },
+            "init": [ ],
+            "primitives": [ {
+                "type": "path",
+                "fill": {"type": "none"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"},
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": 0,
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }, {
+                        "x": 0,
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }]
+                }]
+            }, {
+                "type": "path",
+                "fill": {"type": "solid", "color": {"$-expr": "args.strokeColor"}},
+                "strokeSize": 0,
+                "strokePattern": "solid",
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": 0,
+                        "y": -20,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": -20,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": 0,
+                        "y": 0,
+                        "t": "L"
+                    }]
+                }]
+            }, {
+                "$-if": "width > 4",
+                "type": "text",
+                "text": {"$-expr": "name"},
+                "fontSize": 12,
+                "fontColor": "rgba(255, 255, 255, 1.0)",
+                "transformType": "absolute",
+                "area": {"x": 2, "y": -18, "w": {"$-expr": "width - 4"}, "h": 16}
+            }],
+            "text": [{
+                "x": 0,
+                "y": {"$-expr": -20},
+                "w": {"$-expr": "max(name.length*10, width)"},
+                "h": 20,
+                "text": {"$-expr": "name"},
+                "fontSize": 12
+            }],
+            "editorProps": {
+                "onlyEditMode": true
+            }
+        }
+    }, {
+        "name": "Shape Pin",
+
+        "shapeConfig": {
+            "id": "pin",
+            "shapeType": "templated",
+            "menuItems": [{
+                "group": "Shape Designer",
+                "name": "Pin",
+                "size": { "w": 30, "h": 30 },
+                "description": "Pin is used for specifying the points on user designed shape that can be used for attaching connectors. This pin is without normal, which is typically used for center of item.",
+                "item": {
+                    "name": "pin",
+                    "shapeProps": {
+                        "strokeColor": "#27FF00",
+                        "fill": {"type": "solid", "color": "#A6FC8D54"}
+                    }
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 30, "h": 30},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMjggMjkiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUsLTUpIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9IjgzR2xEQ3FyYiIgZGF0YS1pdGVtLWlkPSI4M0dsRENxcmIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gICA8L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDUsNSkiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj48ZyBtb2RlPSJlZGl0IiBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gNCA3IFEgNCA1IDIgMiBMIDIgMCBMIDE4IDAgTCAxOCAyIFEgMTYgNSAxNiA3IEMgMTYgOSAxNiAxMCAxOCAxMCBRIDIwIDEwIDIwIDE1IEwgMCAxNSBRIDAgMTAgMiAxMCBDIDQgMTAgNCA5IDQgNyAgWiBNIDkgMTkgUSA5IDIxIDEwIDIxIFEgMTEgMjEgMTEgMTkgTCAxMSAxNiBMIDkgMTYgTCA5IDE5ICBaICIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIGZpbGw9InJnYmEoMTcsIDE3LCAxNywgMSkiIHN0eWxlPSJzdHJva2UtbGluZWpvaW46IHJvdW5kOyIvPjwvZz4gICA8L2c+ICAgICAgICAgPC9nPjwvZz48L2c+IDwvZz48L2c+PC9zdmc+"
+            }, {
+                "group": "Shape Designer",
+                "name": "Pin with Normal",
+                "size": { "w": 30, "h": 30 },
+                "description": "Pin is used for specifying the points on user designed shape that can be used for attaching connectors. This pin is without normal, which is typically used for center of item.",
+                "item": {
+                    "name": "pin",
+                    "shapeProps": {
+                        "normal": true,
+                        "strokeColor": "#27FF00",
+                        "fill": {"type": "solid", "color": "#A6FC8D54"}
+                    }
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 30, "h": 30},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMjggMjkiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTUsLTUpIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9IklDUWltTjB3bSIgZGF0YS1pdGVtLWlkPSJJQ1FpbU4wd20iPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gICA8L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDUsNSkiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj48ZyBtb2RlPSJlZGl0IiBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gNCA3IFEgNCA1IDIgMiBMIDIgMCBMIDE4IDAgTCAxOCAyIFEgMTYgNSAxNiA3IEMgMTYgOSAxNiAxMCAxOCAxMCBRIDIwIDEwIDIwIDE1IEwgMTEgMTUgTCAxMSAxMiBMIDEzIDEyIEwgMTAgNCBMIDcgMTIgTCA5IDEyIEwgOSAxNSBMIDAgMTUgUSAwIDEwIDIgMTAgQyA0IDEwIDQgOSA0IDcgIFogTSA5IDE5IFEgOSAyMSAxMCAyMSBRIDExIDIxIDExIDE5IEwgMTEgMTYgTCA5IDE2IEwgOSAxOSAgWiAiIHN0cm9rZS13aWR0aD0iMHB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBmaWxsPSJyZ2JhKDE3LCAxNywgMTcsIDEpIiBzdHlsZT0ic3Ryb2tlLWxpbmVqb2luOiByb3VuZDsiLz48L2c+ICAgPC9nPiAgICAgICAgIDwvZz48L2c+PC9nPiA8L2c+PC9nPjwvc3ZnPg=="
+            } ],
+            "pins": [],
+            "includeStandardArgs": true,
+            "args": {
+                "normal": {
+                    "name": "Has normal",
+                    "type": "boolean",
+                    "value": false,
+                    "description": "Specifies whether the pin has a normal. This normal will be used by connectors to calculate the correct position of the connector path"
+                }
+            },
+            "init": [
+                "r = min(width, height)/6"
+            ],
+            "primitives": [{
+                "$-if": "args.normal",
+                "type": "path",
+                "fill": {"$-expr": "args.fill"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"},
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": {"$-expr": "0"},
+                        "y": {"$-expr": "height/2"},
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width/2"},
+                        "y": {"$-expr": "0"},
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": {"$-expr": "height/2"},
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "0"},
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }]
+                }]
+            }, {
+                "$-else": "",
+                "type": "path",
+                "fill": {"$-expr": "args.fill"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"},
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": 0,
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }, {
+                        "x": 0,
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }]
+                }]
+            }, {
+                "type": "path",
+                "fill": {"type": "none"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"},
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "t": "L",
+                        "x": {"$-expr": "width/2"},
+                        "y": {"$-expr": "height/2-r"}
+                    }, {
+                        "t": "L",
+                        "x": {"$-expr": "width/2+r"},
+                        "y": {"$-expr": "height/2"}
+                    }, {
+                        "t": "L",
+                        "x": {"$-expr": "width/2"},
+                        "y": {"$-expr": "height/2+r"}
+                    }, {
+                        "t": "L",
+                        "x": {"$-expr": "width/2-r"},
+                        "y": {"$-expr": "height/2"}
+                    }]
+                }]
+            }],
+            "editorProps": {
+                "onlyEditMode": true
+            }
+        }
+    }, {
+        "name": "Text slot",
+
+        "shapeConfig": {
+            "id": "textslot",
+            "shapeType": "templated",
+            "menuItems": [{
+                "group": "Shape Designer",
+                "name": "Text slot",
+                "size": { "w": 30, "h": 30 },
+                "description": "Used for specifying the individual text slot on user designed shape",
+                "item": {
+                    "name": "body",
+                    "shapeProps": {}
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 150, "h": 120},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMzIgMjciPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTMsLTMpIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9IkhMdjh2SU4zbiIgZGF0YS1pdGVtLWlkPSJITHY4dklOM24iPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gICA8L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDMsMykiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDI0IDE5ICBMIDAgMTkgYSAwIDAgMCAwIDEgMCAwICBMIDAgMCAgYSAwIDAgMCAwIDEgMCAwICAgTCAyNCAwICAgYSAwIDAgMCAwIDEgMCAwICBMIDI0IDE5ICAgYSAwIDAgMCAwIDEgMCAwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPjwvZz4gICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMywzKSI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSA0IDEgTCA0IDEzIEwgNyAxMyBMIDcgMSBMIDQgMSAgWiBNIDAgMCBMIDAgMyBMIDExIDMgTCAxMSAwIEwgMCAwICBaICIgc3Ryb2tlLXdpZHRoPSIxcHgiIHN0cm9rZT0icmdiYSgxNywgMTcsIDE3LCAxKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBmaWxsPSJyZ2JhKDE3LCAxNywgMTcsIDEpIiBzdHlsZT0ic3Ryb2tlLWxpbmVqb2luOiByb3VuZDsiLz48L2c+ICAgPC9nPiAgICAgICAgIDwvZz48L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxNyw1KSI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAyIDAgTCAyIDEwICBNIDAgMCBMIDQgMCAgTSAwIDEwIEwgNCAxMCAgIiBzdHJva2Utd2lkdGg9IjFweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ii8+PC9nPiAgIDwvZz4gICAgICAgICA8L2c+PC9nPjwvZz4gPC9nPjwvZz48L2c+IDwvZz48L2c+PC9zdmc+"
+            }],
+            "pins": [],
+            "includeStandardArgs": false,
+            "args": {
+                "strokeColor"   : {"name": "Stroke", "type": "color", "value": "rgba(50, 175, 209, 1)"},
+                "strokeSize"    : {"name": "Stroke Size", "type": "number", "value": 2},
+                "strokePattern" : {"type": "stroke-pattern", "value": "solid", "name": "Stroke pattern"}
+            },
+            "init": [
+                "labelRightPad = min(width/4, 10)",
+                "labelTopPad = min(height/4, 10)",
+                "labelWidth = min(width/4, 14)",
+                "labelHeight = min(height/4, 18)",
+                "labelShown = labelWidth > 5 && labelHeight > 5"
+            ],
+            "primitives": [ {
+                "type": "path",
+                "fill": {"type": "none"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"},
+                "transformType": "absolute",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "x": 0,
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": 0,
+                        "t": "L"
+                    }, {
+                        "x": {"$-expr": "width"},
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }, {
+                        "x": 0,
+                        "y": {"$-expr": "height"},
+                        "t": "L"
+                    }]
+                }, {
+                    "$-if": "labelShown",
+                    "closed": false,
+                    "points": [{
+                        "t": "L",
+                        "x": {"$-expr": "labelRightPad"},
+                        "y": {"$-expr": "labelTopPad"}
+                    }, {
+                        "t": "L",
+                        "x": {"$-expr": "labelRightPad + labelWidth"},
+                        "y": {"$-expr": "labelTopPad"}
+                    }]
+                }, {
+                    "$-if": "labelShown",
+                    "closed": false,
+                    "points": [{
+                        "t": "L",
+                        "x": {"$-expr": "labelRightPad + labelWidth/2"},
+                        "y": {"$-expr": "labelTopPad"}
+                    }, {
+                        "t": "L",
+                        "x": {"$-expr": "labelRightPad + labelWidth/2"},
+                        "y": {"$-expr": "labelTopPad + labelHeight"}
+                    }]
+                }]
+            }],
+            "editorProps": {
+                "onlyEditMode": true
+            },
+            "textSlots": [{
+                "name": "body",
+                "area": { "x": 0, "y": 0, "w": {"$-expr": "width"}, "h": {"$-expr": "height"} }
+            }]
+        }
+    }, {
+        "name": "Rect primitive",
+
+        "shapeConfig": {
+            "id": "rect",
+            "shapeType": "templated",
+            "menuItems": [{
+                "group": "Shape Designer",
+                "name": "Rect primitive",
+                "size": { "w": 50, "h": 30 },
+                "description": "",
+                "item": {
+                    "name": "Rect"
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 150, "h": 120},
+                "iconUrl": "/assets/images/items/rect.svg"
+            } ],
+            "pins": [],
+            "includeStandardArgs": true,
+            "args": {
+                "strokeFill": {"name": "Stroke fill", "type": "boolean", "value": false, "description": "Specifies whether this primitive should use the stroke color as its fill"},
+                "outline": {"name": "Is Outline", "type": "boolean", "value": false, "description": "Specifies whether this item should be used as part of shape outline"}
+            },
+            "init": [ ],
+            "primitives": [ {
+                "type": "path",
+                "transformType": "relative",
+                "paths": [{
+                    "closed": true,
+                    "points": [{
+                        "t": "L", "x": 0, "y": 0
+                    }, {
+                        "t": "L", "x": 100, "y": 0
+                    }, {
+                        "t": "L", "x": 100, "y": 100
+                    }, {
+                        "t": "L", "x": 0, "y": 100
+                    }]
+                }],
+                "fill": {"$-expr": "args.fill"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"}
+            } ],
+            "editorProps": {
+                "onlyEditMode": false
+            },
+            "textSlots": []
+        }
+    }, {
+        "name": "Ellipse primitive",
+
+        "shapeConfig": {
+            "id": "ellipse",
+            "shapeType": "templated",
+            "menuItems": [{
+                "group": "Shape Designer",
+                "name": "Ellipse Primitive",
+                "size": { "w": 50, "h": 30 },
+                "description": "",
+                "item": {
+                    "name": "Ellipse",
+                    "shapeProps": {
+                        "arcType": "ellipse"
+                    }
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 150, "h": 120},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMzMgMjMiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJYWC01c3BubXAiIGRhdGEtaXRlbS1pZD0iWFgtNXNwbm1wIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDcuNSBBIDEyLjUgNy41IDAgMSAxIDI1IDcuNSAgQSAxMi41IDcuNSAwIDEgMSAwIDcuNSBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSIjMTExMTExIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMSkiLz48L2c+PC9nPjwvZz4gIDwvZz4gICAgICAgICA8L2c+PC9nPjwvc3ZnPg=="
+            }, {
+                "group": "Shape Designer",
+                "name": "Circle Primitive (Horizontal Align)",
+                "size": { "w": 50, "h": 50 },
+                "item": {
+                    "name": "Circle",
+                    "shapeProps": {
+                        "arcType": "circle",
+                        "align": "horizontal"
+                    }
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 120, "h": 120},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMjggMjgiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJnMUlvaXY0dlEiIGRhdGEtaXRlbS1pZD0iZzFJb2l2NHZRIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDEwIEEgMTAgMTAgMCAxIDEgMjAgMTAgIEEgMTAgMTAgMCAxIDEgMCAxMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSIjMTExMTExIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMSkiLz48L2c+PC9nPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMCAxMCBMIDIwIDEwICAiIHN0cm9rZS13aWR0aD0iMXB4IiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS1kYXNoYXJyYXk9IjEgMiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0ibm9uZSIvPjwvZz48L2c+PC9nPiAgPC9nPiAgICAgICAgIDwvZz48L2c+PC9zdmc+"
+            }, {
+                "group": "Shape Designer",
+                "name": "Circle Primitive (Vertical Align)",
+                "size": { "w": 50, "h": 50 },
+                "item": {
+                    "name": "Circle",
+                    "shapeProps": {
+                        "arcType": "circle",
+                        "align": "vertical"
+                    }
+                },
+                "previewArea": {"x": 3, "y": 30, "w": 120, "h": 120},
+                "iconUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMjggMjgiPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJnMUlvaXY0dlEiIGRhdGEtaXRlbS1pZD0iZzFJb2l2NHZRIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDEwIEEgMTAgMTAgMCAxIDEgMjAgMTAgIEEgMTAgMTAgMCAxIDEgMCAxMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSIjMTExMTExIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMSkiLz48L2c+PC9nPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMTAgMCBMIDEwIDIwICAiIHN0cm9rZS13aWR0aD0iMXB4IiBzdHJva2U9IiMxMTExMTEiIHN0cm9rZS1kYXNoYXJyYXk9IjEgMiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0ibm9uZSIvPjwvZz48L2c+PC9nPiAgPC9nPiAgICAgICAgIDwvZz48L2c+PC9zdmc+"
+            }],
+            "pins": [],
+            "includeStandardArgs": true,
+            "args": {
+                "arcType"       : {"type": "choice", "value": "circle", "options": ["circle", "ellipse"], "name": "Arc type"},
+                "align"         : {"type": "choice", "value": "horizontal", "options": ["horizontal", "vertical"],
+                    "name": "Circle alignment",
+                    "depends": {"arcType": "circle"},
+                    "description": "Specifies how the circle radius should be calculated depending on the shape width and height"
+                },
+                "strokeFill": {"name": "Stroke fill", "type": "boolean", "value": false, "description": "Specifies whether this primitive should use the stroke color as its fill"},
+                "outline": {"name": "Is Outline", "type": "boolean", "value": false, "description": "Specifies whether this item should be used as part of shape outline"}
+            },
+            "init": [
+                "x = 0; y = 0; w = width; h = height",
+                "p1 = Vector(0,0); p2 = Vector(0, 0)",
+                "if (args.arcType == 'circle') {",
+                "   if (args.align == 'horizontal') {",
+                "       h = w",
+                "       y = height/2 - h/2",
+                "       p1 = Vector(0, height/2)",
+                "       p2 = Vector(width, height/2)",
+                "   } else {",
+                "       w = h",
+                "       x = width/2 - w/2",
+                "       p1 = Vector(width/2, 0)",
+                "       p2 = Vector(width/2, height)",
+                "   }",
+                "}"
+            ],
+            "primitives": [ {
+                "type": "ellipse",
+                "area": {
+                    "x": {"$-expr": "x"},
+                    "y": {"$-expr": "y"},
+                    "w": {"$-expr": "w"},
+                    "h": {"$-expr": "h"}
+                },
+                "fill": {"$-expr": "args.fill"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": {"$-expr": "args.strokeSize"},
+                "strokePattern": {"$-expr": "args.strokePattern"}
+            }, {
+                "$-if": "args.arcType == 'circle'",
+                "type": "path",
+                "transformType": "absolute",
+                "fill": {"type": "none"},
+                "strokeColor": {"$-expr": "args.strokeColor"},
+                "strokeSize": 1,
+                "strokePattern": "dotted",
+                "paths": [{
+                    "closed": false,
+                    "points": [{
+                        "t": "L",
+                        "x": {"$-expr": "p1.x"},
+                        "y": {"$-expr": "p1.y"}
+                    }, {
+                        "t": "L",
+                        "x": {"$-expr": "p2.x"},
+                        "y": {"$-expr": "p2.y"}
+                    }]
+                }]
+            }],
+            "editorProps": {
+                "onlyEditMode": false
+            },
+            "textSlots": []
+        }
+    }  ]
+}

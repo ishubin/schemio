@@ -490,7 +490,7 @@ export default {
             const item = this.editBox.items[0];
             const shape = Shape.find(item.shape);
 
-            this.configureCustomControls(item, shape.editorProps);
+            this.configureCustomControls(item, shape ? shape.editorProps : {});
 
             if (item.shape === 'connector' && this.editBox.itemIds.size === 1) {
                 StoreUtils.setSelectedConnector(this.$store, item);

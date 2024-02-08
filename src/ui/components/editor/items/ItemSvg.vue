@@ -32,33 +32,37 @@
                     @frame-animator="onFrameAnimatorEvent">
                 </component>
 
-                <g v-if="!shapeComponent && item.visible && (shapeType === 'standard') && itemStandardCurves"
+                <g v-if="!shapeComponent && item.visible && shapePrimitives && shouldBeDrawn"
                     :style="{'opacity': item.selfOpacity/100.0}">
 
-                    <advanced-fill :key="`advanced-fill-${item.id}-${revision}`" :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+                    <g v-for="(primitive, primitiveIdx) in shapePrimitives">
+                        <g v-if="primitive.type === 'text'">
+                            <foreignObject :x="primitive.area.x" :y="primitive.area.y"  :width="primitive.area.w" :height="primitive.area.h">
+                                <div xmlns="http://www.w3.org/1999/xhtml" :style="{width: `${primitive.area.w}px`, height: `${primitive.area.h}px`, color: primitive.fontColor, 'font-size': `${primitive.fontSize}px`}">
+                                    <div>{{ primitive.text }}</div>
+                                </div>
+                            </foreignObject>
 
-                    <path v-for="curve in itemStandardCurves" :d="curve.path"
-                        :stroke-width="curve.strokeSize + 'px'"
-                        :stroke="curve.strokeColor"
-                        :stroke-dasharray="strokeDashArray"
-                        :data-item-id="item.id"
-                        stroke-linejoin="round"
-                        :fill="curve.fill"></path>
-                </g>
+                            <rect
+                                :x="primitive.area.x"
+                                :y="primitive.area.y"
+                                :width="primitive.area.w"
+                                :height="primitive.area.h"
+                                stroke-width="0"
+                                :data-item-id="item.id"
+                                fill="rgba(255,255,255,0.0)"/>
+                        </g>
+                        <g v-else>
+                            <advanced-fill v-if="primitive.fill" :key="`advanced-fill-${item.id}-${primitiveIdx}-${revision}`" :fillId="`fill-templated-${item.id}-${primitiveIdx}`" :fill="primitive.fill" :area="item.area"/>
 
-                <g v-if="!shapeComponent && item.visible && (shapeType === 'templated-path') && itemStandardCurves"
-                    :style="{'opacity': item.selfOpacity/100.0}">
-
-                    <g v-for="(curve,curveIdx) in itemStandardCurves">
-                        <advanced-fill :key="`advanced-fill-${item.id}-${curveIdx}-${revision}`" :fillId="`fill-templated-path-${item.id}-${curveIdx}`" :fill="curve.fill" :area="item.area"/>
-
-                        <path v-for="curve in itemStandardCurves" :d="curve.path"
-                            :stroke-width="curve.strokeSize + 'px'"
-                            :stroke="curve.strokeColor"
-                            :stroke-dasharray="strokeDashArray"
-                            :data-item-id="item.id"
-                            stroke-linejoin="round"
-                            :fill="computeSvgFill(curve.fill, `fill-templated-path-${item.id}-${curveIdx}`)"></path>
+                            <path v-if="primitive.svgPath" :d="primitive.svgPath"
+                                :stroke-width="primitive.strokeSize + 'px'"
+                                :stroke="primitive.strokeColor"
+                                :stroke-dasharray="computeStrokeDashArray(primitive.strokePattern, primitive.strokeSize)"
+                                :data-item-id="item.id"
+                                stroke-linejoin="round"
+                                :fill="computeSvgFill(primitive.fill, `fill-templated-${item.id}-${primitiveIdx}`)"></path>
+                        </g>
                     </g>
 
                 </g>
@@ -107,7 +111,7 @@
                     />
             </g>
 
-            <path v-if="itemSvgOutlinePath && !textSelectionEnabled"
+            <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
                 class="svg-event-layer"
                 data-preview-ignore="true"
                 :id="`item-svg-path-${item.id}`"
@@ -276,7 +280,7 @@ export default {
             shapeType             : shape ? shape.shapeType : 'missing',
             shapeComponent        : null,
             oldShape              : this.item.shape,
-            itemStandardCurves    : [],
+            shapePrimitives       : [],
             itemSvgOutlinePath    : null,
             shouldRenderText      : true,
 
@@ -288,8 +292,6 @@ export default {
             // name of text slot that should not be drawn
             // this is used when in-place text slot edit is triggered
             hiddenTextSlotName    : null,
-
-            strokeDashArray       : '',
 
             supportsStrokeSize    : shape ? hasStrokeSizeProp(shape) : false,
 
@@ -340,17 +342,26 @@ export default {
                 this.shapeComponent = null;
             }
 
-            if (shape.shapeType === 'templated-path') {
-                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                this.itemStandardCurves = shape.computeCurves(this.item);
+            if (shape.shapeType === 'templated') {
+                this.shapePrimitives = shape.computePrimitives(this.item);
             } else if (shape.shapeType === 'standard') {
-                this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
+                this.shapePrimitives = [{
+                    fill         : this.item.shapeProps.fill,
+                    strokeColor  : this.item.shapeProps.strokeColor,
+                    strokeSize   : this.item.shapeProps.strokeSize,
+                    strokePattern: this.item.shapeProps.strokePattern,
+                    type         : 'path',
+                    svgPath      : shape.computePath(this.item)
+                }];
             }
 
             if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
+        },
+
+        computeStrokeDashArray(strokePattern, strokeSize) {
+            return StrokePattern.createDashArray(strokePattern, strokeSize);
         },
 
         onItemChanged(propertyPath) {
@@ -365,12 +376,17 @@ export default {
                 this.switchShape(this.item.shape);
             } else if (shape) {
                 // re-computing item svg path for event layer
-                if (shape.shapeType === 'templated-path') {
-                    this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                    this.itemStandardCurves = shape.computeCurves(this.item);
+                if (shape.shapeType === 'templated') {
+                    this.shapePrimitives = shape.computePrimitives(this.item);
                 } else if (shape.shapeType === 'standard') {
-                    this.strokeDashArray = StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
-                    this.itemStandardCurves = Shape.computeStandardCurves(this.item, shape);
+                    this.shapePrimitives = [{
+                        fill         : this.item.shapeProps.fill,
+                        strokeColor  : this.item.shapeProps.strokeColor,
+                        strokeSize   : this.item.shapeProps.strokeSize,
+                        strokePattern: this.item.shapeProps.strokePattern,
+                        type         : 'path',
+                        svgPath      : shape.computePath(this.item)
+                    }];
                 }
 
                 if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
@@ -471,14 +487,15 @@ export default {
         },
 
         shouldBeDrawn() {
-            if (!this.shapeComponent) {
-                return false;
-            }
             if (!this.item.visible) {
                 return false;
             }
 
-            if (this.mode === 'view' && this.shapeComponent.shapeConfig.editorProps && this.shapeComponent.shapeConfig.editorProps.onlyEditMode) {
+            const shape = Shape.find(this.item.shape);
+            if (!shape) {
+                return false;
+            }
+            if (this.mode === 'view' && shape.editorProps && shape.editorProps.onlyEditMode) {
                 return false;
             }
             return true;

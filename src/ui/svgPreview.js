@@ -4,16 +4,32 @@
 
 import { forEach } from "./collections";
 
+
+function isEmptyForeignObject(node) {
+    if (node.nodeName !== 'foreignObject') {
+        return false;
+    }
+
+    if (node.childNodes.length > 0) {
+        if (node.childNodes[0].innerText !== '') {
+            return false;
+        }
+    }
+    return true;
+}
+
 /**
  * Filters out irrelevant elements from svg element
- * also adds proper styles to elements which are usual provided by css
+ * also adds proper styles to elements which are usually provided by css
  * @param {SVGElement} svgElement
  */
-export function filterOutPreviewSvgElements(svgElement) {
+export function filterOutIgnoredSvgElements(svgElement) {
     for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
         let child = svgElement.childNodes[i];
         if (child && child.nodeType === Node.ELEMENT_NODE) {
-            if (child.getAttribute('data-preview-ignore') === 'true') {
+            if (child.getAttribute('data-preview-ignore') === 'true'
+                || isEmptyForeignObject(child)
+            ) {
                 svgElement.removeChild(child);
             } else {
                 if (child.nodeName.toLowerCase() === 'p') {
@@ -22,7 +38,15 @@ export function filterOutPreviewSvgElements(svgElement) {
                     child.style.padding = 0;
                     child.style.minHeight = '18px';
                 }
-                filterOutPreviewSvgElements(child);
+
+
+                child.getAttributeNames().forEach(attrName => {
+                    if (attrName.startsWith('data-')) {
+                        child.removeAttribute(attrName);
+                    }
+                });
+
+                filterOutIgnoredSvgElements(child);
             }
         } else if (child && child.nodeType === Node.COMMENT_NODE) {
             svgElement.removeChild(child);
@@ -140,7 +164,7 @@ export function snapshotSvg(selector, viewArea) {
         svgElement.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
         svgElement.appendChild(svgFragment);
 
-        filterOutPreviewSvgElements(svgElement);
+        filterOutIgnoredSvgElements(svgElement);
 
         return '<?xml version="1.0" ?>' + new XMLSerializer().serializeToString(svgElement);
     });

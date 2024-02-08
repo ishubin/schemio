@@ -1,9 +1,12 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 export default {
     name: "Star",
 
     shapeConfig: {
         id: "basic_star",
-        shapeType: "templated-path",
+        shapeType: "templated",
         init: ["R = max(min(width, height) / 2, 0.0001)"],
         menuItems: [{
             group: "Basic Shapes",
@@ -24,31 +27,39 @@ export default {
             nx: {"$-expr": "cos(2*PI()*idx/(args.spikes))"},
             ny: {"$-expr": "sin(2*PI()*idx/(args.spikes))"}
         }],
+        includeStandardArgs: true,
         args: {
             spikes: {type: "number", value: 8, min: 3, max: 100, name: "Spikes"},
             spikeHeight: {type: "number", value: 0.5, min: 0, max: 1, name: "Spike height"}
         },
-        paths: [{
+        primitives: [{
+            type: "path",
             fill: {"$-expr": "args.fill"},
             strokeColor: {"$-expr": "args.strokeColor"},
             strokeSize: {"$-expr": "args.strokeSize"},
-            closed: true,
-            type: "path",
-            points: [{
-                "$-for": {start: 0, until: {"$-expr": "args.spikes * 2"}, it: "idx"},
-                x: {"$-expr": "width/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * cos(PI()*(2*idx/(args.spikes*2)-0.5))*width/(2*R)"},
-                y: {"$-expr": "height/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * sin(PI()*(2*idx/(args.spikes*2)-0.5))*height/(2*R)"},
-                t: "L"
+            strokePattern: {"$-expr": "args.strokePattern"},
+            transformType: "absolute",
+            paths: [{
+                closed: true,
+                points: [{
+                    "$-for": {start: 0, until: {"$-expr": "args.spikes * 2"}, it: "idx"},
+                    x: {"$-expr": "width/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * cos(PI()*(2*idx/(args.spikes*2)-0.5))*width/(2*R)"},
+                    y: {"$-expr": "height/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * sin(PI()*(2*idx/(args.spikes*2)-0.5))*height/(2*R)"},
+                    t: "L"
+                }]
             }]
         }],
         outlines: [{
             type: "path",
-            closed: "true",
-            points: [{
-                "$-for": {start: 0, until: {"$-expr": "args.spikes * 2"}, it: "idx"},
-                x: {"$-expr": "width/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * cos(PI()*(2*idx/(args.spikes*2)-0.5))*width/(2*R)"},
-                y: {"$-expr": "height/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * sin(PI()*(2*idx/(args.spikes*2)-0.5))*height/(2*R)"},
-                t: "L"
+            transformType: "absolute",
+            paths: [{
+                closed: "true",
+                points: [{
+                    "$-for": {start: 0, until: {"$-expr": "args.spikes * 2"}, it: "idx"},
+                    x: {"$-expr": "width/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * cos(PI()*(2*idx/(args.spikes*2)-0.5))*width/(2*R)"},
+                    y: {"$-expr": "height/2 + ifcond(idx%2 == 0, R, R*args.spikeHeight) * sin(PI()*(2*idx/(args.spikes*2)-0.5))*height/(2*R)"},
+                    t: "L"
+                }]
             }]
         }],
         controlPoints: [{

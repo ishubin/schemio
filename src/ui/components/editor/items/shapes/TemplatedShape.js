@@ -1,54 +1,46 @@
 
 
-/**
- * @typedef {Object} TemplatePathShapeConfig
- * @property {String} id
- * @property {String} shapeType
- * @property {String|Array<String>} init
- * @property {Array<Object>} menuItems
- * @property {Object} args
- * @property {Array<Object>} pins
- * @property {Array<Object>} paths
- * @property {Array<Object>} outlines
- * @property {Array<Object>} controlPoints
- * @property {Array<Object>} textSlots
- * */
-
 import myMath from "../../../../myMath";
 import { compileJSONTemplate } from "../../../../templater/templater";
-import { convertCurvePointToRelative, convertRawPathShapeForRender } from "./StandardCurves";
+import { convertShapePrimitiveToSvgPath } from "./StandardCurves";
 
 /**
- * @param {TemplatePathShapeConfig} shapeConfig
+ * @param {TemplatedShapeConfig} shapeConfig
+ * @returns {ShapeConfig}
  */
-export function convertTemplatePathShape(shapeConfig) {
+export function convertTemplateShape(shapeConfig) {
     const shapeConfigArgs = shapeConfig.args || {};
+    const standardArgs = shapeConfig.includeStandardArgs ? {
+        fill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
+        strokeColor  : {type: 'color', value: '#111111', name: 'Stroke color'},
+        strokeSize   : {type: 'number', value: 2, name: 'Stroke Size'},
+        strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
+    } : {};
+
     return {
         shapeConfig: {
             id: shapeConfig.id,
 
-            shapeType: 'templated-path',
+            shapeType: 'templated',
 
             menuItems: shapeConfig.menuItems,
 
             computeOutline: createComputeOutlineFunc(shapeConfig.init, shapeConfig.outlines),
 
-            // raw do not use computePath function but instead they rely on computeCurves function
+            // templated shape does not use computePath function but instead they rely on computeCurves function
             // since each curve might have its own fill and stroke
-            computeCurves: createComputePathsFunc(shapeConfig.init, shapeConfig.paths),
+            computePrimitives: createComputePrimitivesFunc(shapeConfig.init, shapeConfig.primitives),
 
             getPins: createGetPinsFunc(shapeConfig.init, shapeConfig.pins),
-            getTextSlots: createTemplatedFunc(shapeConfig.init, shapeConfig.textSlots),
+            getTextSlots: createTemplatedFunc(shapeConfig.init, shapeConfig.textSlots || []),
 
             controlPoints: createControlPoints(shapeConfig.init, shapeConfig.controlPoints),
 
             args: {
-                fill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
-                strokeColor  : {type: 'color', value: '#111111', name: 'Stroke color'},
-                strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
-                strokeSize   : {type: 'number', value: 2, name: 'Stroke Size'},
+                ...standardArgs,
                 ...shapeConfigArgs
-            }
+            },
+            editorProps: shapeConfig.editorProps
         }
     };
 }
@@ -59,6 +51,7 @@ export function convertTemplatePathShape(shapeConfig) {
  */
 function createTemplateData(item) {
     return {
+        name: item.name,
         width: item.area.w,
         height: item.area.h,
         args: item.shapeProps
@@ -162,28 +155,49 @@ function createTemplatedFunc(initBlock, obj) {
     };
 }
 
-function createComputePathsFunc(initBlock, pathTemplates) {
+function createComputePrimitivesFunc(initBlock, primitives) {
     const processor = compileJSONTemplate({
         '$-eval': initBlock || [],
-        pathTemplates
+        primitives
     });
 
+    /**
+     * @param {Item} item
+     * @returns {Array<ShapeSVGPrimitive>}
+     */
     return (item) => {
-        if (!Array.isArray(pathTemplates)) {
+        if (!Array.isArray(primitives)) {
             return [];
         }
 
         const processed = processor(createTemplateData(item));
 
-        return processed.pathTemplates.map(path => {
-            path.points = path.points.map(point => convertCurvePointToRelative(point, item.area.w, item.area.h));
-            const svgPath = convertRawPathShapeForRender(item, [path]);
+        return processed.primitives.map(primitive => {
+            if (primitive.type === 'text') {
+                if (primitive.transformType === 'relative') {
+                    const {x, y, w, h} = primitive.area;
+                    primitive.area = {
+                        x: x * item.area.w / 100,
+                        y: y * item.area.h / 100,
+                        w: w * item.area.w / 100,
+                        h: h * item.area.h / 100,
+                    };
+                }
+                return {
+                    type: primitive.type,
+                    text: primitive.text || '',
+                    fontSize: primitive.fontSize || 12,
+                    fontColor: primitive.fontColor || 'rgba(0, 0, 0, 1.0)',
+                    area: primitive.area || {x: 0, y: 0, w: item.area.w, h: item.area.h}
+                };
+            }
             return {
-                path: svgPath,
-                fill: path.fill,
-                strokeColor: path.strokeColor,
-                strokeSize: path.strokeSize,
-                strokePattern: path.strokePattern
+                fill         : primitive.fill || {type: 'none'},
+                strokeColor  : primitive.strokeColor || 'rgba(0,0,0,1.0)',
+                strokeSize   : primitive.hasOwnProperty('strokeSize') ? primitive.strokeSize : 0,
+                strokePattern: primitive.hasOwnProperty('strokePattern') ? primitive.strokePattern: 'solid',
+                type         : primitive.type,
+                svgPath      : convertShapePrimitiveToSvgPath(item, primitive)
             };
         });
     };
@@ -197,13 +211,17 @@ function createComputeOutlineFunc(initBlock, outlines) {
 
     return (item) => {
         if (!Array.isArray(outlines)) {
-            return [];
+            return null;
         }
         const processed = processor(createTemplateData(item));
 
-        processed.outlines.forEach(path => {
-            path.points = path.points.map(point => convertCurvePointToRelative(point, item.area.w, item.area.h));
+        let svgPath = '';
+        processed.outlines.forEach(outlinePrimitive => {
+            const primitiveSvgPath = convertShapePrimitiveToSvgPath(item, outlinePrimitive);
+            if (primitiveSvgPath) {
+                svgPath += primitiveSvgPath + ' ';
+            }
         });
-        return convertRawPathShapeForRender(item, processed.outlines);
+        return svgPath;
     };
 }

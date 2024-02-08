@@ -23,6 +23,7 @@
             </div>
             <div class="external-shape-preview" v-if="selectedEntry">
                 <div class="title">{{selectedEntry.name}}</div>
+                <div class="description" v-if="selectedEntry.description">{{ selectedEntry.description }}</div>
                 <div class="preview" v-if="selectedEntry.preview">
                     <img class="large" :src="selectedEntry.preview" />
                 </div>
@@ -162,7 +163,8 @@ export default {
             axios.get(url)
             .then(response => {
                 this.isLoading = false;
-                registerExternalShapeGroup(this.$store, shapeGroup.id, response.data);
+                const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+                registerExternalShapeGroup(this.$store, shapeGroup.id, data);
                 this.$emit('extra-shapes-registered');
                 shapeGroup.used = true;
             })

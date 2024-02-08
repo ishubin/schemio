@@ -89,7 +89,6 @@
 
             <panel name="Operations">
                 <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
-                <span v-if="supportsShapeExport" class="btn btn-secondary" @click="$emit('export-all-shapes')">Export Shapes</span>
                 <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="$emit('delete-diagram-requested')">Delete Diagram</span>
             </panel>
 
@@ -170,11 +169,6 @@ export default {
 
         supportsSchemeDeletion() {
             return this.$store.state.apiClient && this.$store.state.apiClient.deleteScheme;
-        },
-
-        supportsShapeExport() {
-            const idxOf = indexOf(this.schemeContainer.scheme.tags, 'schemio-extra-shapes');
-            return idxOf >= 0;
         }
     },
 

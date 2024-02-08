@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../../../../myMath';
-import {computeStandardFill} from '../../AdvancedFill.vue';
 import {enrichItemTextSlotWithDefaults} from '../../../../../scheme/ItemFixer';
 
 function swimLaneWidth(item) {
@@ -23,27 +22,19 @@ function computeOutline(item) {
     return `M 0 0 L ${item.area.w} 0 L ${item.area.w} ${item.area.h} L 0 ${item.area.h} Z`;
 }
 
-function computeCurves(item) {
+/**
+ * @param {Item} item
+ * @returns {String}
+ */
+function computePath(item) {
     const headerHeight = myMath.clamp(item.shapeProps.headerHeight, 0, swimLaneHeight(item));
 
-    let headerLinePath = '';
+    let fullSvgPath = computeOutline(item);
     if (item.shapeProps.vertical) {
-        headerLinePath = `M 0 ${headerHeight} L ${item.area.w} ${headerHeight}`;
+        fullSvgPath += ` M 0 ${headerHeight} L ${item.area.w} ${headerHeight}`;
     } else {
-        headerLinePath = `M ${headerHeight} 0 L ${headerHeight} ${item.area.h}`;
+        fullSvgPath += ` M ${headerHeight} 0 L ${headerHeight} ${item.area.h}`;
     }
-
-    const curves = [{
-        path: computeOutline(item),
-        fill: computeStandardFill(item),
-        strokeColor: item.shapeProps.strokeColor,
-        strokeSize: item.shapeProps.strokeSize,
-    }, {
-        path: headerLinePath,
-        fill: 'none',
-        strokeColor: item.shapeProps.strokeColor,
-        strokeSize: item.shapeProps.strokeSize,
-    }];
 
 
     let previousColumnRatio = 0;
@@ -52,21 +43,14 @@ function computeCurves(item) {
         let columnRatio = myMath.clamp(previousColumnRatio + Math.abs(item.shapeProps[`colw${i}`]), 0, 100);
         const pos = columnRatio * swimLaneWidth(item) / 100.0;
 
-        let path = '';
         if (item.shapeProps.vertical) {
-            path = `M ${pos} 0 L ${pos} ${swimLaneHeight(item)}`;
+            fullSvgPath += ` M ${pos} 0 L ${pos} ${swimLaneHeight(item)}`;
         } else {
-            path = `M 0 ${pos} L ${swimLaneHeight(item)} ${pos}`;
+            fullSvgPath += ` M 0 ${pos} L ${swimLaneHeight(item)} ${pos}`;
         }
-        curves.push({
-            path,
-            fill: 'none',
-            strokeColor: item.shapeProps.strokeColor,
-            strokeSize: item.shapeProps.strokeSize,
-        });
         previousColumnRatio = columnRatio;
     }
-    return curves;
+    return fullSvgPath;
 }
 
 
@@ -81,7 +65,7 @@ function makeColumnControlPoint(item, columnNumber) {
         const r = item.shapeProps[`colw${i}`];
         offset += r * swimLaneWidth(item) / 100.0;
     }
-    
+
     if (item.shapeProps.vertical) {
         return {
             x: myMath.clamp(offset, 0, swimLaneWidth(item)),
@@ -243,7 +227,7 @@ export default {
             size: {w: 800, h: 400}
         }],
 
-        computeCurves,
+        computePath,
         computeOutline,
 
         getTextSlots,

@@ -40,10 +40,9 @@
 
 <script>
 import Modal from '../Modal.vue';
-import {forEach} from '../../collections';
-import { convertShapeToStandardCurves, getTagValueByPrefixKey } from './items/shapes/ShapeExporter';
+import { convertItemToTemplatedShape, getTagValueByPrefixKey } from './items/shapes/ShapeExporter';
+import {convertTemplateShape} from './items/shapes/TemplatedShape';
 import utils from '../../utils';
-import { convertRawShapeForRender } from './items/shapes/StandardCurves';
 import myMath from '../../myMath';
 import { encode } from 'js-base64';
 
@@ -59,26 +58,37 @@ function createWidthAndHeight(w, h, widthToHeightRatio) {
     return {w, h};
 }
 
+/**
+ *
+ * @param {TemplatedShape} shapeDef
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Number} w
+ * @param {Number} h
+ */
 function generateItemSVGLayer(shapeDef, x, y, w, h) {
     let svg = `<g transform="translate(${x}, ${y})">`;
 
     const fakeItem = {
         area: {x: 0, y: 0, w, h},
-        shapeProps: {}
+        shapeProps: {
+            fill: {type: 'solid', color: '#ffffff'},
+            strokeColor: '#111111',
+            strokeSize: 2,
+            strokePattern: 'solid'
+        }
     };
 
-    forEach(shapeDef.shapeConfig.items, itemDef => {
-        const path = convertRawShapeForRender(fakeItem, shapeDef.shapeConfig, itemDef);
-        let fill = 'none';
-        if (itemDef.fillArg === 'fill') {
-            fill = '#ffffff';
-        } else if (itemDef.fillArg === 'strokeColor') {
-            fill = '#111111';
-        }
-        if (path) {
-            svg += `<path d="${path.path}" fill="${fill}" stroke="#111111" stroke-width="${itemDef.strokeSize*2}px" stroke-linejoin="round"/>`;
+    const shape = convertTemplateShape(shapeDef.shapeConfig);
+    const primitives = shape.shapeConfig.computePrimitives(fakeItem);
+
+    primitives.forEach(primitive => {
+        if (primitive.svgPath) {
+            const fill = primitive.fill && primitive.fill.type === 'solid' ? primitive.fill.color : 'none';
+            svg += `<path d="${primitive.svgPath}" fill="${fill}" stroke="#111111" stroke-width="${primitive.strokeSize}px" stroke-linejoin="round"/>`;
         }
     });
+
     return svg + '</g>';
 }
 
@@ -93,11 +103,12 @@ function buildSvgPreview(shapeDef, widthToHeightRatio) {
 
 
 function generateShapeConfigForItem(item, shapeGroupName) {
-    if (item.shape !== 'dummy') {
+    if (item.shape !== 'ext:container:shape_designer') {
         return null;
     }
-    let shapeId = getTagValueByPrefixKey(item.tags, 'shape-id=');
-    if (!shapeId) {
+    let shapeId = (item.shapeProps.shapeId || '').trim();
+
+    if (!shapeId || /^shape(\s*|-)[0-9]*$/.test(shapeId.toLowerCase())) {
         shapeId = item.name.toLowerCase().replaceAll(/[\W_]+/g, '-');
     }
 
@@ -105,7 +116,7 @@ function generateShapeConfigForItem(item, shapeGroupName) {
     if (item.area.w > 0 && item.area.h > 0) {
         widthToHeightRatio = item.area.w / item.area.h;
     }
-    const convertedShape = convertShapeToStandardCurves(item);
+    const convertedShape = convertItemToTemplatedShape(item);
     const svgPreview = buildSvgPreview(convertedShape, widthToHeightRatio);
     const svgPreviewBase64 = encode(svgPreview);
     const creationSize = createWidthAndHeight(80, 80, widthToHeightRatio);
@@ -164,16 +175,16 @@ function generateShapeGroupPreview(shapeGroup) {
 }
 
 
-function generateShapeGroupFromScheme(scheme) {
-    const shapeGroupName = getTagValueByPrefixKey(scheme.tags, 'shape-group=', scheme.name);
+function generateShapeGroupFromItem(shapeGroupItem) {
+    const shapeGroupName = shapeGroupItem.name;
     const shapeGroup = {
         group: shapeGroupName,
         shapes: [],
         preview: null
     };
 
-    if (Array.isArray(scheme.items)) {
-        scheme.items.forEach(item => {
+    if (Array.isArray(shapeGroupItem.childItems)) {
+        shapeGroupItem.childItems.forEach(item => {
             const shapeConfig = generateShapeConfigForItem(item, shapeGroupName);
             if (shapeConfig) {
                 shapeGroup.shapes.push(shapeConfig);
@@ -187,7 +198,7 @@ function generateShapeGroupFromScheme(scheme) {
 }
 
 export default {
-    props: ['scheme'],
+    props: ['shapeGroupItem'],
 
     components: {Modal},
 
@@ -195,7 +206,7 @@ export default {
         let shapeGroup = null;
         let errorMessage = null;
         try {
-            shapeGroup = generateShapeGroupFromScheme(this.scheme);
+            shapeGroup = generateShapeGroupFromItem(this.shapeGroupItem);
         } catch(err) {
             console.error(err);
             errorMessage = 'Failed to generate shape group';

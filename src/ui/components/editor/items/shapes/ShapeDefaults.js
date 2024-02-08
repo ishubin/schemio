@@ -27,6 +27,13 @@ export function getStandardRectPins(item) {
     };
 }
 
+export function createEllipsePath(w, h) {
+    const rx = w / 2;
+    const ry = h / 2;
+    return `M 0 ${ry} A ${rx} ${ry} 0 1 1 ${w} ${ry}  A ${rx} ${ry} 0 1 1 0 ${ry} Z`;
+
+}
+
 export function createRoundRectPath(w, h, cornerRadius) {
     const R = Math.min(cornerRadius, w/2, h/2);
 

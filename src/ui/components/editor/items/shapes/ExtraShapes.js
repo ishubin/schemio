@@ -14,20 +14,23 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
         throw new Error(`Invalid shape group in ${url}`);
     }
 
-    const menuItems = [];
+    // const menuItems = [];
 
     shapeGroup.shapes.forEach(shapeDef => {
-        const shapeId = generateShapeId(shapeGroupId, shapeDef);
-        Shape.registerRawShape(shapeId, shapeDef.shapeConfig);
-
-        if (Array.isArray(shapeDef.shapeConfig.menuItems)) {
-            shapeDef.shapeConfig.menuItems.forEach(menuItem => {
-                menuItems.push({
-                    id: shapeId,
-                    ...menuItem
-                });
-            });
+        if (shapeDef.shapeConfig.shapeType !== 'templated') {
+            return;
         }
+        const shapeId = generateShapeId(shapeGroupId, shapeDef);
+        Shape.registerTemplatedShape(shapeId, shapeDef.shapeConfig);
+
+        // if (Array.isArray(shapeDef.shapeConfig.menuItems)) {
+        //     shapeDef.shapeConfig.menuItems.forEach(menuItem => {
+        //         menuItems.push({
+        //             id: shapeId,
+        //             ...menuItem
+        //         });
+        //     });
+        // }
     });
 
     StoreUtils.registerShapeGroupId($store, shapeGroupId);
@@ -77,7 +80,8 @@ function loadAllMissingShapes(shapeIds, $store) {
                 return Promise.resolve(null);
             }
             return axios.get(shapeGroup.ref).then(response => {
-                registerExternalShapeGroup($store, shapeGroupId, response.data);
+                const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+                registerExternalShapeGroup($store, shapeGroupId, data);
             });
         }))
     });

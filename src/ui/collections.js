@@ -154,7 +154,7 @@ export function findKey(obj, callback) {
 /**
  *
  * @param {Array} arr
- * @param {any} value
+ * @param {any|function(any):boolean} value
  * @returns {Number}
  */
 export function indexOf(arr, value) {

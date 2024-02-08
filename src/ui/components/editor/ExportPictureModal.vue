@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <modal :title="title" @close="$emit('close')" primary-button="Save" @primary-submit="saveIt" :width="800">
+    <modal :title="title" @close="$emit('close')" primary-button="Save" @primary-submit="saveIt"  :width="800">
         <div class="progress-bar-container">
             <div v-if="isLoading" class="progress-bar progress-bar-hovering"></div>
         </div>
@@ -47,7 +47,12 @@
                     </div>
                     <div class="col-1">
                         <div class="row padded centered gap">
-                            <input type="checkbox" v-model="shouldExportBackground" id="chk-export-svg-background"/><label for="chk-export-svg-background"> Export Background</label>
+                            <input type="checkbox" v-model="shouldExportBackground" id="chk-export-svg-background"/><label for="chk-export-svg-background">Background</label>
+                        </div>
+                    </div>
+                    <div class="col-1">
+                        <div class="row padded centered gap">
+                            <input type="checkbox" v-model="shouldExportDataURL" id="chk-export-data-url"/><label for="chk-export-data-url">DataURL</label>
                         </div>
                     </div>
                 </div>
@@ -71,6 +76,11 @@
             </g>
             <g v-html="svgHtml"></g>
         </svg>
+
+        <modal v-if="dataURLModal.shown" title="Image Data URL" @close="dataURLModal.shown = false">
+            <p>Your image data URL is ready! Copy it from this textarea</p>
+            <textarea ref="dataURLTextarea" class="textfield" v-model="dataURLModal.text"></textarea>
+        </modal>
     </modal>
 </template>
 
@@ -78,9 +88,7 @@
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import {forEach} from '../../collections';
-import {rasterizeAllImagesToDataURL} from '../../svgPreview';
-import {svgToImage, insertCustomFonts, diagramImageExporter} from '../../diagramExporter';
-import { encode } from 'js-base64';
+import {diagramImageExporter} from '../../diagramExporter';
 
 
 
@@ -120,6 +128,7 @@ export default {
         return {
             exporter,
             shouldExportBackground: false,
+            shouldExportDataURL: false,
 
             simplePadding: true,
             padding: paddingTop,
@@ -139,6 +148,10 @@ export default {
 
             isLoading: false,
             errorMessage: null,
+            dataURLModal: {
+                shown: false,
+                text: ''
+            }
         };
     },
 
@@ -154,63 +167,24 @@ export default {
                 paddingTop: this.paddingTop,
                 paddingBottom: this.paddingBottom,
                 backgroundColor: this.shouldExportBackground ? this.backgroundColor : null,
+                ignoreCustomFonts: this.kind === 'svg',
                 format: this.kind,
             }).then(imageDataUrl => {
                 this.isLoading = false;
-                this.downloadViaLink(`${this.items[0].name}.${this.kind}`, imageDataUrl);
+                if (this.shouldExportDataURL) {
+                    this.dataURLModal.text = imageDataUrl;
+                    this.dataURLModal.shown = true;
+                    this.$nextTick(() => {
+                        this.$refs.dataURLTextarea.focus();
+                    });
+                } else {
+                    this.downloadViaLink(`${this.items[0].name}.${this.kind}`, imageDataUrl);
+                }
             })
             .catch(err => {
                 console.error('Failed to generate image', err);
                 this.isLoading = false;
                 this.errorMessage = 'Something went wrong, was not able to generate image';
-            });
-        },
-
-        _saveIt() {
-            const svgDom = this.$refs.svgContainer.cloneNode(true);
-            forEach(svgDom.childNodes, child => {
-                if (child && child.nodeType === Node.ELEMENT_NODE) {
-                    if (child.getAttribute('data-preview-ignore') === 'true') {
-                        svgDom.removeChild(child);
-                    }
-                }
-            });
-
-            rasterizeAllImagesToDataURL(svgDom)
-            .catch(err => {
-                console.error('Failed to rasterize some images', err);
-            })
-            .then(() => insertCustomFonts(svgDom))
-            .catch(err => {
-                console.error('Failed to embedd custom fonts', err);
-            })
-            .then(() => {
-                const viewBoxWidth = this.width + this.paddingRight + this.paddingLeft;
-                const viewBoxHeight = this.height + this.paddingBottom + this.paddingTop;
-                svgDom.setAttribute('viewBox', `${-this.paddingLeft} ${-this.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
-                if (this.kind === 'svg') {
-                    svgDom.removeAttribute('width');
-                    svgDom.removeAttribute('height');
-                } else {
-                    svgDom.setAttribute('width', `${this.rasterWidth}px`);
-                    svgDom.setAttribute('height', `${this.rasterHeight}px`);
-                }
-
-                const svgCode = new XMLSerializer().serializeToString(svgDom);
-
-                if (this.kind === 'svg') {
-                    const svgDataUrl = `data:image/svg+xml;base64,${encode(svgCode)}`;
-                    this.downloadViaLink( `${this.items[0].name}.svg`, svgDataUrl);
-                } else {
-                    svgToImage(svgCode, this.rasterWidth, this.rasterHeight, this.paddingLeft, this.paddingTop, backgroundColor)
-                    .then(imageDataUrl => {
-                        this.downloadViaLink(`${this.items[0].name}.png`, imageDataUrl);
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert('Something went wrong, failed to generate image');
-                    });
-                }
             });
         },
 

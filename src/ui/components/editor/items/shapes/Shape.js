@@ -3,10 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import {forEach} from '../../../../collections';
 import myMath from '../../../../myMath.js';
-import { convertStandardCurveShape } from './StandardCurves.js';
 import utils from '../../../../utils.js';
-import {computeStandardFill} from '../AdvancedFill.vue';
-import { convertTemplatePathShape } from './TemplatedPath.js';
+import { convertTemplateShape } from './TemplatedShape.js';
 
 const basicShapeGroup = require('./basic/basic-shapes.js').default;
 
@@ -175,7 +173,7 @@ function enrichShape(shapeComponent, shapeName) {
         editorProps             : shapeConfig.editorProps || defaultEditorProps,
         args                    : args,
         computePath             : shapeConfig.computePath,
-        computeCurves           : shapeConfig.computeCurves,
+        computePrimitives       : shapeConfig.computePrimitives,
         computeOutline          : shapeConfig.computeOutline || shapeConfig.computePath,
         readjustItem            : shapeConfig.readjustItem,
         getTextSlots            : shapeConfig.getTextSlots || defaultGetTextSlots,
@@ -222,22 +220,17 @@ function registerShape(shape) {
     }
 
     if (shape.shapeConfig.shapeType === 'raw') {
-        registerRawShape(shape.shapeConfig.id, shape.shapeConfig);
-    } else if (shape.shapeConfig.shapeType === 'templated-path') {
-        registerTemplatedPathShape(shape.shapeConfig.id, shape.shapeConfig);
+        throw new Error('Raw shapes are not supported');
+    } else if (shape.shapeConfig.shapeType === 'templated') {
+        registerTemplatedShape(shape.shapeConfig.id, shape.shapeConfig);
     } else {
         shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
     }
 }
 
-function registerRawShape(shapeId, shapeConfig) {
-    const shape = convertStandardCurveShape(shapeConfig);
-    shape.shapeConfig.id = shapeId;
-    shapeRegistry[shapeId] = enrichShape(shape);
-}
 
-function registerTemplatedPathShape(shapeId, shapeConfig) {
-    const shape = convertTemplatePathShape(shapeConfig);
+function registerTemplatedShape(shapeId, shapeConfig) {
+    const shape = convertTemplateShape(shapeConfig);
     shape.shapeConfig.id = shapeId;
     shapeRegistry[shapeId] = enrichShape(shape);
 }
@@ -261,21 +254,8 @@ function getRegistry() {
     return shapeRegistry;
 }
 
-function computeStandardCurves(item, shape) {
-    if (shape.computeCurves) {
-        return shape.computeCurves(item);
-    } else if (shape.computePath) {
-        return [{
-            path: shape.computePath(item),
-            fill: computeStandardFill(item),
-            strokeColor: item.shapeProps.strokeColor,
-            strokeSize: item.shapeProps.strokeSize
-        }];
-    }
-}
-
 function getShapeArgs(shape) {
-    if (shape.shapeType === 'standard') {
+    if (shape.shapeType === 'standard' || shape.includeStandardArgs) {
         const args = {};
         const copyArg = (arg, argName) => args[argName] = arg;
         forEach(standardShapeProps, copyArg);
@@ -302,7 +282,6 @@ export default {
     standardShapeProps,
     getShapePropDescriptor,
     getRegistry,
-    computeStandardCurves,
     getShapeArgs,
-    registerRawShape
+    registerTemplatedShape
 };
