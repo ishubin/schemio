@@ -16,7 +16,6 @@ Features of Schemio:
 - Various animation functions: you can have smooth transitions like fade in or fade out, move items, render particle effect etc.
 - Export entire diagram or only selected objects as SVG
 - Generate static version of all of your diagrams so that you can host it anywhere, even on GitHub pages
-- Desktop version
 
 
 ![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot.png?raw=true)
