@@ -23,7 +23,9 @@
                 <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && idx === dragging.previewIdx && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
                     <div class="item">
                         <div class="item-name">
-                            <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
+                            <img v-if="dragging.previewIconUrl" :src="dragging.previewIconUrl" class="item-icon"/>
+                            <i v-else class="fas fa-cube"></i>
+                            <span> {{dragging.previewItemName}} </span>
                         </div>
                     </div>
                 </div>
@@ -44,7 +46,11 @@
                         </span>
 
                         <div class="item-name">
-                            <span v-if="item.id !== nameEdit.itemId"><i class="fas fa-cube"></i> {{item.name}}</span>
+                            <img v-if="item.iconUrl" :src="item.iconUrl" class="item-icon"/>
+                            <i v-else class="fas fa-cube"></i>
+                            <span v-if="item.id !== nameEdit.itemId">
+                                {{item.name}}
+                            </span>
                             <input v-if="item.id === nameEdit.itemId"
                                 ref="nameEditInput"
                                 v-model="nameEdit.name"
@@ -69,7 +75,11 @@
                 <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && idx === dragging.previewIdx && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
                     <div class="item">
                         <div class="item-name">
-                            <span><i class="fas fa-cube"></i> {{dragging.previewItemName}}</span>
+                            <img v-if="dragging.previewIconUrl" :src="dragging.previewIconUrl" class="item-icon"/>
+                            <i v-else class="fas fa-cube"></i>
+                            <span>
+                                {{dragging.previewItemName}}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -78,8 +88,12 @@
 
 
         <div ref="itemDragger" class="item-selector-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
-            <div v-for="(item, itemIdx) in dragging.items" v-if="itemIdx < 3">
-                <span :class="`preview-${itemIdx}`"><i class="fas fa-cube"></i> {{item.name}}</span>
+            <div class="item-name" :class="`preview-${itemIdx}`" v-for="(item, itemIdx) in dragging.items" v-if="itemIdx < 3">
+                <img v-if="item.iconUrl" :src="item.iconUrl" class="item-icon"/>
+                <i v-else class="fas fa-cube"></i>
+                <span>
+                    {{item.name}}
+                </span>
             </div>
         </div>
 
@@ -94,9 +108,35 @@ import { dragAndDropBuilder } from '../../dragndrop';
 import { traverseItems } from '../../scheme/Item';
 import { createSettingStorageFromLocalStorage } from '../../LimitedSettingsStorage';
 import EditorEventBus from './EditorEventBus';
+import Shape from './items/shapes/Shape';
 
 const settingsStorage = createSettingStorageFromLocalStorage('item-selector', 5);
 
+
+/**
+ * Enriches item with additional fields that are used in item selector for rendering
+ * @param {Item} item
+ * @returns {Item}
+ */
+function enrichedItem(item) {
+    const shape = Shape.find(item.shape);
+    if (!shape) {
+        return item;
+    }
+
+    let iconUrl = null;
+
+    if (item.shape === 'path') {
+        iconUrl = '/assets/images/items/path.svg';
+    } else if (shape.menuItems && shape.menuItems.length > 0) {
+        iconUrl = shape.menuItems[0].iconUrl;
+    }
+
+    return {
+        ...item,
+        iconUrl
+    };
+}
 
 function visitItems(items, parentItem, callback) {
     if (items) {
@@ -142,6 +182,7 @@ export default {
                 dropAbove: false, // if set to true then dropInside is ignored
                 readyToDrop: false,
                 previewItemName: 'Drop here',
+                previewIconUrl: null,
 
                 startedDragging: false,
                 pageX: 0,
@@ -153,7 +194,7 @@ export default {
                 itemId: null,
                 name: ''
             },
-            filteredItems: this.schemeContainer.getItems(),
+            filteredItems: this.schemeContainer.getItems().map(enrichedItem),
 
             // used for vertical multi-select when user holds shift
             lastClickedItem: null
@@ -280,6 +321,7 @@ export default {
                 this.dragging.items = finalDraggedItems;
 
                 this.dragging.previewItemName = item.name;
+                this.dragging.previewIconUrl = enrichedItem(item).iconUrl;
                 this.dragging.startedDragging = true;
                 this.filteredItems = filter(this.filterItemsByKeyword(this.searchKeyword), itemForFilter => {
                     return !draggedItemIds.has(itemForFilter.id);
@@ -445,7 +487,7 @@ export default {
 
         filterItemsByKeyword(keyword) {
             const loweredKeyword = keyword.toLowerCase();
-            return filter(this.schemeContainer.getItems(), item => (item.name || '').toLowerCase().indexOf(loweredKeyword) >= 0);
+            return filter(this.schemeContainer.getItems(), item => (item.name || '').toLowerCase().indexOf(loweredKeyword) >= 0).map(enrichedItem);
         },
 
         onItemSelectorResizeDraggerMouseDown(originalEvent) {
@@ -478,7 +520,7 @@ export default {
         },
         searchKeyword(keyword) {
             if (!keyword) {
-                this.filteredItems = this.schemeContainer.getItems();
+                this.filteredItems = this.schemeContainer.getItems().map(enrichedItem);
             } else {
                 this.filteredItems = this.filterItemsByKeyword(keyword);
             }

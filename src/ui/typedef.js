@@ -117,12 +117,25 @@
  */
 
 /**
+ * @typedef {Object} ShapeMenuItem
+ * @property {String} group
+ * @property {String} name
+ * @property {String|undefined} description
+ * @property {String} iconUrl
+ * @property {Object} item
+ * @property {Area} previewArea
+ * @property {Object} size
+ */
+
+
+/**
  * @typedef {Object} Shape
  * @property {function(Item): Array<TextSlot>} getTextSlots
  * @property {function(Item): Array<ShapePin>} getPins
  * @property {function(Item): Array<ShapeSVGPrimitive>} computePrimitives
  * @property {function(Item): String} computePath
  * @property {function(Item): String} computeOutline
+ * @property {Array<ShapeMenuItem>} menuItems
  */
 
 /**

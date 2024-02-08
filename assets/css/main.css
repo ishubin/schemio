@@ -2518,6 +2518,10 @@ ul.script-options .script-option.selected {
     width: 100%;
     height: 20px;
 }
+.item-selector .item-row .item img.item-icon {
+    max-width: 16px;
+    max-height: 16px;
+}
 .item-selector .item-row .item .item-collapser {
     position: absolute;
     left: -15px;
@@ -2529,7 +2533,9 @@ ul.script-options .script-option.selected {
 }
 .item-selector .item-row .item .item-name {
     font-size: 12px;
-    display: inline-block;
+    display: flex;
+    gap: 3px;
+    align-items: center;
     min-width: 50px;
 }
 .item-selector .item-row .item.selected {
@@ -2569,6 +2575,16 @@ ul.script-options .script-option.selected {
     height: 20px;
     width: 250px;
     border: 1px solid var(--faint-strong);
+}
+.item-selector .item-selector-drag-preview .item-name {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 12px;
+}
+.item-selector .item-selector-drag-preview .item-name .item-icon {
+    max-width: 16px;
+    max-height: 16px;
 }
 .item-selector .item-selector-drag-preview .preview-0 {
     opacity: 1.0;
