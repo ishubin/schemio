@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import re
+import json
 import base64
 
 __field_def_pattern__ = r'^([a-z-]+):\s*(.*);$'
@@ -31,6 +32,10 @@ def convert_font_url(text):
         return f'url(\'data:font/{ext};base64,{encoded}\') format(\'{font_format(ext)}\')'
 
 
+def extract_font_name(font_family):
+    return re.sub('\'', '', font_family['font-family'])
+
+
 if __name__ == '__main__':
     font_css_lines = read_file('assets/custom-fonts/fonts.css')
 
@@ -59,10 +64,22 @@ if __name__ == '__main__':
         elif line == '}':
             next_family = None
 
+    font_mapping = dict()
 
-    with open('assets/custom-fonts/all-fonts-embedded.css', 'w') as f:
-        for font_family in font_families:
+    for font_family in font_families:
+        font_name = extract_font_name(font_family)
+        font_file_name = re.sub('[^0-9a-zA-Z]+', '_', font_name.lower().strip()) + '.css'
+        file_path = 'assets/custom-fonts/embedded/' + font_file_name
+
+        font_mapping[font_name] = '/' + file_path
+        with open(file_path, 'w+') as f:
             f.write('@font-face {\n')
             for k, v in font_family.items():
                 f.write(f'    {k}: {v};\n')
             f.write('}\n\n')
+
+    s = json.dumps(font_mapping, indent=4)
+    with open('src/ui/scheme/FontMapping.js', 'w+') as f:
+        f.write('export const fontMapping = ')
+        f.write(s)
+        f.write(';\n')

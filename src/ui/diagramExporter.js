@@ -5,6 +5,7 @@ import { filterOutIgnoredSvgElements, rasterizeAllImagesToDataURL } from './svgP
 import { encode } from 'js-base64';
 import axios from "axios";
 import { enrichObjectWithDefaults } from "../defaultify";
+import { fontMapping } from "./scheme/FontMapping";
 
 
 /**
@@ -135,7 +136,6 @@ function calculateBoundingBoxOfAllSubItems(parentItem) {
  * @property {Number} paddingTop
  * @property {Number} paddingBottom
  * @property {String} backgroundColor
- * @property {Boolean} ignoreCustomFonts - flag that tells exporter to not embedd custom fonts into the image
  * @property {String} format - Image format. Either "svg" or "png"
  */
 
@@ -182,11 +182,7 @@ export function diagramImageExporter(items) {
             }
 
             return rasterizeAllImagesToDataURL(svg)
-            .then(() => {
-                if (!options.ignoreCustomFonts) {
-                    return insertCustomFonts(svg);
-                }
-            })
+            .then(() => insertCustomFonts(svg))
             .then(() => {
                 const svgCode = new XMLSerializer().serializeToString(svg);
                 if (options.format === 'png') {
@@ -199,12 +195,43 @@ export function diagramImageExporter(items) {
     };
 }
 
+/**
+ * @param {ChildNode} node
+ * @param {Set<String>} fonts
+ * @returns {Set<String>}
+ */
+function collectAllUsedFonts(node, fonts) {
+    if (!fonts) {
+        fonts = new Set();
+    }
+
+    if (node.nodeName.toLowerCase() === 'div') {
+        const fontFamily = node.style.fontFamily;
+        if (fontFamily) {
+            fonts.add(fontFamily.replaceAll(/("|')/g, ''));
+        }
+    }
+    node.childNodes.forEach(childNode => collectAllUsedFonts(childNode, fonts));
+    return fonts;
+}
+
 function insertCustomFonts(svg) {
-    return axios.get('/assets/custom-fonts/all-fonts-embedded.css')
-    .then(data => {
-        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-        defs.innerHTML = '<style>\n' + data.data + '\n</style>';
-        svg.prepend(defs);
+    const allFonts = collectAllUsedFonts(svg);
+
+    const fontPromises = [];
+    allFonts.forEach(font => {
+        if (fontMapping[font]) {
+            fontPromises.push(axios.get(fontMapping[font]));
+        }
+    });
+
+    return Promise.all(fontPromises)
+    .then(fontResponses => {
+        fontResponses.forEach(fontResponse => {
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.innerHTML = '<style>\n' + fontResponse.data + '\n</style>';
+            svg.prepend(defs);
+        });
     })
     .catch(err => {
         console.error(err);

@@ -804,7 +804,7 @@ export default {
                 component: TablePropertiesEditor
             },
 
-            // Is invoked from edit-box for rendering addition controls
+            // Is invoked from edit-box for rendering additional controls
             editBoxControls: (editorId, item) => {
                 const controls = [];
                 if (item.shapeProps.columns < maxCells) {

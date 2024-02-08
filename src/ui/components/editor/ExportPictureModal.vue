@@ -167,7 +167,6 @@ export default {
                 paddingTop: this.paddingTop,
                 paddingBottom: this.paddingBottom,
                 backgroundColor: this.shouldExportBackground ? this.backgroundColor : null,
-                ignoreCustomFonts: this.kind === 'svg',
                 format: this.kind,
             }).then(imageDataUrl => {
                 this.isLoading = false;
