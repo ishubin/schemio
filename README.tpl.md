@@ -71,18 +71,6 @@ docker run -v "$(pwd):/opt/schemio" \
 Don't forget to pull latest changes as Schemio is frequently updated.
 
 
-Desktop version
-------------------
-
-From version 0.9.0 Schemio is also distributed as a desktop application on Linux, Mac and Windows. You can download a binary for your OS from the release page https://github.com/ishubin/schemio/releases/tag/v${SCHEMIO_VERSION}.
-
-* Mac: [schemio-darwin-x64-${SCHEMIO_VERSION}.zip](https://github.com/ishubin/schemio/releases/download/v${SCHEMIO_VERSION}/schemio-darwin-x64-${SCHEMIO_VERSION}.zip)
-* Windows: [schemio-${SCHEMIO_VERSION}.Setup.exe](https://github.com/ishubin/schemio/releases/download/v${SCHEMIO_VERSION}/schemio-${SCHEMIO_VERSION}.Setup.exe)
-* Linux:
-    * RPM: [schemio-${SCHEMIO_VERSION}-1.x86_64.rpm](https://github.com/ishubin/schemio/releases/download/v${SCHEMIO_VERSION}/schemio-${SCHEMIO_VERSION}-1.x86_64.rpm)
-    * DEB: [schemio_${SCHEMIO_VERSION}_amd64.deb](https://github.com/ishubin/schemio/releases/download/v${SCHEMIO_VERSION}/schemio_${SCHEMIO_VERSION}_amd64.deb)
-
-
 
 License
 ---------
