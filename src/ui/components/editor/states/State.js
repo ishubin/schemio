@@ -355,7 +355,13 @@ class State {
     }
 
     zoomByWheel(mx, my, delta) {
-        const zoomRatio = 1.1;
+        // using square root to make zooming by mouse wheel a bit smoother
+        // The problem is that there is a big difference of how mouse wheel event gets triggered
+        // depending on if a user scrolls their mouse wheel or if they scroll using their touchpad.
+        // In case of mouse wheel scroll - it triggers a single event with big delta
+        // In case of touchpad scroll - there are multiple events with small delta.
+        // So we need to make sure that large deltas do not contribute to sudden big jumps in zoom
+        const zoomRatio = (100 + Math.min(120, Math.sqrt(Math.abs(delta))))/100.0;
         var nz = 0;
         var xo = this.schemeContainer.screenTransform.x;
         var yo = this.schemeContainer.screenTransform.y;
