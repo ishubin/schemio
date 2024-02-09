@@ -78,21 +78,29 @@ function compile(obj) {
 
         const objectProcessor = compileObjectProcessor(obj);
 
-        /** @type {Array<ASTNode>} */
-        const evalASTs = [];
+        /** @type {function(Scope): any} */
+        let evalAst = null;
+        let evalScript = null;
 
         if (obj.hasOwnProperty($_EVAL)) {
-            const $eval = Array.isArray(obj[$_EVAL]) ? obj[$_EVAL].join('\n') : obj[$_EVAL];
-            evalASTs.push(compileExpression($eval));
+            evalScript = Array.isArray(obj[$_EVAL]) ? obj[$_EVAL].join('\n') : obj[$_EVAL];
+            if (evalScript) {
+                evalAst = compileExpression(evalScript);
+            }
         }
 
         /**
          * @property {Scope} scope
          */
         return (scope) => {
-            evalASTs.forEach(ast => {
-                ast(scope);
-            });
+            if (evalAst) {
+                try {
+                    evalAst(scope);
+                } catch(ex) {
+                    console.error('Failed to evaluate script:\n' + evalScript);
+                    console.error(ex);
+                }
+            }
             return objectProcessor(scope);
         };
     }
@@ -132,7 +140,14 @@ function compileObjectProcessor(obj) {
  */
 function compileExpression(expr) {
     const ast = parseAST(tokenizeExpression(expr), expr);
-    return (scope) => ast.evalNode(scope);
+    return (scope) => {
+        try {
+            return ast.evalNode(scope);
+        } catch(ex) {
+            console.error('Failed to evaluate expression:\n' + expr);
+            console.error(ex);
+        }
+    };
 }
 
 function processExpression(expr, scope) {

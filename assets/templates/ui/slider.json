@@ -29,7 +29,7 @@
         "isVertical = width < height",
         "lowPos = if (isVertical) { Vector(width / 2, height - cornerRadius) } else { Vector(cornerRadius, height/2) }",
         "highPos = if (isVertical) { Vector(width / 2, cornerRadius) } else { Vector(width - cornerRadius, height/2) }",
-        "t = max(0, min((initVal - minVal) / max(0.000001, (maxVal - minVal)), 1)",
+        "t = max(0, min((initVal - minVal) / max(0.000001, (maxVal - minVal)), 1))",
         "knobPos = highPos * t + lowPos * (1 - t)",
         "labelWidth = 80",
         "labelHeight = 30",
