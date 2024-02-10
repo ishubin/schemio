@@ -269,8 +269,14 @@ export default {
                 this.nameEdit.itemId = null;
             }
 
-            if (!event.shiftKey && !this.schemeContainer.isItemSelected(item)) {
-                this.schemeContainer.selectItem(item, event.metaKey || event.ctrlKey);
+            if (!event.shiftKey) {
+                const multiSelect = event.metaKey || event.ctrlKey;
+                if (!this.schemeContainer.isItemSelected(item)) {
+                    this.schemeContainer.selectItem(item, multiSelect);
+                } else if (multiSelect) {
+                    this.schemeContainer.deselectItem(item, multiSelect);
+                    return;
+                }
             }
 
             if (event.button === 2) {

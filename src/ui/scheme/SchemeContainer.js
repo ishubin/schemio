@@ -2202,6 +2202,25 @@ class SchemeContainer {
     }
 
     /**
+     * @param {Item} item
+     */
+    deselectItem(item) {
+        if (this.selectedItemsMap[item.id]) {
+            this.selectedItemsMap[item.id] = false;
+        }
+
+        for(let i = 0; i < this.selectedItems.length; i++) {
+            if (this.selectedItems[i].id === item.id) {
+                this.selectedItems.splice(i, 1);
+                break;
+            }
+        }
+
+        EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id)
+        this.updateEditBox();
+    }
+
+    /**
      * Deselect all previously selected items
      */
     deselectAllItems() {
