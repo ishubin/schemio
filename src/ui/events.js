@@ -72,6 +72,11 @@ export function deregisterKeyPressHandler(callback) {
 
 let lastKeyPressed = null;
 
+/**
+ * @param {MouseEvent} event
+ * @param {*} isDown
+ * @returns
+ */
 function handleKeyPress(event, isDown) {
     if (!isDown) {
         lastKeyPressed = null;
@@ -88,6 +93,12 @@ function handleKeyPress(event, isDown) {
                 return;
             }
             lastKeyPressed = key;
+        }
+
+        if (key === Keys.CTRL_A) {
+            if (event.target && event.target.nodeName.toLowerCase() === 'body') {
+                event.preventDefault();
+            }
         }
 
         keyEventBus.$emit('key-press', isDown, key, {
