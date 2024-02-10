@@ -3,6 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../../../../myMath';
 import {enrichItemTextSlotWithDefaults} from '../../../../../scheme/ItemFixer';
+import EditorEventBus from '../../../EditorEventBus';
+
+const maxColumns = 100;
 
 function swimLaneWidth(item) {
     if (item.shapeProps.vertical) {
@@ -120,6 +123,28 @@ function getTextSlots(item) {
         previousPosition = pos;
     }
     return textSlots;
+}
+
+function addColumn(editorId, item) {
+    if (item.shapeProps.columns >= maxColumns) {
+        return;
+    }
+    changeColumn(editorId, item, item.shapeProps.columns + 1);
+}
+
+function removeColumn(editorId, item) {
+    if (item.shapeProps.columns <= 1) {
+        return;
+    }
+    changeColumn(editorId, item, item.shapeProps.columns - 1);
+}
+
+function changeColumn(editorId, item, newValue) {
+    const oldValue = item.shapeProps.columns;
+    item.shapeProps.columns = newValue;
+    onColumnNumberUpdate(null, item, newValue, oldValue);
+    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.column`);
+    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.columns`);
 }
 
 
@@ -244,6 +269,38 @@ export default {
 
         editorProps: {
             textSlotTabsDisabled: true,
+            editBoxControls: (editorId, item) => {
+                const isVertical = item.shapeProps.vertical;
+
+                const controls = [];
+                if (item.shapeProps.columns < maxColumns) {
+                    controls.push({
+                        name: 'Add Column',
+                        type: 'button',
+                        hPlace:  isVertical ? 'right' : 'center',
+                        vPlace: isVertical ? 'center' : 'bottom',
+                        iconClass: 'fa-solid fa-plus',
+                        position: isVertical ? {x: 30, y: 0} : {x: 0, y: 30},
+                        click: () => {
+                            addColumn(editorId, item);
+                        }
+                    });
+                }
+                if (item.shapeProps.columns > 1) {
+                    controls.push({
+                        name: 'Remove Column',
+                        type: 'button',
+                        hPlace: isVertical ? 'right' : 'left',
+                        vPlace: isVertical ? 'top' : 'bottom',
+                        iconClass: 'fa-solid fa-minus',
+                        position: isVertical ? {x: 0, y: 30} : {x: 30, y: 0},
+                        click: () => {
+                            removeColumn(editorId, item);
+                        }
+                    });
+                }
+                return controls;
+            }
         },
 
         controlPoints: {
@@ -304,7 +361,7 @@ export default {
         },
 
         args: {
-            columns: {type: 'number', value: 3, name: 'Columns', min: 1, max: 100, onUpdate: onColumnNumberUpdate },
+            columns: {type: 'number', value: 3, name: 'Columns', min: 1, max: maxColumns, onUpdate: onColumnNumberUpdate },
             headerHeight: {type: 'number', value: 50, name: 'Header Height', min: 0, hidden: true},
             vertical: {type: 'boolean', value: true, name: 'Vertical'},
             colw1: {type: 'number', value: 20, name: 'Column Width 1', min: 0, max: 100.0, hidden: true},
