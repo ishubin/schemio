@@ -16,7 +16,9 @@ export const TokenTypes = {
     COMMENT        : 13,
     START_CURLY    : 14,
     END_CURLY      : 15,
-    RESERVED       : 16
+    RESERVED       : 16,
+    // token group is used to group tokens into a token sub array for things like round brackets, curly brackets.
+    TOKEN_GROUP    : 17
 };
 
 export const ReservedTerms = {
@@ -280,15 +282,55 @@ class Scanner {
 }
 
 
+function inverseTokenCodeFor(tokenCode) {
+    if (tokenCode === TokenTypes.START_BRACKET) {
+        return TokenTypes.END_BRACKET;
+    } else if (tokenCode === TokenTypes.START_CURLY) {
+        return TokenTypes.END_CURLY;
+    }
+
+    throw new Error('Don\'t know inverse token for ' + tokenCode);
+}
+
 export function tokenizeExpression(text) {
     const scanner = new Scanner(text);
 
-    const tokens = [];
+    const tokensStack = [];
+    tokensStack.push({
+        originalToken: null,
+        stackExitCode: null,
+        stackStartCode: null,
+        tokens: []
+    });
+
     let token = scanner.scanToken();
-    while(token) {
-        tokens.push(token);
+    while (token) {
+        if (token.t === TokenTypes.START_BRACKET || token.t === TokenTypes.START_CURLY) {
+            tokensStack.splice(0, 0, {
+                originalToken: token,
+                stackExitCode: inverseTokenCodeFor(token.t),
+                stackStartCode: token.t,
+                tokens: []
+            });
+        } else if (token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY) {
+            if (tokensStack[0].stackExitCode !== token.t) {
+                throw new Error(`Invalid token "${token.v}"`);
+            }
+            const groupStack = tokensStack.shift();
+            tokensStack[0].tokens.push({
+                ...groupStack.originalToken,
+                t: TokenTypes.TOKEN_GROUP,
+                groupCode: groupStack.originalToken.t,
+                groupTokens: groupStack.tokens
+            });
+        } else if (token.t !== TokenTypes.WHITESPACE && token.t !== TokenTypes.COMMENT) {
+            tokensStack[0].tokens.push(token);
+        }
         token = scanner.scanToken();
     }
 
-    return tokens.filter(token => token.t !== TokenTypes.WHITESPACE && token.t !== TokenTypes.COMMENT);
+    if (tokensStack.length !== 1) {
+        throw new Error('Unclosed expression');
+    }
+    return tokensStack[0].tokens;
 }

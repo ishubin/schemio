@@ -613,6 +613,45 @@ function createOpLeftover(a, opClass, precedence) {
     };
 }
 
+/**
+ * @typedef {Object} ScriptToken
+ * @property {Number} t - token code that is defined in {@link TokenTypes}
+ * @property {String} v - token raw text
+ * @property {Number|undefined} groupCode the token group code (defined in {@link TokenTypes})
+ * @property {Array<ScriptToken>|undefined} groupTokens tokens sub array that represents token group (e.g. tokens inside round/curly brackets)
+ */
+
+/**
+ *
+ * @param {*} name
+ * @param {Array<ScriptToken>} tokens
+ * @returns
+ */
+function parseFunction(name, tokens) {
+    const args = [];
+
+    /** @type {Array<ScriptToken>} */
+    let currentArgTokens = [];
+    args.push(currentArgTokens);
+    tokens.forEach(token => {
+        if (token.t === TokenTypes.COMMA) {
+            if (!currentArgTokens) {
+                throw new Error(`Invalid arguments declaration in function "${name}"`);
+            }
+            currentArgTokens = [];
+            args.push(currentArgTokens);
+        } else {
+            currentArgTokens.push(token);
+        }
+    });
+
+    if (args[args.length - 1].length === 0) {
+        args.pop();
+    }
+
+    return new ASTFunctionInvocation(name, args.map(parseAST));
+}
+
 class ASTParser {
     constructor(tokens, originalText) {
         this.tokens = tokens;
@@ -637,6 +676,9 @@ class ASTParser {
         return node;
     }
 
+    /**
+     * @returns {ScriptToken}
+     */
     scanToken() {
         if (this.idx >= this.tokens.length) {
             return null;
@@ -650,6 +692,9 @@ class ASTParser {
         return token;
     }
 
+    /**
+     * @returns {ScriptToken}
+     */
     peekToken() {
         if (this.idx >= this.tokens.length) {
             return null;
@@ -722,7 +767,7 @@ class ASTParser {
             }
         };
 
-        const isEndToken = (token) => token === null || token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY || token.t === TokenTypes.COMMA;
+        const isEndToken = (token) => token === null || token.t === TokenTypes.COMMA;
 
         const startNewExpression = () => {
             processLeftovers();
@@ -778,7 +823,7 @@ class ASTParser {
             }
 
             if (token.t !== TokenTypes.OPERATOR) {
-                throw new Error(`Unexpected token in expression (at ${token.idx}, line ${token.line}): ${token.t} "${token.text}":\n${this.prettyStringWithCaret(token.idx, '    ')}`);
+                throw new Error(`Unexpected token in expression (at ${token.idx}, line ${token.line}): (${token.t}) "${token.text}":\n${this.prettyStringWithCaret(token.idx, '    ')}`);
             } else {
                 this.skipNewlines();
             }
@@ -836,19 +881,14 @@ class ASTParser {
         if (token === null) {
             return null;
         }
-        if (token.t === TokenTypes.END_CURLY) {
-            return null;
-        }
         this.skipToken();
 
-        if (token.t === TokenTypes.START_BRACKET) {
-            const expr = this.parseExpression();
-            const nextToken = this.scanToken();
-
-            if (!nextToken || nextToken.t !== TokenTypes.END_BRACKET) {
-                throw new Error('Missing end bracket');
+        if (token.t === TokenTypes.TOKEN_GROUP) {
+            if (token.groupCode === TokenTypes.START_BRACKET) {
+                return parseAST(token.groupTokens);
+            } else {
+                throw new Error(`Unexpected token group "${token.v}"`);
             }
-            return expr;
         } else if (token.t === TokenTypes.NUMBER) {
             return new ASTValue(token.v);
         } else if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
@@ -857,9 +897,13 @@ class ASTParser {
             return this.parseWhileExpression();
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
-            if (nextToken && nextToken.t === TokenTypes.START_BRACKET) {
-                this.skipToken();
-                return this.parseFunction(token.v);
+            if (nextToken && nextToken.t === TokenTypes.TOKEN_GROUP) {
+                if (nextToken.groupCode === TokenTypes.START_BRACKET) {
+                    this.skipToken();
+                    return parseFunction(token.v, nextToken.groupTokens);
+                } else {
+                    throw new Error(`Unexpected token group "${nextToken.v}" after "${token.v}"`);
+                }
             }
             if (token.v === 'true') {
                 return new ASTValue(true);
@@ -889,32 +933,6 @@ class ASTParser {
         }
     }
 
-    parseFunction(name) {
-        const args = [];
-        while(this.idx < this.tokens.length) {
-            const token = this.peekToken();
-            if (!token) {
-                throw new Error('Function is missing ) symbol');
-            }
-            if (token.t === TokenTypes.END_BRACKET) {
-                this.skipToken();
-                break;
-            }
-            if (token.t === TokenTypes.COMMA ) {
-                this.skipToken();
-            }
-
-            const expr = this.parseExpression();
-            if (!expr) {
-                throw new Error('Function is missing an argument');
-            }
-
-            args.push(expr);
-        }
-
-        return new ASTFunctionInvocation(name, args);
-    }
-
     prettyStringWithCaret(idx, indentation) {
         const maxLength = 80;
 
@@ -940,75 +958,44 @@ class ASTParser {
 
     parseWhileExpression() {
         this.skipNewlines();
-        let token = this.peekToken();
-        if (!token) {
-            throw new Error('Invalid if statement');
-        }
-        if (token.t !== TokenTypes.START_BRACKET) {
+        let token = this.scanToken();
+        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_BRACKET) {
             throw new Error(`Expected "(" symbol after while (at ${token.idx}, line ${token.line})`);
         }
 
-        this.skipToken();
-
-        const whileExpression = this.parseExpression();
+        const whileExpression = parseAST(token.groupTokens);
         if (!whileExpression) {
             throw new Error(`Missing condition expression for while statement (at ${token.idx}, line ${token.line})`);
         }
 
         this.skipNewlines();
         token = this.scanToken();
-        if (!token || token.t !== TokenTypes.END_BRACKET) {
-            throw new Error(`Missing ")" for if statement`);
-        }
-        this.skipNewlines();
-
-        token = this.scanToken();
-        if (!token || token.t !== TokenTypes.START_CURLY) {
-            throw new Error(`Missing "{" for while statement`);
+        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
+            throw new Error(`Missing "{" symbol after "while" expression (at ${token.idx}, line ${token.line})`);
         }
 
-        const whileBlock = this.parseExpression();
-        token = this.scanToken();
-        if (!token || token.t !== TokenTypes.END_CURLY) {
-            throw new Error(`Missing "}" for while statement (line ${this.line})`);
-        }
+        const whileBlock = parseAST(token.groupTokens);
         return new ASTWhileStatement(whileExpression, whileBlock);
     }
 
     parseIfExpression() {
         this.skipNewlines();
-        let token = this.peekToken();
-        if (!token) {
-            throw new Error('Invalid if statement');
-        }
-        if (token.t !== TokenTypes.START_BRACKET) {
-            throw new Error(`Expected "(" symbol after if (at ${token.idx}, line ${token.line})`);
+        let token = this.scanToken();
+
+        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_BRACKET) {
+            throw new Error(`Missing "(" symbol after "if" (at ${token.idx}, line ${token.line})`);
         }
 
-        this.skipToken();
+        const ifExpression = parseAST(token.groupTokens);
 
-        const ifExpression = this.parseExpression();
-        if (!ifExpression) {
-            throw new Error(`Missing condition expression for if statement (at ${token.idx}, line ${token.line})`);
-        }
-
-        this.skipNewlines();
-        token = this.scanToken();
-        if (!token || token.t !== TokenTypes.END_BRACKET) {
-            throw new Error(`Missing ")" for if statement`);
-        }
         this.skipNewlines();
 
         token = this.scanToken();
-        if (!token || token.t !== TokenTypes.START_CURLY) {
+        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
             throw new Error(`Missing "{" for if statement`);
         }
 
-        const trueBlock = this.parseExpression();
-        token = this.scanToken();
-        if (!token || token.t !== TokenTypes.END_CURLY) {
-            throw new Error(`Missing "}" for if statement (line ${this.line})`);
-        }
+        const trueBlock = parseAST(token.groupTokens);
 
         this.skipNewlines();
 
@@ -1028,14 +1015,10 @@ class ASTParser {
             if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
                 falseBlock = this.parseIfExpression();
             } else {
-                if (token.t !== TokenTypes.START_CURLY) {
+                if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
                     throw new Error('Expected "{" after "else"');
                 }
-                falseBlock = this.parseExpression();
-                token = this.scanToken();
-                if (!token || token.t !== TokenTypes.END_CURLY) {
-                    throw new Error(`Missing "}" for else statement (line ${this.line})`);
-                }
+                falseBlock = parseAST(token.groupTokens);
             }
         }
         return new ASTIFStatement(ifExpression, trueBlock, falseBlock);

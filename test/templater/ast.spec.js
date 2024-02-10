@@ -468,4 +468,13 @@ describe('templater ast parser', () => {
         expect(result).toBeInstanceOf(Set);
         expect(result).toStrictEqual(new Set([1, 3, 4, 5]));
     });
+
+
+    it('should throw error when its missing closing bracket', () => {
+        const call = () => {
+            return parseExpression('t = max(min(0, 23), 10')
+        };
+
+        expect(call).toThrowError('Unclosed expression')
+    });
 });
