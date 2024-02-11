@@ -127,6 +127,13 @@ class State {
         };
     }
 
+    /**
+     * Triggered from the outside when item is changed
+     * @param {String} itemId if of the item that was changed
+     */
+    onItemChanged(itemId) {
+    }
+
     resetInertiaDrag() {
         this.inertiaDrag.positionTracker.idx = 0;
         this.inertiaDrag.positionTracker.positions = [];
@@ -433,13 +440,20 @@ class State {
     }
 
     /**
+     * @returns {Area|null}
+     */
+    getScreenBounds() {
+        return null;
+    }
+
+    /**
      * Changes screen offset coords and checks bounding box of all items in relative transform so that they are always visible on the screen
      * @param {*} sx
      * @param {*} sy
      */
     dragScreenTo(sx, sy) {
         // getting bounding box of items in relative transform
-        const bbox = this.schemeContainer.screenSettings.boundingBox;
+        const bbox = this.getScreenBounds();
         const scale = this.schemeContainer.screenTransform.scale;
 
         const padding = 10; // we use padding to so that small part of the scheme stays visible and user does not get lost
@@ -608,6 +622,10 @@ export class SubState extends State {
         /** @type {SchemeContainer} */
         this.schemeContainer = parentState.schemeContainer;
         this.parentState = parentState;
+    }
+
+    getScreenBounds() {
+        return this.parentState.getScreenBounds();
     }
 
     migrate(newSubState) {

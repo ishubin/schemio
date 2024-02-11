@@ -5,7 +5,7 @@
 import State, { DragScreenState, isEventMiddleClick, SubState } from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
-import {DragType, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
+import {DragType, findFirstItemBreadthFirst, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
 import SchemeContainer, { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
@@ -16,6 +16,8 @@ import { indexOf } from '../../../collections.js';
 const MOUSE_IN = Events.standardEvents.mousein.id;
 const MOUSE_OUT = Events.standardEvents.mouseout.id;
 const CLICKED = Events.standardEvents.clicked.id;
+
+const screenBoundsUpdateTimeoutMillis = 500;
 
 /*
 This state works as dragging the screen, zooming, selecting elements
@@ -29,10 +31,78 @@ class StateInteract extends State {
         super(editorId, store,  'interact', listener);
         this.subState = null;
         this.userEventBus = userEventBus;
+        this.screenBoundsUpdateTimer = null;
+        this.screenBounds = null;
+    }
+
+    cancel() {
+        super.cancel();
+        if (this.screenBoundsUpdateTimer) {
+            clearTimeout(this.screenBoundsUpdateTimer);
+            this.screenBoundsUpdateTimer = null;
+        }
     }
 
     reset() {
+        if (this.screenBoundsUpdateTimer) {
+            clearTimeout(this.screenBoundsUpdateTimer);
+            this.screenBoundsUpdateTimer = null;
+        }
+        this.screenBounds = null;
+        this.updateScreenBounds();
         this.migrateSubState(new IdleState(this, this.listener, this.userEventBus));
+    }
+
+    scheduleScreenBoundsUpdate() {
+        if (this.screenBoundsUpdateTimer) {
+            clearTimeout(this.screenBoundsUpdateTimer);
+        }
+        this.screenBoundsUpdateTimer = setTimeout(() => this.updateScreenBounds(), screenBoundsUpdateTimeoutMillis);
+    }
+
+    onItemChanged(itemId) {
+        this.scheduleScreenBoundsUpdate();
+    }
+
+    getScreenBounds() {
+        return this.screenBounds;
+    }
+
+    updateScreenBounds() {
+        let boundsItem = null;
+        const filteredItems = [];
+
+        /**
+         * @param {Array<Item>} items
+         */
+        const collectItemsForBounds = (items) => {
+            for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                if (item.shape === 'dummy' && item.shapeProps.screenBounds) {
+                    boundsItem = item;
+                    return false;
+                }
+
+                if (item.visible && item.shape !== 'hud') {
+                    filteredItems.push(item);
+                    if (!item.clip) {
+                        if (Array.isArray(item.childItems)) {
+                            collectItemsForBounds(item.childItems);
+                        }
+                        if (Array.isArray(item._childItems)) {
+                            collectItemsForBounds(item._childItems);
+                        }
+                    }
+                }
+            }
+
+            return true;
+        };
+
+        collectItemsForBounds(this.schemeContainer.scheme.items);
+
+        const boundingBox = getBoundingBoxOfItems(boundsItem ? [boundsItem] : filteredItems);
+        this.screenBounds = boundingBox;
     }
 
     handleItemClick(item, mx, my) {

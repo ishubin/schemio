@@ -1448,6 +1448,7 @@ export default {
         },
 
         onAnyItemChanged(itemId) {
+            this.states[this.state].onItemChanged(itemId);
             if (this.inPlaceTextEditor.item && this.inPlaceTextEditor.item.id === itemId) {
                 this.updateInPlaceTextEditorStyle();
             }
