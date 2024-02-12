@@ -103,6 +103,9 @@ class StateInteract extends State {
 
         const boundingBox = getBoundingBoxOfItems(boundsItem ? [boundsItem] : filteredItems);
         this.screenBounds = boundingBox;
+        if (boundingBox) {
+            this.dragScreenTo(this.schemeContainer.screenTransform.x, this.schemeContainer.screenTransform.y);
+        }
     }
 
     handleItemClick(item, mx, my) {
