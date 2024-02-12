@@ -120,9 +120,9 @@ export const fsClientProvider = {
                 return Promise.resolve([]);
             },
 
-            uploadSchemeSvgPreview(schemeId, svgCode) {
+            uploadSchemePreview(schemeId, preview, format) {
                 let url = '/v1/fs/doc-preview?id=' + encodeURIComponent(schemeId);
-                return axios.post(url, {svg: svgCode}).then(unwrapAxios);
+                return axios.post(url, {preview, format}).then(unwrapAxios);
             },
 
             uploadFile(file) {

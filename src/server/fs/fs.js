@@ -49,8 +49,8 @@ function safePath(path) {
     return path;
 }
 
-function pathToSchemePreview(config, schemeId) {
-    return path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.svg`);
+function pathToSchemePreview(config, schemeId, format) {
+    return path.join(config.fs.rootPath, mediaFolder, 'previews', `${schemeId}.${format}`);
 }
 
 /**
@@ -410,11 +410,14 @@ export function fsListFilesRoute(config, projectService) {
  */
 export function fsCreateSchemePreview(config, projectService) {
     return (req, res) => {
-        const svg = req.body.svg;
-        if (!svg) {
-            res.$apiBadRequest('Missing svg code');
+        const preview = req.body.preview;
+        if (!preview) {
+            res.$apiBadRequest('Missing preview');
             return;
         }
+
+        // only supporting png or svg formats for now
+        const format = req.body.format === 'png' ? 'png' : 'svg';
 
         let schemeId = req.query.id;
         if (!schemeId) {
@@ -430,7 +433,7 @@ export function fsCreateSchemePreview(config, projectService) {
             return;
         }
 
-        const fullPathToPreview = pathToSchemePreview(config, schemeId);
+        const fullPathToPreview = pathToSchemePreview(config, schemeId, format);
         const folderPath = folderPathFromPath(fullPathToPreview);
         fs.stat(folderPath).then(stat => {
             if (!stat.isDirectory) {
@@ -441,10 +444,10 @@ export function fsCreateSchemePreview(config, projectService) {
             return fs.mkdirs(folderPath);
         })
         .then(() => {
-            return fs.writeFile(fullPathToPreview, svg);
+            return fs.writeFile(fullPathToPreview, imageDataURLToBytes(preview));
         })
         .then(() => {
-            projectService.updateDiagramPreview(schemeId,  `/media/previews/${schemeId}.svg`);
+            projectService.updateDiagramPreview(schemeId,  `/media/previews/${schemeId}.${format}`);
             res.json({
                 status: 'ok'
             });
@@ -656,3 +659,17 @@ export function fsGetStyles(config) {
     }
 }
 
+
+/**
+ *
+ * @param {String} dataURL
+ * @returns {Buffer}
+ */
+function imageDataURLToBytes(dataURL) {
+    if (!dataURL.startsWith('data:image')) {
+        throw new Error('Invalid data url');
+    }
+
+    const data = dataURL.substring(dataURL.indexOf(',')+1);
+    return Buffer.from(data, 'base64');
+}

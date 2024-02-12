@@ -387,13 +387,13 @@ export default {
             this.mode = mode;
         },
 
-        saveScheme(scheme, preview) {
+        saveScheme(scheme) {
             if (this.isStaticEditor) {
                 this.openSchemePatchModal(scheme);
                 return;
             }
 
-            this.$emit('scheme-save-requested', scheme, preview);
+            this.$emit('scheme-save-requested', scheme);
         },
 
         deleteDiagram() {

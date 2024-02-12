@@ -63,7 +63,7 @@
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @scheme-save-requested="$emit('scheme-save-requested', arguments[0], arguments[1])"
+            @scheme-save-requested="$emit('scheme-save-requested', arguments[0])"
             @history-committed="$emit('history-committed', arguments[0], arguments[1])"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"

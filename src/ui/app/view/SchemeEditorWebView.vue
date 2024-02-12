@@ -91,7 +91,7 @@ import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import ExportAsLinkModal from '../../components/editor/ExportAsLinkModal.vue';
 import {stripAllHtml} from '../../../htmlSanitize';
 import EditorEventBus from '../../components/editor/EditorEventBus';
-
+import {diagramImageExporter} from '../../diagramExporter';
 import SchemioEditorWebApp from '../../components/SchemioEditorWebApp.vue';
 
 function loadOfflineScheme() {
@@ -377,20 +377,35 @@ export default {
             this.hasher.changeURLHash(pageParams);
         },
 
-        onSaveSchemeRequested(scheme, preview) {
+        onSaveSchemeRequested(scheme) {
+            this.$store.dispatch('clearStatusMessage');
+            this.isSaving = true;
+
+
             if (!this.$store.state.apiClient || !this.$store.state.apiClient.saveScheme) {
                 return;
             }
-
-            this.$store.dispatch('clearStatusMessage');
-            this.isSaving = true;
-            this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
-            .then(() => {
+            diagramImageExporter(scheme.items)
+            .exportImage({
+                width: 400,
+                height: 300,
+                format: 'png',
+                backgroundColor: scheme.style.backgroundColor
+            })
+            .catch(err => {
+                console.error(err);
+                return null;
+            })
+            .then(preview => {
+                return this.$store.state.apiClient.saveScheme(prepareSchemeForSaving(scheme))
+                .then(() => preview);
+            })
+            .then(preview => {
                 this.modificationKey = shortid.generate();
 
                 // it is not a big deal if it fails to save preview
-                if (this.scheme.id && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemeSvgPreview) {
-                    this.$store.state.apiClient.uploadSchemeSvgPreview(this.scheme.id, preview);
+                if (this.scheme.id && preview && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemePreview) {
+                    this.$store.state.apiClient.uploadSchemePreview(this.scheme.id, preview, 'png');
                 }
                 this.isSaving = false;
             })

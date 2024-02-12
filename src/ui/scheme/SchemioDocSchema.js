@@ -174,25 +174,27 @@ function createFieldSchemaForArg(argDef) {
             id    : {type: 'string'},
             closed: {type: 'boolean', patching: ['replace']},
             points: {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
-                t : {type: 'string'},
-                x : {type: 'number'},
-                y : {type: 'number'},
-                x1: {type: 'number'},
-                y1: {type: 'number'},
-                x2: {type: 'number'},
-                y2: {type: 'number'},
-                h : {type: 'number'},
+                id: {type: 'string'},
+                t : {type: 'string', patching: ['replace']},
+                x : {type: 'number', patching: ['replace']},
+                y : {type: 'number', patching: ['replace']},
+                x1: {type: 'number', patching: ['replace']},
+                y1: {type: 'number', patching: ['replace']},
+                x2: {type: 'number', patching: ['replace']},
+                y2: {type: 'number', patching: ['replace']},
+                h : {type: 'number', patching: ['replace']},
             }},
             pos: {type: 'string', patching: ['replace']}
         }};
     }
     if (argDef.type === 'path-points') {
         schema = {type: 'array', of: 'object', patching: ['patch-array', 'replace', 'delete'], fields: {
-            x : {type: 'number'},
-            y : {type: 'number'},
-            t : {type: 'string'},
-            nx : {type: 'number'},
-            ny : {type: 'number'},
+            id: {type: 'string'},
+            x : {type: 'number', patching: ['replace']},
+            y : {type: 'number', patching: ['replace']},
+            t : {type: 'string', patching: ['replace']},
+            nx : {type: 'number', patching: ['replace']},
+            ny : {type: 'number', patching: ['replace']},
         }};
     }
     if (argDef.type === 'animations') {

@@ -77,27 +77,30 @@ function toDataURL(url) {
 }
 
 
-function imageToDataURL(imageElement) {
-    // adding unique get parameter because Chrome may cache the image when it was loaded without passing the origin
-    // so in its cache there might be an image without the CORS allow header.
-    const imageUrl = imageElement.getAttribute('xlink:href');
-    const argName = imageUrl.indexOf('?') < 0 ? '?_schuid=' : '&_schuid=';
-    const uniqueUrl = imageUrl + argName + new Date().getTime() + '' + Math.round(Math.random()*10000);
-
-    let chain = null;
-    if (uniqueUrl.charAt(0) !== '/') {
-        const corsUrl = 'https://corsproxy.io/?' + encodeURIComponent(uniqueUrl);
-        chain = toDataURL(corsUrl)
-        .catch(err => {
-            // doing this fallback just in case corsproxy.io fails
-            return toDataURL(uniqueUrl);
+/**
+ * @param {String} imageUrl
+ * @param {Array<SVGImageElement>} imageElements
+ * @returns {Promise}
+ */
+function convertImagesToDataURL(imageUrl, imageElements) {
+    return toDataURL(imageUrl)
+    .catch(err => {
+        // adding unique get parameter because Chrome may cache the image when it was loaded without passing the origin
+        // so in its cache there might be an image without the CORS allow header.
+        const argName = imageUrl.indexOf('?') < 0 ? '?_schuid=' : '&_schuid=';
+        const uniqueUrl = imageUrl + argName + new Date().getTime() + '' + Math.round(Math.random()*10000);
+        return toDataURL(uniqueUrl);
+    })
+    .catch(err => {
+        if (uniqueUrl.charAt(0) !== '/') {
+            return toDataURL('https://corsproxy.io/?' + encodeURIComponent(imageUrl));
+        }
+        throw err;
+    })
+    .then((dataURL) => {
+        imageElements.forEach(imageElement => {
+            imageElement.setAttribute('xlink:href', dataURL);
         });
-    } else {
-        chain = toDataURL(uniqueUrl);
-    }
-
-    return chain.then((dataURL) => {
-        imageElement.setAttribute('xlink:href', dataURL);
     });
 }
 
@@ -133,10 +136,24 @@ export function rasterizeAllImagesToDataURL(svgElement) {
     const imageElements = collectAllImageNodes(svgElement);
 
     const promises = [];
+
+    // Grouping all image elements by images first.
+    // This is needed to avoid situations when multiple items use the same image
+    // Since promises are all created in parallel - they all refetch the same image
+    const imageGroups = new Map();
+
     forEach(imageElements, imageElement => {
-        promises.push(imageToDataURL(imageElement).catch(err => {
-            console.error(err);
-        }));
+        const imageUrl = imageElement.getAttribute('xlink:href');
+
+        if (imageGroups.has(imageUrl)) {
+            imageGroups.get(imageUrl).push(imageElement);
+        } else {
+            imageGroups.set(imageUrl, [imageElement]);
+        }
+    });
+
+    imageGroups.forEach((elements, imageUrl) => {
+        promises.push(convertImagesToDataURL(imageUrl, elements));
     });
 
     return Promise.all(promises);

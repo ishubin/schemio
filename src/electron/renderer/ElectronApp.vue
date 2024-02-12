@@ -62,7 +62,7 @@
                             :userStylesEnabled="true"
                             @items-selected="onItemsSelected(file)"
                             @items-deselected="onItemsDeselected(file)"
-                            @scheme-save-requested="saveFile(file, arguments[0], arguments[1])"
+                            @scheme-save-requested="saveFile(file, arguments[0])"
                             @mode-change-requested="onModeChangeRequested(file, arguments[0])"
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
                             @undo-history-requested="undoHistory(file)"
@@ -149,6 +149,7 @@ import StoreUtils from '../../ui/store/StoreUtils';
 import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
+import {diagramImageExporter} from '../../ui/diagramExporter'
 
 const fileHistories = new Map();
 
@@ -479,11 +480,24 @@ export default {
             this.redoHistory(this.files[this.currentOpenFileIdx]);
         },
 
-        saveFile(file, document, preview) {
+        saveFile(file, document) {
             file.isSaving = true;
             this.$store.dispatch('clearStatusMessage');
-            window.electronAPI.writeDiagram(file.path, document)
-            .then(() => {
+            diagramImageExporter(document.items)
+            .exportImage({
+                width: 400,
+                height: 300,
+                format: 'png',
+                backgroundColor: document.style.backgroundColor
+            })
+            .catch(err => {
+                console.error(err);
+                return null;
+            }).then(preview => {
+                return window.electronAPI.writeDiagram(file.path, document)
+                .then(() => preview);
+            })
+            .then(preview => {
                 file.isSaving = false;
                 file.modified = false;
                 const entry = findEntryInFileTree(this.fileTree, file.path);
@@ -496,7 +510,12 @@ export default {
                     this.fileTreeReloadKey++;
                 }
 
-                return window.electronAPI.uploadDiagramPreview(document.id, preview);
+                if (preview) {
+                    return window.electronAPI.uploadDiagramPreview(document.id, preview)
+                    .catch(err => {
+                        console.error('Failed to save document preview', err);
+                    });
+                }
             })
             .catch(err => {
                 console.error(err);

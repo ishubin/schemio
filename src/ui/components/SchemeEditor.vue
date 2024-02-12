@@ -1459,13 +1459,7 @@ export default {
         },
 
         saveScheme() {
-            const area = getBoundingBoxOfItems(this.schemeContainer.getItems());
-            snapshotSvg(`#svg-plot-${this.editorId} [data-type="scene-transform"]`, area).then(svgPreview => {
-                this.$emit('scheme-save-requested', this.schemeContainer.scheme, svgPreview);
-            })
-            .catch(err => {
-                this.$emit('scheme-save-requested', this.schemeContainer.scheme);
-            });
+            this.$emit('scheme-save-requested', this.schemeContainer.scheme);
         },
 
         // Zooms to selected items in edit mode
