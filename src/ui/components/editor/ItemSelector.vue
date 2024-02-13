@@ -38,7 +38,7 @@
                         @dragstart="preventEvent"
                         @drag="preventEvent"
                         @mousedown="onItemMouseDown(item, $event)"
-                        @dblclick="onItemDoubleClicked(item, $event)"
+                        @dblclick="onItemDoubleClicked(item )"
                         >
                         <span class="item-collapser" @click="toggleItemCollapseState(item)" v-if="item.childItems && item.childItems.length > 0">
                             <i v-if="item.meta.collapsed" class="fas fa-angle-right"></i>
@@ -46,7 +46,7 @@
                         </span>
 
                         <div class="item-name">
-                            <img v-if="item.iconUrl" :src="item.iconUrl" class="item-icon"/>
+                            <img v-if="item.meta.iconUrl" :src="item.meta.iconUrl" class="item-icon"/>
                             <i v-else class="fas fa-cube"></i>
                             <span v-if="item.id !== nameEdit.itemId">
                                 {{item.name}}
@@ -89,7 +89,7 @@
 
         <div ref="itemDragger" class="item-selector-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
             <div class="item-name" :class="`preview-${itemIdx}`" v-for="(item, itemIdx) in dragging.items" v-if="itemIdx < 3">
-                <img v-if="item.iconUrl" :src="item.iconUrl" class="item-icon"/>
+                <img v-if="item.meta.iconUrl" :src="item.meta.iconUrl" class="item-icon"/>
                 <i v-else class="fas fa-cube"></i>
                 <span>
                     {{item.name}}
@@ -124,18 +124,13 @@ function enrichedItem(item) {
         return item;
     }
 
-    let iconUrl = null;
-
     if (item.shape === 'path') {
-        iconUrl = '/assets/images/items/path.svg';
+        item.meta.iconUrl = '/assets/images/items/path.svg';
     } else if (shape.menuItems && shape.menuItems.length > 0) {
-        iconUrl = shape.menuItems[0].iconUrl;
+        item.meta.iconUrl = shape.menuItems[0].iconUrl;
     }
 
-    return {
-        ...item,
-        iconUrl
-    };
+    return item;
 }
 
 function visitItems(items, parentItem, callback) {
@@ -327,7 +322,7 @@ export default {
                 this.dragging.items = finalDraggedItems;
 
                 this.dragging.previewItemName = item.name;
-                this.dragging.previewIconUrl = enrichedItem(item).iconUrl;
+                this.dragging.previewIconUrl = enrichedItem(item).meta.iconUrl;
                 this.dragging.startedDragging = true;
                 this.filteredItems = filter(this.filterItemsByKeyword(this.searchKeyword), itemForFilter => {
                     return !draggedItemIds.has(itemForFilter.id);
@@ -508,7 +503,7 @@ export default {
                 settingsStorage.save('height', this.height);
             })
             .build();
-        }
+        },
     },
 
     watch: {

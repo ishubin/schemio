@@ -242,6 +242,7 @@ export default {
         EditorEventBus.item.linksShowRequested.any.$on(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
 
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
         EditorEventBus.void.doubleClicked.$on(this.editorId, this.onVoidDoubleClicked);
@@ -281,6 +282,7 @@ export default {
         EditorEventBus.item.linksShowRequested.any.$off(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
+        EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
         EditorEventBus.void.doubleClicked.$off(this.editorId, this.onVoidDoubleClicked);
 
@@ -881,6 +883,12 @@ export default {
                     });
                 });
                 this.startLinksAnimation();
+            }
+        },
+
+        onAnyItemChanged(itemId, fieldPath) {
+            if (fieldPath === 'visible') {
+                this.$forceUpdate();
             }
         },
 
