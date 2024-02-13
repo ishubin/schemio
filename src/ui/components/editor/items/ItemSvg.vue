@@ -119,7 +119,7 @@
                 :d="itemSvgOutlinePath"
                 :data-item-id="item.id"
                 :stroke-width="hoverPathStrokeWidth"
-                :style="{'cursor': (!item.behavior.dragging || item.behavior.dragging === 'none' ) ? item.cursor : 'grab'}"
+                :style="{'cursor': item.cursor}"
                 stroke="rgba(255, 255, 255, 0)"
                 :fill="hoverPathFill" />
 

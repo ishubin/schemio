@@ -154,6 +154,7 @@
  * @typedef {Object} ItemMeta
  * @property {String|undefined} parentId
  * @property {Array<String>} ancestorIds
+ * @property {String|undefined} ancestorDraggableId - id of ancestor item that is draggable. This is used to allow dragging of parent items by their children
  * @property {Array<Array<Number>} transformMatrix
  * @property {Number} revision - used for registering update of the item so that some editor components could be reloaded
  * @property {Boolean} componentRoot - true if the current item is the root of the component

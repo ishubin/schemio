@@ -5,7 +5,7 @@
 import State, { DragScreenState, isEventMiddleClick, SubState } from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
-import {DragType, findFirstItemBreadthFirst, hasItemDescription, ItemInteractionMode} from '../../../scheme/Item.js';
+import {DragType, findFirstItemBreadthFirst, hasItemDescription, ItemInteractionMode, traverseItems} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
 import SchemeContainer, { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
@@ -51,7 +51,19 @@ class StateInteract extends State {
         }
         this.screenBounds = null;
         this.updateScreenBounds();
+        this.prepareItems();
         this.migrateSubState(new IdleState(this, this.listener, this.userEventBus));
+    }
+
+    prepareItems() {
+        traverseItems(this.schemeContainer.scheme.items, (item, parentItem) => {
+            if (item.behavior.dragging !== 'none') {
+                item.cursor = 'grab';
+            } else if (parentItem && parentItem.behavior.dragging !== 'none') {
+                item.meta.ancestorDraggableId = parentItem.id;
+                item.cursor = 'grab';
+            }
+        });
     }
 
     scheduleScreenBoundsUpdate() {
@@ -474,9 +486,17 @@ class IdleState extends SubState {
         super.mouseDown(x, y, mx, my, object, event);
         this.mouseMovedAfterClick = false;
         this.initialClickPoint = {x: mx, y: my};
-        if (!isEventMiddleClick(event) && object && object.type === 'item' && object.item.behavior.dragging !== 'none') {
-            this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y));
-            return;
+        if (!isEventMiddleClick(event) && object && object.type === 'item') {
+            if (object.item.behavior.dragging !== 'none') {
+                this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y));
+                return;
+            } else if (object.item.meta.ancestorDraggableId) {
+                const ancestorItem = this.schemeContainer.findItemById(object.item.meta.ancestorDraggableId);
+                if (ancestorItem) {
+                    this.migrateSubState(new DragItemState(this, this.listener, ancestorItem, x, y));
+                    return;
+                }
+            }
         }
     }
 
