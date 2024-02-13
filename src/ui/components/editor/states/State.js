@@ -447,6 +447,13 @@ class State {
     }
 
     /**
+     * @returns {Point}
+     */
+    getScreenBoundsPadding() {
+        return {x: 10, y: 10};
+    }
+
+    /**
      * Changes screen offset coords and checks bounding box of all items in relative transform so that they are always visible on the screen
      * @param {*} sx
      * @param {*} sy
@@ -456,7 +463,7 @@ class State {
         const bbox = this.getScreenBounds();
         const scale = this.schemeContainer.screenTransform.scale;
 
-        const padding = 10; // we use padding to so that small part of the scheme stays visible and user does not get lost
+        const padding = this.getScreenBoundsPadding(); // we use padding to so that small part of the scheme stays visible and user does not get lost
 
         if (bbox) {
 
@@ -475,8 +482,8 @@ class State {
                 max: Math.max(y1, y2),
             };
 
-            this.schemeContainer.screenTransform.x = Math.max(xBounds.min - padding, Math.min(sx, xBounds.max + padding));
-            this.schemeContainer.screenTransform.y = Math.max(yBounds.min - padding, Math.min(sy, yBounds.max + padding));
+            this.schemeContainer.screenTransform.x = Math.max(xBounds.min - padding.x, Math.min(sx, xBounds.max + padding.x));
+            this.schemeContainer.screenTransform.y = Math.max(yBounds.min - padding.y, Math.min(sy, yBounds.max + padding.y));
 
         } else {
             this.schemeContainer.screenTransform.x = sx;
@@ -616,6 +623,10 @@ class State {
 
 
 export class SubState extends State {
+    /**
+     * @param {State} parentState
+     * @param {String} name
+     */
     constructor(parentState, name) {
         super(parentState.editorId, parentState.store, name);
 
@@ -626,6 +637,10 @@ export class SubState extends State {
 
     getScreenBounds() {
         return this.parentState.getScreenBounds();
+    }
+
+    getScreenBoundsPadding() {
+        return this.parentState.getScreenBoundsPadding();
     }
 
     migrate(newSubState) {

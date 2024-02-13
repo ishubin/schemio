@@ -33,6 +33,7 @@ class StateInteract extends State {
         this.userEventBus = userEventBus;
         this.screenBoundsUpdateTimer = null;
         this.screenBounds = null;
+        this.screenBoundsPadding = {x: 10, y: 10};
     }
 
     cancel() {
@@ -66,6 +67,10 @@ class StateInteract extends State {
 
     getScreenBounds() {
         return this.screenBounds;
+    }
+
+    getScreenBoundsPadding() {
+        return this.screenBoundsPadding;
     }
 
     updateScreenBounds() {
@@ -103,9 +108,14 @@ class StateInteract extends State {
 
         const boundingBox = getBoundingBoxOfItems(boundsItem ? [boundsItem] : filteredItems);
         this.screenBounds = boundingBox;
-        if (boundingBox) {
-            this.dragScreenTo(this.schemeContainer.screenTransform.x, this.schemeContainer.screenTransform.y);
+        if (boundsItem) {
+            this.screenBoundsPadding.x = 0;
+            this.screenBoundsPadding.y = 0;
+        } else {
+            this.screenBoundsPadding.x = this.schemeContainer.screenSettings.width * 0.95;
+            this.screenBoundsPadding.y = this.schemeContainer.screenSettings.height * 0.95;
         }
+        this.dragScreenTo(this.schemeContainer.screenTransform.x, this.schemeContainer.screenTransform.y);
     }
 
     handleItemClick(item, mx, my) {
