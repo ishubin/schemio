@@ -1,5 +1,5 @@
 import shortid from "shortid";
-import { ReservedTerms, TokenTypes, tokenizeExpression } from "./tokenizer";
+import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { StringTemplate, parseStringExpression } from "./strings";
 import { Vector } from "./vector";
 import { List } from "./list";
@@ -355,6 +355,50 @@ class ASTAssign extends ASTOperator {
         }
         const value = this.b.evalNode(scope);
         this.a.assignValue(scope, value);
+    }
+}
+
+class ASTIncrement extends ASTNode {
+    /**
+     * @param {ASTVarRef} term
+     * @param {Boolean} isPre
+     * @param {number} [step=1]
+     */
+    constructor(term, isPre, step = 1) {
+        super('increment');
+        if (!term || !(term instanceof ASTVarRef)) {
+            throw new Error('Invalid use of ' + this.operatorToString());
+        }
+        this.term = term;
+        this.isPre = isPre;
+        this.step = step;
+    }
+
+    operatorToString() {
+        return this.step > 0 ? '++': '--';
+    }
+
+    print() {
+        const operator = this.operatorToString();
+        if (this.isPre) {
+            return operator + this.term.print();
+        } else {
+            return this.term.print() + operator;
+        }
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        const oldValue = this.term.evalNode(scope);
+        const value = oldValue + this.step;
+        scope.set(this.term.varName, value);
+        if (this.isPre) {
+            return value;
+        } else {
+            return oldValue;
+        }
     }
 }
 
@@ -899,43 +943,49 @@ class ASTParser {
 
             if (token.t !== TokenTypes.OPERATOR) {
                 throw new Error(`Unexpected token in expression (at ${token.idx}, line ${token.line}): (${token.t}) "${token.text}":\n${this.prettyStringWithCaret(token.idx, '    ')}`);
+            }
+
+            if (token.v === '++' || token.v === '--') {
+                if (!(a instanceof ASTVarRef)) {
+                    throw new Error(`Unexpected ${token.v} operator`);
+                }
+
+                a = new ASTIncrement(a, false, token.v === '++' ? 1: -1);
             } else {
                 this.skipNewlines();
-            }
-            const precedence = operatorPrecedence(token.v);
-            const opClass = operatorClass(token.v);
+                const precedence = operatorPrecedence(token.v);
+                const opClass = operatorClass(token.v);
 
-            const b = this.parseTerm();
-            if (b === null) {
-                if (token.v !== ';') {
+                const b = this.parseTerm();
+                if (b === null) {
                     throw new Error(`Missing right term after the "${token.v}" operator at ${token.idx}, line ${token.line}:\n${this.prettyStringWithCaret(token.idx, '    ')}`);
                 }
-            }
 
-            let nextToken = this.peekToken();
-            if (nextToken && nextToken.t === TokenTypes.NEWLINE) {
-                const nextValidToken = this.peekAfterNewlineToken();
-                if (nextValidToken && nextValidToken.t === TokenTypes.OPERATOR) {
-                    this.skipNewlines();
-                    nextToken = nextValidToken;
-                }
-            }
-            const nextOperator = nextToken && nextToken.t === TokenTypes.OPERATOR ? nextToken.v : null;
-            const nextPrecedence = nextOperator ? operatorPrecedence(nextOperator) : -100;
-
-            if (precedence >= nextPrecedence) {
-                a = new opClass(a, b);
-                while(leftovers.length > 0) {
-                    const leftover = leftovers[leftovers.length - 1];
-                    if (leftover.precedence < nextPrecedence) {
-                        break
+                let nextToken = this.peekToken();
+                if (nextToken && nextToken.t === TokenTypes.NEWLINE) {
+                    const nextValidToken = this.peekAfterNewlineToken();
+                    if (nextValidToken && nextValidToken.t === TokenTypes.OPERATOR) {
+                        this.skipNewlines();
+                        nextToken = nextValidToken;
                     }
-                    a = leftover.make(a);
-                    leftovers.pop();
                 }
-            } else {
-                leftovers.push(createOpLeftover(a, opClass, precedence));
-                a = b;
+                const nextOperator = nextToken && nextToken.t === TokenTypes.OPERATOR ? nextToken.v : null;
+                const nextPrecedence = nextOperator ? operatorPrecedence(nextOperator) : -100;
+
+                if (precedence >= nextPrecedence) {
+                    a = new opClass(a, b);
+                    while(leftovers.length > 0) {
+                        const leftover = leftovers[leftovers.length - 1];
+                        if (leftover.precedence < nextPrecedence) {
+                            break
+                        }
+                        a = leftover.make(a);
+                        leftovers.pop();
+                    }
+                } else {
+                    leftovers.push(createOpLeftover(a, opClass, precedence));
+                    a = b;
+                }
             }
         }
 
@@ -1008,6 +1058,15 @@ class ASTParser {
                 throw new Error('Expected term token after "-"');
             }
             return new ASTNegate(nextTerm);
+        } else if (token.t === TokenTypes.OPERATOR && (token.v === '++' || token.v === '--')) {
+            const nextToken = this.scanToken();
+            if (!nextToken) {
+                throw new Error(`Missing term after ${token.v} operator`);
+            }
+            if (nextToken.t !== TokenTypes.TERM || isReserved(nextToken.v)) {
+                throw new Error(`Unexpected token after ${token.v} operator: ${nextToken.text}`);
+            }
+            return new ASTIncrement(new ASTVarRef(nextToken.v), true, token.v === '++' ? 1 : -1);
         } else if (token.t === TokenTypes.NOT) {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {

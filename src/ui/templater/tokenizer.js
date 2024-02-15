@@ -32,6 +32,11 @@ export const ReservedTerms = {
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
 
+export function isReserved(term) {
+    return ReservedTermsSet.has(term);
+}
+
+
 function isLetter(c) {
     return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || c === '_';
 }
@@ -80,6 +85,8 @@ const doubleCharTokens = new Map(Object.entries({
     '*=': {t: TokenTypes.OPERATOR, v: '*='},
     '/=': {t: TokenTypes.OPERATOR, v: '/='},
     '=>': {t: TokenTypes.OPERATOR, v: '=>'},
+    '++': {t: TokenTypes.OPERATOR, v: '++'},
+    '--': {t: TokenTypes.OPERATOR, v: '--'},
 }));
 
 
@@ -179,7 +186,7 @@ class Scanner {
             }
         }
 
-        if (ReservedTermsSet.has(term)) {
+        if (isReserved(term)) {
             return {
                 t: TokenTypes.RESERVED,
                 v: term,

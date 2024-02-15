@@ -586,4 +586,43 @@ describe('templater ast parser', () => {
         expect(node.evalNode(new Scope({}))).toBe(21);
     });
 
+    it ('should support pre-increment operator', () => {
+        const node = parseExpression(`
+            x = 1
+            y = ++x
+        `);
+        const data = {};
+        node.evalNode(new Scope(data));
+        expect(data).toStrictEqual({x: 2, y: 2});
+    });
+
+    it ('should support pre-decrement operator', () => {
+        const node = parseExpression(`
+            x = 1
+            y = --x
+        `);
+        const data = {};
+        node.evalNode(new Scope(data));
+        expect(data).toStrictEqual({x: 0, y: 0});
+    });
+
+    it ('should support post-increment operator', () => {
+        const node = parseExpression(`
+            x = 1
+            y = x++
+        `);
+        const data = {};
+        node.evalNode(new Scope(data));
+        expect(data).toStrictEqual({x: 2, y: 1});
+    });
+
+    it ('should support post-decrement operator', () => {
+        const node = parseExpression(`
+            x = 1
+            y = x--
+        `);
+        const data = {};
+        node.evalNode(new Scope(data));
+        expect(data).toStrictEqual({x: 0, y: 1});
+    });
 });
