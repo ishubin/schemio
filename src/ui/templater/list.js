@@ -48,6 +48,10 @@ export class List {
         return this.items.shift();
     }
 
+    forEach(callback) {
+        this.items.forEach(callback);
+    }
+
     get size() {
         return this.items.length;
     }

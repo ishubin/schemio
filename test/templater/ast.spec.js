@@ -472,9 +472,118 @@ describe('templater ast parser', () => {
 
     it('should throw error when its missing closing bracket', () => {
         const call = () => {
-            return parseExpression('t = max(min(0, 23), 10')
+            return parseExpression('t = max(min(0, 23), 10');
         };
 
         expect(call).toThrowError('Unclosed expression')
     });
+
+
+    it('should support custom functions', () => {
+        const node = parseExpression(`
+            myFunc = () => {
+                5
+            }
+            myFunc()
+        `);
+
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(5);
+    });
+
+    it('should support custom functions with multiple parameters', () => {
+        const node = parseExpression(`
+            myFunc = (arg1, arg2) => {
+                arg1 + arg2
+            }
+            myFunc(x, y)
+        `);
+
+        expect(node.evalNode(new Scope({x: 1, y: 4}))).toBe(5);
+        expect(node.evalNode(new Scope({x: 6, y: 2}))).toBe(8);
+    });
+
+    it('should be able to invoke function as a result of expression', () => {
+        const node = parseExpression(`
+            myFunc = (arg1, arg2) => {
+                arg1 + arg2
+            }
+            ((myFunc))(x, y)
+        `);
+
+        expect(node.evalNode(new Scope({x: 1, y: 4}))).toBe(5);
+        expect(node.evalNode(new Scope({x: 6, y: 2}))).toBe(8);
+    });
+
+    it('should be able invoke function by reference from other variable', () => {
+        const node = parseExpression(`
+            myFunc = (arg1, arg2) => {
+                arg1 + arg2
+            }
+
+            myFunc2 = myFunc
+
+            myFunc2(x, y)
+        `);
+
+        expect(node.evalNode(new Scope({x: 1, y: 4}))).toBe(5);
+        expect(node.evalNode(new Scope({x: 6, y: 2}))).toBe(8);
+    });
+
+    it('should support custom functions as return parameters of function', () => {
+        const node = parseExpression(`
+            myFunc = (arg1) => {
+                (arg2) => {
+                    arg1 + arg2
+                }
+            }
+            myFunc(x)(y)
+        `);
+
+        expect(node.evalNode(new Scope({x: 1, y: 4}))).toBe(5);
+        expect(node.evalNode(new Scope({x: 6, y: 2}))).toBe(8);
+    });
+
+
+    it('should support for loops', () => {
+        const node = parseExpression(`
+            list = List(1, 4, 7, 9)
+
+            count = 0
+            for (i = 0; i < list.size; i += 1) {
+                count += list.get(i)
+            }
+            count
+        `);
+        expect(node.evalNode(new Scope({}))).toBe(21);
+    });
+
+    it('should support for loops without init and post loop', () => {
+        const node = parseExpression(`
+            list = List(1, 4, 7, 9)
+
+            count = 0
+            i = 0
+            for (; i < list.size;) {
+                count += list.get(i)
+                i += 1
+            }
+            count
+        `);
+        expect(node.evalNode(new Scope({}))).toBe(21);
+    });
+
+    it ('should iterate List using forEach function', () => {
+        const node = parseExpression(`
+            list = List(1, 4, 7, 9)
+
+            count = 0
+            list.forEach((item) => {
+                count += item
+            })
+            count
+        `);
+        expect(node.evalNode(new Scope({}))).toBe(21);
+    });
+
 });

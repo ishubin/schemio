@@ -21,7 +21,7 @@ import ScriptFunctionEditor from '../../components/editor/properties/behavior/Sc
 
 const IS_SOFT = true;
 const IS_NOT_SOFT = false;
-const INFINITE_LOOP = 'inifinite-loop';
+const INFINITE_LOOP = 'infinite-loop';
 
 const initScriptDescription = `
 A script that runs before the start of animation. It is only invoked in animation mode.

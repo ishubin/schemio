@@ -22,9 +22,12 @@ export const TokenTypes = {
 };
 
 export const ReservedTerms = {
-    IF: 'if',
-    ELSE: 'else',
-    WHILE: 'while'
+    IF   : 'if',
+    ELSE : 'else',
+    WHILE: 'while',
+    TRUE : 'true',
+    FALSE: 'false',
+    FOR  : 'for',
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
@@ -76,6 +79,7 @@ const doubleCharTokens = new Map(Object.entries({
     '-=': {t: TokenTypes.OPERATOR, v: '-='},
     '*=': {t: TokenTypes.OPERATOR, v: '*='},
     '/=': {t: TokenTypes.OPERATOR, v: '/='},
+    '=>': {t: TokenTypes.OPERATOR, v: '=>'},
 }));
 
 

@@ -105,6 +105,9 @@ class ASTVarRef extends ASTNode {
         this.varName = varName;
     }
     evalNode(scope) {
+        if (reservedFunctions.has(this.varName)) {
+            return reservedFunctions.get(this.varName);
+        }
         return scope.get(this.varName);
     }
     print() {
@@ -228,6 +231,40 @@ class ASTWhileStatement extends ASTNode {
         return `while (${this.whileExpression.print()}) {${whileBlock}}`;
     }
 }
+
+class ASTForLoop extends ASTNode {
+    /**
+     * @param {ASTNode} init
+     * @param {ASTNode} condition
+     * @param {ASTNode} postLoop
+     * @param {ASTNode} loopBody
+     */
+    constructor(init, condition, postLoop, loopBody) {
+        super('for');
+        this.init = init;
+        this.condition = condition;
+        this.postLoop = postLoop;
+        this.loopBody = loopBody;
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        scope = scope.newScope();
+        this.init.evalNode(scope);
+
+        while(this.condition.evalNode(scope)) {
+            this.loopBody.evalNode(scope);
+            this.postLoop.evalNode(scope);
+        }
+    }
+    print() {
+        const loopBlock = this.loopBlock ? this.loopBody.print() : '';
+        return `while (${this.init.print()}; ${this.condition.print()}; ${this.postLoop.print()}) {${loopBlock}}`;
+    }
+}
+
 class ASTIFStatement extends ASTNode {
     constructor(conditionExpression, trueBlock, falseBlock) {
         super('if');
@@ -495,39 +532,77 @@ const reservedFunctions = new Map(Object.entries({
     },
 }));
 
+class ASTFunctionDeclaration extends ASTNode {
+    /**
+     * @param {Array<String>} argNames
+     * @param {ASTNode} body
+     */
+    constructor(argNames, body) {
+        super('function');
+        this.argNames = argNames;
+        this.body = body;
+    }
+    print() {
+        return `(${this.argNames.join(',')}) => {(${this.body.print()})}`;
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        return (...args) => {
+            const funcScope = scope.newScope();
+            for (let i = 0; i < args.length && i < this.argNames.length; i++) {
+                funcScope.set(this.argNames[i], args[i]);
+            }
+            return this.body.evalNode(funcScope);
+        };
+    }
+}
+
 class ASTFunctionInvocation extends ASTNode {
-    constructor(name, args) {
+    /**
+     * @param {ASTNode} functionProvider provides the actual function either as a named var reference or as a result of expression
+     * @param {Array<ASTNode>} args
+     */
+    constructor(functionProvider, args) {
         super(FUNC_INVOKE);
-        this.name = name;
+        this.functionProvider = functionProvider;
         this.args = args;
     }
     print() {
         const argsText = this.args.map(a => a.print()).join(", ");
-        return `${this.name}(${argsText})`;
+        return `${this.functionProvider.print()}(${argsText})`;
     }
     evalNode(scope) {
         const args = this.args.map(arg => arg.evalNode(scope));
-        if (reservedFunctions.has(this.name)) {
-            return reservedFunctions.get(this.name)(...args);
+        const func = this.functionProvider.evalNode(scope);
+        if (!func) {
+            throw new Error('Cannot resolve function');
         }
-        return scope.get(this.name)(...args);
+        return func(...args);
     }
 
     evalOnObject(scope, obj) {
+        if (this.functionProvider.type !== VAR_REF) {
+            throw new Error('Invalid function invokation on object: ' + obj);
+        }
+
+        const name = this.functionProvider.varName;
         const args = this.args.map(arg => arg.evalNode(scope));
         if (!obj || typeof obj !== 'object') {
-            throw new Error(`Cannot invoke "${this.name}" function on non-object`);
+            throw new Error(`Cannot invoke "${name}" function on non-object`);
         }
 
-        if (typeof obj[this.name] !== 'function') {
-            throw new Error(`Function "${this.name}" is not defined on object ` + obj);
+        if (typeof obj[name] !== 'function') {
+            throw new Error(`Function "${name}" is not defined on object ` + obj);
         }
 
-        const f = obj[this.name];
+        const f = obj[name];
         if (typeof f !== 'function') {
-            throw new Error(`"${this.name}" is not a function`);
+            throw new Error(`"${name}" is not a function`);
         }
-        return obj[this.name](...args);
+        return obj[name](...args);
     }
 }
 
@@ -623,11 +698,11 @@ function createOpLeftover(a, opClass, precedence) {
 
 /**
  *
- * @param {*} name
+ * @param {ASTNode} functionProvider
  * @param {Array<ScriptToken>} tokens
  * @returns
  */
-function parseFunction(name, tokens) {
+function parseFunction(functionProvider, tokens) {
     const args = [];
 
     /** @type {Array<ScriptToken>} */
@@ -636,7 +711,7 @@ function parseFunction(name, tokens) {
     tokens.forEach(token => {
         if (token.t === TokenTypes.COMMA) {
             if (!currentArgTokens) {
-                throw new Error(`Invalid arguments declaration in function "${name}"`);
+                throw new Error(`Invalid arguments declaration in function: "${functionProvider.print()}"`);
             }
             currentArgTokens = [];
             args.push(currentArgTokens);
@@ -649,7 +724,7 @@ function parseFunction(name, tokens) {
         args.pop();
     }
 
-    return new ASTFunctionInvocation(name, args.map(parseAST));
+    return new ASTFunctionInvocation(functionProvider, args.map(parseAST));
 }
 
 class ASTParser {
@@ -875,6 +950,19 @@ class ASTParser {
         return a;
     }
 
+    /**
+     * @param {ASTNode} expression
+     */
+    parseGroup(expression) {
+        let nextToken = this.peekToken();
+        while (nextToken && nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET) {
+            this.skipToken();
+            expression = parseFunction(expression, nextToken.groupTokens);
+            nextToken = this.peekToken();
+        }
+        return expression;
+    }
+
     parseTerm() {
         this.skipNewlines();
         const token = this.peekToken();
@@ -885,33 +973,33 @@ class ASTParser {
 
         if (token.t === TokenTypes.TOKEN_GROUP) {
             if (token.groupCode === TokenTypes.START_BRACKET) {
-                return parseAST(token.groupTokens);
+                const nextToken = this.peekToken();
+                if (nextToken && nextToken.t === TokenTypes.OPERATOR && nextToken.v === '=>') {
+                    this.skipToken();
+                    this.skipNewlines();
+                    return parseFunctionDeclaration(token, this.scanToken());
+                }
+                const expression = parseAST(token.groupTokens);
+                return this.parseGroup(expression);
             } else {
                 throw new Error(`Unexpected token group "${token.v}"`);
             }
         } else if (token.t === TokenTypes.NUMBER) {
             return new ASTValue(token.v);
-        } else if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
-            return this.parseIfExpression();
-        } else if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.WHILE) {
-            return this.parseWhileExpression();
-        } else if (token.t === TokenTypes.TERM) {
-            const nextToken = this.peekToken();
-            if (nextToken && nextToken.t === TokenTypes.TOKEN_GROUP) {
-                if (nextToken.groupCode === TokenTypes.START_BRACKET) {
-                    this.skipToken();
-                    return parseFunction(token.v, nextToken.groupTokens);
-                } else {
-                    throw new Error(`Unexpected token group "${nextToken.v}" after "${token.v}"`);
-                }
-            }
-            if (token.v === 'true') {
+        } else if (token.t === TokenTypes.RESERVED) {
+            if (token.v === ReservedTerms.IF) {
+                return this.parseIfExpression();
+            } else if (token.v === ReservedTerms.WHILE) {
+                return this.parseWhileExpression();
+            } else if (token.v === ReservedTerms.FOR) {
+                return this.parseForLoop();
+            } else if (token.v === ReservedTerms.TRUE) {
                 return new ASTValue(true);
-            }
-            if (token.v === 'false') {
+            } else if (token.v === ReservedTerms.FALSE) {
                 return new ASTValue(false);
             }
-            return new ASTVarRef(token.v);
+        } else if (token.t === TokenTypes.TERM) {
+            return this.parseGroup(new ASTVarRef(token.v));
         } else if (token.t === TokenTypes.STRING) {
             return new ASTString(token.v);
         } else if (token.t === TokenTypes.OPERATOR && token.v === '-') {
@@ -928,9 +1016,8 @@ class ASTParser {
             return new ASTNot(nextTerm);
         } else if (token.t === TokenTypes.STRING_TEMPLATE) {
             return new ASTStringTemplate(parseStringExpression(token.v));
-        } else {
-            throw new Error(`Unexpected token: ${token.t} "${token.text}"`);
         }
+        throw new Error(`Unexpected token: ${token.t} "${token.text}"`);
     }
 
     prettyStringWithCaret(idx, indentation) {
@@ -978,6 +1065,42 @@ class ASTParser {
         return new ASTWhileStatement(whileExpression, whileBlock);
     }
 
+    parseForLoop() {
+        this.skipNewlines();
+        let nextToken = this.scanToken();
+        if (!nextToken || nextToken.t !== TokenTypes.TOKEN_GROUP || nextToken.groupCode !== TokenTypes.START_BRACKET) {
+            throw new Error(`Expected "(" symbol after for (at ${nextToken.idx}, line ${nextToken.line})`);
+        }
+
+        const forLoopTokenGroups = [[]];
+
+        nextToken.groupTokens.forEach(token => {
+            if (token.t === TokenTypes.DELIMITER) {
+                forLoopTokenGroups.push([]);
+                return;
+            }
+            forLoopTokenGroups[forLoopTokenGroups.length - 1].push(token);
+        });
+
+        if (forLoopTokenGroups.length !== 3) {
+            throw new Error(`Invalid for loop declaration. Expected exactly two ";" (at ${nextToken.idx}, line ${nextToken.line})`);
+        }
+
+        this.skipNewlines();
+        nextToken = this.scanToken();
+        if (!nextToken || nextToken.t !== TokenTypes.TOKEN_GROUP || nextToken.groupCode !== TokenTypes.START_CURLY) {
+            throw new Error(`Missing "{" symbol after "for" expression (at ${nextToken.idx}, line ${nextToken.line})`);
+        }
+
+        const forLoopBlock = parseAST(nextToken.groupTokens);
+
+        const init = parseAST(forLoopTokenGroups[0]);
+        const condition = parseAST(forLoopTokenGroups[1]);
+        const postLoop = parseAST(forLoopTokenGroups[2]);
+
+        return new ASTForLoop(init, condition, postLoop, forLoopBlock);
+    }
+
     parseIfExpression() {
         this.skipNewlines();
         let token = this.scanToken();
@@ -1023,6 +1146,47 @@ class ASTParser {
         }
         return new ASTIFStatement(ifExpression, trueBlock, falseBlock);
     }
+}
+
+/**
+ * @param {ScriptToken} argsToken
+ * @param {ScriptToken} bodyToken
+ */
+function parseFunctionDeclaration(argsToken, bodyToken) {
+    if (!argsToken) {
+        throw new Error('Cannot parse function declaration. Missing arguments definition');
+    }
+    if (!bodyToken) {
+        throw new Error('Cannot parse function declaration. Missing "{"');
+    }
+    if (argsToken.t !== TokenTypes.TOKEN_GROUP || argsToken.groupCode !== TokenTypes.START_BRACKET ) {
+        throw new Error('Cannot parse function arguments definition. Expected "(", got: ', argsToken.v);
+    }
+    if (bodyToken.t !== TokenTypes.TOKEN_GROUP || bodyToken.groupCode !== TokenTypes.START_CURLY ) {
+        throw new Error('Cannot parse function definition. Expected "{", got: ', argsToken.v);
+    }
+
+    const argNames = [];
+    let expectComma = false;
+    argsToken.groupTokens.forEach(token => {
+        if (token.t === TokenTypes.TERM) {
+            if (expectComma) {
+                throw new Error('Cannot parse function arguments. Expected ",", got: ', token.v);
+            }
+            argNames.push(token.v);
+            expectComma = true;
+        } else {
+            if (expectComma && token.t === TokenTypes.COMMA) {
+                expectComma = false;
+            } else {
+                throw new Error('Cannot parse function arguments. Unexpected token: ', token.v);
+            }
+        }
+    });
+
+    const funcBody = parseAST(bodyToken.groupTokens);
+
+    return new ASTFunctionDeclaration(argNames, funcBody);
 }
 
 /**
