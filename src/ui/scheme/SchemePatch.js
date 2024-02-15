@@ -680,6 +680,7 @@ function generatePatchForObject(originObject, modifiedObject, patchSchema, field
      * @param {*} field
      */
     const generatePatchForField = (fieldSchema, field) => {
+        fieldNames.delete(field);
         if (!Array.isArray(fieldSchema.patching) || fieldSchema.patching.length === 0) {
             return;
         }
@@ -765,7 +766,6 @@ function generatePatchForObject(originObject, modifiedObject, patchSchema, field
                 }
             }
         }
-        fieldNames.delete(field);
     };
 
     const conditionalPostponed = [];

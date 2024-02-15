@@ -188,6 +188,12 @@ describe('UserEvents Compiler', () => {
                         }
                     }
                     return null;
+                },
+
+                updateChildTransforms() {
+                },
+
+                readjustItemAndDescendants(item) {
                 }
             };
 

@@ -265,7 +265,7 @@ export function getSchemioDocSchema() {
 
     Shape.getShapeIds().forEach(shapeId => {
         const shape = Shape.find(shapeId);
-        const condition = {on : shapeId, type: 'object', patching: ['modify', 'delete'], fields: {}};
+        const condition = {on : shapeId, type: 'object', patching: ['modify', 'delete'], fields: {'*': {type: 'any', patching: ['replace', 'delete']}}};
         forEach(Shape.getShapeArgs(shape), (argDef, name) => {
             condition.fields[name] = createFieldSchemaForArg(argDef);
         })
