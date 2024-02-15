@@ -1,17 +1,44 @@
-Schemio Scripting Language
+SchemioScript Language
 ===========================
 
-Schemio offers a possibility of simple scripting. At this moment the Schemio scripting language is still in development and very limited in features. It does not support if statements, for loops, functions etc. Yet you still can achieve complex items behavior in your diagram.
+Schemio offers a possibility of simple scripting. At this moment the Schemio scripting language is still in development and is very limited in features. Yet you still can achieve complex items behavior in your diagram.
 
 - [Basic syntax](#basic-syntax)
 - [Boolean expressions](#boolean-expressions)
 - [Templated strings](#templated-strings)
 - [If statements](#if-statements)
 - [Loops](#loops)
+    - [While](#while)
+    - [For loops](#for-loops)
 - [Vector](#vector)
     - [Vector functions](#vector-functions)
       - [length](#length)
       - [normalized](#normalized)
+- [List](#list)
+    - [List functions](#list-functions)
+      - [add (List)](#add-list)
+      - [remove (List)](#remove-list)
+      - [get (List)](#get-list)
+      - [set (List)](#set-list)
+      - [insert (List)](#insert-list)
+      - [size (List)](#size-list)
+      - [forEach (List)](#foreach-list)
+      - [pop (List)](#pop-list)
+      - [shift (List)](#shift-list)
+- [Map](#map)
+    - [Map functions](#map-functions)
+      - [get (Map)](#get-map)
+      - [set (Map)](#set-map)
+      - [has (Map)](#has-map)
+      - [delete (Map)](#delete-map)
+      - [forEach (Map)](#foreach-map)
+- [Set](#set)
+    - [Set functions](#set-functions)
+      - [add (Set)](#add-set)
+      - [delete (Set)](#delete-set)
+      - [has (Set)](#has-set)
+      - [forEach (Set)](#foreach-set)
+- [Function declaration](#function-declaration)
 - [Functions](#functions)
     - [abs](#abs)
     - [min](#min)
@@ -75,6 +102,18 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [findParent](#findparent)
       - [getValue](#getvalue)
       - [setValue](#setvalue)
+    - [Connector functions](#connector-functions)
+      - [totalPoints (connector)](#totalpoints-connector)
+      - [getPointWorldPos (connector)](#getpointworldpos-connector)
+      - [setPointWorldPos (connector)](#setpointworldpos-connector)
+    - [Path functions](#path-functions)
+      - [totalPaths (path)](#totalpaths-path)
+      - [totalPathPoints (path)](#totalpathpoints-path)
+      - [isPathClosed (path)](#ispathclosed-path)
+      - [closePath (path)](#closepath-path)
+      - [openPath (path)](#openpath-path)
+      - [getPathPointWorldPos (path)](#getpathpointworldpos-path)
+      - [setPathPointWorldPos (path)](#setpathpointworldpos-path)
 
 
 Basic syntax
@@ -133,7 +172,7 @@ setTextColor('body', `rgba(${r + 10}, ${g}, 20, 0.5)`)
 If statements
 --------------
 
-It is possible to to use if statements in Schemio scripting language the same way as in JavaScript. You can use `if` and `else` keywords and you can construct complex expressions:
+It is possible to use if statements in SchemioScript language the same way as in JavaScript. You can use `if` and `else` keywords and you can construct complex expressions:
 
 ```js
 x = 5
@@ -150,7 +189,7 @@ if (z == 0) {
 }
 ```
 
-Unlike JavaScript if statements in Schemio scripting language can also be used as terms and you can assign them to other variables. It takes the last executed statement in the if block as the result of the expression.
+Unlike JavaScript if statements in SchemioScript language can also be used as terms and you can assign them to other variables. It takes the last executed statement in the if block as the result of the expression.
 
 ```js
 x = getPosX();
@@ -164,6 +203,8 @@ x = if (x < 100) {
 Loops
 --------------
 
+#### While
+
 SchemioScript supports `while` type loops like in the example below:
 
 ```js
@@ -172,6 +213,16 @@ sum = 0
 while (i < 10) {
     sum += i
     i += 1
+}
+```
+
+#### For loops
+
+It is also possible to use C-like for loops:
+
+```js
+for (i = 0; i < 5; i++) {
+    log(i)
 }
 ```
 
@@ -218,6 +269,237 @@ d = v.length()
 ```js
 v = Vector(10, -2)
 normal = v.normalized()
+```
+
+
+List
+--------------------
+
+At this moment SchemioScript does not support native arrays, but you can make use of `List` object.
+
+```js
+items = List(4, 5, 2)
+items.add(10)
+```
+
+#### List functions
+
+##### add (List)
+
+`add(item)` function lets you add a single item to the list:
+
+```js
+items = List(4, 5, 2)
+items.add(10)
+items.add(4)
+```
+
+##### remove (List)
+
+`remove(index)` function deletes a single item in the specified position in the list:
+
+```js
+items = List(4, 5, 2)
+items.remove(1)
+```
+
+
+##### get (List)
+
+`get(index)` function returns a single item in the specified position in the list:
+
+```js
+items = List('a', 'c', 'd')
+item1 = items.get(1)
+item2 = items.get(2)
+```
+
+
+##### set (List)
+
+`set(index, value)` function updates the value at specified position in the list:
+
+```js
+items = List('a', 'c', 'd')
+items.set(1, 'b')
+items.set(2, 'c')
+```
+
+##### insert (List)
+
+`insert(index, value)` function inserts value at specified position in the list:
+
+```js
+items = List('a', 'c', 'd')
+items.insert(1, 'b')
+```
+
+##### size (List)
+
+`size` property contains the number of items in the list:
+
+```js
+items = List('a', 'b', 'c')
+for (i = 0; i < items.size; i++) {
+    log(items.get(i))
+}
+```
+
+##### forEach (List)
+
+`forEach(callback)` function iterates the list and calls specified `callback` function with each item value and its position in the List:
+
+```js
+items = List('a', 'b', 'c')
+items.forEach((item, index) => {
+    log(index, item)
+})
+```
+
+##### pop (List)
+
+`pop()` function returns the last element from the list and removes it from the list:
+
+```js
+items = List('a', 'c', 'd')
+last = items.pop()
+```
+
+##### shift (List)
+
+`shift()` function returns the first element from the list and removes it from the list:
+
+```js
+items = List('a', 'c', 'd')
+last = items.shift()
+```
+
+
+Map
+--------------------
+
+In SchemioScript you can make use of [hash tables](https://en.wikipedia.org/wiki/Hash_table) with `Map(key1, value1, key2, value2, ....)` constructor.
+It takes an array in which every odd argument is a name, and even argument is the value of the record with that name. E.g.:
+
+```js
+m = Map('name', 'John', 'age', 30)
+log('Name is:', m.get('name'))
+log('Age is:', m.get('age'))
+```
+
+#### Map functions
+
+##### get (Map)
+
+`get(key)` function returns the value associated with the `key` name
+
+
+##### set (Map)
+
+`set(key, value)` updates the value associated with the `key` name
+
+```js
+m = Map('name', 'John', 'age', 30)
+log('Name is:', m.get('name'))
+log('Age is:', m.get('age'))
+```
+
+##### has (Map)
+
+`has(key)` function return `true` if there is a record associated with specified `key` name
+
+##### delete (Map)
+
+`delete(key)` functions deletes a record associated with specified `key`
+
+##### forEach (Map)
+
+`forEach(callback)` iterates over every record in a Map and calls specified `callback` function with value and the key:
+
+```js
+m = Map('name', 'John', 'age', 30)
+m.forEach((value, key) => {
+    log(key, value)
+})
+```
+
+
+Set
+----------------
+
+`Set` constructor creates a "hash set", which is a collecion of non-duplicate values
+
+```js
+s = Set('a', 'b', 'c', 'a')
+s.forEach((value) => {
+    log(value)
+})
+```
+
+#### Set functions
+
+##### add (Set)
+
+`add(value)` functions add a new item to the set. If such item is already present in the set, then it is ingored
+
+
+##### delete (Set)
+
+`delete(value)` removes the value from the set.
+
+##### has (Set)
+
+`has(value)` returns `true` if the specified value is in the set, otherwise - `false`
+
+##### forEach (Set)
+
+`forEach(callback)` iterates over all items in the Set and call `callback` function the the item
+
+
+```js
+s = Set('a', 'b', 'c', 'a')
+s.forEach((value) => {
+    log(value)
+})
+```
+
+
+
+Function declaration
+--------------------
+
+You can declare your own functions using the following syntax: `(arg1, arg2) => {/* This is the function body */}`.
+There is no `function` keyword, so you need to assign your function to a variable if you want to use it later:
+
+```js
+myFunc = () => {
+    log('This is my function')
+}
+```
+
+Specifying function arguments:
+
+```js
+myMin = (a, b) => {
+    if (a < b) {
+        a
+    } else {
+        b
+    }
+}
+log(myMin(4, 1))
+```
+
+
+Using function is return values:
+
+```js
+myMin = (a) => {
+    (b) => {
+        if (a < b) {a} else {b}
+    }
+}
+log(myMin(4)(3))
 ```
 
 
@@ -677,4 +959,107 @@ Example:
 ```js
 textfield = findItemByName('Name textfield')
 textfield.setValue('John')
+```
+
+
+#### Connector functions
+
+Connector item has additional functions that let you manipulate its points and shape.
+
+##### totalPoints (connector)
+
+`totalPoints()` function returns the number of points in current connector item. E.g.
+
+```js
+connector = findItemByName('Connector 1')
+n = connector.totalPoints()
+```
+
+##### getPointWorldPos (connector)
+
+`getPointWorldPos(index)` returns the `Vector` object that represents the point at `index` position in the world coordinates
+
+```js
+connector = findItemByName('Connector 1')
+p = connector.getPointWorldPos(1)
+log('x', p.x, 'y', p.y)
+```
+
+##### setPointWorldPos (connector)
+
+`setPointWorldPos(idx, x, y)` updates the position of point at specified `index` so that it matches the specified `x` and `y` in world coordinates
+
+```js
+connector = findItemByName('Connector 1')
+p = connector.setPointWorldPos(1, 45, -4)
+```
+
+
+#### Path functions
+
+Similar to [Connector](#connector-functions) a path item allows you to manipulate its points. The main difference compared to connector is that the path item actually consists of multiple paths.
+
+
+##### totalPaths (path)
+
+`totalPaths()` returns the number of paths in a path item
+
+```js
+pathItem = findItemByName('Path 1')
+n = pathItem.totalPaths()
+```
+
+##### totalPathPoints (path)
+
+`totalPathPoints(pathIndex)` returns the number of points in specified path. `pathIndex` is the index of a path in a path item.
+
+```js
+pathItem = findItemByName('Path 1')
+pointsNum = pathItem.totalPathPoints(0)
+```
+
+##### isPathClosed (path)
+
+`isPathClosed(pathIdx)` returns `true` if the path with specified `pathIdx` index is closed, `false` otherwise. By closed path it means that the last point and the first point are connected by a straight line.
+
+```js
+pathItem = findItemByName('Path 1')
+log(pathItem.isPatchClosed(0))
+```
+
+##### closePath (path)
+
+`closePath(pathIdx)` closes the path with specified `pathIdx` index.
+
+```js
+pathItem = findItemByName('Path 1')
+pathItem.closePath()
+```
+
+##### openPath (path)
+
+`openPath(pathIdx)` opens the path with specified `pathIdx` index, which means that the first and last point will be disconnected.
+
+```js
+pathItem = findItemByName('Path 1')
+pathItem.openPath()
+```
+
+##### getPathPointWorldPos (path)
+
+`getPathPointWorldPos(pathIdx, pointIdx)` return `Vector` which represent the position in world coordinates of the point with specified `poindIdx` index in specified path.
+
+```js
+pathItem = findItemByName('Path 1')
+p = pathItem.getPathPointWorldPos(0, 4)
+log('x', p.x, 'y', p.y)
+```
+
+##### setPathPointWorldPos (path)
+
+`setPathPointWorldPos(pathIdx, pointIdx, x, y)` updates the position of a point with `pointIdx` index in specified path such that it matches the `x` and `y` in woorld coordinates
+
+```js
+pathItem = findItemByName('Path 1')
+pathItem.setPathPointWorldPos(0, 4, 100, -54)
 ```
