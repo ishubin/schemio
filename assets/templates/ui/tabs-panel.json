@@ -42,6 +42,21 @@
             "numTabs = numTabs + 1"
         ]
     }, {
+        "$-for": {"start": 0, "until": {"$-expr": "ifcond(showAllTabs, numTabs, -1)"}, "it": "idx"},
+        "data": {
+            "tabIndex": {"$-expr": "idx"}
+        },
+        "name": "removeTab",
+        "type": "button",
+        "text": "⤫",
+        "x": { "$-expr": "padding + idx * (containerWidth + padding) + ifcond(idx > 0, 2*padding, 0) + containerWidth - 10" },
+        "y": {"$-expr": "topMargin + tabHeight - tabCornerRadius - 11"},
+        "width": 20,
+        "height": 20,
+        "click": [
+            "deleteTab(control.data.tabIndex)"
+        ]
+    }, {
         "$-for": {"start": 0, "until": {"$-expr": "numTabs"}, "it": "idx"},
         "data": {
             "tabIndex": {"$-expr": "idx"}
