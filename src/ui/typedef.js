@@ -168,11 +168,21 @@
  * @property {String|undefined} templateRootId
  */
 
+/**
+ * @typedef {Object} ItemArgs
+ * @property {Object|undefined} customVars - used by Script function for storing script variables in item
+ * @property {String|undefined} templateRef - reference to template that was used to generate this item.
+ *                                            Also works as an indicator that this item is a template root
+ * @property {String|undefined} templatedId - id that was created from the template. It is used to track the items after they were generated from template
+ * @property {Object|undefined} templateArgs - args that were used for generating the templated item
+ */
+
 
 /**
  * @typedef {Object} Item
  * @property {String} id
  * @property {String} name
+ * @property {ItemArgs} args
  * @property {ItemMeta} meta
  * @property {String} description
  * @property {ItemArea} area

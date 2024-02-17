@@ -1,8 +1,12 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import shortid from "shortid";
 import { forEachObject } from "../../../collections";
 import { traverseItems, traverseItemsConditionally } from "../../../scheme/Item";
 import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
 import { compileJSONTemplate, compileTemplateExpressions } from "../../../templater/templater";
+import { createTemplateFunctions } from "./ItemTemplateFunctions";
 
 /**
  *
@@ -33,8 +37,13 @@ export function compileItemTemplate(template, templateRef) {
             const clickExecutor = compileTemplateExpressions(controlExpressions, {...data, width, height});
             return {
                 ...control,
-                click: () => {
-                    return clickExecutor();
+
+                /**
+                 * @param {Item} item
+                 * @returns {Object} updated data object which can be used to update the template args
+                 */
+                click: (item) => {
+                    return clickExecutor({control, ...createTemplateFunctions(item)});
                 }
             }
         }),
@@ -126,7 +135,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         }
 
         for (let key in regeneratedItem) {
-            let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'childItems' && key !== '_childItems';
+            let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'childItems' && key !== '_childItems' && key !== 'textSlots';
             // for root item we should ignore area, name, tags, description as it is defined by user and not by template
             if (shouldCopyField && !parentItem) {
                 shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
@@ -218,7 +227,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
  */
 function toExpressionBlock(block) {
     if (Array.isArray(block)) {
-        return block;
+        return [block.join('\n')];
     }
     if (typeof block === 'string') {
         return [block];

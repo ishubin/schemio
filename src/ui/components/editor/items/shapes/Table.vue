@@ -209,12 +209,21 @@ function generateCells(item) {
     const cells = [];
     let rowOffset = 0;
     let remainingRowWidth = item.area.h;
-    for (let i = 0; i < item.shapeProps.rows; i++) {
+    let rowStart = 0;
+    let columnStart = 0;
+
+    if (item.shapeProps.header === 'columns-single') {
+        columnStart = 1;
+    }
+    if (item.shapeProps.header === 'rows-single') {
+        rowStart = 1;
+    }
+    for (let i = rowStart; i < item.shapeProps.rows; i++) {
         const rowWidth = Math.min(remainingRowWidth, i < item.shapeProps.rows - 1 ? item.shapeProps.rowWidths[i] * item.area.h / 100 : remainingRowWidth);
 
         let columnOffset = 0;
         let remainingColumnWidth = item.area.w;
-        for (let j = 0; j < item.shapeProps.columns; j++) {
+        for (let j = columnStart; j < item.shapeProps.columns; j++) {
             const columnWidth = Math.min(remainingColumnWidth, j < item.shapeProps.columns - 1 ? item.shapeProps.colWidths[j] * item.area.w / 100 : remainingColumnWidth);
             let x1 = columnOffset;
             let x2 = columnOffset + columnWidth;
@@ -614,6 +623,14 @@ function fixItem(item) {
     }
 }
 
+/**
+ * @param {Item} item
+ */
+function getPins(item) {
+    const pins = {};
+    return pins;
+}
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -652,6 +669,8 @@ export default {
                 cutCorner: true
             }),
         ],
+
+        getPins,
 
         computeOutline,
 
@@ -741,7 +760,7 @@ export default {
             strokeSize: {type: 'number', value: 1, name: 'Stroke size', depends: {tableStyle: 'simple'}},
             cellPadding: {type: 'number', value: 2, name: 'Cell padding', depends: {tableStyle: 'flat'}},
 
-            header: {type: 'choice', value: 'columns', options: ['none', 'columns', 'rows', 'both'], name: 'Header fill override'},
+            header: {type: 'choice', value: 'columns', options: ['none', 'columns', 'columns-single', 'rows', 'rows-single', 'both'], name: 'Header fill override'},
             headerFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(168, 193, 219, 1.0)'}, name: 'Header fill'},
             cutCorner: {type: 'boolean', value: false, name: 'Cut corner', depends: {header: 'both'}},
 
@@ -913,10 +932,11 @@ export default {
             const fill = computeSvgFill(this.item.shapeProps.fill, `fill-pattern-${this.item.id}`);
             const headerFill = computeSvgFill(this.item.shapeProps.headerFill, `fill-pattern-${this.item.id}-header`);
             const secondaryFill = computeSvgFill(this.item.shapeProps.rowSecondaryFill, `fill-pattern-${this.item.id}-secondary-fill`);
+            const header = this.item.shapeProps.header;
             return generateCells(this.item).map(cell => {
-                if (cell.row === 0 && (this.item.shapeProps.header === 'columns' || this.item.shapeProps.header === 'both')) {
+                if (cell.row === 0 && (header === 'columns' || header === 'columns-single' || header === 'both')) {
                     cell.fill = headerFill;
-                } else if (cell.col === 0 && (this.item.shapeProps.header === 'rows' || this.item.shapeProps.header === 'both')) {
+                } else if (cell.col === 0 && (header === 'rows' || header === 'rows-single' || header === 'both')) {
                     cell.fill = headerFill;
                 } else if (this.item.shapeProps.oddEvenFill && cell.row % 2 === 1) {
                     cell.fill = secondaryFill;

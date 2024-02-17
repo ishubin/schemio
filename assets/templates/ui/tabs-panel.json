@@ -22,7 +22,13 @@
         "tw = max(10, min((width - 2 * tabMargin) / numTabs - tabGap, tabWidth))",
         "tabTag = 'tab-' + uid()",
         "containerTag = 'tab-container-' + uid()",
-        "containerWidth = max(1, width - padding * 2)"
+        "containerWidth = max(1, width - padding * 2)",
+        "deleteTab = (tabIndex) => {",
+        "    for (i = tabIndex + 1; i < numTabs; i++) {",
+        "         moveNativeChildren(`tab-container-${i+1}`, `tab-container-${i}`)",
+        "    }",
+        "    numTabs = max(1, numTabs - 1)",
+        "}"
     ],
     "controls": [ {
         "name": "addTab",
@@ -36,16 +42,19 @@
             "numTabs = numTabs + 1"
         ]
     }, {
-        "$-if": "numTabs > 1",
+        "$-for": {"start": 0, "until": {"$-expr": "numTabs"}, "it": "idx"},
+        "data": {
+            "tabIndex": {"$-expr": "idx"}
+        },
         "name": "removeTab",
         "type": "button",
         "text": "⤫",
-        "x": {"$-expr": "tabMargin + (numTabs - 1) * (tw + tabGap) + tw - 10"},
+        "x": {"$-expr": "tabMargin + idx * (tw + tabGap) + tw - 10"},
         "y": {"$-expr": "topMargin - 10"},
         "width": 20,
         "height": 20,
         "click": [
-            "numTabs = max(1, numTabs - 1)"
+            "deleteTab(control.data.tabIndex)"
         ]
     }, {
         "$-if": "showAllTabs == true",
@@ -339,7 +348,7 @@
                     }]
                 },
                 "selfOpacity": 100,
-                "visible": {"$-expr": "ifcond(showAllTabs, true, idx == 0"},
+                "visible": {"$-expr": "ifcond(showAllTabs, true, idx == 0)"},
                 "tags": [
                     {"$-expr": "containerTag"}
                 ],

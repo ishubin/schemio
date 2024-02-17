@@ -600,9 +600,9 @@ export default {
         },
 
         onTemplateControlClick(idx) {
-            const updatedArgs = this.templateControls[idx].click();
-
             const item = this.editBox.templateItemRoot;
+            const updatedArgs = this.templateControls[idx].click(item);
+
             if (item.args && item.args.templateArgs) {
                 for (let key in item.args.templateArgs) {
                     if (updatedArgs.hasOwnProperty(key)) {

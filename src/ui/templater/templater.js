@@ -38,15 +38,15 @@ export function processJSONTemplate(obj, data) {
  * It executes init and control expressions and returns the updated template argument values
  * @param {Array<String>} expressions - an array of strings which represent template expressions
  * @param {Object} data - an object with initial arguments
- * @returns {function(): Object} - a function that, when invoked, will execute the expressions and will return the updated data with arguments
+ * @returns {function(Object|undefined): Object} - a function that takes extra data object as an argument, that should be added to the scope and, when invoked, will execute the expressions and will return the updated data with arguments
  */
 export function compileTemplateExpressions(expressions, data) {
     if (!Array.isArray(expressions)) {
         return;
     }
 
-    return () => {
-        const scope = new Scope(data);
+    return (extraData) => {
+        const scope = new Scope({...data, ...(extraData || {})});
         expressions.forEach(expr => processExpression(expr, scope));
         return scope.getData();
     };
