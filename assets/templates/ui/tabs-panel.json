@@ -26,6 +26,11 @@
         "deleteTab = (tabIndex) => {",
         "    for (i = tabIndex + 1; i < numTabs; i++) {",
         "         moveNativeChildren(`tab-container-${i+1}`, `tab-container-${i}`)",
+        "         tabNext = findItemByTemplatedId(`tab-${i+1}`)",
+        "         tab = findItemByTemplatedId(`tab-${i}`)",
+        "         if (tabNext && tab) {",
+        "               tab.textSlots = clone(tabNext.textSlots)",
+        "         }",
         "    }",
         "    numTabs = max(1, numTabs - 1)",
         "}"

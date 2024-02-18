@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import utils from '../../../utils';
 
 /**
  * Creates and object that provides various functions, that could be used from inside of
@@ -11,9 +12,21 @@
  */
 export function createTemplateFunctions(rootItem) {
     return {
-        // findTemplatedItemById: findTemplatedItemById(rootItem)
-        moveNativeChildren: moveNativeChildren(rootItem)
+        findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
+        moveNativeChildren: moveNativeChildren(rootItem),
+
+        clone: (obj) => utils.clone(obj)
     }
+}
+
+/**
+ * @param {Item} rootItem
+ * @returns {function(string): Item}
+ */
+function createFindItemByTemplatedIdFunc(rootItem) {
+    return (itemId) => {
+        return findItemByTemplatedId(rootItem, itemId);
+    };
 }
 
 /**
@@ -60,12 +73,3 @@ function findItemByTemplatedId(rootItem, itemId) {
     }
     return null;
 }
-
-// /**
-//  * @param {Item} rootItem
-//  */
-// function findTemplatedItemById(rootItem) {
-//     return (itemId) => {
-
-//     };
-// }
