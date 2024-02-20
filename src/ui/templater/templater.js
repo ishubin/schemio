@@ -3,6 +3,8 @@ import { parseStringExpression } from "./strings";
 import { tokenizeExpression } from "./tokenizer";
 
 
+const $_DEF = '$-def:';
+const $_REF = '$-ref';
 const $_EXPR = '$-expr';
 const $_STR = '$-str';
 const $_RAWSTR = '$-rawstr';
@@ -19,7 +21,7 @@ const $_EVAL = '$-eval';
  * @returns {function(Object): Object} - function that takes an object as input scope and returns processed object from template
  */
 export function compileJSONTemplate(obj) {
-    const compiled = compile(obj);
+    const compiled = compile(obj, new Map());
     return (data) => {
         return compiled(new Scope(data));
     };
@@ -60,13 +62,15 @@ function compileRawString(obj) {
 }
 
 
+
 /**
  * @param {Array|Object} obj
+ * @param {Map<String, any>} customDefinitions contains named fields that were defined using '$-def:' prefix
  * @returns {function(Scope): any}
  */
-function compile(obj) {
+function compile(obj, customDefinitions) {
     if (Array.isArray(obj)) {
-        return compileArray(obj);
+        return compileArray(obj, customDefinitions);
     } else if (typeof obj === 'object') {
         if (obj.hasOwnProperty($_EXPR)) {
             return compileExpression(obj[$_EXPR])
@@ -74,9 +78,17 @@ function compile(obj) {
             return compileStringExpression(obj[$_STR]);
         } else if (obj.hasOwnProperty($_RAWSTR)) {
             return compileRawString(obj[$_RAWSTR]);
+        } else if (obj.hasOwnProperty($_REF)) {
+            const refName = obj[$_REF];
+            if (!customDefinitions.has(refName)) {
+                throw new Error('Unknown reference: ' + refName);
+            }
+            const refValue = customDefinitions.get(refName);
+            console.log('REF:', refName, refValue);
+            return compile(refValue, customDefinitions);
         }
 
-        const objectProcessor = compileObjectProcessor(obj);
+        const objectProcessor = compileObjectProcessor(obj, customDefinitions);
 
         /** @type {function(Scope): any} */
         let evalAst = null;
@@ -110,17 +122,23 @@ function compile(obj) {
 
 /**
  * @param {Object} obj
+ * @param {Map<String, any>} customDefinitions
  * @returns {function(Scope): Object}
  */
-function compileObjectProcessor(obj) {
+function compileObjectProcessor(obj, customDefinitions) {
     const fieldBuilders = [];
 
     for (let key in obj) {
-        if (obj.hasOwnProperty(key) && !key.startsWith('$-')) {
-            fieldBuilders.push({
-                key: key,
-                build: compile(obj[key])
-            });
+        if (obj.hasOwnProperty(key)) {
+            if (key.startsWith($_DEF)) {
+                customDefinitions.set(key.substring($_DEF.length).trim(), obj[key]);
+            }
+            if (!key.startsWith('$-')) {
+                fieldBuilders.push({
+                    key: key,
+                    build: compile(obj[key], customDefinitions)
+                });
+            }
         }
     }
     /** @property {Scope} scope */
@@ -174,9 +192,10 @@ function compileStringExpression(text) {
 
 /**
  * @param {Array} arr
+ * @param {Map<String, any>} customDefinitions
  * @returns {function(Scope): any}
  */
-function compileArray(arr) {
+function compileArray(arr, customDefinitions) {
     const arrayItemBuilders = [];
 
     const elements = [].concat(arr);
@@ -185,7 +204,7 @@ function compileArray(arr) {
         const element = elements.shift();
 
         if (Array.isArray(element)) {
-            const subArrayCompiled = compileArray(element);
+            const subArrayCompiled = compileArray(element, customDefinitions);
             arrayItemBuilders.push({
                 build: (scope) => [subArrayCompiled(scope.newScope())]
             });
@@ -198,7 +217,7 @@ function compileArray(arr) {
             }
 
             if (element.hasOwnProperty($_FOR)) {
-                arrayItemBuilders.push(compileForLoopArrayItemBuilder(element, element[$_FOR]));
+                arrayItemBuilders.push(compileForLoopArrayItemBuilder(element, element[$_FOR], customDefinitions));
             } else if (element.hasOwnProperty($_IF)) {
                 const ifStatements = [element];
                 let elseStatement = null;
@@ -209,9 +228,9 @@ function compileArray(arr) {
                     elseStatement = elements.shift();
                 }
 
-                arrayItemBuilders.push(compileConditionalArrayItemBuilder(ifStatements, elseStatement));
+                arrayItemBuilders.push(compileConditionalArrayItemBuilder(ifStatements, elseStatement, customDefinitions));
             } else {
-                const objectProcessor = compile(element);
+                const objectProcessor = compile(element, customDefinitions);
                 arrayItemBuilders.push({
                     build: (scope) => objectProcessor(scope.newScope())
                 });
@@ -231,15 +250,16 @@ function compileArray(arr) {
 /**
  * @param {Array<Object>} ifStatements
  * @param {Object|null} elseStatement
+ * @param {Map<String, any>} customDefinitions
  */
-function compileConditionalArrayItemBuilder(ifStatements, elseStatement) {
+function compileConditionalArrayItemBuilder(ifStatements, elseStatement, customDefinitions) {
     const ifExpressions = ifStatements.map((ifObj, i) => {
         const expr = i === 0 ? ifObj[$_IF] : ifObj[$_ELSE_IF];
         return parseTemplateExpression(expr);
     });
 
-    const statementObjectProcessors = ifStatements.map(obj => compileObjectProcessor(obj));
-    const elseObjectProcessor = elseStatement ? compile(elseStatement) : null;
+    const statementObjectProcessors = ifStatements.map(obj => compileObjectProcessor(obj, customDefinitions));
+    const elseObjectProcessor = elseStatement ? compile(elseStatement, customDefinitions) : null;
 
     return {
         build: (scope) => {
@@ -267,11 +287,12 @@ function parseTemplateExpression(expr) {
 /**
  * @param {Object} item
  * @param {Object} $for - for loop statement
+ * @param {Map<String, any>} customDefinitions
  * @returns {function(Scope): Object}
  */
-function compileForLoopArrayItemBuilder(item, $for) {
-    const startProcessor = $for.start ? compile($for.start) : (scope) => 0;
-    const stepProcessor = $for.step ? compile($for.step) : (scope) => 1;
+function compileForLoopArrayItemBuilder(item, $for, customDefinitions) {
+    const startProcessor = $for.start ? compile($for.start, customDefinitions) : (scope) => 0;
+    const stepProcessor = $for.step ? compile($for.step, customDefinitions) : (scope) => 1;
 
     if (!$for.hasOwnProperty('until')) {
         throw new Error('Missing until definition in for loop');
@@ -280,9 +301,9 @@ function compileForLoopArrayItemBuilder(item, $for) {
         throw new Error('Missing iterator name definition in for loop');
     }
 
-    const untilProcessor = compile($for.until);
+    const untilProcessor = compile($for.until, customDefinitions);
 
-    const objProcessor = compileObjectProcessor(item);
+    const objProcessor = compileObjectProcessor(item, customDefinitions);
 
     /** @type {ASTNode} */
     let conditionExpression = null;

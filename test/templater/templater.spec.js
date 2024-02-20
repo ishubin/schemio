@@ -170,4 +170,34 @@ describe('templater', () => {
             }]
         });
     });
+
+
+    it('should allow to reference special fields higher in objects hierarchy', () => {
+        const template = {
+            '$-def:q1': 'This is simple text',
+            '$-def:q2': ['This', 'is', 'array'],
+            '$-def:q3': { '$-expr': 'idx * 2 + 1' },
+            items: [{
+                name: {'$-ref': 'q1'},
+                tags: {'$-ref': 'q2'},
+            }, {
+                '$-for': {start: 0, until: 2, it: 'idx'},
+                name: {'$-str': 'item ${idx}'},
+                size: {'$-ref': 'q3'}
+            }]
+        }
+
+        expect(processJSONTemplate(template, {})).toStrictEqual({
+            items: [{
+                name: 'This is simple text',
+                tags: ['This', 'is', 'array']
+            }, {
+                name: 'item 0',
+                size: 1
+            }, {
+                name: 'item 1',
+                size: 3
+            }]
+        });
+    });
 });
