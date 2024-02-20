@@ -8,6 +8,9 @@ import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
 import { compileJSONTemplate, compileTemplateExpressions } from "../../../templater/templater";
 import { createTemplateFunctions } from "./ItemTemplateFunctions";
 
+function mockedFunc() {
+}
+
 /**
  *
  * @param {ItemTemplate} template
@@ -15,11 +18,19 @@ import { createTemplateFunctions } from "./ItemTemplateFunctions";
  * @returns {CompiledItemTemplate}
  */
 export function compileItemTemplate(template, templateRef) {
-    const initBlock = toExpressionBlock(template.init)
+    const initBlock = toExpressionBlock(template.init);
     const compiledControlBuilder = compileJSONTemplate({
         '$-eval': initBlock,
         controls: template.controls || []
     });
+
+    const itemBuilder = compileJSONTemplate({
+        '$-eval': initBlock,
+        item: template.item,
+    });
+
+
+    const eventExpressions = compileTemplateExpressions(initBlock, {});
 
     return {
         name       : template.name,
@@ -28,13 +39,52 @@ export function compileItemTemplate(template, templateRef) {
         defaultArea: template.defaultArea || {x: 0, y: 0, w: 350, h: 200, px: 0.5, py: 0.5, sx: 1, sy: 1},
         templateRef: templateRef,
         args       : template.args || {},
-        buildItem  : compileJSONTemplate({
-            '$-eval': template.init || [],
-            ...template.item
-        }),
-        buildControls: (data, width, height) => compiledControlBuilder({...data, width, height}).controls.map(control => {
-            const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click))
-            const clickExecutor = compileTemplateExpressions(controlExpressions, {...data, width, height});
+
+        /**
+         * @param {Item} rootItem
+         * @param {String} eventName
+         * @param  {...any} eventArgs
+         * @returns {Object|null} returns updated template args. null if there were no subscribers for the event
+         */
+        triggerEvent : (rootItem, eventName, ...eventArgs) => {
+            const allEventHandlers = [];
+            const data = {
+                ...rootItem.args.templateArgs,
+                ...createTemplateFunctions(rootItem),
+                width: rootItem.area.w,
+                height: rootItem.area.h,
+                on: (eventName, callback) => {
+                    allEventHandlers.push({eventName, callback});
+                }
+            };
+            const updatedData = eventExpressions(data);
+
+            let eventCalled = false;
+            allEventHandlers.forEach(handler => {
+                if (handler.eventName !== eventName) {
+                    return;
+                }
+                handler.callback(...eventArgs);
+                eventCalled = true;
+            });
+
+            if (!eventCalled) {
+                return null;
+            }
+
+            const templateArgs = {};
+            forEachObject(template.args, (argDef, argName) => {
+                templateArgs[argName] = updatedData[argName];
+            });
+            return templateArgs;
+        },
+        buildItem : (args, width, height) => itemBuilder({
+            ...args, width, height,
+            on: mockedFunc
+        }).item,
+        buildControls: (args, width, height) => compiledControlBuilder({...args, width, height, on: mockedFunc}).controls.map(control => {
+            const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
+            const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height, on: mockedFunc});
             return {
                 ...control,
 
@@ -66,7 +116,7 @@ export function compileItemTemplate(template, templateRef) {
  * @returns {Item}
  */
 export function generateItemFromTemplate(template, args, width, height) {
-    const item = template.buildItem({ ...args, width, height });
+    const item = template.buildItem(args, width, height);
     item.area.w = width;
     item.area.h = height;
 
@@ -91,6 +141,14 @@ export function generateItemFromTemplate(template, args, width, height) {
 }
 
 
+/**
+ * @param {Item} rootItem
+ * @param {CompiledItemTemplate} template
+ * @param {Object} templateArgs
+ * @param {Number} width
+ * @param {Number} height
+ * @returns
+ */
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
     const regeneratedRootItem = generateItemFromTemplate(template, templateArgs, width, height);
     const regeneratedItemsById = new Map();
@@ -105,6 +163,8 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
     if (rootItem.args.templatedId) {
         idOldToNewConversions.set(rootItem.args.templatedId, rootItem.id);
     }
+
+    const forDeletion = [];
 
     // stores ids of templated items that were present in the origin rootItem
     // this way we can find out whether new templated items were added
@@ -130,7 +190,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
                 return true;
             }
 
-            parentItem.childItems.splice(sortOrder, 1);
+            forDeletion.push({parentItem, sortOrder});
             return false;
         }
 
@@ -146,6 +206,11 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         }
         return true;
     });
+
+    for (let i = forDeletion.length - 1; i >= 0; i--) {
+        const {parentItem, sortOrder} = forDeletion[i];
+        parentItem.childItems.splice(sortOrder, 1);
+    }
 
     const findItemByTemplatedId = (items, templatedId) => {
         let queue = [].concat(items);

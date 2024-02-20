@@ -21,7 +21,7 @@ import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation'
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
-import { generateItemFromTemplate, regenerateTemplatedItem } from '../components/editor/items/ItemTemplate.js';
+import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem } from '../components/editor/items/ItemTemplate.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -444,13 +444,19 @@ class SchemeContainer {
     /**
      *
      * @param {Scheme} scheme
+     * @param {String} editorId
+     * @param {String} mode - either 'view' or 'edit'
+     * @param {*} apiClient
+     * @param {*} listener
      */
-    constructor(scheme, editorId, listener) {
+    constructor(scheme, editorId, mode, apiClient, listener) {
         Debugger.register('SchemioContainer', this);
 
-        this.editorId = editorId;
-        this.listener = listener;
         this.scheme = scheme;
+        this.editorId = editorId;
+        this.mode = mode;
+        this.apiClient = apiClient;
+        this.listener = listener;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};
         /**
@@ -462,6 +468,12 @@ class SchemeContainer {
          * array of seleced connector points
          * @type {Array<ConnectorPointRef>} @private */
         this.selectedConnectorPoints = [];
+
+        /**
+         * Contains compiled templates for all templates used in the scene.
+         * Keep in mind that we only need this in edit mode.
+         * @type {Map<String, CompiledItemTemplate>} */
+        this.compiledTemplates = new Map();
 
         // used to quick access to item selection state
         this.selectedItemsMap = {};
@@ -886,6 +898,9 @@ class SchemeContainer {
 
             if (item.args && item.args.templateRef && item.args.templated) {
                 markTemplateRef(item, item.args.templateRef);
+                if (this.mode === 'edit') {
+                    this.fetchAndCompileTemplate(item.args.templateRef);
+                }
             }
 
             enrichItemWithDefaults(item);
@@ -984,6 +999,41 @@ class SchemeContainer {
         this.itemTags.sort();
     }
 
+    fetchAndCompileTemplate(templateRef) {
+        if (this.compiledTemplates.has(templateRef)) {
+            return;
+        }
+
+        this.apiClient.getTemplate(templateRef)
+        .then(templateDef => {
+            const template = compileItemTemplate(templateDef, templateRef);
+            this.compiledTemplates.set(templateRef, template);
+        })
+        .catch(err => {
+            console.error(`Failed to compile template: ${templateRef}`, err);
+        });
+    }
+
+    /**
+     * @param {String} templateRef
+     * @returns {Promise<CompiledItemTemplate>}
+     */
+    getTemplate(templateRef) {
+        if (this.compiledTemplates.has(templateRef)) {
+            return Promise.resolve(this.compiledTemplates.get(templateRef));
+        } else {
+            this.apiClient.getTemplate(templateRef)
+            .then(templateDef => {
+                const template = compileItemTemplate(templateDef, templateRef);
+                this.compiledTemplates.set(templateRef, template);
+                return template;
+            })
+            .catch(err => {
+                console.error(`Failed to compile template: ${templateRef}`, err);
+                throw err;
+            });
+        }
+    }
 
     indexSingleCloneItem(referenceItemId, clonedItemId) {
         let set = null;
@@ -1999,10 +2049,25 @@ class SchemeContainer {
 
     deleteSelectedItems() {
         if (this.selectedItems && this.selectedItems.length > 0) {
-            forEach(this.selectedItems, item => {
-                delete this.selectedItemsMap[item.id];
-                this._deleteItem(item);
-            });
+            for (let i = this.selectedItems.length - 1; i >= 0; i--) {
+                const item = this.selectedItems[i];
+                if (item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id) {
+                    const rootItem = this.findItemById(item.meta.templateRootId);
+                    if (rootItem) {
+                        this.getTemplate(rootItem.args.templateRef).then(template => {
+                            const newArgs = template.triggerEvent(rootItem, 'delete', item.args.templatedId, item);
+                            if (newArgs) {
+                                rootItem.args.templateArgs = newArgs;
+                                this.regenerateTemplatedItem(rootItem, template, newArgs, rootItem.area.w, rootItem.area.h);
+                            }
+                        });
+                    }
+                } else {
+                    delete this.selectedItemsMap[item.id];
+                    this._deleteItem(item);
+                    this.selectedItems.splice(i, 1);
+                }
+            }
         }
 
         const changedItems = new Map();
@@ -2028,8 +2093,6 @@ class SchemeContainer {
         });
 
         this.selectedConnectorPoints = [];
-        this.selectedItemsMap = {};
-        this.selectedItems = [];
 
         this.reindexItems();
 

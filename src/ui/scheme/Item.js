@@ -260,7 +260,7 @@ function _traverseItems(items, parentItem, callback, conditionalTraversing) {
             _traverseItems(item.childItems, item, callback, conditionalTraversing);
         }
         if (item._childItems) {
-            const result = _traverseItems(item._childItems, item, callback, conditionalTraversing);
+            _traverseItems(item._childItems, item, callback, conditionalTraversing);
         }
     });
 }

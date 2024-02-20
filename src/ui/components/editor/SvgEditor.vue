@@ -362,7 +362,7 @@ export default {
             })
             .then(schemeDetails => {
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, {
+                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, this.mode, this.$store.state.apiClient, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
                 this.schemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);

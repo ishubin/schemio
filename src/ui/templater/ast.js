@@ -634,7 +634,7 @@ class ASTFunctionInvocation extends ASTNode {
 
         const name = this.functionProvider.varName;
         const args = this.args.map(arg => arg.evalNode(scope));
-        if (!obj || typeof obj !== 'object') {
+        if (obj === null || typeof obj === 'undefined') {
             throw new Error(`Cannot invoke "${name}" function on non-object`);
         }
 

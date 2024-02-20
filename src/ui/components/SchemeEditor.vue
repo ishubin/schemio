@@ -1103,7 +1103,7 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, this.editorId, {
+                this.schemeContainer = new SchemeContainer(scheme, this.editorId, 'edit', this.$store.state.apiClient, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 
@@ -2102,7 +2102,7 @@ export default {
         switchToViewMode(screenTransform) {
             this.hideSidePanelRight();
             this.animationRegistry.stopAllAnimations();
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, {
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'view', this.$store.state.apiClient, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });
             if (screenTransform) {

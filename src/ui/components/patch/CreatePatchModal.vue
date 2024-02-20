@@ -47,13 +47,13 @@ export default {
             isLoading              : false,
             errorMessage           : null,
             originSchemeContainer  : null,
-            modifiedSchemeContainer: new SchemeContainer(this.scheme, this.editorId)
+            modifiedSchemeContainer: new SchemeContainer(this.scheme, this.editorId, 'edit', this.$store.state.apiClient)
         };
     },
 
     beforeMount() {
         if (this.originScheme) {
-            this.originSchemeContainer = new SchemeContainer(this.originScheme, this.editorId);
+            this.originSchemeContainer = new SchemeContainer(this.originScheme, this.editorId, 'edit', this.$store.state.apiClient);
             this.patch = generateSchemePatch(this.originSchemeContainer.scheme, this.scheme);
         }
     },
@@ -78,7 +78,7 @@ export default {
                 this.isLoading = false;
                 // we need to wrap it into SchemeContainer so that it enriches all missing fields
                 // of all items with their defaults
-                this.originSchemeContainer = new SchemeContainer(originScheme.scheme, this.editorId);
+                this.originSchemeContainer = new SchemeContainer(originScheme.scheme, this.editorId, 'edit', this.$store.state.apiClient);
                 this.patch = generateSchemePatch(this.originSchemeContainer.scheme, this.scheme);
             })
             .catch(err => {

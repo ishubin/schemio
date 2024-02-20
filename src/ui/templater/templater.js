@@ -197,7 +197,9 @@ function compileArray(arr) {
                 throw new Error(`"${$_ELSE_IF}" block does not follow "${$_IF}"`);
             }
 
-            if (element.hasOwnProperty($_IF)) {
+            if (element.hasOwnProperty($_FOR)) {
+                arrayItemBuilders.push(compileForLoopArrayItemBuilder(element, element[$_FOR]));
+            } else if (element.hasOwnProperty($_IF)) {
                 const ifStatements = [element];
                 let elseStatement = null;
                 while (elements.length > 0 && !Array.isArray(elements[0]) && typeof elements[0] === 'object' && elements[0].hasOwnProperty($_ELSE_IF)) {
@@ -208,8 +210,6 @@ function compileArray(arr) {
                 }
 
                 arrayItemBuilders.push(compileConditionalArrayItemBuilder(ifStatements, elseStatement));
-            } else if (element.hasOwnProperty($_FOR)) {
-                arrayItemBuilders.push(compileForLoopArrayItemBuilder(element, element[$_FOR]));
             } else {
                 const objectProcessor = compile(element);
                 arrayItemBuilders.push({
@@ -235,7 +235,7 @@ function compileArray(arr) {
 function compileConditionalArrayItemBuilder(ifStatements, elseStatement) {
     const ifExpressions = ifStatements.map((ifObj, i) => {
         const expr = i === 0 ? ifObj[$_IF] : ifObj[$_ELSE_IF];
-        return parseAST(tokenizeExpression(expr), expr);
+        return parseTemplateExpression(expr);
     });
 
     const statementObjectProcessors = ifStatements.map(obj => compileObjectProcessor(obj));
@@ -253,6 +253,15 @@ function compileConditionalArrayItemBuilder(ifStatements, elseStatement) {
             return [];
         }
     };
+}
+
+/**
+ * @param {Array<String>|String} expr either array of string or a string containing the SchemioScript expression
+ * @returns {ASTNode} compiled SchemioScript expression
+ */
+function parseTemplateExpression(expr) {
+    const contertedExpression = Array.isArray(expr) ? expr.join('\n') : expr;
+    return parseAST(tokenizeExpression(contertedExpression), contertedExpression);
 }
 
 /**
@@ -275,6 +284,12 @@ function compileForLoopArrayItemBuilder(item, $for) {
 
     const objProcessor = compileObjectProcessor(item);
 
+    /** @type {ASTNode} */
+    let conditionExpression = null;
+    if (item.hasOwnProperty($_IF)) {
+        conditionExpression = parseTemplateExpression(item[$_IF]);
+    }
+
     /**
      * @param {Scope} scope
      */
@@ -296,7 +311,10 @@ function compileForLoopArrayItemBuilder(item, $for) {
             const result = [];
             for (let v = start; exitCondition(v); v += step) {
                 scope.set($for.it, v);
-                result.push(objProcessor(scope));
+                const shouldBeAdded = conditionExpression ? conditionExpression.evalNode(scope) : true;
+                if (shouldBeAdded) {
+                    result.push(objProcessor(scope));
+                }
             }
             return result;
         }

@@ -17,6 +17,7 @@
         "showAllTabs": {"type": "boolean", "value": false, "name": "Show all tabs", "description": "Displays all tabs in edit mode next to each other for easier editing. In view mode all the tabs will be placed in their proper position and will be hidden"}
     },
     "init": [
+        "numTabs = max(1, numTabs)",
         "topMargin = padding",
         "tabMargin = max(10, cornerRadius) + padding",
         "tw = max(10, min((width - 2 * tabMargin) / numTabs - tabGap, tabWidth))",
@@ -33,7 +34,13 @@
         "         }",
         "    }",
         "    numTabs = max(1, numTabs - 1)",
-        "}"
+        "}",
+        "on('delete', (itemId, item) => {",
+        "    if (itemId.startsWith('tab-container-')) {",
+        "        tabIdx = parseInt(itemId.substring('tab-container-'.length)) - 1",
+        "        deleteTab(tabIdx)",
+        "    }",
+        "})"
     ],
     "controls": [ {
         "name": "addTab",
@@ -48,6 +55,7 @@
         ]
     }, {
         "$-for": {"start": 0, "until": {"$-expr": "ifcond(showAllTabs, numTabs, -1)"}, "it": "idx"},
+        "$-if": "numTabs > 1",
         "data": {
             "tabIndex": {"$-expr": "idx"}
         },
@@ -63,6 +71,7 @@
         ]
     }, {
         "$-for": {"start": 0, "until": {"$-expr": "numTabs"}, "it": "idx"},
+        "$-if": "numTabs > 1",
         "data": {
             "tabIndex": {"$-expr": "idx"}
         },
