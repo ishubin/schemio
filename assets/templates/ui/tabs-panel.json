@@ -14,7 +14,9 @@
         "strokeColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
         "textColor": {"type": "color", "value": "rgba(30,30,30,1.0)", "name": "Text color"},
         "shadow": {"type": "boolean", "value": true, "name": "Drop shadow"},
-        "showAllTabs": {"type": "boolean", "value": false, "name": "Show all tabs", "description": "Displays all tabs in edit mode next to each other for easier editing. In view mode all the tabs will be placed in their proper position and will be hidden"}
+        "showAllTabs": {"type": "boolean", "value": false, "name": "Show all tabs", "description":
+            "Displays all tabs in edit mode next to each other for easier editing. In view mode all the tabs will be placed in their proper position and will be hidden"
+        }
     },
     "init": [
         "numTabs = max(1, numTabs)",
@@ -104,7 +106,7 @@
             "tabIndex": {"$-expr": "idx"}
         },
         "selectedItemId": {"$-str": "tab-container-${idx+1}"},
-        "name": "removeTab",
+        "name": "moveTabLeft",
         "type": "button",
         "text": "<",
         "placement": "TL",
@@ -122,7 +124,7 @@
             "tabIndex": {"$-expr": "idx"}
         },
         "selectedItemId": {"$-str": "tab-container-${idx+1}"},
-        "name": "removeTab",
+        "name": "moveTabRight",
         "type": "button",
         "text": ">",
         "placement": "TR",
