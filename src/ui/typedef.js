@@ -87,7 +87,7 @@
 /**
  * @typedef {Object} EditBox
  * @property {String} id - unique id of edit box
- * @property {Array} items - array of items that are selected for this edit box
+ * @property {Array<Item>} items - array of items that are selected for this edit box
  * @property {Set} itemIds - ids of items that are included in the edit box
  * @property {ItemArea}  area  - area of edit box
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)

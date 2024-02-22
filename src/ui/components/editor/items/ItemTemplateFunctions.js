@@ -14,6 +14,7 @@ export function createTemplateFunctions(rootItem) {
     return {
         findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
         moveNativeChildren: moveNativeChildren(rootItem),
+        swapNativeChildren: swapNativeChildren(rootItem),
 
         clone: (obj) => utils.clone(obj)
     }
@@ -44,6 +45,23 @@ function moveNativeChildren(rootItem) {
         }
         dst.childItems = src.childItems || [];
         src.childItems = [];
+    };
+}
+
+/**
+ * @param {Item} rootItem
+ * @returns {function(string, string): void}
+ */
+function swapNativeChildren(rootItem) {
+    return (srcId, dstId) => {
+        const src = findItemByTemplatedId(rootItem, srcId);
+        const dst = findItemByTemplatedId(rootItem, dstId);
+        if (!src || !dst) {
+            return;
+        }
+        const temp = dst.childItems;
+        dst.childItems = src.childItems || [];
+        src.childItems = temp;
     };
 }
 

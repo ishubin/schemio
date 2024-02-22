@@ -106,20 +106,18 @@
                     </circle>
                 </g>
 
-                <g v-for="(control,idx) in templateControls"
-                    :transform="`translate(${control.x}, ${control.y})`"
-                    >
+                <g v-for="(control,idx) in templateControls">
                     <g v-if="control.type === 'button'" >
                         <rect
                             class="item-control-point"
-                            :x="0"
-                            :y="0"
+                            :x="control.x - control.xc * control.width/safeZoom"
+                            :y="control.y - control.yc * control.height/safeZoom"
                             :width="control.width/safeZoom"
                             :height="control.height/safeZoom"
                             :fill="controlPointsColor"
                             :rx="10/safeZoom"
                             />
-                        <foreignObject :x="0" :y="0"  :width="control.width/safeZoom" :height="control.height/safeZoom">
+                        <foreignObject :x="control.x - control.xc * control.width/safeZoom" :y="control.y - control.yc * control.height/safeZoom"  :width="control.width/safeZoom" :height="control.height/safeZoom">
                             <div xmlns="http://www.w3.org/1999/xhtml"
                                 style="color: white; display: table-cell; white-space: nowrap; text-align: center; vertical-align: middle"
                                 :style="{'font-size': `${12/safeZoom}px`,width: `${Math.round(control.width/safeZoom)}px`, height: `${Math.round(control.height/safeZoom)}px`}"
@@ -129,8 +127,8 @@
                         </foreignObject>
                         <rect
                             class="item-control-point"
-                            :x="0"
-                            :y="0"
+                            :x="control.x - control.xc * control.width/safeZoom"
+                            :y="control.y - control.yc * control.height/safeZoom"
                             :width="control.width/safeZoom"
                             :height="control.height/safeZoom"
                             fill="rgba(0,0,0,0)"
@@ -139,7 +137,6 @@
                             @click="onTemplateControlClick(idx)"
                             />
                     </g>
-
                 </g>
             </g>
         </g>
@@ -589,11 +586,26 @@ export default {
             }
             const rootItem = this.editBox.templateItemRoot;
             const templateArgs = rootItem.args && rootItem.args.templateArgs ? rootItem.args.templateArgs : {};
-            this.templateControls = this.template.buildControls(templateArgs, rootItem.area.w, rootItem.area.h);
+
+
+            const allSelectedTemplatedIds = new Set();
+            this.editBox.items.forEach(item => {
+                if (item.meta.templateRootId === rootItem.id && item.args.templatedId) {
+                    allSelectedTemplatedIds.add(item.args.templatedId);
+                }
+            });
+            this.templateControls = this.template.buildControls(templateArgs, rootItem.area.w, rootItem.area.h).filter(control => {
+                return !control.selectedItemId || allSelectedTemplatedIds.has(control.selectedItemId);
+            });
 
             this.templateControls.forEach(control => {
                 const wp = worldPointOnItem(control.x, control.y, this.editBox.templateItemRoot);
                 const lp = myMath.localPointInArea(wp.x, wp.y, this.editBox.area);
+                const placement = control.placement && control.placement.length > 1 ? control.placement : 'TL';
+                // setting up placement corrections so that the control is correctly positioned
+                // possible placements are : TL, TR, BL, BR. (top-left, top-right, bottom-left, bottom-right)
+                control.xc = placement.charAt(1) === 'R' ? 1 : 0;
+                control.yc = placement.charAt(0) === 'B' ? 1 : 0;
                 control.x = lp.x;
                 control.y = lp.y;
             });
