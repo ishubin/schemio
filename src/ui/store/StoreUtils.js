@@ -7,7 +7,16 @@ import { worldScalingVectorOnItem } from '../scheme/SchemeContainer';
 import '../typedef';
 
 export default {
+    /**
+     * @param {*} store
+     * @param {Item} item
+     */
     setItemControlPoints(store, item) {
+        // For templated items we don't want users to allow editing of shapes with control points
+        if (item.meta.templated && item.meta.templateRootId) {
+            this.clearItemControlPoints(store);
+            return;
+        }
         const shape = Shape.find(item.shape);
         if (shape && shape.controlPoints) {
             const controlPoints = shape.controlPoints.make(item);
