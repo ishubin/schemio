@@ -2046,10 +2046,20 @@ export default {
         },
 
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
+            // storing ids of selected items so that we can restore the selection after the regeneration
+            const selectedItemIds = this.schemeContainer.selectedItems.map(item => item.id);
             this.rebuildTemplate(originItemId, template, templateArgs);
-            const originItem = this.schemeContainer.findItemById(originItemId);
-            this.schemeContainer.selectItem(originItem);
             this.schemeContainer.reindexItems();
+
+            const itemsToSelect = [];
+            selectedItemIds.forEach(itemId => {
+                const item = this.schemeContainer.findItemById(itemId);
+                if (item) {
+                    itemsToSelect.push(item);
+                }
+            });
+
+            this.schemeContainer.selectMultipleItems(itemsToSelect);
         },
 
         onTemplatePropertiesUpdated(originItemId, template, templateArgs) {
