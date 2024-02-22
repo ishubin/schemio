@@ -574,6 +574,7 @@ const reservedFunctions = new Map(Object.entries({
         }
         return falseValue;
     },
+    matchesRegex: (text, pattern) => new RegExp(pattern).test(text)
 }));
 
 class ASTFunctionDeclaration extends ASTNode {
