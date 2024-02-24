@@ -16,7 +16,12 @@
                         :disabled="!argumentControlStates[argName].shown"
                         @input="onValueChange(argName, arguments[0].target.value)"/>
 
-                    <number-textfield v-if="arg.type === 'number'" :value="argumentValues[argName]" :disabled="!argumentControlStates[argName].shown" @changed="onValueChange(argName, arguments[0])"/>
+                    <number-textfield v-if="arg.type === 'number'"
+                        :value="argumentValues[argName]"
+                        :min="arg.min"
+                        :max="arg.max"
+                        :disabled="!argumentControlStates[argName].shown"
+                        @changed="onValueChange(argName, arguments[0])"/>
 
                     <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
                         :disabled="!argumentControlStates[argName].shown"
