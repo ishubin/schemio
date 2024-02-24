@@ -394,6 +394,7 @@
  * @property {String} name
  * @property {String} description
  * @property {Object} args - contains template argument descriptors
+ * @property {Object} defaultArgs - contains args object with default values
  * @property {function(Object, number, number, String, ...Object): Item} triggerEvent
  * @property {function(Object, number, number): Item} buildItem
  * @property {function(Object): Array<ItemTemplateControl>} buildControls

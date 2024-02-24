@@ -32,6 +32,11 @@ export function compileItemTemplate(template, templateRef) {
 
     const eventExpressions = compileTemplateExpressions(initBlock, {});
 
+    const defaultArgs = {};
+    forEachObject(template.args, (arg, argName) => {
+        defaultArgs[argName] = arg;
+    });
+
     return {
         name       : template.name,
         description: template.description,
@@ -39,6 +44,7 @@ export function compileItemTemplate(template, templateRef) {
         defaultArea: template.defaultArea || {x: 0, y: 0, w: 350, h: 200, px: 0.5, py: 0.5, sx: 1, sy: 1},
         templateRef: templateRef,
         args       : template.args || {},
+        defaultArgs: defaultArgs,
 
         /**
          * @param {Item} rootItem
@@ -49,6 +55,7 @@ export function compileItemTemplate(template, templateRef) {
         triggerEvent : (rootItem, eventName, ...eventArgs) => {
             const allEventHandlers = [];
             const data = {
+                ...defaultArgs,
                 ...rootItem.args.templateArgs,
                 ...createTemplateFunctions(rootItem),
                 width: rootItem.area.w,
@@ -150,7 +157,7 @@ export function generateItemFromTemplate(template, args, width, height) {
  * @returns
  */
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
-    const regeneratedRootItem = generateItemFromTemplate(template, templateArgs, width, height);
+    const regeneratedRootItem = generateItemFromTemplate(template, {...template.getDefaultArgs, ...templateArgs}, width, height);
     const regeneratedItemsById = new Map();
     traverseItems([regeneratedRootItem], (item, parentItem) => {
         if (parentItem) {
