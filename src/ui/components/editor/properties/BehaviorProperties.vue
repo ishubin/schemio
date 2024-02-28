@@ -678,6 +678,13 @@ export default {
             } else {
                 action.method = methodOption.method;
                 action.args = this.getDefaultArgsForMethod(action, methodOption.method);
+                const elementPickerArgumentName = this.findFirstElementPickerArgument(methodOption.method);
+                if (elementPickerArgumentName) {
+                    EditorEventBus.elementPick.requested.$emit(this.editorId, (element) => {
+                        action.args[elementPickerArgumentName] = element;
+                        this.emitChangeCommited();
+                    });
+                }
             }
             this.emitChangeCommited();
         },
@@ -698,6 +705,28 @@ export default {
                 }
             }
             return {};
+        },
+
+        findFirstElementPickerArgument(method) {
+            const functions = Functions.main;
+
+            if (!functions[method]) {
+                return null;
+            }
+
+            const functionArgs = functions[method].args;
+            if (!functionArgs) {
+                return null;
+            }
+            for (let argName in functionArgs) {
+                if (functionArgs.hasOwnProperty(argName)) {
+                    const arg = functionArgs[argName];
+                    if (arg.type === 'element') {
+                        return argName;
+                    }
+                }
+            }
+            return null;
         },
 
         getArgumentDescriptionForElement(element, propertyPath) {

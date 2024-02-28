@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import State from './State.js';
+import { Keys } from '../../../events.js';
+import State, { DragScreenState, SubState } from './State.js';
 
 export default class StatePickElement extends State {
     constructor(editorId, store, listener) {
@@ -13,6 +14,23 @@ export default class StatePickElement extends State {
 
     reset() {
         this.elementPickCallback = null;
+        this.migrateSubState(new IdlePickState(this, this.listener));
+    }
+
+    setElementPickCallback(elementPickCallback) {
+        this.elementPickCallback = elementPickCallback;
+    }
+
+};
+
+
+class IdlePickState extends SubState {
+    constructor(parentState, listener) {
+        super(parentState, 'idle');
+        this.listener = listener;
+    }
+
+    reset() {
         this.resetHighlight();
     }
 
@@ -27,17 +45,13 @@ export default class StatePickElement extends State {
     mouseDown(x, y, mx, my, object, event) {
         this.resetHighlight();
         if (object.item) {
-            if (this.elementPickCallback) {
-                this.elementPickCallback(`#${object.item.id}`);
+            if (this.parentState.elementPickCallback) {
+                this.parentState.elementPickCallback(`#${object.item.id}`);
             }
             setTimeout(() => {
                 this.cancel();
             }, 200);
         }
-    }
-
-    setElementPickCallback(elementPickCallback) {
-        this.elementPickCallback = elementPickCallback;
     }
 
     highlightItem(item) {
@@ -53,4 +67,14 @@ export default class StatePickElement extends State {
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         }
     }
-};
+
+    keyPressed(key, keyOptions) {
+        if (key === Keys.SPACE) {
+
+            if (!this.parentState.subState || this.parentState.subState.name !== 'drag-screen') {
+                this.migrate(new DragScreenState(this.parentState, false));
+            }
+            return;
+        }
+    }
+}
