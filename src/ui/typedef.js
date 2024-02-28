@@ -4,6 +4,14 @@
 
 
 /**
+ * @typedef {Object} ColorRGBA
+ * @property {Number} r
+ * @property {Number} g
+ * @property {Number} b
+ * @property {Number} a
+ */
+
+/**
  * A point on svg path, contains coords + distance on the path that was can be used to calculate this point again
  * @typedef {Object} SVGPathPoint
  * @property {number} x - x coordinate
@@ -408,4 +416,15 @@
  * @param {Item|undefined} parentItem
  * @param {Number} sortOrder - position index in the parent item array
  * @returns {Boolean} true if it should keeps traversing items
+ */
+
+
+
+/**
+ * @typedef {Object} ValueAnimationSettings
+ * @property {Number} durationMillis
+ * @property {function(Number)} update - callback that is called on every animation frame
+ * @property {function()} init - callback that is called before the animation starts
+ * @property {function()} destroy - called at the end of animation
+ * @property {String} animationType type of animation (e.g. 'ease-in', 'smooth' etc.)
  */

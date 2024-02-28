@@ -6,7 +6,7 @@ function parseCommaSeparateRgba(text) {
     const arr = text.split(',');
 
     let r = 0, g = 0, b = 0, a = 1.0;
-    
+
     if (arr.length > 0) {
         r = parseInt(arr[0]);
     }
@@ -40,23 +40,22 @@ function parseHexColor(text) {
             b = parseInt(text.substring(4, 6), 16);
         }
     }
-    
 
     return {r,g,b,a};
 }
 
 /**
- * 
- * @param {Object} color structure of {r,g,b,a}
+ *
+ * @param {ColorRGBA} color structure of {r,g,b,a}
  */
 export function encodeColor(c) {
     return `rgba(${c.r},${c.g},${c.b},${c.a})`;
 }
 
 /**
- * 
+ *
  * @param {String} text encoded color in rgb(), rgba(), or hex format
- * @returns {Object} {r,g,b,a} structure
+ * @returns {ColorRGBA} {r,g,b,a} structure
  */
 export function parseColor(text) {
     text = text.toLowerCase();

@@ -38,6 +38,7 @@ import WidthFunction from './WidthFunction';
 import HeightFunction from './HeightFunction';
 import ScriptFunction from './ScriptFunction';
 import ConditionFunction from './ConditionFunction';
+import MorphFunction from './MorphFunction';
 
 export default {
     main: {
@@ -72,6 +73,7 @@ export default {
         copyEvents         : CopyEventsFunction,
         copyLinks          : CopyLinksFunction,
         copyDescription    : CopyDescriptionFunction,
+        morph              : MorphFunction,
         repeater           : RepeaterFunction,
         stopRepeater       : StopRepeaterFunction,
         sizeWidth          : WidthFunction,

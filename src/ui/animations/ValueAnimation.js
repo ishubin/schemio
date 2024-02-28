@@ -39,6 +39,9 @@ export function convertTime(t, type) {
 }
 
 export default class ValueAnimation extends Animation {
+    /**
+     * @param {ValueAnimationSettings} settings
+     */
     constructor(settings) {
         super();
         this.updateCallback = null;
