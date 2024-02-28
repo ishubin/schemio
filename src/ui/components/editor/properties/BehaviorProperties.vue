@@ -152,7 +152,7 @@
                             class="action-method-arguments-expand"
                             @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
                             title="Edit function arguments"
-                            >{{action | toPrettyActionArgs}}</span>
+                            >{{action | toPrettyActionArgs(schemeContainer) }}</span>
 
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
@@ -953,18 +953,18 @@ export default {
             }
         },
 
-        toPrettyActionArgs(action) {
+        toPrettyActionArgs(action, schemeContainer) {
             if (Functions.main[action.method]) {
                 const func = Functions.main[action.method];
                 if (func.argsToShortString) {
-                    const text = func.argsToShortString(action.args);
+                    const text = func.argsToShortString(action.args, schemeContainer);
                     if (text.length > 100) {
-                        return text.substring(0, 100) + " ...";
+                        return `( ${text.substring(0, 100)} ... )`;
                     }
-                    return text;
+                    return `( ${text} )`;
                 }
             }
-            return '(...)';
+            return '( ... )';
         },
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {

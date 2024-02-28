@@ -28,7 +28,11 @@ class MoveAnimation extends Animation {
             x: this.item.area.x,
             y: this.item.area.y
         };
-        this.destinationPosition = {
+        this.destinationPosition = args.kind === 'relative'? {
+            x: this.item.area.x + parseFloat(args.x),
+            y: this.item.area.y + parseFloat(args.y),
+
+        } : {
             x: parseFloat(args.x),
             y: parseFloat(args.y),
         }
@@ -85,6 +89,10 @@ export default {
     description: 'Moves item to specified location in local coords',
 
     args: {
+        kind            : {name: 'Position', type: 'choice', value: 'absolute', options: ['absolute', 'relative'],
+            description: 'Specifies type of movement. "absolute" movement uses "x" and "y" as is, '
+                +'while "relative" movement specifies that item should move by specified "x" and "y"'
+        },
         x               : {name: 'X',                 type: 'number', value: 50},
         y               : {name: 'Y',                 type: 'number', value: 50},
         animated        : {name: 'Animated',          type: 'boolean',value: false},
@@ -94,7 +102,8 @@ export default {
     },
 
     argsToShortString(args) {
-        return `x: ${args.x}, y: ${args.y} ` + (args.animated ? 'animated' : '');
+        const deltaLabel = args.kind === 'relative' ? 'Δ': '';
+        return `${deltaLabel}x: ${args.x}, ${deltaLabel}y: ${args.y} ` + (args.animated ? 'animated' : '');
     },
 
     /**
@@ -115,8 +124,13 @@ export default {
                 }
                 return;
             } else {
-                item.area.x = args.x;
-                item.area.y = args.y;
+                if (args.kind === 'relative') {
+                    item.area.x += args.x;
+                    item.area.y += args.y;
+                } else {
+                    item.area.x = args.x;
+                    item.area.y = args.y;
+                }
                 schemeContainer.updateChildTransforms(item);
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 schemeContainer.readjustItemAndDescendants(item.id);

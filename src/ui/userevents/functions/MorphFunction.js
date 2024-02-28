@@ -27,6 +27,21 @@ export default {
     },
 
     /**
+     * @param {Object} args
+     * @param {SchemeContainer} schemeContainer
+     * @returns {String}
+     */
+    argsToShortString(args, schemeContainer) {
+        if (args.referenceItem) {
+            const refItem = schemeContainer.findFirstElementBySelector(args.referenceItem);
+            if (refItem) {
+                return refItem.name;
+            }
+        }
+        return '...';
+    },
+
+    /**
      * @param {Item} item
      * @param {Object} args
      * @param {SchemeContainer} schemeContainer
@@ -58,6 +73,11 @@ export default {
                 itemMorphers.forEach(morpher => {
                     morpher(t);
                 });
+            },
+            destroy() {
+                if (!args.inBackground) {
+                    resultCallback();
+                }
             }
         });
         playInAnimationRegistry(schemeContainer.editorId, animation, item.id, this.name);

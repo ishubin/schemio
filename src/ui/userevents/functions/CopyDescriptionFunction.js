@@ -10,9 +10,12 @@ export default {
         destination : {name: 'Destination',  type: 'element',value: null, description: 'Other item or an item group to which you want to copy description from the source'},
     },
 
-    argsToShortString(args) {
+    argsToShortString(args, schemeContainer) {
         if (args.destination) {
-            return `${args.destination}`;
+            const refItem = schemeContainer.findFirstElementBySelector(args.destination);
+            if (refItem) {
+                return refItem.name;
+            }
         }
         return '...';
     },

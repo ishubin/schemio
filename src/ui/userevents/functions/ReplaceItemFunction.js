@@ -17,6 +17,16 @@ export default {
         destinationItem : {name: 'Destination Item',  type: 'element',value: null, description: 'Other item which this item should replace'},
     },
 
+    argsToShortString(args, schemeContainer) {
+        if (args.destinationItem) {
+            const refItem = schemeContainer.findFirstElementBySelector(args.destinationItem);
+            if (refItem) {
+                return refItem.name;
+            }
+        }
+        return '...';
+    },
+
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item) {
             const destinationItem = schemeContainer.findFirstElementBySelector(args.destinationItem, item);
