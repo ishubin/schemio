@@ -183,6 +183,8 @@
  *                                            Also works as an indicator that this item is a template root
  * @property {String|undefined} templatedId - id that was created from the template. It is used to track the items after they were generated from template
  * @property {Object|undefined} templateArgs - args that were used for generating the templated item
+ * @property {Array<String>|undefined} templateIgnoredProps - array of shapeProps field names that should be ignored when template is regenerated
+ *                                                            this gives users possibility of editing individual template items
  */
 
 

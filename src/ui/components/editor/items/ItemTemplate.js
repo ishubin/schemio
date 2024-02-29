@@ -158,7 +158,10 @@ export function generateItemFromTemplate(template, args, width, height) {
  */
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
     const regeneratedRootItem = generateItemFromTemplate(template, {...template.getDefaultArgs, ...templateArgs}, width, height);
+
+    /** @type {Map<String, Item>} */
     const regeneratedItemsById = new Map();
+
     traverseItems([regeneratedRootItem], (item, parentItem) => {
         if (parentItem) {
             item.meta.parentId = parentItem.id;
@@ -207,8 +210,22 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             if (shouldCopyField && !parentItem) {
                 shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
             }
+            const propMatcher = createTemplatePropertyMatcher(regeneratedItem.args ? (regeneratedItem.args.templateIgnoredProps || []) : []);
             if (shouldCopyField) {
-                item[key] = regeneratedItem[key];
+                if (key === 'shapeProps' && regeneratedItem.shapeProps) {
+                    if (!item.shapeProps) {
+                        item.shapeProps = {};
+                    }
+                    forEachObject(regeneratedItem.shapeProps, (value, propName) => {
+                        if (!propMatcher(`shapeProps.${propName}`)) {
+                            item.shapeProps[propName] = value;
+                        }
+                    });
+                } else {
+                    if (!propMatcher(key)) {
+                        item[key] = regeneratedItem[key];
+                    }
+                }
             }
         }
         return true;
@@ -305,4 +322,25 @@ function toExpressionBlock(block) {
         return [block];
     }
     return [];
+}
+
+
+/**
+ * @param {Array<String>} props
+ */
+function createTemplatePropertyMatcher(props) {
+    if (!Array.isArray(props)) {
+        return () => false;
+    }
+
+    const regexEpressions = props.map(prop => new RegExp(prop));
+
+    return (property) => {
+        for (let i = 0; i < regexEpressions.length; i++) {
+            if (regexEpressions[i].test(property)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

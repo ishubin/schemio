@@ -1947,7 +1947,6 @@ ul.links-editor .edit-link:hover {
     border: 1px solid var(--faint-weak-down);
     background: var(--base-weak);
     min-width: 100px;
-    min-height: 400px;
     border-radius: var(--middle-border-radius);
     outline: none;
 }
@@ -4145,4 +4144,12 @@ ul.patch-field-list {
     height: 100%;
     width: 100%;
     font-size: 10px;
+}
+
+
+input.condition-function-send-event {
+    font-size: 16px;
+    padding: 4px;
+    border: 1px solid var(--faint-strong-up-up);
+    border-radius: 3px;
 }

@@ -28,7 +28,7 @@
 
             <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
                 <ul>
-                    <li v-for="option in filteredOptions" 
+                    <li v-for="option in filteredOptions"
                         @click="onOptionClicked(option)" @mouseover="onOptionMouseOver(option)" @mouseleave="onOptionMouseLeave()"
                         >
                         <i v-if="option.iconClass" :class="option.iconClass"/>

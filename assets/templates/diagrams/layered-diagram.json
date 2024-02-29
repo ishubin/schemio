@@ -1,0 +1,302 @@
+{
+    "name": "Layered diagram",
+    "args": {
+        "layers": {"type": "number", "value": 3, "name": "Layers", "min": 1},
+        "buttonWidth": {"type": "number", "value": 120, "name": "Button Width", "min": 1},
+        "buttonHeight": {"type": "number", "value": 30, "name": "Button Height", "min": 1},
+        "buttonGap": {"type": "number", "value": 5, "name": "Button Gap", "min": 0},
+        "buttonCornerRadius": {"type": "number", "value": 10, "name": "Button Corner Radius", "min": 0},
+        "padding": {"type": "number", "value": 20, "name": "Padding", "min": 0},
+        "activeLayer": {"type": "number", "value": 1, "name": "Active layer", "min": 1,
+            "description": "Which layer should be displayed on top. Use this property to toggle display of particular layer so that you can draw within that layer"
+        },
+        "animationDuration": {"type": "number", "value": 0.3, "name": "Animation duration", "min": 0}
+    },
+    "description": "",
+    "preview": "data:image/svg+xml;base64,PHN2ZyByZWY9InN2Z0NvbnRhaW5lciIgY2xhc3M9ImV4cG9ydC1zdmctcHJldmlldyIKICAgICAgICB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIyMDBweCIKICAgICAgICB2aWV3Qm94PSItMTAgLTEwIDUyMCAzMjAiCiAgICAgICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQiCiAgICAgICAgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIgogICAgICAgIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgogICAgICAgIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiA+CiAgICAgICAgPGcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9Ii1JNURLQ0lVaiIgZGF0YS1pdGVtLWlkPSItSTVES0NJVWoiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSA0MDQgMCAgTCA0ODAgMCBhIDIwIDIwIDAgMCAxIDIwIDIwIEwgNTAwIDI4MCBhIDIwIDIwIDAgMCAxIC0yMCAyMEwgMjAgMzAwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCBMIDAgMjAgIGEgMjAgMjAgMCAwIDEgMjAgLTIwICBMIDk2IDAiIHN0cm9rZS13aWR0aD0iM3B4IiBzdHJva2U9InJnYmEoMTYwLDE2MCwxNjAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGlkPSJpdGVtLXRleHQtc2xvdC0tSTVES0NJVWotdGl0bGUiIHg9Ijk2IiB5PSItMjUiIHdpZHRoPSIzMDgiIGhlaWdodD0iNTAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigxNTAsIDE1MCwgMTUwKTsgZm9udC1zaXplOiAxNnB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiBtaWRkbGU7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IGZvbnQtd2VpZ2h0OiBib2xkOyB3aWR0aDogMzA4cHg7IGhlaWdodDogNTBweDsiPjxkaXYgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5MYXllcmVkIERpYWdyYW08L3A+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDIwLDI0MCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAxMTAgNDAgIEwgMTAgNDAgYSAxMCAxMCAwIDAgMSAtMTAgLTEwICBMIDAgMTAgIGEgMTAgMTAgMCAwIDEgMTAgLTEwICAgTCAxMTAgMCAgIGEgMTAgMTAgMCAwIDEgMTAgMTAgIEwgMTIwIDMwICAgYSAxMCAxMCAwIDAgMSAtMTAgMTAgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoODAsIDE4MiwgMjI4LCAxKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBpZD0iaXRlbS10ZXh0LXNsb3QteFBNYU9wNHBILWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigyNTUsIDI1NSwgMjU1KTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiBtaWRkbGU7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IGZvbnQtd2VpZ2h0OiBib2xkOyB3aWR0aDogMTIwcHg7IGhlaWdodDogNDBweDsiPjxkaXYgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5MYXllciAxPC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgIDwvZz48L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxNjAsMjQwKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDExMCA0MCAgTCAxMCA0MCBhIDEwIDEwIDAgMCAxIC0xMCAtMTAgIEwgMCAxMCAgYSAxMCAxMCAwIDAgMSAxMCAtMTAgICBMIDExMCAwICAgYSAxMCAxMCAwIDAgMSAxMCAxMCAgTCAxMjAgMzAgICBhIDEwIDEwIDAgMCAxIC0xMCAxMCBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSg4MCwgMTgyLCAyMjgsIDEpIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGlkPSJpdGVtLXRleHQtc2xvdC11Vlh0X0szSjliLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMjAiIGhlaWdodD0iNDAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigyNTUsIDI1NSwgMjU1KTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiBtaWRkbGU7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IGZvbnQtd2VpZ2h0OiBib2xkOyB3aWR0aDogMTIwcHg7IGhlaWdodDogNDBweDsiPjxkaXYgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+PHAgc3R5bGU9Im1hcmdpbi10b3A6IDBweDsgbWFyZ2luLWJvdHRvbTogMHB4OyBwYWRkaW5nOiAwcHg7IG1pbi1oZWlnaHQ6IDE4cHg7Ij5MYXllciAyPC9wPjwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgIDwvZz48L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwzMDAsMjQwKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDExMCA0MCAgTCAxMCA0MCBhIDEwIDEwIDAgMCAxIC0xMCAtMTAgIEwgMCAxMCAgYSAxMCAxMCAwIDAgMSAxMCAtMTAgICBMIDExMCAwICAgYSAxMCAxMCAwIDAgMSAxMCAxMCAgTCAxMjAgMzAgICBhIDEwIDEwIDAgMCAxIC0xMCAxMCBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSg4MCwgMTgyLCAyMjgsIDEpIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxmb3JlaWduT2JqZWN0IGlkPSJpdGVtLXRleHQtc2xvdC1NazVyZmV6Zy0tYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI0MCI+PGRpdiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94aHRtbCIgY2xhc3M9Iml0ZW0tdGV4dC1jb250YWluZXIiIHN0eWxlPSJjb2xvcjogcmdiKDI1NSwgMjU1LCAyNTUpOyBmb250LXNpemU6IDE0cHg7IGZvbnQtZmFtaWx5OiBBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmOyBwYWRkaW5nOiAwcHg7IHRleHQtYWxpZ246IGNlbnRlcjsgdmVydGljYWwtYWxpZ246IG1pZGRsZTsgd2hpdGUtc3BhY2U6IG5vcm1hbDsgZGlzcGxheTogdGFibGUtY2VsbDsgYm94LXNpemluZzogYm9yZGVyLWJveDsgZm9udC13ZWlnaHQ6IGJvbGQ7IHdpZHRoOiAxMjBweDsgaGVpZ2h0OiA0MHB4OyI+PGRpdiBjbGFzcz0iaXRlbS10ZXh0LWVsZW1lbnQiIHN0eWxlPSJkaXNwbGF5OiBpbmxpbmUtYmxvY2s7Ij48cCBzdHlsZT0ibWFyZ2luLXRvcDogMHB4OyBtYXJnaW4tYm90dG9tOiAwcHg7IHBhZGRpbmc6IDBweDsgbWluLWhlaWdodDogMThweDsiPkxheWVyIDM8L3A+PC9kaXY+PC9kaXY+PC9mb3JlaWduT2JqZWN0PjwvZz48L2c+ICAgICAgICAgPC9nPjwvZz48L2c+IDwvZz48L2c+CiAgICA8L3N2Zz4=",
+    "init": [
+        "deleteLayer = (layerIdx) => {",
+        "    for (i = layerIdx; i < layers; i++) {",
+        "         moveNativeChildren(`layer-${i+1}`, `layer-${i}`)",
+        "         btnNext = findItemByTemplatedId(`btn-${i+1}`)",
+        "         btn = findItemByTemplatedId(`btn-${i}`)",
+        "         if (btnNext && btn) {",
+        "               btn.textSlots = clone(btnNext.textSlots)",
+        "         }",
+        "    }",
+        "    layers = max(1, layers - 1)",
+        "}"
+    ],
+    "controls": [ {
+        "name": "addLayer",
+        "type": "button",
+        "text": "Add layer",
+        "placement": "TL",
+        "x": {"$-expr": "padding + (buttonWidth + buttonGap) * layers"},
+        "y": {"$-expr": "height - buttonHeight - padding"},
+        "width": 60,
+        "height": 30,
+        "click": [ "layers += 1" ]
+    }, {
+        "$-for": {"start": 1, "until": {"$-expr": "layers + 1"}, "it": "idx"},
+        "data": {
+            "buttonIndex": {"$-expr": "idx"}
+        },
+        "name": "deleteLayer",
+        "selectedItemId": {"$-str": "btn-${idx}"},
+        "type": "button",
+        "text": "⤫",
+        "placement": "BL",
+        "x": {"$-expr": "padding + (buttonWidth + buttonGap) * idx - buttonGap"},
+        "y": {"$-expr": "height - padding - buttonHeight"},
+        "width": 20,
+        "height": 20,
+        "click": [
+            "deleteLayer(control.data.buttonIndex)"
+        ]
+    }, {
+        "$-for": {"start": 1, "until": {"$-expr": "layers + 1"}, "it": "idx"},
+        "data": {
+            "buttonIndex": {"$-expr": "idx"}
+        },
+        "$-if": "idx != activeLayer",
+        "name": "selectLayer",
+        "selectedItemId": {"$-str": "btn-${idx}"},
+        "type": "button",
+        "text": "Toggle layer",
+        "placement": "TL",
+        "x": {"$-expr": "padding + (buttonWidth + buttonGap) * (idx - 1)"},
+        "y": {"$-expr": "height - padding + 5"},
+        "width": {"$-expr": "buttonWidth"},
+        "height": 30,
+        "click": [ "activeLayer = control.data.buttonIndex" ]
+    } ],
+    "item": {
+        "id": "root",
+        "name": "Layered diagram",
+        "args": {
+            "templateIgnoredProps": ["shapeProps.*"]
+        },
+        "textSlots": {
+            "title": {
+                "text": "<p>Layered Diagram</p>",
+                "bold": true,
+                "color": "#969696",
+                "fontSize": 16,
+                "halign": "center",
+                "valign": "middle"
+            }
+        },
+        "shapeProps": {
+            "fill": { "type": "none" },
+            "strokeSize": 3,
+            "strokeColor": "rgba(160,160,160,1.0)",
+            "strokePattern": "solid",
+            "gap": 308,
+            "pos": "top",
+            "align": "middle",
+            "cornerRadius": 20
+        },
+        "shape": "uml_group",
+        "area": {
+            "x": 0,
+            "y": 0,
+            "w": {"$-expr": "width"},
+            "h": {"$-expr": "height"}
+        },
+        "behavior": {
+            "events": []
+        },
+        "childItems": [ {
+            "$-for": {"start": 1, "until": {"$-expr": "layers + 1"}, "it": "idx"},
+            "id"   : {"$-str": "btn-${idx}"},
+            "name" : {"$-str": "button-${idx}"},
+            "args": {
+                "templateIgnoredProps": ["shapeProps.*"]
+            },
+            "area" : {
+                "x": {"$-expr": "padding + (buttonWidth + buttonGap) * (idx - 1)"},
+                "y": {"$-expr": "height - buttonHeight - padding"},
+                "w": {"$-expr": "buttonWidth"},
+                "h": {"$-expr": "buttonHeight"}
+            },
+            "shapeProps": {
+                "cornerRadius": {"$-expr": "buttonCornerRadius"},
+                "fill": {
+                    "type": "solid",
+                    "color": "rgba(80, 182, 228, 1)"
+                },
+                "strokeSize": 0
+            },
+            "shape": "rect",
+            "cursor": "pointer",
+            "textSlots": {
+                "body": {
+                    "text": {"$-str": "<p>Layer ${idx}</p>"},
+                    "bold": true,
+                    "color": "rgba(255, 255, 255, 1)",
+                    "halign": "center",
+                    "valign": "middle",
+                    "fontSize": 14
+                }
+            },
+            "behavior": {
+                "events": [{
+                    "id": {"$-expr": "uid()"},
+                    "event": "clicked",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#layer-${idx}"},
+                        "method": "condition",
+                        "args": {
+                            "expression": "isVisible()",
+                            "success": "send-event",
+                            "successEvent": "hide-layer",
+                            "fail": "send-event",
+                            "failEvent": "show-layer"
+                        }
+                    } ]
+                }],
+                "dragging": "none",
+                "dropTo": "",
+                "dragPath": "",
+                "dragPathAlign": false,
+                "dragPathRotation": 0
+            }
+        }, {
+            "$-for": {"start": 1, "until": {"$-expr": "layers + 1"}, "it": "idx"},
+            "$-if" : "idx != activeLayer",
+            "id"   : {"$-str": "layer-${idx}"},
+            "name" : {"$-str": "layer-${idx}"},
+            "area" : {
+                "x": {"$-expr": "padding"},
+                "y": {"$-expr": "padding"},
+                "w": {"$-expr": "width - 2 * padding"},
+                "h": {"$-expr": "height - buttonHeight - 2 * padding - 5"}
+            },
+            "shape": "dummy",
+            "shapeProps": {
+                "cornerRadius": 0,
+                "showName": false,
+                "strokeSize": 1
+            },
+            "behavior": {
+                "events": [{
+                    "id": {"$-expr": "uid()"},
+                    "event": "hide-layer",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#layer-${idx}"},
+                        "method": "hide",
+                        "args": {
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": true
+                        }
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#btn-${idx}"},
+                        "method": "set",
+                        "args": {
+                            "field": "opacity",
+                            "value": 50,
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": false
+                        }
+                    }]
+                }, {
+                    "id": {"$-expr": "uid()"},
+                    "event": "show-layer",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#layer-${idx}"},
+                        "method": "show",
+                        "args": {
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": true
+                        }
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#btn-${idx}"},
+                        "method": "set",
+                        "args": {
+                            "field": "opacity",
+                            "value": 100,
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": false
+                        }
+                    }]
+                }]
+            }
+        }, {
+            "id"   : {"$-str": "layer-${activeLayer}"},
+            "name" : {"$-str": "layer-${activeLayer}"},
+            "area" : {
+                "x": {"$-expr": "padding"},
+                "y": {"$-expr": "padding"},
+                "w": {"$-expr": "width - 2 * padding"},
+                "h": {"$-expr": "height - buttonHeight - 2 * padding - 5"}
+            },
+            "shape": "dummy",
+            "shapeProps": {
+                "cornerRadius": 0,
+                "showName": true,
+                "strokeSize": 1
+            },
+            "behavior": {
+                "events": [{
+                    "id": {"$-expr": "uid()"},
+                    "event": "hide-layer",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#layer-${activeLayer}"},
+                        "method": "hide",
+                        "args": {
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": true
+                        }
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#btn-${activeLayer}"},
+                        "method": "set",
+                        "args": {
+                            "field": "opacity",
+                            "value": 50,
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": false
+                        }
+                    }]
+                }, {
+                    "id": {"$-expr": "uid()"},
+                    "event": "show-layer",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#layer-${activeLayer}"},
+                        "method": "show",
+                        "args": {
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": true
+                        }
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "element": {"$-str": "#btn-${activeLayer}"},
+                        "method": "set",
+                        "args": {
+                            "field": "opacity",
+                            "value": 100,
+                            "animated": true,
+                            "animationDuration": {"$-expr": "max(0.05, animationDuration)"},
+                            "inBackground": false
+                        }
+                    }]
+                }]
+            }
+        }]
+    }
+}

@@ -11,6 +11,7 @@
             autocomplete="off"
             autocorrect="off"
             spellcheck="false"
+            :style="{height: `${height}px`}"
         ></textarea>
         <span class="text-editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>
 
@@ -156,7 +157,8 @@ function onTextareaKeydown(textarea, event) {
 
 export default {
     props: {
-        value: {type: String, default: ''}
+        value: {type: String, default: ''},
+        height: {type: Number, default: 400}
     },
 
     data() {
