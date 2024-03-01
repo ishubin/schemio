@@ -440,6 +440,7 @@
                                 :schemeContainer="schemeContainer"
                                 :templateRef="selectedTemplateRef"
                                 @updated="onTemplatePropertiesUpdated"
+                                @break-template="breakTemplate"
                             />
                         </div>
 
@@ -562,7 +563,6 @@ import DiagramPicker from './editor/DiagramPicker.vue';
 import LinkEditPopup from './editor/LinkEditPopup.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
-import { snapshotSvg } from '../svgPreview.js';
 import Shape from './editor/items/shapes/Shape.js';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
@@ -596,6 +596,7 @@ import { convertCurvePointToItemScale, convertCurvePointToRelative } from './edi
 import {MobileDebugger} from '../logger';
 import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
 import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
+import {breakItemTemplate} from './editor/items/ItemTemplate';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -2075,9 +2076,24 @@ export default {
             }
             this.schemeContainer.regenerateTemplatedItem(originItem, template, templateArgs, originItem.area.w, originItem.area.h);
             this.editorRevision++;
-            traverseItems(originItem, item => {
+            traverseItems([originItem], item => {
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             });
+        },
+
+        breakTemplate(rootItem) {
+            const selectedItem = this.schemeContainer.selectedItems.length > 0 ? this.schemeContainer.selectedItems[0] : null;
+            this.schemeContainer.deselectAllItems();
+            breakItemTemplate(rootItem);
+            this.schemeContainer.reindexItems();
+            traverseItems([rootItem], item => {
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+            });
+            this.editorRevision++;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            if (selectedItem) {
+                this.schemeContainer.selectItem(selectedItem);
+            }
         },
 
         convertCurvePointToSimple() {

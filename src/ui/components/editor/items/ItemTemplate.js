@@ -344,3 +344,24 @@ function createTemplatePropertyMatcher(props) {
         return false;
     }
 }
+
+/**
+ * Removes any template specific arguments so that the item is not regenerated anymore
+ * @param {Item} rootItem
+ */
+export function breakItemTemplate(rootItem) {
+    traverseItems([rootItem], item => {
+        if (item.args) {
+            delete item.args.templateArgs;
+            delete item.args.templateIgnoredProps;
+            delete item.args.templateRef;
+            delete item.args.templatedId;
+            delete item.args.templated;
+        }
+        if (item.meta) {
+            delete item.meta.templateRef;
+            delete item.meta.templateRootId;
+            delete item.meta.templated;
+        }
+    });
+}

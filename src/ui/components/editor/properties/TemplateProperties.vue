@@ -17,6 +17,10 @@
                 @argument-changed="onArgChanged"
             />
         </div>
+        <span class="btn btn-danger"
+            @click="breakTemplate"
+            title="After the template is broken the items will not be regenerated"
+            >Break template</span>
     </div>
 </template>
 
@@ -81,6 +85,10 @@ export default {
             this.$emit('updated', this.item.id, this.template, this.args);
             this.$forceUpdate();
         },
+
+        breakTemplate() {
+            this.$emit('break-template', this.item);
+        }
     },
 
     computed: {
