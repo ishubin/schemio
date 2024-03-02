@@ -4,8 +4,9 @@
 import {map, find, indexOf} from '../../../../collections';
 import {localPointOnItem, worldAngleOfItem, worldPointOnItem} from '../../../../scheme/SchemeContainer';
 import myMath from '../../../../myMath';
-import { traverseItems } from '../../../../scheme/Item';
+import { defaultTextSlotProps, traverseItems } from '../../../../scheme/Item';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
+import { defaultifyObject } from '../../../../../defaultify';
 
 
 const DesignerShapes = {
@@ -246,7 +247,7 @@ function convertTextSlotItem(containerItem, item) {
     const wRatio = Math.abs(lp1.x - lp0.x) / containerItem.area.w;
     const hRatio = Math.abs(lp2.y - lp0.y) / containerItem.area.w;
 
-    shapeConfig.textSlots.push({
+    return {
         name: item.name,
         area: {
             x: {'$-expr': `width * ${myMath.roundPrecise(lp0.x / containerItem.area.w, 4)}`},
@@ -254,8 +255,9 @@ function convertTextSlotItem(containerItem, item) {
             w: {'$-expr': `width * ${myMath.roundPrecise(wRatio, 4)}`},
             h: {'$-expr': `height * ${myMath.roundPrecise(hRatio, 4)}`},
             r: 0
-        }
-    });
+        },
+        props: defaultifyObject(item.textSlots.body, defaultTextSlotProps)
+    };
 }
 
 const defaultBodyTextSlot = {

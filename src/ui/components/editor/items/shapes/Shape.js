@@ -7,6 +7,7 @@ import utils from '../../../../utils.js';
 import { convertTemplateShape } from './TemplatedShape.js';
 
 const basicShapeGroup = require('./basic/basic-shapes.js').default;
+const umlShapeGroup = require('./uml/UMLShapeGroup.js').default;
 
 let _shapes = [
     require('./Rect.js').default,
@@ -58,7 +59,7 @@ let _shapes = [
     require('./uml/UMLLifeline.vue').default,
 ];
 
-_shapes = _shapes.concat(basicShapeGroup.shapes);
+_shapes = _shapes.concat(basicShapeGroup.shapes).concat(umlShapeGroup.shapes);
 
 function defaultGetEventsFunc(item) {
     return [];

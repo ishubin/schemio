@@ -45,6 +45,7 @@ import {convertTemplateShape} from './items/shapes/TemplatedShape';
 import utils from '../../utils';
 import myMath from '../../myMath';
 import { encode } from 'js-base64';
+import { forEach } from '../../collections';
 
 function createWidthAndHeight(w, h, widthToHeightRatio) {
     if (widthToHeightRatio > 1) {
@@ -122,22 +123,37 @@ function generateShapeConfigForItem(item, shapeGroupName) {
     const creationSize = createWidthAndHeight(80, 80, widthToHeightRatio);
     const previewSize = createWidthAndHeight(150, 150, widthToHeightRatio);
 
+    const textSlots = {};
+    forEach(convertedShape.shapeConfig.textSlots, textSlot => {
+        textSlots[textSlot.name] = textSlot.props;
+        // deleting "props" field from textSlot as it is only needed in menuItems
+        delete textSlot.props;
+    });
+
+    const menuItem = {
+        group: shapeGroupName,
+        name: item.name,
+        iconUrl: `data:image/svg+xml;base64,${svgPreviewBase64}`,
+        size: {
+            w: myMath.roundPrecise1(creationSize.w),
+            h: myMath.roundPrecise1(creationSize.h)
+        },
+        previewArea: {x: 0, y: 0, w: myMath.roundPrecise1(previewSize.w), h: myMath.roundPrecise1(previewSize.h), r: 0},
+    }
+
+    if (convertedShape.shapeConfig.textSlots.length > 0) {
+        menuItem.item = {
+            textSlots
+        };
+    }
+
     return {
         name: item.name,
         widthToHeightRatio,
         shapeConfig: {
             ...convertedShape.shapeConfig,
             id: shapeId,
-            menuItems: [{
-                group: shapeGroupName,
-                name: item.name,
-                iconUrl: `data:image/svg+xml;base64,${svgPreviewBase64}`,
-                size: {
-                    w: myMath.roundPrecise1(creationSize.w),
-                    h: myMath.roundPrecise1(creationSize.h)
-                },
-                previewArea: {x: 0, y: 0, w: myMath.roundPrecise1(previewSize.w), h: myMath.roundPrecise1(previewSize.h), r: 0},
-            }]
+            menuItems: [menuItem]
         }
     };
 }
