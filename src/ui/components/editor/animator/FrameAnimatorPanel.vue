@@ -1175,7 +1175,7 @@ export default {
 
             let value = 0;
             if (track.kind === 'item') {
-                const item = this.schemeContainer.findItemById(track.id);
+                const item = this.schemeContainer.findItemById(track.itemId);
                 if (!item) {
                     return;
                 }
