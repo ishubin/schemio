@@ -11,7 +11,7 @@ import { knownBlendModes } from '../scheme/ItemConst';
 import AnimationFunctions from './functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
 
-
+const IS_SOFT = true;
 const NUMBER = 'number';
 const COLOR = 'color';
 const BOOLEAN = 'boolean';
@@ -175,7 +175,17 @@ function interpolateFrameValues(frameNum, prevFrame, nextFrame, propertyType) {
 }
 
 
-function creatObjectFrameAnimation(editorId, obj, propertyPath, propertyDescriptor, frames, totalFrames, isItem) {
+/**
+ * @param {SchemeContainer} schemeContainer
+ * @param {*} obj
+ * @param {String} propertyPath
+ * @param {*} propertyDescriptor
+ * @param {*} frames
+ * @param {*} totalFrames
+ * @param {*} isItem
+ * @returns
+ */
+function creatObjectFrameAnimation(schemeContainer, obj, propertyPath, propertyDescriptor, frames, totalFrames, isItem) {
     if (!propertyDescriptor) {
         return null;
     }
@@ -217,8 +227,11 @@ function creatObjectFrameAnimation(editorId, obj, propertyPath, propertyDescript
             }
 
             utils.setObjectProperty(obj, fields, value);
+            if (isItem && fields[0] === 'area') {
+                schemeContainer.readjustItemAndDescendants(obj.id, IS_SOFT);
+            }
             if (isItem) {
-                EditorEventBus.item.changed.specific.$emit(editorId, obj.id);
+                EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, obj.id);
             }
         }
     };
@@ -335,7 +348,7 @@ export function compileAnimations(framePlayer, schemeContainer) {
             const item = schemeContainer.findItemById(animation.itemId);
             if (item) {
                 const propertyDescriptor = findItemPropertyDescriptor(item, animation.property);
-                const itemAnimation = creatObjectFrameAnimation(schemeContainer.editorId, item, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, true);
+                const itemAnimation = creatObjectFrameAnimation(schemeContainer, item, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, true);
                 if (itemAnimation) {
                     animations.push(itemAnimation);
                 }
@@ -347,7 +360,7 @@ export function compileAnimations(framePlayer, schemeContainer) {
             functionAnimationTracks[animation.funcId][animation.property] = animation;
         } else if (animation.kind === 'scheme') {
             const propertyDescriptor = findSchemePropertyDescriptor(animation.property);
-            const schemeAnimation = creatObjectFrameAnimation(schemeContainer.editorId, schemeContainer.scheme, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, false);
+            const schemeAnimation = creatObjectFrameAnimation(schemeContainer, schemeContainer.scheme, animation.property, propertyDescriptor, animation.frames, framePlayer.shapeProps.totalFrames, false);
             if (schemeAnimation) {
                 animations.push(schemeAnimation);
             }
