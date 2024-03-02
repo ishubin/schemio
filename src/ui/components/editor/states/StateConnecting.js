@@ -591,7 +591,18 @@ export default class StateConnecting extends State {
         }
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-        this.schemeContainer.reindexItems();
+
+        let shouldReindex = true;
+        if (this.store.state.autoRemount) {
+            const parentItem = this.schemeContainer.findItemSuitableForParent(this.item);
+            if (parentItem) {
+                this.schemeContainer.remountItemInsideOtherItemAtTheBottom(this.item.id, parentItem.id);
+                shouldReindex = false;
+            }
+        }
+        if (shouldReindex) {
+            this.schemeContainer.reindexItems();
+        }
         this.listener.onItemChanged(this.item.id, 'area');
         this.listener.onSchemeChangeCommitted();
         this.schemeContainer.selectItem(this.item);

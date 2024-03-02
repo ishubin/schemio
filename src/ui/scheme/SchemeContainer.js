@@ -3279,7 +3279,7 @@ class SchemeContainer {
 
     /**
      * Searches for item that is able to fit item inside it and that has the min area out of all specified items
-     * @param {Item} area  - item that it needs to fit into another parent item (should be in world transform)
+     * @param {Item} item  - item that it needs to fit into another parent item (should be in world transform)
      * @param {function(Item): Boolean} itemPredicate - callback function which should return true for specified item if it should be considered
      * @returns {Item}
      */
@@ -3289,12 +3289,12 @@ class SchemeContainer {
 
         // doing backwards search as getItems() returns a list of all items ordered by their layering position on screen
         for (let i = items.length - 1; i >= 0; i--) {
-            const item = items[i];
+            const candidateItem = items[i];
 
             // connectors should not be parent of any other items
-            if (item.visible && item.shape !== 'connector' && (!itemPredicate || itemPredicate(item))) {
+            if (candidateItem.id !== item.id && candidateItem.visible && candidateItem.shape !== 'connector' && (!itemPredicate || itemPredicate(candidateItem))) {
 
-                const worldArea = this.worldItemAreas.get(item.id);
+                const worldArea = this.worldItemAreas.get(candidateItem.id);
 
                 if (worldArea &&  area.w + area.h < worldArea.w + worldArea.h) {
                     const overlap = myMath.overlappingArea(worldArea, area);
@@ -3302,7 +3302,7 @@ class SchemeContainer {
                     const A = area.w * area.h;
                     if (overlap && !myMath.tooSmall(A)) {
                         if ((overlap.w * overlap.h) / A >= 0.5)  {
-                            return item;
+                            return candidateItem;
                         }
                     }
                 }
