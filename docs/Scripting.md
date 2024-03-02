@@ -99,6 +99,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [findItemByName](#finditembyname)
       - [findItemById](#finditembyid)
       - [findChildItemByName](#findchilditembyname)
+      - [findChildItemsByTag](#findchilditemsbytag)
       - [findParent](#findparent)
       - [getValue](#getvalue)
       - [setValue](#setvalue)
@@ -934,6 +935,20 @@ it.setTextSize('body', 30)
 ##### findChildItemByName
 
 `findChildItemByName(name)` searches only for child items of the current item and returns the first one which name matches the specified `name` argument. This is used when you want to narrow the scope of items within particular group.
+
+
+##### findChildItemsByTag
+
+`findChildItemByName(tag)` searches only for child items of the current item and returns the [List](#list) object,
+which represents a list of items that contain the specified `tag` in theirs tags. This is used when you need to manipulate multiple items
+
+```js
+for (frame = 2; frame < 10; frame++) {
+    findChildItemByName(`frame-${frame}`).forEach((item) => {
+        item.hide()
+    })
+}
+```
 
 
 ##### findParent

@@ -2377,6 +2377,10 @@ class SchemeContainer {
         return this.itemMap[itemId];
     }
 
+    /**
+     * @param {String} tag
+     * @returns {Array<Item>}
+     */
     findItemsByTag(tag) {
         const itemIds = this._itemTagsToIds[tag];
         const items = [];

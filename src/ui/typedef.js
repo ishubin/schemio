@@ -192,6 +192,7 @@
  * @typedef {Object} Item
  * @property {String} id
  * @property {String} name
+ * @property {Array<String>} tags
  * @property {ItemArgs} args
  * @property {ItemMeta} meta
  * @property {String} description

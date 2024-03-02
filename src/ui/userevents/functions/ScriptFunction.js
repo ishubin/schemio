@@ -17,6 +17,7 @@ import { Vector } from "../../templater/vector";
 import Events from "../Events";
 import Shape from "../../components/editor/items/shapes/Shape";
 import ScriptFunctionEditor from '../../components/editor/properties/behavior/ScriptFunctionEditor.vue';
+import { List } from "../../templater/list";
 
 
 const IS_SOFT = true;
@@ -380,6 +381,11 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             return createItemScriptWrapper(findChildItemByName(item, name), schemeContainer, userEventBus);
         },
 
+        findChildItemsByTag: (tag) => {
+            const items = findChildItemsByTag(item, tag);
+            return new List(...items.map(item => createItemScriptWrapper(item, schemeContainer, userEventBus)));
+        },
+
         distanceToItem: (anotherItem) => {
             return distanceBetweenItems(item, anotherItem);
         },
@@ -446,6 +452,46 @@ function findChildItemByName(item, name) {
     return null;
 }
 
+/**
+ * @param {Item} item
+ * @param {String} tag
+ * @returns {Array<Item>}
+ */
+function findChildItemsByTag(item, tag) {
+    if (!item || !Array.isArray(item.childItems)) {
+        return [];
+    }
+
+    /** @type {Array<Item>} */
+    let searchedItems = [].concat(item.childItems);
+
+    const results = [];
+
+    // doing breadth search first
+    while(searchedItems.length > 0) {
+        const childItem = searchedItems.shift();
+        if (!childItem) {
+            return results;
+        }
+        if (Array.isArray(childItem.tags) && childItem.tags.findIndex(itemTag => itemTag === tag) >= 0) {
+            results.push(childItem);
+        }
+
+        if (Array.isArray(childItem.childItems)) {
+            searchedItems = searchedItems.concat(childItem.childItems);
+        }
+    }
+
+    return results;
+}
+
+/**
+ *
+ * @param {Item} item
+ * @param {SchemeContainer} schemeContainer
+ * @param {*} userEventBus
+ * @returns
+ */
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
     return new Scope({
