@@ -41,6 +41,7 @@ const baseSchema = {
                 opacity          : {type: 'number', min: 0, max: 100, patching: ['replace']},
                 selfOpacity      : {type: 'number', min: 0, max: 100, patching: ['replace']},
                 locked           : {type: 'boolean', patching: ['replace']},
+                mount            : {type: 'boolean', patching: ['replace']},
                 visible          : {type: 'boolean', patching: ['replace']},
                 blendMode        : {type: 'string', patching: ['replace']},
                 cursor           : {type: 'string', patching: ['replace']},

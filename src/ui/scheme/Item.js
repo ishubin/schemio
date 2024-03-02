@@ -127,6 +127,7 @@ export const defaultItemDefinition = {
     cursor: 'default',
     shape: 'none',
     clip: false,
+    mount: true, // specifies that other items could be mounted to this item
     effects: [],
     textSlots: {
         '*': defaultTextSlotProps

@@ -168,6 +168,18 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="label" width="50%">
+                                Allow mounting
+                                <tooltip>
+                                    Allows mounting of other items to this item.
+                                    You can disable it if you don't want other items to be automatically mounted to it.
+                                </tooltip>
+                            </td>
+                            <td class="value" width="50%">
+                                <input class="checkbox" type="checkbox" :checked="item.mount" @input="emitItemFieldChange('mount', arguments[0].target.checked)"/>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="label" width="50%">Shape</td>
                             <td class="value" width="50%">
                                 <select :value="item.shape" @input="$emit('shape-changed', arguments[0].target.value)">

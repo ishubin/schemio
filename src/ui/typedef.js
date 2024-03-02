@@ -203,6 +203,8 @@
  * @property {Number} opacity
  * @property {Array}  links
  * @property {Object} textSlots
+ * @property {Boolean} clip
+ * @property {Boolean} mount - specifies whether the item can be used for auto mounting other items to it (e.g. when creating or dragging)
  * @property {ItemBehavior} behavior
  * @property {Array<Item>} childItems
  * @property {Array<Item>} _childItems - child items that were mounted as part of dynamic component. These items are not shown as editable int the editor

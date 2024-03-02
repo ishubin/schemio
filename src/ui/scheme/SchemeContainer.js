@@ -2134,6 +2134,9 @@ class SchemeContainer {
         return item;
     }
 
+    /**
+     * @returns {Array<Item>}
+     */
     getItems() {
         return this._itemArray;
     }
@@ -3292,7 +3295,7 @@ class SchemeContainer {
             const candidateItem = items[i];
 
             // connectors should not be parent of any other items
-            if (candidateItem.id !== item.id && candidateItem.visible && candidateItem.shape !== 'connector' && (!itemPredicate || itemPredicate(candidateItem))) {
+            if (candidateItem.id !== item.id && candidateItem.mount && candidateItem.visible && candidateItem.shape !== 'connector' && (!itemPredicate || itemPredicate(candidateItem))) {
 
                 const worldArea = this.worldItemAreas.get(candidateItem.id);
 
