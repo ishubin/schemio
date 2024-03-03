@@ -171,8 +171,8 @@
             "area" : {
                 "x": {"$-expr": "padding"},
                 "y": {"$-expr": "padding"},
-                "w": {"$-expr": "width - 2 * padding"},
-                "h": {"$-expr": "height - buttonHeight - 2 * padding - 5"}
+                "w": {"$-expr": "max(1, width - 2 * padding)"},
+                "h": {"$-expr": "max(1, height - buttonHeight - 2 * padding - 5)"}
             },
             "shape": "dummy",
             "shapeProps": {
@@ -237,8 +237,8 @@
             "area" : {
                 "x": {"$-expr": "padding"},
                 "y": {"$-expr": "padding"},
-                "w": {"$-expr": "width - 2 * padding"},
-                "h": {"$-expr": "height - buttonHeight - 2 * padding - 5"}
+                "w": {"$-expr": "max(1, width - 2 * padding)"},
+                "h": {"$-expr": "max(1, height - buttonHeight - 2 * padding - 5)"}
             },
             "shape": "dummy",
             "shapeProps": {
