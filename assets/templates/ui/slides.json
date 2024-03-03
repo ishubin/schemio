@@ -42,6 +42,13 @@
         "    }",
         "    numSlides = max(1, numSlides - 1)",
         "}",
+        "insertSlideAt = (slideIndex) => {",
+        "    duplicateItem(`slide-${numSlides}`, `slide-${numSlides+1}`, `Slide #${numSlides+1}`)",
+        "    for (i = numSlides; i > slideIndex; i--) {",
+        "         moveNativeChildren(`slide-${i}`, `slide-${i+1}`)",
+        "    }",
+        "    numSlides = numSlides + 1",
+        "}",
         "on('delete', (itemId, item) => {",
         "    if (itemId.startsWith('slide-')) {",
         "        slideIdx = parseInt(itemId.substring('slide-'.length)) - 1",
@@ -83,6 +90,24 @@
         "height": 30,
         "click": [
             "showAllSlides = true"
+        ]
+    }, {
+        "$-for": {"start": 0, "until": {"$-expr": "numSlides"}, "it": "idx"},
+        "$-if": "numSlides > 1 && showAllSlides",
+        "data": {
+            "slideIndex": {"$-expr": "idx"}
+        },
+        "selectedItemId": {"$-str": "slide-${idx+1}"},
+        "name": "insertSlide",
+        "type": "button",
+        "text": "Insert slide",
+        "placement": "TL",
+        "x": {"$-expr": "containerMarginX + (slideWidth + slideMargin) * (idx+1) - slideMargin + ifcond(idx > 0, containerMarginX, 0) - slideWidth / 2 - 60"},
+        "y": {"$-expr": "containerMarginTop + slideHeight"},
+        "width": 80,
+        "height": 30,
+        "click": [
+            "insertSlideAt(control.data.slideIndex)"
         ]
     }, {
         "$-for": {"start": 0, "until": {"$-expr": "numSlides"}, "it": "idx"},

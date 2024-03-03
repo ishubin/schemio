@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import shortid from 'shortid';
 import utils from '../../../utils';
 
 /**
@@ -15,6 +16,7 @@ export function createTemplateFunctions(rootItem) {
         findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
         moveNativeChildren: moveNativeChildren(rootItem),
         swapNativeChildren: swapNativeChildren(rootItem),
+        duplicateItem: duplicateItem(rootItem),
 
         clone: (obj) => utils.clone(obj)
     }
@@ -27,6 +29,40 @@ export function createTemplateFunctions(rootItem) {
 function createFindItemByTemplatedIdFunc(rootItem) {
     return (itemId) => {
         return findItemByTemplatedId(rootItem, itemId);
+    };
+}
+
+
+/**
+ *
+ * @param {Item} rootItem
+ * @returns {function(string,string):void}
+ */
+function duplicateItem(rootItem) {
+    return (srcId, dstId, name) => {
+        const result = findItemAndParentByTemplatedId(rootItem, srcId);
+        if (!result) {
+            return;
+        }
+        const item = result.item;
+        const parentItem = result.parentItem;
+
+        /** @type {Item} */
+        const newItem = {
+            id: shortid.generate(),
+            name: name,
+            args: {
+                templated: true,
+                templatedId: dstId,
+            }
+        };
+        for (let field in item) {
+            if (item.hasOwnProperty(field) && field !== 'childItems' && field !== 'meta' && field !== 'args' && field !== 'id' && field !== 'name') {
+                newItem[field] = utils.clone(item[field]);
+            }
+        }
+
+        parentItem.childItems.push(newItem);
     };
 }
 
@@ -87,6 +123,32 @@ function findItemByTemplatedId(rootItem, itemId) {
         // we want to stop traversing in case we reach another template root
         if (item.args && item.args.templatedId && !item.args.templateRef && Array.isArray(item.childItems)) {
             queue = queue.concat(item.childItems);
+        }
+    }
+    return null;
+}
+
+/**
+ *
+ * @param {Item} parentItem
+ * @param {String} itemId
+ * @returns {Object}
+ */
+function findItemAndParentByTemplatedId(parentItem, itemId) {
+    if (!Array.isArray(parentItem.childItems)) {
+        return null;
+    }
+
+    for (let i = 0; i < parentItem.childItems.length; i++) {
+        const item = parentItem.childItems[i];
+        if (item.args && item.args.templated && !item.args.templateRef) {
+            if (item.args.templatedId === itemId) {
+                return {item, parentItem};
+            }
+            const result = findItemAndParentByTemplatedId(item, itemId);
+            if (result) {
+                return result;
+            }
         }
     }
     return null;
