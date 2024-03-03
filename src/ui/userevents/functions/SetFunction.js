@@ -154,6 +154,9 @@ export default {
             });
         } else {
             utils.setObjectProperty(item, args.field, args.value);
+            if (args.field === 'visible') {
+                schemeContainer.updateVisibility(item);
+            }
             EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             resultCallback();
         }

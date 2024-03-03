@@ -45,6 +45,7 @@ export default {
                 destroy() {
                     item.visible = true;
                     item.opacity = args.targetOpacity;
+                    schemeContainer.updateVisibility(item);
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                     if (!args.inBackground) {
                         resultCallback();
@@ -57,6 +58,8 @@ export default {
         } else {
             item.visible = true;
             item.opacity = args.targetOpacity;
+            schemeContainer.updateVisibility(item);
+            EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             resultCallback();
         }
     }

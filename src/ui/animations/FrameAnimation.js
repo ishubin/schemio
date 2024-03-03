@@ -230,6 +230,9 @@ function creatObjectFrameAnimation(schemeContainer, obj, propertyPath, propertyD
             if (isItem && fields[0] === 'area') {
                 schemeContainer.readjustItemAndDescendants(obj.id, IS_SOFT);
             }
+            if (isItem && fields[0] === 'visible') {
+                schemeContainer.updateVisibility(obj);
+            }
             if (isItem) {
                 EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, obj.id);
             }

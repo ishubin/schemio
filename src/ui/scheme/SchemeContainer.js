@@ -523,6 +523,25 @@ class SchemeContainer {
     }
 
     /**
+     * Recursively goes through all child items and updates their calculated visibility based on the mainItem visibility.
+     * This is needed when items visiblity is changed by either `hide`, `show`, `set` function or by frame player
+     * @param {Item} mainItem
+     */
+    updateVisibility(mainItem) {
+        const parent = mainItem.meta && mainItem.meta.parentId ? this.findItemById(mainItem.meta.parentId) : null;
+        const parentVisible = parent ? parent.visible : true;
+        const parentOpacity = parent ? parent.opacity : 100;
+
+        traverseItems([mainItem], (item, parentItem) => {
+            if (item.id === mainItem.id) {
+                item.meta.calculatedVisibility = parentVisible && parentOpacity > 0 && item.visible && item.opacity > 0;
+            } else {
+                item.meta.calculatedVisibility = parentItem.visible && parentItem.opacity > 0 && item.visible && item.opacity > 0;
+            }
+        });
+    }
+
+    /**
      * Recalculates transform for each child item of specified item.
      * It is needed when user drags an item that has sub-items.
      * @param {Item} mainItem

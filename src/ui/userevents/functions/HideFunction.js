@@ -40,6 +40,7 @@ export default {
                 destroy() {
                     item.visible = false;
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+                    schemeContainer.updateVisibility(item);
                     if (!args.inBackground) {
                         resultCallback();
                     }
@@ -51,6 +52,8 @@ export default {
             }
         } else {
             item.visible = false;
+            schemeContainer.updateVisibility(item);
+            EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             resultCallback();
         }
     }

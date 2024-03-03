@@ -195,6 +195,7 @@
  * @property {Array<String>} tags
  * @property {ItemArgs} args
  * @property {ItemMeta} meta
+ * @property {Boolean} visible
  * @property {String} description
  * @property {ItemArea} area
  * @property {String} shape
