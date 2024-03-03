@@ -49,7 +49,7 @@ export default {
 
     methods: {
         onBodyClick(event) {
-            if (!event.srcElement.closest('svg.svg-editor-plot')) {
+            if (!(event.srcElement.closest('svg.svg-editor-plot') || event.srcElement.closest('.item-tooltip'))) {
                 this.$emit('close');
             }
         },
