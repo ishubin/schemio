@@ -1,0 +1,490 @@
+{
+    "name": "Framed diagram",
+    "args": {
+        "frames": {"type": "number", "value": 3, "name": "Frames", "min": 1},
+        "background": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},
+        "strokeColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
+        "strokeSize": {"type": "number", "value": 1, "min": 0, "name": "Stroke size"},
+        "textColor": {"type": "color", "value": "rgba(30,30,30,1.0)", "name": "Text color"},
+        "shadow": {"type": "boolean", "value": true, "name": "Drop shadow"},
+        "buttonColor": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(78, 131, 245, 1)" }, "name": "Button color"},
+        "iconColor": {"type": "color", "value": "rgba(255, 255, 255, 1)", "name": "Icon color"},
+        "buttonSize": {"type": "number", "value": 60, "min": 5, "name": "Button size"},
+        "buttonOpacity": {"type": "number", "value": 60, "min": 5, "name": "Button opacity"},
+        "padding": {"type": "number", "value": 14, "min": 0, "name": "Padding"},
+        "cornerRadius": {"type": "number", "value": 10, "min": 0, "name": "Corner radius"},
+        "frameFill": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(250, 250, 250, 1)" }, "name": "Frame background"},
+        "frameColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Frame color"},
+        "frameStrokeSize": {"type": "number", "value": 1, "min": 0, "name": "Frame stroke size"},
+        "animationDuration": {"type": "number", "value": 0.3, "name": "Animation duration", "min": 0}
+    },
+    "description": "",
+    "preview": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTIgLTIgNjI0IDM0NCI+PGcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9IkJxZFJCQ2JTVWdaIiBkYXRhLWl0ZW0taWQ9IkJxZFJCQ2JTVWdaIj4gPGc+IDwvZz4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij48Zz48ZGVmcz48ZmlsdGVyIGlkPSJpdGVtLWVmZmVjdC1kcm9wLXNoYWRvdy1CcWRSQkNiU1VnWi0wIiB4PSItNTAwJSIgeT0iLTUwMCUiIHdpZHRoPSIyMDAwJSIgaGVpZ2h0PSIyMDAwJSI+PGZlR2F1c3NpYW5CbHVyIGluPSJTb3VyY2VHcmFwaGljIiBzdGREZXZpYXRpb249IjIwIi8+PC9maWx0ZXI+PC9kZWZzPjxwYXRoIGQ9Ik0gNjEwIDM0MCAgTCAxMCAzNDAgYSAxMCAxMCAwIDAgMSAtMTAgLTEwICBMIDAgMTAgIGEgMTAgMTAgMCAwIDEgMTAgLTEwICAgTCA2MTAgMCAgIGEgMTAgMTAgMCAwIDEgMTAgMTAgIEwgNjIwIDMzMCAgIGEgMTAgMTAgMCAwIDEgLTEwIDEwIFoiIHN0cm9rZT0ibm9uZSIgZmlsbD0icmdiYSgwLDAsMCwxLjApIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgzIDMpIiBzdHlsZT0ib3BhY2l0eTogMC4yIiBmaWx0ZXI9InVybCgjaXRlbS1lZmZlY3QtZHJvcC1zaGFkb3ctQnFkUkJDYlNVZ1otMCkiLz48L2c+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gNjEwIDM0MCAgTCAxMCAzNDAgYSAxMCAxMCAwIDAgMSAtMTAgLTEwICBMIDAgMTAgIGEgMTAgMTAgMCAwIDEgMTAgLTEwICAgTCA2MTAgMCAgIGEgMTAgMTAgMCAwIDEgMTAgMTAgIEwgNjIwIDMzMCAgIGEgMTAgMTAgMCAwIDEgLTEwIDEwIFoiIHN0cm9rZS13aWR0aD0iMXB4IiBzdHJva2U9InJnYmEoMTU4LCAxNTcsIDE1NywgMSkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsIDI0MCwgMjQwLCAxKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgICAgICAgPGc+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxNTUsMCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBpZD0iaXRlbS10ZXh0LXNsb3QtNHRjV2F4MTJHd0YtYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjMxMy42MDA4OTMwNjkwMjk5IiBoZWlnaHQ9IjQzLjYwMDg3MjMwMDAzMDY2Ij48ZGl2IHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiBjbGFzcz0iaXRlbS10ZXh0LWNvbnRhaW5lciIgc3R5bGU9ImNvbG9yOiByZ2IoMCwgMCwgMCk7IGZvbnQtc2l6ZTogMjBweDsgZm9udC1mYW1pbHk6IEFyaWFsLCBIZWx2ZXRpY2EsIHNhbnMtc2VyaWY7IHBhZGRpbmc6IDBweDsgdGV4dC1hbGlnbjogY2VudGVyOyB2ZXJ0aWNhbC1hbGlnbjogbWlkZGxlOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyBkaXNwbGF5OiB0YWJsZS1jZWxsOyBib3gtc2l6aW5nOiBib3JkZXItYm94OyBmb250LXdlaWdodDogYm9sZDsgd2lkdGg6IDMxMy42MDFweDsgaGVpZ2h0OiA0My42MDA5cHg7Ij48ZGl2IGNsYXNzPSJpdGVtLXRleHQtZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsiPjxwIHN0eWxlPSJtYXJnaW4tdG9wOiAwcHg7IG1hcmdpbi1ib3R0b206IDBweDsgcGFkZGluZzogMHB4OyBtaW4taGVpZ2h0OiAxOHB4OyI+QW5pbWF0ZWQgRGlhZ3JhbTwvcD48L2Rpdj48L2Rpdj48L2ZvcmVpZ25PYmplY3Q+PC9nPjwvZz4gICAgICAgICA8L2c+PC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsNzQsNjApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gNDcyIDI2NiAgTCAwIDI2NiBhIDAgMCAwIDAgMSAwIDAgIEwgMCAwICBhIDAgMCAwIDAgMSAwIDAgICBMIDQ3MiAwICAgYSAwIDAgMCAwIDEgMCAwICBMIDQ3MiAyNjYgICBhIDAgMCAwIDAgMSAwIDAgWiIgc3Ryb2tlLXdpZHRoPSIxcHgiIHN0cm9rZT0icmdiYSgyMTIsMjEyLDIxMiwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjUwLCAyNTAsIDI1MCwgMSkiLz48L2c+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPjwvZz4gICAgICAgIDxnPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsMjYuOTAxOTk0NTYxMzk1NDQsMjQuNTA5OTcyODA2OTc2MDY2KSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDYwIDQwICBMIDAgNDAgYSAwIDAgMCAwIDEgMCAwICBMIDAgMCAgYSAwIDAgMCAwIDEgMCAwICAgTCA2MCAwICAgYSAwIDAgMCAwIDEgMCAwICBMIDYwIDQwICAgYSAwIDAgMCAwIDEgMCAwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI0MCwyNDAsMjQwLDEuMCkiLz48L2c+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPjwvZz4gICAgICAgICA8L2c+PC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsODYsNDApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAwLjkgNC41MSBDIDIwLjYgNC41MSA0MC4zICA1LjE2IDYwIDUuMTYgIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ii8+IDxnPjxwYXRoIGQ9Ik0gNjAuMDAwMDAwMjI1NjY4ODMgMTAuMTYyNzA0NDY3NzczNDM4IEwgODAuMDAwMDAwMjI1NjY4ODMgNS4xNjI3MDQ0Njc3NzM0Mzc1IEwgNjAuMDAwMDAwMjI1NjY4ODMgMC4xNjI3MDQ0Njc3NzM0Mzc1ICB6ICIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9nPjwvZz4gICA8L2c+ICAgICAgICAgPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDExNiw3MCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+PGcgbW9kZT0iZWRpdCIgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCAwIEMgMTAwIDM4Ljg3IDAgIDIxLjEzIDAgNjAgIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZmlsbD0ibm9uZSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ii8+IDxnPjxwYXRoIGQ9Ik0gLTUgNjAgTCAwIDgwIEwgNSA2MCAgeiAiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L2c+ICAgPC9nPiAgICAgICAgIDwvZz48L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwyMTYsNzApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDAgQyAwIDQwLjY5IDEwMCAgMjkuMzEgMTAwIDcwICIgc3Ryb2tlLXdpZHRoPSIycHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2UtbGluZWpvaW46IHJvdW5kOyIvPiA8Zz48cGF0aCBkPSJNIDk1IDcwIEwgMTAwIDkwIEwgMTA1IDcwICB6ICIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9nPjwvZz4gICA8L2c+ICAgICAgICAgPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDI2NiwxNjApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMCAyNSBBIDUwIDI1IDAgMSAxIDEwMCAyNSAgQSA1MCAyNSAwIDEgMSAwIDI1IFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI0MCwyNDAsMjQwLDEuMCkiLz48L2c+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPjwvZz4gICAgICAgICA8L2c+PC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KDEsMCwwLDEsNjYsMTUwKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDAgMjUgQSA1MCAyNSAwIDEgMSAxMDAgMjUgIEEgNTAgMjUgMCAxIDEgMCAyNSBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICAgICAgICAgPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDE2NiwyMCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSA4MCA1MCAgTCAyMCA1MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDgwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDEwMCAzMCAgIGEgMjAgMjAgMCAwIDEgLTIwIDIwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI0MCwyNDAsMjQwLDEuMCkiLz48L2c+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyIvPjwvZz4gICAgICAgICA8L2c+PC9nPjwvZz4gPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDcsMTQwKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMC42OyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMCAzMCBBIDMwIDMwIDAgMSAxIDYwIDMwICBBIDMwIDMwIDAgMSAxIDAgMzAgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoNzgsIDEzMSwgMjQ1LCAxKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgICAgICAgPGc+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxNSwxOCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+PGcgbW9kZT0iZWRpdCIgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDIwIDAgTCAyMCAyNSBMIDAgMTIuNSBMIDIwIDAgIFogIiBzdHJva2Utd2lkdGg9IjRweCIgc3Ryb2tlPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMSkiIHN0eWxlPSJzdHJva2UtbGluZWpvaW46IHJvdW5kOyIvPjwvZz4gICA8L2c+ICAgICAgICAgPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgtMSwxLjIyNDY0Njc5OTE0NzM1MzJlLTE2LC0xLjIyNDY0Njc5OTE0NzM1MzJlLTE2LC0xLDYwLDYwKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDA7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDAgMzAgQSAzMCAzMCAwIDEgMSA2MCAzMCAgQSAzMCAzMCAwIDEgMSAwIDMwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJyZ2JhKDI0MCwyNDAsMjQwLDEuMCkiLz48L2c+PC9nPjwvZz4gIDxnIHN0eWxlPSJvcGFjaXR5OiAwOyIvPjwvZz4gICAgICAgICA8L2c+PC9nPjwvZz4gPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDU1MywxNDApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAwLjY7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDMwIEEgMzAgMzAgMCAxIDEgNjAgMzAgIEEgMzAgMzAgMCAxIDEgMCAzMCBaIiBzdHJva2Utd2lkdGg9IjBweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSg3OCwgMTMxLCAyNDUsIDEpIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgtMSwxLjIyNDY0Njc5OTE0NzM1MzJlLTE2LC0xLjIyNDY0Njc5OTE0NzM1MzJlLTE2LC0xLDQ0LDQzKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj48ZyBtb2RlPSJlZGl0IiBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMjAgMCBMIDIwIDI1IEwgMCAxMi41IEwgMjAgMCAgWiAiIHN0cm9rZS13aWR0aD0iNHB4IiBzdHJva2U9InJnYmEoMjU1LCAyNTUsIDI1NSwgMSkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAxKSIgc3R5bGU9InN0cm9rZS1saW5lam9pbjogcm91bmQ7Ii8+PC9nPiAgIDwvZz4gICAgICAgICA8L2c+PC9nPjxnIHRyYW5zZm9ybT0ibWF0cml4KC0xLDEuMjI0NjQ2Nzk5MTQ3MzUzMmUtMTYsLTEuMjI0NjQ2Nzk5MTQ3MzUzMmUtMTYsLTEsNjAsNjApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMDsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMCAzMCBBIDMwIDMwIDAgMSAxIDYwIDMwICBBIDMwIDMwIDAgMSAxIDAgMzAgWiIgc3Ryb2tlLXdpZHRoPSIycHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjQwLDI0MCwyNDAsMS4wKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDA7Ii8+PC9nPiAgICAgICAgIDwvZz48L2c+PC9nPiA8L2c+PC9nPjwvZz4gPC9nPjwvZz48L3N2Zz4=",
+    "init": [
+        "buttonMargin = round(padding / 2)",
+        "containerMarginX = buttonMargin*2 + buttonSize",
+        "containerMarginTop = 60",
+        "btnIconK = buttonSize / 60",
+        "btnIconWidth = 20 * btnIconK",
+        "btnIconHeight = 25 * btnIconK",
+        "containerMarginBottom = padding",
+        "slideWidth = round(max(1, width - containerMarginX * 2))",
+        "slideHeight = round(max(1, height - containerMarginTop - containerMarginBottom))",
+        "slideMargin = 10",
+        "currentSlideVarName = 'current-slide-' + uid()",
+        "headerWidth = min(max(200, round(width / 2)), width)"
+    ],
+    "item": {
+        "id": "root",
+        "name": "Framed Diagram",
+        "shapeProps": {
+            "cornerRadius": {"$-expr": "cornerRadius"},
+            "fill": {"$-expr": "background"},
+            "strokeColor": {"$-expr": "strokeColor"},
+            "strokeSize": {"$-expr": "strokeSize"},
+            "strokePattern": "solid"
+        },
+        "shape": "rect",
+        "area": { "x": 0, "y": 0, "w": 600, "h": 400, "r": 0, "px": 0.5, "py": 0.5, "sx": 1, "sy": 1 },
+        "behavior": {
+            "events": [{
+                "id": {"$-expr": "uid()"},
+                "event": "init",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "method": "script",
+                    "on": true,
+                    "element": "self",
+                    "args": {
+                        "script": {"$-str": [
+                            "setVar('frames', ${frames})",
+                            "setVar('currentFrame', 1)",
+                            "sendEvent('toggle-current-frame')"
+                        ]},
+                        "animated": false
+                    }
+                } ]
+            }, {
+                "id": {"$-expr": "uid()"},
+                "event": "toggle-current-frame",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "method": "script",
+                    "on": true,
+                    "element": "self",
+                    "args": {
+                        "script": {"$-rawstr": [
+                            "frames = getVar('frames')",
+                            "currentFrame = getVar('currentFrame')",
+                            "for (frame = 1; frame <= currentFrame; frame++) {",
+                            "    findChildItemsByTag(`frame-${frame}`).forEach((item) => {item.show()})",
+                            "}",
+                            "for (frame = currentFrame+1; frame <= frames; frame++) {",
+                            "    findChildItemsByTag(`frame-${frame}`).forEach((item) => {item.hide()})",
+                            "}",
+                            "if (currentFrame == 1) {",
+                            "    findChildItemByName('Prev button').hide()",
+                            "} else {",
+                            "    findChildItemByName('Prev button').show()",
+                            "}",
+                            "if (currentFrame >= frames) {",
+                            "    findChildItemByName('Next button').hide()",
+                            "} else {",
+                            "    findChildItemByName('Next button').show()",
+                            "}"
+                        ]},
+                        "animated": false
+                    }
+                } ]
+            }, {
+                "id": {"$-expr": "uid()"},
+                "event": "to-previous-frame",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "method": "script",
+                    "on": true,
+                    "element": "self",
+                    "args": {
+                        "script": {"$-rawstr": [
+                            "currentFrame = getVar('currentFrame')",
+                            "if (currentFrame > 1) {",
+                            "    currentFrame--",
+                            "    setVar('currentFrame', currentFrame)",
+                            "    sendEvent('toggle-current-frame')",
+                            "}"
+                        ]},
+                        "animated": false
+                    }
+                } ]
+            }, {
+                "id": {"$-expr": "uid()"},
+                "event": "to-next-frame",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "method": "script",
+                    "on": true,
+                    "element": "self",
+                    "args": {
+                        "script": {"$-rawstr": [
+                            "frames = getVar('frames')",
+                            "currentFrame = getVar('currentFrame')",
+                            "if (currentFrame < frames) {",
+                            "    currentFrame++",
+                            "    setVar('currentFrame', currentFrame)",
+                            "    sendEvent('toggle-current-frame')",
+                            "}"
+                        ]},
+                        "animated": false
+                    }
+                } ]
+            }]
+        },
+        "tags": [],
+        "effects": [ {
+            "$-if": "shadow == true",
+            "id": {"$-expr": "uid()"},
+            "effect": "drop-shadow",
+            "name": "Drop Shadow",
+            "args": {
+                "color": "rgba(0,0,0,1.0)",
+                "dx": 3,
+                "dy": 3,
+                "blur": 20,
+                "opacity": 20,
+                "inside": false
+            }
+        } ],
+        "childItems": [ {
+            "id": "header",
+            "name": "Header",
+            "shape": "none",
+            "textSlots": {
+                "body": {
+                    "text": "<p><strong>Framed diagram</strong></p>",
+                    "paddingLeft": 0,
+                    "paddingRight": 0,
+                    "paddingTop": 0,
+                    "paddingBottom": 0,
+                    "color": {"$-expr": "textColor"},
+                    "halign": "center",
+                    "valign": "middle",
+                    "fontSize": 20,
+                    "whiteSpace": "normal",
+                    "font": "Arial"
+                }
+            },
+            "locked": true,
+            "area": {
+                "x": {"$-expr": "(width - headerWidth)/2"},
+                "y": 0,
+                "w": {"$-expr": "headerWidth"},
+                "h": 40
+            },
+            "opacity": 100,
+            "behavior": {
+                "events": []
+            },
+            "shapeProps": {},
+            "selfOpacity": 100,
+            "visible": true
+        }, {
+            "id": "container",
+            "name": "Container",
+            "shape": "rect",
+            "locked": true,
+            "shapeProps": {
+                "cornerRadius": 0,
+                "fill": {"$-expr": "frameFill"},
+                "strokeColor": {"$-expr": "frameColor"},
+                "strokeSize": {"$-expr": "frameStrokeSize"},
+                "strokePattern": "solid"
+            },
+            "area": {
+                "x": {"$-expr": "containerMarginX"},
+                "y": {"$-expr": "containerMarginTop"},
+                "w": {"$-expr": "slideWidth"},
+                "h": {"$-expr": "slideHeight"}
+            },
+            "opacity": 100,
+            "textSlots": { },
+            "behavior": {
+                "events": []
+            },
+            "selfOpacity": 100,
+            "visible": true
+        }, {
+            "id": "btn-prev",
+            "shape": "ellipse",
+            "locked": true,
+            "area": {
+                "x": {"$-expr": "buttonMargin"},
+                "y": {"$-expr": "(height - buttonSize) / 2"},
+                "w": {"$-expr": "buttonSize"},
+                "h": {"$-expr": "buttonSize"}
+            },
+            "opacity": {"$-expr": "buttonOpacity"},
+            "name": "Prev button",
+            "textSlots": { },
+            "behavior": {
+                "events": [{
+                    "id": {"$-expr": "uid()"},
+                    "event": "init",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "on": true,
+                        "element": "self",
+                        "method": "hide",
+                        "args": {
+                            "animated": false
+                        }
+                    }]
+                } ]
+            },
+            "shapeProps": {
+                "fill": {"$-expr": "buttonColor"},
+                "strokeColor": "rgba(30,30,30,1.0)",
+                "strokeSize": 0,
+                "strokePattern": "solid"
+            },
+            "selfOpacity": 100,
+            "visible": true,
+            "tags": [],
+            "clip": false,
+            "effects": [],
+            "childItems": [ {
+                "id": "prev-icon",
+                "name": "Prev icon",
+                "locked": true,
+                "area": {
+                    "x": {"$-expr": "15 * btnIconK"},
+                    "y": {"$-expr": "18 * btnIconK"},
+                    "w": {"$-expr": "btnIconWidth"},
+                    "h": {"$-expr": "btnIconHeight"},
+                    "r": 0, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5
+                },
+                "shape": "path",
+                "shapeProps": {
+                    "paths": [
+                        {
+                            "id": {"$-expr": "uid()"},
+                            "closed": true,
+                            "points": [
+                                { "t": "L", "x": 100, "y": 0 },
+                                { "t": "L", "x": 100, "y": 100 },
+                                { "t": "L", "x": 0, "y": 50 }
+                            ],
+                            "pos": "relative"
+                        }
+                    ],
+                    "fill": {
+                        "type": "solid",
+                        "color": {"$-expr": "iconColor"}
+                    },
+                    "strokeColor":{"$-expr": "iconColor"},
+                    "strokeSize": 4,
+                    "strokePattern": "solid"
+                },
+                "textSlots": {},
+                "opacity": 100,
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "links": [],
+                "blendMode": "normal",
+                "cursor": "default",
+                "clip": false,
+                "effects": [],
+                "description": "",
+                "behavior": {
+                    "events": []
+                }
+            }, {
+                "id": "btn-prev-overlay",
+                "name": "Button prev overlay",
+                "locked": true,
+                "shape": "ellipse",
+                "cursor": "pointer",
+                "selfOpacity": 0,
+                "area": { "x": 0, "y": 0, "w": {"$-expr": "buttonSize"}, "h": {"$-expr": "buttonSize"}, "r": 180, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5 },
+                "behavior": {
+                    "events": [{
+                        "id": {"$-expr": "uid()"},
+                        "event": "clicked",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "#root",
+                            "method": "sendEvent",
+                            "args": {
+                                "event": "to-previous-frame"
+                            }
+                        }]
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "event": "mousein",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "#btn-prev",
+                            "method": "set",
+                            "args": {
+                                "field": "opacity",
+                                "value": 100,
+                                "animated": true
+                            }
+                        }]
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "event": "mouseout",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "#btn-prev",
+                            "method": "set",
+                            "args": {
+                                "field": "opacity",
+                                "value": {"$-expr": "buttonOpacity"},
+                                "animated": true
+                            }
+                        }]
+                    }]
+                }
+            } ]
+        }, {
+            "id": "btn-next",
+            "shape": "ellipse",
+            "locked": true,
+            "cursor": "default",
+            "area": {
+                "x": {"$-expr": "width - buttonSize - buttonMargin"},
+                "y": {"$-expr": "(height - buttonSize) / 2"},
+                "w": {"$-expr": "buttonSize"},
+                "h": {"$-expr": "buttonSize"},
+                "r": 0,
+                "px": 0.5,
+                "py": 0.5,
+                "sx": 1,
+                "sy": 1
+            },
+            "opacity": {"$-expr": "buttonOpacity"},
+            "blendMode": "normal",
+            "name": "Next button",
+            "description": "",
+            "links": [],
+            "textSlots": { },
+            "behavior": {
+                "events": []
+            },
+            "shapeProps": {
+                "fill": {"$-expr": "buttonColor"},
+                "strokeColor": "rgba(30,30,30,1.0)",
+                "strokeSize": 0,
+                "strokePattern": "solid"
+            },
+            "selfOpacity": 100,
+            "visible": true,
+            "tags": [],
+            "clip": false,
+            "effects": [],
+            "childItems": [ {
+                "id": "next-icon",
+                "name": "Next icon",
+                "locked": true,
+                "area": {
+                    "x": {"$-expr": "24 * btnIconK"},
+                    "y": {"$-expr": "18 * btnIconK"},
+                    "w": {"$-expr": "btnIconWidth"},
+                    "h": {"$-expr": "btnIconHeight"},
+                    "r": 180, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5
+                },
+                "shape": "path",
+                "shapeProps": {
+                    "paths": [
+                        {
+                            "id": {"$-expr": "uid()"},
+                            "closed": true,
+                            "points": [
+                                { "t": "L", "x": 100, "y": 0 },
+                                { "t": "L", "x": 100, "y": 100 },
+                                { "t": "L", "x": 0, "y": 50 }
+                            ],
+                            "pos": "relative"
+                        }
+                    ],
+                    "fill": {
+                        "type": "solid",
+                        "color": {"$-expr": "iconColor"}
+                    },
+                    "strokeColor": {"$-expr": "iconColor"},
+                    "strokeSize": 4,
+                    "strokePattern": "solid"
+                },
+                "textSlots": {},
+                "opacity": 100,
+                "selfOpacity": 100,
+                "visible": true,
+                "tags": [],
+                "links": [],
+                "blendMode": "normal",
+                "cursor": "default",
+                "clip": false,
+                "effects": [],
+                "behavior": {
+                    "events": []
+                }
+            }, {
+                "id": "btn-next-overlay",
+                "name": "Button next overlay",
+                "locked": true,
+                "shape": "ellipse",
+                "cursor": "pointer",
+                "selfOpacity": 0,
+                "area": { "x": 0, "y": 0, "w": {"$-expr": "buttonSize"}, "h": {"$-expr": "buttonSize"}, "r": 180, "sx": 1, "sy": 1, "px": 0.5, "py": 0.5 },
+                "behavior": {
+                    "events": [{
+                        "id": {"$-expr": "uid()"},
+                        "event": "clicked",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "#root",
+                            "method": "sendEvent",
+                            "args": {
+                                "event": "to-next-frame"
+                            }
+                        }]
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "event": "mousein",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "#btn-next",
+                            "method": "set",
+                            "args": {
+                                "field": "opacity",
+                                "value": 100,
+                                "animated": true
+                            }
+                        }]
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "event": "mouseout",
+                        "actions": [{
+                            "id": {"$-expr": "uid()"},
+                            "element": "#btn-next",
+                            "method": "set",
+                            "args": {
+                                "field": "opacity",
+                                "value": {"$-expr": "buttonOpacity"},
+                                "animated": true
+                            }
+                        }]
+                    }]
+                }
+            } ]
+        } ],
+        "textSlots": { },
+        "opacity": 100,
+        "selfOpacity": 100,
+        "visible": true,
+        "blendMode": "normal",
+        "cursor": "default",
+        "clip": false
+    }
+}

@@ -229,6 +229,10 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             return item.id;
         },
 
+        getName() {
+            return item.name;
+        },
+
         setVar(name, value) {
             if (!item.args) {
                 item.args = {};

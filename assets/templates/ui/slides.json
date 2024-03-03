@@ -21,7 +21,6 @@
         }
     },
     "init": [
-        "slideTag = 'slide-container-' + uid()",
         "buttonMargin = round(padding / 2)",
         "containerMarginX = buttonMargin*2 + buttonSize",
         "containerMarginTop = 60",
