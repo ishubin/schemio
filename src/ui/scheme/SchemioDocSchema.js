@@ -196,6 +196,10 @@ function createFieldSchemaForArg(argDef) {
             t : {type: 'string', patching: ['replace']},
             nx : {type: 'number', patching: ['replace']},
             ny : {type: 'number', patching: ['replace']},
+            // below is only for backwards compatibility for being able to patch old documents
+            // bx and by should not be used anymore by connectors
+            bx : {type: 'number', patching: ['replace']},
+            by : {type: 'number', patching: ['replace']},
         }};
     }
     if (argDef.type === 'animations') {
