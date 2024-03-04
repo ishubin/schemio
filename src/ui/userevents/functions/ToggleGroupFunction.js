@@ -11,7 +11,7 @@ import EditorEventBus from '../../components/editor/EditorEventBus';
 export default {
     name: 'Toggle in group',
 
-    description: 'Hides all other items of by specified tag, leaving only the specified item visible',
+    description: 'Hides all other items by specified tag, leaving only the specified item visible',
 
     args: {
         group: { name: 'Tag', type: 'element', description: 'Tag representing a group of items that will be hidden instead of the toggled item'},

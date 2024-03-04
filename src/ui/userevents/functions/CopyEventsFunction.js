@@ -16,6 +16,9 @@ export default {
 
     argsToShortString(args, schemeContainer) {
         if (args.destination) {
+            if (args.destination.startsWith('tag:')) {
+                return args.destination;
+            }
             const refItem = schemeContainer.findFirstElementBySelector(args.destination);
             if (refItem) {
                 return refItem.name;
