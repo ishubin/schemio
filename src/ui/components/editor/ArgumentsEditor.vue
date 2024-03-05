@@ -50,6 +50,12 @@
                         :use-self="false"
                         @selected="onValueChange(argName, arguments[0])"
                     />
+
+                    <DiagramPicker v-if="arg.type === 'scheme-ref'"
+                        :key="`args-editor-diagram-picker-${editorId}-${argumentValues[argName]}`"
+                        :diagramId="argumentValues[argName]"
+                        @diagram-selected="onDiagramPicked(argName, arguments[0])"
+                        />
                 </td>
                 <td v-else colspan="2">
                     <div class="label">
@@ -74,6 +80,7 @@ import ColorPicker from './ColorPicker.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import Modal from '../Modal.vue';
 import ElementPicker from './ElementPicker.vue';
+import DiagramPicker from './DiagramPicker.vue';
 import Tooltip from '../Tooltip.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import ScriptEditor from './ScriptEditor.vue';
@@ -87,7 +94,7 @@ export default {
         apiClient          : {type: Object, default: null}
     },
 
-    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor, ScriptEditor},
+    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor, ScriptEditor, DiagramPicker},
 
     beforeMount() {
         this.updateArgumentControlDependencies();
@@ -129,6 +136,10 @@ export default {
             this.argumentValues[argName] = value;
             this.emitArgumentChange(argName);
             this.updateArgumentControlDependencies();
+        },
+
+        onDiagramPicked(argName, diagram) {
+            this.onValueChange(argName, diagram.id);
         },
 
         emitArgumentChange(argName) {

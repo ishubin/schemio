@@ -6,6 +6,7 @@ import State from './State.js';
 import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 import { traverseItems } from '../../../scheme/Item.js';
+import EditorEventBus from '../EditorEventBus.js';
 
 export default class StateCreateItem extends State {
     constructor(editorId, store, listener) {
@@ -108,6 +109,9 @@ export default class StateCreateItem extends State {
         this.schemeContainer.selectItem(this.item);
         this.listener.onItemChanged(this.item.id);
         this.listener.onSchemeChangeCommitted();
+        if (this.template) {
+            EditorEventBus.item.templateSelected.$emit(this.editorId, this.item, this.template.templateRef);
+        }
         this.cancel();
     }
 

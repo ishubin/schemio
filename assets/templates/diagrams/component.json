@@ -1,0 +1,165 @@
+{
+    "name": "Dynamic component",
+    "args": {
+        "component": {"type": "scheme-ref", "value": "", "name": "External Document", "description": "External document to be loaded and displayed when user clicks the load button"},
+        "background": {"type": "advanced-color", "value": {"type": "solid", "color": "rgba(82,139,165,1)"}, "name": "Background"},
+        "strokeColor": {"type": "color", "value": "rgba(14,98,115,1)", "name": "Stroke"},
+        "strokeSize": {"type": "number", "value": 0, "min": 0, "name": "Stroke size"},
+        "cornerRadius": {"type": "number", "value": 10, "name": "Corner radius", "min": 0},
+        "customSize": {"type": "boolean", "value": false, "name": "Custom size",
+            "description": "Lets specify custom width and height for component. If not set, then the component will have the same size as the button"
+        },
+        "componentWidth": {"type": "number", "value": 400, "name": "Component Width", "min": 1, "depends": {"customSize": true}},
+        "componentHeight": {"type": "number", "value": 350, "name": "Component Height", "min": 1, "depends": {"customSize": true}}
+    },
+    "defaultArea": { "x": 100, "y": -240, "w": 500, "h": 400, "r": 0, "px": 0.5, "py": 0.5, "sx": 1, "sy": 1 },
+    "description": "A button that triggers loading of external diagram on top of it",
+    "preview": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTQgLTQgMjY4IDE2OCI+PGcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9ImI1dGZVMkEwbCIgZGF0YS1pdGVtLWlkPSJiNXRmVTJBMGwiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAyNjAgMTYwICBMIDAgMTYwIGEgMCAwIDAgMCAxIDAgMCAgTCAwIDAgIGEgMCAwIDAgMCAxIDAgMCAgIEwgMjYwIDAgICBhIDAgMCAwIDAgMSAwIDAgIEwgMjYwIDE2MCAgIGEgMCAwIDAgMCAxIDAgMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDE5MywgMTk0LCAxOTUsIDEpIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjQwLDI0MCwyNDAsMS4wKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgICAgICAgPGc+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSw2MCw0MCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAxMzAgODAgIEwgMTAgODAgYSAxMCAxMCAwIDAgMSAtMTAgLTEwICBMIDAgMTAgIGEgMTAgMTAgMCAwIDEgMTAgLTEwICAgTCAxMzAgMCAgIGEgMTAgMTAgMCAwIDEgMTAgMTAgIEwgMTQwIDcwICAgYSAxMCAxMCAwIDAgMSAtMTAgMTAgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoODIsMTM5LDE2NSwxKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zm9yZWlnbk9iamVjdCBpZD0iaXRlbS10ZXh0LXNsb3QtbHNDdTA0QUJCRWVyLWJvZHkiIHg9IjAiIHk9IjAiIHdpZHRoPSIxNDAiIGhlaWdodD0iODAiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYigyNTUsIDI1NSwgMjU1KTsgZm9udC1zaXplOiAxNHB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBjZW50ZXI7IHZlcnRpY2FsLWFsaWduOiBtaWRkbGU7IHdoaXRlLXNwYWNlOiBub3JtYWw7IGRpc3BsYXk6IHRhYmxlLWNlbGw7IGJveC1zaXppbmc6IGJvcmRlci1ib3g7IGZvbnQtd2VpZ2h0OiBib2xkOyB3aWR0aDogMTQwcHg7IGhlaWdodDogODBweDsiPjxkaXYgY2xhc3M9Iml0ZW0tdGV4dC1lbGVtZW50IiBzdHlsZT0iZGlzcGxheTogaW5saW5lLWJsb2NrOyI+TW9yZTwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPiAgICAgICAgPGcvPiA8L2c+PC9nPjwvZz4gPC9nPjwvZz48L3N2Zz4=",
+    "init": [
+        "cWidth = width",
+        "cHeight = height",
+        "if (customSize) {",
+            "cWidth = componentWidth",
+            "cHeight = componentHeight",
+        "}"
+    ],
+    "item": {
+        "id": "root",
+        "area": { "x": 0, "y": 0, "w": {"$-expr": "width"}, "h": {"$-expr": "height"}, "r": 0, "px": 0.5, "py": 0.5, "sx": 1, "sy": 1 },
+        "shape": "rect",
+        "name": "Component button",
+        "links": [],
+        "cursor": "pointer",
+        "behavior": {
+            "events": [ {
+                "id": {"$-expr": "uid()"},
+                "event": "clicked",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "element": "#component",
+                    "method": "set",
+                    "on": true,
+                    "args": {
+                        "field": "opacity",
+                        "value": 0,
+                        "animated": false
+                    }
+                }, {
+                    "id": {"$-expr": "uid()"},
+                    "element": "#component",
+                    "method": "loadComponent",
+                    "on": true,
+                    "args": {}
+                }, {
+                    "id": {"$-expr": "uid()"},
+                    "element": "#component",
+                    "method": "show",
+                    "on": true,
+                    "args": {
+                        "animated": true
+                    }
+                }]
+            }, {
+                "id": {"$-expr": "uid()"},
+                "event": "mousein",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "element": "self",
+                    "method": "set",
+                    "on": true,
+                    "args": {
+                        "field": "selfOpacity",
+                        "value": 80,
+                        "animated": true
+                    }
+                }]
+            }, {
+                "id": {"$-expr": "uid()"},
+                "event": "mouseout",
+                "actions": [{
+                    "id": {"$-expr": "uid()"},
+                    "element": "self",
+                    "method": "set",
+                    "on": true,
+                    "args": {
+                        "field": "selfOpacity",
+                        "value": 100,
+                        "animated": true
+                    }
+                }]
+            } ]
+        },
+        "shapeProps": {
+            "cornerRadius": {"$-expr": "cornerRadius"},
+            "fill": {"$-expr": "background"},
+            "strokeColor": {"$-expr": "strokeColor"},
+            "strokeSize": {"$-expr": "strokeSize"}
+        },
+        "textSlots": {
+            "body": {
+                "text": "More",
+                "color": "rgba(255,255,255,1)",
+                "halign": "center",
+                "valign": "middle",
+                "bold": true
+            }
+        },
+        "childItems": [ {
+            "id": "component",
+            "name": "component",
+            "shape": "component",
+            "area": {
+                "x": {"$-expr": "width/2 - cWidth/2"},
+                "y": {"$-expr": "height/2 - cHeight/2"},
+                "w": {"$-expr": "cWidth"},
+                "h": {"$-expr": "cHeight"},
+                "r": 0, "px": 0.5, "py": 0.5, "sx": 1, "sy": 1
+            },
+            "visible": false,
+            "shapeProps": {
+                "kind": "external",
+                "schemeId": {"$-expr": "component"},
+                "showButton": false,
+                "strokeSize": 0
+            },
+            "behavior": {
+                "events": [{
+                    "id": {"$-expr": "uid()"},
+                    "event": "Component Destroyed",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": "#component",
+                        "method": "hide",
+                        "on": true,
+                        "args": {
+                            "animated": true
+                        }
+                    }]
+                }, {
+                    "id": {"$-expr": "uid()"},
+                    "event": "Component Failed",
+                    "actions": [{
+                        "id": {"$-expr": "uid()"},
+                        "element": "#component",
+                        "method": "wait",
+                        "on": true,
+                        "args": {
+                            "time": 3
+                        }
+                    }, {
+                        "id": {"$-expr": "uid()"},
+                        "element": "#component",
+                        "method": "hide",
+                        "on": true,
+                        "args": {
+                            "animated": true
+                        }
+                    }]
+                }]
+            }
+        } ],
+        "opacity": 100,
+        "selfOpacity": 100,
+        "visible": true
+    }
+}
