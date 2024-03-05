@@ -264,6 +264,8 @@ class DragItemState extends SubState {
             this.item.area.y = ny;
         }
 
+        this.schemeContainer.readjustItemAndDescendants(this.item.id, true);
+
         this.looper.updateItemPosition(this.item);
         EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
     }
