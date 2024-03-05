@@ -22,9 +22,11 @@
 <script>
 import shortid from 'shortid';
 import VueColor from 'vue-color';
+import EditorEventBus from './EditorEventBus';
 
 export default {
     props: {
+        editorId: {type: String, required: false},
         color   : {type: String, default: 'rgba(0,0,0,1.0)'},
         width   : {type: String, default: '100%'},
         height  : {type: String, default: '26px'},
@@ -39,6 +41,7 @@ export default {
     },
     beforeDestroy() {
         document.body.removeEventListener('click', this.onGlobalClick);
+        EditorEventBus.colorControlToggled.$emit(this.editorId, false);
     },
     data() {
         return {
@@ -62,6 +65,7 @@ export default {
             }
 
             if (this.tooltip.shown) {
+                EditorEventBus.colorControlToggled.$emit(this.editorId, false);
                 this.tooltip.shown = false;
                 return;
             }
@@ -69,6 +73,8 @@ export default {
             this.oldColor = this.color;
             this.vuePickerColor = {hex: this.color};
             this.tooltip.shown = true;
+
+            EditorEventBus.colorControlToggled.$emit(this.editorId, true);
             this.$nextTick(() => {
                 this.readjustTooltipPosition();
             });
@@ -119,7 +125,8 @@ export default {
             this.tooltip.y = y;
         },
         onGlobalClick(event) {
-            if (!event.target || !event.target.closest(`.color-picker-uid-${this.uid}`)) {
+            if (this.tooltip.shown && (!event.target || !event.target.closest(`.color-picker-uid-${this.uid}`))) {
+                EditorEventBus.colorControlToggled.$emit(this.editorId, false);
                 this.tooltip.shown = false;
             }
         },

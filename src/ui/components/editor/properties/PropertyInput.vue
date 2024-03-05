@@ -9,9 +9,9 @@
 
         <NumberTextfield v-if="descriptor.type === 'number'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" :min="minValue" :max="maxValue"/>
 
-        <ColorPicker v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue(arguments[0])"/>
+        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue(arguments[0])"/>
 
-        <AdvancedColorEditor v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" />
+        <AdvancedColorEditor :editorId="editorId" v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" />
 
         <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue(arguments[0].srcElement.checked)"/>
 

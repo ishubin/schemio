@@ -126,6 +126,7 @@ function interpolateGradientColor(midColor, leftColor, rightColor) {
 
 export default {
     props: {
+        editorId : {type: String, required: true},
         value    : {type: Object, required: true},
         width    : {type: String, default: '100%'},
         height   : {type: String, default: '26px'},

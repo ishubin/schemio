@@ -47,7 +47,7 @@
                     <tr>
                         <td class="label" width="50%">Color</td>
                         <td class="value" width="50%">
-                            <color-picker :color="textSlot.color" @input="emitTextSlotPropertyChange('color', arguments[0])"></color-picker>
+                            <color-picker :editorId="editorId" :color="textSlot.color" @input="emitTextSlotPropertyChange('color', arguments[0])"></color-picker>
                         </td>
                     </tr>
                     <tr>

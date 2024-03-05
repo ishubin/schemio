@@ -12,16 +12,16 @@
         </div>
         <div class="row">
             <div class="col-1 padded" title="Fill">
-                <AdvancedColorEditor :value="item.shapeProps.fill" :disabled="false" @changed="$emit('shape-prop-changed', 'fill', 'advanced-color', arguments[0])" />
+                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.fill" :disabled="false" @changed="$emit('shape-prop-changed', 'fill', 'advanced-color', arguments[0])" />
             </div>
             <div class="col-1 padded" title="Secondary fill">
-                <AdvancedColorEditor :value="item.shapeProps.rowSecondaryFill" :disabled="!item.shapeProps.oddEvenFill" @changed="$emit('shape-prop-changed', 'rowSecondaryFill', 'advanced-color', arguments[0])" />
+                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.rowSecondaryFill" :disabled="!item.shapeProps.oddEvenFill" @changed="$emit('shape-prop-changed', 'rowSecondaryFill', 'advanced-color', arguments[0])" />
             </div>
             <div class="col-1 padded" title="Header fill">
-                <AdvancedColorEditor :value="item.shapeProps.headerFill" :disabled="item.shapeProps.header === 'none'" @changed="$emit('shape-prop-changed', 'headerFill', 'advanced-color', arguments[0])" />
+                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.headerFill" :disabled="item.shapeProps.header === 'none'" @changed="$emit('shape-prop-changed', 'headerFill', 'advanced-color', arguments[0])" />
             </div>
             <div class="col-1 padded" title="Stroke color">
-                <ColorPicker :color="item.shapeProps.stroke" :disabled="item.shapeProps.style === 'flat'" @input="$emit('shape-prop-changed', 'stroke', 'color', arguments[0])"/>
+                <ColorPicker :editorId="editorId" :color="item.shapeProps.stroke" :disabled="item.shapeProps.style === 'flat'" @input="$emit('shape-prop-changed', 'stroke', 'color', arguments[0])"/>
             </div>
         </div>
         <div class="row">
@@ -218,7 +218,12 @@ tableStyles.forEach(style => {
 });
 
 export default {
-    props: ['item', 'refreshKey'],
+    props: {
+        editorId: {type: String, required: true},
+        item: {type: Object},
+        refreshKey: {type: String}
+    },
+
     components: {NumberTextfield, ColorPicker, AdvancedColorEditor},
     data() {
         return {

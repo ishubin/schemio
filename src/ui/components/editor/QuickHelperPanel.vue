@@ -110,6 +110,7 @@
                 <ul class="button-group">
                     <li v-if="supportsFill">
                         <advanced-color-editor
+                            :editorId="editorId"
                             :value="fillColor"
                             width="18px"
                             height="18px"
@@ -123,6 +124,8 @@
                             @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
                             @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
                             @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"
+                            @collapsed="onStrokeControlCollapsed"
+                            @expanded="onStrokeControlExpanded"
                             />
                     </li>
                     <li v-if="firstSelectedItem">
@@ -517,6 +520,14 @@ export default {
 
         toggleTextSelection() {
             this.$emit('text-selection-changed', !this.textSelectionEnabled);
+        },
+
+        onStrokeControlCollapsed() {
+            EditorEventBus.colorControlToggled.$emit(this.editorId, false);
+        },
+
+        onStrokeControlExpanded() {
+            EditorEventBus.colorControlToggled.$emit(this.editorId, true);
         }
     },
 

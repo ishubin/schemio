@@ -23,12 +23,13 @@
                         :disabled="!argumentControlStates[argName].shown"
                         @changed="onValueChange(argName, arguments[0])"/>
 
-                    <color-picker v-if="arg.type === 'color'" :color="argumentValues[argName]"
+                    <color-picker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
                         :disabled="!argumentControlStates[argName].shown"
                         @input="onValueChange(argName, arguments[0])"/>
 
                     <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
                         :apiClient="apiClient"
+                        :editorId="editorId"
                         @changed="onValueChange(argName, arguments[0])"
                         :disabled="!argumentControlStates[argName].shown" />
 

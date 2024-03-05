@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g data-preview-ignore="true" :style="{opacity: useFill ? 1 : 0.5}">
+    <g data-preview-ignore="true" :style="{opacity: mainOpacity}">
         <path v-if="!isItemConnector && isThin" :transform="svgEditBoxTransform"
             :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
             data-type="edit-box"
@@ -425,6 +425,7 @@ import StrokePattern from './items/StrokePattern';
 import myMath from '../../myMath';
 import { itemCompleteTransform, worldPointOnItem } from '../../scheme/SchemeContainer';
 import { compileItemTemplate } from './items/ItemTemplate';
+import EditorEventBus from './EditorEventBus';
 
 
 /**
@@ -501,10 +502,12 @@ export default {
 
     mounted() {
         this.onCursorChange(this.cursor);
+        EditorEventBus.colorControlToggled.$on(this.editorId, this.onColorControlToggled);
     },
 
     beforeDestroy() {
         this.clearConnectionStarterTimeout();
+        EditorEventBus.colorControlToggled.$off(this.editorId, this.onColorControlToggled);
     },
 
     data() {
@@ -517,6 +520,7 @@ export default {
             template: null,
             customControls: [],
             templateControls: [],
+            colorControlToggled: false
         };
     },
 
@@ -623,6 +627,19 @@ export default {
                 }
             }
             this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, updatedArgs);
+        },
+
+        onColorControlToggled(expanded) {
+            // using a timeout to prevent any race conditions when this even is being triggered by multiple color pickers
+            // This can happen when user clicks from one toggled color picker to another and it first handles the expand event from new color picker
+            // and after it collapse event from old color picker
+            setTimeout(() => {
+                const totalDisplayedPickers = ['.stroke-control-color-container', '.color-picker-tooltip']
+                    .map(selector => document.querySelectorAll(selector).length)
+                    .reduce((partialSum, a) => partialSum + a, 0);
+                this.colorControlToggled = totalDisplayedPickers > 0;
+
+            }, 100);
         }
     },
 
@@ -720,6 +737,14 @@ export default {
                 locked = locked & item.locked;
             });
             return locked;
+        },
+
+        mainOpacity() {
+            if (this.colorControlToggled) {
+                return 0;
+            } else {
+                return this.useFill ? 1 : 0.5;
+            }
         }
     }
 }

@@ -158,6 +158,7 @@
 
                         <SetArgumentEditor v-if="action.method === 'set'"
                             :key="action.args.field"
+                            :editorId="editorId"
                             :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                             :argument-value="action.args.value"
                             :args="action.args"

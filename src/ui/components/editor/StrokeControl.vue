@@ -59,6 +59,7 @@ export default {
     beforeDestroy() {
         document.body.removeEventListener('click', this.onBodyClick);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.colorControlToggled.$emit(this.editorId, false);
     },
 
 
@@ -141,6 +142,11 @@ export default {
 
         toggleDropdown() {
             this.toggled = !this.toggled;
+            if (this.toggled) {
+                this.$emit('expanded');
+            } else {
+                this.$emit('collapsed');
+            }
         },
 
         updateColor(color) {
@@ -160,8 +166,9 @@ export default {
         },
 
         onBodyClick(event) {
-            if (!event.target || !event.target.closest('.stroke-control')) {
+            if (this.toggled && (!event.target || !event.target.closest('.stroke-control'))) {
                 this.toggled = false;
+                this.$emit('collapsed');
             }
         }
     }

@@ -10,9 +10,9 @@
 
                 <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
 
-                <color-picker v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
+                <color-picker :editorId="editorId" v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
 
-                <advanced-color-editor v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
+                <advanced-color-editor :editorId="editorId" v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
 
                 <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
@@ -75,7 +75,12 @@ import Modal from '../../../Modal.vue';
 import { supportsAnimationForSetFunction } from '../../../../userevents/functions/SetFunction';
 
 export default {
-    props: ['argumentValue', 'argumentDescription', 'args'],
+    props: {
+        editorId: {type: String, required: true},
+        argumentValue: {type: Object},
+        argumentDescription: {type: Object},
+        args: {type: Object},
+    },
 
     components: {Dropdown, ColorPicker, AdvancedColorEditor, NumberTextfield, Modal },
 

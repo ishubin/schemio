@@ -99,6 +99,7 @@
                     <component
                         :key="`shape-properties-editor-${item.shape}-${item.id}`"
                         :is="shapeComponent.editorProps.shapePropsEditor.component"
+                        :editorId="editorId"
                         :item="item"
                         :refreshKey="shapePropsEditorKey"
                         @shape-prop-changed="onShapePropChange"
@@ -206,13 +207,13 @@
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Background</td>
                             <td class="value" width="50%">
-                                <color-picker :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', arguments[0])"></color-picker>
                             </td>
                         </tr>
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Color</td>
                             <td class="value" width="50%">
-                                <color-picker :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', arguments[0])"></color-picker>
                             </td>
                         </tr>
                     </tbody>
@@ -369,7 +370,9 @@ export default {
                 }
             }
 
-            this.schemeContainer.updateEditBox();
+            if (type !== 'color' && type !== 'advanced-color') {
+                this.schemeContainer.updateEditBox();
+            }
             this.$emit('shape-prop-changed', name, type, value);
             this.updateShapePropsDependencies();
 

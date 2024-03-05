@@ -321,6 +321,12 @@ const EditorEventBus = {
         }
     },
 
+    colorControlToggled: {
+        $on: (editorId, callback) => $on(editorId, 'color-control-toggled', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'color-control-toggled', [], callback),
+        $emit: (editorId, expanded) => $emit(editorId, 'color-control-toggled', [], expanded),
+    },
+
     editorResized: {
         $on: (editorId, callback) => $on(editorId, 'editor-resized', [], callback),
         $off: (editorId, callback) => $off(editorId, 'editor-resized', [], callback),
