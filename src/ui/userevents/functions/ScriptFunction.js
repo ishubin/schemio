@@ -494,7 +494,7 @@ function findChildItemsByTag(item, tag) {
  * @param {Item} item
  * @param {SchemeContainer} schemeContainer
  * @param {*} userEventBus
- * @returns
+ * @returns {Scope}
  */
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);

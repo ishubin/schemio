@@ -1,13 +1,16 @@
 {
     "name": "Prototype",
     "args": {
-        "numPages": {"type": "number", "value": 3, "min": 1, "name": "Numbers of pages"},
-        "maxCols": {"type": "number", "value": 10, "min": 1, "name": "Max per row"},
-        "cornerRadius": {"type": "number", "value": 20, "min": 0, "name": "Corner radius"},
-        "pageMargin": {"type": "number", "value": 60, "min": 0, "name": "Page margin"},
-        "background": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},
-        "strokeColor": {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
-        "strokeSize": {"type": "number", "value": 1, "min": 0, "name": "Stroke size"}
+        "numPages"          : {"type": "number", "value": 3, "min": 1, "name": "Numbers of pages"},
+        "maxCols"           : {"type": "number", "value": 10, "min": 1, "name": "Max per row"},
+        "cornerRadius"      : {"type": "number", "value": 20, "min": 0, "name": "Corner radius"},
+        "pageMargin"        : {"type": "number", "value": 60, "min": 0, "name": "Page margin"},
+        "background"        : {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},
+        "strokeColor"       : {"type": "color", "value": "rgba(212,212,212,1.0)", "name": "Stroke color"},
+        "strokeSize"        : {"type": "number", "value": 1, "min": 0, "name": "Stroke size"},
+        "transition"        : {"type": "choice", "value": "simple", "options": ["simple", "slide"], "name": "Page transition"},
+        "transitionDuration": {"type": "number", "value": 0.5, "min": 0, "name": "Transition duration"},
+        "transitionType"    : {"type": "choice", "value": "ease-out", "options": ["linear", "smooth", "ease-in", "ease-out", "ease-in-out", "bounce"], "name": "Transition type"}
     },
     "init": [
         "duplicatePage = (pageIdx) => {",
@@ -175,6 +178,43 @@
                             "success": "break-event"
                         }
                     }, {
+                        "$-if": "transition == 'slide'",
+                        "id": {"$-expr": "uid()"},
+                        "element": "#root",
+                        "method": "script",
+                        "args": {
+                            "initScript": {"$-str": [
+                                "currentPage = getVar('currentPage')",
+                                "nextPage = ${idx}",
+                                "currentPageItem = findChildItemsByTag('page-' + currentPage).get(0)",
+                                "nextPageItem = findChildItemsByTag('page-' + ${idx}).get(0)",
+                                "setVar('currentPage', nextPage)",
+                                "currentDstX = -getWidth()",
+                                "currentSrcX = 0",
+                                "nextSrcX = getWidth()",
+                                "nextDstX = 0",
+                                "if (nextPage < currentPage) {",
+                                "    currentDstX = getWidth()",
+                                "    nextSrcX = -getWidth()",
+                                "}",
+                                "if (currentPageItem && nextPageItem) {",
+                                "    nextPageItem.setPosX(nextSrcX)",
+                                "    nextPageItem.show()",
+                                "}"
+                            ]},
+                            "script": {"$-str": [
+                                "if (currentPageItem && nextPageItem) {",
+                                "    nextPageItem.setPosX(nextSrcX * (1 - t) + nextDstX * t)",
+                                "    currentPageItem.setPosX(currentSrcX * (1 - t) + currentDstX * t)",
+                                "}"
+                            ]},
+                            "animated": true,
+                            "animationType": "animation",
+                            "animationDuration": {"$-expr": "transitionDuration"},
+                            "transition": {"$-expr": "transitionType"}
+                        }
+                    }, {
+                        "$-else": "",
                         "id": {"$-expr": "uid()"},
                         "element": "#root",
                         "method": "script",
