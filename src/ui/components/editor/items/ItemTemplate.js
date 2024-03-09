@@ -223,7 +223,11 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
                     });
                 } else {
                     if (!propMatcher(key)) {
-                        item[key] = regeneratedItem[key];
+                        if (key === 'behavior') {
+                            item.behavior = mergeItemBehavior(regeneratedItem.behavior, item.behavior);
+                        } else {
+                            item[key] = regeneratedItem[key];
+                        }
                     }
                 }
             }
@@ -364,4 +368,54 @@ export function breakItemTemplate(rootItem) {
             delete item.meta.templated;
         }
     });
+}
+
+
+/**
+ * Detects user added events and merges them with the templated ones
+ * @param {ItemBehavior} templatedBehavior
+ * @param {ItemBehavior} oldBehavior
+ * @returns {ItemBehavior}
+ */
+function mergeItemBehavior(templatedBehavior, oldBehavior) {
+    const events = [];
+
+    /** @type {Map<String,Array<ItemBehaviorEvent>>} */
+    const oldEvents = new Map();
+
+    oldBehavior.events.forEach(event => {
+        if (!oldEvents.has(event.event)) {
+            oldEvents.set(event.event, [event]);
+        } else {
+            oldEvents.get(event.event).push(event);
+        }
+    });
+
+    const uniqueEventIds = new Set();
+
+    /** @type {function(ItemBehaviorEvent):void} */
+    const pushEvent = (event) => {
+        const id = uniqueEventIds.has(event.id) ? shortid.generate() : event.id;
+        events.push({...event, id});
+    };
+
+    templatedBehavior.events.forEach(event => {
+        const oldEventsArray = oldEvents.get(event.event);
+        if (oldEventsArray) {
+            oldEventsArray.shift();
+        }
+        pushEvent(event);
+    });
+
+    oldEvents.forEach(oldEventsArray => {
+        if (oldEventsArray.length === 0) {
+            return;
+        }
+
+        oldEventsArray.forEach(event => {
+            pushEvent(event);
+        });
+    });
+
+    return {...templatedBehavior, events};
 }

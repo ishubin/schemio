@@ -152,8 +152,24 @@
  */
 
 /**
+ * @typedef {Object} ItemBehaviorAction
+ * @property {String} id - unique id
+ * @property {Boolean} on - specifies whether the action should be executed (true) or skiped (false)
+ * @property {String} element - item selector expression
+ * @property {String} method - method name
+ * @property {Object} args - object that contains arguments specific to selected method
+ */
+
+/**
+ * @typedef {Object} ItemBehaviorEvent
+ * @property {String} event - event name (e.g. 'init', 'clicked', 'mousin' etc. or a custom event)
+ * @property {String} id - unique id
+ * @property {Array<ItemBehaviorAction>} actions
+ */
+
+/**
  * @typedef {Object} ItemBehavior
- * @property {Array} events
+ * @property {Array<ItemBehaviorEvent>} events
  */
 
 /**
