@@ -4,6 +4,7 @@
 
 import shortid from 'shortid';
 import utils from '../../../utils';
+import { traverseItems } from '../../../scheme/Item';
 
 /**
  * Creates and object that provides various functions, that could be used from inside of
@@ -15,6 +16,7 @@ export function createTemplateFunctions(rootItem) {
     return {
         findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
         moveNativeChildren: moveNativeChildren(rootItem),
+        copyNativeChildren: copyNativeChildren(rootItem),
         swapNativeChildren: swapNativeChildren(rootItem),
         duplicateItem: duplicateItem(rootItem),
 
@@ -82,6 +84,49 @@ function moveNativeChildren(rootItem) {
         dst.childItems = src.childItems || [];
         src.childItems = [];
     };
+}
+
+/**
+ * Create a function for copying native (either non-templated or generated from other template) child items
+ * from specified source to specified destination item
+ * @param {Item} rootItem
+ * @returns {function(string, string): void}
+ */
+function copyNativeChildren(rootItem) {
+    return (srcId, dstId) => {
+        const src = findItemByTemplatedId(rootItem, srcId);
+        const dst = findItemByTemplatedId(rootItem, dstId);
+        if (!src || !dst) {
+            return;
+        }
+        if (!Array.isArray(src.childItems)) {
+            return;
+        }
+        if (!Array.isArray(dst.childItems)) {
+            dst.childItems = [];
+        }
+
+        src.childItems.forEach(item => {
+            if (item.args && item.args.templatedId && !item.args.templateRef) {
+                return;
+            }
+            dst.childItems.push(copyNativeChildItem(item));
+        });
+    };
+}
+
+/**
+ *
+ * @param {Item} item
+ */
+function copyNativeChildItem(item) {
+    const clonnedItem = utils.clone(item);
+    traverseItems([clonnedItem], item => {
+        item.id = shortid.generate();
+        item.meta = {};
+    });
+
+    return clonnedItem;
 }
 
 /**
