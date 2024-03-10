@@ -39,6 +39,7 @@ export default {
     args: {
         initScript          : {name: 'Init script', type: 'script', value: '', description: initScriptDescription, depends: {animated: true}},
         script              : {name: 'Script', type: 'script', value: '', description: scriptDescription},
+        endScript           : {name: 'End Script', type: 'script', value: '', description: scriptDescription, depends: {animated: true}},
         animated            : {name: 'Animated', type: 'boolean', value: false, description: 'Script is called multiple times for the duration of the animation. It has access to "t" variable (start from 0, ends at 1) which represents the relative animation time'},
         animationType       : {name: 'Animation type', type: 'choice', value: 'animation', options: ['animation', INFINITE_LOOP], depends: {animated: true}},
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, depends: {animated: true, animationType: 'animation'}},
@@ -77,7 +78,12 @@ export default {
     // this is used to optimize parsing of the script
     init(item, args, schemeContainer, userEventBus) {
         this.precompileItemScript(item, args.script);
-        this.precompileItemScript(item, args.initScript);
+        if (args.initScript) {
+            this.precompileItemScript(item, args.initScript);
+        }
+        if (args.endScript) {
+            this.precompileItemScript(item, args.endScript);
+        }
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
@@ -92,6 +98,7 @@ export default {
         }
 
         const initScriptAST = item.args.compiledScripts[args.initScript];
+        const endScriptAST = item.args.compiledScripts[args.endScript];
 
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
 
@@ -119,9 +126,15 @@ export default {
             scriptAST.evalNode(scope);
         };
 
+        const onDestroy = () => {
+            if (endScriptAST) {
+                endScriptAST.evalNode(scope);
+            }
+        };
+
         if (args.animated) {
             if (args.animationType === INFINITE_LOOP) {
-                const animation = new ScriptInfiniteLoopAnimation(item, args, schemeContainer, resultCallback, execScript, shouldPlayCallback)
+                const animation = new ScriptInfiniteLoopAnimation(item, args, schemeContainer, resultCallback, execScript, onDestroy, shouldPlayCallback)
                 playInAnimationRegistry(schemeContainer.editorId, animation, item.id, 'script-infinite-loop-' + myMath.stringHash(args.script));
             } else {
                 playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
@@ -132,6 +145,11 @@ export default {
                         execScript(t);
                     },
                     destroy() {
+                        try {
+                            onDestroy();
+                        } catch(err) {
+                            console.error(err);
+                        }
                         if (!args.inBackground) {
                             resultCallback();
                         }
@@ -308,7 +326,13 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
         getWorldPos: () => Vector.fromPoint(worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item)),
         setWorldPos: (x, y) => {
-            const p = myMath.findTranslationMatchingWorldPoint(x, y, item.area.px * item.area.w, item.area.py * item.area.h, item.area, item.meta.transformMatrix);
+            let dstX = x, dstY = y;
+            if (x instanceof Vector) {
+                const v = x;
+                dstX = v.x;
+                dstY = v.y;
+            }
+            const p = myMath.findTranslationMatchingWorldPoint(dstX, dstY, item.area.px * item.area.w, item.area.py * item.area.h, item.area, item.meta.transformMatrix);
             if (!p) {
                 return;
             }
@@ -526,13 +550,14 @@ export function parseItemScript(text) {
 }
 
 class ScriptInfiniteLoopAnimation extends Animation {
-    constructor(item, args, schemeContainer, resultCallback, scriptExecutor, shouldPlayCallback) {
+    constructor(item, args, schemeContainer, resultCallback, scriptExecutor, onDestroy, shouldPlayCallback) {
         super();
         this.item = item;
         this.args = args;
         this.schemeContainer = schemeContainer;
         this.resultCallback = resultCallback;
         this.scriptExecutor = scriptExecutor;
+        this.onDestroy = onDestroy;
 
         /**
          * Callback that is used by animation to detect whether it should keep playing
@@ -555,6 +580,13 @@ class ScriptInfiniteLoopAnimation extends Animation {
     }
 
     destroy() {
+        if (this.onDestroy) {
+            try {
+                this.onDestroy();
+            } catch(err) {
+                console.error(err);
+            }
+        }
         if (!this.args.inBackground) {
             this.resultCallback();
         }

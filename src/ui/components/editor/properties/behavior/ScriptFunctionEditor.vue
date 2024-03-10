@@ -52,6 +52,10 @@
                 :value="args.script"
                 @changed="emitArgChange('script', arguments[0])"
             />
+            <ScriptEditor v-if="selectedTabIdx === 2"
+                :value="args.endScript"
+                @changed="emitArgChange('endScript', arguments[0])"
+            />
         </div>
     </div>
 </template>
@@ -82,6 +86,10 @@ export default {
                 name: 'Main',
                 disabled: false,
                 description: '',
+            }, {
+                name: 'On Finish',
+                disabled: selectedOptionIdx === 0,
+                description: 'Runs at the end of animation',
             }],
 
             selectedTabIdx: 1,
@@ -135,13 +143,16 @@ export default {
             if (optionIdx === 0) {
                 this.emitArgChange('animated', false);
                 this.tabs[0].disabled = true;
+                this.tabs[2].disabled = true;
                 this.selectedTabIdx = 1;
             } else if (optionIdx === 1) {
                 this.tabs[0].disabled = false;
+                this.tabs[2].disabled = false;
                 this.emitArgChange('animated', true);
                 this.emitArgChange('animationType', 'animation');
             } else if (optionIdx === 2) {
                 this.tabs[0].disabled = false;
+                this.tabs[2].disabled = false;
                 this.emitArgChange('animated', true);
                 this.emitArgChange('animationType', 'infinite-loop');
             }
