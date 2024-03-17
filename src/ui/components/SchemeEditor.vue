@@ -597,6 +597,7 @@ import {MobileDebugger} from '../logger';
 import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
 import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
 import {breakItemTemplate} from './editor/items/ItemTemplate';
+import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -873,6 +874,7 @@ export default {
         EditorEventBus.editBox.fillDisabled.$on(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
+        EditorEventBus.animationExportRequested.$on(this.editorId, this.onAnimationExportRequested);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -893,6 +895,7 @@ export default {
         EditorEventBus.editBox.fillDisabled.$off(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$off(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
+        EditorEventBus.animationExportRequested.$off(this.editorId, this.onAnimationExportRequested);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1055,7 +1058,10 @@ export default {
             /** @type {Item|undefined} */
             selectedTemplateRootItem: null,
             /** @type {String|undefined} */
-            selectedTemplateRef: null
+            selectedTemplateRef: null,
+
+            /** @type {AnimationExportRecorder} */
+            animationRecorder: null
         }
     },
     methods: {
@@ -1630,6 +1636,7 @@ export default {
         },
 
         createComponentFromItem(refItem) {
+            //TODO move it to another script (to simplify this script)
             const worldPoint = worldPointOnItem(0, refItem.area.h * 1.2, refItem);
 
             const item = {
@@ -1906,6 +1913,7 @@ export default {
 
         // triggered from ItemProperties or QuickHelperPanel components
         onItemShapePropChanged(name, type, value) {
+            //TODO move it to another script (to simplify this script)
             let itemIds = '';
 
             let reindexingNeeded = false;
@@ -1957,6 +1965,7 @@ export default {
         },
 
         onItemFieldChanged(name, value) {
+            //TODO move it to another script (to simplify this script)
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 this.schemeContainer.setPropertyForItem(item, item => {
@@ -1973,6 +1982,7 @@ export default {
         },
 
         onItemShapeChanged(shapeName) {
+            //TODO move it to another script (to simplify this script)
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 item.meta.revision += 1;
@@ -1988,6 +1998,7 @@ export default {
         },
 
         onItemStyleApplied(style) {
+            //TODO move it to another script (to simplify this script)
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 if (applyItemStyle(item, style)) {
@@ -1999,6 +2010,7 @@ export default {
         },
 
         onInPlaceEditTextPropertyChanged(item, textSlotName, propertyName, value) {
+            //TODO move it to another script (to simplify this script)
             if (item.textSlots && item.textSlots.hasOwnProperty(textSlotName)) {
                 item.textSlots[textSlotName][propertyName] = utils.clone(value);
                 recentPropsChanges.registerItemTextProp(item.shape, textSlotName, propertyName, value);
@@ -2009,6 +2021,7 @@ export default {
 
         // this is triggered from quick helper panel
         onItemGenericTextSlotPropChanged(propertyName, value) {
+            //TODO move it to another script (to simplify this script)
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 this.schemeContainer.setPropertyForItem(item, (it) => {
@@ -2032,6 +2045,7 @@ export default {
 
         // this is triggered from specific text slot in side panel
         onTextPropertyChanged(textSlotName, propertyName, value) {
+            //TODO move it to another script (to simplify this script)
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
                 this.schemeContainer.setPropertyForItem(item, (it) => {
@@ -2419,6 +2433,7 @@ export default {
         },
 
         mergePaths(allItems) {
+            //TODO move it to another script (to simplify this script)
             const mainItem = allItems[0];
             allItems.shift();
             mergeAllItemPaths(mainItem, allItems);
@@ -2434,6 +2449,7 @@ export default {
          * It also remounts the selected item to the new rect
          */
         surroundSelectedItems() {
+            //TODO move it to another script (to simplify this script)
             const box = this.schemeContainer.editBox;
             if (box !== null && box.items.length > 0) {
                 const padding = this.$store.state.itemSurround.padding;
@@ -3059,6 +3075,23 @@ export default {
             if (this.mode === 'view') {
                 this.userEventBus.emitItemEvent(itemId, eventName, ...args);
             }
+        },
+
+        onAnimationExportRequested({duration, fps, width, height}) {
+            this.animationRegistry.stopAllAnimations();
+            this.$emit('mode-change-requested', 'view');
+
+            this.$nextTick(() => {
+                this.animationRecorder = createAnimationExportRecorder(this.editorId, this.interactiveSchemeContainer, duration * 1000, fps, width, height);
+                this.animationRecorder.onFinish(() => {
+                    this.animationRecorder.export();
+                });
+                this.animationRecorder.start();
+            });
+        },
+
+        onAnimationRecordFrame() {
+            console.log('On Animation recording frame');
         },
 
         //calculates from world to screen

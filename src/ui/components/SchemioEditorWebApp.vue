@@ -68,6 +68,7 @@
             @close="exportPictureModal.shown = false"/>
 
         <export-html-modal v-if="exportHTMLModalShown" :scheme="scheme" @close="exportHTMLModalShown = false"/>
+        <ExportAnimationModal v-if="exportAnimationModalShown" :scheme="scheme" @close="exportAnimationModalShown = false" @export-requested="onAnimationExport"/>
 
         <div v-if="loadPatchFileShown" style="display: none">
             <input ref="loadPatchFileInput" type="file" @change="onLoadPatchFileInputChanged" accept="application/json"/>
@@ -88,6 +89,7 @@ import ContextMenu from './editor/ContextMenu.vue';
 import ExportJSONModal from './editor/ExportJSONModal.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
+import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import History from '../history/History.js';
 import EditorEventBus from './editor/EditorEventBus';
 
@@ -98,6 +100,7 @@ export default {
         SchemioEditorApp, CreatePatchModal, ImportSchemeModal, ContextMenu, ExportPictureModal, Modal,
         'export-json-modal': ExportJSONModal,
         'export-html-modal': ExportHTMLModal,
+        ExportAnimationModal,
     },
     props: {
         editorId          : {type: String, default: 'default'},
@@ -169,7 +172,8 @@ export default {
                 {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
                 {name: 'Export as SVG',     callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'},
                 {name: 'Export as PNG',     callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'},
-                {name: 'Export as HTML',    callback: () => {this.exportHTMLModalShown = true}, iconClass: 'fas fa-file-export'}
+                {name: 'Export as HTML',    callback: () => {this.exportHTMLModalShown = true}, iconClass: 'fas fa-file-export'},
+                {name: 'Export animation',  callback: () => {this.exportAnimationModalShown = true}, iconClass: 'fas fa-file-export'}
             ]),
 
             createPatchModalShown: false,
@@ -193,6 +197,8 @@ export default {
             },
 
             exportHTMLModalShown: false,
+
+            exportAnimationModalShown: false,
 
             historyUndoable: false,
             historyRedoable: false,
@@ -409,6 +415,11 @@ export default {
             this.currentHistory = 'modified';
             this.updateHistoryState();
         },
+
+        onAnimationExport(options) {
+            this.exportAnimationModalShown = false;
+            EditorEventBus.animationExportRequested.$emit(this.editorId, options);
+        }
     },
 
     watch: {

@@ -195,6 +195,39 @@ export function diagramImageExporter(items) {
     };
 }
 
+export function exportEntireSvgPlotAsImageData(editorId, x, y, width, height, imageWidth, imageHeight) {
+    const svgMainElement = document.getElementById(`svg-plot-${editorId}`).cloneNode(true);
+    const innerHTML = svgMainElement.innerHTML;
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.innerHTML = innerHTML;
+    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    svg.setAttribute('xmlns:xhtml', "http://www.w3.org/1999/xhtml");
+    svg.setAttribute('xmlns:xlink', "http://www.w3.org/1999/xlink");
+    const viewBoxWidth = width;
+    const viewBoxHeight = height;
+    svg.setAttribute('viewBox', `${x} ${y} ${viewBoxWidth} ${viewBoxHeight}`);
+
+    svg.setAttribute('width', `${imageWidth}px`);
+    svg.setAttribute('height', `${imageHeight}px`);
+    svg.querySelector('g[data-type="scene-transform"]').removeAttribute('transform');
+
+    return rasterizeAllImagesToDataURL(svg)
+    .then(() => insertCustomFonts(svg))
+    .then(() => {
+        const svgCode = new XMLSerializer().serializeToString(svg);
+        return svgToImageData(svgCode, {
+            width: imageWidth,
+            height: imageHeight,
+            paddingTop: 0,
+            paddingLeft: 0,
+            paddingBottom: 0,
+            paddingRight: 0,
+            backgroundColor: '#ffffff'
+        });
+    });
+}
+
 /**
  * @param {ChildNode} node
  * @param {Set<String>} fonts
@@ -260,6 +293,36 @@ function svgToImage(svgHtml, options) {
             }
             ctx.drawImage(img, options.paddingLeft, options.paddingTop);
             resolve(canvas.toDataURL('image/png'));
+        };
+        img.src = svgDataUrl;
+
+        img.onerror = (err) => reject(err);
+    });
+}
+
+/**
+ * Exports specified svg code as ImageData
+ * @param {String} svgHtml outer HTML of SVG element
+ * @param {DiagramExporterOptions} options
+ * @returns {ImageData}
+ */
+function svgToImageData(svgHtml, options) {
+    return new Promise((resolve, reject) => {
+        const svgDataUrl = `data:image/svg+xml;base64,${encode(svgHtml)}`;
+        const canvas = document.createElement('canvas');
+        canvas.width = options.width;
+        canvas.height = options.height;
+
+        const ctx = canvas.getContext('2d');
+        const img = new Image;
+
+        img.onload = () => {
+            if (options.backgroundColor) {
+                ctx.fillStyle = options.backgroundColor;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            ctx.drawImage(img, options.paddingLeft, options.paddingTop);
+            resolve(ctx.getImageData(0, 0, options.width, options.height));
         };
         img.src = svgDataUrl;
 

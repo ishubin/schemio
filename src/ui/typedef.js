@@ -135,6 +135,15 @@
  * @property {Object} size
  */
 
+/**
+ * @typedef {Object} FieldDescriptor
+ * @property {String} type - e.g. 'color', 'advanced-color', 'number' etc
+ * @property {String} name - display name
+ * @property {any} value - default value
+ * @property {String|undefined} description
+ * @property {Array<String>|undefined} options - value options for 'choice' type
+ */
+
 
 /**
  * @typedef {Object} Shape

@@ -10,10 +10,12 @@ import Animation from './Animation';
 import { knownBlendModes } from '../scheme/ItemConst';
 import AnimationFunctions from './functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
+import '../typedef';
 
 const IS_SOFT = true;
 const NUMBER = 'number';
 const COLOR = 'color';
+const ADVANCED_COLOR = 'advanced-color';
 const BOOLEAN = 'boolean';
 const STRING = 'string';
 const CHOICE = 'choice';
@@ -55,7 +57,7 @@ export function findSchemePropertyDescriptor(propertyPath) {
  * Find a property descriptor for specified property path. In case the type is not supported for animations it returns null
  * @param {Item} item
  * @param {String} propertyPath
- * @returns
+ * @returns {FieldDescriptor|undefined}
  */
 export function findItemPropertyDescriptor(item, propertyPath) {
     const descriptor = knownProperties.get(propertyPath);
@@ -78,7 +80,7 @@ export function findItemPropertyDescriptor(item, propertyPath) {
             return null;
         }
 
-        if (arg.type === COLOR || (arg.type === 'advanced-color' && fields.length === 3 && fields[2] === 'color')) {
+        if (arg.type === COLOR || (arg.type === ADVANCED_COLOR && fields.length === 3 && fields[2] === COLOR)) {
             return {type: COLOR};
         } else {
             if (knownPropertyTypes.has(arg.type)) {

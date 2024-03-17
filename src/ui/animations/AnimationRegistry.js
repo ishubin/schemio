@@ -4,9 +4,6 @@
 import shortid from 'shortid';
 import { forEach } from '../collections';
 
-// desired delta time between loop cycles in milliseconds
-const DESIRED_DELTA_TIME = 16;
-
 // storing animations registries in global map as they can be referenced from any item behavior function
 const animationRegistries = new Map();
 
@@ -177,7 +174,7 @@ function loopCycle(registry, timeMarker, deltaTime) {
 function startAnimationLoop(registry) {
     if (registry.animationsEnabled && !registry.isAlreadyLooping) {
         registry.isAlreadyLooping = true;
-        window.requestAnimationFrame(() => loopCycle(registry, performance.now(), DESIRED_DELTA_TIME));
+        window.requestAnimationFrame(() => loopCycle(registry, performance.now(), 0));
     }
 }
 

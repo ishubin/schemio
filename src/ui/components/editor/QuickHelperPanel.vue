@@ -25,7 +25,7 @@
                     <li v-if="(editAllowed && shouldShowBaseControls && modeControlEnabled)">
                         <div class="toggle-group">
                             <span v-for="knownMode in knownModes" class="toggle-button"
-                                :class="['mode-' + knownMode, mode===knownMode?'toggled':'']"
+                                :class="['mode-' + knownMode, mode === knownMode ? 'toggled' : '']"
                                 @click="$emit('mode-changed', knownMode)"
                                 >
                                 <i v-if="knownMode === 'edit'" class="fas fa-edit"></i>
