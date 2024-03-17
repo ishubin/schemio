@@ -1,7 +1,7 @@
 import { map } from "./collections";
 import { traverseItems } from "./scheme/Item";
 import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./scheme/SchemeContainer";
-import { filterOutIgnoredSvgElements, rasterizeAllImagesToDataURL } from './svgPreview';
+import { processSvgElementsForExport, rasterizeAllImagesToDataURL } from './svgPreview';
 import { encode } from 'js-base64';
 import axios from "axios";
 import { enrichObjectWithDefaults } from "../defaultify";
@@ -66,7 +66,7 @@ export function prepareDiagramForPictureExport(items) {
                     };
                 }
                 const itemDom = domElement.cloneNode(true);
-                filterOutIgnoredSvgElements(itemDom);
+                processSvgElementsForExport(itemDom);
                 collectedItems.push({
                     item, itemDom
                 });
@@ -195,7 +195,7 @@ export function diagramImageExporter(items) {
     };
 }
 
-export function exportEntireSvgPlotAsImageData(editorId, x, y, width, height, imageWidth, imageHeight) {
+export function exportEntireSvgPlotAsImageData(editorId, x, y, width, height, imageWidth, imageHeight, backgroundColor) {
     const svgMainElement = document.getElementById(`svg-plot-${editorId}`).cloneNode(true);
     const innerHTML = svgMainElement.innerHTML;
 
@@ -212,6 +212,9 @@ export function exportEntireSvgPlotAsImageData(editorId, x, y, width, height, im
     svg.setAttribute('height', `${imageHeight}px`);
     svg.querySelector('g[data-type="scene-transform"]').removeAttribute('transform');
 
+
+    processSvgElementsForExport(svg);
+
     return rasterizeAllImagesToDataURL(svg)
     .then(() => insertCustomFonts(svg))
     .then(() => {
@@ -223,7 +226,7 @@ export function exportEntireSvgPlotAsImageData(editorId, x, y, width, height, im
             paddingLeft: 0,
             paddingBottom: 0,
             paddingRight: 0,
-            backgroundColor: '#ffffff'
+            backgroundColor: backgroundColor
         });
     });
 }

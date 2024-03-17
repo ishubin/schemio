@@ -14,7 +14,7 @@
             :textSelectionEnabled="textSelectionEnabled"
             :zoom="zoom"
             :edit-allowed="editAllowed"
-            :menuOptions="menuOptions"
+            :menuOptions="finalMenuOptions"
             :historyUndoable="historyState.undoable"
             :historyRedoable="historyState.redoable"
             :isRecording="isRecording"
@@ -66,7 +66,18 @@
                     </div>
                 </li>
             </ul>
-            </QuickHelperPanel>
+            <ul class="button-group" v-if="animationRecorder">
+                <li>
+                    <span class="btn btn-danger" @click="stopAnimationRecording()">Stop recording</span>
+                </li>
+            </ul>
+            <ul class="button-group" v-if="animationRecorderIsExporting">
+                <li>
+                    Processing animation ...
+                </li>
+            </ul>
+
+        </QuickHelperPanel>
 
         <div class="scheme-editor-middle-section" ref="middleSection">
             <div class="scheme-error-message" v-if="!schemeContainer && schemeLoadErrorMessage">
@@ -527,6 +538,12 @@
             :item="exportTemplateModal.item"
             @close="exportTemplateModal.shown = false"/>
 
+        <ExportAnimationModal v-if="exportAnimationModalShown"
+            :editorId="editorId"
+            :schemeContainer="schemeContainer"
+            @close="exportAnimationModalShown = false"
+            @export-requested="onAnimationExportRequested"/>
+
     </div>
 
 </template>
@@ -598,6 +615,7 @@ import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
 import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
 import {breakItemTemplate} from './editor/items/ItemTemplate';
 import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
+import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -708,7 +726,7 @@ export default {
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
-        DrawingControlsPanel,
+        DrawingControlsPanel, ExportAnimationModal
     },
 
     props: {
@@ -874,7 +892,6 @@ export default {
         EditorEventBus.editBox.fillDisabled.$on(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
-        EditorEventBus.animationExportRequested.$on(this.editorId, this.onAnimationExportRequested);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -895,7 +912,6 @@ export default {
         EditorEventBus.editBox.fillDisabled.$off(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$off(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
-        EditorEventBus.animationExportRequested.$off(this.editorId, this.onAnimationExportRequested);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1061,7 +1077,9 @@ export default {
             selectedTemplateRef: null,
 
             /** @type {AnimationExportRecorder} */
-            animationRecorder: null
+            animationRecorder: null,
+            exportAnimationModalShown: false,
+            animationRecorderIsExporting: false
         }
     },
     methods: {
@@ -2161,6 +2179,9 @@ export default {
         },
 
         switchToEditMode(screenTransform) {
+            if (this.animationRecorder) {
+                this.stopAnimationRecording();
+            }
             this.itemTooltip.shown = false;
             if (screenTransform) {
                 this.schemeContainer.screenTransform = screenTransform;
@@ -3077,16 +3098,39 @@ export default {
             }
         },
 
-        onAnimationExportRequested({duration, fps, width, height}) {
-            this.animationRegistry.stopAllAnimations();
+        onAnimationExportRequested({duration, fps, width, height, boundsElement}) {
+            this.exportAnimationModalShown = false;
+            this.animationRecorderIsExporting = false;
             this.$emit('mode-change-requested', 'view');
-
             this.$nextTick(() => {
-                this.animationRecorder = createAnimationExportRecorder(this.editorId, this.interactiveSchemeContainer, duration * 1000, fps, width, height);
+                this.animationRecorder = createAnimationExportRecorder(this.editorId, this.interactiveSchemeContainer, boundsElement, duration * 1000, fps, width, height);
+                this.animationRecorder.setBackgroundColor(this.schemeContainer.scheme.style.backgroundColor);
                 this.animationRecorder.onFinish(() => {
-                    this.animationRecorder.export();
+                    this.animationRecorder.export(this.schemeContainer.scheme.name);
+                    this.animationRecorder = null;
                 });
                 this.animationRecorder.start();
+            });
+        },
+
+        stopAnimationRecording() {
+            if (!this.animationRecorder) {
+                return;
+            }
+            this.animationRecorder.stop();
+            const animationRecorder = this.animationRecorder;
+            this.animationRecorder = null;
+
+            this.animationRecorderIsExporting = true;
+            this.$nextTick(() => {
+                animationRecorder.export(this.schemeContainer.scheme.name)
+                .then(() => {
+                    this.animationRecorderIsExporting = false;
+                })
+                .catch(err => {
+                    console.error(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Something went wrong, could not process animation', 'animation-export-error');
+                });
             });
         },
 
@@ -3139,6 +3183,14 @@ export default {
     },
 
     computed: {
+        finalMenuOptions() {
+            return this.menuOptions.concat({
+                name: 'Export animation',
+                iconClass: 'fas fa-file-export',
+                callback: () => {this.exportAnimationModalShown = true}
+            });
+        },
+
         currentSchemeContainer() {
             if (this.mode === 'view') {
                 return this.interactiveSchemeContainer;

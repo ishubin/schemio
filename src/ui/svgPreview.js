@@ -23,7 +23,7 @@ function isEmptyForeignObject(node) {
  * also adds proper styles to elements which are usually provided by css
  * @param {SVGElement} svgElement
  */
-export function filterOutIgnoredSvgElements(svgElement) {
+export function processSvgElementsForExport(svgElement) {
     for (let i = svgElement.childNodes.length - 1; i >= 0; i--) {
         let child = svgElement.childNodes[i];
         if (child && child.nodeType === Node.ELEMENT_NODE) {
@@ -46,7 +46,7 @@ export function filterOutIgnoredSvgElements(svgElement) {
                     }
                 });
 
-                filterOutIgnoredSvgElements(child);
+                processSvgElementsForExport(child);
             }
         } else if (child && child.nodeType === Node.COMMENT_NODE) {
             svgElement.removeChild(child);
@@ -181,7 +181,7 @@ export function snapshotSvg(selector, viewArea) {
         svgElement.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
         svgElement.appendChild(svgFragment);
 
-        filterOutIgnoredSvgElements(svgElement);
+        processSvgElementsForExport(svgElement);
 
         return '<?xml version="1.0" ?>' + new XMLSerializer().serializeToString(svgElement);
     });

@@ -7,12 +7,16 @@ class AnimationExportRecorder {
      *
      * @param {String} editorId
      * @param {SchemeContainer} schemeContainer
+     * @param {String} boundsElement elemet selector for screen bounds
      * @param {Number} duration
      * @param {Number} fps
+     * @param {Number} width
+     * @param {Number} height
      */
-    constructor(editorId, schemeContainer, duration, fps, width, height) {
+    constructor(editorId, schemeContainer, boundsElement, duration, fps, width, height) {
         this.editorId = editorId;
         this.duration = duration;
+        this.boundsElement = boundsElement;
         this.fps = fps;
         this.deltaTime = 1000 / fps;
         this.intervalId = null;
@@ -24,6 +28,12 @@ class AnimationExportRecorder {
         this.bbox = null;
         this.framePromises = [];
         this.finishCallback = null;
+        this.shouldStop = false;
+        this.backgroundColor = '#ffffff';
+    }
+
+    setBackgroundColor(backgroundColor) {
+        this.backgroundColor = backgroundColor;
     }
 
     onFinish(finishCallback) {
@@ -36,10 +46,19 @@ class AnimationExportRecorder {
         }
         clearInterval(this.intervalId);
         this.intervalId = null;
+        this.shouldStop = true;
     }
 
-    export() {
-        Promise.all(this.framePromises)
+    /**
+     * @param {String} name
+     * @returns {Promise}
+     */
+    export(name) {
+        if (this.framePromises.length === 0) {
+            return Promise.resolve();
+        }
+
+        return Promise.all(this.framePromises)
         .then(framePics => {
             const gif = GIFEncoder();
             framePics.forEach(frameImageData => {
@@ -51,19 +70,30 @@ class AnimationExportRecorder {
             gif.finish();
 
             const buffer = gif.bytesView();
-            download(buffer, 'animation.gif', { type: 'image/gif' });
+            let safeName = name.replace(/[\W_]+/g,"-");
+            if (!safeName) {
+                safeName = 'animation';
+            }
+            download(buffer, `${safeName}.gif`, { type: 'image/gif' });
         });
-
     }
 
     start() {
         if (this.intervalId) {
             return;
         }
-
-        this.bbox = getBoundingBoxOfItems(this.schemeContainer.getItems());
+        this.shouldStop = false;
+        if (this.boundsElement) {
+            const items = this.schemeContainer.findElementsBySelector(this.boundsElement);
+            this.bbox = getBoundingBoxOfItems(items);
+        } else {
+            this.bbox = getBoundingBoxOfItems(this.schemeContainer.getItems());
+        }
         this.elapsedTime = 0;
         this.intervalId = setInterval(() => {
+            if (this.shouldStop) {
+                return;
+            }
             this.elapsedTime += this.deltaTime;
             if (this.elapsedTime > this.duration) {
                 this.stop();
@@ -78,7 +108,7 @@ class AnimationExportRecorder {
 
     onFrame() {
         this.framePromises.push(
-            exportEntireSvgPlotAsImageData(this.editorId, this.bbox.x, this.bbox.y, this.bbox.w, this.bbox.h, this.width, this.height)
+            exportEntireSvgPlotAsImageData(this.editorId, this.bbox.x, this.bbox.y, this.bbox.w, this.bbox.h, this.width, this.height, this.backgroundColor)
             .then(framePic => {
                 return framePic;
             })
@@ -89,8 +119,8 @@ class AnimationExportRecorder {
     }
 }
 
-export function createAnimationExportRecorder(editorId, schemeContainer, duration, fps, width, height) {
-    return new AnimationExportRecorder(editorId, schemeContainer, duration, fps, width, height);
+export function createAnimationExportRecorder(editorId, schemeContainer, boundsElement, duration, fps, width, height) {
+    return new AnimationExportRecorder(editorId, schemeContainer, boundsElement, duration, fps, width, height);
 }
 
 

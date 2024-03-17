@@ -332,12 +332,6 @@ const EditorEventBus = {
         $off: (editorId, callback) => $off(editorId, 'editor-resized', [], callback),
         $emit: (editorId) => $emit(editorId, 'editor-resized', []),
     },
-
-    animationExportRequested: {
-        $on: (editorId, callback) => $on(editorId, 'animation-export-requested', [], callback),
-        $off: (editorId, callback) => $off(editorId, 'animation-export-requested', [], callback),
-        $emit: (editorId, options) => $emit(editorId, 'animation-export-requested', [], options),
-    }
 };
 
 export default EditorEventBus;
