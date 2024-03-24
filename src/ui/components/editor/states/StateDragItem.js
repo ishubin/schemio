@@ -15,7 +15,7 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
 import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_ITEM_MODIFICATION_CONTEXT, isItemDescendantOf } from '../../../scheme/SchemeContainer.js';
 import EditorEventBus from '../EditorEventBus.js';
-import {findFirstItemBackwards, traverseItems} from '../../../scheme/Item';
+import {traverseItems} from '../../../scheme/Item';
 import { compileItemTemplate } from '../items/ItemTemplate.js';
 
 const log = new Logger('StateDragItem');
@@ -835,17 +835,26 @@ class IdleState extends SubState {
      * @returns
      */
     handleSimpleClickOnEditBox(x, y, event) {
-        const clickedItem = findFirstItemBackwards(this.schemeContainer.getItems(), item => {
+        const items = this.schemeContainer.getItems();
+
+        let clickedItem = null;
+        for (let i = items.length - 1; i >= 0; i--) {
+            let item = items[i];
             const p = localPointOnItem(x, y, item);
             if (p.x >= 0 && p.x <= item.area.w && p.y >= 0 && p.y < item.area.h && item.visible && item.meta.calculatedVisibility) {
                 if (item.shape === 'connector') {
                     const closestPoint = this.schemeContainer.closestPointToItemOutline(item, {x, y}, {});
                     const d = myMath.distanceBetweenPoints(x, y, closestPoint.x, closestPoint.y);
-                    return d / this.schemeContainer.screenTransform.scale < 5;
+                    if (d / this.schemeContainer.screenTransform.scale < 5) {
+                        clickedItem = item;
+                        break;
+                    }
+                } else {
+                    clickedItem = item;
+                    break;
                 }
-                return true;
             }
-        });
+        }
         if (!clickedItem) {
             return;
         }
