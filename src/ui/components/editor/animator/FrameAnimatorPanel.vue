@@ -62,7 +62,9 @@
                 <table class="frame-animator-matrix">
                     <thead>
                         <tr :class="{'drop-below': trackDrag.on && trackDrag.dropHead}">
-                            <th> </th>
+                            <th class="frame-animator-buttons">
+                                <span class="btn btn-small" @click="toggleAddTrackModal()">Add track</span>
+                            </th>
                             <th v-for="frame in totalFrames"
                                 @click="selectFrame(frame)"
                                 :title="frame"
@@ -81,12 +83,14 @@
                             >
                             <td class="frame-animator-property"
                                 @mousedown="onTrackLabelMouseDown(trackIdx, $event)"
-                                :class="['frame-animator-property-'+track.kind, track.kind === 'item' || track.kind === 'function-header'? 'draggable': null]" :colspan="track.kind === 'function-header' ? totalFrames + 1 : 1"
+                                :class="['frame-animator-property-'+track.kind, track.kind === 'item' || track.kind === 'function-header'? 'draggable': null]"
+                                :colspan="(track.kind === 'function-header' || track.kind === 'panel-buttons') ? totalFrames + 1 : 1"
                                 >
                                 <div v-if="track.kind === 'item'">
                                     <span v-if="track.itemName" class="frame-item-name">{{track.itemName}}</span>
                                     <span v-else class="frame-item-name">Deleted item</span>
-                                    <span class="frame-item-property">{{track.property}}</span>
+                                    <span class="frame-item-property" v-if="track.propertyDescriptor && track.propertyDescriptor.name">{{track.propertyDescriptor.name}}</span>
+                                    <span class="frame-item-property" v-else>{{track.property}}</span>
                                 </div>
                                 <div v-else-if="track.kind === 'sections'">
                                     <i class="fas fa-paragraph"></i> Sections
@@ -100,8 +104,11 @@
                                 <div v-else-if="track.kind === 'scheme'">
                                     {{track.property}}
                                 </div>
+                                <div v-else-if="track.kind === 'panel-buttons'">
+                                    <span class="btn btn-small" @click="toggleAddTrackModal()">Add track</span>
+                                </div>
 
-                                <div class="frame-property-operations">
+                                <div class="frame-property-operations" v-if="track.kind !== 'panel-buttons'">
                                     <span v-if="track.kind === 'function-header'" class="toggle-button" title="Edit function" @click="toggleEditFunctionArgumentsForTrack(track)"><i class="fas fa-cog"></i></span>
                                     <span v-if="track.kind !== 'sections' && track.kind !== 'function'" class="toggle-button" title="Remove animation track" @click="removeAnimationTrack(track)"><i class="fas fa-trash"></i></span>
                                 </div>
@@ -130,7 +137,7 @@
                             </td>
                         </tr>
                         <tr>
-                            <td :colspan="totalFrames + 1">
+                            <td :colspan="totalFrames + 1" class="frame-animator-buttons">
                                 <span class="btn btn-small" @click="toggleFunctionAddModal()">Add path function</span>
                             </td>
                         </tr>
@@ -173,6 +180,56 @@
                     />
             </div>
         </modal>
+
+        <modal v-if="addTrackModal.shown"
+            title="Add animation track"
+            primaryButton="Add track"
+            @close="addTrackModal.shown = false"
+            @primary-submit="addTrackFromModal()"
+            :width="400"
+            :use-mask="false"
+            >
+            <p>Select the item and its property</p>
+            <table class="properties-table">
+                <tbody>
+                    <tr>
+                        <td class="label" width="150px">
+                            Item
+                        </td>
+                        <td>
+                            <ElementPicker
+                                :editorId="editorId"
+                                :scheme-container="schemeContainer"
+                                :element="addTrackModal.element"
+                                :useSelf="false"
+                                :allowTags="false"
+                                :allowNone="false"
+                                @selected="onAddTrackModalElementSelected(arguments[0])"
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label" :class="{disabled: !addTrackModal.element}" width="150px">
+                            Property
+                        </td>
+                        <td>
+                            <Dropdown
+                                :key="`track-property-dropdown-${editorId}-${addTrackModal.element}`"
+                                :disabled="!addTrackModal.element"
+                                :options="addTrackModal.properties"
+                                @selected="onAddTrackModalPropertySelected"
+                                >
+                                <span v-if="addTrackModal.selectedPropertyOption">
+                                    <i :class="addTrackModal.selectedPropertyOption.iconClass"></i>
+                                    {{ addTrackModal.selectedPropertyOption.name }}
+                                </span>
+                                <span v-else>Choose property</span>
+                            </Dropdown>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </modal>
     </div>
 </template>
 
@@ -181,7 +238,7 @@ import SchemeContainer from '../../../scheme/SchemeContainer';
 import ContextMenu from '../ContextMenu.vue';
 import utils from '../../../utils';
 import {dragAndDropBuilder} from '../../../dragndrop';
-import {forEach, find} from '../../../collections';
+import {forEach, find, forEachObject} from '../../../collections';
 import { jsonDiff } from '../../../json-differ';
 import { compileAnimations, findItemPropertyDescriptor, findSchemePropertyDescriptor, interpolateValue } from '../../../animations/FrameAnimation';
 import { Interpolations } from '../../../animations/ValueAnimation';
@@ -192,9 +249,11 @@ import ArgumentsEditor from '../ArgumentsEditor.vue';
 import shortid from 'shortid';
 import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
+import ElementPicker from '../ElementPicker.vue';
+import Dropdown from '../../Dropdown.vue';
+import Shape from '../items/shapes/Shape';
 
-
-const validItemFieldPaths = new Set(['area', 'effects', 'opacity', 'selfOpacity', 'textSlots', 'visible', 'shapeProps', 'blendMode']);
+const validItemFieldPaths = new Set(['area', 'opacity', 'selfOpacity', 'visible', 'shapeProps']);
 
 
 
@@ -214,6 +273,8 @@ function calculateTrackColor(kind, id, property) {
 }
 
 
+const connectorExcludedShapeProps = ['points', 'paths', 'sourceItem', 'destinationItem', 'sourceItemPosition', 'destinationItemPosition'];
+
 function jsonDiffItemWhitelistCallback(item) {
     return (path) => {
         if (!validItemFieldPaths.has(path[0])) {
@@ -221,11 +282,7 @@ function jsonDiffItemWhitelistCallback(item) {
         }
 
         if ((item.shape === 'connector' || item.shape === 'path') && path.length > 1 && path[0] === 'shapeProps') {
-            if (path[1] === 'points'
-                || path[1] === 'sourceItem'
-                || path[1] === 'destinationItem'
-                || path[1] === 'sourceItemPosition'
-                || path[1] === 'destinationItemPosition') {
+            if (connectorExcludedShapeProps.indexOf(path[1]) >= 0) {
                 return false;
             }
         }
@@ -235,6 +292,66 @@ function jsonDiffItemWhitelistCallback(item) {
         }
         return true;
     };
+}
+
+function createTrackPropertiesOptionsForShape(shapeId) {
+    const options = [{
+        name: 'Position X',
+        id: 'area.x',
+        iconClass: 'fa-solid fa-arrows-left-right'
+    }, {
+        name: 'Position Y',
+        id: 'area.y',
+        iconClass: 'fa-solid fa-arrows-up-down'
+    }, {
+        name: 'Rotation',
+        id: 'area.r',
+        iconClass: 'fa-solid fa-arrows-rotate'
+    }, {
+        name: 'Scale X',
+        id: 'area.sx',
+        iconClass: 'fa-solid fa-down-left-and-up-right-to-center'
+    }, {
+        name: 'Scale Y',
+        id: 'area.sy',
+        iconClass: 'fa-solid fa-down-left-and-up-right-to-center'
+    }, {
+        name: 'Opacity',
+        id: 'opacity',
+        iconClass: 'fa-solid fa-lightbulb'
+    }, {
+        name: 'Self Opacity',
+        id: 'selfOpacity',
+        iconClass: 'fa-solid fa-lightbulb'
+    }, {
+        name: 'Visible',
+        id: 'selfOpacity',
+        iconClass: 'fa-regular fa-lightbulb'
+    }, {
+        name: 'Blend Mode',
+        id: 'blendMode',
+        iconClass: 'fa-solid fa-gear'
+    }];
+
+    const shape = Shape.find(shapeId);
+    if (!shape) {
+        return options;
+    }
+
+    forEachObject(Shape.getShapeArgs(shape), (arg, argName) => {
+        if (shapeId === 'connector' || shapeId === 'path') {
+            if (connectorExcludedShapeProps.indexOf(argName) >= 0) {
+                return;
+            }
+        }
+
+        options.push({
+            name: arg.name,
+            id: `shapeProps.${argName}`,
+            iconClass: 'fa-solid fa-gear'
+        });
+    });
+    return options;
 }
 
 
@@ -351,7 +468,7 @@ export default {
         light          : {type: Boolean, default: true},
     },
 
-    components: { ContextMenu, PropertyInput, ArgumentsEditor, Modal },
+    components: { ContextMenu, PropertyInput, ArgumentsEditor, Modal, ElementPicker, Dropdown },
 
     beforeMount() {
         this.compileAnimations();
@@ -427,6 +544,14 @@ export default {
                 args: null,
                 isAdding: true,
                 functionDescription: null
+            },
+
+            addTrackModal: {
+                element: null,
+                property: null,
+                selectedPropertyOption: null,
+                properties: [],
+                shown: false,
             }
         };
     },
@@ -609,6 +734,11 @@ export default {
             });
 
             matrix.push(this.buildSectionsTrack());
+            if (this.framePlayer.shapeProps.animations.length > 5) {
+                matrix.push({
+                    kind: 'panel-buttons'
+                });
+            }
             return matrix.concat(this.buildFunctionTracks());
         },
 
@@ -773,7 +903,8 @@ export default {
                         if (f.frame === this.currentFrame) {
                             idx = i;
                             found = true;
-                            foundFrame = f;            this.shouldRecompileAnimations = true;;
+                            foundFrame = f;
+                            this.shouldRecompileAnimations = true;
                         } else {
                             found = true;
                         }
@@ -1357,6 +1488,51 @@ export default {
             }
             animation.frames.splice(idx, 0, frame);
             this.updateFramesMatrix();
+        },
+
+        toggleAddTrackModal() {
+            this.addTrackModal.element = null;
+            this.addTrackModal.property = null;
+            this.addTrackModal.properties = [];
+            this.addTrackModal.selectedPropertyOption = null;
+            this.addTrackModal.shown = true;
+        },
+
+        addTrackFromModal() {
+            const item = this.schemeContainer.findFirstElementBySelector(this.addTrackModal.element);
+            if (item && this.addTrackModal.property) {
+                const trackAlreadyExists = this.framePlayer.shapeProps.animations.findIndex(track =>
+                    track.kind === 'item' && track.itemId === item.id && track.property === this.addTrackModal.property
+                ) >= 0;
+
+                if (!trackAlreadyExists) {
+                    const track = {
+                        kind    : 'item',
+                        id      : shortid.generate(),
+                        itemId  : item.id,
+                        property: this.addTrackModal.property,
+                        frames  : []
+                    };
+                    this.framePlayer.shapeProps.animations.push(track);
+                    this.updateFramesMatrix();
+                }
+            }
+            this.addTrackModal.shown = false;
+        },
+
+        onAddTrackModalElementSelected(element) {
+            this.addTrackModal.element = element;
+            const item = this.schemeContainer.findFirstElementBySelector(element);
+            if (!item) {
+                return;
+            }
+
+            this.addTrackModal.properties = createTrackPropertiesOptionsForShape(item.shape);
+        },
+
+        onAddTrackModalPropertySelected(option) {
+            this.addTrackModal.property = option.id;
+            this.addTrackModal.selectedPropertyOption = option;
         },
 
         toggleFunctionAddModal() {

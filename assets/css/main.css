@@ -2849,15 +2849,6 @@ table.frame-animator-matrix th:first-child, table.frame-animator-matrix td:first
     min-width: 200px;
     max-width: 200px;
 }
-table.frame-animator-matrix th:first-child {
-    text-align: right;
-}
-table.frame-animator-matrix th:first-child .btn {
-    text-align: center;
-}
-table.frame-animator-matrix th:first-child .btn {
-    min-width: 25px;
-}
 table.frame-animator-matrix th, table.frame-animator-matrix td.frame-animator-property {
     color: var(--base-strong-up);
 }
@@ -2886,6 +2877,11 @@ table.frame-animator-matrix td.frame-animator-property .frame-item-name {
 }
 table.frame-animator-matrix td.frame-animator-property .frame-item-property {
     font-style: italic;
+    white-space: nowrap;
+}
+table.frame-animator-matrix td.frame-animator-property-panel-buttons, table.frame-animator-matrix .frame-animator-buttons {
+    text-align: left;
+    padding: 3px 10px;
 }
 table.frame-animator-matrix td.frame-animator-property .frame-property-operations {
     position: absolute;

@@ -25,21 +25,21 @@ const knownPropertyTypes = new Set([
 ]);
 
 const knownProperties = new Map([
-    ['area.x',      {type: NUMBER}],
-    ['area.y',      {type: NUMBER}],
-    ['area.w',      {type: NUMBER}],
-    ['area.h',      {type: NUMBER}],
-    ['area.r',      {type: NUMBER}],
-    ['area.sx',     {type: NUMBER}],
-    ['area.sy',     {type: NUMBER}],
-    ['opacity',     {type: NUMBER}],
-    ['selfOpacity', {type: NUMBER}],
-    ['visible',     {type: BOOLEAN}],
-    ['blendMode',   {type: STRING, options: knownBlendModes}],
+    ['area.x',      {type: NUMBER, name: 'Position X'}],
+    ['area.y',      {type: NUMBER, name: 'Position Y'}],
+    ['area.w',      {type: NUMBER, name: 'Width'}],
+    ['area.h',      {type: NUMBER, name: 'Height'}],
+    ['area.r',      {type: NUMBER, name: 'Rotation'}],
+    ['area.sx',     {type: NUMBER, name: 'Scale X'}],
+    ['area.sy',     {type: NUMBER, name: 'Scale Y'}],
+    ['opacity',     {type: NUMBER, name: 'Opacity'}],
+    ['selfOpacity', {type: NUMBER, name: 'Self opacity'}],
+    ['visible',     {type: BOOLEAN, name: 'Visible'}],
+    ['blendMode',   {type: STRING, options: knownBlendModes, name: 'Blend mode'}],
 ]);
 
 const knownSchemeProperties = new Map([
-    ['style.backgroundColor', {type: COLOR}]
+    ['style.backgroundColor', {type: COLOR, name: 'Background color'}]
 ]);
 
 
@@ -81,7 +81,7 @@ export function findItemPropertyDescriptor(item, propertyPath) {
         }
 
         if (arg.type === COLOR || (arg.type === ADVANCED_COLOR && fields.length === 3 && fields[2] === COLOR)) {
-            return {type: COLOR};
+            return {type: COLOR, name: arg.name};
         } else {
             if (knownPropertyTypes.has(arg.type)) {
                 return arg;
