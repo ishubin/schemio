@@ -89,7 +89,7 @@ export default {
     },
     created() {
         this.animationRegistry = createAnimationRegistry(this.editorId);
-        this.userEventBus = new UserEventBus();
+        this.userEventBus = new UserEventBus(this.editorId);
         this.stateInteract = new StateInteract(this.editorId, store, this.userEventBus, {
             onCancel: () => {},
             onItemChanged: (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath),

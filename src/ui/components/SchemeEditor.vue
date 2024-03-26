@@ -2179,6 +2179,7 @@ export default {
         },
 
         switchToEditMode(screenTransform) {
+            this.userEventBus.clear();
             if (this.animationRecorder) {
                 this.stopAnimationRecording();
             }

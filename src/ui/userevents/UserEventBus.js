@@ -12,7 +12,8 @@ const log = new Logger('UserEventBus');
  * when user interacts with elements
  */
 export default class UserEventBus {
-    constructor() {
+    constructor(editorId) {
+        this.editorId = editorId;
         this.itemEventSubscribers = {};
         this.revision = shortid.generate();
     }
