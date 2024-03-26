@@ -98,7 +98,7 @@
             <g v-for="foregroundEffectHTML in foregroundEffects" v-html="foregroundEffectHTML"></g>
 
 
-            <g :id="`animation-container-${item.id}`" data-preview-ignore="true"></g>
+            <g :id="`animation-container-${item.id}`"></g>
 
 
             <g v-if="item._childItems && item.visible && mode === 'edit'" :style="componentChildrenLayerStyle">
