@@ -39,6 +39,7 @@ import HeightFunction from './HeightFunction';
 import ScriptFunction from './ScriptFunction';
 import ConditionFunction from './ConditionFunction';
 import MorphFunction from './MorphFunction';
+import FlowEffectFunction from './FlowEffectFunction';
 
 export default {
     main: {
@@ -49,6 +50,7 @@ export default {
         _transformScreen   : TransformScreenFunction,
         particleEffect     : ItemParticleEffectFunction,
         crawlEffect        : CrawlEffectFunction,
+        flowEffect         : FlowEffectFunction,
         drawEffect         : DrawEffectFunction,
         blinkEffect        : BlinkEffectFunction,
         loadComponent      : LoadComponentFunction,

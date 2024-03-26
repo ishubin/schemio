@@ -1380,6 +1380,7 @@ class SchemeContainer {
     enrichItemMeta(item, transformMatrix, parentItem, ancestorIds) {
         if (!item.meta) {
             item.meta = {
+                strokeOffset: 0,
                 collapsed: false, // used only for item tree selector
                 collapseBitMask: 0 // used in item tree selector and stores information about parent items collapse state
             };

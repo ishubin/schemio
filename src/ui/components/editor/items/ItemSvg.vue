@@ -60,6 +60,7 @@
                                 :stroke-width="primitive.strokeSize + 'px'"
                                 :stroke="primitive.strokeColor"
                                 :stroke-dasharray="computeStrokeDashArray(primitive.strokePattern, primitive.strokeSize)"
+                                :stroke-dashoffset="item.meta.strokeOffset"
                                 :data-item-id="item.id"
                                 stroke-linejoin="round"
                                 :fill="computeSvgFill(primitive.fill, `fill-templated-${item.id}-${primitiveIdx}`)"></path>

@@ -60,12 +60,14 @@ class BlinkEffectAnimation extends Animation {
 
         this.t += this.args.speed * dt / 10000;
 
-
+        let shouldContinue = false;
         if (this.args.fade) {
-            return this.playFade(dt);
+            shouldContinue = this.playFade(dt);
         } else {
-            return this.playBlinker(dt);
+            shouldContinue = this.playBlinker(dt);
         }
+
+        return this.args.infinite ? true : shouldContinue;
     }
 
     playFade(dt) {
@@ -76,7 +78,7 @@ class BlinkEffectAnimation extends Animation {
             const t = Math.sin(this.pulsatingTime * this.args.speed / (speedRatio *100.0) + this.phaseOffset) / 2 + 0.5;
             this.item.opacity = this.args.minOpacity * (1 - t) + this.args.maxOpacity * t;
 
-            if (this.args.duration * 1000 - this.elapsedTime < Math.min(500, this.args.duration * 1000 / 20)) {
+            if (!this.args.infinite && this.args.duration * 1000 - this.elapsedTime < Math.min(500, this.args.duration * 1000 / 20)) {
                 this.phase = 2;
             }
         }
@@ -106,7 +108,7 @@ class BlinkEffectAnimation extends Animation {
             this.pulsatingTime += dt;
             this.opacity = ((Math.sin(this.pulsatingTime * this.args.speed / 10000.0) / 2 + 0.5) * (this.args.maxOpacity - this.args.minOpacity) + this.args.minOpacity) / 100.0;
 
-            if (this.args.duration * 1000 - this.elapsedTime < Math.min(500, this.args.duration * 1000 / 20)) {
+            if (!this.args.infinite && this.args.duration * 1000 - this.elapsedTime < Math.min(500, this.args.duration * 1000 / 20)) {
                 this.phase = 2;
             }
         } else {
@@ -143,7 +145,8 @@ export default {
         fade            : {name: 'Fade in/out',       type: 'boolean', value: true },
         color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)', depends: {fade: false}},
         speed           : {name: 'Speed',             type: 'number', value: 50},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 5.0},
+        duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {infinite: false}},
+        infinite      : {name: 'Infinite animation',type: 'boolean', value: false, description: 'Plays animation indefinitely'},
         minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5},
         maxOpacity      : {name: 'Max Opacity (%)',   type: 'number', value: 80},
         inBackground    : {name: 'In Background',     type: 'boolean', value: false, description: 'Play animation in background without blocking invokation of other acctions'}

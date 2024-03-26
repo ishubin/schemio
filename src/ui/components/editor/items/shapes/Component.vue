@@ -11,6 +11,7 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
+            :stroke-dashoffset="item.meta.strokeOffset"
             :fill="svgFill"></path>
 
         <foreignObject v-if="item.shapeProps.kind !== 'embedded' && hideTextSlot !== 'body' && bodyTextShown" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >

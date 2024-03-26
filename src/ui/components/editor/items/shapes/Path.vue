@@ -10,6 +10,7 @@
             style="stroke-linejoin: round;"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
+            :stroke-dashoffset="item.meta.strokeOffset"
             :fill="fill"></path>
     </g>
 </template>

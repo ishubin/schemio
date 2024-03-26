@@ -15,6 +15,7 @@
             :x2="item.area.w/2" :y2="item.area.h"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
+            :stroke-dashoffset="item.meta.strokeOffset"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
         />
     </g>
@@ -22,6 +23,7 @@
 
 <script>
 import myMath from '../../../../../myMath';
+import EditorEventBus from '../../../EditorEventBus';
 import AdvancedFill from '../../AdvancedFill.vue';
 import {computeSvgFill} from '../../AdvancedFill.vue';
 import StrokePattern from '../../StrokePattern';
@@ -63,7 +65,7 @@ function computePath(item) {
 
 
 export default {
-    props: ['item'],
+    props: ['item', 'editorId'],
     components: {AdvancedFill},
 
     shapeConfig: {
@@ -200,6 +202,21 @@ export default {
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 2},
             cornerRadius : {name: 'Stroke Size', type: 'number', value: 1, depends: {type: 'rect'}, min: 0},
         },
+    },
+
+
+    beforeMount() {
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+    },
+
+    methods: {
+        onItemChanged() {
+            this.$forceUpdate();
+        }
     },
 
     computed: {

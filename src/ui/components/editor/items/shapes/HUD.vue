@@ -17,6 +17,7 @@
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
             :stroke-dasharray="strokeDashArray"
+            :stroke-dashoffset="item.meta.strokeOffset"
             fill="none"></path>
 
     </g>

@@ -199,6 +199,7 @@
  * @property {Boolean} templated
  * @property {String|undefined} templateRef
  * @property {String|undefined} templateRootId
+ * @property {Number} strokeOffset - used in non solid stroke patterns for animation of flow effect
  */
 
 /**

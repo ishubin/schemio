@@ -195,7 +195,9 @@ export function enrichItemWithDefaults(item) {
     }
 
     if (!item.meta) {
-        item.meta = {};
+        item.meta = {
+            strokeOffset: 0
+        };
     }
 
     // fixing old documents before curves were moved into multi-path shapes
