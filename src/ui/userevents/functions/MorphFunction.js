@@ -251,11 +251,40 @@ function createPointMorpher(item, baseItem, refItem, refBaseItem, pathIdx, point
         lp.y2 = srcBasePoint.y2;
         lp.h = srcBasePoint.h;
 
-        if (srcBasePoint.t === 'B' && dstBasePoint.t === 'B') {
-            lp.x1 = srcBasePoint.x1 * (1 - t) + dstBasePoint.x1 * t;
-            lp.y1 = srcBasePoint.y1 * (1 - t) + dstBasePoint.y1 * t;
-            lp.x2 = srcBasePoint.x2 * (1 - t) + dstBasePoint.x2 * t;
-            lp.y2 = srcBasePoint.y2 * (1 - t) + dstBasePoint.y2 * t;
+        let srcX1 = 0;
+        let srcY1 = 0;
+        let srcX2 = 0;
+        let srcY2 = 0;
+
+        if (srcBasePoint.t === 'B') {
+            srcX1 = srcBasePoint.x1;
+            srcY1 = srcBasePoint.y1;
+            srcX2 = srcBasePoint.x2;
+            srcY2 = srcBasePoint.y2;
+        }
+
+        let dstX1 = 0;
+        let dstY1 = 0;
+        let dstX2 = 0;
+        let dstY2 = 0;
+
+        if (dstBasePoint.t === 'B') {
+            dstX1 = dstBasePoint.x1;
+            dstY1 = dstBasePoint.y1;
+            dstX2 = dstBasePoint.x2;
+            dstY2 = dstBasePoint.y2;
+        }
+
+        if (lp.t ==='L' && dstBasePoint.t === 'B') {
+            lp.t = 'B';
+        }
+
+        if (lp.t === 'B') {
+            lp.t = 'B';
+            lp.x1 = srcX1 * (1 - t) + dstX1 * t;
+            lp.y1 = srcY1 * (1 - t) + dstY1 * t;
+            lp.x2 = srcX2 * (1 - t) + dstX2 * t;
+            lp.y2 = srcY2 * (1 - t) + dstY2 * t;
         } else if (srcBasePoint.t === 'A' && dstBasePoint.t === 'A') {
             lp.h = srcBasePoint.h * (1 - t) + dstBasePoint.h * t;
         }
@@ -263,6 +292,8 @@ function createPointMorpher(item, baseItem, refItem, refBaseItem, pathIdx, point
         const point = convertCurvePointToRelative(lp, item.area.w, item.area.h);
         item.shapeProps.paths[pathIdx].points[pointIdx].x = point.x;
         item.shapeProps.paths[pathIdx].points[pointIdx].y = point.y;
+
+        item.shapeProps.paths[pathIdx].points[pointIdx].t = point.t;
 
         if (point.t === 'B') {
             item.shapeProps.paths[pathIdx].points[pointIdx].x1 = point.x1;
