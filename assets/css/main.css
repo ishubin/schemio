@@ -1180,6 +1180,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     right: 1px;
     font-size: 8px;
 }
+.toggle-button.small {
+    padding: 2px;
+}
 
 @media (max-width: 900px) {
     .toggle-button:hover {

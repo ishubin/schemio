@@ -22,7 +22,7 @@ class FlowAnimation extends Animation {
 
     play(dt) {
         this.time += dt;
-        this.offset += this.args.speed * dt / 1000.0;
+        this.offset -= this.args.speed * dt / 1000.0;
         this.item.meta.strokeOffset = this.offset;
         EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.item.id);
 

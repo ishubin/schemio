@@ -3099,12 +3099,13 @@ export default {
             }
         },
 
-        onAnimationExportRequested({duration, fps, width, height, boundsElement}) {
+        onAnimationExportRequested({duration, delay, fps, width, height, boundsElement}) {
             this.exportAnimationModalShown = false;
             this.animationRecorderIsExporting = false;
             this.$emit('mode-change-requested', 'view');
             this.$nextTick(() => {
                 this.animationRecorder = createAnimationExportRecorder(this.editorId, this.interactiveSchemeContainer, boundsElement, duration * 1000, fps, width, height);
+                this.animationRecorder.setDelay(delay * 1000);
                 this.animationRecorder.setBackgroundColor(this.schemeContainer.scheme.style.backgroundColor);
                 this.animationRecorder.onFinish(() => {
                     this.animationRecorder.export(this.schemeContainer.scheme.name);

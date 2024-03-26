@@ -22,6 +22,7 @@ class AnimationExportRecorder {
         this.intervalId = null;
         this.elapsedTime = 0;
         this.schemeContainer = schemeContainer;
+        this.delay = 0;
         /** @type {Area} */
         this.width = width;
         this.height = height;
@@ -30,6 +31,10 @@ class AnimationExportRecorder {
         this.finishCallback = null;
         this.shouldStop = false;
         this.backgroundColor = '#ffffff';
+    }
+
+    setDelay(delay) {
+        this.delay = delay;
     }
 
     setBackgroundColor(backgroundColor) {
@@ -95,14 +100,17 @@ class AnimationExportRecorder {
                 return;
             }
             this.elapsedTime += this.deltaTime;
-            if (this.elapsedTime > this.duration) {
+            if (this.elapsedTime > this.duration + this.delay) {
                 this.stop();
                 if (this.finishCallback) {
                     this.finishCallback();
                 }
                 return;
             }
-            this.onFrame();
+            if (this.elapsedTime > this.delay) {
+                this.onFrame();
+            } else {
+            }
         }, this.deltaTime);
     }
 
