@@ -31,8 +31,17 @@
             </div>
             <div class="col-1">
                 <div class="row padded centered gap">
-                    <number-textfield :value="rasterWidth" name="Width" @changed="rasterWidth = arguments[0]"/>
-                    <number-textfield :value="rasterHeight" name="Height" @changed="rasterHeight = arguments[0]"/>
+                    <div class="col-1">
+                        <number-textfield :value="rasterWidth" name="Width" @changed="onWidthChange"/>
+                    </div>
+                    <div>
+                        <span class="toggle-button small" :class="{toggled: sizeLocked}" @click="toggleSizeLock">
+                            <i class="fa-solid fa-lock"></i>
+                        </span>
+                    </div>
+                    <div class="col-1">
+                        <number-textfield :value="rasterHeight" name="Height" @changed="onHeightChange"/>
+                    </div>
                 </div>
                 <div class="row padded centered gap">
                     <div class="col-1">
@@ -151,7 +160,10 @@ export default {
             dataURLModal: {
                 shown: false,
                 text: ''
-            }
+            },
+
+            sizeLocked: true,
+            ratio: Math.max(1, exporter.width) / Math.max(1, exporter.height)
         };
     },
 
@@ -199,7 +211,26 @@ export default {
                 console.error(e);
             }
             setTimeout(() => document.body.removeChild(link), 100);
-        }
+        },
+
+        onWidthChange(width) {
+            this.rasterWidth = Math.max(1, width);
+            if (this.sizeLocked) {
+                this.rasterHeight = Math.max(1, Math.round(this.rasterWidth / this.ratio));
+            }
+        },
+        onHeightChange(height) {
+            this.rasterHeight = Math.max(1, height);
+            if (this.sizeLocked) {
+                this.rasterWidth = Math.max(1, Math.round(this.rasterHeight * this.ratio));
+            }
+        },
+        toggleSizeLock() {
+            this.sizeLocked = !this.sizeLocked;
+            if (this.sizeLocked) {
+                this.ratio = Math.max(1, this.rasterWidth) / Math.max(1, this.rasterHeight);
+            }
+        },
     },
 
     watch: {

@@ -94,7 +94,7 @@ export default {
         toggleSizeLock() {
             this.sizeLocked = !this.sizeLocked;
             if (this.sizeLocked) {
-                this.ratio = this.width / this.height;
+                this.ratio = Math.max(1, this.width) / Math.max(1, this.height);
             }
         },
         exportSubmitted() {
