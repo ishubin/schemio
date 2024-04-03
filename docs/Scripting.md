@@ -41,6 +41,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [has (Set)](#has-set)
       - [forEach (Set)](#foreach-set)
 - [Function declaration](#function-declaration)
+- [Structs](#structs)
 - [Functions](#functions)
     - [abs](#abs)
     - [min](#min)
@@ -510,6 +511,47 @@ myMin = (a) => {
     }
 }
 log(myMin(4)(3))
+```
+
+
+Structs
+-------------
+To create custom complex objects in SchemioScript you can make use of `struct`.
+Structs let you declare fields and functions.
+You can reference struct object using `this` keyword inside of a struct function.
+
+```
+struct TreeNode {
+    id: ''
+    value: null
+    parent: null
+    childNodes: List()
+
+    addNode(node) {
+        this.childNodes.add(node)
+        node.parent = this
+    }
+}
+```
+
+When you declare a custom struct type, it creates a function with the name of the struct, which is used to initialize a struct object.
+Based on the example above we can create a `TreeNode` object like this:
+
+```
+root = TreeNode('root')
+child1 = TreeNode('child 1', 'custom value')
+root.addNode(child1)
+```
+
+As you can see from example above - you don't have to specify all struct arguments when initiating a struct object. If some arguments are missed, then the struct is initiated with the default values specified in the `struct` itself.
+
+If you don't want to specify default values in the `struct` you can just declare the names of the fields separated by comma:
+
+```
+struct Point {x, y}
+
+p1 = Point(0, 1)
+p2 = Point(-3, 2)
 ```
 
 
