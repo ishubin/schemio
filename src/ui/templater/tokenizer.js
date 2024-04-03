@@ -18,16 +18,19 @@ export const TokenTypes = {
     END_CURLY      : 15,
     RESERVED       : 16,
     // token group is used to group tokens into a token sub array for things like round brackets, curly brackets.
-    TOKEN_GROUP    : 17
+    TOKEN_GROUP    : 17,
+    COLON          : 18
 };
 
 export const ReservedTerms = {
-    IF   : 'if',
-    ELSE : 'else',
-    WHILE: 'while',
-    TRUE : 'true',
-    FALSE: 'false',
-    FOR  : 'for',
+    IF    : 'if',
+    ELSE  : 'else',
+    WHILE : 'while',
+    TRUE  : 'true',
+    FALSE : 'false',
+    FOR   : 'for',
+    NULL  : 'null',
+    STRUCT: 'struct'
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
@@ -68,6 +71,7 @@ const singleCharTokens = new Map(Object.entries({
     '=': {t: TokenTypes.OPERATOR, v: '='},
     '.': {t: TokenTypes.OPERATOR, v: '.'},
     ';': {t: TokenTypes.DELIMITER, v: ';'},
+    ':': {t: TokenTypes.COLON, v: ':'},
     '!': {t: TokenTypes.NOT},
     '{': {t: TokenTypes.START_CURLY},
     '}': {t: TokenTypes.END_CURLY},
@@ -325,7 +329,7 @@ export function tokenizeExpression(text) {
             });
         } else if (token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY) {
             if (tokensStack[0].stackExitCode !== token.t) {
-                throw new Error(`Invalid token "${token.v}"`);
+                throw new Error(`Invalid token "${token.text}"`);
             }
             const groupStack = tokensStack.shift();
             tokensStack[0].tokens.push({

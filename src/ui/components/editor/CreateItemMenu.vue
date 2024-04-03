@@ -86,7 +86,7 @@
 
             <panel v-if="templates || templatesLoading" name="Templates">
                 <div class="item-menu">
-                    <div class="item-container item-container-large"
+                    <div class="item-container item-container-template"
                         v-for="template in templates"
                         v-if="!searchKeyword || safeTextMatchKeyword(template.name)"
                         @mouseover="showPreviewTemplate(template)"

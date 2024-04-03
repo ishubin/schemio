@@ -2073,7 +2073,7 @@ class SchemeContainer {
                 const item = this.selectedItems[i];
                 if (item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id) {
                     const rootItem = this.findItemById(item.meta.templateRootId);
-                    if (rootItem) {
+                    if (rootItem && rootItem.args.templateRef) {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
                             const newArgs = template.triggerEvent(rootItem, 'delete', item.args.templatedId, item);
                             if (newArgs) {

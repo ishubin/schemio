@@ -1,5 +1,6 @@
 import expect from 'expect';
-import { Scope, parseExpression } from '../../src/ui/templater/ast';
+import { parseExpression } from '../../src/ui/templater/ast';
+import { Scope } from '../../src/ui/templater/scope';
 import { Vector } from '../../src/ui/templater/vector';
 import { List } from '../../src/ui/templater/list';
 
@@ -624,5 +625,69 @@ describe('templater ast parser', () => {
         const data = {};
         node.evalNode(new Scope(data));
         expect(data).toStrictEqual({x: 0, y: 1});
+    });
+
+    it('should allow to use null values', () => {
+        const node = parseExpression(`
+            a = null
+            if (a == b) {
+                'yes'
+            } else {
+                'no'
+            }
+        `);
+        expect(node.evalNode(new Scope({b: null}))).toStrictEqual('yes');
+        expect(node.evalNode(new Scope({b: 'asd'}))).toStrictEqual('no');
+    });
+
+    it('should support user-defined structs', () => {
+        const node = parseExpression(`
+            struct MyNode {
+                id: 'default-id'
+                name: null
+
+                setName(aName) {
+                    this.name = aName
+                }
+
+                getThis() {
+                    this
+                }
+            }
+
+            struct AnotherNode { id, name, value }
+
+            node1 = MyNode()
+            node2 = MyNode('node2')
+            node3 = MyNode('node3', 'node 3 name')
+            node4 = AnotherNode('id4', 'name 4', 3)
+
+            node2.setName('node 2 updated name')
+
+            List(node1, node2, node3, node4)
+        `);
+        const result = node.evalNode(new Scope({}));
+
+        const node1 = result.get(0);
+        const node2 = result.get(1);
+        const node3 = result.get(2);
+        const node4 = result.get(3);
+
+        expect(node1.id).toStrictEqual('default-id');
+        expect(node1.name).toBeNull();
+
+        expect(node2.id).toStrictEqual('node2');
+        expect(node2.name).toStrictEqual('node 2 updated name');
+
+        expect(node3.id).toStrictEqual('node3');
+        expect(node3.name).toStrictEqual('node 3 name');
+
+        expect(node4.id).toStrictEqual('id4');
+        expect(node4.name).toStrictEqual('name 4');
+        expect(node4.value).toStrictEqual(3);
+
+        const thisNode = node2.getThis();
+        expect(thisNode.id).toStrictEqual('node2');
+        expect(thisNode.name).toStrictEqual('node 2 updated name');
     });
 });

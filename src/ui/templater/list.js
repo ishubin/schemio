@@ -24,6 +24,21 @@ export class List {
         return this.items[idx];
     }
 
+    first() {
+        if (this.items.length === 0) {
+            throw new Error('Cannot gert the first item from the List: no items in the list');
+        }
+        return this.items[0];
+    }
+
+
+    last() {
+        if (this.items.length === 0) {
+            throw new Error('Cannot gert the last item from the List: no items in the list');
+        }
+        return this.items[this.items.length - 1];
+    }
+
     set(idx, value) {
         if (idx < 0 && idx >= this.items.length) {
             throw new Error(`Cannot set ${idx} item in List: index out of bounds`);

@@ -1,4 +1,5 @@
-import { ASTNode, Scope, parseAST } from "./ast";
+import { ASTNode, parseAST } from "./ast";
+import { Scope } from './scope';
 import { parseStringExpression } from "./strings";
 import { tokenizeExpression } from "./tokenizer";
 

@@ -25,6 +25,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [forEach (List)](#foreach-list)
       - [pop (List)](#pop-list)
       - [shift (List)](#shift-list)
+      - [first (List)](#first-list)
+      - [last (List)](#last-list)
 - [Map](#map)
     - [Map functions](#map-functions)
       - [get (Map)](#get-map)
@@ -375,6 +377,13 @@ items = List('a', 'c', 'd')
 last = items.shift()
 ```
 
+##### first (List)
+
+`first()` function returns the first element from the list
+
+##### last (List)
+
+`last()` function returns the first element from the list
 
 Map
 --------------------

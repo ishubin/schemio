@@ -157,7 +157,8 @@ export function generateItemFromTemplate(template, args, width, height) {
  * @returns
  */
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
-    const regeneratedRootItem = generateItemFromTemplate(template, {...template.getDefaultArgs, ...templateArgs}, width, height);
+    const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
+    const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height);
 
     /** @type {Map<String, Item>} */
     const regeneratedItemsById = new Map();

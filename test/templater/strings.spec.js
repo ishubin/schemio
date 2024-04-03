@@ -1,6 +1,6 @@
 import expect from 'expect';
 import { parseStringExpression } from '../../src/ui/templater/strings';
-import { Scope } from '../../src/ui/templater/ast';
+import { Scope } from '../../src/ui/templater/scope';
 
 
 describe('templater string template', () => {
