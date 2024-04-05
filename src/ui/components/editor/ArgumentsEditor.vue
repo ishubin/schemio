@@ -4,7 +4,7 @@
 <template>
     <div>
         <table class="properties-table">
-            <tr v-for="(arg, argName) in argsDefinition" v-if="argumentControlStates[argName] && !isDisabledScript(arg, argName)">
+            <tr v-for="(arg, argName) in argsDefinition" v-if="argumentControlStates[argName] && !isDisabledScript(arg, argName) && !arg.hidden">
                 <td v-if="arg.type !== 'script'" class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
                     {{arg.name}}
                     <tooltip v-if="arg.description">{{arg.description}}</tooltip>
@@ -57,6 +57,15 @@
                         :diagramId="argumentValues[argName]"
                         @diagram-selected="onDiagramPicked(argName, arguments[0])"
                         />
+
+                    <PathCapDropdown v-if="arg.type === 'path-cap'"
+                        :value="argumentValues[argName]"
+                        :is-source="false"
+                        :is-thick="false"
+                        width="100%"
+                        :height="16"
+                        :disabled="!argumentControlStates[argName].shown"
+                        @selected="onValueChange(argName, arguments[0])"/>
                 </td>
                 <td v-else colspan="2">
                     <div class="label">
@@ -85,6 +94,7 @@ import DiagramPicker from './DiagramPicker.vue';
 import Tooltip from '../Tooltip.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import ScriptEditor from './ScriptEditor.vue';
+import PathCapDropdown from './PathCapDropdown.vue';
 
 export default {
     props: {
@@ -95,7 +105,7 @@ export default {
         apiClient          : {type: Object, default: null}
     },
 
-    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor, ScriptEditor, DiagramPicker},
+    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor, ScriptEditor, DiagramPicker, PathCapDropdown},
 
     beforeMount() {
         this.updateArgumentControlDependencies();

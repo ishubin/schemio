@@ -1593,7 +1593,7 @@ class SchemeContainer {
      * @param {ItemModificationContext} context
      * @param {Number} precision - number of digits after point which it should round to
      */
-    readjustItem(changedItemId, isSoft, context, precision) {
+    readjustItem(changedItemId, isSoft = false, context = DEFAULT_ITEM_MODIFICATION_CONTEXT, precision = 4) {
         if (isNaN(precision)) {
             precision = 4;
         }
@@ -2077,7 +2077,6 @@ class SchemeContainer {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
                             const newArgs = template.triggerEvent(rootItem, 'delete', item.args.templatedId, item);
                             if (newArgs) {
-                                rootItem.args.templateArgs = newArgs;
                                 this.regenerateTemplatedItem(rootItem, template, newArgs, rootItem.area.w, rootItem.area.h);
                             }
                         });
@@ -3517,6 +3516,11 @@ class SchemeContainer {
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
+        this.reindexItems();
+        traverseItems([rootItem], item => {
+            this.readjustItem(item.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+        });
     }
 
     _alignItemsWith(items, correctionCallback) {

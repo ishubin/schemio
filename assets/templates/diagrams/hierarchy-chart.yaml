@@ -1,0 +1,274 @@
+name: Hierarchy chart
+description: ""
+args:
+    cornerRadius: {type: "number", value: 10, name: "Corner radius", min: 0}
+    nodes: {type: "string", value: "0,1,N,2,N,N", name: "Nodes encoded", hidden: true}
+    vGap: {type: "number", value: 60, name: "Vertical Gap", min: 0}
+    hGap: {type: "number", value: 20, name: "Horizontal Gap", min: 0}
+    connectorType : {type: 'choice', value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Connectors Type'}
+    capType : {type: 'path-cap', value: 'triangle', name: 'Cap type'}
+    capSize: {type: 'number', value: 15, name: 'Cap size'}
+preview: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTEwIC0xMCAzNDAgMjIwIj48ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJaZ2txU09HSVkiIGRhdGEtaXRlbS1pZD0iWmdrcVNPR0lZIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMTAwIDYwICBMIDIwIDYwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgMTAwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDEyMCA0MCAgIGEgMjAgMjAgMCAwIDEgLTIwIDIwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtZGFzaG9mZnNldD0iMCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICA8ZyBpZD0iYW5pbWF0aW9uLWNvbnRhaW5lci1aZ2txU09HSVkiLz4gICAgICAgPC9nPjwvZz4KPGcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDE0MCkgcm90YXRlKDApIiBkYXRhLXN2Zy1pdGVtLWNvbnRhaW5lci1pZD0iaDdSV0p0UTBLIiBkYXRhLWl0ZW0taWQ9Img3UldKdFEwSyI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCA2MCAgTCAyMCA2MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDEwMCAwICAgYSAyMCAyMCAwIDAgMSAyMCAyMCAgTCAxMjAgNDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjQwLDI0MCwyNDAsMS4wKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgPGcgaWQ9ImFuaW1hdGlvbi1jb250YWluZXItaDdSV0p0UTBLIi8+ICAgICAgIDwvZz48L2c+CjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAsNjApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9ImRwUXQ3Tlk4dyIgZGF0YS1pdGVtLWlkPSJkcFF0N05ZOHciPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+PGcgbW9kZT0iZWRpdCIgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCAwIEMgMTAwIDM4Ljg3IDAgIDIxLjEzIDAgNjAgIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2UtbGluZWpvaW46IHJvdW5kOyIvPiA8Zz48cGF0aCBkPSJNIC01IDYwIEwgMCA4MCBMIDUgNjAgIHogIiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L2c+PC9nPiAgIDwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLWRwUXQ3Tlk4dyIvPiAgICAgICA8L2c+PC9nPgo8ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwMCwxNDApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9Ik1Nanh4QXptVzQiIGRhdGEtaXRlbS1pZD0iTU1qeHhBem1XNCI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCA2MCAgTCAyMCA2MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDEwMCAwICAgYSAyMCAyMCAwIDAgMSAyMCAyMCAgTCAxMjAgNDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICA8ZyBpZD0iYW5pbWF0aW9uLWNvbnRhaW5lci1NTWp4eEF6bVc0Ii8+ICAgICAgIDwvZz48L2c+CjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYwLDYwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJSSkhNU2FYUTYiIGRhdGEtaXRlbS1pZD0iUkpITVNhWFE2Ij4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDAgQyAwIDM4Ljg3IDEwMCAgMjEuMTMgMTAwIDYwICIgc3Ryb2tlLXdpZHRoPSIycHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1kYXNob2Zmc2V0PSIwIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlLWxpbmVqb2luOiByb3VuZDsiLz4gPGc+PHBhdGggZD0iTSA5NSA2MCBMIDEwMCA4MCBMIDEwNSA2MCAgeiAiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L2c+ICAgPC9nPiAgPGcgaWQ9ImFuaW1hdGlvbi1jb250YWluZXItUkpITVNhWFE2Ii8+ICAgICAgIDwvZz48L2c+PC9zdmc+"
+init: |
+    struct TreeNode {
+        id: ''
+        parent: null
+        x: 0
+        y: 0
+        siblingIdx: 0
+        level: 0
+        fullWidth: 0
+        children: List()
+
+        attachTo(parentNode) {
+            this.parent = parentNode
+            this.siblingIdx = parentNode.children.size
+            parentNode.children.add(this)
+        }
+
+        attachChildAtIndex(childNode, idx) {
+            childNode.parent = this
+            this.children.insert(idx, childNode)
+            this.children.forEach((node, nodeIdx) => {
+                node.siblingIdx = nodeIdx
+            })
+        }
+
+        encodeTree() {
+            encoded = this.id
+            this.children.forEach((childNode) => {
+                childEncoded = childNode.encodeTree()
+                encoded += ',' + childEncoded
+            })
+            encoded + ',N'
+        }
+
+        reindex() {
+            this.level = if (this.parent) { this.parent.level + 1 } else { 0 }
+            if (this.children.size > 0) {
+                fullWidth = 0
+                this.children.forEach((childNode) => {
+                    childNode.reindex()
+                    fullWidth += childNode.fullWidth
+                })
+                this.fullWidth = fullWidth + (this.children.size - 1) * hGap
+            } else {
+                this.fullWidth = width
+            }
+        }
+    }
+
+    decodeTree = (encodedText) => {
+        nodeList = splitString(encodedText, ',')
+        rootNode = TreeNode(nodeList.shift())
+        currentNode = rootNode
+        while(nodeList.size > 0) {
+            nodeId = nodeList.shift()
+            if (nodeId == 'N') {
+                parent = currentNode.parent
+                if (!parent) {
+                    parent = rootNode
+                }
+                currentNode = parent
+            } else {
+                newNode = TreeNode(nodeId)
+                newNode.attachTo(currentNode)
+                currentNode = newNode
+            }
+        }
+        rootNode.reindex()
+        rootNode
+    }
+
+    struct Connector {
+        id: ''
+        srcId: ''
+        dstId: ''
+        p1: Vector(0, 0)
+        p2: Vector(0, 0)
+        x: 0
+        y: 0
+        w: 0
+        h: 0
+
+        updateArea() {
+            this.x = min(this.p1.x, this.p2.x)
+            this.y = min(this.p1.y, this.p2.y)
+            this.w = abs(this.p1.x - this.p2.x)
+            this.h = abs(this.p1.y - this.p2.y)
+        }
+    }
+
+    items = List()
+    rootNode = decodeTree(nodes)
+
+    connectors = List()
+
+    nodesById = Map()
+
+    visitTree = (node, parent) => {
+        nodesById.set(node.id, node)
+
+        if (!parent) {
+            node.x = 0
+            node.y = 0
+        } else {
+            node.y = node.level * (height + vGap)
+        }
+        items.add(node)
+
+        axis = node.x + width/2
+        childOffset = axis - node.fullWidth/2
+        node.children.forEach((childNode) => {
+            childFullWidth = childNode.fullWidth
+            childNode.x = childOffset + (childFullWidth - width)/2
+            childOffset = childNode.x + (width + childFullWidth)/2 + hGap
+            visitTree(childNode, node)
+
+            connector = Connector(`connector_${node.id}_${childNode.id}`, node.id, childNode.id)
+            connector.p1 = Vector(node.x + width/2, node.y + height)
+            connector.p2 = Vector(childNode.x + width/2, childNode.y)
+            connector.updateArea()
+            connectors.add(connector)
+        })
+    }
+
+    visitTree(rootNode, 0, null)
+
+    createNewChildFor = (nodeId) => {
+        node = nodesById.get(nodeId)
+        if (node) {
+            TreeNode(uid()).attachTo(node)
+            rootNode.reindex()
+        }
+        nodes = rootNode.encodeTree()
+    }
+
+    createNewSiblingFor = (nodeId, idx) => {
+        node = nodesById.get(nodeId)
+        if (node && node.parent) {
+            node.parent.attachChildAtIndex(TreeNode(uid()), idx)
+            rootNode.reindex()
+        }
+        nodes = rootNode.encodeTree()
+    }
+
+    on('delete', (itemId, item) => {
+        node = nodesById.get(itemId)
+        if (node && node.parent) {
+            node.parent.children.remove(node.siblingIdx)
+            rootNode.reindex()
+        }
+        nodes = rootNode.encodeTree()
+    })
+
+controls:
+-   $-foreach: {source: "items", it: "item"}
+    name: {$-str: "addChild_${item.id}"}
+    type: button
+    text: "+"
+    placement: TL
+    x: {$-expr: "if (item.level > 0) { item.x + width/2 - 10 } else { item.x + width/4 - 10 }"}
+    y: {$-expr: "item.y + height + 5"}
+    width: 20
+    height: 20
+    selectedItemId: {$-expr: "item.id"}
+    data:
+        nodeId: {$-expr: "item.id"}
+    click: "createNewChildFor(control.data.nodeId)"
+
+-   $-foreach: {source: "items", it: "item"}
+    $-if: "item.parent != null"
+    name: {$-str: "addSiblingLeft_${item.id}"}
+    type: button
+    text: "+"
+    placement: TR
+    x: {$-expr: "item.x - 5"}
+    y: {$-expr: "item.y + height/2 - 10"}
+    width: 20
+    height: 20
+    selectedItemId: {$-expr: "item.id"}
+    data:
+        nodeId: {$-expr: "item.id"}
+        siblingIdx: {$-expr: "item.siblingIdx"}
+    click: "createNewSiblingFor(control.data.nodeId, control.data.siblingIdx)"
+
+-   $-foreach: {source: "items", it: "item"}
+    $-if: "item.parent != null"
+    name: {$-str: "addSiblingRight_${item.id}"}
+    type: button
+    text: "+"
+    placement: TL
+    x: {$-expr: "item.x + width + 5"}
+    y: {$-expr: "item.y + height/2 - 10"}
+    width: 20
+    height: 20
+    selectedItemId: {$-expr: "item.id"}
+    data:
+        nodeId: {$-expr: "item.id"}
+        siblingIdx: {$-expr: "item.siblingIdx"}
+    click: "createNewSiblingFor(control.data.nodeId, control.data.siblingIdx+1)"
+
+
+item:
+    id: {$-expr: "rootNode.id"}
+    name: "Tree chart"
+    shape: "rect"
+    args: { templateIgnoredProps: ["shapeProps.fill", "shapeProps.strokeColor", "shapeProps.strokeSize", "shapeProps.strokePattern"] }
+    area:
+        x: 0
+        y: 0
+        w: {$-expr: "width"}
+        h: {$-expr: "height"}
+    shapeProps:
+        cornerRadius: {$-expr: "cornerRadius"}
+    childItems:
+    -   $-foreach: {source: "items", it: "item"}
+        $-if: "item.id.trim() != '' && item.level > 0"
+        id: {$-expr: "item.id"}
+        area:
+            x: {$-expr: "item.x"}
+            y: {$-expr: "item.y"}
+            w: {$-expr: "width"}
+            h: {$-expr: "height"}
+        textSlots: {}
+        name: {$-str: "Node ${item.id}"}
+        shape: rect
+        args: { templateIgnoredProps: ["shapeProps.fill", "shapeProps.strokeColor", "shapeProps.strokeSize", "shapeProps.strokePattern"] }
+        shapeProps:
+            cornerRadius: {$-expr: "cornerRadius"}
+
+    -   $-foreach: {source: "connectors", it: "c"}
+        $-if: "c.id.trim() != ''"
+        id: {$-expr: "c.id"}
+        area:
+            x: {$-expr: "0"}
+            y: {$-expr: "0"}
+            w: {$-expr: "width"}
+            h: {$-expr: "height"}
+        name: {$-str: "Connector"}
+        shape: connector
+        shapeProps:
+            sourceItem: {$-str: "#${c.srcId}"}
+            destinationItem: {$-str: "#${c.dstId}"}
+            sourceItemPosition: 0
+            destinationItemPosition: 0
+            sourcePin: b
+            destinationPin: t
+            destinationCap: {$-expr: "capType"}
+            destinationCapSize: {$-expr: "capSize"}
+            sourceCap: empty
+            smoothing: {$-expr: "connectorType"}
+            points:
+            -   x: {$-expr: "c.p1.x"}
+                y: {$-expr: "c.p1.y"}
+                nx: 0
+                ny: 1
+                id: first
+
+            -   x: {$-expr: "c.p2.x"}
+                y: {$-expr: "c.p2.y"}
+                nx: 0
+                ny: -1
+                id: last
+

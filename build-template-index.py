@@ -3,6 +3,7 @@
 import json
 import os
 import urllib.request
+import yaml
 
 
 def load_json_from_file(file_path):
@@ -10,18 +11,43 @@ def load_json_from_file(file_path):
         return json.loads(f.read())
 
 
-def index_template_item(index, file_path):
-    if not os.path.isfile(file_path) or not file_path.endswith('.json'):
-        return
-    template = load_json_from_file(file_path)
+def load_yaml_from_file(file_path):
+    with open(file_path) as f:
+        return yaml.safe_load(f)
 
-    entry = {
-        'name': template['name'],
-        'path' : urllib.request.pathname2url('/' + file_path),
-        'preview': template['preview'] if 'preview' in template else None,
-        'description': template['description'] if 'description' in template else ''
-    }
-    index.append(entry)
+
+def write_json_to_file(data, file_path):
+    with open(file_path, 'w') as f:
+        json.dump(data, f)
+
+
+def index_template_item(index, file_path):
+    if not os.path.isfile(file_path):
+        return
+
+    template = None
+    resulting_file_path = file_path
+
+    extension_idx = file_path.rfind('.')
+
+    if file_path.endswith('.json'):
+        yaml_alternative_path = file_path[0:extension_idx] + '.yaml'
+        if not os.path.exists(yaml_alternative_path):
+            template = load_json_from_file(file_path)
+    elif file_path.endswith('.yaml'):
+        template = load_yaml_from_file(file_path)
+        resulting_file_path = file_path[0:extension_idx] + '.json'
+        write_json_to_file(template, resulting_file_path)
+
+
+    if template is not None:
+        entry = {
+            'name': template['name'],
+            'path' : urllib.request.pathname2url('/' + resulting_file_path),
+            'preview': template['preview'] if 'preview' in template else None,
+            'description': template['description'] if 'description' in template else ''
+        }
+        index.append(entry)
 
 
 

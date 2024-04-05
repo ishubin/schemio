@@ -1,4 +1,5 @@
 import { ASTNode, parseAST } from "./ast";
+import { List } from "./list";
 import { Scope } from './scope';
 import { parseStringExpression } from "./strings";
 import { tokenizeExpression } from "./tokenizer";
@@ -13,6 +14,7 @@ const $_IF = '$-if';
 const $_ELSE_IF = '$-else-if';
 const $_ELSE = '$-else';
 const $_FOR = '$-for';
+const $_FOREACH = '$-foreach';
 const $_EVAL = '$-eval';
 
 
@@ -219,6 +221,8 @@ function compileArray(arr, customDefinitions) {
 
             if (element.hasOwnProperty($_FOR)) {
                 arrayItemBuilders.push(compileForLoopArrayItemBuilder(element, element[$_FOR], customDefinitions));
+            } else if (element.hasOwnProperty($_FOREACH)) {
+                arrayItemBuilders.push(compileForEachLoopArrayItemBuilder(element, element[$_FOREACH], customDefinitions));
             } else if (element.hasOwnProperty($_IF)) {
                 const ifStatements = [element];
                 let elseStatement = null;
@@ -283,6 +287,61 @@ function compileConditionalArrayItemBuilder(ifStatements, elseStatement, customD
 function parseTemplateExpression(expr) {
     const contertedExpression = Array.isArray(expr) ? expr.join('\n') : expr;
     return parseAST(tokenizeExpression(contertedExpression), contertedExpression);
+}
+
+/**
+ * @param {Object} item
+ * @param {Object} $foreach - for loop statement
+ * @param {Map<String, any>} customDefinitions
+ * @returns {function(Scope): Object}
+ */
+function compileForEachLoopArrayItemBuilder(item, $foreach, customDefinitions) {
+    if (!$foreach.hasOwnProperty('source')) {
+        throw new Error('Missing source definition in foreach loop');
+    }
+    if (!$foreach.hasOwnProperty('it')) {
+        throw new Error('Missing iterator (it) name definition in foreach loop');
+    }
+
+    const sourceProcessor = compileExpression($foreach.source, customDefinitions);
+
+    const objProcessor = compileObjectProcessor(item, customDefinitions);
+
+    /** @type {ASTNode} */
+    let conditionExpression = null;
+    if (item.hasOwnProperty($_IF)) {
+        conditionExpression = parseTemplateExpression(item[$_IF]);
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    return {
+        build: (scope) => {
+            const source = sourceProcessor(scope);
+            let iterator = () => {};
+
+
+            if (source instanceof List || Array.isArray(source)) {
+                iterator = (callback) => {
+                    source.forEach((value, idx) => {
+                        callback(value, idx);
+                    });
+                };
+            }
+            scope = scope.newScope();
+
+            const result = [];
+            iterator((value, idx) => {
+                scope.set($foreach.it, value);
+                const shouldBeAdded = conditionExpression ? conditionExpression.evalNode(scope) : true;
+                if (shouldBeAdded) {
+                    result.push(objProcessor(scope));
+                }
+            });
+            return result;
+        }
+    };
 }
 
 /**

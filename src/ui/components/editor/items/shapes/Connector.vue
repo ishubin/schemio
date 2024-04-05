@@ -378,20 +378,35 @@ function computeSmoothPath(item) {
     if (points.length === 2 && item.shapeProps.sourceItem && item.shapeProps.destinationItem
          && typeof points[0].nx !== 'undefined' && typeof points[1].nx !== 'undefined') {
 
-        const k = myMath.distanceBetweenPoints(points[0].x, points[0].y, points[1].x, points[1].y) / 3;
+        const p0 = points[0], p1 = points[1];
+        const pointsDistance = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
+        let k = pointsDistance / 3;
+
+        const normalOverlap = myMath.vectorLength(p0.nx + p1.nx, p0.ny + p1.ny);
+        const normalCapsDistance = myMath.distanceBetweenPoints(p0.x + p0.nx, p0.y + p0.ny, p1.x + p1.nx, p1.y + p1.ny);
+        if (normalOverlap < 0.2 && normalCapsDistance < pointsDistance) {
+            // This is a special case of when normal are "looking" into each other
+            // This is possible when one item is located on top of another and the connector
+            // is connected to the bottom pin of the top item and top pin of the bottom item
+            // If we don't perform such check then the connector becomes curved too much
+            const v0 = myMath.rotateVector90Clockwise(p0.nx, p0.ny);
+            const line = myMath.createLineEquation(p0.x, p0.y, p0.x + v0.x, p0.y + v0.y);
+            const d = myMath.distanceFromPointToLine(p1.x, p1.y, line);
+            k = d / 1.5;
+        }
 
         let path = '';
 
         if (firstCap && firstCap.prolongLine) {
-            path = `M ${round(item.shapeProps.points[0].x)} ${round(item.shapeProps.points[0].y)} `
-                + `L ${round(points[0].x)} ${round(points[0].y)} `;
+            path = `M ${p0.x} ${round(p0.y)} `
+                + `L ${round(p0.x)} ${round(p0.y)} `;
         } else {
-            path =  `M ${round(points[0].x)} ${round(points[0].y)} `;
+            path =  `M ${round(p0.x)} ${round(p0.y)} `;
         }
 
-        path += `C ${round(points[0].x + k * points[0].nx)} ${round(points[0].y + k * points[0].ny)}`
-                + ` ${round(points[1].x + k * points[1].nx)}  ${round(points[1].y + k * points[1].ny)}`
-                + ` ${round(points[1].x)} ${round(points[1].y)} `;
+        path += `C ${round(p0.x + k * p0.nx)} ${round(p0.y + k * p0.ny)}`
+                + ` ${round(p1.x + k * p1.nx)}  ${round(p1.y + k * p1.ny)}`
+                + ` ${round(p1.x)} ${round(p1.y)} `;
 
         if (lastCap && lastCap.prolongLine) {
             const p = item.shapeProps.points[item.shapeProps.points.length - 1];

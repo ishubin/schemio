@@ -83,6 +83,12 @@ export function compileItemTemplate(template, templateRef) {
             forEachObject(template.args, (argDef, argName) => {
                 templateArgs[argName] = updatedData[argName];
             });
+            if (updatedData.hasOwnProperty('width')) {
+                templateArgs.width = updatedData.width;
+            }
+            if (updatedData.hasOwnProperty('height')) {
+                templateArgs.height = updatedData.height;
+            }
             return templateArgs;
         },
         buildItem : (args, width, height) => itemBuilder({
@@ -97,7 +103,9 @@ export function compileItemTemplate(template, templateRef) {
 
                 /**
                  * @param {Item} item
-                 * @returns {Object} updated data object which can be used to update the template args
+                 * @returns {Object} updated data object which can be used to update the template args.
+                 *                  Keep in mind that this object contains not only template args,
+                 *                  but everything that was declared in the global scope of the template script
                  */
                 click: (item) => {
                     return clickExecutor({control, ...createTemplateFunctions(item)});
@@ -157,7 +165,20 @@ export function generateItemFromTemplate(template, args, width, height) {
  * @returns
  */
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
-    const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
+    if (templateArgs.hasOwnProperty('width')) {
+        width = templateArgs.width;
+        rootItem.area.w = width;
+    }
+    if (templateArgs.hasOwnProperty('height')) {
+        height = templateArgs.height;
+        rootItem.area.h = height;
+    }
+    const finalArgs = {...template.getDefaultArgs()};
+    forEachObject(template.args, (argDef, argName) => {
+        if (templateArgs.hasOwnProperty(argName)) {
+            finalArgs[argName] = templateArgs[argName];
+        }
+    });
     const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height);
 
     /** @type {Map<String, Item>} */

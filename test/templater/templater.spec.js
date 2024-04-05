@@ -1,5 +1,6 @@
 import expect from 'expect';
 import { processJSONTemplate } from '../../src/ui/templater/templater';
+import { List } from '../../src/ui/templater/list';
 
 
 
@@ -151,6 +152,63 @@ describe('templater', () => {
         });
     });
 
+
+    it('should process forEach loops in array by iterating a List object', () => {
+        const template = {
+            items: [{
+                name: 'a'
+            }, {
+                '$-foreach': {source: 'myList', it: 'x'},
+                name: 'f',
+                x: {'$-expr': 'x'}
+            }, {
+                name: 'b'
+            }]
+        };
+
+        expect(processJSONTemplate(template, {myList: new List(4, 6, 1), margin: 100})).toStrictEqual({
+            items: [{
+                name: 'a'
+            }, {
+                name: 'f', x: 4
+            }, {
+                name: 'f', x: 6
+            }, {
+                name: 'f', x: 1
+            }, {
+                name: 'b'
+            }]
+        });
+    });
+
+
+    it('should process forEach loops in array by iterating an array', () => {
+        const template = {
+            items: [{
+                name: 'a'
+            }, {
+                '$-foreach': {source: 'myArr', it: 'x'},
+                name: 'f',
+                x: {'$-expr': 'x'}
+            }, {
+                name: 'b'
+            }]
+        };
+
+        expect(processJSONTemplate(template, {myArr: [4, 6, 1], margin: 100})).toStrictEqual({
+            items: [{
+                name: 'a'
+            }, {
+                name: 'f', x: 4
+            }, {
+                name: 'f', x: 6
+            }, {
+                name: 'f', x: 1
+            }, {
+                name: 'b'
+            }]
+        });
+    });
 
     it('should run expressions in eval with assigning values to new variables', () => {
         const template = {

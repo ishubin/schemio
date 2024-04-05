@@ -2623,7 +2623,7 @@ export default {
             item.area.h = worldHeight / Math.max(0.0000001, sv.y);
 
             this.schemeContainer.selectItem(item);
-            this.schemeContainer.readjustItem(item, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
 
             if (template && item.args && item.args.templateRef) {
