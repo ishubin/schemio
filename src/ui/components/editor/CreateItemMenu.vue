@@ -66,6 +66,11 @@
                     </div>
                 </div>
             </panel>
+
+            <panel v-for="panel in customItemMenuPanels" :name="panel.name">
+                <component :is="panel.component" :mode="mode" @item-mousedown="onItemMouseDown($event.event, $event.item)"></component>
+            </panel>
+
             <panel v-if="projectArtEnabled" name="Project Art">
                 <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
                 <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
@@ -197,7 +202,7 @@ import utils from '../../../ui/utils.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
-import {defaultItem, traverseItems} from '../../scheme/Item';
+import {defaultItem} from '../../scheme/Item';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
@@ -218,9 +223,10 @@ const PATH_EDITED = 'path-edited';
 
 export default {
     props: {
-        editorId         : {type: String, required: true},
-        schemeContainer  : {type: Object},
-        projectArtEnabled: {type: Boolean, default: true},
+        editorId            : {type: String, required: true},
+        schemeContainer     : {type: Object},
+        projectArtEnabled   : {type: Boolean, default: true},
+        customItemMenuPanels: {type: Array, default: () => []},
     },
 
     components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },

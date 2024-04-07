@@ -21,6 +21,7 @@
             :overridePatchControls="overridePatchControls"
             :patchControls="patchControls"
             :extraTabs="extraTabs"
+            :customItemMenuPanels="customItemMenuPanels"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
@@ -121,6 +122,7 @@ export default {
         overridePatchControls: {type: Boolean, default: false},
         patchControls        : {type: Array, default: () => []},
         extraTabs            : {type: Array, default: () => []},
+        customItemMenuPanels : {type: Array, default: () => []},
     },
 
     beforeMount() {

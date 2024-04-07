@@ -341,6 +341,7 @@
                             :editorId="editorId"
                             :scheme-container="schemeContainer"
                             :projectArtEnabled="projectArtEnabled"
+                            :customItemMenuPanels="customItemMenuPanels"
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
                             @drawing-pencil-requested="switchStatePencilDrawing"
@@ -752,8 +753,9 @@ export default {
         saveControlEnabled  : { type: Boolean, default: true},
 
         //Used to signify that SchemeContainer needs to be recreated and item selection needs to be restored
-        schemeReloadKey: {type: String, default: null},
-        extraTabs      : {type: Array, default: () => []},
+        schemeReloadKey     : {type: String, default: null},
+        extraTabs           : {type: Array, default: () => []},
+        customItemMenuPanels: {type: Array, default: () => []},
     },
 
     created() {

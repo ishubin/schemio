@@ -23,6 +23,7 @@
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
             :extraTabs="extraTabs"
+            :customItemMenuPanels="customItemMenuPanels"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -58,6 +59,7 @@
             :modeControlEnabled="modeControlEnabled"
             :saveControlEnabled="saveControlEnabled"
             :extraTabs="extraTabs"
+            :customItemMenuPanels="customItemMenuPanels"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -156,6 +158,7 @@ export default{
         overridePatchControls: { type: Boolean, default: false},
         patchControls        : { type: Array, default: () => []},
         extraTabs            : { type: Array, default: () => []},
+        customItemMenuPanels : {type: Array, default: () => []},
     },
 
     beforeMount() {
