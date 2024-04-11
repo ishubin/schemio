@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="scheme-editor-component">
+    <div class="scheme-editor-component" ref="editorComponent">
         <QuickHelperPanel
             :key="`quick-helper-panel-${mode}`"
             v-if="currentSchemeContainer"
@@ -38,45 +38,55 @@
             @mobile-debugger-requested="toggleMobileDebugger"
             >
 
-            <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
-                <li v-if="curveEditing.selectedPoints.length > 0">
-                    <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
-                        <img width="16px" :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
-                    </span>
-                </li>
-                <li v-if="curveEditing.selectedPoints.length > 0">
-                    <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
-                        <img width="20px" :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
-                    </span>
-                </li>
-                <li>
-                    <span @click="onPathEditStopped" class="btn btn-small btn-secondary">Stop edit</span>
-                </li>
-            </ul>
+            <div class="quick-helper-panel-section">
+                <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
+                    <li v-if="curveEditing.selectedPoints.length > 0">
+                        <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
+                            <img width="16px" :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
+                        </span>
+                    </li>
+                    <li v-if="curveEditing.selectedPoints.length > 0">
+                        <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
+                            <img width="20px" :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
+                        </span>
+                    </li>
+                    <li>
+                        <span @click="onPathEditStopped" class="btn btn-small btn-secondary">Stop edit</span>
+                    </li>
+                </ul>
 
-            <ul class="button-group" v-if="saveControlEnabled && mode === 'edit' && state !== 'editPath' && state !== 'draw' && state !== 'connecting' && (modified || statusMessage.message)">
-                <li v-if="modified">
-                    <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
-                    <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
-                </li>
-                <li v-if="statusMessage.message">
-                    <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
-                        {{statusMessage.message}}
-                        <span class="msg-close" @click="clearStatusMessage"><i class="fas fa-times"/></span>
-                    </div>
-                </li>
-            </ul>
-            <ul class="button-group" v-if="animationRecorder">
-                <li>
-                    <span class="btn btn-danger" @click="stopAnimationRecording()">Stop recording</span>
-                </li>
-            </ul>
-            <ul class="button-group" v-if="animationRecorderIsExporting">
-                <li>
-                    Processing animation ...
-                </li>
-            </ul>
-
+                <ul class="button-group" v-if="saveControlEnabled && mode === 'edit' && state !== 'editPath' && state !== 'draw' && state !== 'connecting' && (modified || statusMessage.message)">
+                    <li v-if="modified">
+                        <span v-if="!isSaving" class="btn btn-primary" @click="saveScheme()">Save</span>
+                        <span v-else class="btn btn-primary" @click="saveScheme()"><i class="fas fa-spinner fa-spin"></i> Saving...</span>
+                    </li>
+                    <li v-if="statusMessage.message">
+                        <div class="msg" :class="{'msg-error': statusMessage.isError, 'msg-info': !statusMessage.isError}">
+                            {{statusMessage.message}}
+                            <span class="msg-close" @click="clearStatusMessage"><i class="fas fa-times"/></span>
+                        </div>
+                    </li>
+                </ul>
+                <ul class="button-group" v-if="animationRecorder">
+                    <li>
+                        <span class="btn btn-danger" @click="stopAnimationRecording()">Stop recording</span>
+                    </li>
+                </ul>
+                <ul class="button-group" v-if="animationRecorderIsExporting">
+                    <li>
+                        Processing animation ...
+                    </li>
+                </ul>
+            </div>
+            <div class="filler"></div>
+            <div class="quick-helper-panel-section">
+                <ul class="button-group">
+                    <li>
+                        <span v-if="!fullScreen" title="Fullscreen view" class="toggle-button" @click="switchToFullScreen"><i class="fa-solid fa-expand"></i></span>
+                        <span v-else title="Exit fullscreen" class="toggle-button" @click="exitFullScreen"><i class="fa-solid fa-compress"></i></span>
+                    </li>
+                </ul>
+            </div>
         </QuickHelperPanel>
 
         <div class="scheme-editor-middle-section" ref="middleSection">
@@ -1086,10 +1096,33 @@ export default {
             /** @type {AnimationExportRecorder} */
             animationRecorder: null,
             exportAnimationModalShown: false,
-            animationRecorderIsExporting: false
+            animationRecorderIsExporting: false,
+
+            fullScreen: false
         }
     },
     methods: {
+        switchToFullScreen() {
+            const elem = this.$refs.editorComponent;
+            this.fullScreen = true;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) {
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) {
+                elem.msRequestFullscreen();
+            }
+        },
+        exitFullScreen() {
+            this.fullScreen = false;
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        },
         toggleMobileDebugger() {
             this.mobileLogEntries = MobileDebugger.getLogEntries();
             this.mobileDebuggerShown = true;
