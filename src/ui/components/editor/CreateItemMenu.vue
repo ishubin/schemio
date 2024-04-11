@@ -709,9 +709,13 @@ export default {
                 }
 
                 if (template) {
-                    this.itemCreationDragged.previewUrl = template.preview;
-                    this.itemCreationDragged.width = itemClone.area.w;
-                    this.itemCreationDragged.height = itemClone.area.h;
+                    if (item.iconUrl) {
+                        this.itemCreationDragged.previewUrl = item.iconUrl;
+                    } else {
+                        this.itemCreationDragged.previewUrl = template.preview;
+                        this.itemCreationDragged.width = itemClone.area.w;
+                        this.itemCreationDragged.height = itemClone.area.h;
+                    }
                 } else {
                     this.itemCreationDragged.previewUrl = null;
                 }

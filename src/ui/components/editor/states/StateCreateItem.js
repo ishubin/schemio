@@ -100,16 +100,7 @@ export default class StateCreateItem extends State {
             // in some cases an item might already have templateArgs defined,
             // for example when templated item is coming from a custom item menu (e.g. schem.io)
             const existingArgs = this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {};
-            const finalArgs = {...this.template.getDefaultArgs(), ...existingArgs};
-
-            const templatedItem = this.schemeContainer.generateItemFromTemplate(this.template, finalArgs, this.item.area.w, this.item.area.h);
-            templatedItem.area.x = this.item.area.x;
-            templatedItem.area.y = this.item.area.y;
-            templatedItem.area.w = this.item.area.w;
-            templatedItem.area.h = this.item.area.h;
-            this.schemeContainer.deleteItem(this.item);
-            this.schemeContainer.addItem(templatedItem);
-            this.item = templatedItem;
+            this.schemeContainer.regenerateTemplatedItem(this.item, this.template, existingArgs, this.item.area.w, this.item.area.h);
         }
 
         if (this.store.state.autoRemount && this.item.shape !== 'hud') {

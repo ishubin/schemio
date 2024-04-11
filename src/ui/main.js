@@ -23,7 +23,7 @@ import RichTextEditor from './components/RichTextEditor.vue';
 import utils from './utils.js';
 import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js'
 import { diagramImageExporter } from './diagramExporter.js';
-
+import { compileItemTemplate } from './components/editor/items/ItemTemplate.js';
 
 window.Schemio = {
     components: {
@@ -34,6 +34,7 @@ window.Schemio = {
         getObjectProperty: utils.getObjectProperty,
         createHasher,
         snapshotSvg,
+        compileItemTemplate,
         diagramImageExporter,
         getBoundingBoxOfItems,
         traverseItems,
