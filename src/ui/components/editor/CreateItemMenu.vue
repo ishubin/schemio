@@ -36,8 +36,8 @@
                     <div v-for="item in panel.items"
                         class="item-container"
                         :title="item.name"
-                        @mouseleave="stopPreviewItem($event, item)"
-                        @mouseover="showPreviewItem($event, item)"
+                        @mouseleave="stopPreviewItem(item)"
+                        @mouseover="showPreviewItem(item)"
                         @mousedown="onItemMouseDown($event, item)"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
@@ -68,7 +68,12 @@
             </panel>
 
             <panel v-for="panel in customItemMenuPanels" :name="panel.name">
-                <component :is="panel.component" :mode="mode" @item-mousedown="onItemMouseDown($event.event, $event.item)"></component>
+                <component :is="panel.component"
+                    :search-keyword="searchKeyword"
+                    @stop-preview-item="stopPreviewItem"
+                    @show-preview-item="showPreviewItem"
+                    @item-mouse-down="onItemMouseDown"
+                    ></component>
             </panel>
 
             <panel v-if="projectArtEnabled" name="Project Art">
@@ -202,7 +207,7 @@ import utils from '../../../ui/utils.js';
 import Shape from './items/shapes/Shape.js';
 import LinkEditPopup from './LinkEditPopup.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
-import {defaultItem} from '../../scheme/Item';
+import {defaultItem, traverseItems} from '../../scheme/Item';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
@@ -435,8 +440,8 @@ export default {
             this.showPreviewItem(menuEntry);
         },
 
-        showPreviewItem(event, item) {
-            enrichItemWithDefaults(item.item);
+        showPreviewItem(item) {
+            traverseItems([item.item], enrichItemWithDefaults);
 
             this.previewItem.template = null;
             this.previewItem.item = item;
@@ -446,7 +451,7 @@ export default {
             this.previewItem.description = item.description;
             this.displayPreviewItemTooltip();
         },
-        stopPreviewItem(event, item) {
+        stopPreviewItem(item) {
             if (this.previewItem.item && this.previewItem.item.name === item.name) {
                 this.previewItem.shown = false;
             }
@@ -676,11 +681,8 @@ export default {
         onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template) {
             this.previewItem.shown = false;
 
-            const itemClone = utils.clone(item.item);
-            if (!template) {
-                itemClone.id = shortid.generate();
-            }
-
+            const [itemClone] = this.schemeContainer.cloneItems([item.item], true);
+            traverseItems([itemClone], enrichItemWithDefaults);
 
             dragAndDropBuilder(originalEvent)
             .withDroppableClass('scheme-container')
@@ -733,7 +735,7 @@ export default {
                         item: itemClone
                     }, template);
                 } else {
-                    this.onItemPicked(item);
+                    this.onItemPicked({...item, item: itemClone});
                 }
             })
             .onDrop((event, element, pageX, pageY) => {

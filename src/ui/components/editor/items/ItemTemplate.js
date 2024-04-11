@@ -302,7 +302,9 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             return;
         }
 
-        addNewGeneratedItemToOrigin(item, parentItem.id, sortOrder);
+        if (parentItem) {
+            addNewGeneratedItemToOrigin(item, parentItem.id, sortOrder);
+        }
     });
 
     const swappingItems = [];

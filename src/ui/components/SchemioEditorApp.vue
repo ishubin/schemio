@@ -24,6 +24,7 @@
             :saveControlEnabled="saveControlEnabled"
             :extraTabs="extraTabs"
             :customItemMenuPanels="customItemMenuPanels"
+            :contextMenuExtraProvider="contextMenuExtraProvider"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -60,6 +61,7 @@
             :saveControlEnabled="saveControlEnabled"
             :extraTabs="extraTabs"
             :customItemMenuPanels="customItemMenuPanels"
+            :contextMenuExtraProvider="contextMenuExtraProvider"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -159,6 +161,7 @@ export default{
         patchControls        : { type: Array, default: () => []},
         extraTabs            : { type: Array, default: () => []},
         customItemMenuPanels : {type: Array, default: () => []},
+        contextMenuExtraProvider: {type: Object, default: null}
     },
 
     beforeMount() {

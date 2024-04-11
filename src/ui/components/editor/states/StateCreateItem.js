@@ -7,6 +7,7 @@ import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 import { traverseItems } from '../../../scheme/Item.js';
 import EditorEventBus from '../EditorEventBus.js';
+import { compileItemTemplate } from '../items/ItemTemplate.js';
 
 export default class StateCreateItem extends State {
     constructor(editorId, store, listener) {
@@ -31,6 +32,14 @@ export default class StateCreateItem extends State {
     setItem(item, template) {
         this.item = item;
         this.template = template;
+
+        if (!template && item.args && item.args.templated && item.args.templateRef) {
+            if (this.store.state.apiClient && this.store.state.apiClient.getTemplate) {
+                this.store.state.apiClient.getTemplate(item.args.templateRef).then(templateDef => {
+                    this.template = compileItemTemplate(templateDef, item.args.templateRef);
+                });
+            }
+        }
 
         const shape = Shape.find(item.shape);
         if (shape && shape.shapeEvents && shape.shapeEvents.beforeCreate) {
@@ -88,7 +97,12 @@ export default class StateCreateItem extends State {
         this.schemeContainer.setActiveBoundaryBox(null);
 
         if (this.template) {
-            const templatedItem = this.schemeContainer.generateItemFromTemplate(this.template, this.template.getDefaultArgs(), this.item.area.w, this.item.area.h);
+            // in some cases an item might already have templateArgs defined,
+            // for example when templated item is coming from a custom item menu (e.g. schem.io)
+            const existingArgs = this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {};
+            const finalArgs = {...this.template.getDefaultArgs(), ...existingArgs};
+
+            const templatedItem = this.schemeContainer.generateItemFromTemplate(this.template, finalArgs, this.item.area.w, this.item.area.h);
             templatedItem.area.x = this.item.area.x;
             templatedItem.area.y = this.item.area.y;
             templatedItem.area.w = this.item.area.w;
@@ -140,7 +154,7 @@ export default class StateCreateItem extends State {
 
 
         if (this.template) {
-            this.schemeContainer.regenerateTemplatedItem(this.item, this.template, this.item.args.templateArgs, this.item.area.w, this.item.area.h);
+            this.schemeContainer.regenerateTemplatedItem(this.item, this.template, this.item.args.templateArgs || {}, this.item.area.w, this.item.area.h);
             traverseItems([this.item], item => this.listener.onItemChanged(item.id));
         } else {
             this.listener.onItemChanged(this.item.id);

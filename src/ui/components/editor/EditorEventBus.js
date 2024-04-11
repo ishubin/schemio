@@ -35,6 +35,12 @@ function $emit(editorId, eventName, eventArgs, ...emitArgs) {
 }
 
 const EditorEventBus = {
+    // this is used outside of Schemio core code
+    custom: {
+        $on: (editorId, eventName, callback) => $on(editorId, `custom-${eventName}`, [], callback),
+        $off: (editorId, eventName, callback) => $off(editorId, `custom-${eventName}`, [], callback),
+        $emit: (editorId, eventName, ...args) => $emit(editorId, `custom-${eventName}`, [], ...args),
+    },
     schemeChangeCommitted: {
         $on: (editorId, callback) => $on(editorId, 'scheme-change-committed', [], callback),
         $off: (editorId, callback) => $off(editorId, 'scheme-change-committed', [], callback),

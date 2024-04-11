@@ -756,6 +756,11 @@ export default {
         schemeReloadKey     : {type: String, default: null},
         extraTabs           : {type: Array, default: () => []},
         customItemMenuPanels: {type: Array, default: () => []},
+
+        // used for customizing schemio with additional context menu options.
+        // The provider should be in form of {provide: (items) => {return []}}
+        // It should return an array of options in the format of {name: 'Name', iconClass: '', clicked: () => {}}
+        contextMenuExtraProvider: {type: Object, default: null}
     },
 
     created() {
@@ -2248,6 +2253,7 @@ export default {
                 }
             }
 
+
             contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Copy',
                 iconsClass: 'fas fa-copy',
@@ -2400,7 +2406,16 @@ export default {
                 });
             }
 
+            contextMenuOptions = contextMenuOptions.concat(this.generateCustomContextMenuOptions(this.schemeContainer.editBox.items));
+
             this.$emit('context-menu-requested', mouseX, mouseY, contextMenuOptions);
+        },
+
+        generateCustomContextMenuOptions(selectedItems) {
+            if (!this.contextMenuExtraProvider || !this.contextMenuExtraProvider.provide) {
+                return [];
+            }
+            return this.contextMenuExtraProvider.provide(selectedItems);
         },
 
         convertEditorPropsContextMenuOptions(item, options) {

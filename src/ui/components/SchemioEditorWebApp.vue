@@ -22,6 +22,7 @@
             :patchControls="patchControls"
             :extraTabs="extraTabs"
             :customItemMenuPanels="customItemMenuPanels"
+            :contextMenuExtraProvider="contextMenuExtraProvider"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
@@ -123,6 +124,11 @@ export default {
         patchControls        : {type: Array, default: () => []},
         extraTabs            : {type: Array, default: () => []},
         customItemMenuPanels : {type: Array, default: () => []},
+
+        // used for customizing schemio with additional context menu options.
+        // The provider should be in form of {provide: (items) => {return []}}
+        // It should return an array of options in the format of {name: 'Name', iconClass: '', clicked: () => {}}
+        contextMenuExtraProvider: {type: Object, default: null}
     },
 
     beforeMount() {
