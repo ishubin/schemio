@@ -328,6 +328,7 @@ export default {
             } else {
                 this.$emit('scheme-update-requested', scheme);
             }
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.modified = true;
         },
 
@@ -342,6 +343,7 @@ export default {
             } else {
                 this.$emit('scheme-update-requested', scheme);
             }
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.modified = true;
         },
 
