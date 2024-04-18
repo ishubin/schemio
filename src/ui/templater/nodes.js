@@ -3,6 +3,7 @@ import { StringTemplate } from "./strings";
 import { Vector } from "./vector";
 import { Scope } from "./scope";
 import shortid from "shortid";
+import { convertScriptObjectToJSON } from "./json";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -530,8 +531,10 @@ const reservedFunctions = new Map(Object.entries({
         return falseValue;
     },
     matchesRegex: (text, pattern) => new RegExp(pattern).test(text),
-    splitString : (str, separator) => new List(...str.split(separator))
+    splitString : (str, separator) => new List(...str.split(separator)),
+    toJSON : (obj) => convertScriptObjectToJSON(obj)
 }));
+
 
 export class ASTFunctionDeclaration extends ASTNode {
     /**

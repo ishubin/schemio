@@ -67,6 +67,32 @@ export class List {
         this.items.forEach(callback);
     }
 
+    /**
+     *
+     * @param {function} callback
+     * @returns {List}
+     */
+    map(callback) {
+        const mappedArray = this.items.map(callback);
+        return new List(...mappedArray);
+    }
+
+    filter(predicate) {
+        const filteredArray = this.items.filter(predicate);
+        return new List(...filteredArray);
+    }
+
+    /**
+     * @param {List|Array} otherList
+     */
+    extendList(otherList) {
+        if (otherList instanceof List || otherList instanceof Array) {
+            otherList.forEach(item => {
+                this.items.push(item);
+            });
+        }
+    }
+
     get size() {
         return this.items.length;
     }

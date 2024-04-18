@@ -91,8 +91,16 @@ function parseFunction(functionProvider, tokens) {
         }
     });
 
-    if (args[args.length - 1].length === 0) {
+    const lastArgTokens = args[args.length - 1];
+    if (lastArgTokens.length === 0 || (lastArgTokens.length === 1 && lastArgTokens[0].t === TokenTypes.NEWLINE)) {
         args.pop();
+    }
+
+    for (let i = 0; i < args.length; i++) {
+        const argTokens = args[i];
+        if (argTokens.length === 0 || (argTokens.length === 1 && argTokens[0].t === TokenTypes.NEWLINE)) {
+            throw new Error(`Missing argument #${i} in function invokation`);
+        }
     }
 
     return new ASTFunctionInvocation(functionProvider, args.map(parseAST));
@@ -288,7 +296,7 @@ class ASTParser extends TokenScanner {
                 if (nextToken && nextToken.t === TokenTypes.OPERATOR && nextToken.v === '=>') {
                     this.skipToken();
                     this.skipNewlines();
-                    return parseFunctionDeclaration(token, this.scanToken());
+                    return parseFunctionDeclarationUsing(token, this.scanToken());
                 }
                 const expression = parseAST(token.groupTokens);
                 return this.parseGroup(expression);
@@ -312,6 +320,8 @@ class ASTParser extends TokenScanner {
                 return new ASTValue(null);
             } else if (token.v === ReservedTerms.STRUCT) {
                 return this.parseStruct();
+            } else if (token.v === ReservedTerms.FUNC) {
+                return this.parseFunctionDeclaration();
             }
         } else if (token.t === TokenTypes.TERM) {
             return this.parseGroup(new ASTVarRef(token.v));
@@ -364,6 +374,36 @@ class ASTParser extends TokenScanner {
 
         const whileBlock = parseAST(token.groupTokens);
         return new ASTWhileStatement(whileExpression, whileBlock);
+    }
+
+    parseFunctionDeclaration() {
+        this.skipNewlines();
+        const funcNameToken = this.scanToken();
+        if (!funcNameToken) {
+            throw new Error(`Missing function name after "func"`);
+        }
+        if (funcNameToken.t !== TokenTypes.TERM) {
+            throw new Error(`Unexpected token after "func": "${funcNameToken.text}"`)
+        }
+        this.skipNewlines();
+        const funcArgsToken = this.scanToken();
+        if (!funcArgsToken) {
+            throw new Error(`Missing function args declaration for "${funcNameToken.v}" function`);
+        }
+        if (!(funcArgsToken.t === TokenTypes.TOKEN_GROUP && funcArgsToken.groupCode === TokenTypes.START_BRACKET)) {
+            throw new Error(`Expected function args declaration for "${funcNameToken.v}" function, got: "${funcArgsToken.text}"`);
+        }
+        this.skipNewlines();
+        const funcBodyToken = this.scanToken();
+        if (!funcBodyToken) {
+            throw new Error(`Missing function body declaration for "${funcNameToken.v}" function`);
+        }
+        if (!(funcBodyToken.t === TokenTypes.TOKEN_GROUP && funcBodyToken.groupCode === TokenTypes.START_CURLY)) {
+            throw new Error(`Expected function body declaration for "${funcNameToken.v}" function, got: "${funcBodyToken.text}"`);
+        }
+
+        const functionAST = parseFunctionDeclarationUsing(funcArgsToken, funcBodyToken);
+        return new ASTAssign(new ASTVarRef(funcNameToken.v), functionAST);
     }
 
     parseStruct() {
@@ -467,7 +507,7 @@ class ASTParser extends TokenScanner {
  * @param {ScriptToken} argsToken
  * @param {ScriptToken} bodyToken
  */
-function parseFunctionDeclaration(argsToken, bodyToken) {
+function parseFunctionDeclarationUsing(argsToken, bodyToken) {
     if (!argsToken) {
         throw new Error('Cannot parse function declaration. Missing arguments definition');
     }
@@ -547,7 +587,7 @@ function parseStruct(name, tokens) {
                     throw new Error(`Expected function definition for struct field "${fieldNameToken.v}", get: ${functionBlockToken.t} ${functionBlockToken.v}`);
                 }
 
-                const astFunc = parseFunctionDeclaration(argsToken, functionBlockToken);
+                const astFunc = parseFunctionDeclarationUsing(argsToken, functionBlockToken);
                 fieldDefinitions.push({name: fieldNameToken.v, value: astFunc});
             } else {
                 const fieldTokens = scanner.scanUntilNewLine();
@@ -566,7 +606,7 @@ function parseStruct(name, tokens) {
                 throw new Error(`Unexpected token for function body of "${fieldNameToken.v}" struct function: ${funcToken.t} ${funcToken.text}`);
             }
             const argsToken = nextToken;
-            const astFunc = parseFunctionDeclaration(argsToken, funcToken);
+            const astFunc = parseFunctionDeclarationUsing(argsToken, funcToken);
             functionDefinitions.push({name: fieldNameToken.v, body: astFunc});
         } else {
             fieldDefinitions.push({name: fieldNameToken.v, value: new ASTValue(null)});

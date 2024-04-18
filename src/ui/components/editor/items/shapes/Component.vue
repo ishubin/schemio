@@ -135,7 +135,7 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
             }
         },
         selfOpacity: 50,
-        visibile: true,
+        visible: true,
         cursor: 'pointer',
         shapeProps: {
             cornerRadius: componentItem.shapeProps.backButtonCornerRadius,

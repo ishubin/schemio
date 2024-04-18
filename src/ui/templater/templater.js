@@ -1,4 +1,4 @@
-import { ASTNode, parseAST } from "./ast";
+import { ASTNode, parseAST, parseExpression } from "./ast";
 import { List } from "./list";
 import { Scope } from './scope';
 import { parseStringExpression } from "./strings";
@@ -15,6 +15,7 @@ const $_ELSE_IF = '$-else-if';
 const $_ELSE = '$-else';
 const $_FOR = '$-for';
 const $_FOREACH = '$-foreach';
+const $_RECURSE = '$-recurse';
 const $_EVAL = '$-eval';
 
 
@@ -81,6 +82,8 @@ function compile(obj, customDefinitions) {
             return compileStringExpression(obj[$_STR]);
         } else if (obj.hasOwnProperty($_RAWSTR)) {
             return compileRawString(obj[$_RAWSTR]);
+        } else if (obj.hasOwnProperty($_RECURSE)) {
+            return compileRecursiveBuilder(obj, obj[$_RECURSE], customDefinitions).build;
         } else if (obj.hasOwnProperty($_REF)) {
             const refName = obj[$_REF];
             if (!customDefinitions.has(refName)) {
@@ -223,6 +226,8 @@ function compileArray(arr, customDefinitions) {
                 arrayItemBuilders.push(compileForLoopArrayItemBuilder(element, element[$_FOR], customDefinitions));
             } else if (element.hasOwnProperty($_FOREACH)) {
                 arrayItemBuilders.push(compileForEachLoopArrayItemBuilder(element, element[$_FOREACH], customDefinitions));
+            } else if (element.hasOwnProperty($_RECURSE)) {
+                arrayItemBuilders.push(compileRecursiveBuilder(element, element[$_RECURSE], customDefinitions));
             } else if (element.hasOwnProperty($_IF)) {
                 const ifStatements = [element];
                 let elseStatement = null;
@@ -289,6 +294,71 @@ function parseTemplateExpression(expr) {
     return parseAST(tokenizeExpression(contertedExpression), contertedExpression);
 }
 
+
+/**
+ * @param {Object} item
+ * @param {Object} $recurse - recurse statement
+ * @param {Map<String, any>} customDefinitions
+ * @returns {function(Scope): Object}
+ */
+function compileRecursiveBuilder(item, $recurse, customDefinitions) {
+    if (!$recurse.hasOwnProperty('object')) {
+        throw new Error('Missing "object" definition for $-recurse statement')
+    }
+    if (!$recurse.hasOwnProperty('it')) {
+        throw new Error('Missing "it" definition for $-recurse statement')
+    }
+    if (!$recurse.hasOwnProperty('children')) {
+        throw new Error('Missing "children" definition for $-recurse statement')
+    }
+    if (!$recurse.hasOwnProperty('dstChildren')) {
+        throw new Error('Missing "dstChildren" definition for $-recurse statement')
+    }
+
+    const sourceObjectProcessor = compile($recurse.object, customDefinitions);
+    const childrenFetcher = parseExpression($recurse.children);
+    const iteratorName = $recurse.it;
+    const dstChildrenFieldName = $recurse.dstChildren;
+    const itemClone = {...item};
+    delete itemClone[$_RECURSE];
+    const itemProcessor = compileObjectProcessor(itemClone);
+
+    /**
+     * @param {Scope} scope
+     * @param {Object} sourceObject
+     */
+    function buildObject(scope, sourceObject) {
+        if (!sourceObject) {
+            return sourceObject;
+        }
+        const data = {};
+        data[iteratorName] = sourceObject;
+        const iteratorScope = scope.newScope(data);
+
+        const processedObj = itemProcessor(iteratorScope);
+        const children = childrenFetcher.evalNode(iteratorScope);
+        if (children instanceof List || Array.isArray(children)) {
+            const processedChildren = [];
+            children.forEach(childObj => {
+                processedChildren.push(buildObject(scope, childObj));
+            });
+            if (processedObj.hasOwnProperty(dstChildrenFieldName) && Array.isArray(processedObj[dstChildrenFieldName])) {
+                processedObj[dstChildrenFieldName] = processedObj[dstChildrenFieldName].concat(processedChildren);
+            } else {
+                processedObj[dstChildrenFieldName] = processedChildren;
+            }
+        }
+        return processedObj;
+    }
+
+    return {
+        build: (scope) => {
+            const sourceObject = sourceObjectProcessor(scope);
+            return buildObject(scope, sourceObject);
+        }
+    };
+}
+
 /**
  * @param {Object} item
  * @param {Object} $foreach - for loop statement
@@ -303,7 +373,7 @@ function compileForEachLoopArrayItemBuilder(item, $foreach, customDefinitions) {
         throw new Error('Missing iterator (it) name definition in foreach loop');
     }
 
-    const sourceProcessor = compileExpression($foreach.source, customDefinitions);
+    const sourceProcessor = compileExpression($foreach.source);
 
     const objProcessor = compileObjectProcessor(item, customDefinitions);
 

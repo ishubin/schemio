@@ -258,4 +258,197 @@ describe('templater', () => {
             }]
         });
     });
+
+
+    it('should support recursive structures with List type children', () => {
+        const recursiveObject = {
+            id: 'root',
+            name: 'root item',
+            x: 0, y: 10,
+            childItems: new List({
+                id: 'c1',
+                name: 'c1 item',
+                x: 100, y: -5,
+                childItems: new List({
+                    id: 'c1_1',
+                    name: 'c1_1 item',
+                    x: 10, y: 5,
+                })
+            }, {
+                id: 'c2',
+                name: 'c2 item',
+                x: 5, y: 6
+            })
+        }
+
+        const template = {
+            items: [{
+                '$-recurse': {object: {'$-expr': 'someObject'}, it: 'x', children: 'x.childItems', dstChildren: 'childItems'},
+                id: {'$-expr': 'x.id'},
+                name: {'$-expr': 'x.name'},
+                area: {
+                    x: {'$-expr': 'x.x'},
+                    y: {'$-expr': 'x.y'},
+                }
+            }]
+        };
+
+        expect(processJSONTemplate(template, {
+            someObject: recursiveObject,
+        })).toStrictEqual({
+            items: [{
+                id: 'root',
+                name: 'root item',
+                area: {x: 0, y: 10},
+                childItems: [{
+                    id: 'c1',
+                    name: 'c1 item',
+                    area: {x: 100, y: -5},
+                    childItems: [{
+                        id: 'c1_1',
+                        name: 'c1_1 item',
+                        area: {x: 10, y: 5},
+                    }]
+                }, {
+                    id: 'c2',
+                    name: 'c2 item',
+                    area: {x: 5, y: 6}
+                }]
+            }]
+        });
+    });
+
+    it('should support recursive structures with Array type children', () => {
+        const recursiveObject = {
+            id: 'root',
+            name: 'root item',
+            x: 0, y: 10,
+            childItems: [{
+                id: 'c1',
+                name: 'c1 item',
+                x: 100, y: -5,
+                childItems: [{
+                    id: 'c1_1',
+                    name: 'c1_1 item',
+                    x: 10, y: 5,
+                }]
+            }, {
+                id: 'c2',
+                name: 'c2 item',
+                x: 5, y: 6
+            }]
+        }
+
+        const template = {
+            items: [{
+                '$-recurse': {object: {'$-expr': 'someObject'}, it: 'x', children: 'x.childItems', dstChildren: 'childItems'},
+                id: {'$-expr': 'x.id'},
+                name: {'$-expr': 'x.name'},
+                area: {
+                    x: {'$-expr': 'x.x'},
+                    y: {'$-expr': 'x.y'},
+                }
+            }]
+        };
+
+        expect(processJSONTemplate(template, {
+            someObject: recursiveObject,
+        })).toStrictEqual({
+            items: [{
+                id: 'root',
+                name: 'root item',
+                area: {x: 0, y: 10},
+                childItems: [{
+                    id: 'c1',
+                    name: 'c1 item',
+                    area: {x: 100, y: -5},
+                    childItems: [{
+                        id: 'c1_1',
+                        name: 'c1_1 item',
+                        area: {x: 10, y: 5},
+                    }]
+                }, {
+                    id: 'c2',
+                    name: 'c2 item',
+                    area: {x: 5, y: 6}
+                }]
+            }]
+        });
+    });
+
+    it('should support recursive structures with mixed child items', () => {
+        const recursiveObject = {
+            id: 'root',
+            name: 'root item',
+            x: 0, y: 10,
+            childItems: new List({
+                id: 'c1',
+                name: 'c1 item',
+                x: 100, y: -5,
+                childItems: new List({
+                    id: 'c1_1',
+                    name: 'c1_1 item',
+                    x: 10, y: 5,
+                })
+            }, {
+                id: 'c2',
+                name: 'c2 item',
+                x: 5, y: 6
+            })
+        }
+
+        const template = {
+            items: [{
+                '$-recurse': {object: {'$-expr': 'someObject'}, it: 'x', children: 'x.childItems', dstChildren: 'childItems'},
+                id: {'$-expr': 'x.id'},
+                name: {'$-expr': 'x.name'},
+                area: {
+                    x: {'$-expr': 'x.x'},
+                    y: {'$-expr': 'x.y'},
+                },
+                childItems: [{
+                    id: {'$-str': '${x.id}-connector'},
+                    name: {'$-str': '${x.name} connector'}
+                }]
+            }]
+        };
+
+        expect(processJSONTemplate(template, {
+            someObject: recursiveObject,
+        })).toStrictEqual({
+            items: [{
+                id: 'root',
+                name: 'root item',
+                area: {x: 0, y: 10},
+                childItems: [{
+                    id: 'root-connector',
+                    name: 'root item connector'
+                },{
+                    id: 'c1',
+                    name: 'c1 item',
+                    area: {x: 100, y: -5},
+                    childItems: [{
+                        id: 'c1-connector',
+                        name: 'c1 item connector'
+                    },{
+                        id: 'c1_1',
+                        name: 'c1_1 item',
+                        area: {x: 10, y: 5},
+                        childItems: [{
+                            id: 'c1_1-connector',
+                            name: 'c1_1 item connector'
+                        }]
+                    }]
+                }, {
+                    id: 'c2',
+                    name: 'c2 item',
+                    area: {x: 5, y: 6},
+                    childItems: [{
+                        id: 'c2-connector',
+                        name: 'c2 item connector'
+                    }]
+                }]
+            }]
+        });
+    });
 });

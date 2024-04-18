@@ -193,7 +193,7 @@
  * @property {Boolean} componentRoot - true if the current item is the root of the component
  * @property {Boolean} componentLoadFailed - true if loading of component has failed
  * @property {Boolean} isInHUD - true if item is located in HUD
- * @property {Boolean} calculatedVisibility - true if it is visibile, false if item is either has visible set to false or is placed in the item that is hidden
+ * @property {Boolean} calculatedVisibility - true if it is visible, false if item is either has visible set to false or is placed in the item that is hidden
  * @property {Number} collapseBitMask
  * @property {Boolean} collapsed
  * @property {Boolean} templated

@@ -30,7 +30,8 @@ export const ReservedTerms = {
     FALSE : 'false',
     FOR   : 'for',
     NULL  : 'null',
-    STRUCT: 'struct'
+    STRUCT: 'struct',
+    FUNC  : 'func'
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
@@ -162,6 +163,9 @@ class Scanner {
         while(this.idx <= this.text.length) {
             if (this.text.substring(this.idx, this.idx + endTerm.length) === endTerm) {
                 this.idx += endTerm.length;
+                if (endTerm === '\n') {
+                    this.idx -= 1;
+                }
                 break;
             }
             commentText += this.text[this.idx];

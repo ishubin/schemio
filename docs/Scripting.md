@@ -23,10 +23,13 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [insert (List)](#insert-list)
       - [size (List)](#size-list)
       - [forEach (List)](#foreach-list)
+      - [map (List)](#map-list)
+      - [filter (List)](#filter-list)
       - [pop (List)](#pop-list)
       - [shift (List)](#shift-list)
       - [first (List)](#first-list)
       - [last (List)](#last-list)
+      - [extendList (List)](#extendlist-list)
 - [Map](#map)
     - [Map functions](#map-functions)
       - [get (Map)](#get-map)
@@ -360,6 +363,27 @@ items.forEach((item, index) => {
 })
 ```
 
+##### map (List)
+
+`map(callback)` function returns a new `List` object which is populated with the results of calling `callback` function to each item
+
+```js
+items = List(1, 2, 3)
+newItems = items.map((value, index) => {
+    value * 100
+});
+```
+
+##### filter (List)
+
+`filter(predicate)` function returns a new `List` object which contains the filtered items from original list, which have returned true upon calling the `predicate` function on every item.
+
+```js
+items = List(1, 20, 5, 10)
+newItems = items.map((value, index) => { value < 7 });
+```
+
+
 ##### pop (List)
 
 `pop()` function returns the last element from the list and removes it from the list:
@@ -385,6 +409,15 @@ last = items.shift()
 ##### last (List)
 
 `last()` function returns the first element from the list
+
+##### extendList (List)
+
+`extendList(anotherList)` function appends all items from `anotherList` argument to original `List` object
+
+```js
+items = List(1, 2, 3)
+items.extendList(List(3, 5, 6))
+```
 
 Map
 --------------------
@@ -479,8 +512,20 @@ s.forEach((value) => {
 Function declaration
 --------------------
 
-You can declare your own functions using the following syntax: `(arg1, arg2) => {/* This is the function body */}`.
-There is no `function` keyword, so you need to assign your function to a variable if you want to use it later:
+You can declare a function using `func` keyword like this:
+
+```js
+func minValues(a, b) {
+    if (a < b) {
+        a
+    } else {
+        b
+    }
+}
+log(myMin(4, 1))
+```
+
+Alternativle you can declare your own functions using arrow function syntax: `(arg1, arg2) => {/* This is the function body */}`.
 
 ```js
 myFunc = () => {
@@ -502,7 +547,7 @@ log(myMin(4, 1))
 ```
 
 
-Using function is return values:
+Using function as a return statement:
 
 ```js
 myMin = (a) => {

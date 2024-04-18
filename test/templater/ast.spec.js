@@ -148,6 +148,7 @@ describe('templater ast parser', () => {
         [
             ['x = 3; x = x + 6;/* x = x + 100 */;x = x *2; x', 18],
             ['x = 3\nx = x + 6\n // x = x + 100\nx = x *2\n x', 18],
+            ['x = 3\nx = x + 6 // x - 9\nx = x *2\n x', 18],
         ].forEach(([script, expected]) => {
             const result = parseExpression(script).evalNode(new Scope({}));
             expect(result).toBe(expected);
@@ -689,5 +690,50 @@ describe('templater ast parser', () => {
         const thisNode = node2.getThis();
         expect(thisNode.id).toStrictEqual('node2');
         expect(thisNode.name).toStrictEqual('node 2 updated name');
+    });
+
+
+
+    it('should support function declaration using "func" keyword', () => {
+        const node = parseExpression(`
+            func addTwoNumbers(n1, n2) {
+                n1 + n2
+            }
+            func minusTwoNumbers(n1, n2) {
+                n1 - n2
+            }
+
+            addTwoNumbers(10, minusTwoNumbers(5, 7))
+        `);
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(8);
+    });
+
+
+    it('should convert any object to JSON with "toJSON" function', () => {
+        const node = parseExpression(`
+            toJSON(Map(
+                'name', 'Connector',
+                'shape', 'connector',
+                'x', 4,
+                'visible', true,
+                'shapeProps', Map(
+                    'points', List(
+                        Map('x', 5, 'y', 8),
+                        Map('x', 45, 'y', -8),
+                    )
+                )
+            ))
+        `)
+        const result = node.evalNode(new Scope({}));
+        expect(result).toStrictEqual({
+            name: 'Connector',
+            shape: 'connector',
+            x: 4,
+            visible: true,
+            shapeProps: {
+                points: [{x: 5, y: 8}, {x: 45, y: -8}]
+            }
+        });
     });
 });
