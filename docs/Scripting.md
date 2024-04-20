@@ -525,7 +525,7 @@ func minValues(a, b) {
 log(myMin(4, 1))
 ```
 
-Alternativle you can declare your own functions using arrow function syntax: `(arg1, arg2) => {/* This is the function body */}`.
+Alternatively you can declare your own functions using arrow function syntax: `(arg1, arg2) => {/* This is the function body */}`.
 
 ```js
 myFunc = () => {

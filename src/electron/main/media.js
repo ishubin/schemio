@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 import { nanoid } from "nanoid";
-import { getFileExtension, leftZeroPad, mediaFolder, supportedMediaExtensions } from "../../common/fs/fsUtils";
+import { getFileExtension, leftZeroPad, mediaFolder } from "../../common/fs/fsUtils";
 import { ContextHolder } from "./context";
 
 /**
@@ -14,10 +14,6 @@ export function copyFileToProjectMedia(contextHolder) {
         const projectPath = contextHolder.from(event).projectPath;
 
         const extension = getFileExtension(fileName).toLowerCase();
-        if (!supportedMediaExtensions.has(extension)) {
-            return Promise.reject('Unsupported file type');
-        }
-
         const date = new Date();
 
         const pathParts = [ '' + date.getFullYear(), leftZeroPad(date.getMonth()), leftZeroPad(date.getDate())];

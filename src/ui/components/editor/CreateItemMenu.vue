@@ -150,7 +150,7 @@
             @extra-shapes-registered="updateAllPanels"
             @close="extraShapesModal.shown = false"/>
 
-        <link-edit-popup v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
+        <LinkEditModal v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
         <div v-if="previewItem.shown" class="preview-item" :style="{left: `${previewItem.x}px`, top: `${previewItem.y}px`}">
             <div  class="item-container">
@@ -205,7 +205,7 @@ import shortid from 'shortid';
 import {forEach, map, filter} from '../../collections';
 import utils from '../../../ui/utils.js';
 import Shape from './items/shapes/Shape.js';
-import LinkEditPopup from './LinkEditPopup.vue';
+import LinkEditModal from './LinkEditModal.vue';
 import recentPropsChanges from '../../history/recentPropsChanges';
 import {defaultItem, traverseItems} from '../../scheme/Item';
 import {enrichItemWithDefaults, enrichItemWithDefaultShapeProps} from '../../scheme/ItemFixer';
@@ -234,7 +234,7 @@ export default {
         customItemMenuPanels: {type: Array, default: () => []},
     },
 
-    components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditPopup, ItemSvg, ExtraShapesModal, ExtraShapesModal },
+    components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditModal, ItemSvg, ExtraShapesModal, ExtraShapesModal },
 
     beforeMount() {
         this.loadProjectArt();

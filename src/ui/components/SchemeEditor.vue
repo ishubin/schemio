@@ -498,7 +498,7 @@
             </div>
         </div>
 
-        <link-edit-popup v-if="addLinkPopup.shown"
+        <LinkEditModal v-if="addLinkPopup.shown"
             :edit="false" title="" url="" type=""
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
@@ -588,7 +588,7 @@ import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
 import ElementPicker from './editor/ElementPicker.vue';
 import DiagramPicker from './editor/DiagramPicker.vue';
-import LinkEditPopup from './editor/LinkEditPopup.vue';
+import LinkEditModal from './editor/LinkEditModal.vue';
 import ItemTooltip from './editor/ItemTooltip.vue';
 import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.vue';
 import Shape from './editor/items/shapes/Shape.js';
@@ -732,7 +732,7 @@ export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
-        LinkEditPopup, InPlaceTextEditBox, TemplateProperties,
+        LinkEditModal, InPlaceTextEditBox, TemplateProperties,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
         ConnectorDestinationProposal, AdvancedBehaviorProperties,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,

@@ -3,16 +3,6 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 export const schemioExtension = '.schemio.json';
 export const mediaFolder = '.media';
-export const supportedMediaExtensions = new Set([
-    'jpg',
-    'jpeg',
-    'png',
-    'gif',
-    'tiff',
-    'bmp',
-    'svg',
-    'webp'
-]);
 
 export function fileNameFromPath(filePath) {
     const idx = filePath.lastIndexOf('/');

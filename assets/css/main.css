@@ -1618,16 +1618,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     background: none;
 }
 
-.scheme-ref-control {
-    display: flex;
-}
-.scheme-ref-control .textfield {
-    display: block;
-    flex: 1;
-    margin-right: 4px;
-}
-
-
 /************* Links in Item Properties ***************/
 .scheme-details {
     user-select: text;

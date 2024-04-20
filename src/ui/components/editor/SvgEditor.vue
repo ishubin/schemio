@@ -54,14 +54,14 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="linksAnimated ? '#' : link.url">
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="linksAnimated ? '#' : link.url" target="_blank">
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
-                        <text class="item-link-icon" :class="['link-icon-' + link.type]"
+                        <text class="item-link-icon"
                             :x="link.x - 6"
                             :y="link.y + 5"
                             :font-size="13 + 'px'"
                             :title="link.title"
-                            >{{link.shortTitle}}</text>
+                            >{{link.iconText}}</text>
 
                         <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
                             <span class="item-link-title">{{link | formatLinkTitle}}</span>
@@ -862,7 +862,7 @@ export default {
 
         onSvgItemLinkClick(url, event) {
             if (url.startsWith('/') && !this.linksAnimated) {
-                window.location = url;
+                window.open(url, '_blank') || window.location.replace(url);
                 event.preventDefault();
             }
             return false;
@@ -1034,7 +1034,7 @@ export default {
                     return {
                         url: convertLinkUrl(link),
                         type: link.type,
-                        shortTitle: this.getFontAwesomeSymbolForLink(link),
+                        iconText: this.getFontAwesomeSymbolForLink(link),
                         title: link.title,
                         x: cx,
                         y: cy,
@@ -1064,6 +1064,12 @@ export default {
         },
 
         getFontAwesomeSymbolForLink(link) {
+            if (link.type === 'file') {
+                const extensionIdx = link.title.lastIndexOf('.');
+                const extension = link.title.substring(Math.max(0, extensionIdx + 1)).toLowerCase();
+                return linkTypes.findFileIcon(extension).fontAwesomeSymbol;
+
+            }
             return linkTypes.findTypeByNameOrDefault(link.type).fontAwesomeSymbol;
         },
 

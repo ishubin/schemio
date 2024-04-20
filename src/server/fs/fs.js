@@ -5,7 +5,7 @@ import fs from 'fs-extra';
 import _ from 'lodash';
 import path from 'path';
 import { nanoid } from 'nanoid'
-import { folderPathFromPath, mediaFolder, supportedMediaExtensions, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
+import { folderPathFromPath, mediaFolder, getFileExtension, leftZeroPad} from '../../common/fs/fsUtils.js';
 import artService from '../../common/fs/artService.js';
 import styleService from '../../common/fs/styleService.js';
 import { ProjectService } from '../../common/fs/projectService.js';
@@ -468,10 +468,6 @@ export function fsUploadMediaFile(config) {
         }
 
         const extension = getFileExtension(file.name).toLowerCase();
-        if (!supportedMediaExtensions.has(extension)) {
-            res.$apiBadRequest('Unsupported file type');
-            return;
-        }
 
         const date = new Date();
 

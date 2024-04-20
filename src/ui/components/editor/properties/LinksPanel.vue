@@ -18,7 +18,7 @@
         <span class="btn btn-secondary" v-on:click="addLink()"><i class="fas fa-link"></i> Add</span>
 
 
-        <link-edit-popup v-if="editLinkData"
+        <LinkEditModal v-if="editLinkData"
             :edit="editLinkData.edit" :title="editLinkData.title" :url="editLinkData.url" :type="editLinkData.type"
             @submit-link="onLinkSubmit"
             @close="editLinkData = null"/>
@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import LinkEditPopup from '../LinkEditPopup.vue';
+import LinkEditModal from '../LinkEditModal.vue';
 import Panel from '../Panel.vue';
 import linkTypes from '../LinkTypes.js';
 import EditorEventBus from '../EditorEventBus.js';
@@ -36,7 +36,7 @@ export default {
         editorId: {type: String, required: true},
         item    : {type: Object, required: true}
     },
-    components: { Panel, LinkEditPopup },
+    components: { Panel, LinkEditModal },
 
     data() {
         return {
