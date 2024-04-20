@@ -77,7 +77,7 @@ export default {
 
         args: {
             url      : {type: 'string', value: '', name: 'URL'},
-            otherTab : {type: 'boolean',value: false, name: 'In Other Tab', description: 'Open the link in another tab'},
+            otherTab : {type: 'boolean',value: true, name: 'In Other Tab', description: 'Open the link in another tab'},
             underline: {type: 'boolean', value: true, name: 'Underline'},
             showIcon : {type: 'boolean', value: true, name: 'Show Icon'},
             icon     : {type: 'choice', value: 'default', name: 'Icon', options: map(LinkTypes.knownTypes, linkType => linkType.name)},
@@ -112,7 +112,11 @@ export default {
             return style;
         },
         onLinkClick() {
-            window.location = this.item.shapeProps.url;
+            if (this.item.shapeProps.otherTab) {
+                window.open(this.item.shapeProps.url, '_blank') || window.location.replace(this.item.shapeProps.url);
+            } else {
+                window.location = this.item.shapeProps.url;
+            }
         },
         calculateTextOffset() {
             if (this.item.shapeProps.showIcon) {
