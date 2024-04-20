@@ -26,7 +26,12 @@
             :stroke-width="1/safeZoom"
             :fill="editBoxFill"
             stroke="none"
-            style="opacity: 0.8;"/>
+            style="opacity: 0.8;"
+            @dragenter="onItemDragEnter"
+            @dragover="onItemDragOver"
+            @dragleave="onItemDragLeave"
+            @drop="onItemDrop"
+            />
 
         <!-- rendering item custom control points -->
         <g v-if="kind === 'regular'">
@@ -520,11 +525,77 @@ export default {
             template: null,
             customControls: [],
             templateControls: [],
-            colorControlToggled: false
+            colorControlToggled: false,
+            draggingFileOver: false
         };
     },
 
     methods: {
+        onItemDragEnter(event) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile || !this.editBox.items || this.editBox.items.length === 0) {
+                return;
+            }
+            if (event.dataTransfer) {
+                this.draggingFileOver = true;
+            }
+        },
+
+        onItemDragOver(event) {
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile || !this.editBox.items || this.editBox.items.length === 0) {
+                return;
+            }
+            if (event.dataTransfer) {
+                this.draggingFileOver = true;
+            }
+        },
+
+        onItemDragLeave(event) {
+            this.draggingFileOver = false;
+        },
+
+        onItemDrop(event) {
+            this.draggingFileOver = false;
+            event.preventDefault();
+            if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile || !this.editBox.items || this.editBox.items.length === 0) {
+                return;
+            }
+
+            let fileItems = [...event.dataTransfer.items].filter(item => item.kind === 'file');
+
+            if (fileItems.length === 0) {
+                return;
+            }
+
+
+            fileItems.map(item => item.getAsFile())
+            .map(file => {
+                const title = file.name;
+                return this.$store.state.apiClient.uploadFile(file)
+                .then(url => {
+                    this.editBox.items.forEach(item => {
+                        if (item.shape === 'link') {
+                            item.shapeProps.url = url;
+                            item.shapeProps.icon = 'file';
+                            StoreUtils.addInfoSystemMessage(this.$store, `Updated link url to ${url}`, `item-link-url-changed-${this.editBox.id}`)
+                        } else {
+                            if (!Array.isArray(item.links)) {
+                                item.links = [];
+                            }
+                            item.links.push({
+                                title, url, type: 'file'
+                            });
+                            StoreUtils.addInfoSystemMessage(this.$store, `Attached file "${title}" to item`, `item-link-url-changed-${this.editBox.id}-${title}`)
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'links');
+                        }
+                    });
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                })
+                .catch(err => {
+                    console.error(err);
+                    return null;
+                });
+            });
+        },
         fetchTemplate(templateRef) {
             if (!this.apiClient.getTemplate) {
                 return;
@@ -651,6 +722,9 @@ export default {
 
     computed: {
         editBoxFill() {
+            if (this.draggingFileOver) {
+                return 'rgba(140, 255, 140, 0.6)';
+            }
             if (this.useFill) {
                 return 'rgba(255,255,255,0.0)';
             }

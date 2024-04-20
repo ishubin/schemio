@@ -121,7 +121,11 @@
                 :data-item-id="item.id"
                 :stroke-width="hoverPathStrokeWidth"
                 :style="{'cursor': item.cursor}"
-                stroke="rgba(255, 255, 255, 0)"
+                :stroke="hoverPathStroke"
+                @dragenter="onItemDragEnter"
+                @dragover="onItemDragOver"
+                @dragleave="onItemDragLeave"
+                @drop="onItemDrop"
                 :fill="hoverPathFill" />
 
             <g v-if="mode === 'view' && !textSelectionEnabled">
@@ -204,6 +208,7 @@ import {forEach} from '../../../collections';
 import { findEffect } from '../../effects/Effects';
 import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
+import StoreUtils from '../../../store/StoreUtils';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -302,7 +307,9 @@ export default {
             backgroundEffects     : [],
             foregroundEffects     : [],
             svgItemTransform      : this.calculateSVGItemTransform(),
-            customAreas           : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : []
+            customAreas           : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [],
+
+            draggingFileOver      : false
         };
 
         if (shape) {
@@ -325,6 +332,68 @@ export default {
     },
 
     methods: {
+        onItemDragEnter(event) {
+            if (event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
+                this.draggingFileOver = true;
+            }
+        },
+
+        onItemDragOver(event) {
+            if (event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
+                this.draggingFileOver = true;
+            }
+        },
+
+        onItemDragLeave(event) {
+            this.draggingFileOver = false;
+        },
+
+        onItemDrop(event) {
+            this.draggingFileOver = false;
+            event.preventDefault();
+
+            if (this.mode !== 'edit' || !this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile) {
+                return;
+            }
+
+            let fileItems = [...event.dataTransfer.items].filter(item => item.kind === 'file');
+
+            if (fileItems.length === 0) {
+                return;
+            }
+
+            if (this.item.shape === 'link') {
+                fileItems = [fileItems[0]];
+            }
+
+            fileItems.map(item => item.getAsFile())
+            .map(file => {
+                const title = file.name;
+                return this.$store.state.apiClient.uploadFile(file)
+                .then(url => {
+                    if (this.item.shape === 'link') {
+                        this.item.shapeProps.url = url;
+                        this.item.shapeProps.icon = 'file';
+                        StoreUtils.addInfoSystemMessage(this.$store, `Updated link url to ${url}`, `item-link-url-changed-${this.item.id}`)
+                    } else {
+                        if (!Array.isArray(this.item.links)) {
+                            this.item.links = [];
+                        }
+                        this.item.links.push({
+                            title, url, type: 'file'
+                        });
+                        StoreUtils.addInfoSystemMessage(this.$store, `Attached file "${title}" to item`, `item-link-url-changed-${this.item.id}-${title}`)
+                        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'links');
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.links`);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    return null;
+                });
+            });
+        },
+
         getEffectFill() {
             const shape = Shape.find(this.item.shape);
             if (!shape) {
@@ -486,13 +555,24 @@ export default {
 
     computed: {
         hoverPathStrokeWidth() {
+            if (this.draggingFileOver) {
+                return '8px';
+            }
             if (this.supportsStrokeSize) {
                 return (parseInt(this.item.shapeProps.strokeSize) + 2)  + 'px';
             }
             return '0px';
         },
-
+        hoverPathStroke() {
+            if (this.draggingFileOver) {
+                return 'rgba(130, 240, 130, 0.7)';
+            }
+            return 'rgba(255, 255, 255, 0)';
+        },
         hoverPathFill() {
+            if (this.draggingFileOver) {
+                return 'rgba(140, 255, 140, 0.6)';
+            }
             if (this.item.shape === 'path') {
                 if (this.item.shapeProps.fill && this.item.shapeProps.fill.type === 'none') {
                     return 'none';

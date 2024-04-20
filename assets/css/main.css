@@ -902,10 +902,12 @@ ul.pagination li a.current {
     stroke-width: 2;
 }
 .svg-editor-plot .item-link .item-link-icon {
-    fill: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
     font-weight: bold;
-    font-size: 12px;
-    font-family: "Font Awesome 5 Free";
+    font-size: 15px;
 }
 .svg-editor-plot .item-link .item-link-full-title {
     font-size: 16px;

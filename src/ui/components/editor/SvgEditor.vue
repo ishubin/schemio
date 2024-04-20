@@ -54,14 +54,17 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])" :xlink:href="linksAnimated ? '#' : link.url" target="_blank">
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])"
+                        :xlink:href="linksAnimated ? '#' : link.url" target="_blank"
+                        :title="link.title"
+                        >
                         <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
-                        <text class="item-link-icon"
-                            :x="link.x - 6"
-                            :y="link.y + 5"
-                            :font-size="13 + 'px'"
-                            :title="link.title"
-                            >{{link.iconText}}</text>
+
+                        <foreignObject :x="link.x-7" :y="link.y - 6" :width="16" :height="16">
+                            <div class="item-link-icon">
+                                <i :class="link.iconClass"></i>
+                            </div>
+                        </foreignObject>
 
                         <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
                             <span class="item-link-title">{{link | formatLinkTitle}}</span>
@@ -307,7 +310,7 @@ export default {
     data() {
         return {
             mouseEventsEnabled: !(this.mode === 'view' && this.textSelectionEnabled),
-            linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#5dec4b', '#cba502', '#02cbcb'],
+            linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#226D18', '#6A590E', '#0F8989', '#7B245B'],
 
 
             lastClickPoint: null,
@@ -1034,7 +1037,7 @@ export default {
                     return {
                         url: convertLinkUrl(link),
                         type: link.type,
-                        iconText: this.getFontAwesomeSymbolForLink(link),
+                        iconClass: this.getIconClassForLink(link),
                         title: link.title,
                         x: cx,
                         y: cy,
@@ -1063,14 +1066,13 @@ export default {
             }
         },
 
-        getFontAwesomeSymbolForLink(link) {
+        getIconClassForLink(link) {
             if (link.type === 'file') {
                 const extensionIdx = link.title.lastIndexOf('.');
                 const extension = link.title.substring(Math.max(0, extensionIdx + 1)).toLowerCase();
-                return linkTypes.findFileIcon(extension).fontAwesomeSymbol;
-
+                return linkTypes.findFileIcon(extension).cssClass;
             }
-            return linkTypes.findTypeByNameOrDefault(link.type).fontAwesomeSymbol;
+            return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
         },
 
         toLocalPoint(mouseX, mouseY) {
