@@ -108,6 +108,18 @@
                     />
                 </g>
 
+                <rect data-preview-ignore="true"
+                    x="0"
+                    y="0"
+                    :width="width"
+                    :height="height"
+                    :fill="fileDropLayerFill"
+                    @dragenter="onFileDragEnter"
+                    @dragover="onFileDragOver"
+                    @dragleave="onFileDragLeave"
+                    @drop="onFileDrop"
+                    />
+
                 <g data-type="scene-transform" :transform="transformSvg">
                     <g v-for="item in schemeContainer.worldItems"
                         v-if="item.visible"
@@ -337,6 +349,8 @@ export default {
             worldHighlightedItems: [ ],
             lastTouchStartTime: 0,
             lastTouchStartCoords: {x: -1000, y: -1000},
+
+            draggingFileOver: false
         };
     },
     methods: {
@@ -1137,6 +1151,92 @@ export default {
             };
         },
 
+        onFileDragEnter(event) {
+            if (event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
+                this.draggingFileOver = true;
+            }
+        },
+
+        onFileDragOver(event) {
+            if (event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
+                this.draggingFileOver = true;
+            }
+        },
+
+        onFileDragLeave(event) {
+            this.draggingFileOver = false;
+        },
+
+        onFileDrop(event) {
+            this.draggingFileOver = false;
+            event.preventDefault();
+
+            if (this.mode !== 'edit' || !this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile) {
+                return;
+            }
+
+            let fileItems = [...event.dataTransfer.items].filter(item => item.kind === 'file');
+
+            if (fileItems.length === 0) {
+                return;
+            }
+
+
+            const mp = this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+            const p = this.toLocalPoint(mp.x, mp.y);
+
+            let fileIdx = -1;
+            fileItems.map(item => item.getAsFile())
+            .map(file => {
+                const fileType = file.type || '';
+                const title = file.name;
+                return this.$store.state.apiClient.uploadFile(file)
+                .then(url => {
+                    fileIdx += 1;
+                    const item = utils.clone(defaultItem);
+                    if (fileType.startsWith('image/')) {
+                        item.name = title;
+                        item.shape = 'image';
+                        item.shapeProps = {
+                            image: url
+                        };
+                        const height = 200;
+                        item.area = {x: p.x, y: p.y + fileIdx * (height + 10), w: 200, h: height};
+                    } else {
+                        item.name = 'Link to ' + title;
+                        item.shape = 'link';
+                        item.shapeProps = {
+                            url: url,
+                            icon: 'file'
+                        };
+                        item.cursor = 'pointer';
+                        item.textSlots = {
+                            link: {
+                                text: title,
+                                halign: 'left',
+                                valign: 'top',
+                                fontSize: 16,
+                                paddingLeft: 0,
+                                paddingTop: 0,
+                                paddingBottom: 0,
+                                paddingRight: 0,
+                                color: '#047EFB',
+                            }
+                        };
+                        item.area = {x: p.x, y: p.y + 40 * fileIdx, w: 12 * title.length + 30, h: 30};
+                    }
+
+                    enrichItemWithDefaults(item);
+                    this.schemeContainer.addItem(item);
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                })
+                .catch(err => {
+                    console.error(err);
+                    return null;
+                });
+            });
+        },
+
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
@@ -1151,6 +1251,12 @@ export default {
 
     },
     computed: {
+        fileDropLayerFill() {
+            if (this.draggingFileOver) {
+                return 'rgba(200,255,200,0.6)';
+            }
+            return 'rgba(255,255,255,0.0)';
+        },
         cssClass() {
             const css = ['mode-' + this.mode];
             if (!(this.mode === 'view' && this.textSelectionEnabled)) {

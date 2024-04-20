@@ -333,13 +333,13 @@ export default {
 
     methods: {
         onItemDragEnter(event) {
-            if (event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
+            if (this.mode === 'edit' && event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
                 this.draggingFileOver = true;
             }
         },
 
         onItemDragOver(event) {
-            if (event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
+            if (this.mode === 'edit' && event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
                 this.draggingFileOver = true;
             }
         },
