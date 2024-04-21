@@ -7,6 +7,7 @@
             <transition name="system-message" v-for="msg in systemMessages" :key="`system-message-${msg.id}`">
                 <div class="message" :class="[`message-${msg.status}`]">
                     <span class="close-button" @click="closeMessage(msg.id)"><i class="fas fa-times"/></span>
+                    <i v-if="msg.iconClass" :class="msg.iconClass"></i>
                     <span>{{msg.message}}</span>
                 </div>
             </transition>

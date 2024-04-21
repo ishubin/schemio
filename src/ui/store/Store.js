@@ -257,7 +257,7 @@ const store = new Vuex.Store({
             state.statusMessage.isError = isError;
         },
 
-        ADD_SYSTEM_MESSAGE(state, { message, status, id }) {
+        ADD_SYSTEM_MESSAGE(state, { message, status, id, iconClass }) {
             if (id) {
                 // checking if there are already messages with the same id
                 for (let i = 0; i < state.systemMessages.length; i++) {
@@ -273,6 +273,7 @@ const store = new Vuex.Store({
                 id,
                 message,
                 status,
+                iconClass
             });
 
             const timeout = 5000;
@@ -461,8 +462,8 @@ const store = new Vuex.Store({
             commit('SET_STATUS_MESSAGE', {message, isError: true});
         },
 
-        addSystemMessage({commit}, { message, status, id }) {
-            commit('ADD_SYSTEM_MESSAGE', { message, status, id });
+        addSystemMessage({commit}, { message, status, id, iconClass }) {
+            commit('ADD_SYSTEM_MESSAGE', { message, status, id, iconClass });
         },
         removeSystemMessage({commit}, id) {
             commit('REMOVE_SYSTEM_MESSAGE', id);

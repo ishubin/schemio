@@ -570,6 +570,7 @@ export default {
             fileItems.map(item => item.getAsFile())
             .map(file => {
                 const title = file.name;
+                StoreUtils.addInfoSystemMessage(this.$store, `Uploading file "${title}"...`, `file-uploading-${title}`, 'fas fa-spinner fa-spin fa-1x');
                 return this.$store.state.apiClient.uploadFile(file)
                 .then(url => {
                     this.editBox.items.forEach(item => {
@@ -593,7 +594,9 @@ export default {
                 .catch(err => {
                     console.error(err);
                     if (err.response && err.response.data && err.response.data.message) {
-                        StoreUtils.addErrorSystemMessage(this.$store, err.response.data.message, `item-upload-error-${title}`)
+                        StoreUtils.addErrorSystemMessage(this.$store, err.response.data.message, `item-upload-error-${title}`);
+                    } else {
+                        StoreUtils.addErrorSystemMessage(this.$store, 'Something went wrong, could not upload file', `item-upload-error-${title}`);
                     }
                     return null;
                 });
