@@ -389,6 +389,9 @@ export default {
                 })
                 .catch(err => {
                     console.error(err);
+                    if (err.response && err.response.data && err.response.data.message) {
+                        StoreUtils.addErrorSystemMessage(this.$store, err.response.data.message, `item-upload-error-${title}`)
+                    }
                     return null;
                 });
             });
