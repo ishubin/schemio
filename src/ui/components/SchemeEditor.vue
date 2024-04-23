@@ -2813,13 +2813,6 @@ export default {
                 return;
             }
 
-            // there is no use for floating helper panel as we don't want users
-            // to edit templated items unless they are the root of the template
-            if (item.args && item.args.templated && !item.args.templateRef) {
-                this.resetFloatingHelperPanel();
-                return;
-            }
-
             this.floatingHelperPanel.x = midX;
             this.floatingHelperPanel.y = screenY;
             this.floatingHelperPanel.item = item;
