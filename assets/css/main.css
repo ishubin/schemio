@@ -2484,6 +2484,38 @@ ul.script-options .script-option.selected {
     }
 }
 
+.item-tooltip.item-short-details-tooltip {
+    font-size: 12px;
+    max-width: 300px;
+    max-height: 200px;
+    padding: 5px;
+    border-radius: 5px;
+    z-index: 100;
+}
+.item-tooltip.item-short-details-tooltip .item-tooltip-body p:first-child {
+    margin-top: 0;
+}
+.item-tooltip.item-short-details-tooltip .item-tooltip-body p:last-child {
+    margin-bottom: 0;
+}
+.item-tooltip.item-short-details-tooltip .item-tooltip-links {
+    list-style: none;
+    margin: 0 0 5px 0;
+    padding: 0;
+}
+.item-tooltip.item-short-details-tooltip .item-tooltip-links > li {
+    display: flex;
+    align-items: center;
+}
+.item-tooltip.item-short-details-tooltip .item-tooltip-links > li > .icon {
+    display: block;
+    min-width: 20px;
+    max-width: 20px;
+}
+.item-tooltip.item-short-details-tooltip .item-tooltip-links > li a {
+    flex: 1
+}
+
 /***************** Item Selector *********************/
 .item-selector .item-selector-items {
     overflow: scroll;
@@ -4155,4 +4187,19 @@ input.condition-function-send-event {
     padding: 4px;
     border: 1px solid var(--faint-strong-up-up);
     border-radius: 3px;
+}
+
+
+.item-details-marker-icon {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
+    border-radius: 3px;
+    border: 1px solid var(--faint-strong-up);
+    background: rgba(250, 250, 250, 0.3);
+    color: var(--faint-strong-down);
+    font-size: 11px;
 }

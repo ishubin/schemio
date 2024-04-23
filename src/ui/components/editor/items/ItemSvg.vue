@@ -33,6 +33,7 @@
                     @frame-animator="onFrameAnimatorEvent">
                 </component>
 
+
                 <g v-if="!shapeComponent && item.visible && shapePrimitives && shouldBeDrawn"
                     :style="{'opacity': item.selfOpacity/100.0}">
 
@@ -68,7 +69,6 @@
                     </g>
 
                 </g>
-
                 <g v-if="shapeType === 'missing' && item.visible" class="missing-shape">
                     <rect x="0" y="0" :width="item.area.w" :height="item.area.h" />
                     <foreignObject x="0" y="0"  :width="item.area.w" :height="item.area.h">
@@ -100,7 +100,6 @@
 
             <g :id="`animation-container-${item.id}`"></g>
 
-
             <g v-if="item._childItems && item.visible && mode === 'edit'" :style="componentChildrenLayerStyle">
                 <ItemSvg v-for="childItem in item._childItems"
                     v-if="childItem.visible"
@@ -127,6 +126,27 @@
                 @dragleave="onItemDragLeave"
                 @drop="onItemDrop"
                 :fill="hoverPathFill" />
+
+            <g v-if="mode === 'edit' && showItemDetailMarkers && (hasDescription || hasLinks || hasFiles)" data-preview-ignore="true">
+                <foreignObject :x="detailsMarker.x" :y="detailsMarker.y" :width="detailsMarker.w" :height="detailsMarker.h" :data-item-id="item.id">
+                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-details-marker-icon" :data-item-id="item.id">
+                        <i v-if="hasFiles" class="icon fa-solid fa-paperclip" :data-item-id="item.id"></i>
+                        <i v-else-if="hasLinks" class="icon fa-solid fa-link" :data-item-id="item.id"></i>
+                        <i v-else class="icon fa-solid fa-paragraph" :data-item-id="item.id"></i>
+                    </div>
+                </foreignObject>
+                <rect
+                    :x="detailsMarker.x"
+                    :y="detailsMarker.y"
+                    :width="detailsMarker.w"
+                    :height="detailsMarker.h"
+                    data-type="item-details-marker"
+                    :data-item-id="item.id"
+                    :style="{cursor: item.cursor}"
+                    fill="rgba(0,0,0,0)"
+                    />
+            </g>
+
 
             <g v-if="mode === 'view' && !textSelectionEnabled">
                 <path v-for="customArea in customAreas"
@@ -209,6 +229,7 @@ import { findEffect } from '../../effects/Effects';
 import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
 import StoreUtils from '../../../store/StoreUtils';
+import { hasItemDescription } from '../../../scheme/Item';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -249,7 +270,6 @@ function hasStrokeSizeProp(shape) {
     return descriptor && descriptor.type === 'number';
 }
 
-
 export default {
     name: 'ItemSvg',
     props: {
@@ -284,32 +304,37 @@ export default {
         const shape = Shape.find(this.item.shape);
 
         const data = {
-            shapeType             : shape ? shape.shapeType : 'missing',
-            shapeComponent        : null,
-            oldShape              : this.item.shape,
-            shapePrimitives       : [],
-            itemSvgOutlinePath    : null,
-            shouldRenderText      : true,
+            shapeType         : shape ? shape.shapeType: 'missing',
+            shapeComponent    : null,
+            oldShape          : this.item.shape,
+            shapePrimitives   : [],
+            itemSvgOutlinePath: null,
+            shouldRenderText  : true,
 
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented
-            revision              : 0,
-            textSlots             : [],
+            revision : 0,
+            textSlots: [],
 
             // name of text slot that should not be drawn
             // this is used when in-place text slot edit is triggered
-            hiddenTextSlotName    : null,
+            hiddenTextSlotName: null,
 
-            supportsStrokeSize    : shape ? hasStrokeSizeProp(shape) : false,
+            supportsStrokeSize: shape ? hasStrokeSizeProp(shape): false,
 
-            svgFilters            : [],
-            filterUrl             : '',
-            backgroundEffects     : [],
-            foregroundEffects     : [],
-            svgItemTransform      : this.calculateSVGItemTransform(),
-            customAreas           : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [],
+            hasDescription: hasItemDescription(this.item),
+            hasLinks      : Array.isArray(this.item.links) && this.item.links.length > 0,
+            hasFiles      : Array.isArray(this.item.links) && this.item.links.findIndex(link => link.type === 'file') >= 0,
+            detailsMarker : shape.getDetailsMarker(this.item),
 
-            draggingFileOver      : false
+            svgFilters       : [],
+            filterUrl        : '',
+            backgroundEffects: [],
+            foregroundEffects: [],
+            svgItemTransform : this.calculateSVGItemTransform(),
+            customAreas      : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item): [],
+
+            draggingFileOver: false
         };
 
         if (shape) {
@@ -376,6 +401,8 @@ export default {
                         this.item.shapeProps.url = url;
                         this.item.shapeProps.icon = 'file';
                         StoreUtils.addInfoSystemMessage(this.$store, `Updated link url to ${url}`, `item-link-url-changed-${this.item.id}`)
+                        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.links`);
                     } else {
                         if (!Array.isArray(this.item.links)) {
                             this.item.links = [];
@@ -465,6 +492,11 @@ export default {
                 this.revision += 1;
                 return;
             }
+            this.hasDescription = hasItemDescription(this.item);
+            this.hasLinks = Array.isArray(this.item.links) && this.item.links.length > 0;
+            this.hasFiles = Array.isArray(this.item.links) && this.item.links.findIndex(link => link.type === 'file') >= 0;
+            this.detailsMarker = shape.getDetailsMarker(this.item);
+
             if (this.oldShape !== this.item.shape) {
                 this.switchShape(this.item.shape);
             } else if (shape) {
@@ -655,7 +687,11 @@ export default {
                 'font-size': `${fontSize}px`,
                 display: 'inline-block'
             };
-        }
+        },
+
+        showItemDetailMarkers() {
+            return this.$store.getters.showItemDetailMarkers;
+        },
     }
 }
 </script>

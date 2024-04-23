@@ -17,6 +17,7 @@ import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_IT
 import EditorEventBus from '../EditorEventBus.js';
 import {traverseItems} from '../../../scheme/Item';
 import { compileItemTemplate } from '../items/ItemTemplate.js';
+import { ObjectTypes } from '../ObjectTypes.js';
 
 const log = new Logger('StateDragItem');
 
@@ -722,10 +723,12 @@ class IdleState extends SubState {
         super(parentState, 'idle');
         this.clickedObject = null;
         this.listener = listener;
+        this.lastHoveredObject = null;
     }
 
     reset() {
         this.clickedObject = null;
+        this.lastHoveredObject = null;
         this.schemeContainer = this.parentState.schemeContainer;
     }
 
@@ -781,7 +784,7 @@ class IdleState extends SubState {
         if (object && object.type !== 'void') {
             this.clickedObject = object;
 
-            if (object.type === 'item' && object.item) {
+            if ((object.type === 'item' || object.type === ObjectTypes.ITEM_DETAILS_MARKER) && object.item) {
                 if (!this.schemeContainer.isItemSelected(object.item)) {
                     const isInclusive = isMultiSelectKey(event);
                     this.schemeContainer.selectItem(object.item, isInclusive);
@@ -891,39 +894,57 @@ class IdleState extends SubState {
 
     mouseMove(x, y, mx, my, object, event) {
         if (this.clickedObject) {
-            if ((this.clickedObject.type === 'item' || this.clickedObject.type === 'edit-box') && this.schemeContainer.editBox) {
+            if ((this.clickedObject.type === 'item' || this.clickedObject.type === ObjectTypes.ITEM_DETAILS_MARKER || this.clickedObject.type === 'edit-box') && this.schemeContainer.editBox) {
                 this.migrate(new DragEditBoxState(this.parentState, this.schemeContainer.editBox, x, y, mx, my));
                 this.reset();
                 return;
-            } else if (this.clickedObject.type === 'edit-box-rotational-dragger') {
+            } else if (this.clickedObject.type === ObjectTypes.EDIT_BOX_ROTATIONAL_DRAGGER) {
                 this.migrate(new RotateEditBoxState(this.parentState, this.schemeContainer.editBox, x, y, mx, my));
                 this.reset();
                 return;
-            } else if (this.clickedObject.type === 'edit-box-resize-dragger') {
+            } else if (this.clickedObject.type === ObjectTypes.EDIT_BOX_RESIZE_DRAGGER) {
                 this.migrate(new ResizeEditBoxState(this.parentState, this.schemeContainer.editBox, this.clickedObject.draggerEdges, x, y, mx, my));
                 this.reset();
                 return;
-            } else if (this.clickedObject.type === 'edit-box-pivot-dragger') {
+            } else if (this.clickedObject.type === ObjectTypes.EDIT_BOX_PIVOT_DRAGGER) {
                 this.migrate(new DragPivotEditBoxState(this.parentState, this.schemeContainer.editBox, x, y, mx, my));
                 this.reset();
                 return;
-            } else if (this.clickedObject.type === 'control-point') {
+            } else if (this.clickedObject.type === ObjectTypes.CONTROL_POINT) {
                 this.migrate(new DragControlPointState(this.parentState, this.clickedObject.controlPoint.item, this.clickedObject.controlPoint.pointId, x, y, mx, my));
                 this.reset();
                 return;
             }
+        } else {
+            let lastHoveredDetailsMarkerItemId = null;
+            if (this.lastHoveredObject && this.lastHoveredObject.type === ObjectTypes.ITEM_DETAILS_MARKER) {
+                lastHoveredDetailsMarkerItemId = this.lastHoveredObject.item.id;
+            }
+            if (object && object.type === ObjectTypes.ITEM_DETAILS_MARKER) {
+                if (object.item.id !== lastHoveredDetailsMarkerItemId) {
+                    this.listener.onItemDetailsMouseOver(object.item, x, y, mx, my);
+                    if (lastHoveredDetailsMarkerItemId) {
+                        this.listener.onItemDetailsMouseOut(this.lastHoveredObject.item, x, y, mx, my);
+                    }
+                }
+            } else {
+                if (this.lastHoveredObject && this.lastHoveredObject.type === ObjectTypes.ITEM_DETAILS_MARKER) {
+                    this.listener.onItemDetailsMouseOut(this.lastHoveredObject.item, x, y, mx, my);
+                }
+            }
+            this.lastHoveredObject = object;
         }
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        if (object.type === 'edit-box' && this.clickedObject && this.clickedObject.type === object.type) {
+        if (object.type === ObjectTypes.EDIT_BOX && this.clickedObject && this.clickedObject.type === object.type) {
             this.handleSimpleClickOnEditBox(x, y, event);
         }
         this.clickedObject = null;
     }
 
     handleRightClick(x, y, mx, my, object, event) {
-        if (object.type === 'item') {
+        if (object.type === ObjectTypes.ITEM || object.type === ObjectTypes.ITEM_DETAILS_MARKER) {
             if (!this.schemeContainer.isItemSelected(object.item)) {
                 this.schemeContainer.selectItem(object.item, isMultiSelectKey(event));
             }

@@ -87,6 +87,7 @@ export default {
                 });
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             }
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'links');
         },
     },
     filters: {

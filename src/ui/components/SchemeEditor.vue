@@ -503,7 +503,17 @@
             @submit-link="onItemLinkSubmit"
             @close="addLinkPopup.shown = false"/>
 
-        <item-tooltip v-if="itemTooltip.shown" :key="`item-tooltip-${itemTooltip.id}`" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+        <ItemTooltip v-if="itemTooltip.shown" :key="`item-tooltip-${itemTooltip.id}`"
+            :item="itemTooltip.item"
+            :x="itemTooltip.x"
+            :y="itemTooltip.y"
+            @close="itemTooltip.shown = false"/>
+        <ItemTooltip v-if="itemDetails.item" :key="`item-details-tooltip-${itemDetails.item.id}`"
+            :item="itemDetails.item"
+            :x="itemDetails.x"
+            :y="itemDetails.y"
+            :isShortDetails="true"
+            @close="itemDetails.item = null"/>
 
         <connector-destination-proposal v-if="connectorProposedDestination && connectorProposedDestination.shown"
             :x="connectorProposedDestination.mx"
@@ -856,7 +866,9 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
-                onScreenTransformUpdated
+                onScreenTransformUpdated,
+                onItemDetailsMouseOver: (item, x, y, mx, my) => this.onItemDetailsMouseOver(item, x, y, mx, my),
+                onItemDetailsMouseOut: (item, x, y, mx, my) => this.onItemDetailsMouseOut(item, x, y, mx, my),
             }),
             pickElement: new StatePickElement(this.editorId, this.$store, {
                 onCancel,
@@ -1098,7 +1110,15 @@ export default {
             exportAnimationModalShown: false,
             animationRecorderIsExporting: false,
 
-            fullScreen: false
+            fullScreen: false,
+
+            /**
+             * used in order to display a small tooltip
+             * with item details when user hover cursor over item details marker icon */
+            itemDetails: {
+                item: null,
+                x: 0, y: 0
+            }
         }
     },
     methods: {
@@ -1566,6 +1586,7 @@ export default {
                 url: link.url,
                 type: link.type,
             });
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.addLinkPopup.item.id, 'links');
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
@@ -3186,8 +3207,21 @@ export default {
             });
         },
 
-        onAnimationRecordFrame() {
-            console.log('On Animation recording frame');
+        onItemDetailsMouseOver(item, x, y, mx, my) {
+            this.itemDetails.item = item;
+            this.itemDetails.x = mx;
+
+            const svgPlot = document.getElementById(`svg-plot-${this.editorId}`);
+            let yCorrection = 0;
+            if (svgPlot) {
+                const rect = svgPlot.getBoundingClientRect();
+                yCorrection = rect.y;
+            }
+            this.itemDetails.y = Math.max(0, my + yCorrection - 5);
+        },
+
+        onItemDetailsMouseOut(item, x, y, mx, my) {
+            this.itemDetails.item = null;
         },
 
         //calculates from world to screen

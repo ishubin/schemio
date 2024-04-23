@@ -578,6 +578,7 @@ export default {
                             item.shapeProps.url = url;
                             item.shapeProps.icon = 'file';
                             StoreUtils.addInfoSystemMessage(this.$store, `Updated link url to ${url}`, `item-link-url-changed-${this.editBox.id}`)
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                         } else {
                             if (!Array.isArray(item.links)) {
                                 item.links = [];

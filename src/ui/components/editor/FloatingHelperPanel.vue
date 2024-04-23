@@ -176,6 +176,7 @@ export default {
         },
 
         commitSchemeChange(propertyName) {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, propertyName);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.${propertyName}`);
         },
 

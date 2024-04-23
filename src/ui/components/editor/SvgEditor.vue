@@ -204,6 +204,7 @@ import StoreUtils from '../../store/StoreUtils';
 import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, calculateComponentButtonArea } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
+import {ObjectTypes} from './ObjectTypes';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -520,7 +521,11 @@ export default {
                     return {
                         type: elementType,
                         item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
-                        areaId: element.getAttribute('data-custom-area-id'),
+                    };
+                } else if (elementType === ObjectTypes.ITEM_DETAILS_MARKER) {
+                    return {
+                        type: elementType,
+                        item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
                     };
                 }
 
@@ -1229,6 +1234,7 @@ export default {
 
                     enrichItemWithDefaults(item);
                     this.schemeContainer.addItem(item);
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'links');
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                 })
                 .catch(err => {

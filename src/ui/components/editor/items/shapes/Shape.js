@@ -143,6 +143,17 @@ function defaultGetSnappers(item) {
     return snappers;
 }
 
+function defaultGetDetailsMarker(item) {
+    const padding = 5;
+    const size = 15;
+    return {
+        x: myMath.clamp(padding, item.area.w - size - padding, item.area.w - size),
+        y: myMath.clamp(padding, 0, item.area.h - size),
+        w: size,
+        h: size,
+    };
+}
+
 function enrichShape(shapeComponent, shapeName) {
     let shapeConfig = {};
     if (shapeComponent.shapeConfig) {
@@ -180,6 +191,8 @@ function enrichShape(shapeComponent, shapeName) {
         getTextSlots            : shapeConfig.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeConfig.getEvents || defaultGetEventsFunc,
         controlPoints           : shapeConfig.controlPoints || null,
+
+        getDetailsMarker        : shapeConfig.getDetailsMarker || defaultGetDetailsMarker,
         getPins                 : shapeConfig.getPins || defaultGetPins,
         shapeEvents             : {
             beforeCreate        : shapeConfig.beforeCreate,

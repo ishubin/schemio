@@ -193,6 +193,9 @@
                             <span class="toggle-button" :class="{toggled: showPivot}" @click="togglePivot" title="Pivot">
                                 <i class="fa-solid fa-crosshairs"></i>
                             </span>
+                            <span class="toggle-button" :class="{toggled: showItemDetailMarkers}" @click="toggleItemDetailMarkers" title="Show icons of items that have description or links">
+                                <i class="icon fa-solid fa-paragraph"></i>
+                            </span>
                         </div>
                     </li>
                 </ul>
@@ -456,6 +459,10 @@ export default {
             StoreUtils.togglePivot(this.$store);
         },
 
+        toggleItemDetailMarkers() {
+            StoreUtils.toggleItemDetailMarkers(this.$store);
+        },
+
         toggleClickableMarkers(shown) {
             if (shown) {
                 EditorEventBus.clickableMarkers.toggled.$emit(this.editorId);
@@ -640,6 +647,10 @@ export default {
 
         showPivot() {
             return this.$store.getters.showPivot;
+        },
+
+        showItemDetailMarkers() {
+            return this.$store.getters.showItemDetailMarkers;
         },
 
         showClickableMarkers() {

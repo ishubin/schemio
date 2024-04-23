@@ -48,8 +48,9 @@ const store = new Vuex.Store({
 
         defaultConnectorSmoothing: myStorage.get(DEFAULT_CONNECTOR_SMOOTHING, 'linear'),
 
-        autoRemount: true,
-        showPivot: false,
+        autoRemount: myStorage.get('autoRemount', true),
+        showPivot: myStorage.get('showPivot', false),
+        showItemDetailMarkers: myStorage.get('showItemDetailMarkers', true),
 
 
         // toggles clickable item markers in view mode so that users can see
@@ -125,10 +126,17 @@ const store = new Vuex.Store({
 
         TOGGLE_AUTO_REMOUNT(state) {
             state.autoRemount = !state.autoRemount;
+            myStorage.save('autoRemount', state.autoRemount);
         },
 
         TOGGLE_PIVOT(state) {
             state.showPivot = !state.showPivot;
+            myStorage.save('showPivot', state.showPivot);
+        },
+
+        TOGGLE_ITEM_DETAIL_MARKERS(state) {
+            state.showItemDetailMarkers = !state.showItemDetailMarkers;
+            myStorage.save('showItemDetailMarkers', state.showItemDetailMarkers);
         },
 
         SET_SHOW_CLICKABLE_MARKERS(state, show) {
@@ -433,6 +441,10 @@ const store = new Vuex.Store({
             commit('TOGGLE_PIVOT');
         },
 
+        toggleItemDetailMarkers({commit}) {
+            commit('TOGGLE_ITEM_DETAIL_MARKERS');
+        },
+
         setShowClickableMarkers({commit}, show) {
             commit('SET_SHOW_CLICKABLE_MARKERS', show);
         },
@@ -523,6 +535,7 @@ const store = new Vuex.Store({
 
         autoRemount: state => state.autoRemount,
         showPivot: state => state.showPivot,
+        showItemDetailMarkers: state => state.showItemDetailMarkers,
         showClickableMarkers: state => state.showClickableMarkers,
 
         connectorProposedDestination: state => state.connectorProposedDestination,
