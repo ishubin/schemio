@@ -127,7 +127,7 @@
                 @drop="onItemDrop"
                 :fill="hoverPathFill" />
 
-            <g v-if="mode === 'edit' && showItemDetailMarkers && (hasDescription || hasLinks || hasFiles)" data-preview-ignore="true">
+            <g v-if="mode === 'edit' && !isSelected && showItemDetailMarkers && (hasDescription || hasLinks || hasFiles)" data-preview-ignore="true">
                 <foreignObject :x="detailsMarker.x" :y="detailsMarker.y" :width="detailsMarker.w" :height="detailsMarker.h" :data-item-id="item.id">
                     <div xmlns="http://www.w3.org/1999/xhtml" class="item-details-marker-icon" :data-item-id="item.id">
                         <i v-if="hasFiles" class="icon fa-solid fa-paperclip" :data-item-id="item.id"></i>
@@ -285,6 +285,8 @@ export default {
     mounted() {
         this.switchShape(this.item.shape);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.item.selected.specific.$on(this.editorId, this.item.id, this.onItemSelected);
+        EditorEventBus.item.deselected.specific.$on(this.editorId, this.item.id, this.onItemDeselected);
         EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
@@ -296,6 +298,8 @@ export default {
 
     beforeDestroy() {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.item.selected.specific.$off(this.editorId, this.item.id, this.onItemSelected);
+        EditorEventBus.item.deselected.specific.$off(this.editorId, this.item.id, this.onItemDeselected);
         EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
@@ -310,6 +314,10 @@ export default {
             shapePrimitives   : [],
             itemSvgOutlinePath: null,
             shouldRenderText  : true,
+
+            // if item is selected in the edit box, used to hide the item details markers as it is not possible to hover mouse over it,
+            // as it gets hidden under invisible edit box overlay
+            isSelected: false,
 
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented
@@ -480,6 +488,14 @@ export default {
 
         computeStrokeDashArray(strokePattern, strokeSize) {
             return StrokePattern.createDashArray(strokePattern, strokeSize);
+        },
+
+        onItemDeselected() {
+            this.isSelected = false;
+        },
+
+        onItemSelected() {
+            this.isSelected = true;
         },
 
         onItemChanged(propertyPath) {

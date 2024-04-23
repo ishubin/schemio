@@ -2,7 +2,14 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="item-tooltip" :class="{'item-short-details-tooltip': isShortDetails}" :id="domId" :style="tooltipStyle" :data-type="dataType" :data-item-id="item.id">
+    <div class="item-tooltip" :class="{'item-short-details-tooltip': isShortDetails}"
+        :id="domId"
+        :style="tooltipStyle"
+        :data-type="dataType"
+        :data-item-id="item.id"
+        @mouseover="$emit('mouseover', $event)"
+        @mouseleave="$emit('mouseleave', $event)"
+        >
         <div class="tooltip-header" v-if="!isShortDetails">
             <span class="item-tooltip-close" @click="$emit('close')" :style="{'color': tooltipColor}">&times;</span>
             <h3 :style="{'color': tooltipColor}">{{item.name}}</h3>

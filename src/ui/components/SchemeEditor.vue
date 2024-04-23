@@ -513,6 +513,8 @@
             :x="itemDetails.x"
             :y="itemDetails.y"
             :isShortDetails="true"
+            @mouseover="onItemDetailsTooltipMouseOver"
+            @mouseleave="onItemDetailsTooltipMouseLeave"
             @close="itemDetails.item = null"/>
 
         <connector-destination-proposal v-if="connectorProposedDestination && connectorProposedDestination.shown"
@@ -1118,7 +1120,8 @@ export default {
             itemDetails: {
                 item: null,
                 x: 0, y: 0
-            }
+            },
+            itemDetailsMouseOutTimer: null
         }
     },
     methods: {
@@ -3208,6 +3211,10 @@ export default {
         },
 
         onItemDetailsMouseOver(item, x, y, mx, my) {
+            if (this.itemDetailsMouseOutTimer) {
+                clearTimeout(this.itemDetailsMouseOutTimer);
+                this.itemDetailsMouseOutTimer = null;
+            }
             this.itemDetails.item = item;
             this.itemDetails.x = mx;
 
@@ -3221,7 +3228,23 @@ export default {
         },
 
         onItemDetailsMouseOut(item, x, y, mx, my) {
-            this.itemDetails.item = null;
+            this.onItemDetailsTooltipMouseLeave();
+        },
+
+        onItemDetailsTooltipMouseOver() {
+            if (this.itemDetailsMouseOutTimer) {
+                clearTimeout(this.itemDetailsMouseOutTimer);
+                this.itemDetailsMouseOutTimer = null;
+            }
+        },
+
+        onItemDetailsTooltipMouseLeave() {
+            if (this.itemDetailsMouseOutTimer) {
+                clearTimeout(this.itemDetailsMouseOutTimer);
+            }
+            this.itemDetailsMouseOutTimer = setTimeout(() => {
+                this.itemDetails.item = null;
+            }, 1000);
         },
 
         //calculates from world to screen

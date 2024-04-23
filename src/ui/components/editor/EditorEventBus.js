@@ -81,7 +81,12 @@ const EditorEventBus = {
                 $emit: (editorId, itemId) => $emit(editorId, 'any-item-selected', [], itemId),
             },
             specific: {
-                $emit: (editorId, itemId) => EditorEventBus.item.selected.any.$emit(editorId, itemId)
+                $on: (editorId, itemId, callback) => $on(editorId, 'item-selected', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'item-selected', [itemId], callback),
+                $emit: (editorId, itemId) => {
+                    EditorEventBus.item.selected.any.$emit(editorId, itemId);
+                    $emit(editorId, 'item-selected', [itemId]);
+                }
             }
         },
         deselected: {
@@ -91,7 +96,12 @@ const EditorEventBus = {
                 $emit: (editorId, itemId) => $emit(editorId, 'any-item-deselected', [], itemId),
             },
             specific: {
-                $emit: (editorId, itemId) => EditorEventBus.item.deselected.any.$emit(editorId, itemId)
+                $on: (editorId, itemId, callback) => $on(editorId, 'item-deselected', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'item-deselected', [itemId], callback),
+                $emit: (editorId, itemId) => {
+                    EditorEventBus.item.deselected.any.$emit(editorId, itemId);
+                    $emit(editorId, 'item-deselected', [itemId]);
+                }
             }
         },
         clicked: {
