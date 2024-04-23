@@ -83,16 +83,17 @@ function toDataURL(url) {
  * @returns {Promise}
  */
 function convertImagesToDataURL(imageUrl, imageElements) {
+    // adding unique get parameter because Chrome may cache the image when it was loaded without passing the origin
+    // so in its cache there might be an image without the CORS allow header.
+    const argName = imageUrl.indexOf('?') < 0 ? '?_schuid=' : '&_schuid=';
+    const retryUrl = imageUrl + argName + new Date().getTime() + '' + Math.round(Math.random()*10000);
+
     return toDataURL(imageUrl)
     .catch(err => {
-        // adding unique get parameter because Chrome may cache the image when it was loaded without passing the origin
-        // so in its cache there might be an image without the CORS allow header.
-        const argName = imageUrl.indexOf('?') < 0 ? '?_schuid=' : '&_schuid=';
-        const uniqueUrl = imageUrl + argName + new Date().getTime() + '' + Math.round(Math.random()*10000);
-        return toDataURL(uniqueUrl);
+        return toDataURL(retryUrl);
     })
     .catch(err => {
-        if (uniqueUrl.charAt(0) !== '/') {
+        if (retryUrl.charAt(0) !== '/') {
             return toDataURL('https://corsproxy.io/?' + encodeURIComponent(imageUrl));
         }
         throw err;

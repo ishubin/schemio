@@ -6,7 +6,7 @@
         <div class="progress-bar-container">
             <div v-if="isLoading" class="progress-bar progress-bar-hovering"></div>
         </div>
-        <div v-if="errorMessage" class="msg msg-danger">
+        <div v-if="errorMessage" class="msg msg-error">
             {{ errorMessage }}
         </div>
         <div class="row">
