@@ -315,9 +315,9 @@ export default {
             itemSvgOutlinePath: null,
             shouldRenderText  : true,
 
-            // if item is selected in the edit box, used to hide the item details markers as it is not possible to hover mouse over it,
+            // used to hide the item details markers for items that are part of the edit box, as it is not possible to hover mouse over it,
             // as it gets hidden under invisible edit box overlay
-            isSelected: false,
+            isSelected: this.item.meta && this.item.meta.selected,
 
             // using revision in order to trigger full re-render of item component
             // on each item changed event revision is incremented

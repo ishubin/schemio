@@ -2206,6 +2206,7 @@ class SchemeContainer {
         if (inclusive) {
             this.selectItemInclusive(item);
             this.selectedItemsMap[item.id] = true;
+            item.meta.selected = true;
             EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
         } else {
             this.deselectConnectorPoints();
@@ -2218,6 +2219,7 @@ class SchemeContainer {
             this.selectedItems = [];
             forEach(deselectedItemIds, itemId => {
                 this.selectedItemsMap[itemId] = false;
+                item.meta.selected = false;
                 EditorEventBus.item.deselected.specific.$emit(this.editorId, itemId);
             });
 
@@ -2235,6 +2237,7 @@ class SchemeContainer {
             if (!this.selectedItemsMap[item.id]) {
                 this.selectedItems.push(item);
                 this.selectedItemsMap[item.id] = true;
+                item.meta.selected = true;
                 EditorEventBus.item.selected.specific.$emit(this.editorId, item.id);
             }
         });
@@ -2258,6 +2261,7 @@ class SchemeContainer {
         if (!isAlreadyIn) {
             this.selectedItems.push(item);
             this.selectedItemsMap[item.id] = true;
+            item.meta.selected = true;
         }
 
         this.sortSelectedItemsByAncestors();
@@ -2292,6 +2296,7 @@ class SchemeContainer {
     deselectItem(item) {
         if (this.selectedItemsMap[item.id]) {
             this.selectedItemsMap[item.id] = false;
+            item.meta.selected = false;
         }
 
         for(let i = 0; i < this.selectedItems.length; i++) {
@@ -2314,6 +2319,7 @@ class SchemeContainer {
         const itemIds = map(this.selectedItems, item => item.id);
         forEach(this.selectedItems, item => {
             this.selectedItemsMap[item.id] = false;
+            item.meta.selected = false;
         });
         this.selectedItems = [];
 
