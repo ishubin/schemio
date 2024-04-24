@@ -328,7 +328,7 @@ export default {
             } else {
                 this.$emit('scheme-update-requested', scheme);
             }
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.$emit('history-undone');
             this.modified = true;
         },
 
@@ -343,7 +343,7 @@ export default {
             } else {
                 this.$emit('scheme-update-requested', scheme);
             }
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.$emit('history-redone');
             this.modified = true;
         },
 
