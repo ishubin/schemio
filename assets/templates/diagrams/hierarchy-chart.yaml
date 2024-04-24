@@ -35,8 +35,25 @@ init: |
         }
     }
 
+    reindexTree = () => {
+        rootNode.reindex((node) => {
+            fullWidth = 0
+            if (node.children.size > 0) {
+                node.children.forEach((childNode) => {
+                    fullWidth += childNode.data.get('fullWidth')
+                })
+                fullWidth = fullWidth + (node.children.size - 1) * hGap
+            } else {
+                fullWidth = width
+            }
+            node.data.set('fullWidth', fullWidth)
+        })
+    }
+
+
     items = List()
-    rootNode = decodeTree(nodes)
+    rootNode = decodeTree(nodes, ',', ':')
+    reindexTree()
 
     connectors = List()
 
@@ -54,9 +71,9 @@ init: |
         items.add(node)
 
         axis = node.x + width/2
-        childOffset = axis - node.fullWidth/2
+        childOffset = axis - node.data.get('fullWidth')/2
         node.children.forEach((childNode) => {
-            childFullWidth = childNode.fullWidth
+            childFullWidth = childNode.data.get('fullWidth')
             childNode.x = childOffset + (childFullWidth - width)/2
             childOffset = childNode.x + (width + childFullWidth)/2 + hGap
             visitTree(childNode, node)
@@ -75,27 +92,27 @@ init: |
         node = nodesById.get(nodeId)
         if (node) {
             TreeNode(uid()).attachTo(node)
-            rootNode.reindex()
+            reindexTree()
         }
-        nodes = rootNode.encodeTree()
+        nodes = rootNode.encodeTree(',', ':')
     }
 
     createNewSiblingFor = (nodeId, idx) => {
         node = nodesById.get(nodeId)
         if (node && node.parent) {
             node.parent.attachChildAtIndex(TreeNode(uid()), idx)
-            rootNode.reindex()
+            reindexTree()
         }
-        nodes = rootNode.encodeTree()
+        nodes = rootNode.encodeTree(',', ':')
     }
 
     on('delete', (itemId, item) => {
         node = nodesById.get(itemId)
         if (node && node.parent) {
             node.parent.children.remove(node.siblingIdx)
-            rootNode.reindex()
+            reindexTree()
         }
-        nodes = rootNode.encodeTree()
+        nodes = rootNode.encodeTree(',', ':')
     })
 
 controls:
