@@ -524,6 +524,7 @@ export default {
                     return {
                         type: elementType,
                         item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
+                        areaId: element.getAttribute('data-custom-area-id'),
                     };
                 } else if (elementType === ObjectTypes.ITEM_DETAILS_MARKER) {
                     return {
