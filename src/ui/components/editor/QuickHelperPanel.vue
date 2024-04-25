@@ -200,9 +200,6 @@
                     </li>
                 </ul>
             </div>
-            <div v-if="mode === 'edit'" class="quick-helper-panel-section">
-                <span class="btn btn-primary" @click="testSchemeRebasing">Rebase Scheme</span>
-            </div>
             <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
@@ -318,39 +315,6 @@ export default {
     },
 
     methods: {
-        testSchemeRebasing() {
-            setTimeout(() => {
-                console.log('Rebasing');
-                const latestScheme = JSON.parse(JSON.stringify(this.schemeContainer.scheme));
-                latestScheme.items.push({
-                    id: '2345234214124124',
-                    name: 'new rebased item',
-                    shape: 'rect',
-                    area: {
-                        x: 10, y: 10, w: 100, h: 20, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1
-                    },
-                    shapeProps: {
-                        fill: {type: 'solid', color: 'rgba(0, 255, 0, 0.3)'}
-                    }
-                });
-                latestScheme.items[0].childItems = [{
-                    id: 'wegfsaf2',
-                    name: 'new rebased item',
-                    shape: 'rect',
-                    area: {
-                        x: 300, y: -60, w: 100, h: 20, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1
-                    },
-                    shapeProps: {
-                        fill: {type: 'solid', color: 'rgba(0, 255, 233, 0.3)'}
-                    }
-                }];
-                latestScheme.items[1].shapeProps.fill = {type: 'solid', color: 'rgba(244, 124, 123, 0.6)'};
-                latestScheme.items[4].name = 'rebased renamed';
-                latestScheme.items[4].textSlots.body.text = 'rebased';
-                latestScheme.items.splice(2, 1);
-                EditorEventBus.schemeRebased.$emit(this.editorId, latestScheme);
-            }, 3000);
-        },
         toggleLoggerModal() {
         },
         toggleSnapToGrid(enabled) {
