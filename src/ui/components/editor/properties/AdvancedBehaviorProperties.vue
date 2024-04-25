@@ -152,6 +152,5 @@ export default {
             return this.existingItems;
         }
     }
-    
 }
 </script>

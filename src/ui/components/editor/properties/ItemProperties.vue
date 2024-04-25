@@ -29,7 +29,6 @@
         <LinksPanel v-if="currentTab === 'description'" :editorId="editorId" :key="`links-panel-${item.id}`" :item="item"/>
 
         <div v-if="currentTab === 'behavior'">
-            <span class="btn btn-secondary" @click="toggleBehaviorEditorModal">Advanced Mode</span>
             <BehaviorProperties
                 :key="`behavior-panel-${item.id}-${behaviorPanelRevision}`"
                 :editorId="editorId"
@@ -458,10 +457,6 @@ export default {
                     EditorEventBus.editBox.updated.$emit(this.editorId);
                 }
             }
-        },
-
-        toggleBehaviorEditorModal() {
-            this.$emit('clicked-advanced-behavior-editor');
         },
 
         // triggered from behavior properties when user wants to jump to another item

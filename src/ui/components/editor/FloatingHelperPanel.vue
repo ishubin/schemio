@@ -152,7 +152,9 @@ export default {
         },
 
         onItemTagChange(newTags) {
-            this.item.tags = newTags.map(tag => tag.text);
+            this.schemeContainer.updateItem(this.item.id, 'tags', item => {
+                item.tags = newTags.map(tag => tag.text);
+            });
             this.emitChangeCommited('tags');
         },
 
@@ -181,7 +183,9 @@ export default {
         },
 
         updateShapeProp(name, value) {
-            this.item.shapeProps[name] = value;
+            this.schemeContainer.updateItem(this.item.id, `shapeProps.${name}`, item => {
+                item.shapeProps[name] = value;
+            });
             this.$emit('item-updated', this.item);
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, `shapeProps.${name}`);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.${name}`);
@@ -228,7 +232,9 @@ export default {
         },
 
         itemName(value) {
-            this.item.name = value;
+            this.schemeContainer.updateItem(this.item.id, 'name', item => {
+                item.name = value;
+            });
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'name');
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.name`);
         }

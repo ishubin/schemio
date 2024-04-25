@@ -294,6 +294,14 @@ export default {
         if (shape && shape.shapeEvents.mounted) {
             shape.shapeEvents.mounted(this.$store, this.item, this.$refs.textSlots);
         }
+
+        if (this.mode === 'edit') {
+            const textEditorWrapper = document.getElementById(`in-place-text-edit-wrapper-${this.editorId}-${this.item.id}`);
+            if (!textEditorWrapper) {
+                return;
+            }
+            this.hiddenTextSlotName = textEditorWrapper.getAttribute('data-slot-name');
+        }
     },
 
     beforeDestroy() {
