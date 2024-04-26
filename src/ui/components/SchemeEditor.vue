@@ -3140,8 +3140,6 @@ export default {
                 this.restoreCurveEditing();
             }
             this.svgEditorRevision++;
-            // this.editorRevision++;
-            // this.updateRevision();
         },
 
         changeTab(tab) {

@@ -33,12 +33,14 @@ function route(name, path, component, props) {
     return { name, path, component, props };
 }
 
-window.generateSchemePatch = generateSchemePatch;
-window.testAST = testAST;
-window.processJSONTemplate = processJSONTemplate;
-window.testEvalAST = (expr, data) => {
-    return testAST(expr).evalNode(new Scope(data));
+// used for debugging in browser purposes
+window.schemioDebug = {
+    generateSchemePatch,
+    testAST,
+    processJSONTemplate,
+    testEvalAST : (expr, data) => testAST(expr).evalNode(new Scope(data))
 };
+
 
 const routes = [
     route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: fsClientProvider}),

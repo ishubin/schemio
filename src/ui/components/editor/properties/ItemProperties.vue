@@ -340,6 +340,10 @@ export default {
     },
 
     methods: {
+        updateCurrentItem(property, callback) {
+            this.schemeContainer.updateItem(this.item.id, property, callback);
+        },
+
         onItemChanged() {
             this.shapePropsEditorKey += 1;
             this.$forceUpdate();
@@ -358,24 +362,26 @@ export default {
 
         onShapePropChange(name, type, value) {
             // handling onUpdate shape arg callback (used in swim lane item and code_block)
-            const shape = Shape.find(this.item.shape);
-            if (shape && shape.args[name]) {
-                const argConfig = shape.args[name];
-                if (argConfig.onUpdate) {
-                    const previousValue = this.item.shapeProps[name];
-                    this.item.shapeProps[name] = value;
-                    argConfig.onUpdate(this.$store, this.item, value, previousValue);
-                    EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, `shapeProps.${name}`);
+            this.updateCurrentItem(`shapeProps.${name}`, item => {
+                const shape = Shape.find(item.shape);
+                if (shape && shape.args[name]) {
+                    const argConfig = shape.args[name];
+                    if (argConfig.onUpdate) {
+                        const previousValue = item.shapeProps[name];
+                        item.shapeProps[name] = value;
+                        argConfig.onUpdate(this.$store, item, value, previousValue);
+                        EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `shapeProps.${name}`);
+                    }
                 }
-            }
 
-            if (type !== 'color' && type !== 'advanced-color') {
-                this.schemeContainer.updateEditBox();
-            }
-            this.$emit('shape-prop-changed', name, type, value);
-            this.updateShapePropsDependencies();
+                if (type !== 'color' && type !== 'advanced-color') {
+                    this.schemeContainer.updateEditBox();
+                }
+                this.$emit('shape-prop-changed', name, type, value);
+                this.updateShapePropsDependencies();
 
-            this.$forceUpdate();
+                this.$forceUpdate();
+            });
         },
 
         updateShapePropsDependencies() {
@@ -473,58 +479,72 @@ export default {
         },
 
         startAddingEffect() {
-            const effectId = getDefaultEffectId();
-            const effect = findEffect(effectId);
-            this.editEffectModal.effectArgs = generateEffectArgs(effect);
-            this.item.effects.push({
-                id: shortid.generate(),
-                effect: effectId,
-                name: effect.name,
-                args: this.editEffectModal.effectArgs
+            this.updateCurrentItem('effects', item => {
+                const effectId = getDefaultEffectId();
+                const effect = findEffect(effectId);
+                this.editEffectModal.effectArgs = generateEffectArgs(effect);
+                item.effects.push({
+                    id: shortid.generate(),
+                    effect: effectId,
+                    name: effect.name,
+                    args: this.editEffectModal.effectArgs
+                });
+                this.editEffectModal.isAdding = true;
+                this.editEffectModal.effectId = effectId;
+                this.editEffectModal.shown = true;
+                this.editEffectModal.currentEffectIndex = item.effects.length - 1;
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
             });
-            this.editEffectModal.isAdding = true;
-            this.editEffectModal.effectId = effectId;
-            this.editEffectModal.shown = true;
-            this.editEffectModal.currentEffectIndex = this.item.effects.length - 1;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
         },
 
         effectModalClosed() {
-            if (this.editEffectModal.isAdding) {
-                if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
-                    this.item.effects.splice(this.editEffectModal.currentEffectIndex, 1);
+            const effectIdx = this.editEffectModal.currentEffectIndex;
+            this.updateCurrentItem(`effects.${effectIdx}`, item => {
+                if (this.editEffectModal.isAdding) {
+                    if (effectIdx >= 0 && effectIdx < item.effects.length) {
+                        item.effects.splice(effectIdx, 1);
+                    }
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
                 }
-                EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
-            }
+            });
             this.editEffectModal.shown = false;
             this.editEffectModal.currentEffectIndex = -1;
         },
 
         onEffectArgChanged(argName, value) {
-            if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
-                this.item.effects[this.editEffectModal.currentEffectIndex].args[argName] = value;
-            }
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
-            if (!this.editEffectModal.isAdding) {
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
-            }
+            const effectIdx = this.editEffectModal.currentEffectIndex;
+            this.updateCurrentItem(`effects.${effectIdx}.args.${argName}`, item => {
+                if (effectIdx >= 0 && effectIdx < item.effects.length) {
+                    item.effects[effectIdx].args[argName] = value;
+                }
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+                if (!this.editEffectModal.isAdding) {
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
+                }
+            });
         },
 
         onEffectNameChanged(name) {
-            if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
-                this.item.effects[this.editEffectModal.currentEffectIndex].name = name;
-            }
+            const effectIdx = this.editEffectModal.currentEffectIndex;
+            this.updateCurrentItem(`effects.${effectIdx}`, item => {
+                if (effectIdx >= 0 && effectIdx < item.effects.length) {
+                    item.effects[effectIdx].name = name;
+                }
+            });
         },
 
         onEffectSubmited(effect) {
             this.editEffectModal.shown = false;
-            if (this.editEffectModal.isAdding) {
-                if (this.editEffectModal.currentEffectIndex >= 0 && this.editEffectModal.currentEffectIndex < this.item.effects.length) {
-                    this.item.effects[this.editEffectModal.currentEffectIndex] = effect;
+            const effectIdx = this.editEffectModal.currentEffectIndex;
+            this.updateCurrentItem(`effects.${effectIdx}`, item => {
+                if (this.editEffectModal.isAdding) {
+                    if (effectIdx >= 0 && effectIdx < item.effects.length) {
+                        item.effects[effectIdx] = effect;
+                    }
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
                 }
-                EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
-            }
+            });
         },
 
         openEditEffectModal(idx) {
@@ -536,30 +556,33 @@ export default {
         },
 
         deleteEffect(idx) {
-            if (idx < 0 || idx >= this.item.effects.length) {
-                return;
-            }
-
-            this.item.effects.splice(idx, 1);
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
+            this.updateCurrentItem(`effects.${idx}`, item => {
+                if (idx < 0 || idx >= item.effects.length) {
+                    return;
+                }
+                item.effects.splice(idx, 1);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
+            });
         },
 
         onEffectIdChanged(newEffectId) {
-            if (this.editEffectModal.currentEffectIndex < 0 || this.editEffectModal.currentEffectIndex >= this.item.effects.length) {
-                return;
-            }
+            this.updateCurrentItem(`effects.${idx}`, item => {
+                if (this.editEffectModal.currentEffectIndex < 0 || this.editEffectModal.currentEffectIndex >= item.effects.length) {
+                    return;
+                }
 
-            const effect = findEffect(newEffectId);
-            this.editEffectModal.effectArgs = generateEffectArgs(effect);
-            this.editEffectModal.effectId = newEffectId;
-            this.item.effects[this.editEffectModal.currentEffectIndex] = {
-                id: this.item.effects[this.editEffectModal.currentEffectIndex].id,
-                effect: newEffectId,
-                name: effect.name,
-                args: this.editEffectModal.effectArgs
-            };
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'effects');
+                const effect = findEffect(newEffectId);
+                this.editEffectModal.effectArgs = generateEffectArgs(effect);
+                this.editEffectModal.effectId = newEffectId;
+                item.effects[this.editEffectModal.currentEffectIndex] = {
+                    id: item.effects[this.editEffectModal.currentEffectIndex].id,
+                    effect: newEffectId,
+                    name: effect.name,
+                    args: this.editEffectModal.effectArgs
+                };
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+            });
         }
     },
     computed: {
