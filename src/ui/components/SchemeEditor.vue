@@ -100,6 +100,7 @@
                     :class="['state-' + state, 'sub-state-' + editorSubStateName]"
                     :editorId="editorId"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
+                    :itemsReloadKey="svgEditorRevision"
                     :schemeContainer="schemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
@@ -191,6 +192,7 @@
                     v-if="interactiveSchemeContainer && mode === 'view'"
                     :class="['state-' + state, 'sub-state-' + editorSubStateName]"
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
+                    :itemsReloadKey="svgEditorRevision"
                     :editorId="editorId"
                     :schemeContainer="interactiveSchemeContainer"
                     :patchIndex="patchIndex"
@@ -421,7 +423,6 @@
                                 :scheme-container="schemeContainer"
                                 :editorId="editorId"
                                 :schemeTagsEnabled="schemeTagsEnabled"
-                                @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 @delete-diagram-requested="$emit('delete-diagram-requested')"/>
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
@@ -448,7 +449,6 @@
                                     @item-field-changed="onItemFieldChanged"
                                     @item-style-applied="onItemStyleApplied"
                                     @shape-changed="onItemShapeChanged"
-                                    @clicked-advanced-behavior-editor="advancedBehaviorProperties.shown = true"
                                 />
                             </div>
 
@@ -526,11 +526,6 @@
             @close="closeConnectorProposedDestination()"
         />
 
-        <AdvancedBehaviorProperties v-if="advancedBehaviorProperties.shown" @close="advancedBehaviorProperties.shown = false"
-            :editorId="editorId"
-            :scheme-container="schemeContainer"
-        />
-
         <ShapeExporterModal v-if="exportShapeModal.shown" :shapeGroupItem="exportShapeModal.shapeGroupItem" @close="exportShapeModal.shown = false"/>
 
         <modal title="hello" v-if="mobileDebuggerShown" @close="mobileDebuggerShown = false">
@@ -592,7 +587,6 @@ import SchemeContainer, { localPointOnItem, worldPointOnItem, worldScalingVector
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import TemplateProperties from './editor/properties/TemplateProperties.vue';
-import AdvancedBehaviorProperties from './editor/properties/AdvancedBehaviorProperties.vue';
 import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
 import ItemDetails from './editor/ItemDetails.vue';
 import SchemeProperties from './editor/SchemeProperties.vue';
@@ -746,7 +740,7 @@ export default {
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
         LinkEditModal, InPlaceTextEditBox, TemplateProperties,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
-        ConnectorDestinationProposal, AdvancedBehaviorProperties,
+        ConnectorDestinationProposal, 
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
         DrawingControlsPanel, ExportAnimationModal
@@ -962,6 +956,9 @@ export default {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file and if history is undone/redone
             editorRevision: 0,
+            
+            // used for reloading only of SvgEditor component
+            svgEditorRevision: 0,
 
             cursorX: 0,
             cursorY: 0,
@@ -1058,10 +1055,6 @@ export default {
             exportShapeModal: {
                 shown: false,
                 shapeGroupItem: null
-            },
-
-            advancedBehaviorProperties: {
-                shown: false
             },
 
             selectedItem: null,
@@ -1493,7 +1486,10 @@ export default {
 
         onInPlaceTextEditorUpdate(text) {
             if (this.inPlaceTextEditor.shown) {
-                this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName].text = text;
+                const slotName = this.inPlaceTextEditor.slotName;
+                this.schemeContainer.updateItem(this.inPlaceTextEditor.item.id, `textSlots.${slotName}.text`, item => {
+                    item.textSlots[slotName].text = text;
+                });
             }
         },
 
@@ -3143,8 +3139,7 @@ export default {
             if (this.state === 'editPath') {
                 this.restoreCurveEditing();
             }
-            this.editorRevision++;
-            this.updateRevision();
+            this.svgEditorRevision++;
         },
 
         changeTab(tab) {

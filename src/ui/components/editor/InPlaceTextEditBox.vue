@@ -2,8 +2,14 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="in-place-edit-editor-wrapper" :style="cssStyle2">
-        <textarea v-if="markupDisabled" ref="textarea" class="in-place-text-editor" data-type="item-in-place-text-editor"
+    <div class="in-place-edit-editor-wrapper"
+        :id="`in-place-text-edit-wrapper-${editorId}-${item.id}`"
+        :data-slot-name="slotName"
+        :style="cssStyle2"
+        >
+        <textarea v-if="markupDisabled" ref="textarea"
+            class="in-place-text-editor"
+            data-type="item-in-place-text-editor"
             :value="text"
             :style="editorCssStyle"
             @keydown="onTextareaKeyDown"

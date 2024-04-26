@@ -172,8 +172,8 @@ export default {
             this.isLoading = true;
             this.errorMessage = null;
             this.exporter.exportImage({
-                width: this.width,
-                height: this.height,
+                width: this.rasterWidth,
+                height: this.rasterHeight,
                 paddingLeft: this.paddingLeft,
                 paddingRight: this.paddingRight,
                 paddingTop: this.paddingTop,

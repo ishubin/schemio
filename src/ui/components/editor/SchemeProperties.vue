@@ -17,7 +17,7 @@
                     ></vue-tags-input>
 
                 <h5 class="section">Description</h5>
-                <rich-text-editor :key="descriptionReloadKey" v-model="schemeContainer.scheme.description"
+                <rich-text-editor :value="schemeContainer.scheme.description"
                     @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
                     ></rich-text-editor>
             </panel>
@@ -88,7 +88,6 @@
             </panel>
 
             <panel name="Operations">
-                <span class="btn btn-secondary" @click="$emit('clicked-advanced-behavior-editor')"><i class="fas fa-running"/> Behavior Editor</span>
                 <span v-if="supportsSchemeDeletion" class="btn btn-danger" @click="$emit('delete-diagram-requested')">Delete Diagram</span>
             </panel>
 
@@ -120,16 +119,13 @@ export default {
                 });
             });
         }
-        EditorEventBus.schemeRebased.$on(this.editorId, this.onSchemeRebased);
     },
 
     beforeDestroy() {
-        EditorEventBus.schemeRebased.$off(this.editorId, this.onSchemeRebased);
     },
     data() {
         return {
             schemeTag: '',
-            descriptionReloadKey: 1,
             existingSchemeTags: [],
             showDeleteSchemeWarning: false,
 
@@ -153,10 +149,6 @@ export default {
         onPropertyChange(propertyName) {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scheme.${propertyName}`);
         },
-
-        onSchemeRebased() {
-            this.descriptionReloadKey++;
-        }
     },
 
     computed: {

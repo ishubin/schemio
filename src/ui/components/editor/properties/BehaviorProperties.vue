@@ -375,6 +375,10 @@ export default {
     },
 
     methods: {
+        updateItem(callback) {
+            this.schemeContainer.updateItem(this.item.id, 'behavior.events', callback);
+        },
+
         createBehaviorEventMeta(behaviorEvent) {
             return {
                 collapsed: false
@@ -391,19 +395,21 @@ export default {
         },
 
         moveEventInOrder(srcIndex, dstIndex)  {
-            if (dstIndex < 0 || dstIndex >= this.item.behavior.events.length) {
-                return;
-            }
+            this.updateItem(item => {
+                if (dstIndex < 0 || dstIndex >= item.behavior.events.length) {
+                    return;
+                }
 
-            let temp = this.item.behavior.events[srcIndex];
-            this.item.behavior.events[srcIndex] = this.item.behavior.events[dstIndex];
-            this.item.behavior.events[dstIndex] = temp;
+                let temp = item.behavior.events[srcIndex];
+                item.behavior.events[srcIndex] = item.behavior.events[dstIndex];
+                item.behavior.events[dstIndex] = temp;
 
-            temp = this.eventMetas[srcIndex];
-            this.eventMetas[srcIndex] = this.eventMetas[dstIndex];
-            this.eventMetas[dstIndex] = temp;
+                temp = this.eventMetas[srcIndex];
+                this.eventMetas[srcIndex] = this.eventMetas[dstIndex];
+                this.eventMetas[dstIndex] = temp;
 
-            this.$forceUpdate();
+                this.$forceUpdate();
+            });
         },
 
         findElement(selector) {
@@ -549,18 +555,20 @@ export default {
         },
 
         addBehaviorEvent() {
-            if (!this.item.behavior.events) {
-                this.item.behavior.events = [];
-            }
-            const newEvent = {
-                id: shortid.generate(),
-                event: 'clicked',
-                actions: []
-            };
-            this.item.behavior.events.push(newEvent);
-            this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
-            this.emitChangeCommited();
-            this.$forceUpdate();
+            this.updateItem(item => {
+                if (!item.behavior.events) {
+                    item.behavior.events = [];
+                }
+                const newEvent = {
+                    id: shortid.generate(),
+                    event: 'clicked',
+                    actions: []
+                };
+                item.behavior.events.push(newEvent);
+                this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
+                this.emitChangeCommited();
+                this.$forceUpdate();
+            });
         },
 
         copyAllEvents() {
@@ -581,113 +589,127 @@ export default {
         pasteEvents() {
             getObjectFromClipboard('behavior-events').then(events => {
                 if (events && events.length > 0) {
-                    forEach(events, event => {
-                        event.id = shortid.generate();
-                        forEach(event.actions, action => {
-                            action.id = shortid.generate();
+                    this.updateItem(item => {
+                        forEach(events, event => {
+                            event.id = shortid.generate();
+                            forEach(event.actions, action => {
+                                action.id = shortid.generate();
+                            });
+                            item.behavior.events.push(event);
                         });
-                        this.item.behavior.events.push(event);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                     });
-                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                 }
             });
         },
 
         removeBehaviorEvent(eventIndex) {
-            this.item.behavior.events.splice(eventIndex, 1);
-            this.eventMetas.splice(eventIndex, 1)
-            this.emitChangeCommited();
+            this.updateItem(item => {
+                item.behavior.events.splice(eventIndex, 1);
+                this.eventMetas.splice(eventIndex, 1)
+                this.emitChangeCommited();
+            });
         },
 
         onBehaviorEventSelected(eventIndex, eventOption) {
-            if (eventOption.id === 'custom-event') {
-                this.item.behavior.events[eventIndex].event = 'Unknown event...';
+            this.updateItem(item => {
+                if (eventOption.id === 'custom-event') {
+                    item.behavior.events[eventIndex].event = 'Unknown event...';
 
-                this.$nextTick(() => {
-                    const textfield = document.getElementById(`custom-event-textfield-${this.item.id}-${eventIndex}`);
-                    if (textfield) {
-                        textfield.focus();
-                    }
-                });
+                    this.$nextTick(() => {
+                        const textfield = document.getElementById(`custom-event-textfield-${item.id}-${eventIndex}`);
+                        if (textfield) {
+                            textfield.focus();
+                        }
+                    });
 
-            } else {
-                this.item.behavior.events[eventIndex].event = eventOption.id;
-            }
-            this.emitChangeCommited();
+                } else {
+                    item.behavior.events[eventIndex].event = eventOption.id;
+                }
+                this.emitChangeCommited();
+            });
         },
 
         addActionToEvent(eventIndex) {
-            const event = this.item.behavior.events[eventIndex];
-            if (!event.actions) {
-                event.actions = [];
-            }
+            this.updateItem(item => {
+                const event = item.behavior.events[eventIndex];
+                if (!event.actions) {
+                    event.actions = [];
+                }
 
-            let element = 'self';
+                let element = 'self';
 
-            if (event.actions.length > 0) {
-                // picking element from the last action
-                element = event.actions[event.actions.length - 1].element;
-            }
-            event.actions.push({
-                id: shortid.generate(),
-                element,
-                method: 'show',
-                on: true,
-                args: mapObjectValues(Functions.main.show.args, arg => arg.value)
+                if (event.actions.length > 0) {
+                    // picking element from the last action
+                    element = event.actions[event.actions.length - 1].element;
+                }
+                event.actions.push({
+                    id: shortid.generate(),
+                    element,
+                    method: 'show',
+                    on: true,
+                    args: mapObjectValues(Functions.main.show.args, arg => arg.value)
+                });
+                this.emitChangeCommited();
             });
-            this.emitChangeCommited();
         },
 
         removeAction(eventIndex, actionIndex) {
-            this.item.behavior.events[eventIndex].actions.splice(actionIndex, 1);
-            this.emitChangeCommited();
+            this.updateItem(item => {
+                item.behavior.events[eventIndex].actions.splice(actionIndex, 1);
+                this.emitChangeCommited();
+            });
         },
 
         onActionElementSelected(eventIndex, actionIndex, element) {
-            this.item.behavior.events[eventIndex].actions[actionIndex].element = element;
-            this.emitChangeCommited();
+            this.updateItem(item => {
+                item.behavior.events[eventIndex].actions[actionIndex].element = element;
+                this.emitChangeCommited();
+            });
         },
 
         onActionMethodSelected(eventIndex, actionIndex, methodOption) {
-            const action = this.item.behavior.events[eventIndex].actions[actionIndex];
-            if (!action) {
-                return;
-            }
-            if (methodOption.method === 'set') {
-                action.method = methodOption.method;
-                const args = {
-                    field: methodOption.fieldPath,
-                    value: '',
-                    animated: false,
-                    animationDuration: 0.2,
-                    transition: 'ease-in-out',
-                    inBackground: true
-                };
+            this.updateItem(item => {
+                const action = item.behavior.events[eventIndex].actions[actionIndex];
+                if (!action) {
+                    return;
+                }
+                if (methodOption.method === 'set') {
+                    action.method = methodOption.method;
+                    const args = {
+                        field: methodOption.fieldPath,
+                        value: '',
+                        animated: false,
+                        animationDuration: 0.2,
+                        transition: 'ease-in-out',
+                        inBackground: true
+                    };
 
-                const element = this.findElement(action.element);
-                if (element) {
-                    const property = getItemPropertyDescriptionForShape(Shape.find(element.shape), methodOption.fieldPath);
-                    if (property && supportsAnimationForSetFunction(property.type)) {
-                        args.animated = true;
+                    const element = this.findElement(action.element);
+                    if (element) {
+                        const property = getItemPropertyDescriptionForShape(Shape.find(element.shape), methodOption.fieldPath);
+                        if (property && supportsAnimationForSetFunction(property.type)) {
+                            args.animated = true;
+                        }
+                        args.value = utils.getObjectProperty(element, methodOption.fieldPath);
                     }
-                    args.value = utils.getObjectProperty(element, methodOption.fieldPath);
+                    action.args = args;
+                } else if (methodOption.method === 'custom-event') {
+                    action.method = 'sendEvent';
+                    action.args = {event: methodOption.event};
+                } else {
+                    action.method = methodOption.method;
+                    action.args = this.getDefaultArgsForMethod(action, methodOption.method);
+                    const elementPickerArgumentName = this.findFirstElementPickerArgument(methodOption.method);
+                    if (elementPickerArgumentName) {
+                        EditorEventBus.elementPick.requested.$emit(this.editorId, (element) => {
+                            action.args[elementPickerArgumentName] = element;
+                            this.emitChangeCommited();
+                        });
+                    }
                 }
-                action.args = args;
-            } else if (methodOption.method === 'custom-event') {
-                action.method = 'sendEvent';
-                action.args = {event: methodOption.event};
-            } else {
-                action.method = methodOption.method;
-                action.args = this.getDefaultArgsForMethod(action, methodOption.method);
-                const elementPickerArgumentName = this.findFirstElementPickerArgument(methodOption.method);
-                if (elementPickerArgumentName) {
-                    EditorEventBus.elementPick.requested.$emit(this.editorId, (element) => {
-                        action.args[elementPickerArgumentName] = element;
-                        this.emitChangeCommited();
-                    });
-                }
-            }
-            this.emitChangeCommited();
+                this.emitChangeCommited();
+            });
         },
 
         getDefaultArgsForMethod(action, method) {
@@ -743,21 +765,25 @@ export default {
         },
 
         onArgumentPropertyChangeForSet(eventIndex, actionIndex, property, value) {
-            this.item.behavior.events[eventIndex].actions[actionIndex].args[property] = value;
-            const propertyName = this.item.behavior.events[eventIndex].actions[actionIndex].args.field;
-            this.emitChangeCommited(`${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${propertyName}`);
+            this.updateItem(item => {
+                item.behavior.events[eventIndex].actions[actionIndex].args[property] = value;
+                const propertyName = item.behavior.events[eventIndex].actions[actionIndex].args.field;
+                this.emitChangeCommited(`${item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${propertyName}`);
+            });
         },
 
         duplicateBehavior(eventIndex) {
-            const newEvent = utils.clone(this.item.behavior.events[eventIndex]);
-            newEvent.id = shortid.generate();
-            forEach(newEvent.actions, action => {
-                action.id = shortid.generate();
+            this.updateItem(item => {
+                const newEvent = utils.clone(item.behavior.events[eventIndex]);
+                newEvent.id = shortid.generate();
+                forEach(newEvent.actions, action => {
+                    action.id = shortid.generate();
+                });
+                item.behavior.events.push(newEvent);
+                this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
+                this.emitChangeCommited();
+                this.$forceUpdate();
             });
-            this.item.behavior.events.push(newEvent);
-            this.eventMetas.push(this.createBehaviorEventMeta(newEvent));
-            this.emitChangeCommited();
-            this.$forceUpdate();
         },
 
         emitChangeCommited(affinityId) {
@@ -786,16 +812,18 @@ export default {
         },
 
         onFunctionArgumentsEditorChange(argName, value) {
-            const eventIndex = this.functionArgumentsEditor.eventIndex
-            const actionIndex   = this.functionArgumentsEditor.actionIndex;
+            this.updateItem(item => {
+                const eventIndex = this.functionArgumentsEditor.eventIndex
+                const actionIndex = this.functionArgumentsEditor.actionIndex;
 
-            if (eventIndex < this.item.behavior.events.length) {
-                const event = this.item.behavior.events[eventIndex];
-                if (actionIndex < event.actions.length) {
-                    event.actions[actionIndex].args[argName] = value;
+                if (eventIndex < item.behavior.events.length) {
+                    const event = item.behavior.events[eventIndex];
+                    if (actionIndex < event.actions.length) {
+                        event.actions[actionIndex].args[argName] = value;
+                    }
                 }
-            }
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
+            });
         },
         prettyMethodName(method) {
             if (Functions.main[method]) {
@@ -858,7 +886,6 @@ export default {
             }
             this.dragging.action = name;
 
-
             this.dragging.eventIndex = eventIndex;
             this.dragging.actionIndex = actionIndex;
             this.dragging.dropTo.eventIndex = -1;
@@ -908,18 +935,20 @@ export default {
         },
 
         moveAction(srcBehaviorIndex, srcActionIndex, dstBehaviorIndex, dstActionIndex) {
-            if (srcBehaviorIndex === dstBehaviorIndex && srcActionIndex === dstActionIndex) {
-                return;
-            }
-            const action = this.item.behavior.events[srcBehaviorIndex].actions.splice(srcActionIndex, 1)[0];
+            this.updateItem(item => {
+                if (srcBehaviorIndex === dstBehaviorIndex && srcActionIndex === dstActionIndex) {
+                    return;
+                }
+                const action = this.item.behavior.events[srcBehaviorIndex].actions.splice(srcActionIndex, 1)[0];
 
-            if (srcBehaviorIndex === dstBehaviorIndex && dstActionIndex > srcActionIndex) {
-                // since the item was removed from the same array, we need to adjust the new destination position in the array
-                dstActionIndex -= 1;
-            }
-            this.item.behavior.events[dstBehaviorIndex].actions.splice(dstActionIndex, 0, action);
+                if (srcBehaviorIndex === dstBehaviorIndex && dstActionIndex > srcActionIndex) {
+                    // since the item was removed from the same array, we need to adjust the new destination position in the array
+                    dstActionIndex -= 1;
+                }
+                this.item.behavior.events[dstBehaviorIndex].actions.splice(dstActionIndex, 0, action);
 
-            this.emitChangeCommited();
+                this.emitChangeCommited();
+            });
         },
 
         jumpToElement(elementSelector) {
@@ -930,39 +959,51 @@ export default {
         },
 
         toggleActionOnOff(eventIndex, actionIndex) {
-            const action = this.item.behavior.events[eventIndex].actions[actionIndex];
-            action.on = !action.on;
-            this.$forceUpdate();
+            this.updateItem(item => {
+                const action = item.behavior.events[eventIndex].actions[actionIndex];
+                action.on = !action.on;
+                this.$forceUpdate();
+            });
         },
 
         onItemDraggingChange(option) {
-            this.item.behavior.dragging = option.id;
-            this.$forceUpdate();
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.updateItem(item => {
+                item.behavior.dragging = option.id;
+                this.$forceUpdate();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
         },
 
         onItemDraggingDropToSelected(element) {
-            this.item.behavior.dropTo = element;
-            this.$forceUpdate();
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.updateItem(item => {
+                item.behavior.dropTo = element;
+                this.$forceUpdate();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
         },
 
         onItemDraggingPathSelected(element) {
-            this.item.behavior.dragPath = element;
-            this.$forceUpdate();
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.updateItem(item => {
+                item.behavior.dragPath = element;
+                this.$forceUpdate();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
         },
 
         onItemDragAlignChange(aligned) {
-            this.item.behavior.dragPathAlign = aligned;
-            this.$forceUpdate();
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.updateItem(item => {
+                item.behavior.dragPathAlign = aligned;
+                this.$forceUpdate();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
         },
 
         onItemDragRotationChange(angle) {
-            this.item.behavior.dragPathRotation = angle;
-            this.$forceUpdate();
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.updateItem(item => {
+                item.behavior.dragPathRotation = angle;
+                this.$forceUpdate();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
         }
     },
 

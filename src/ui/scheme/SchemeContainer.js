@@ -2290,6 +2290,18 @@ class SchemeContainer {
         this.selectedConnectorPoints = [];
     }
 
+    // This function should be used for updating item properties from various components
+    // It is needed as in some cases a scheme may be rebased which causes reset of all items
+    // so that currently loaded components may still refer to the old item object.
+    updateItem(itemId, property, callback) {
+        const item = this.findItemById(itemId);
+        if (!item) {
+            return;
+        }
+        callback(item);
+        EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, property);
+    }
+
     /**
      * @param {Item} item
      */

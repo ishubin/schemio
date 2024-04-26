@@ -26,7 +26,7 @@
                         v-if="item.visible && item.shape !== 'hud'"
                         :class="'item-cursor-' + item.cursor">
                         <ItemSvg
-                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
                             :item="item"
                             :editorId="editorId"
                             :mode="mode"
@@ -79,7 +79,7 @@
                         <ItemSvg
                             v-for="item in hud.childItems"
                             v-if="item.visible"
-                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}`"
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
                             :item="item"
                             :editorId="editorId"
                             :textSelectionEnabled="textSelectionEnabled"
@@ -126,7 +126,7 @@
                         class="item-container"
                         :class="'item-cursor-'+item.cursor">
                         <ItemSvg
-                            :key="`${item.id}-${item.shape}`"
+                            :key="`${item.id}-${item.shape}-${itemsReloadKey}`"
                             :item="item"
                             :editorId="editorId"
                             :patchIndex="patchIndex"
@@ -242,7 +242,10 @@ export default {
         /** @type {SchemeContainer} */
         schemeContainer : { default: null, type: Object },
         zoom            : { default: 1.0, type: Number },
-        useMouseWheel   : { default: true, type: Boolean}
+        useMouseWheel   : { default: true, type: Boolean},
+        
+        // used to reload item svg components when scheme is rebased
+        itemsReloadKey  : { default: 0, type: Number },
     },
 
     components: { ItemSvg },
@@ -521,6 +524,7 @@ export default {
                     return {
                         type: elementType,
                         item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
+                        areaId: element.getAttribute('data-custom-area-id'),
                     };
                 } else if (elementType === ObjectTypes.ITEM_DETAILS_MARKER) {
                     return {
