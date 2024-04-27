@@ -2180,20 +2180,40 @@ class SchemeContainer {
         return this.selectedItemsMap[item.id] || false;
     }
 
-    /*
-        Updates selection of items. This is needed if all items were replaced (e.g. document was rebased)
-    */
-    reselectItems() {
-        const itemsForSelection = [];
-
-        forEach(this.selectedItems, previouslySelectedItem => {
-            const item = this.findItemById(previouslySelectedItem.id);
-            if (item) {
-                itemsForSelection.push(item);
+    /**
+     * This function is called when the document is rebased and it needs to update references to all items in the selection
+     * and the edit box
+     */
+    rebaseScheme() {
+        const newSelectedItems = [];
+        this.selectedItemsMap = {};
+        this.selectedItems.forEach(oldItem => {
+            const item = this.findItemById(oldItem.id);
+            if (!item) {
+                return;
             }
-        });
+            newSelectedItems.push(item);
+            this.selectedItemsMap[item.id] = true;
+            item.meta.selected = true;
+        })
+        this.selectedItems = newSelectedItems;
+        this.rebaseEditBox();
+    }
 
-        this.selectMultipleItems(itemsForSelection, false);
+    rebaseEditBox() {
+        // When all items are rebased we need to ensure to update all their references in the edit box
+        // plus the edit box itself could have been changed, if the items were moved
+        // But we don't want to reset the edit box since the user could be dragging it while it is rebased
+        if (!this.editBox) {
+            return;
+        }
+        log.info('rebasing edit box', this.editBox);
+        const box = this.generateEditBox(this.selectedItems, this.selectedConnectorPoints);
+        for (let key in box) {
+            if (box.hasOwnProperty(key) && key !== 'id') {
+                this.editBox[key] = box[key];
+            }
+        }
     }
 
 
@@ -3039,7 +3059,6 @@ class SchemeContainer {
             this.editBox.area.sy = box.area.sy;
         }
     }
-
 
     /**
      *
