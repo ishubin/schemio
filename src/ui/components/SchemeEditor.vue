@@ -3135,10 +3135,10 @@ export default {
         rebaseScheme(latestScheme) {
             rebaseScheme(this.schemeContainer.scheme, latestScheme);
             this.schemeContainer.reindexItems();
-            this.schemeContainer.reselectItems();
             if (this.state === 'editPath') {
                 this.restoreCurveEditing();
             }
+            this.schemeContainer.rebaseScheme();
             this.svgEditorRevision++;
         },
 
