@@ -9,6 +9,7 @@ struct Item {
     h: 50
     shapeProps: Map()
     childItems: List()
+    args: Map()
 
 
     traverse(callback) {
@@ -16,6 +17,10 @@ struct Item {
             childItem.traverse(callback)
         })
         callback(this)
+    }
+
+    getArgs() {
+        toJSON(this.args)
     }
 }
 

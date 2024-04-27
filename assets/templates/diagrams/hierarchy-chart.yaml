@@ -13,7 +13,7 @@ defaultArea: {x: 0, y: 0, w: 120, h: 60}
 
 # import is only used in yaml format in the template builder script
 import:
-    - ./src/treenode.schemio
+    - ./src/treenode.sch
 
 init: |
     struct Connector {
