@@ -315,8 +315,6 @@ export default {
     },
 
     methods: {
-        toggleLoggerModal() {
-        },
         toggleSnapToGrid(enabled) {
             this.$store.dispatch('setGridSnap', enabled);
         },

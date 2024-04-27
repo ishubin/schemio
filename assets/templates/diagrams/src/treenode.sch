@@ -4,10 +4,24 @@ struct TreeNode {
     parent: null
     x: 0
     y: 0
+    w: 0
+    h: 0
     siblingIdx: 0
     level: 0
     children: List()
+    tempData: Map()
 
+    findById(nodeId) {
+        if (this.id == nodeId) {
+            this
+        } else {
+            foundNode = null
+            for (i = 0; i < this.children.size && !foundNode; i++) {
+                foundNode = this.children.get(i).findById(nodeId)
+            }
+            foundNode
+        }
+    }
 
     map(callback) {
         mappedChildren = List()
@@ -33,6 +47,9 @@ struct TreeNode {
 
     encodeTree(nodeSeparator, paramSeparator) {
         encoded = this.id
+        this.data.forEach((value, name) => {
+            encoded = encoded + paramSeparator + name + '=' + value
+        })
         this.children.forEach((childNode) => {
             childEncoded = childNode.encodeTree(nodeSeparator, paramSeparator)
             encoded += nodeSeparator + childEncoded
@@ -50,6 +67,13 @@ struct TreeNode {
         if (callback) {
             callback(this)
         }
+    }
+
+    traverse(callback) {
+        callback(this, this.parent)
+        this.children.forEach((childNode) => {
+            childNode.traverse(callback)
+        })
     }
 }
 

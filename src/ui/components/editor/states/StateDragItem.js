@@ -674,10 +674,15 @@ class DragEditBoxState extends EditBoxState {
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         super.mouseUp(x, y, mx, my, object, event);
 
+        this.schemeContainer.updateEditBoxItems(this.editBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+
         if (!this.store.state.autoRemount || this.parentState.isRecording) {
             return;
         }
-        const items = this.editBox.items.filter(item => !item.locked);
+        const isPartOfTemplate = (item) => {
+            return item.meta && item.meta.templated && item.meta.templateRootId;
+        };
+        const items = this.editBox.items.filter(item => !item.locked && !isPartOfTemplate(item));
         if (items.length === 0) {
             return;
         }

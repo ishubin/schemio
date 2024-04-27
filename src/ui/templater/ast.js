@@ -118,7 +118,7 @@ class ASTParser extends TokenScanner {
         }
         const node = this.parseExpression();
         if (!node) {
-            throw new Error('Failed parsing expression: \n' + this.originalText);
+            return new ASTValue(null);
         }
         if (this.idx < this.tokens.length) {
             const token = this.scanToken();

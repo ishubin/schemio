@@ -98,6 +98,9 @@
  * @property {Array<Item>} items - array of items that are selected for this edit box
  * @property {Set} itemIds - ids of items that are included in the edit box
  * @property {ItemArea}  area  - area of edit box
+ * @property {Boolean} locked - flag that specifies that the edit box cannot be moved
+ * @property {Boolean} rotationEnabled - flag that specifies that rotator handle should be displayed
+ * @property {Boolean} connectorStarterEnabled - flag that specifies that connector starters should be displayed
  * @property {Object} itemData  - map of item ids to custom data that is used by edit box (e.g. items originalArea, originalCurvePoints)
  * @property {Object} itemProjections - map of item ids to item projections
  * @property {String|undefined} templateRef - a reference to a template that was used to generate templated items
@@ -212,6 +215,10 @@
  * @property {Object|undefined} templateArgs - args that were used for generating the templated item
  * @property {Array<String>|undefined} templateIgnoredProps - array of shapeProps field names that should be ignored when template is regenerated
  *                                                            this gives users possibility of editing individual template items
+ * @property {String|undefined} tplArea - 'controlled' or 'fixed'. If specified as 'controlled' then it tells Schemio
+ *                                        that this item can be moved and its movement will be controlled by the template
+ * @property {String} tplConnector - 'on' or 'off'. If specified as 'off' - it tells that for this item it should not render connector starter in the edit box
+ * @property {String} tplRotation - 'on' or 'off'. Tells whether rotation of this item is supported
  */
 
 
@@ -436,7 +443,7 @@
  * @property {String} description
  * @property {Object} args - contains template argument descriptors
  * @property {Object} defaultArgs - contains args object with default values
- * @property {function(Object, number, number, String, ...Object): Item} triggerEvent
+ * @property {function(Item, String, ...Object): Item} triggerTemplateEvent
  * @property {function(Object, number, number): Item} buildItem
  * @property {function(Object): Array<ItemTemplateControl>} buildControls
  * @property {function(): Object} getDefaultArgs - returns the object with default arg values

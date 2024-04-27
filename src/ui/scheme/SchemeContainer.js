@@ -2075,7 +2075,7 @@ class SchemeContainer {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
-                            const newArgs = template.triggerEvent(rootItem, 'delete', item.args.templatedId, item);
+                            const newArgs = template.triggerTemplateEvent(rootItem, 'delete', item.args.templatedId, item);
                             if (newArgs) {
                                 this.regenerateTemplatedItem(rootItem, template, newArgs, rootItem.area.w, rootItem.area.h);
                             }
@@ -2794,7 +2794,7 @@ class SchemeContainer {
         }
 
         // this is need as there is a situation when user pastes new items to the scene and the reindex was not run yet
-        // It uses edit box to move the newly pasted items. Because of the missing reindex it SchemeContainer
+        // It uses edit box to move the newly pasted items. Because of the missing reindex SchemeContainer
         // is not able to find these items by id
         const itemsMap = new Map();
         if (Array.isArray(editBox.items)) {
@@ -2863,7 +2863,7 @@ class SchemeContainer {
                 // calculating new position of item based on their pre-calculated projections
                 const itemProjection = editBox.itemProjections[item.id];
 
-                // this condition is needed becase there can be a situation when edit box is first rotated and only then resized
+                // this condition is needed because there can be a situation when edit box is first rotated and only then resized
                 // in this case we should skip rotation of child items if their parents were already rotated.
                 if (!parentWasAlreadyUpdated) {
                     item.area.r = itemProjection.r + editBox.area.r;
@@ -2879,22 +2879,57 @@ class SchemeContainer {
 
                 const newPoint = myMath.findTranslationMatchingWorldPoint(worldTopLeft.x, worldTopLeft.y, 0, 0, item.area, parentTransform);
 
+                const modifiedArea = {
+                    x: item.area.x,
+                    y: item.area.y,
+                    w: item.area.w,
+                    h: item.area.h
+                };
+
                 if (newPoint) {
-                    item.area.x = newPoint.x;
-                    item.area.y = newPoint.y;
+                    modifiedArea.x = newPoint.x;
+                    modifiedArea.y = newPoint.y;
                 }
 
                 // recalculated width and height only in case multi item edit box was resized
                 // otherwise it doesn't make sense
+
                 if (context.resized) {
                     const worldBottomRight = projectBack(itemProjection.bottomRight);
                     const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
-                    item.area.w = Math.max(0, localBottomRight.x);
-                    item.area.h = Math.max(0, localBottomRight.y);
+                    modifiedArea.w = Math.max(0, localBottomRight.x);
+                    modifiedArea.h = Math.max(0, localBottomRight.y);
+                }
 
-                    if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
-                        this.readjustComponentContainerRect(item);
+                if (item.meta && item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id && item.args && item.args.templatedId) {
+                    if (item.args && item.args.tplArea ===  'controlled') {
+                        const templateRootItem = this.findItemById(item.meta.templateRootId);
+                        if (!templateRootItem || !templateRootItem.args || !templateRootItem.args.templateRef) {
+                            return;
+                        }
+                        this.getTemplate(templateRootItem.args.templateRef)
+                        .then(template => {
+                            const updatedTemplateArgs = template.triggerTemplateEvent(templateRootItem, 'area', item.args.templatedId, item, modifiedArea);
+                            item.area.x = modifiedArea.x;
+                            item.area.y = modifiedArea.y;
+                            item.area.w = modifiedArea.w;
+                            item.area.h = modifiedArea.h;
+                            templateRootItem.args.templateArgs = updatedTemplateArgs;
+
+                            if (!isSoft) {
+                                this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
+                            }
+                        });
                     }
+                } else {
+                    item.area.x = modifiedArea.x;
+                    item.area.y = modifiedArea.y;
+                    item.area.w = modifiedArea.w;
+                    item.area.h = modifiedArea.h;
+                }
+
+                if (context.resized && item.shape === 'component' && item.shapeProps.kind === 'embedded') {
+                    this.readjustComponentContainerRect(item);
                 }
             }
         });
@@ -3266,6 +3301,8 @@ class SchemeContainer {
 
         let templateRef = null;
         let templateItemRoot = null;
+        let rotationEnabled = true;
+        let connectorStarterEnabled = true;
 
         if (items.length === 1) {
             const item = items[0];
@@ -3280,6 +3317,13 @@ class SchemeContainer {
                         templateItemRoot = ancestor;
                     }
                 }
+
+                if (templateRef && item.args.tplRotation === 'off') {
+                    rotationEnabled = false;
+                }
+                if (templateRef && item.args.tplConnector === 'off') {
+                    connectorStarterEnabled = false;
+                }
             }
         }
 
@@ -3292,6 +3336,8 @@ class SchemeContainer {
             area,
             itemProjections,
             pivotPoint,
+            rotationEnabled,
+            connectorStarterEnabled,
             connectorPoints,
             connectorOriginalAttachments,
             cache: new Map(),

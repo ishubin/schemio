@@ -10,6 +10,7 @@ struct Item {
     shapeProps: Map()
     childItems: List()
     args: Map()
+    locked: true
 
 
     traverse(callback) {

@@ -52,7 +52,7 @@ export function compileItemTemplate(template, templateRef) {
          * @param  {...any} eventArgs
          * @returns {Object|null} returns updated template args. null if there were no subscribers for the event
          */
-        triggerEvent : (rootItem, eventName, ...eventArgs) => {
+        triggerTemplateEvent : (rootItem, eventName, ...eventArgs) => {
             const allEventHandlers = [];
             const data = {
                 ...defaultArgs,
@@ -139,7 +139,8 @@ export function generateItemFromTemplate(template, args, width, height) {
         if (!it.args) {
             it.args = {};
         }
-        if (parentItem !== null) {
+        // locking items by default unless a template specifically defines locking
+        if (parentItem !== null && !it.hasOwnProperty('locked')) {
             it.locked = true;
         }
 
