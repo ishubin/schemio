@@ -1,5 +1,4 @@
-import { parseAST } from "./ast";
-import { tokenizeExpression } from "./tokenizer";
+import { parseExpression } from "./ast";
 
 
 
@@ -16,7 +15,7 @@ class StringPart {
 
     compile() {
         if (this.isExpression) {
-            this.expression = parseAST(tokenizeExpression(this.text), this.text);
+            this.expression = parseExpression(this.text);
         }
     }
 

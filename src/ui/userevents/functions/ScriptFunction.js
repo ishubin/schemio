@@ -6,9 +6,8 @@ import { playInAnimationRegistry } from "../../animations/AnimationRegistry";
 import Animation from '../../animations/Animation';
 import ValueAnimation from "../../animations/ValueAnimation";
 import EditorEventBus from "../../components/editor/EditorEventBus";
-import { parseAST } from "../../templater/ast";
+import { parseExpression } from "../../templater/ast";
 import { Scope } from "../../templater/scope";
-import { tokenizeExpression } from "../../templater/tokenizer";
 import htmlSanitize, { stripAllHtml } from "../../../htmlSanitize";
 import { sendEventToChildren } from "./SendEventToChildrenFunction";
 import { sendEventToParent } from "./SendEventToParentFuction";
@@ -543,7 +542,7 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
 
 export function parseItemScript(text) {
     try {
-        return parseAST(tokenizeExpression(text), text);
+        return parseExpression(text);
     } catch (err) {
         console.error('Failed to parse item script: ' + text, err);
         return null;

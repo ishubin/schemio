@@ -53,6 +53,11 @@ describe('templater ast parser', () => {
         });
     });
 
+    it('should fail parsing multiple expressions on one line', () => {
+        expect(() => {
+            parseExpression('a = b + c   45 - 3');
+        }).toThrowError('Expected operator but got unexpected token (at 12, line 0): (6) \"45\"');
+    });
 
     it('should assign variable using = operator', () => {
         const scope = new Scope({x: 2});
@@ -735,5 +740,19 @@ describe('templater ast parser', () => {
                 points: [{x: 5, y: 8}, {x: 45, y: -8}]
             }
         });
+    });
+
+    it('should negate an nested object', () => {
+        const node = parseExpression(`
+            struct Pin {
+                point: Vector(3, 4)
+            }
+            p = Pin()
+
+            x = -p.point.x
+            x
+        `)
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(-3);
     });
 });

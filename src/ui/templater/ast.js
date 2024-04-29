@@ -1,12 +1,12 @@
 import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
-import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccesser, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
+import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
 import { ASTStructNode } from "./struct";
+import { normalizeTokens } from "./normalization";
 
 
 const operatorPrecedences = new Map(Object.entries({
-    '.': 6,
     '*': 5,
     '/': 5,
     '%': 5,
@@ -31,7 +31,6 @@ function operatorPrecedence(operator) {
 }
 
 const operatorClasses = new Map(Object.entries({
-    '.': ASTObjectFieldAccesser,
     '+': ASTAdd,
     '-': ASTSubtract,
     '*': ASTMultiply,
@@ -114,31 +113,28 @@ class ASTParser extends TokenScanner {
 
     parse() {
         if (!this.tokens || this.tokens.length === 0) {
-            return new ASTString("");
-        }
-        const node = this.parseExpression();
-        if (!node) {
             return new ASTValue(null);
         }
-        if (this.idx < this.tokens.length) {
-            const token = this.scanToken();
-            throw new Error(`Failed to parse entire expression. `
-                + `Unexpected token in expression (at ${token.idx}, line ${token.line}): ${token.t} "${token.text}"`);
+        const expressions = [];
+        while(this.hasMore()) {
+            const expression = this.parseSingleExpression();
+            if (expression) {
+                expressions.push(expression);
+            }
         }
-        return node;
+        if (expressions.length === 1) {
+            return expressions[0];
+        } else if (expressions.length > 1) {
+            return new ASTMultiExpression(expressions);
+        } else {
+            return new ASTValue(null);
+        }
     }
 
-    parseExpression() {
-        if (this.idx >= this.tokens.length) {
-            return null;
-        }
-
-        const expressions = [];
-
+    parseSingleExpression() {
         this.skipNewlinesAndDelimeters();
 
         let a = this.parseTerm();
-
         if (!a) {
             return null;
         }
@@ -150,65 +146,20 @@ class ASTParser extends TokenScanner {
                 const leftover = leftovers.pop();
                 a = leftover.make(a);
             }
+            return a;
         };
 
-        const isEndToken = (token) => token === null || token.t === TokenTypes.COMMA;
+        const isEndToken = (token) => token === null || token.t === TokenTypes.COMMA || token.t === TokenTypes.DELIMITER || token.t === TokenTypes.NEWLINE;
 
-        const startNewExpression = () => {
-            processLeftovers();
-            expressions.push(a);
-            this.skipNewlinesAndDelimeters();
-
-            a = this.parseTerm();
-            this.skipNewlines();
-
-            const nextToken = this.peekToken();
-            if (nextToken && nextToken.t !== TokenTypes.OPERATOR && !isEndToken(nextToken)) {
-                return startNewExpression();
-            }
-            return a ? true : false;
-        };
-
-
-        while(this.idx < this.tokens.length) {
+        while(this.hasMore()) {
             let token = this.peekToken();
             if (isEndToken(token)) {
                 break;
             }
             this.skipToken();
 
-            if (token.t === TokenTypes.DELIMITER) {
-                if (!startNewExpression()) {
-                    break;
-                }
-                token = this.peekToken();
-                if (isEndToken(token)) {
-                    break;
-                }
-                this.skipToken();
-            }
-
-            if (token.t === TokenTypes.NEWLINE) {
-                this.skipNewlines();
-                token = this.peekToken();
-                if (isEndToken(token)) {
-                    break;
-                } else if (token.t === TokenTypes.OPERATOR) {
-                    this.skipToken();
-                } else {
-                    if (!startNewExpression()) {
-                        break;
-                    }
-                    token = this.peekToken();
-                    if (isEndToken(token)) {
-                        break;
-                    }
-                    this.skipToken();
-                }
-            }
-
             if (token.t !== TokenTypes.OPERATOR) {
-                throw new Error(`Unexpected token in expression (at ${token.idx}, line ${token.line}): (${token.t}) "${token.text}"`);
+                throw new Error(`Expected operator but got unexpected token (at ${token.idx}, line ${token.line}): (${token.t}) "${token.text}"`);
             }
 
             if (token.v === '++' || token.v === '--') {
@@ -218,7 +169,6 @@ class ASTParser extends TokenScanner {
 
                 a = new ASTIncrement(a, false, token.v === '++' ? 1: -1);
             } else {
-                this.skipNewlines();
                 const precedence = operatorPrecedence(token.v);
                 const opClass = operatorClass(token.v);
 
@@ -227,14 +177,7 @@ class ASTParser extends TokenScanner {
                     throw new Error(`Missing right term after the "${token.v}" operator at ${token.idx}, line ${token.line}`);
                 }
 
-                let nextToken = this.peekToken();
-                if (nextToken && nextToken.t === TokenTypes.NEWLINE) {
-                    const nextValidToken = this.peekAfterNewlineToken();
-                    if (nextValidToken && nextValidToken.t === TokenTypes.OPERATOR) {
-                        this.skipNewlines();
-                        nextToken = nextValidToken;
-                    }
-                }
+                const nextToken = this.peekToken();
                 const nextOperator = nextToken && nextToken.t === TokenTypes.OPERATOR ? nextToken.v : null;
                 const nextPrecedence = nextOperator ? operatorPrecedence(nextOperator) : -100;
 
@@ -255,26 +198,49 @@ class ASTParser extends TokenScanner {
             }
         }
 
-        processLeftovers();
-
-        if (expressions.length > 0) {
-            if (a) {
-                expressions.push(a);
-            }
-            return new ASTMultiExpression(expressions);
-        }
-        return a;
+        return processLeftovers();
     }
 
     /**
      * @param {ASTNode} expression
      */
-    parseGroup(expression) {
+    parseTermGroup(expression) {
         let nextToken = this.peekToken();
-        while (nextToken && nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET) {
-            this.skipToken();
-            expression = parseFunction(expression, nextToken.groupTokens);
-            nextToken = this.peekToken();
+        if (!nextToken) {
+            return expression;
+        }
+        while (nextToken) {
+            if (nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET) {
+                expression = parseFunction(expression, nextToken.groupTokens);
+                this.skipToken();
+                nextToken = this.peekToken();
+            } else if (nextToken.t === TokenTypes.FIELD_ACCESSOR) {
+                this.skipToken();
+                nextToken = this.peekToken();
+                if (!nextToken) {
+                    throw new Error(`Missing field name definition after '.'`);
+                }
+                if (nextToken.t !== TokenTypes.TERM) {
+                    throw new Error(`Expected field name after '.', but got: ${nextToken.text}`);
+                }
+                const termToken = nextToken;
+                this.skipToken();
+                nextToken = this.peekToken();
+
+                let fieldTerm = null;
+
+                if (nextToken && nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET) {
+                    fieldTerm = parseFunction(new ASTVarRef(termToken.v), nextToken.groupTokens);
+                    this.skipToken();
+                    nextToken = this.peekToken();
+                } else {
+                    fieldTerm = new ASTVarRef(termToken.v);
+                }
+
+                expression = new ASTObjectFieldAccessor(expression, fieldTerm);
+            } else {
+                break;
+            }
         }
         return expression;
     }
@@ -299,7 +265,7 @@ class ASTParser extends TokenScanner {
                     return parseFunctionDeclarationUsing(token, this.scanToken());
                 }
                 const expression = parseAST(token.groupTokens);
-                return this.parseGroup(expression);
+                return this.parseTermGroup(expression);
             } else {
                 throw new Error(`Unexpected token group "${token.v}"`);
             }
@@ -324,9 +290,9 @@ class ASTParser extends TokenScanner {
                 return this.parseFunctionDeclaration();
             }
         } else if (token.t === TokenTypes.TERM) {
-            return this.parseGroup(new ASTVarRef(token.v));
+            return this.parseTermGroup(new ASTVarRef(token.v));
         } else if (token.t === TokenTypes.STRING) {
-            return new ASTString(token.v);
+            return this.parseTermGroup(new ASTString(token.v));
         } else if (token.t === TokenTypes.OPERATOR && token.v === '-') {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {
@@ -474,8 +440,6 @@ class ASTParser extends TokenScanner {
         }
 
         const trueBlock = parseAST(token.groupTokens);
-
-        this.skipNewlines();
 
         token = this.peekToken();
 
@@ -637,7 +601,8 @@ export function parseAST(tokens, originalText) {
  * @returns {ASTNode}
  */
 export function parseExpression(expression) {
-    return parseAST(tokenizeExpression(expression), expression);
+    const tokens = normalizeTokens(tokenizeExpression(expression));
+    return parseAST(tokens, expression);
 }
 
 

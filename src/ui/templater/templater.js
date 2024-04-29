@@ -1,8 +1,7 @@
-import { ASTNode, parseAST, parseExpression } from "./ast";
+import { ASTNode, parseExpression } from "./ast";
 import { List } from "./list";
 import { Scope } from './scope';
 import { parseStringExpression } from "./strings";
-import { tokenizeExpression } from "./tokenizer";
 
 
 const $_DEF = '$-def:';
@@ -163,7 +162,7 @@ function compileObjectProcessor(obj, customDefinitions) {
  * @returns {function(Scope): any}
  */
 function compileExpression(expr) {
-    const ast = parseAST(tokenizeExpression(expr), expr);
+    const ast = parseExpression(expr);
     return (scope) => {
         try {
             return ast.evalNode(scope);
@@ -176,7 +175,7 @@ function compileExpression(expr) {
 
 function processExpression(expr, scope) {
     try {
-        return parseAST(tokenizeExpression(expr), expr).evalNode(scope);
+        return parseExpression(expr).evalNode(scope);
     } catch(err) {
         throw new Error(`Failed to process expression. error: ${err}. Expression:\n    ${expr}`);
     }
@@ -290,8 +289,8 @@ function compileConditionalArrayItemBuilder(ifStatements, elseStatement, customD
  * @returns {ASTNode} compiled SchemioScript expression
  */
 function parseTemplateExpression(expr) {
-    const contertedExpression = Array.isArray(expr) ? expr.join('\n') : expr;
-    return parseAST(tokenizeExpression(contertedExpression), contertedExpression);
+    const convertedExpression = Array.isArray(expr) ? expr.join('\n') : expr;
+    return parseExpression(convertedExpression);
 }
 
 
