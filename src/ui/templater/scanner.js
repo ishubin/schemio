@@ -50,6 +50,9 @@ export class TokenScanner {
         return this.tokens[this.idx];
     }
 
+    /**
+     * @returns {ScriptToken}
+     */
     peekAfterNewlineToken() {
         if (this.idx >= this.tokens.length) {
             return null;

@@ -142,7 +142,7 @@ export class ASTNegate extends ASTNode {
         return -v;
     }
     print() {
-        return `(-${this.v.print()})`;
+        return `(-${this.node.print()})`;
     }
 }
 
@@ -439,7 +439,7 @@ export class ASTDivideWith extends ASTOperator {
 }
 
 
-export class ASTObjectFieldAccesser extends ASTOperator {
+export class ASTObjectFieldAccessor extends ASTOperator {
     constructor(a, b) { super('field', '.', a, b); }
     evalNode(scope) {
         const obj = this.a.evalNode(scope);
@@ -611,6 +611,9 @@ export class ASTFunctionInvocation extends ASTNode {
 }
 
 export class ASTMultiExpression extends ASTNode {
+    /**
+     * @param {Array<ASTNode>} nodes
+     */
     constructor(nodes) {
         super('multi-expr');
         this.nodes = nodes;

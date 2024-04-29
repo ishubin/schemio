@@ -236,7 +236,11 @@ function registerShape(shape) {
     if (shape.shapeConfig.shapeType === 'raw') {
         throw new Error('Raw shapes are not supported');
     } else if (shape.shapeConfig.shapeType === 'templated') {
-        registerTemplatedShape(shape.shapeConfig.id, shape.shapeConfig);
+        try {
+            registerTemplatedShape(shape.shapeConfig.id, shape.shapeConfig);
+        } catch (err) {
+            console.error(`Failed to register shape ${shape.shapeConfig.id}`, err);
+        }
     } else {
         shapeRegistry[shape.shapeConfig.id] = enrichShape(shape);
     }

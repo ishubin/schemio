@@ -19,7 +19,8 @@ export const TokenTypes = {
     RESERVED       : 16,
     // token group is used to group tokens into a token sub array for things like round brackets, curly brackets.
     TOKEN_GROUP    : 17,
-    COLON          : 18
+    COLON          : 18,
+    FIELD_ACCESSOR : 19
 };
 
 export const ReservedTerms = {
@@ -70,12 +71,12 @@ const singleCharTokens = new Map(Object.entries({
     '<': {t: TokenTypes.OPERATOR, v: '<'},
     '>': {t: TokenTypes.OPERATOR, v: '>'},
     '=': {t: TokenTypes.OPERATOR, v: '='},
-    '.': {t: TokenTypes.OPERATOR, v: '.'},
     ';': {t: TokenTypes.DELIMITER, v: ';'},
     ':': {t: TokenTypes.COLON, v: ':'},
-    '!': {t: TokenTypes.NOT},
-    '{': {t: TokenTypes.START_CURLY},
-    '}': {t: TokenTypes.END_CURLY},
+    '!': {t: TokenTypes.NOT, v: '!'},
+    '{': {t: TokenTypes.START_CURLY, v: '{'},
+    '}': {t: TokenTypes.END_CURLY, v: '}'},
+    '.': {t: TokenTypes.FIELD_ACCESSOR, v: '.'},
 }));
 
 const doubleCharTokens = new Map(Object.entries({
@@ -221,7 +222,7 @@ class Scanner {
         if (this.text[this.idx] === '.' && this.idx < this.text.length - 1 && !isDigit(this.text[this.idx+1])) {
             this.idx++;
             return {
-                t: TokenTypes.OPERATOR,
+                t: TokenTypes.FIELD_ACCESSOR,
                 v: '.',
                 text: '.'
             };
