@@ -11,62 +11,61 @@ import:
     - ./src/control.sch
     - ./src/mind-map.sch
 
-init: |
-    controlPadding = 40
-
-
 controls:
--   name: "add_top_to_root"
-    type: button
-    text: "+"
-    placement: BL
-    x: {$-expr: "width / 2 - 10"}
-    y: {$-expr: "-controlPadding"}
-    width: 20
-    height: 20
-    selectedItemId: "root"
-    data:
-        nodeId: "root"
-    click: "createNewChildFor(control.data.nodeId, 'top')"
+-   $-foreach: {source: "controls", it: "control"}
+    $-extend: {$-expr: "toJSON(control)"}
 
--   name: "add_bottom_to_root"
-    type: button
-    text: "+"
-    placement: TL
-    x: {$-expr: "width / 2 - 10"}
-    y: {$-expr: "height + controlPadding"}
-    width: 20
-    height: 20
-    selectedItemId: "root"
-    data:
-        nodeId: "root"
-    click: "createNewChildFor(control.data.nodeId, 'bottom')"
+# -   name: "add_top_to_root"
+#     type: button
+#     text: "+"
+#     placement: BL
+#     x: {$-expr: "width / 2 - 10"}
+#     y: {$-expr: "-controlPadding"}
+#     width: 20
+#     height: 20
+#     selectedItemId: "root"
+#     data:
+#         nodeId: "root"
+#     click: "createNewChildFor(control.data.nodeId, 'top')"
 
--   name: "add_left_to_root"
-    type: button
-    text: "+"
-    placement: TR
-    x: {$-expr: "-controlPadding"}
-    y: {$-expr: "height/2 - 10"}
-    width: 20
-    height: 20
-    selectedItemId: "root"
-    data:
-        nodeId: "root"
-    click: "createNewChildFor(control.data.nodeId, 'left')"
+# -   name: "add_bottom_to_root"
+#     type: button
+#     text: "+"
+#     placement: TL
+#     x: {$-expr: "width / 2 - 10"}
+#     y: {$-expr: "height + controlPadding"}
+#     width: 20
+#     height: 20
+#     selectedItemId: "root"
+#     data:
+#         nodeId: "root"
+#     click: "createNewChildFor(control.data.nodeId, 'bottom')"
 
--   name: "add_right_to_root"
-    type: button
-    text: "+"
-    placement: TL
-    x: {$-expr: "width + controlPadding"}
-    y: {$-expr: "height/2 - 10"}
-    width: 20
-    height: 20
-    selectedItemId: "root"
-    data:
-        nodeId: "root"
-    click: "createNewChildFor(control.data.nodeId, 'right')"
+# -   name: "add_left_to_root"
+#     type: button
+#     text: "+"
+#     placement: TR
+#     x: {$-expr: "-controlPadding"}
+#     y: {$-expr: "height/2 - 10"}
+#     width: 20
+#     height: 20
+#     selectedItemId: "root"
+#     data:
+#         nodeId: "root"
+#     click: "createNewChildFor(control.data.nodeId, 'left')"
+
+# -   name: "add_right_to_root"
+#     type: button
+#     text: "+"
+#     placement: TL
+#     x: {$-expr: "width + controlPadding"}
+#     y: {$-expr: "height/2 - 10"}
+#     width: 20
+#     height: 20
+#     selectedItemId: "root"
+#     data:
+#         nodeId: "root"
+#     click: "createNewChildFor(control.data.nodeId, 'right')"
 
 
 

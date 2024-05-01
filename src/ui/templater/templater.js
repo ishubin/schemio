@@ -14,6 +14,7 @@ const $_ELSE_IF = '$-else-if';
 const $_ELSE = '$-else';
 const $_FOR = '$-for';
 const $_FOREACH = '$-foreach';
+const $_EXTEND = '$-extend';
 const $_RECURSE = '$-recurse';
 const $_EVAL = '$-eval';
 
@@ -133,6 +134,12 @@ function compile(obj, customDefinitions) {
 function compileObjectProcessor(obj, customDefinitions) {
     const fieldBuilders = [];
 
+    let extendBuilder = null;
+
+    if (obj.hasOwnProperty($_EXTEND)) {
+        extendBuilder = compile(obj[$_EXTEND], customDefinitions);
+    }
+
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
             if (key.startsWith($_DEF)) {
@@ -148,7 +155,7 @@ function compileObjectProcessor(obj, customDefinitions) {
     }
     /** @property {Scope} scope */
     return (scope) => {
-        const finalObject = {};
+        const finalObject = extendBuilder ? extendBuilder(scope.newScope()) : {};
         fieldBuilders.forEach(fieldBuilder => {
             finalObject[fieldBuilder.key] = fieldBuilder.build(scope.newScope());
         });

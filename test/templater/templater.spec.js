@@ -376,6 +376,60 @@ describe('templater', () => {
         });
     });
 
+    it('should support extending of object with fields from another object', () => {
+        const someItems = [{
+            name: 'some item',
+            id: 1,
+            shapeProps: {
+                fill: {
+                    type: 'solid',
+                    color: 'rgba(0, 0, 0, 0)'
+                }
+            }
+        }, {
+            name: 'some item 2',
+            id: 2,
+            shapeProps: {
+                fill: {
+                    type: 'none'
+                }
+            }
+        }];
+        const template = {
+            items: [{
+                '$-foreach': {source: 'someItems', it: 'item'},
+                '$-extend': {'$-expr': 'toJSON(item)'},
+                id: {'$-expr': 'item.id + 100'},
+                shape: 'rect'
+            }]
+        };
+
+        expect(processJSONTemplate(template, {
+            someItems,
+        })).toStrictEqual({
+            items: [{
+                name: 'some item',
+                id: 101,
+                shape: 'rect',
+                shapeProps: {
+                    fill: {
+                        type: 'solid',
+                        color: 'rgba(0, 0, 0, 0)'
+                    }
+                }
+            }, {
+                name: 'some item 2',
+                id: 102,
+                shape: 'rect',
+                shapeProps: {
+                    fill: {
+                        type: 'none'
+                    }
+                }
+            }]
+        });
+    });
+
     it('should support recursive structures with mixed child items', () => {
         const recursiveObject = {
             id: 'root',

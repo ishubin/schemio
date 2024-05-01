@@ -1,3 +1,7 @@
+padding = 60
+controlPadding = 40
+controls = List()
+
 struct PinPoint {
     id: 't'
     x: 0
@@ -76,6 +80,29 @@ func prepareConnectorForNode(node, parent) {
     }
 }
 
+ABS_POS = 'absolutePosition'
+
+func updateAbsoluteNodePosition(node) {
+    x = parseInt(node.data.get('x'))
+    y = parseInt(node.data.get('y'))
+    localPos = Vector(x, y)
+
+    pos = (if (node.parent) {
+        if (node.parent.tempData.has(ABS_POS)) {
+            node.parent.tempData.get(ABS_POS) + localPos
+        } else {
+            parentPos = updateAbsoluteNodePosition(node.parent)
+            parentPos + localPos
+        }
+    } else {
+        localPos
+    })
+
+    node.tempData.set(ABS_POS, pos)
+
+    pos
+}
+
 rootNode.traverse((node, parent) => {
     x = parseInt(node.data.get('x'))
     y = parseInt(node.data.get('y'))
@@ -86,10 +113,17 @@ rootNode.traverse((node, parent) => {
     node.data.set('w', w)
     node.data.set('h', h)
 
+    pos = updateAbsoluteNodePosition(node)
+
     parentX = if (parent) { parent.x } else { 0 }
     parentY = if (parent) { parent.y } else { 0 }
     node.x = x + parentX
     node.y = y + parentY
+
+    addingControl = (location, placement, cx, cy) => {
+        Control(`addChild_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
+    }
+
     if (parent) {
         node.w = w
         node.h = h
@@ -97,6 +131,13 @@ rootNode.traverse((node, parent) => {
     } else {
         node.w = width
         node.h = height
+
+        controls.extendList(List(
+            addingControl('top', 'BL', w / 2 - 10, -controlPadding),
+            addingControl('bottom', 'TL', w / 2 - 10, h + controlPadding),
+            addingControl('left', 'TR', -controlPadding, h / 2 - 10),
+            addingControl('right', 'TL', w + controlPadding, h / 2 - 10),
+        ))
     }
 })
 
@@ -126,7 +167,6 @@ rootItem.name = 'Mind map'
 rootItem.w = width
 rootItem.h = height
 
-padding = 60
 
 func createNewChildFor(nodeId, placement) {
     node = rootNode.findById(nodeId)
