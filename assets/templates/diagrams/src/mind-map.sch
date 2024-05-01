@@ -9,6 +9,7 @@ struct PinPoint {
     normal: Vector(0, -1)
 }
 
+
 func findPinPointForNode(node, offset, p2) {
     p1 = Vector(node.w/2, node.h/2) + offset
     v = (p2 - p1).normalized()
@@ -78,6 +79,8 @@ func prepareConnectorForNode(node, parent) {
     } else {
         parent.tempData.set('connectors', List(connector))
     }
+
+    pin2.id
 }
 
 ABS_POS = 'absolutePosition'
@@ -121,22 +124,28 @@ rootNode.traverse((node, parent) => {
     node.y = y + parentY
 
     addingControl = (location, placement, cx, cy) => {
-        Control(`addChild_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
+        Control(`add_child_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
     }
 
     if (parent) {
         node.w = w
         node.h = h
-        prepareConnectorForNode(node, parent)
+        pinId = prepareConnectorForNode(node, parent)
+        controls.extendList(List(
+            addingControl('top', 'BL', pos.x + node.w / 2 - 10, pos.y - controlPadding),
+            addingControl('bottom', 'TL', pos.x + node.w / 2 - 10, pos.y + node.h + controlPadding),
+            addingControl('left', 'TR', pos.x - controlPadding, pos.y + node.h / 2 - 10),
+            addingControl('right', 'TL', pos.x + node.w + controlPadding, pos.y + node.h / 2 - 10)
+        ).filter((control) => {!control.name.startsWith(`add_child_${pinId}`)}))
     } else {
         node.w = width
         node.h = height
 
         controls.extendList(List(
-            addingControl('top', 'BL', w / 2 - 10, -controlPadding),
-            addingControl('bottom', 'TL', w / 2 - 10, h + controlPadding),
-            addingControl('left', 'TR', -controlPadding, h / 2 - 10),
-            addingControl('right', 'TL', w + controlPadding, h / 2 - 10),
+            addingControl('top', 'BL', node.w / 2 - 10, -controlPadding),
+            addingControl('bottom', 'TL', node.w / 2 - 10, node.h + controlPadding),
+            addingControl('left', 'TR', -controlPadding, node.h / 2 - 10),
+            addingControl('right', 'TL', node.w + controlPadding, node.h / 2 - 10)
         ))
     }
 })
@@ -204,6 +213,14 @@ on('area', (itemId, item, area) => {
     if (node) {
         node.data.set('x', area.x)
         node.data.set('y', area.y)
+        encodeMindMap()
+    }
+})
+
+on('delete', (itemId, item) => {
+    node = rootNode.findById(itemId)
+    if (node && node.parent) {
+        node.parent.children.remove(node.siblingIdx)
         encodeMindMap()
     }
 })
