@@ -10,8 +10,47 @@ struct PinPoint {
 }
 
 
-func findPinPointForNode(node, offset, p2) {
+func findPinPointForNodeBackup(node, offset, p2) {
     p1 = Vector(node.w/2, node.h/2) + offset
+    v = (p2 - p1).normalized()
+
+    k = node.w/node.h
+
+    warpedV = Vector(v.x, v.y * k)
+
+    allPins = List(
+        PinPoint('t', node.w/2, 0,        Vector(0, -1)),
+        PinPoint('b', node.w/2, node.h,   Vector(0, 1)),
+        PinPoint('l', 0,        node.h/2, Vector(-1, 0)),
+        PinPoint('r', node.w,   node.h/2, Vector(1, 0))
+    )
+
+    closestPin = allPins.get(0)
+    closestDistance = -1000
+
+    pv = p1 + warpedV * 10
+
+    allPins.forEach((pin) => {
+        warpedPin = p1 + node.w * pin.normal
+        delta = warpedPin - pv
+        dSquared = delta * delta
+
+        if (closestDistance < 0 || closestDistance > dSquared) {
+            closestDistance = dSquared
+            closestPin = pin
+        }
+    })
+
+    closestPin
+}
+
+func findPinPointForNode(node, otherNode) {
+    pos1 = node.tempData.get(ABS_POS)
+    pos2 = otherNode.tempData.get(ABS_POS)
+
+    p1 = pos1 + Vector(node.w, node.h)
+    p2 = pos2 + Vector(otherNode.w, otherNode.h)
+
     v = (p2 - p1).normalized()
 
     k = node.w/node.h
@@ -61,8 +100,8 @@ func prepareConnectorForNode(node, parent) {
 
     childOffset = Vector(node.x, node.y)
 
-    pin1 = findPinPointForNode(parent, Vector(0, 0), Vector(x2, y2))
-    pin2 = findPinPointForNode(node, childOffset, Vector(x1, y2))
+    pin1 = findPinPointForNode(parent, node)
+    pin2 = findPinPointForNode(node, parent)
 
     connector.shapeProps.set('points', List(
         Map('id', pin1.id, 'x', pin1.x, 'y', pin1.y, 'nx', pin1.normal.x, 'ny', pin1.normal.y),
@@ -73,6 +112,10 @@ func prepareConnectorForNode(node, parent) {
     connector.shapeProps.set('sourcePin', pin1.id)
     connector.shapeProps.set('destinationItem', `#${node.id}`)
     connector.shapeProps.set('destinationPin', pin2.id)
+    connector.shapeProps.set('sourceCap', 'empty')
+    connector.shapeProps.set('destinationCap', capType)
+    connector.shapeProps.set('destinationCapSize', capSize)
+    connector.shapeProps.set('smoothing', connectorType)
 
     if (parent.tempData.has('connectors')) {
         parent.tempData.get('connectors').add(connector)
@@ -213,6 +256,8 @@ on('area', (itemId, item, area) => {
     if (node) {
         node.data.set('x', area.x)
         node.data.set('y', area.y)
+        node.data.set('w', area.w)
+        node.data.set('h', area.h)
         encodeMindMap()
     }
 })

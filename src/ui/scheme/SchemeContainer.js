@@ -2919,6 +2919,7 @@ class SchemeContainer {
                             if (!isSoft) {
                                 this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
                             }
+                            EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, templateRootItem.id);
                         });
                     }
                 } else {

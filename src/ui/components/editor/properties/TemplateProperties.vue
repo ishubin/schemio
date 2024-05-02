@@ -10,6 +10,7 @@
             <p class="hint hint-small" v-if="template.description">{{ template.description }}</p>
 
             <ArgumentsEditor v-if="template.args"
+                :key="`item-${item.id}-template-args-${reloadKey}`"
                 :editorId="editorId"
                 :schemeContainer="schemeContainer"
                 :argsDefinition="template.args"
@@ -28,6 +29,7 @@
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {forEach} from '../../../collections';
 import {compileItemTemplate} from '../items/ItemTemplate';
+import EditorEventBus from '../EditorEventBus';
 
 export default {
     props: {
@@ -41,19 +43,33 @@ export default {
 
     beforeMount() {
         this.loadTemplate();
+        EditorEventBus.item.templateArgsUpdated.specific.$on(this.editorId, this.item.id, this.onTemplateArgsChangedOutside);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.item.templateArgsUpdated.specific.$off(this.editorId, this.item.id, this.onTemplateArgsChangedOutside);
     },
 
     data() {
         return {
             isLoading: false,
+            reloadKey: 0,
             errorMessage: null,
             templateNotFound: false,
             template: null,
+            editorPanels: [],
             args: this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {}
         }
     },
 
     methods: {
+        onTemplateArgsChangedOutside() {
+            if (this.item.args && this.item.args.templateArgs) {
+                this.args = this.item.args.templateArgs;
+                this.reloadKey++;
+            }
+        },
+
         loadTemplate() {
             this.templateNotFound = false;
             this.isLoading = true;

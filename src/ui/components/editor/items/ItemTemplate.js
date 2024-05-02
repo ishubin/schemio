@@ -8,6 +8,10 @@ import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
 import { compileJSONTemplate, compileTemplateExpressions } from "../../../templater/templater";
 import { createTemplateFunctions } from "./ItemTemplateFunctions";
 
+const defaultEditor = {
+    panels: []
+};
+
 function mockedFunc() {
 }
 
@@ -27,6 +31,11 @@ export function compileItemTemplate(template, templateRef) {
     const itemBuilder = compileJSONTemplate({
         '$-eval': initBlock,
         item: template.item,
+    });
+
+    const editorBuilder = compileJSONTemplate({
+        '$-eval': initBlock,
+        item: template.editor || defaultEditor,
     });
 
 
@@ -95,6 +104,7 @@ export function compileItemTemplate(template, templateRef) {
             ...args, width, height,
             on: mockedFunc
         }).item,
+        buildEditor: (args, width, height) => editorBuilder({...args, width, height}),
         buildControls: (args, width, height) => compiledControlBuilder({...args, width, height, on: mockedFunc}).controls.map(control => {
             const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
             const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height, on: mockedFunc});

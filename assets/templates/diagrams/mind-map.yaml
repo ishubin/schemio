@@ -2,6 +2,9 @@ name: Mind map
 description: ""
 args:
     nodes: {type: "string", value: "root:x=0:y=0|1:x=100:y=-100:w=200:h=100|2:x=100:y=100:w=200:h=100", name: "Nodes encoded", hidden: true}
+    connectorType : {type: 'choice', value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Connectors Type'}
+    capType : {type: 'path-cap', value: 'triangle', name: 'Cap type'}
+    capSize: {type: 'number', value: 15, name: 'Cap size'}
 preview: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTEwIC0xMCAzNDAgMjIwIj48ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHRyYW5zZm9ybT0idHJhbnNsYXRlKDEwMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJaZ2txU09HSVkiIGRhdGEtaXRlbS1pZD0iWmdrcVNPR0lZIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMTAwIDYwICBMIDIwIDYwIGEgMjAgMjAgMCAwIDEgLTIwIC0yMCAgTCAwIDIwICBhIDIwIDIwIDAgMCAxIDIwIC0yMCAgIEwgMTAwIDAgICBhIDIwIDIwIDAgMCAxIDIwIDIwICBMIDEyMCA0MCAgIGEgMjAgMjAgMCAwIDEgLTIwIDIwIFoiIHN0cm9rZS13aWR0aD0iMnB4IiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWRhc2hhcnJheT0iIiBzdHJva2UtZGFzaG9mZnNldD0iMCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICA8ZyBpZD0iYW5pbWF0aW9uLWNvbnRhaW5lci1aZ2txU09HSVkiLz4gICAgICAgPC9nPjwvZz4KPGcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLDE0MCkgcm90YXRlKDApIiBkYXRhLXN2Zy1pdGVtLWNvbnRhaW5lci1pZD0iaDdSV0p0UTBLIiBkYXRhLWl0ZW0taWQ9Img3UldKdFEwSyI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCA2MCAgTCAyMCA2MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDEwMCAwICAgYSAyMCAyMCAwIDAgMSAyMCAyMCAgTCAxMjAgNDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9InJnYmEoMjQwLDI0MCwyNDAsMS4wKSIvPjwvZz48L2c+PC9nPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ii8+PC9nPiAgPGcgaWQ9ImFuaW1hdGlvbi1jb250YWluZXItaDdSV0p0UTBLIi8+ICAgICAgIDwvZz48L2c+CjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoNjAsNjApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9ImRwUXQ3Tlk4dyIgZGF0YS1pdGVtLWlkPSJkcFF0N05ZOHciPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+PGcgbW9kZT0iZWRpdCIgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCAwIEMgMTAwIDM4Ljg3IDAgIDIxLjEzIDAgNjAgIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWRhc2hvZmZzZXQ9IjAiIGZpbGw9Im5vbmUiIHN0eWxlPSJzdHJva2UtbGluZWpvaW46IHJvdW5kOyIvPiA8Zz48cGF0aCBkPSJNIC01IDYwIEwgMCA4MCBMIDUgNjAgIHogIiBzdHJva2U9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLXdpZHRoPSIyIiBmaWxsPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L2c+PC9nPiAgIDwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLWRwUXQ3Tlk4dyIvPiAgICAgICA8L2c+PC9nPgo8ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHRyYW5zZm9ybT0idHJhbnNsYXRlKDIwMCwxNDApIHJvdGF0ZSgwKSIgZGF0YS1zdmctaXRlbS1jb250YWluZXItaWQ9Ik1Nanh4QXptVzQiIGRhdGEtaXRlbS1pZD0iTU1qeHhBem1XNCI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj4gPGcgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz48Zz48Zz4gPC9nPiA8cGF0aCBkPSJNIDEwMCA2MCAgTCAyMCA2MCBhIDIwIDIwIDAgMCAxIC0yMCAtMjAgIEwgMCAyMCAgYSAyMCAyMCAwIDAgMSAyMCAtMjAgICBMIDEwMCAwICAgYSAyMCAyMCAwIDAgMSAyMCAyMCAgTCAxMjAgNDAgICBhIDIwIDIwIDAgMCAxIC0yMCAyMCBaIiBzdHJva2Utd2lkdGg9IjJweCIgc3Ryb2tlPSJyZ2JhKDMwLDMwLDMwLDEuMCkiIHN0cm9rZS1kYXNoYXJyYXk9IiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0icmdiYSgyNDAsMjQwLDI0MCwxLjApIi8+PC9nPjwvZz48L2c+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz48L2c+ICA8ZyBpZD0iYW5pbWF0aW9uLWNvbnRhaW5lci1NTWp4eEF6bVc0Ii8+ICAgICAgIDwvZz48L2c+CjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTYwLDYwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJSSkhNU2FYUTYiIGRhdGEtaXRlbS1pZD0iUkpITVNhWFE2Ij4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPjxnIG1vZGU9ImVkaXQiIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+IDwvZz4gPHBhdGggZD0iTSAwIDAgQyAwIDM4Ljg3IDEwMCAgMjEuMTMgMTAwIDYwICIgc3Ryb2tlLXdpZHRoPSIycHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1kYXNob2Zmc2V0PSIwIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlLWxpbmVqb2luOiByb3VuZDsiLz4gPGc+PHBhdGggZD0iTSA5NSA2MCBMIDEwMCA4MCBMIDEwNSA2MCAgeiAiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9InJnYmEoMzAsMzAsMzAsMS4wKSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L2c+ICAgPC9nPiAgPGcgaWQ9ImFuaW1hdGlvbi1jb250YWluZXItUkpITVNhWFE2Ii8+ICAgICAgIDwvZz48L2c+PC9zdmc+"
 defaultArea: {x: 0, y: 0, w: 120, h: 60}
 
@@ -15,59 +18,24 @@ controls:
 -   $-foreach: {source: "controls", it: "control"}
     $-extend: {$-expr: "toJSON(control)"}
 
-# -   name: "add_top_to_root"
-#     type: button
-#     text: "+"
-#     placement: BL
-#     x: {$-expr: "width / 2 - 10"}
-#     y: {$-expr: "-controlPadding"}
-#     width: 20
-#     height: 20
-#     selectedItemId: "root"
-#     data:
-#         nodeId: "root"
-#     click: "createNewChildFor(control.data.nodeId, 'top')"
-
-# -   name: "add_bottom_to_root"
-#     type: button
-#     text: "+"
-#     placement: TL
-#     x: {$-expr: "width / 2 - 10"}
-#     y: {$-expr: "height + controlPadding"}
-#     width: 20
-#     height: 20
-#     selectedItemId: "root"
-#     data:
-#         nodeId: "root"
-#     click: "createNewChildFor(control.data.nodeId, 'bottom')"
-
-# -   name: "add_left_to_root"
-#     type: button
-#     text: "+"
-#     placement: TR
-#     x: {$-expr: "-controlPadding"}
-#     y: {$-expr: "height/2 - 10"}
-#     width: 20
-#     height: 20
-#     selectedItemId: "root"
-#     data:
-#         nodeId: "root"
-#     click: "createNewChildFor(control.data.nodeId, 'left')"
-
-# -   name: "add_right_to_root"
-#     type: button
-#     text: "+"
-#     placement: TL
-#     x: {$-expr: "width + controlPadding"}
-#     y: {$-expr: "height/2 - 10"}
-#     width: 20
-#     height: 20
-#     selectedItemId: "root"
-#     data:
-#         nodeId: "root"
-#     click: "createNewChildFor(control.data.nodeId, 'right')"
-
-
+editor:
+    panels:
+    -   id: node-shape-selector
+        condition: 'shouldNodeShapeSelectorBeDisplayed(selectedItems)'
+        type: slot-menu
+        click: 'selectShapeForItems(selectedItems, shapeItem)'
+        name: Select shape
+        items:
+        -   id: 'rounded-rect'
+            shape: 'rect'
+            area: {w: 100, h: 50}
+            shapeProps:
+                cornerRadius: 5
+        -   id: 'ellipse'
+            shape: 'ellipse'
+            area: {w: 100, h: 50}
+            shapeProps:
+                cornerRadius: 5
 
 item:
     $-recurse: {object: {"$-expr": "rootItem"}, it: 'it', children: 'it.childItems', dstChildren: 'childItems'}
