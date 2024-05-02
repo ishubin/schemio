@@ -37,6 +37,10 @@ export class Scope {
         scope.data[varName] = value;
     }
 
+    setLocal(varName, value) {
+        this.data[varName] = value;
+    }
+
     newScope(data = {}) {
         return new Scope(data, this);
     }
