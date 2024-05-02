@@ -557,7 +557,7 @@ export class ASTFunctionDeclaration extends ASTNode {
         return (...args) => {
             const funcScope = scope.newScope();
             for (let i = 0; i < args.length && i < this.argNames.length; i++) {
-                funcScope.set(this.argNames[i], args[i]);
+                funcScope.setLocal(this.argNames[i], args[i]);
             }
             return this.body.evalNode(funcScope);
         };
