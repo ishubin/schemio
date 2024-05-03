@@ -608,7 +608,7 @@ export default {
                 return;
             }
             this.apiClient.getTemplate(templateRef).then(templateDef => {
-                this.template = compileItemTemplate(templateDef, templateRef);
+                this.template = compileItemTemplate(this.editorId, templateDef, templateRef);
                 this.buildTemplateControls();
             });
         },
@@ -704,7 +704,7 @@ export default {
                     }
                 }
             }
-            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, updatedArgs);
+            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
         },
 
         onColorControlToggled(expanded) {

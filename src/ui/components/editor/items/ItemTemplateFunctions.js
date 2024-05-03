@@ -5,20 +5,24 @@
 import shortid from 'shortid';
 import utils from '../../../utils';
 import { traverseItems } from '../../../scheme/Item';
+import EditorEventBus from '../EditorEventBus';
+import { enrichItemWithDefaults } from '../../../scheme/ItemFixer';
 
 /**
- * Creates and object that provides various functions, that could be used from inside of
+ * Creates an object that provides various functions, that could be used from inside of
  * template scripts (control handlers, etc.) to manipulate items in the template
+ * @param {String} editorId
  * @param {Item} rootItem
  * @returns {Object} an object that contains various functions that could be used from template
  */
-export function createTemplateFunctions(rootItem) {
+export function createTemplateFunctions(editorId, rootItem) {
     return {
         findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
         moveNativeChildren: moveNativeChildren(rootItem),
         copyNativeChildren: copyNativeChildren(rootItem),
         swapNativeChildren: swapNativeChildren(rootItem),
         duplicateItem: duplicateItem(rootItem),
+        updateItem: updateItemFunc(editorId, rootItem),
 
         clone: (obj) => utils.clone(obj)
     }
@@ -31,6 +35,27 @@ export function createTemplateFunctions(rootItem) {
 function createFindItemByTemplatedIdFunc(rootItem) {
     return (itemId) => {
         return findItemByTemplatedId(rootItem, itemId);
+    };
+}
+
+
+/**
+ * @param {String} editorId
+ * @param {Item} rootItem
+ * @returns {function(string,function(Item)):void}
+ */
+function updateItemFunc(editorId, rootItem) {
+    return (itemId, callback) => {
+        const item = findItemByTemplatedId(rootItem, itemId);
+        if (!item) {
+            return;
+        }
+
+        callback(item);
+        // If template changes only the shape of the item, we need to make sure its shapeProps fields are valid
+        enrichItemWithDefaults(item);
+        EditorEventBus.item.changed.specific.$emit(editorId, item.id);
+        EditorEventBus.schemeChangeCommitted.$emit(editorId);
     };
 }
 

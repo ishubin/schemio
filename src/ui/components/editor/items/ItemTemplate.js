@@ -5,8 +5,9 @@ import shortid from "shortid";
 import { forEachObject } from "../../../collections";
 import { traverseItems, traverseItemsConditionally } from "../../../scheme/Item";
 import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
-import { compileJSONTemplate, compileTemplateExpressions } from "../../../templater/templater";
+import { compileJSONTemplate, compileTemplateCall, compileTemplateExpressions } from "../../../templater/templater";
 import { createTemplateFunctions } from "./ItemTemplateFunctions";
+import { List } from "../../../templater/list";
 
 const defaultEditor = {
     panels: []
@@ -16,12 +17,70 @@ function mockedFunc() {
 }
 
 /**
- *
+ * @param {String} editorId
+ * @param {function(Object): Object} editorJSONBuilder
+ * @param {Item} templateRootItem
+ * @param {Object} data
+ * @param {Array<String>} selectedItemIds
+ */
+function buildEditor(editorId, editorJSONBuilder, templateRootItem, data, selectedItemIds) {
+    // cloning selected items to make sure that the script cannot mutate items
+    const finalData = {...data, selectedItemIds: new List(...selectedItemIds), ...createTemplateFunctions(editorId, templateRootItem)};
+
+    const editor = editorJSONBuilder(finalData).editor;
+    if (!editor || !Array.isArray(editor.panels)) {
+        return defaultEditor;
+    }
+
+    return {
+        panels: editor.panels.map(panel => {
+            let condition = () => true;
+            if (panel.condition) {
+                condition = compileTemplateCall(panel.condition, finalData);
+            }
+            let click = null;
+            if (panel.click) {
+                const clickCallback = compileTemplateExpressions([panel.click], finalData);
+                click = (panelItem) => {
+                    // panel click callback is supposed to return the object that contains the top-level scope fields
+                    // This can be used in order to update template args in the template root item
+                    const lastTemplateArgs = templateRootItem.args && templateRootItem.args.templateArgs ? templateRootItem.args.templateArgs : {};
+                    // overriding scope with the last version of template args saved in the template root item.
+                    // This part is important as it could be that the template args have changed through user clicking template controls
+                    // and right after selecting a new item and clicking the editor panel item. Because of the last action the TemplateProperties component
+                    // has not been updated and therefore the "data" variable in this function contains outdated template args
+                    return clickCallback({...lastTemplateArgs, panelItem});
+                };
+            }
+
+            const panelItems = (panel.items || []).map(item => {
+                enrichItemWithDefaults(item);
+                return item;
+            });
+
+            return {
+                ...panel,
+                items: panelItems,
+                condition,
+                click
+            };
+        }).filter(panel => {
+            if (!panel.click) {
+                return false;
+            }
+            const result = panel.condition();
+            return result;
+        })
+    };
+}
+
+/**
+ * @param {String} editorId
  * @param {ItemTemplate} template
  * @param {String} templateRef
  * @returns {CompiledItemTemplate}
  */
-export function compileItemTemplate(template, templateRef) {
+export function compileItemTemplate(editorId, template, templateRef) {
     const initBlock = toExpressionBlock(template.init);
     const compiledControlBuilder = compileJSONTemplate({
         '$-eval': initBlock,
@@ -33,9 +92,9 @@ export function compileItemTemplate(template, templateRef) {
         item: template.item,
     });
 
-    const editorBuilder = compileJSONTemplate({
+    const editorJSONBuilder = compileJSONTemplate({
         '$-eval': initBlock,
-        item: template.editor || defaultEditor,
+        editor: template.editor || defaultEditor,
     });
 
 
@@ -66,7 +125,7 @@ export function compileItemTemplate(template, templateRef) {
             const data = {
                 ...defaultArgs,
                 ...rootItem.args.templateArgs,
-                ...createTemplateFunctions(rootItem),
+                ...createTemplateFunctions(editorId, rootItem),
                 width: rootItem.area.w,
                 height: rootItem.area.h,
                 on: (eventName, callback) => {
@@ -104,7 +163,7 @@ export function compileItemTemplate(template, templateRef) {
             ...args, width, height,
             on: mockedFunc
         }).item,
-        buildEditor: (args, width, height) => editorBuilder({...args, width, height}),
+        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, templateRootItem, {...args, width, height, on: mockedFunc}, selectedItemIds),
         buildControls: (args, width, height) => compiledControlBuilder({...args, width, height, on: mockedFunc}).controls.map(control => {
             const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
             const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height, on: mockedFunc});
@@ -118,7 +177,7 @@ export function compileItemTemplate(template, templateRef) {
                  *                  but everything that was declared in the global scope of the template script
                  */
                 click: (item) => {
-                    return clickExecutor({control, ...createTemplateFunctions(item)});
+                    return clickExecutor({control, ...createTemplateFunctions(editorId, item)});
                 }
             }
         }),

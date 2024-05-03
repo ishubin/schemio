@@ -468,7 +468,7 @@ class ResizeEditBoxState extends EditBoxState {
         if (editBox.templateRef) {
             if (this.store.state.apiClient && this.store.state.apiClient.getTemplate) {
                 this.store.state.apiClient.getTemplate(editBox.templateRef).then(templateDef => {
-                    this.template = compileItemTemplate(templateDef, editBox.templateRef);
+                    this.template = compileItemTemplate(this.editorId, templateDef, editBox.templateRef);
                 });
             }
         }

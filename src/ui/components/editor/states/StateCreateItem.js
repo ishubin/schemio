@@ -36,7 +36,7 @@ export default class StateCreateItem extends State {
         if (!template && item.args && item.args.templated && item.args.templateRef) {
             if (this.store.state.apiClient && this.store.state.apiClient.getTemplate) {
                 this.store.state.apiClient.getTemplate(item.args.templateRef).then(templateDef => {
-                    this.template = compileItemTemplate(templateDef, item.args.templateRef);
+                    this.template = compileItemTemplate(this.editorId, templateDef, item.args.templateRef);
                 });
             }
         }

@@ -456,13 +456,14 @@
                         </div>
                         <div v-if="mode !== 'view' && currentTab === 'template' && !inPlaceTextEditor.shown && selectedTemplateRootItem && selectedTemplateRef">
                             <TemplateProperties
-                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}`"
+                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
                                 :editorId="editorId"
                                 :item="selectedTemplateRootItem"
                                 :schemeContainer="schemeContainer"
                                 :templateRef="selectedTemplateRef"
                                 @updated="onTemplatePropertiesUpdated"
                                 @break-template="breakTemplate"
+                                @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
                             />
                         </div>
 
@@ -1114,7 +1115,9 @@ export default {
                 item: null,
                 x: 0, y: 0
             },
-            itemDetailsMouseOutTimer: null
+            itemDetailsMouseOutTimer: null,
+
+            templatePropertiesKey: 0,
         }
     },
     methods: {
@@ -1937,6 +1940,7 @@ export default {
          */
         onItemSelectionUpdated() {
             if (this.schemeContainer.selectedItems.length > 0) {
+                this.templatePropertiesKey += 1;
                 this.$emit('items-selected');
                 this.currentTab = 'Item';
                 const item = this.schemeContainer.selectedItems[0];
@@ -2140,19 +2144,10 @@ export default {
 
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
-            const selectedItemIds = this.schemeContainer.selectedItems.map(item => item.id);
             this.rebuildTemplate(originItemId, template, templateArgs);
             this.schemeContainer.reindexItems();
 
-            const itemsToSelect = [];
-            selectedItemIds.forEach(itemId => {
-                const item = this.schemeContainer.findItemById(itemId);
-                if (item) {
-                    itemsToSelect.push(item);
-                }
-            });
-
-            this.schemeContainer.selectMultipleItems(itemsToSelect);
+            this.schemeContainer.updateEditBox();
         },
 
         onTemplatePropertiesUpdated(originItemId, template, templateArgs) {

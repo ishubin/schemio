@@ -1025,7 +1025,7 @@ class SchemeContainer {
 
         this.apiClient.getTemplate(templateRef)
         .then(templateDef => {
-            const template = compileItemTemplate(templateDef, templateRef);
+            const template = compileItemTemplate(this.editorId, templateDef, templateRef);
             this.compiledTemplates.set(templateRef, template);
         })
         .catch(err => {
@@ -1043,7 +1043,7 @@ class SchemeContainer {
         } else {
             this.apiClient.getTemplate(templateRef)
             .then(templateDef => {
-                const template = compileItemTemplate(templateDef, templateRef);
+                const template = compileItemTemplate(this.editorId, templateDef, templateRef);
                 this.compiledTemplates.set(templateRef, template);
                 return template;
             })
@@ -3072,8 +3072,12 @@ class SchemeContainer {
 
     updateEditBox() {
         log.info('updateEditBox');
-        if (this.selectedItems.length > 0 || this.selectedConnectorPoints.length > 0) {
-            this.editBox = this.generateEditBox(this.selectedItems, this.selectedConnectorPoints);
+
+        // making sure that items in selectedItems array and actual items in the scheme are not out of sync
+        // it could happen that some items were removed by the template, when user changed template args.
+        const items = this.selectedItems.map(selectedItem => this.findItemById(selectedItem.id)).filter(item => item);
+        if (items.length > 0 || this.selectedConnectorPoints.length > 0) {
+            this.editBox = this.generateEditBox(items, this.selectedConnectorPoints);
         } else {
             this.editBox = null;
         }

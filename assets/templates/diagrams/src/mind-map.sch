@@ -205,7 +205,7 @@ rootItem = rootNode.map((node, childItems) => {
     }
 
     item = Item(node.id, `item ${node.id}`, 'rect', x, y, w, h, Map(), childItems)
-    item.args.set('templateIgnoredProps', List('shapeProps.fill', 'shapeProps.strokeColor', 'shapeProps.strokeSize', 'shapeProps.strokePattern'))
+    item.args.set('templateIgnoredProps', List('shape', 'shapeProps.*'))
     item.locked = false
     if (node.id != rootNode.id) {
         item.args.set('tplArea', 'controlled')
@@ -269,3 +269,24 @@ on('delete', (itemId, item) => {
         encodeMindMap()
     }
 })
+
+func shouldNodeShapeSelectorBeDisplayed(selectedItemIds) {
+    shown = false
+    selectedItemIds.forEach((itemId) => {
+        if (rootNode.findById(itemId)) {
+            shown = true
+        }
+    })
+    shown
+}
+
+func selectShapeForItems(selectedItemIds, panelItem) {
+    selectedItemIds.forEach((itemId) => {
+        updateItem(itemId, (item) => {
+            item.shape = panelItem.shape
+            forEach(panelItem.shapeProps, (value, name) => {
+                setObjectField(item.shapeProps, name, value)
+            })
+        })
+    })
+}

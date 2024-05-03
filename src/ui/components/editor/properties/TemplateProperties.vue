@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="template-properties">
         <i v-if="isLoading" class="fas fa-spinner fa-spin fa-1x"></i>
         <div v-if="errorMessage" class="msg msg-error">{{ errorMessage }}</div>
         <div v-if="templateNotFound" class="msg msg-error">Template for this item could not be found</div>
@@ -17,6 +17,20 @@
                 :args="args"
                 @argument-changed="onArgChanged"
             />
+
+            <div v-for="panel in editorPanels" class="template-editor-panel">
+                <h4>{{ panel.name }}</h4>
+                <ul class="template-editor-panel-items-container">
+                    <li v-for="item in panel.items" @click="onEditPanelItemClicked(panel, item)">
+                        <svg width="100px" height="70px">
+                            <g transform="translate(4, 4)">
+                                <ItemSvg :editorId="editorId" :item="item" mode="edit"/>
+                            </g>
+                            <rect x="0" y="0" width="100" height="70" fill="rgba(0,0,0,0.0)" stroke="none"/>
+                        </svg>
+                    </li>
+                </ul>
+            </div>
         </div>
         <span class="btn btn-danger"
             @click="breakTemplate"
@@ -30,6 +44,7 @@ import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {forEach} from '../../../collections';
 import {compileItemTemplate} from '../items/ItemTemplate';
 import EditorEventBus from '../EditorEventBus';
+import ItemSvg from '../items/ItemSvg.vue';
 
 export default {
     props: {
@@ -39,7 +54,7 @@ export default {
         editorId: {type: String},
     },
 
-    components: { ArgumentsEditor, ArgumentsEditor },
+    components: { ArgumentsEditor, ArgumentsEditor, ItemSvg },
 
     beforeMount() {
         this.loadTemplate();
@@ -63,6 +78,19 @@ export default {
     },
 
     methods: {
+        onEditPanelItemClicked(panel, panelItem) {
+            const templateData = panel.click(panelItem);
+
+            if (this.template.args) {
+                for (let key in this.template.args) {
+                    if (this.template.args.hasOwnProperty(key)) {
+                        this.item.args.templateArgs[key] = templateData[key];
+                    }
+                }
+            }
+            this.$emit('template-rebuild-requested', this.item.id, this.template, this.item.args.templateArgs);
+        },
+
         onTemplateArgsChangedOutside() {
             if (this.item.args && this.item.args.templateArgs) {
                 this.args = this.item.args.templateArgs;
@@ -76,7 +104,7 @@ export default {
             if (this.$store.state.apiClient && this.$store.state.apiClient.getTemplate) {
                 this.$store.state.apiClient.getTemplate(this.templateRef).then(template => {
                     this.isLoading = false;
-                    this.template = compileItemTemplate(template, this.templateRef);
+                    this.template = compileItemTemplate(this.editorId, template, this.templateRef);
                     if (template.args) {
                         forEach(template.args, (arg, argName) => {
                             if (!this.args.hasOwnProperty(argName)) {
@@ -84,15 +112,24 @@ export default {
                             }
                         });
                     }
+
+                    const selectedTemplateItemIds = [];
+                    forEach(this.schemeContainer.selectedItems, item => {
+                        if (item.meta.templateRootId === this.item.id) {
+                            selectedTemplateItemIds.push(item.args.templatedId);
+                        }
+                    });
+                    const editor = this.template.buildEditor(this.item, this.args, this.item.area.w, this.item.area.h, selectedTemplateItemIds);
+                    this.editorPanels = editor.panels;
                 }).catch(err => {
                     this.isLoading = false;
                     console.error(err);
-                    if (err.response.status === 404) {
+                    if (err.response && err.response.status === 404) {
                         this.templateNotFound = true;
                     } else {
                         this.errorMessage = 'Something went wrong, could not load template';
                     }
-                })
+                });
             }
         },
 

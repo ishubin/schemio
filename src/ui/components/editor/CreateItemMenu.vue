@@ -657,7 +657,7 @@ export default {
                 return;
             }
             this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
-                const compiledTemplate = compileItemTemplate(template, templateEntry.path);
+                const compiledTemplate = compileItemTemplate(this.editorId, template, templateEntry.path);
                 const templatedItem = this.schemeContainer.generateItemFromTemplate(compiledTemplate, compiledTemplate.getDefaultArgs(), compiledTemplate.defaultArea.w, compiledTemplate.defaultArea.h);
 
                 this.onItemMouseDown(event, {

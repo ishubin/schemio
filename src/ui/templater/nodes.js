@@ -4,6 +4,7 @@ import { Vector } from "./vector";
 import { Scope } from "./scope";
 import shortid from "shortid";
 import { convertScriptObjectToJSON } from "./json";
+import { forEach } from "../collections";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -497,6 +498,13 @@ function createHashMap(...args) {
     return map;
 }
 
+function setObjectFieldFunc(obj, name, value) {
+    if (typeof obj !== 'object') {
+        return;
+    }
+    obj[name] = value
+}
+
 
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
@@ -530,9 +538,11 @@ const reservedFunctions = new Map(Object.entries({
         }
         return falseValue;
     },
-    matchesRegex: (text, pattern) => new RegExp(pattern).test(text),
-    splitString : (str, separator) => new List(...str.split(separator)),
-    toJSON : (obj) => convertScriptObjectToJSON(obj)
+    matchesRegex  : (text, pattern) => new RegExp(pattern).test(text),
+    splitString   : (str, separator) => new List(...str.split(separator)),
+    toJSON        : (obj) => convertScriptObjectToJSON(obj),
+    forEach       : forEach,
+    setObjectField: setObjectFieldFunc
 }));
 
 

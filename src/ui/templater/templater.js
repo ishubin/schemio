@@ -58,6 +58,23 @@ export function compileTemplateExpressions(expressions, data) {
     };
 }
 
+
+/**
+ * This function is used for processing of template editor panels.
+ * It executes the expression and returns its result
+ * @param {String} expression
+ * @param {Object} data
+ * @returns {function(Object|undefined): Object} - a function that takes extra data object as an argument, that should be added to the scope and, when invoked, will execute the expressions and will return the updated data with arguments
+ */
+export function compileTemplateCall(expression, data) {
+    const expr = parseExpression(expression);
+
+    return (extraData) => {
+        const scope = new Scope({...data, ...(extraData || {})});
+        return expr.evalNode(scope);
+    };
+}
+
 function compileRawString(obj) {
     if (Array.isArray(obj)) {
         return (scope) => obj.join('\n');

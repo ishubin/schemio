@@ -21,19 +21,19 @@ controls:
 editor:
     panels:
     -   id: node-shape-selector
-        condition: 'shouldNodeShapeSelectorBeDisplayed(selectedItems)'
+        condition: 'shouldNodeShapeSelectorBeDisplayed(selectedItemIds)'
         type: slot-menu
-        click: 'selectShapeForItems(selectedItems, shapeItem)'
+        click: 'selectShapeForItems(selectedItemIds, panelItem)'
         name: Select shape
         items:
         -   id: 'rounded-rect'
             shape: 'rect'
-            area: {w: 100, h: 50}
+            area: {w: 92, h: 62}
             shapeProps:
                 cornerRadius: 5
         -   id: 'ellipse'
             shape: 'ellipse'
-            area: {w: 100, h: 50}
+            area: {w: 92, h: 62}
             shapeProps:
                 cornerRadius: 5
 
