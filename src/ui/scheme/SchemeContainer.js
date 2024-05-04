@@ -3117,8 +3117,8 @@ class SchemeContainer {
             y: 0.5
         };
 
-        // this is need as there is a situation when user pastes new items to the scene and the reindex was not run yet
-        // It uses edit box to move the newly pasted items. Because of the missing reindex it SchemeContainer
+        // this is needed as there could be a situation, when user pastes new items to the scene and the reindex was not run yet
+        // It uses edit box to move the newly pasted items. Because of the missing reindex in SchemeContainer
         // is not able to find these items by id
         const connectorItemsMap = new Map();
 
@@ -3126,7 +3126,7 @@ class SchemeContainer {
         const allConnectorPointRefs = [].concat(connectorPointRefs);
         items.forEach(item => {
             connectorItemsMap.set(item.id, item);
-            if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points)) {
+            if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points) || item.locked) {
                 return;
             }
             item.shapeProps.points.forEach((p, pointIdx) => {

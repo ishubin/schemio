@@ -40,7 +40,7 @@ editor:
 item:
     $-recurse: {object: {"$-expr": "rootItem"}, it: 'it', children: 'it.childItems', dstChildren: 'childItems'}
     id: {$-expr: "it.id"}
-    name: {$-expr: "`${it.name} x: ${it.x}, y: ${it.y}`"}
+    name: {$-expr: "`${it.name}`"}
     shape: {$-expr: "it.shape"}
     shapeProps: {$-expr: "toJSON(it.shapeProps)"}
     args: {$-expr: "it.getArgs()"}

@@ -979,6 +979,10 @@ class IdleState extends SubState {
 
     handleDoubleClickOnConnector(item, x, y) {
         //TODO refactor it to use path segments in order to identify clicked segment
+        if (item.locked) {
+            // not letting to modify a locked connector
+            return;
+        }
         const shape = Shape.find(item.shape);
         if (!shape) {
             return;

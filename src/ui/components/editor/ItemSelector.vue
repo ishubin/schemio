@@ -473,6 +473,7 @@ export default {
 
         toggleItemLock(item) {
             item.locked = !item.locked;
+            this.schemeContainer.updateEditBox();
             this.$forceUpdate();
         },
 
