@@ -875,6 +875,10 @@ class IdleState extends SubState {
 
     onItemDoubleClick(item, x, y) {
         if (item.shape === 'path') {
+            // restricting modifications for locked path items
+            if (item.locked) {
+                return;
+            }
             this.listener.onEditPathRequested(item);
         } else if (item.shape === 'connector') {
             this.handleDoubleClickOnConnector(item, x, y);

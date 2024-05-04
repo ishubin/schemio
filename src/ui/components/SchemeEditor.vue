@@ -2447,7 +2447,7 @@ export default {
                 });
             }
 
-            if (item.shape === 'path') {
+            if (item.shape === 'path' && !item.locked) {
                 contextMenuOptions.push({
                     name: 'Edit Path',
                     clicked: () => { this.onEditPathRequested(item); }
