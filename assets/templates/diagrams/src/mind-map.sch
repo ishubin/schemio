@@ -224,7 +224,9 @@ rootItem = rootNode.map((node, childItems) => {
         childItems.extendList(node.tempData.get('connectors'))
     }
 
-    item = Item(node.id, `item ${node.id}`, 'rect', x, y, w, h, Map(), childItems)
+    shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
+
+    item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems)
     item.args.set('templateIgnoredProps', List('shape', 'shapeProps.*'))
     item.locked = false
     if (node.id != rootNode.id) {
@@ -245,8 +247,9 @@ func createNewChildFor(nodeId, placement) {
     if (node) {
         x = 0
         y = 0
-        w = 160
-        h = 30
+        w = max(1, node.w)
+        h = max(1, node.h)
+        shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
         if (placement == 'top') {
             y = - padding - h
@@ -262,7 +265,7 @@ func createNewChildFor(nodeId, placement) {
             y = node.h / 2 - h / 2
         }
 
-        childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h))
+        childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h, 's', shape))
         node.children.add(childNode)
 
         encodeMindMap()
