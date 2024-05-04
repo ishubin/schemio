@@ -44,7 +44,19 @@ func findPinPointForNodeBackup(node, offset, p2) {
     closestPin
 }
 
-func findPinPointForNode(node, otherNode) {
+func getOpositePinId(sourcePinId) {
+    if (sourcePinId == 't') {
+        'b'
+    } else if (sourcePinId == 'b') {
+        't'
+    } else if (sourcePinId == 'l') {
+        'r'
+    } else {
+        'l'
+    }
+}
+
+func findPinPointForNode(node, otherNode, sourcePin) {
     pos1 = node.tempData.get(ABS_POS)
     pos2 = otherNode.tempData.get(ABS_POS)
 
@@ -69,14 +81,22 @@ func findPinPointForNode(node, otherNode) {
 
     pv = p1 + warpedV * 10
 
-    allPins.forEach((pin) => {
-        warpedPin = p1 + node.w * pin.normal
-        delta = warpedPin - pv
-        dSquared = delta * delta
+    oppositePinId = if (sourcePin) { getOpositePinId(sourcePin.id) } else { null }
 
-        if (closestDistance < 0 || closestDistance > dSquared) {
-            closestDistance = dSquared
-            closestPin = pin
+    allPins.forEach((pin) => {
+        if (sourcePin) {
+            if (pin.id == oppositePinId) {
+                closestPin = pin
+            }
+        } else {
+            warpedPin = p1 + node.w * pin.normal
+            delta = warpedPin - pv
+            dSquared = delta * delta
+
+            if (closestDistance < 0 || closestDistance > dSquared) {
+                closestDistance = dSquared
+                closestPin = pin
+            }
         }
     })
 
@@ -100,8 +120,8 @@ func prepareConnectorForNode(node, parent) {
 
     childOffset = Vector(node.x, node.y)
 
-    pin1 = findPinPointForNode(parent, node)
-    pin2 = findPinPointForNode(node, parent)
+    pin1 = findPinPointForNode(parent, node, null)
+    pin2 = findPinPointForNode(node, parent, pin1)
 
     connector.shapeProps.set('points', List(
         Map('id', pin1.id, 'x', pin1.x, 'y', pin1.y, 'nx', pin1.normal.x, 'ny', pin1.normal.y),
@@ -287,6 +307,11 @@ func selectShapeForItems(selectedItemIds, panelItem) {
             forEach(panelItem.shapeProps, (value, name) => {
                 setObjectField(item.shapeProps, name, value)
             })
+            node = rootNode.findById(itemId)
+            if (node) {
+                node.data.set('s', panelItem.shape)
+                encodeMindMap()
+            }
         })
     })
 }

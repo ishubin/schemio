@@ -19,13 +19,18 @@ function mockedFunc() {
 /**
  * @param {String} editorId
  * @param {function(Object): Object} editorJSONBuilder
+ * @param {Array<String>} initBlock
  * @param {Item} templateRootItem
  * @param {Object} data
  * @param {Array<String>} selectedItemIds
  */
-function buildEditor(editorId, editorJSONBuilder, templateRootItem, data, selectedItemIds) {
+function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, data, selectedItemIds) {
     // cloning selected items to make sure that the script cannot mutate items
-    const finalData = {...data, selectedItemIds: new List(...selectedItemIds), ...createTemplateFunctions(editorId, templateRootItem)};
+    const extraData = {
+        selectedItemIds: new List(...selectedItemIds),
+        ...createTemplateFunctions(editorId, templateRootItem)
+    };
+    const finalData = {...data, ...extraData};
 
     const editor = editorJSONBuilder(finalData).editor;
     if (!editor || !Array.isArray(editor.panels)) {
@@ -40,7 +45,7 @@ function buildEditor(editorId, editorJSONBuilder, templateRootItem, data, select
             }
             let click = null;
             if (panel.click) {
-                const clickCallback = compileTemplateExpressions([panel.click], finalData);
+                const clickCallback = compileTemplateExpressions(initBlock.concat([panel.click]), {});
                 click = (panelItem) => {
                     // panel click callback is supposed to return the object that contains the top-level scope fields
                     // This can be used in order to update template args in the template root item
@@ -49,7 +54,16 @@ function buildEditor(editorId, editorJSONBuilder, templateRootItem, data, select
                     // This part is important as it could be that the template args have changed through user clicking template controls
                     // and right after selecting a new item and clicking the editor panel item. Because of the last action the TemplateProperties component
                     // has not been updated and therefore the "data" variable in this function contains outdated template args
-                    return clickCallback({...lastTemplateArgs, panelItem});
+
+                    const clickData = {
+                        ...lastTemplateArgs,
+                        width: templateRootItem.area.w,
+                        height: templateRootItem.area.h,
+                        ...extraData,
+                        on: mockedFunc,
+                        panelItem
+                    };
+                    return clickCallback(clickData);
                 };
             }
 
@@ -163,7 +177,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
             ...args, width, height,
             on: mockedFunc
         }).item,
-        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, templateRootItem, {...args, width, height, on: mockedFunc}, selectedItemIds),
+        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height, on: mockedFunc}, selectedItemIds),
         buildControls: (args, width, height) => compiledControlBuilder({...args, width, height, on: mockedFunc}).controls.map(control => {
             const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
             const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height, on: mockedFunc});

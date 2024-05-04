@@ -51,9 +51,12 @@ export function compileTemplateExpressions(expressions, data) {
         return;
     }
 
+    const fullScript = expressions.join('\n');
+    const expressionNode = parseExpression(fullScript);
+
     return (extraData) => {
         const scope = new Scope({...data, ...(extraData || {})});
-        expressions.forEach(expr => processExpression(expr, scope));
+        expressionNode.evalNode(scope);
         return scope.getData();
     };
 }

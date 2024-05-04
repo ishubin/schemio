@@ -178,6 +178,9 @@ function swapNativeChildren(rootItem) {
  * @param {String} itemId templated id id. Do not confuse it with native item id (that is always unique per scene)
  */
 function findItemByTemplatedId(rootItem, itemId) {
+    if (rootItem.args && rootItem.args.templatedId === itemId) {
+        return rootItem;
+    }
     if (!Array.isArray(rootItem.childItems)) {
         return null;
     }

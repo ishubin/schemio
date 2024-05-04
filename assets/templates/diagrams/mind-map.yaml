@@ -1,7 +1,7 @@
 name: Mind map
 description: ""
 args:
-    nodes: {type: "string", value: "root:x=0:y=0|1:x=100:y=-100:w=200:h=100|2:x=100:y=100:w=200:h=100", name: "Nodes encoded", hidden: true}
+    nodes: {type: "string", value: "root:x=0:y=0", name: "Nodes encoded", hidden: true}
     connectorType : {type: 'choice', value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Connectors Type'}
     capType : {type: 'path-cap', value: 'triangle', name: 'Cap type'}
     capSize: {type: 'number', value: 15, name: 'Cap size'}
