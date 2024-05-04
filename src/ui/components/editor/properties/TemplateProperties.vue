@@ -18,19 +18,20 @@
                 @argument-changed="onArgChanged"
             />
 
-            <div v-for="panel in editorPanels" class="template-editor-panel">
-                <h4>{{ panel.name }}</h4>
+            <Panel v-for="panel in editorPanels" :name="panel.name" :uid="panel.id">
                 <ul class="template-editor-panel-items-container">
-                    <li v-for="item in panel.items" @click="onEditPanelItemClicked(panel, item)">
-                        <svg width="100px" height="70px">
+                    <li v-for="item in panel.items" @click="onEditPanelItemClicked(panel, item)"
+                        :style="{width: `${panel.slotSize.width}px`, height: `${panel.slotSize.height}px`, }"
+                        >
+                        <svg :width="`${panel.slotSize.width}px`" :height="`${panel.slotSize.height}px`">
                             <g transform="translate(4, 4)">
                                 <ItemSvg :editorId="editorId" :item="item" mode="edit"/>
                             </g>
-                            <rect x="0" y="0" width="100" height="70" fill="rgba(0,0,0,0.0)" stroke="none"/>
+                            <rect x="0" y="0" :width="`${panel.slotSize.width}px`" :height="`${panel.slotSize.height}px`" fill="rgba(0,0,0,0.0)" stroke="none"/>
                         </svg>
                     </li>
                 </ul>
-            </div>
+            </Panel>
         </div>
         <span class="btn btn-danger"
             @click="breakTemplate"
@@ -45,6 +46,7 @@ import {forEach} from '../../../collections';
 import {compileItemTemplate} from '../items/ItemTemplate';
 import EditorEventBus from '../EditorEventBus';
 import ItemSvg from '../items/ItemSvg.vue';
+import Panel from '../Panel.vue';
 
 export default {
     props: {
@@ -54,7 +56,7 @@ export default {
         editorId: {type: String},
     },
 
-    components: { ArgumentsEditor, ArgumentsEditor, ItemSvg },
+    components: { ArgumentsEditor, ArgumentsEditor, ItemSvg, Panel },
 
     beforeMount() {
         this.loadTemplate();

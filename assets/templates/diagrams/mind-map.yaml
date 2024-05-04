@@ -25,15 +25,18 @@ editor:
         type: slot-menu
         click: 'selectShapeForItems(selectedItemIds, panelItem)'
         name: Select shape
+        slotSize:
+            width: 80
+            height: 40
         items:
         -   id: 'rounded-rect'
             shape: 'rect'
-            area: {w: 92, h: 62}
+            area: {w: 72, h: 32}
             shapeProps:
                 cornerRadius: 5
         -   id: 'ellipse'
             shape: 'ellipse'
-            area: {w: 92, h: 62}
+            area: {w: 72, h: 32}
             shapeProps:
                 cornerRadius: 5
 

@@ -4207,21 +4207,19 @@ input.condition-function-send-event {
 
 /************** Template properties ********************/
 
-.template-editor-panel  ul.template-editor-panel-items-container {
+.template-properties  ul.template-editor-panel-items-container {
     list-style: none;
     margin: 0;
     padding: 0;
 }
-.template-editor-panel  ul.template-editor-panel-items-container > li {
+.template-properties  ul.template-editor-panel-items-container > li {
     display: inline-block;
     margin: 5px;
-    width: 100px;
-    height: 70px;
     background: var(--base-weak);
     border: 1px solid var(--base-weak);
     border-radius: 5px;
     cursor: pointer;
 }
-.template-editor-panel  ul.template-editor-panel-items-container > li:hover {
+.template-properties  ul.template-editor-panel-items-container > li:hover {
     border: 1px solid var(--faint-weak-down-down);
 }

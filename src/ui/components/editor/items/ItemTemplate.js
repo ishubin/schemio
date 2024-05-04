@@ -74,6 +74,7 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
 
             return {
                 ...panel,
+                slotSize: panel.slotSize || {width: 100, height: 60},
                 items: panelItems,
                 condition,
                 click
