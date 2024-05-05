@@ -1,7 +1,7 @@
 name: Mind map
 description: ""
 args:
-    nodes: {type: "string", value: "root:x=0:y=0", name: "Nodes encoded", hidden: true}
+    nodes: {type: "string", value: "root;x=0;y=0;s=uml_start", name: "Nodes encoded", hidden: true}
     connectorType : {type: 'choice', value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Connectors Type'}
     capType : {type: 'path-cap', value: 'triangle', name: 'Cap type'}
     capSize: {type: 'number', value: 15, name: 'Cap size'}
@@ -29,16 +29,40 @@ editor:
             width: 80
             height: 40
         items:
+        -   id: 'rect'
+            shape: 'rect'
+            area: {w: 72, h: 32}
+            shapeProps:
+                cornerRadius: 0
+                fill: { type: 'none'}
+
         -   id: 'rounded-rect'
             shape: 'rect'
             area: {w: 72, h: 32}
             shapeProps:
-                cornerRadius: 5
+                cornerRadius: 10
+                fill: { type: 'none'}
+
+        -   id: 'start'
+            shape: 'uml_start'
+            area: {w: 72, h: 32}
+            shapeProps:
+                fill: { type: 'none'}
+
         -   id: 'ellipse'
             shape: 'ellipse'
             area: {w: 72, h: 32}
             shapeProps:
                 cornerRadius: 5
+                fill: { type: 'none'}
+
+        -   id: 'label'
+            shape: 'none'
+            area: {w: 72, h: 32}
+            textSlots:
+                body:
+                    text: 'Simple label'
+
 
 item:
     $-recurse: {object: {"$-expr": "rootItem"}, it: 'it', children: 'it.childItems', dstChildren: 'childItems'}
@@ -48,6 +72,7 @@ item:
     shapeProps: {$-expr: "toJSON(it.shapeProps)"}
     args: {$-expr: "it.getArgs()"}
     locked: {$-expr: "it.locked"}
+    textSlots: {$-expr: "toJSON(it.textSlots)"}
     # args: { templateIgnoredProps: [] }
     # args: {
     #     tplArea: controlled

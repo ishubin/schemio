@@ -11,6 +11,7 @@ struct Item {
     childItems: List()
     args: Map()
     locked: true
+    textSlots: Map()
 
 
     traverse(callback) {
@@ -22,6 +23,14 @@ struct Item {
 
     getArgs() {
         toJSON(this.args)
+    }
+
+    setText(slotName, text) {
+        if (!this.textSlots.has(slotName)) {
+            this.textSlots.set(slotName, Map('text', text))
+        } else {
+            this.textSlots.get(slotName).set('text', text)
+        }
     }
 }
 

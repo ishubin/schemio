@@ -9,104 +9,109 @@ struct PinPoint {
     normal: Vector(0, -1)
 }
 
-
-func findPinPointForNodeBackup(node, offset, p2) {
-    p1 = Vector(node.w/2, node.h/2) + offset
-    v = (p2 - p1).normalized()
-
-    k = node.w/node.h
-
-    warpedV = Vector(v.x, v.y * k)
-
-    allPins = List(
-        PinPoint('t', node.w/2, 0,        Vector(0, -1)),
-        PinPoint('b', node.w/2, node.h,   Vector(0, 1)),
-        PinPoint('l', 0,        node.h/2, Vector(-1, 0)),
-        PinPoint('r', node.w,   node.h/2, Vector(1, 0))
-    )
-
-    closestPin = allPins.get(0)
-    closestDistance = -1000
-
-    pv = p1 + warpedV * 10
-
-    allPins.forEach((pin) => {
-        warpedPin = p1 + node.w * pin.normal
-        delta = warpedPin - pv
-        dSquared = delta * delta
-
-        if (closestDistance < 0 || closestDistance > dSquared) {
-            closestDistance = dSquared
-            closestPin = pin
-        }
-    })
-
-    closestPin
-}
-
-func getOpositePinId(sourcePinId) {
-    if (sourcePinId == 't') {
-        'b'
-    } else if (sourcePinId == 'b') {
-        't'
-    } else if (sourcePinId == 'l') {
-        'r'
+// zone points should be arranged in a counter clock wise polygon
+func isPointInsideZone(testPoint, zonePoints) {
+    if (zonePoints.size < 3) {
+        false
     } else {
-        'l'
+        lines = List()
+
+        for (i = 0; i < zonePoints.size - 1; i++) {
+            p1 = zonePoints.get(i)
+            p2 = zonePoints.get(i+1)
+            lines.add(Math.createLineEquation(p2.x, p2.y, p1.x, p1.y))
+        }
+
+        isInZone = true
+        for (i = 0; i < lines.size && isInZone; i++) {
+            if (Math.sideAgainstLine(testPoint.x, testPoint.y, lines.get(i)) < 0) {
+                isInZone = false
+            }
+        }
+        isInZone
     }
 }
 
-func findPinPointForNode(node, otherNode, sourcePin) {
-    pos1 = node.tempData.get(ABS_POS)
-    pos2 = otherNode.tempData.get(ABS_POS)
 
-    p1 = pos1 + Vector(node.w, node.h)
-    p2 = pos2 + Vector(otherNode.w, otherNode.h)
-
-    v = (p2 - p1).normalized()
-
-    k = node.w/node.h
-
-    warpedV = Vector(v.x, v.y * k)
-
-    allPins = List(
-        PinPoint('t', node.w/2, 0,        Vector(0, -1)),
-        PinPoint('b', node.w/2, node.h,   Vector(0, 1)),
-        PinPoint('l', 0,        node.h/2, Vector(-1, 0)),
+func getPinPointById(pinId, node) {
+    if (pinId == 't') {
+        PinPoint('t', node.w/2, 0,        Vector(0, -1))
+    } else if (pinId == 'b') {
+        PinPoint('b', node.w/2, node.h,   Vector(0, 1))
+    } else if (pinId == 'l') {
+        PinPoint('l', 0,        node.h/2, Vector(-1, 0))
+    } else if (pinId == 'r') {
         PinPoint('r', node.w,   node.h/2, Vector(1, 0))
-    )
-
-    closestPin = allPins.get(0)
-    closestDistance = -1000
-
-    pv = p1 + warpedV * 10
-
-    oppositePinId = if (sourcePin) { getOpositePinId(sourcePin.id) } else { null }
-
-    allPins.forEach((pin) => {
-        if (sourcePin) {
-            if (pin.id == oppositePinId) {
-                closestPin = pin
-            }
-        } else {
-            warpedPin = p1 + node.w * pin.normal
-            delta = warpedPin - pv
-            dSquared = delta * delta
-
-            if (closestDistance < 0 || closestDistance > dSquared) {
-                closestDistance = dSquared
-                closestPin = pin
-            }
-        }
-    })
-
-    closestPin
+    }
 }
 
-rootNode = decodeTree(nodes, '|', ':')
+rootNode = decodeTree(nodes, ' | ', ';')
 
 func encodeMindMap() {
-    nodes = rootNode.encodeTree('|', ':')
+    nodes = rootNode.encodeTree(' | ', ';')
+}
+
+struct SuggestedConnection {
+    srcPin: null
+    dstPin: null
+    zonePoints: List()
+}
+
+func findPinsForNodes(node, child) {
+
+    p1 = Vector(0, 0)
+    p2 = Vector(node.w, 0)
+    p3 = Vector(node.w, node.h)
+    p4 = Vector(0, node.h)
+
+    topRightV    = Vector(1, -3)
+    bottomLeftV  = -topRightV
+    topLeftV     = Vector(-1, -3)
+    bottomRightV = -topLeftV
+
+    srcTopPin    = getPinPointById('t', node)
+    srcBottomPin = getPinPointById('b', node)
+    srcLeftPin   = getPinPointById('l', node)
+    srcRightPin  = getPinPointById('r', node)
+
+    dstTopPin    = getPinPointById('t', child)
+    dstBottomPin = getPinPointById('b', child)
+    dstLeftPin   = getPinPointById('l', child)
+    dstRightPin  = getPinPointById('r', child)
+
+    childOffset = Vector(child.x, child.y)
+
+    t = Vector(node.w/2, 0)
+    t2 = t + Vector(0, -10)
+    b = Vector(node.w/2, node.h)
+    b2 = b + Vector(0, 10)
+
+    connections = List(
+        () => { SuggestedConnection(srcTopPin, dstRightPin, List(p1 + topLeftV, p1, t, t2)) },
+        () => { SuggestedConnection(srcTopPin, dstLeftPin, List(t2, t, p2, p2 + topRightV)) },
+        () => { SuggestedConnection(srcBottomPin, dstLeftPin, List(p3 + bottomRightV, p3, b, b2)) },
+        () => { SuggestedConnection(srcBottomPin, dstRightPin, List(b2, b, p4, p4 + bottomLeftV)) },
+
+        () => { SuggestedConnection(srcRightPin, dstLeftPin, List(p2 + topRightV, p2, p3, p3 + bottomRightV)) },
+        () => { SuggestedConnection(srcLeftPin, dstRightPin, List(p4 + bottomLeftV, p4, p1, p1 + topLeftV)) },
+        () => { SuggestedConnection(srcTopPin, dstBottomPin, List(p1 + topLeftV, p1, p2, p2 + topRightV)) },
+        () => { SuggestedConnection(srcBottomPin, dstTopPin, List(p3 + bottomRightV, p3, p4, p4 + bottomLeftV)) },
+    )
+
+    srcPin = srcRightPin
+    dstPin = dstLeftPin
+    matches = false
+
+    for (i = 0; i < connections.size && !matches; i++) {
+        connection = connections.get(i)()
+        srcPin = connection.srcPin
+        dstPin = connection.dstPin
+
+        testPoint = Vector(dstPin.x, dstPin.y) + childOffset
+        matches = isPointInsideZone(testPoint, connection.zonePoints)
+    }
+
+    List(srcPin, dstPin)
 }
 
 func prepareConnectorForNode(node, parent) {
@@ -120,8 +125,9 @@ func prepareConnectorForNode(node, parent) {
 
     childOffset = Vector(node.x, node.y)
 
-    pin1 = findPinPointForNode(parent, node, null)
-    pin2 = findPinPointForNode(node, parent, pin1)
+    pins = findPinsForNodes(parent, node)
+    pin1 = pins.get(0)
+    pin2 = pins.get(1)
 
     connector.shapeProps.set('points', List(
         Map('id', pin1.id, 'x', pin1.x, 'y', pin1.y, 'nx', pin1.normal.x, 'ny', pin1.normal.y),
@@ -169,6 +175,7 @@ func updateAbsoluteNodePosition(node) {
     pos
 }
 
+
 rootNode.traverse((node, parent) => {
     x = parseInt(node.data.get('x'))
     y = parseInt(node.data.get('y'))
@@ -179,12 +186,9 @@ rootNode.traverse((node, parent) => {
     node.data.set('w', w)
     node.data.set('h', h)
 
+    node.x = x
+    node.y = y
     pos = updateAbsoluteNodePosition(node)
-
-    parentX = if (parent) { parent.x } else { 0 }
-    parentY = if (parent) { parent.y } else { 0 }
-    node.x = x + parentX
-    node.y = y + parentY
 
     addingControl = (location, placement, cx, cy) => {
         Control(`add_child_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
@@ -227,13 +231,17 @@ rootItem = rootNode.map((node, childItems) => {
     shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
     item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems)
-    item.args.set('templateIgnoredProps', List('shape', 'shapeProps.*'))
+    item.args.set('templateIgnoredProps', List('name', 'shape', 'shapeProps.*'))
     item.locked = false
     if (node.id != rootNode.id) {
         item.args.set('tplArea', 'controlled')
     }
     item.args.set('tplRotation', 'off')
     item.args.set('tplConnector', 'off')
+
+    if (shape == 'none') {
+        item.setText('body', 'Add your text...')
+    }
     item
 })
 
@@ -308,12 +316,25 @@ func selectShapeForItems(selectedItemIds, panelItem) {
         updateItem(itemId, (item) => {
             item.shape = panelItem.shape
             forEach(panelItem.shapeProps, (value, name) => {
-                setObjectField(item.shapeProps, name, value)
+                if (name != 'fill') {
+                    setObjectField(item.shapeProps, name, value)
+                }
             })
             node = rootNode.findById(itemId)
             if (node) {
                 node.data.set('s', panelItem.shape)
                 encodeMindMap()
+            }
+
+            if (panelItem.shape == 'none') {
+                if (!item.textSlots.body) {
+                    setObjectField(item.textSlots, 'body', toJSON(Map('text', 'Add your text...')))
+                }
+                if (item.textSlots.body) {
+                    if (!item.textSlots.body.text || item.textSlots.body.text == '<p></p>') {
+                        setObjectField(item.textSlots.body, 'text', 'Ad your text...')
+                    }
+                }
             }
         })
     })

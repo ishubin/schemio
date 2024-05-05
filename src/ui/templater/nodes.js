@@ -5,6 +5,7 @@ import { Scope } from "./scope";
 import shortid from "shortid";
 import { convertScriptObjectToJSON } from "./json";
 import { forEach } from "../collections";
+import SchemioScriptMath from "./astmath";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -542,7 +543,8 @@ const reservedFunctions = new Map(Object.entries({
     splitString   : (str, separator) => new List(...str.split(separator)),
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
     forEach       : forEach,
-    setObjectField: setObjectFieldFunc
+    setObjectField: setObjectFieldFunc,
+    Math          : SchemioScriptMath
 }));
 
 
