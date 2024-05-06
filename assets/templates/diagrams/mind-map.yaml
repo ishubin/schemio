@@ -20,6 +20,22 @@ controls:
 
 editor:
     panels:
+    -   id: node-icon-selector
+        condition: 'shouldNodeIconSelectorBeDisplayed(selectedItemIds)'
+        type: slot-menu
+        click: 'selectIconForItems(selectedItemIds, panelItem)'
+        name: Choose icons
+        slotSize:
+            width: 24
+            height: 24
+        items:
+        -   $-foreach: {source: "getAllAvailableIcons()",  it: 'icon'}
+            id: {$-expr: "icon.id"}
+            shape: 'image'
+            area: {x: -2, y: -2, w: 18, h: 18}
+            shapeProps:
+                image: {$-expr: "icon.url"}
+
     -   id: node-shape-selector
         condition: 'shouldNodeShapeSelectorBeDisplayed(selectedItemIds)'
         type: slot-menu

@@ -4215,11 +4215,12 @@ input.condition-function-send-event {
 .template-properties  ul.template-editor-panel-items-container > li {
     display: inline-block;
     margin: 5px;
-    background: var(--base-weak);
-    border: 1px solid var(--base-weak);
+    background: none;
+    border: 1px solid rgba(0,0,0,0.0);
     border-radius: 5px;
     cursor: pointer;
 }
 .template-properties  ul.template-editor-panel-items-container > li:hover {
     border: 1px solid var(--faint-weak-down-down);
+    background: var(--base-weak);
 }

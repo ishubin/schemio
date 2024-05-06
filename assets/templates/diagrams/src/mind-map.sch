@@ -2,6 +2,74 @@ padding = 60
 controlPadding = 40
 controls = List()
 
+allIcons = Map(
+    'search', '/assets/art/google-cloud/bigquery/bigquery.svg',
+    'time', '/assets/art/azure/General/10006-icon-service-Recent.svg',
+    'cloud', '/assets/art/google-cloud/my_cloud/my_cloud.svg',
+    'heart', '/assets/art/azure/General/10811-icon-service-Heart.svg'
+)
+
+
+func getAllAvailableIcons() {
+    icons = List()
+
+    allIcons.forEach((url, id) => {
+        icons.add(toJSON(Map('id', id, 'url', url)))
+    })
+    icons
+}
+
+func getNodeIcons(node) {
+    icons = List()
+    if (node.data.has('icons')) {
+        iconSet = Set()
+        splitString(node.data.get('icons'), ',').forEach((iconId) => {
+            if (!iconSet.has(iconId)) {
+                icons.add(iconId)
+                iconSet.add(iconId)
+            }
+        })
+    }
+    icons
+}
+
+func encodeIcons(icons) {
+    encoded = ''
+    icons.forEach((id, idx) => {
+        if (idx > 0) {
+            encoded += ','
+        }
+        encoded += id
+    })
+    encoded
+}
+
+
+func setNodeIcon(node, iconId) {
+    icons = getNodeIcons(node)
+
+    idx = icons.findIndex((id) => { id == iconId })
+    if (idx < 0) {
+        icons.add(iconId)
+    } else {
+        icons.remove(idx)
+    }
+
+    node.data.set('icons', encodeIcons(icons))
+    encodeMindMap()
+}
+
+func removeNodeIcon(node, iconId) {
+    icons = getNodeIcons(node)
+    idx = icons.findIndex((id) => { id == iconId })
+
+    if (idx >= 0) {
+        icons.remove(idx)
+    }
+    node.data.set('icons', encodeIcons(icons))
+    encodeMindMap()
+}
+
 struct PinPoint {
     id: 't'
     x: 0
@@ -218,11 +286,34 @@ rootNode.traverse((node, parent) => {
 })
 
 
+func createNodeIconItems(node) {
+    items = List()
+
+    w = 20
+    h = 20
+    margin = 5
+    getNodeIcons(node).forEach((iconId, idx) => {
+        x = (w + margin) * idx + 10
+        y = 10
+        items.add(Item(
+            `${node.id}_icon_${iconId}`, iconId, 'image', x, y, w, h, Map('image', allIcons.get(iconId)), List(), Map(
+                'mindMapType', 'icon',
+                'mindMapIcon', iconId,
+                'mindMapNodeId', node.id,
+            )
+        ))
+    })
+
+    items
+}
+
 rootItem = rootNode.map((node, childItems) => {
     x = node.data.get('x')
     y = node.data.get('y')
     w = node.data.get('w')
     h = node.data.get('h')
+
+    childItems.extendList(createNodeIconItems(node))
 
     if (node.tempData.has('connectors')) {
         childItems.extendList(node.tempData.get('connectors'))
@@ -230,7 +321,9 @@ rootItem = rootNode.map((node, childItems) => {
 
     shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
-    item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems)
+    item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems, Map(
+        'mindMapType', 'node'
+    ))
     item.args.set('templateIgnoredProps', List('name', 'shape', 'shapeProps.*'))
     item.locked = false
     if (node.id != rootNode.id) {
@@ -294,10 +387,17 @@ on('area', (itemId, item, area) => {
 })
 
 on('delete', (itemId, item) => {
-    node = rootNode.findById(itemId)
-    if (node && node.parent) {
-        node.parent.children.remove(node.siblingIdx)
-        encodeMindMap()
+    if (item.args.mindMapType == 'icon') {
+        node = rootNode.findById(item.args.mindMapNodeId)
+        if (node) {
+            removeNodeIcon(node, item.args.mindMapIcon)
+        }
+    } else if (item.args.mindMapType == 'node') {
+        node = rootNode.findById(itemId)
+        if (node && node.parent) {
+            node.parent.children.remove(node.siblingIdx)
+            encodeMindMap()
+        }
     }
 })
 
@@ -337,5 +437,19 @@ func selectShapeForItems(selectedItemIds, panelItem) {
                 }
             }
         })
+    })
+}
+
+func shouldNodeIconSelectorBeDisplayed(selectedItemIds) {
+    shouldNodeShapeSelectorBeDisplayed(selectedItemIds)
+}
+
+
+func selectIconForItems(selectedItemIds, panelItem) {
+    selectedItemIds.forEach((itemId) => {
+        node = rootNode.findById(itemId)
+        if (node) {
+            setNodeIcon(node, panelItem.id)
+        }
     })
 }

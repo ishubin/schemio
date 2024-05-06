@@ -22,6 +22,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [set (List)](#set-list)
       - [insert (List)](#insert-list)
       - [size (List)](#size-list)
+      - [find (List)](#find-list)
       - [forEach (List)](#foreach-list)
       - [map (List)](#map-list)
       - [filter (List)](#filter-list)
@@ -350,6 +351,15 @@ items = List('a', 'b', 'c')
 for (i = 0; i < items.size; i++) {
     log(items.get(i))
 }
+```
+
+##### findIndex (List)
+
+`findIndex(callback)` function finds the index of the first element that satisfies the provided testing function. It returns `-1` if no element could be found.
+
+```js
+items = List('a', 'b', 'c')
+idx = items.findIndex((item) => { item == 'b' })
 ```
 
 ##### forEach (List)
