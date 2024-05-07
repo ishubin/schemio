@@ -121,5 +121,15 @@ export class Vector {
 
         return new Vector(this.x / value, this.y / value);
     }
+
+    rotate(radians) {
+        const cosa = Math.cos(radians);
+        const sina = Math.sin(radians);
+
+        return new Vector(
+            cosa*this.x - sina * this.y,
+            sina*this.x + cosa * this.y,
+        )
+    }
 }
 

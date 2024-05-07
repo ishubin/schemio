@@ -32,5 +32,22 @@ struct Item {
             this.textSlots.get(slotName).set('text', text)
         }
     }
+
+    toJSON() {
+        childItems = this.childItems.map((childItem) => { childItem.toJSON() })
+        result = toJSON(Map(
+            'id', this.id,
+            'childItems', childItems,
+            'name', this.name,
+            'shape', this.shape,
+            'area', Map('x', this.x, 'y', this.y, 'w', this.w, 'h', this.h, 'r', 0, 'sx', 1, 'sy', 1, 'px', 0.5, 'py', 0.5),
+            'shapeProps', this.shapeProps,
+            'args', this.args,
+            'locked', this.locked,
+            'textSlots', this.textSlots,
+        ))
+
+        result
+    }
 }
 

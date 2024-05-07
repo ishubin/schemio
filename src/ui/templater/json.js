@@ -9,7 +9,7 @@ import { Vector } from "./vector";
 export function convertScriptObjectToJSON(obj) {
     if (obj instanceof Map) {
         return convertMapToJSON(obj);
-    } else if (obj instanceof List) {
+    } else if (obj instanceof List || Array.isArray(obj)) {
         return convertListToJSON(obj)
     } else if (obj instanceof Vector) {
         return convertVectorToJSON(obj);

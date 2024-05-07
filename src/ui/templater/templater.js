@@ -93,6 +93,9 @@ function compileRawString(obj) {
  * @returns {function(Scope): any}
  */
 function compile(obj, customDefinitions) {
+    if (obj === null) {
+        return () => null;
+    }
     if (Array.isArray(obj)) {
         return compileArray(obj, customDefinitions);
     } else if (typeof obj === 'object') {
@@ -110,7 +113,6 @@ function compile(obj, customDefinitions) {
                 throw new Error('Unknown reference: ' + refName);
             }
             const refValue = customDefinitions.get(refName);
-            console.log('REF:', refName, refValue);
             return compile(refValue, customDefinitions);
         }
 

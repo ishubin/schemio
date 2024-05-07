@@ -6,6 +6,7 @@ const SchemioScriptMath = {
     distanceFromPointToLine: myMath.distanceFromPointToLine,
     linesIntersection      : myMath.linesIntersection,
     sideAgainstLine        : myMath.identifyPointSideAgainstLine,
+    solveQuadratic         : myMath.solveQuadratic,
 };
 
 export default SchemioScriptMath;

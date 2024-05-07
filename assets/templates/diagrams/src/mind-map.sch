@@ -24,7 +24,7 @@ func getNodeIcons(node) {
     if (node.data.has('icons')) {
         iconSet = Set()
         splitString(node.data.get('icons'), ',').forEach((iconId) => {
-            if (!iconSet.has(iconId)) {
+            if (iconId && !iconSet.has(iconId)) {
                 icons.add(iconId)
                 iconSet.add(iconId)
             }
@@ -202,6 +202,8 @@ func prepareConnectorForNode(node, parent) {
         Map('id', pin2.id, 'x', pin2.x + childOffset.x, 'y', pin2.y + childOffset.y, 'nx', pin2.normal.x, 'ny', pin2.normal.y)
     ))
 
+    connector.args.set('templateIgnoredProps', List('name', 'shapeProps.fill', 'shapeProps.stroke*'))
+
     connector.shapeProps.set('sourceItem', `#${parent.id}`)
     connector.shapeProps.set('sourcePin', pin1.id)
     connector.shapeProps.set('destinationItem', `#${node.id}`)
@@ -249,10 +251,16 @@ rootNode.traverse((node, parent) => {
     y = parseInt(node.data.get('y'))
     w = parseInt(node.data.get('w'))
     h = parseInt(node.data.get('h'))
+    p = 0
+    if (node.data.has('p')) {
+        p = parseInt(node.data.get('p'))
+    }
+
     node.data.set('x', x)
     node.data.set('y', y)
     node.data.set('w', w)
     node.data.set('h', h)
+    node.data.set('p', p)
 
     node.x = x
     node.y = y
@@ -286,17 +294,117 @@ rootNode.traverse((node, parent) => {
 })
 
 
+func createProgressPaths(percent) {
+    R = 50
+    angle = 2 * Math.PI * percent / 100
+
+    v1 = Vector(0, -50)
+    v2 = v1.rotate(angle)
+
+    p2 = Vector(50, 50) + v2
+
+    L = (Vector(50, 0) - p2).length()
+
+    solution = Math.solveQuadratic(0.5, -R, L*L/8)
+
+    h = 50
+
+    if (solution) {
+        H = 0
+        if (percent <= 50) {
+            H = min(solution.v1, solution.v2)
+        } else {
+            H = max(solution.v1, solution.v2)
+        }
+        h = H / L * 100
+    }
+
+    List(Map(
+        'closed', 'true',
+        'pos', 'relative',
+        'points', List(
+            Map(
+                'id', '1',
+                't', 'L',
+                'x', 50,
+                'y', 50,
+            ),
+            Map(
+                'id', '2',
+                't', 'A',
+                'x', 50,
+                'y', 0,
+                'h', h
+            ),
+            Map(
+                'id', '3',
+                't', 'L',
+                'x', p2.x,
+                'y', p2.y,
+            ),
+        )
+    ))
+}
+
+func createProgressIconItems(nodeId, percent, color, x, y) {
+    items = List()
+
+
+    isNotFull = percent < 99.5
+
+    items.add(Item(
+        `${nodeId}_progress_stroke`, 'progress container', 'ellipse', x, y, progressSize, progressSize, Map(
+            'fill', if (isNotFull) { Map('type', 'none') } else { Map('type', 'solid', 'color', color) },
+            'strokeColor', color,
+            'strokeSize', 3
+        ), List(), Map(
+            'mindMapType', 'progress',
+            'mindMapNodeId', nodeId,
+        )
+    ))
+    if (percent > 0.5 && isNotFull) {
+        items.add(Item(
+            `${nodeId}_progress`, 'progress', 'path', x, y, progressSize, progressSize, Map(
+                'paths', createProgressPaths(percent),
+                'strokeSize', 0,
+                'strokeColor', color,
+                'fill', Map('type', 'solid', 'color', color)
+            ), List(), Map(
+                'mindMapType', 'progress',
+                'mindMapNodeId', nodeId,
+            )
+        ))
+    }
+    items
+}
+
 func createNodeIconItems(node) {
     items = List()
 
-    w = 20
-    h = 20
     margin = 5
+
+    if (showProgress) {
+        percent = 0
+        color = progressColor
+        if (node.children.size == 0) {
+            color = progressColor2
+        }
+        if (node.data.has('p')) {
+            percent = parseInt(node.data.get('p'))
+        }
+        x = 10
+        y = node.h / 2 - progressSize / 2
+
+        items.extendList(createProgressIconItems(node.id, percent, color, x, y))
+    }
+
+    progressOffset = if (showProgress) { margin + progressSize } else { 0 }
+
     getNodeIcons(node).forEach((iconId, idx) => {
-        x = (w + margin) * idx + 10
-        y = 10
+        x = (iconSize + margin) * idx + 10 + progressOffset
+        y = node.h / 2 - iconSize / 2
         items.add(Item(
-            `${node.id}_icon_${iconId}`, iconId, 'image', x, y, w, h, Map('image', allIcons.get(iconId)), List(), Map(
+            `${node.id}_icon_${iconId}`, iconId, 'image', x, y, iconSize, iconSize, Map('image', allIcons.get(iconId)), List(), Map(
                 'mindMapType', 'icon',
                 'mindMapIcon', iconId,
                 'mindMapNodeId', node.id,
@@ -452,4 +560,57 @@ func selectIconForItems(selectedItemIds, panelItem) {
             setNodeIcon(node, panelItem.id)
         }
     })
+}
+
+func shouldNodeProgressEditorBeDisplayed(selectedItemIds) {
+    if (showProgress) {
+        showPanel = false
+        selectedItemIds.forEach((itemId) => {
+            node = rootNode.findById(itemId)
+            if (node && node.children.size == 0) {
+                showPanel = true
+            }
+        })
+        showPanel
+    } else {
+        false
+    }
+}
+
+func getAllProgressIconItems() {
+    List(0, 25, 50, 75, 100).map((percent) => {
+        items = createProgressIconItems(`icon-${percent}`, percent, progressColor2, 0, 0)
+        Item(`progress_${percent}_container`, `${percent}`, 'none', 2, 2, progressSize, progressSize, Map(), items, Map(
+            'mindMapProgress', percent
+        )).toJSON()
+    })
+}
+
+func selectProgressForItems(selectedItemIds, panelItem) {
+    selectedItemIds.forEach((itemId) => {
+        node = rootNode.findById(itemId)
+        if (node && node.children.size == 0) {
+            node.data.set('p', panelItem.args.mindMapProgress)
+        }
+    })
+
+    updateProgress = (node) => {
+        log()
+        if (node.children.size > 0) {
+            sumProgress = 0
+            node.children.forEach((childNode) => {
+                sumProgress += updateProgress(childNode)
+            })
+
+            totalProgress = sumProgress / node.children.size
+            node.data.set('p', totalProgress)
+            totalProgress
+        } else {
+            node.data.get('p')
+        }
+    }
+
+    updateProgress(rootNode)
+
+    encodeMindMap()
 }

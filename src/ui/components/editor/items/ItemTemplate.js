@@ -16,6 +16,14 @@ const defaultEditor = {
 function mockedFunc() {
 }
 
+
+function enrichPanelItem(item) {
+    enrichItemWithDefaults(item);
+    if (Array.isArray(item.childItems))  {
+        item.childItems.forEach(enrichPanelItem);
+    }
+}
+
 /**
  * @param {String} editorId
  * @param {function(Object): Object} editorJSONBuilder
@@ -68,7 +76,7 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
             }
 
             const panelItems = (panel.items || []).map(item => {
-                enrichItemWithDefaults(item);
+                enrichPanelItem(item);
                 return item;
             });
 
