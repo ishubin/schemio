@@ -60,11 +60,11 @@ export default {
 
     beforeMount() {
         this.loadTemplate();
-        EditorEventBus.item.templateArgsUpdated.specific.$on(this.editorId, this.item.id, this.onTemplateArgsChangedOutside);
+        EditorEventBus.item.templateArgsUpdated.specific.$on(this.editorId, this.item.id, this.updateTemplateArgs);
     },
 
     beforeDestroy() {
-        EditorEventBus.item.templateArgsUpdated.specific.$off(this.editorId, this.item.id, this.onTemplateArgsChangedOutside);
+        EditorEventBus.item.templateArgsUpdated.specific.$off(this.editorId, this.item.id, this.updateTemplateArgs);
     },
 
     data() {
@@ -91,9 +91,10 @@ export default {
                 }
             }
             this.$emit('template-rebuild-requested', this.item.id, this.template, this.item.args.templateArgs);
+            this.updateTemplateArgs();
         },
 
-        onTemplateArgsChangedOutside() {
+        updateTemplateArgs() {
             if (this.item.args && this.item.args.templateArgs) {
                 this.args = this.item.args.templateArgs;
                 this.reloadKey++;

@@ -113,7 +113,11 @@
 
             <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
                 <div class="art-pack">
-                    <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
+                    <div class="art-pack-author" v-if="artPack.author">
+                        Created by
+                        <a v-if="artPack.link" :href="artPack.link">{{artPack.author}}</a>
+                        <span v-else>{{artPack.author}}</span>
+                    </div>
                     <div class="item-menu">
                         <div class="item-container"
                             v-for="icon in artPack.icons"
