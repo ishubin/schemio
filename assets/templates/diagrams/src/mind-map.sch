@@ -385,6 +385,12 @@ func createProgressPaths(percent) {
 func createProgressIconItems(nodeId, percent, color, x, y) {
     items = List()
 
+    if (gradientProgress) {
+        t = if (percent <= 50) { percent / 50 } else { (percent - 50) / 50 }
+        c1 = decodeColor(if (percent <= 50) { (progressColor) } else { progressColor2 })
+        c2 = decodeColor(if (percent <= 50) { (progressColor2) } else { progressColor3 })
+        color = c1.gradient(c2, t).encode()
+    }
 
     isNotFull = percent < 99.5
 
@@ -426,7 +432,7 @@ func createNodeIconItems(node) {
             color = progressColor2
         }
         if (node.data.has('p')) {
-            percent = parseInt(node.data.get('p'))
+            percent = max(0, min(parseInt(node.data.get('p')), 100))
         }
         x = 10
         y = node.h / 2 - progressSize / 2
@@ -496,6 +502,16 @@ func createNewChildFor(nodeId, placement) {
         h = max(1, node.h)
         shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
+        if (node.children.size > 0) {
+            childNode = node.children.get(0)
+            if (childNode.data.has('s')) {
+                shape = if (childNode.data.has('s')) { childNode.data.get('s') } else { shape }
+            }
+
+            w = max(1, childNode.w)
+            h = max(1, childNode.h)
+        }
+
         if (placement == 'top') {
             y = - padding - h
             x = node.w / 2 - w / 2
@@ -510,8 +526,10 @@ func createNewChildFor(nodeId, placement) {
             y = node.h / 2 - h / 2
         }
 
-        childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h, 's', shape))
+        childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h, 's', shape, 'p', 0))
         node.children.add(childNode)
+
+        updateProgress(rootNode)
 
         encodeMindMap()
     }
@@ -540,6 +558,7 @@ on('delete', (itemId, item) => {
         node = rootNode.findById(itemId)
         if (node && node.parent) {
             node.parent.children.remove(node.siblingIdx)
+            updateProgress(rootNode)
             encodeMindMap()
         }
     }
@@ -622,6 +641,25 @@ func getAllProgressIconItems() {
     })
 }
 
+func updateProgress(node) {
+    if (node.children.size > 0) {
+        sumProgress = 0
+        node.children.forEach((childNode) => {
+            sumProgress += updateProgress(childNode)
+        })
+
+        totalProgress = sumProgress / node.children.size
+        node.data.set('p', totalProgress)
+        totalProgress
+    } else {
+        if (node.data.has('p')) {
+            node.data.get('p')
+        } else {
+            0
+        }
+    }
+}
+
 func selectProgressForItems(selectedItemIds, panelItem) {
     selectedItemIds.forEach((itemId) => {
         node = rootNode.findById(itemId)
@@ -629,22 +667,6 @@ func selectProgressForItems(selectedItemIds, panelItem) {
             node.data.set('p', panelItem.args.mindMapProgress)
         }
     })
-
-    updateProgress = (node) => {
-        log()
-        if (node.children.size > 0) {
-            sumProgress = 0
-            node.children.forEach((childNode) => {
-                sumProgress += updateProgress(childNode)
-            })
-
-            totalProgress = sumProgress / node.children.size
-            node.data.set('p', totalProgress)
-            totalProgress
-        } else {
-            node.data.get('p')
-        }
-    }
 
     updateProgress(rootNode)
 

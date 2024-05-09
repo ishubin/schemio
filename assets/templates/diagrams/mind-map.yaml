@@ -8,8 +8,10 @@ args:
     iconSize: {type: 'number', value: 20, name: 'Icon size'}
     showProgress: {type: 'boolean', value: false, name: 'Show Progress'}
     progressSize: {type: 'number', value: 20, name: 'Progress Icon Size', depends: {showProgress: true}}
-    progressColor: {type: 'color', value: '#81BDFB', name: 'Progress Icon Color', depends: {showProgress: true}}
-    progressColor2: {type: 'color', value: '#13D481', name: 'Progress Icon Color 2', depends: {showProgress: true}}
+    gradientProgress: {type: 'boolean', value: false, name: 'Gradient Progress'}
+    progressColor: {type: 'color', value: '#F35B3B', name: 'Progress Icon Color', depends: {showProgress: true}}
+    progressColor2: {type: 'color', value: '#81BDFB', name: 'Progress Icon Color 2', depends: {showProgress: true}}
+    progressColor3: {type: 'color', value: '#13D481', name: 'Progress Icon Color 3', depends: {showProgress: true, gradientProgress: true}}
 preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
 
@@ -89,6 +91,18 @@ editor:
             area: {w: 72, h: 32}
             shapeProps:
                 cornerRadius: 5
+                fill: { type: 'none'}
+
+        -   id: 'basic_diamond'
+            shape: 'basic_diamond'
+            area: {w: 72, h: 32}
+            shapeProps:
+                fill: { type: 'none'}
+
+        -   id: 'uml_preparation'
+            shape: 'uml_preparation'
+            area: {w: 72, h: 32}
+            shapeProps:
                 fill: { type: 'none'}
 
         -   id: 'label'

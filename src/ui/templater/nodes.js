@@ -6,6 +6,8 @@ import shortid from "shortid";
 import { convertScriptObjectToJSON } from "./json";
 import { forEach } from "../collections";
 import SchemioScriptMath from "./astmath";
+import { encodeColor, parseColor } from "../colors";
+import { Color } from "./color";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -544,7 +546,10 @@ const reservedFunctions = new Map(Object.entries({
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
     forEach       : forEach,
     setObjectField: setObjectFieldFunc,
-    Math          : SchemioScriptMath
+    Math          : SchemioScriptMath,
+
+    Color         : (r,g,b,a) => new Color(r,g,b,a),
+    decodeColor   : (text) => {const c = parseColor(text); return new Color(c.r, c.g, c.b, c.a)}
 }));
 
 
