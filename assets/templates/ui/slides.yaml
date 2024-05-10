@@ -1,58 +1,31 @@
 name: Slides
 args:
-  numSlides: {type: "number", value: 3, min: 1, name: "Numbers of slides"}
-  background: {type: "advanced-color", value: { type: "solid", color: "rgba(240, 240, 240, 1)" }, name: "Background"}
-  strokeColor: {type: "color", value: "rgba(212,212,212,1.0)", name: "Stroke color"}
-  strokeSize: {type: "number", value: 1, min: 0, name: "Stroke size"}
-  textColor: {type: "color", value: "rgba(30,30,30,1.0)", name: "Text color"}
-  shadow: {type: "boolean", value: true, name: "Drop shadow"}
-  buttonColor: {type: "advanced-color", value: { type: "solid", color: "rgba(78, 131, 245, 1)" }, name: "Button color"}
-  iconColor: {type: "color", value: "rgba(255, 255, 255, 1)", name: "Icon color"}
-  buttonSize: {type: "number", value: 60, min: 5, name: "Button size"}
-  buttonOpacity: {type: "number", value: 60, min: 5, name: "Button opacity"}
-  padding: {type: "number", value: 14, min: 0, name: "Padding"}
-  cornerRadius: {type: "number", value: 10, min: 0, name: "Corner radius"}
-  frameFill: {type: "advanced-color", value: { type: "solid", color: "rgba(250, 250, 250, 1)" }, name: "Frame background"}
-  frameColor: {type: "color", value: "rgba(212,212,212,1.0)", name: "Frame color"}
+  numSlides      : {type: "number", value: 3, min: 1, name: "Numbers of slides"}
+  background     : {type: "advanced-color", value: { type: "solid", color: "rgba(240, 240, 240, 1)" }, name: "Background"}
+  strokeColor    : {type: "color", value: "rgba(212,212,212,1.0)", name: "Stroke color"}
+  strokeSize     : {type: "number", value: 1, min: 0, name: "Stroke size"}
+  textColor      : {type: "color", value: "rgba(30,30,30,1.0)", name: "Text color"}
+  shadow         : {type: "boolean", value: true, name: "Drop shadow"}
+  buttonColor    : {type: "advanced-color", value: { type: "solid", color: "rgba(78, 131, 245, 1)" }, name: "Button color"}
+  iconColor      : {type: "color", value: "rgba(255, 255, 255, 1)", name: "Icon color"}
+  buttonSize     : {type: "number", value: 60, min: 5, name: "Button size"}
+  buttonOpacity  : {type: "number", value: 60, min: 5, name: "Button opacity"}
+  padding        : {type: "number", value: 14, min: 0, name: "Padding"}
+  cornerRadius   : {type: "number", value: 10, min: 0, name: "Corner radius"}
+  frameFill      : {type: "advanced-color", value: { type: "solid", color: "rgba(250, 250, 250, 1)" }, name: "Frame background"}
+  frameColor     : {type: "color", value: "rgba(212,212,212,1.0)", name: "Frame color"}
   frameStrokeSize: {type: "number", value: 1, min: 0, name: "Frame stroke size"}
-  showAllSlides: {type: "boolean", value: true, name: "Show all slides", description:
-    "Displays all slides in edit mode next to each other for easier editing. In view mode all the slides will be placed in their proper position and will be hidden"
-  }
-init: |
-  buttonMargin = round(padding / 2)
-  containerMarginX = buttonMargin*2 + buttonSize
-  containerMarginTop = 60
-  btnIconK = buttonSize / 60
-  btnIconWidth = 20 * btnIconK
-  btnIconHeight = 25 * btnIconK
-  containerMarginBottom = padding
-  slideWidth = round(max(1, width - containerMarginX * 2))
-  slideHeight = round(max(1, height - containerMarginTop - containerMarginBottom))
-  slideMargin = 10
-  currentSlideVarName = 'current-slide-' + uid()
-  headerWidth = min(max(200, round(width / 2)), width)
-  swapSlides = (idx1, idx2) => {
-      swapNativeChildren(`slide-${idx1}`, `slide-${idx2}`)
-  }
-  deleteSlide = (slideIndex) => {
-      for (i = slideIndex + 1; i < numSlides; i++) {
-          moveNativeChildren(`slide-${i+1}`, `slide-${i}`)
-      }
-      numSlides = max(1, numSlides - 1)
-  }
-  insertSlideAt = (slideIndex) => {
-      duplicateItem(`slide-${numSlides}`, `slide-${numSlides+1}`, `Slide #${numSlides+1}`)
-      for (i = numSlides; i > slideIndex; i--) {
-          moveNativeChildren(`slide-${i}`, `slide-${i+1}`)
-      }
-      numSlides = numSlides + 1
-  }
-  on('delete', (itemId, item) => {
-      if (itemId.startsWith('slide-')) {
-          slideIdx = parseInt(itemId.substring('slide-'.length)) - 1
-          deleteSlide(slideIdx)
-      }
-  })
+  showAllSlides:
+    type: boolean
+    value: true
+    name: Show all slides
+    description: |
+      Displays all slides in edit mode next to each other for easier editing.
+      In view mode all the slides will be placed in their proper position and will be hidden
+
+import:
+  - ./src/slides.sch
+
 controls:
   - name: addSlide
     type: button
