@@ -537,7 +537,7 @@ func createNewChildFor(nodeId, placement) {
 
 // triggered when item area changes as a result of edit box modifications
 // the handler is supposed to mutate the area object in case the area is changed
-on('area', (itemId, item, area) => {
+func onAreaUpdate(itemId, item, area) {
     node = rootNode.findById(itemId)
     if (node) {
         node.data.set('x', area.x)
@@ -546,9 +546,10 @@ on('area', (itemId, item, area) => {
         node.data.set('h', area.h)
         encodeMindMap()
     }
-})
+}
 
-on('delete', (itemId, item) => {
+// Template special function. Triggered when user deletes templated item
+func onDeleteItem(itemId, item) {
     if (item.args.mindMapType == 'icon') {
         node = rootNode.findById(item.args.mindMapNodeId)
         if (node) {
@@ -562,7 +563,7 @@ on('delete', (itemId, item) => {
             encodeMindMap()
         }
     }
-})
+}
 
 func shouldNodeShapeSelectorBeDisplayed(selectedItemIds) {
     shown = false

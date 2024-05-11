@@ -37,7 +37,7 @@ func insertTabAt(tabIndex) {
     numTabs = numTabs + 1
 }
 
-on('delete', (itemId, item) => {
+func onDeleteItem(itemId, item) {
     if (itemId.startsWith('tab-container-')) {
         tabIdx = parseInt(itemId.substring('tab-container-'.length)) - 1
         deleteTab(tabIdx)
@@ -45,4 +45,4 @@ on('delete', (itemId, item) => {
         tabIdx = parseInt(itemId.substring('tab-'.length)) - 1
         deleteTab(tabIdx)
     }
-})
+}

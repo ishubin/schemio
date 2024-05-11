@@ -106,14 +106,17 @@ init: |
         nodes = rootNode.encodeTree(',', ':')
     }
 
-    on('delete', (itemId, item) => {
+    func onDeleteItem(itemId, item) {
         node = nodesById.get(itemId)
         if (node && node.parent) {
             node.parent.children.remove(node.siblingIdx)
             reindexTree()
         }
         nodes = rootNode.encodeTree(',', ':')
-    })
+    }
+
+events:
+    delete: onDeleteItem(itemId, item)
 
 controls:
 -   $-foreach: {source: "items", it: "item"}

@@ -26,6 +26,9 @@ args:
 import:
   - ./src/slides.sch
 
+events:
+  delete: onDeleteItem(itemId, item)
+
 controls:
   - name: addSlide
     type: button

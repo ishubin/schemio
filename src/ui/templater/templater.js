@@ -48,7 +48,7 @@ export function processJSONTemplate(obj, data) {
  */
 export function compileTemplateExpressions(expressions, data) {
     if (!Array.isArray(expressions)) {
-        return;
+        expressions = [expressions];
     }
 
     const fullScript = expressions.join('\n');

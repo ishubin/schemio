@@ -2075,7 +2075,7 @@ class SchemeContainer {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
-                            const newArgs = template.triggerTemplateEvent(rootItem, 'delete', item.args.templatedId, item);
+                            const newArgs = template.onDeleteItem(rootItem, item.args.templatedId, item);
                             if (newArgs) {
                                 this.regenerateTemplatedItem(rootItem, template, newArgs, rootItem.area.w, rootItem.area.h);
                             }
@@ -2909,7 +2909,7 @@ class SchemeContainer {
                         }
                         this.getTemplate(templateRootItem.args.templateRef)
                         .then(template => {
-                            const updatedTemplateArgs = template.triggerTemplateEvent(templateRootItem, 'area', item.args.templatedId, item, modifiedArea);
+                            const updatedTemplateArgs = template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea);
                             item.area.x = modifiedArea.x;
                             item.area.y = modifiedArea.y;
                             item.area.w = modifiedArea.w;

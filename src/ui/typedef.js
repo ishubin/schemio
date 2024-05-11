@@ -428,6 +428,7 @@
  * @property {String} name
  * @property {String} description
  * @property {Object} args
+ * @property {Object|undefined} events
  * @property {Array<String>|String|undefined} init
  * @property {String} preview
  * @property {Item} item

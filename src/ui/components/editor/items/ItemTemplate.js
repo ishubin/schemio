@@ -8,14 +8,15 @@ import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
 import { compileJSONTemplate, compileTemplateCall, compileTemplateExpressions } from "../../../templater/templater";
 import { createTemplateFunctions } from "./ItemTemplateFunctions";
 import { List } from "../../../templater/list";
+import { parseExpression } from "../../../templater/ast";
+import { Scope } from "../../../templater/scope";
+import { ASTNode } from "../../../templater/nodes";
+
+
 
 const defaultEditor = {
     panels: []
 };
-
-function mockedFunc() {
-}
-
 
 function enrichPanelItem(item) {
     enrichItemWithDefaults(item);
@@ -68,7 +69,6 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
                         width: templateRootItem.area.w,
                         height: templateRootItem.area.h,
                         ...extraData,
-                        on: mockedFunc,
                         panelItem
                     };
                     return clickCallback(clickData);
@@ -97,6 +97,16 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
     };
 }
 
+
+/**
+ * @param {Array<String>} expressions
+ * @returns {ASTNode}
+ */
+function parseTemplateExpressionBlock(expressions) {
+    const raw = expressions.join('\n');
+    return parseExpression(raw);
+}
+
 /**
  * @param {String} editorId
  * @param {ItemTemplate} template
@@ -120,8 +130,15 @@ export function compileItemTemplate(editorId, template, templateRef) {
         editor: template.editor || defaultEditor,
     });
 
+    const initAST = parseTemplateExpressionBlock(initBlock);
 
-    const eventExpressions = compileTemplateExpressions(initBlock, {});
+    const eventHandlers = {};
+    if (template.events) {
+        forEachObject(template.events, (expression, eventName) => {
+            const eventExpressions = toExpressionBlock(expression);
+            eventHandlers[eventName] = parseTemplateExpressionBlock(eventExpressions);
+        });
+    }
 
     const defaultArgs = {};
     forEachObject(template.args, (arg, argName) => {
@@ -137,38 +154,28 @@ export function compileItemTemplate(editorId, template, templateRef) {
         args       : template.args || {},
         defaultArgs: defaultArgs,
 
-        /**
-         * @param {Item} rootItem
-         * @param {String} eventName
-         * @param  {...any} eventArgs
-         * @returns {Object|null} returns updated template args. null if there were no subscribers for the event
-         */
-        triggerTemplateEvent : (rootItem, eventName, ...eventArgs) => {
-            const allEventHandlers = [];
-            const data = {
+
+        triggerTemplateEvent(rootItem, eventName, eventData) {
+            if (!eventHandlers.hasOwnProperty(eventName)) {
+                return null;
+            }
+            const fullData = {
                 ...defaultArgs,
                 ...rootItem.args.templateArgs,
                 ...createTemplateFunctions(editorId, rootItem),
                 width: rootItem.area.w,
                 height: rootItem.area.h,
-                on: (eventName, callback) => {
-                    allEventHandlers.push({eventName, callback});
-                }
             };
-            const updatedData = eventExpressions(data);
+            const scope = new Scope(fullData);
 
-            let eventCalled = false;
-            allEventHandlers.forEach(handler => {
-                if (handler.eventName !== eventName) {
-                    return;
-                }
-                handler.callback(...eventArgs);
-                eventCalled = true;
+            initAST.evalNode(scope);
+
+            forEachObject(eventData, (value, name) => {
+                scope.set(name, value);
             });
 
-            if (!eventCalled) {
-                return null;
-            }
+            eventHandlers[eventName].evalNode(scope);
+            const updatedData = scope.getData();
 
             const templateArgs = {};
             forEachObject(template.args, (argDef, argName) => {
@@ -182,14 +189,67 @@ export function compileItemTemplate(editorId, template, templateRef) {
             }
             return templateArgs;
         },
-        buildItem : (args, width, height) => itemBuilder({
-            ...args, width, height,
-            on: mockedFunc
-        }).item,
-        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height, on: mockedFunc}, selectedItemIds),
-        buildControls: (args, width, height) => compiledControlBuilder({...args, width, height, on: mockedFunc}).controls.map(control => {
+
+        onDeleteItem(rootItem, itemId, item) {
+            return this.triggerTemplateEvent(rootItem, 'delete', {itemId, item});
+        },
+
+        onAreaUpdate(rootItem, itemId, item, area) {
+            return this.triggerTemplateEvent(rootItem, 'area', {itemId, item, area});
+        },
+
+        // /**
+        //  * @param {Item} rootItem
+        //  * @param {String} eventName
+        //  * @param  {...any} eventArgs
+        //  * @returns {Object|null} returns updated template args. null if there were no subscribers for the event
+        //  */
+        // triggerTemplateEvent : (rootItem, eventName, ...eventArgs) => {
+        //     const allEventHandlers = [];
+        //     const data = {
+        //         ...defaultArgs,
+        //         ...rootItem.args.templateArgs,
+        //         ...createTemplateFunctions(editorId, rootItem),
+        //         width: rootItem.area.w,
+        //         height: rootItem.area.h,
+        //         on: (eventName, callback) => {
+        //             allEventHandlers.push({eventName, callback});
+        //         }
+        //     };
+        //     const updatedData = eventExpressions(data);
+
+        //     let eventCalled = false;
+        //     allEventHandlers.forEach(handler => {
+        //         if (handler.eventName !== eventName) {
+        //             return;
+        //         }
+        //         handler.callback(...eventArgs);
+        //         eventCalled = true;
+        //     });
+
+        //     if (!eventCalled) {
+        //         return null;
+        //     }
+
+        //     const templateArgs = {};
+        //     forEachObject(template.args, (argDef, argName) => {
+        //         templateArgs[argName] = updatedData[argName];
+        //     });
+        //     if (updatedData.hasOwnProperty('width')) {
+        //         templateArgs.width = updatedData.width;
+        //     }
+        //     if (updatedData.hasOwnProperty('height')) {
+        //         templateArgs.height = updatedData.height;
+        //     }
+        //     return templateArgs;
+        // },
+        buildItem : (args, width, height) => itemBuilder({ ...args, width, height }).item,
+
+        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds),
+
+        buildControls: (args, width, height) => compiledControlBuilder({...args, width, height}).controls.map(control => {
             const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
-            const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height, on: mockedFunc});
+            const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height});
             return {
                 ...control,
 

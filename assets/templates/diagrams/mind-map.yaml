@@ -8,7 +8,7 @@ args:
     iconSize: {type: 'number', value: 20, name: 'Icon size'}
     showProgress: {type: 'boolean', value: false, name: 'Show Progress'}
     progressSize: {type: 'number', value: 20, name: 'Progress Icon Size', depends: {showProgress: true}}
-    gradientProgress: {type: 'boolean', value: false, name: 'Gradient Progress'}
+    gradientProgress: {type: 'boolean', value: false, name: 'Gradient Progress', depends: {showProgress: true}}
     progressColor: {type: 'color', value: '#F35B3B', name: 'Progress Icon Color', depends: {showProgress: true}}
     progressColor2: {type: 'color', value: '#81BDFB', name: 'Progress Icon Color 2', depends: {showProgress: true}}
     progressColor3: {type: 'color', value: '#13D481', name: 'Progress Icon Color 3', depends: {showProgress: true, gradientProgress: true}}
@@ -20,6 +20,10 @@ import:
     - ./src/item.sch
     - ./src/control.sch
     - ./src/mind-map.sch
+
+events:
+    delete: onDeleteItem(itemId, item)
+    area: onAreaUpdate(itemId, item, area)
 
 controls:
 -   $-foreach: {source: "controls", it: "control"}

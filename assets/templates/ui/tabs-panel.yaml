@@ -24,6 +24,9 @@ args:
 import:
   - ./src/tabs-panel.sch
 
+events:
+  delete: onDeleteItem(itemId, item)
+
 controls:
   - name: addTab
     type: button
