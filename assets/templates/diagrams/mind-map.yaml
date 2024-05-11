@@ -8,9 +8,9 @@ args:
     iconSize: {type: 'number', value: 20, name: 'Icon size'}
     showProgress: {type: 'boolean', value: false, name: 'Show Progress'}
     progressSize: {type: 'number', value: 20, name: 'Progress Icon Size', depends: {showProgress: true}}
-    gradientProgress: {type: 'boolean', value: false, name: 'Gradient Progress', depends: {showProgress: true}}
+    gradientProgress: {type: 'boolean', value: true, name: 'Gradient Progress', depends: {showProgress: true}}
     progressColor: {type: 'color', value: '#F35B3B', name: 'Progress Icon Color', depends: {showProgress: true}}
-    progressColor2: {type: 'color', value: '#81BDFB', name: 'Progress Icon Color 2', depends: {showProgress: true}}
+    progressColor2: {type: 'color', value: '#E5AB2D', name: 'Progress Icon Color 2', depends: {showProgress: true}}
     progressColor3: {type: 'color', value: '#13D481', name: 'Progress Icon Color 3', depends: {showProgress: true, gradientProgress: true}}
 preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
@@ -51,13 +51,13 @@ editor:
         click: 'selectIconForItems(selectedItemIds, panelItem)'
         name: Choose icons
         slotSize:
-            width: 24
-            height: 24
+            width: 30
+            height: 30
         items:
         -   $-foreach: {source: "getAllAvailableIcons()",  it: 'icon'}
             id: {$-expr: "icon.id"}
             shape: 'image'
-            area: {x: -2, y: -2, w: 18, h: 18}
+            area: {x: -2, y: -2, w: 26, h: 26}
             shapeProps:
                 image: {$-expr: "icon.url"}
 

@@ -508,6 +508,9 @@ function setObjectFieldFunc(obj, name, value) {
     obj[name] = value
 }
 
+function log(...args) {
+    console.log(...args);
+}
 
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
@@ -524,7 +527,7 @@ const reservedFunctions = new Map(Object.entries({
     asin      : Math.asin,
     abs       : Math.abs,
     uid       : () => shortid.generate(),
-    log       : console.log,
+    log       : log,
     round     : Math.round,
     ceil      : Math.ceil,
     floor     : Math.floor,
