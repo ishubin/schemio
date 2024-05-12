@@ -2477,7 +2477,7 @@ class SchemeContainer {
         }
 
         if (selector.charAt(0) === '#') {
-            const id = selector.substr(1);
+            const id = selector.substring(1);
             const item = this.findItemById(id);
             if (item) {
                 return [item];
@@ -2487,7 +2487,7 @@ class SchemeContainer {
             if (colonIndex > 0) {
                 const expression = selector.substring(0, colonIndex).trim();
                 if (expression === 'tag') {
-                    return this.findItemsByTag(selector.substr(colonIndex + 1).trim());
+                    return this.findItemsByTag(selector.substring(colonIndex + 1).trim());
                 }
             }
         }
@@ -2495,12 +2495,53 @@ class SchemeContainer {
     }
 
     copySelectedItems() {
+        /** @type {Array<Item>} */
         const copyBuffer = [];
+        // ensuring that we don't copy the same item twice
+        // It could be that user has selected ites using multi-select box
+        // In this case all items are flatten out in the selectedItems array
+        const selectedIds = new Set();
         forEach(this.selectedItems, item => {
+            if (selectedIds.has(item.id)) {
+                return;
+            }
+            traverseItems([item], childItem => {
+                selectedIds.add(childItem.id);
+            });
             copyBuffer.push(utils.clone(item));
         });
 
-        return JSON.stringify(copyBuffer);
+        return this.triggerCopyEventForTemplatedItems(copyBuffer).then(() => {
+            return JSON.stringify(copyBuffer);
+        });
+    }
+
+    /**
+     * @param {Array<Item>} copyBuffer
+     */
+    triggerCopyEventForTemplatedItems(copyBuffer) {
+        const promises = [];
+        copyBuffer.forEach(item => {
+            if (!item.meta.templated || !item.meta.templateRootId) {
+                return;
+            }
+            const templateRoot = this.findItemById(item.meta.templateRootId);
+            if (!templateRoot || !templateRoot.args || !templateRoot.args.templateRef) {
+                return;
+            }
+
+            promises.push(
+                this.getTemplate(templateRoot.args.templateRef)
+                .then(template => {
+                    template.onCopyItem(templateRoot, item.args.templatedId, item);
+                })
+                .catch(err => {
+                    console.error(err);
+                })
+            );
+        });
+
+        return Promise.all(promises);
     }
 
     decodeItemsFromText(text) {
@@ -2700,6 +2741,52 @@ class SchemeContainer {
     }
 
     /**
+     * @param {Array<Item>} items
+     * @param {Item} dstItem
+     */
+    pasteItemsInto(items, dstItem) {
+        if (!items || items.length === 0) {
+            return;
+        }
+
+        const copiedItems = this.cloneItems(items);
+        const copiedIds = new Set();
+
+        let minX = items[0].area.x;
+        let minY = items[0].area.y;
+
+        for (let i = 1; i < items.length; i++) {
+            const p1 = {x: items[i].area.x, y: items[i].area.y};
+
+            minX = Math.min(minX, p1.x);
+            minY = Math.min(minY, p1.y);
+        }
+
+        const offsetX = Math.min(10, dstItem.area.w) - minX;
+        const offsetY = Math.min(10, dstItem.area.h) - minY;
+
+        copiedItems.forEach(item => {
+            copiedIds.add(item.id);
+            item.locked = false;
+            this.itemMap[item.id] = item;
+            item.area.x += offsetX;
+            item.area.y += offsetY;
+            if (!dstItem.childItems) {
+                dstItem.childItems = [];
+            }
+            dstItem.childItems.push(item);
+            this.itemMap[item.id] = item;
+        });
+
+        this.fixPastedConnectors(copiedItems, copiedIds);
+        this.reindexItems();
+
+        this.selectMultipleItems(copiedItems, false);
+
+        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+    }
+
+    /**
      *
      * @param {Array<Item>} items array of items that should be copied and pasted
      * @param {Number} centerX x in relative transform for which items should put pasted to
@@ -2717,8 +2804,36 @@ class SchemeContainer {
             copiedIds.add(item.id);
             item.locked = false;
             this.scheme.items.push(item);
+            this.itemMap[item.id] = item;
         });
 
+        this.fixPastedConnectors(copiedItems, copiedIds);
+        this.selectMultipleItems(copiedItems, false);
+
+        //since all items are already selected, the relative multi item edit box should be centered on the specified center point
+        if (this.editBox) {
+            const boxArea = this.editBox.area;
+            const boxCenterX = boxArea.x + boxArea.w / 2;
+            const boxCenterY = boxArea.y + boxArea.h / 2;
+            const dx = centerX - boxCenterX;
+            const dy = centerY - boxCenterY;
+
+            boxArea.x += dx;
+            boxArea.y += dy;
+            this.updateEditBoxItems(this.editBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+        }
+
+        this.reindexItems();
+
+        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+    }
+
+    /**
+     *
+     * @param {Array<Item>} copiedItems
+     * @param {Set} copiedIds
+     */
+    fixPastedConnectors(copiedItems, copiedIds) {
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
         forEach(copiedItems, item => {
@@ -2739,23 +2854,6 @@ class SchemeContainer {
                 }
             }
         });
-
-        this.selectMultipleItems(copiedItems, false);
-
-        //since all items are already selected, the relative multi item edit box should be centered on the specified center point
-        if (this.editBox) {
-            const boxArea = this.editBox.area;
-            const boxCenterX = boxArea.x + boxArea.w / 2;
-            const boxCenterY = boxArea.y + boxArea.h / 2;
-            const dx = centerX - boxCenterX;
-            const dy = centerY - boxCenterY;
-
-            boxArea.x += dx;
-            boxArea.y += dy;
-            this.updateEditBoxItems(this.editBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
-        }
-
-        this.reindexItems();
     }
 
     copyItem(oldItem) {

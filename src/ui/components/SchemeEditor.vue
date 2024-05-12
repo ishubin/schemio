@@ -553,6 +553,16 @@
             </div>
         </modal>
 
+        <modal v-if="isCopying" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
+            <div class="scheme-loading-icon">
+                <div>
+                    <i class="fas fa-spinner fa-spin fa-1x"></i>
+                    <span>Copying...  </span>
+                    <span class="btn btn-secondary" @click="isCopying = false">Cancel</span>
+                </div>
+            </div>
+        </modal>
+
         <export-template-modal v-if="exportTemplateModal.shown"
             :item="exportTemplateModal.item"
             @close="exportTemplateModal.shown = false"/>
@@ -971,6 +981,7 @@ export default {
             schemeRevision: new Date().getTime(),
 
             isLoading: false,
+            isCopying: false,
             loadingStep: 'load', // can be "load", "img-preload"
             schemeLoadErrorMessage: null,
 
@@ -1705,8 +1716,16 @@ export default {
 
 
         copySelectedItems() {
-            const copyBuffer = this.schemeContainer.copySelectedItems();
-            copyToClipboard(copyBuffer);
+            this.isCopying = true;
+            this.schemeContainer.copySelectedItems()
+            .then(copyBuffer => {
+                copyToClipboard(copyBuffer);
+                this.isCopying = false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.isCopying = false;
+            });
         },
 
         copySelectedItemStyle() {
@@ -1751,28 +1770,52 @@ export default {
             }
         },
 
-        pasteItemsFromClipboardAt(mx, my) {
-            getTextFromClipboard().then(text => {
-                if (text) {
-                    const items = this.schemeContainer.decodeItemsFromText(text);
-                    if (items) {
-                        this.isLoading = true;
-                        this.loadingStep = 'load-shapes';
-                        collectAndLoadAllMissingShapes(items, this.$store)
-                        .catch(err => {
-                            console.error(err);
-                            StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
-                        })
-                        .then(() => {
-                            this.isLoading = false;
-                            const centerX = (mx - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
-                            const centerY = (my - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
-                            this.schemeContainer.pasteItems(items, centerX, centerY);
-                            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-                        });
-                    }
+        loadCopiedItemsFromClipboard() {
+            return getTextFromClipboard().then(text => {
+                if (!text) {
+                    return [];
                 }
-            })
+                const items = this.schemeContainer.decodeItemsFromText(text);
+                if (!items) {
+                    return [];
+                }
+                this.isLoading = true;
+                this.loadingStep = 'load-shapes';
+
+                return collectAndLoadAllMissingShapes(items, this.$store)
+                .then(() => {
+                    this.isLoading = false;
+                    return items;
+                })
+                .catch(err => {
+                    this.isLoading = false;
+                    console.error(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                    return [];
+                })
+            });
+        },
+
+        pasteItemsFromClipboardInto(item) {
+            this.loadCopiedItemsFromClipboard()
+            .then(items => {
+                if (!items) {
+                    return;
+                }
+                this.schemeContainer.pasteItemsInto(items, item);
+            });
+        },
+
+        pasteItemsFromClipboardAt(mx, my) {
+            this.loadCopiedItemsFromClipboard()
+            .then(items => {
+                if (!items) {
+                    return;
+                }
+                const centerX = (mx - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                const centerY = (my - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                this.schemeContainer.pasteItems(items, centerX, centerY);
+            });
         },
 
         pasteItemsFromClipboard() {
@@ -2310,6 +2353,13 @@ export default {
                 name: 'Copy item style',
                 clicked: () => {this.copySelectedItemStyle(item);}
             }]);
+
+            if (selectedOnlyOne) {
+                contextMenuOptions.push({
+                    name: 'Paste into',
+                    clicked: () => { this.pasteItemsFromClipboardInto(item) }
+                });
+            }
 
             if (this.$store.state.copiedStyleItem) {
                 contextMenuOptions.push({

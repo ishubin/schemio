@@ -535,36 +535,6 @@ func createNewChildFor(nodeId, placement) {
     }
 }
 
-// triggered when item area changes as a result of edit box modifications
-// the handler is supposed to mutate the area object in case the area is changed
-func onAreaUpdate(itemId, item, area) {
-    node = rootNode.findById(itemId)
-    if (node) {
-        node.data.set('x', area.x)
-        node.data.set('y', area.y)
-        node.data.set('w', area.w)
-        node.data.set('h', area.h)
-        encodeMindMap()
-    }
-}
-
-// Template special function. Triggered when user deletes templated item
-func onDeleteItem(itemId, item) {
-    if (item.args.mindMapType == 'icon') {
-        node = rootNode.findById(item.args.mindMapNodeId)
-        if (node) {
-            removeNodeIcon(node, item.args.mindMapIcon)
-        }
-    } else if (item.args.mindMapType == 'node') {
-        node = rootNode.findById(itemId)
-        if (node && node.parent) {
-            node.parent.children.remove(node.siblingIdx)
-            updateProgress(rootNode)
-            encodeMindMap()
-        }
-    }
-}
-
 func shouldNodeShapeSelectorBeDisplayed(selectedItemIds) {
     shown = false
     selectedItemIds.forEach((itemId) => {
@@ -672,4 +642,42 @@ func selectProgressForItems(selectedItemIds, panelItem) {
     updateProgress(rootNode)
 
     encodeMindMap()
+}
+
+// triggered when item area changes as a result of edit box modifications
+// the handler is supposed to mutate the area object in case the area is changed
+func onAreaUpdate(itemId, item, area) {
+    node = rootNode.findById(itemId)
+    if (node) {
+        node.data.set('x', area.x)
+        node.data.set('y', area.y)
+        node.data.set('w', area.w)
+        node.data.set('h', area.h)
+        encodeMindMap()
+    }
+}
+
+// Template special function. Triggered when user deletes templated item
+func onDeleteItem(itemId, item) {
+    if (item.args.mindMapType == 'icon') {
+        node = rootNode.findById(item.args.mindMapNodeId)
+        if (node) {
+            removeNodeIcon(node, item.args.mindMapIcon)
+        }
+    } else if (item.args.mindMapType == 'node') {
+        node = rootNode.findById(itemId)
+        if (node && node.parent) {
+            node.parent.children.remove(node.siblingIdx)
+            updateProgress(rootNode)
+            encodeMindMap()
+        }
+    }
+}
+
+func onCopyItem(itemId, item) {
+    node = rootNode.findById(itemId)
+    if (node) {
+        encodedNode = rootNode.encodeTree(' | ', ';')
+        setObjectField(item.args, 'mindMapEncodedNode', encodedNode)
+    }
 }

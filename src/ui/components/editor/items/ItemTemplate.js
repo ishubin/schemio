@@ -198,6 +198,10 @@ export function compileItemTemplate(editorId, template, templateRef) {
             return this.triggerTemplateEvent(rootItem, 'area', {itemId, item, area});
         },
 
+        onCopyItem(rootItem, itemId, item) {
+            return this.triggerTemplateEvent(rootItem, 'copy', {itemId, item});
+        },
+
         // /**
         //  * @param {Item} rootItem
         //  * @param {String} eventName

@@ -24,6 +24,7 @@ import:
 events:
     delete: onDeleteItem(itemId, item)
     area: onAreaUpdate(itemId, item, area)
+    copy: onCopyItem(itemId, item)
 
 controls:
 -   $-foreach: {source: "controls", it: "control"}
