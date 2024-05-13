@@ -445,6 +445,7 @@
  * @property {String} description
  * @property {Object} args - contains template argument descriptors
  * @property {Object} defaultArgs - contains args object with default values
+ * @property {function(String): Boolean} hasHandler - returns true if template has defined a handler with specified name
  * @property {function(Item, String, ...Object): Item} triggerTemplateEvent
  * @property {function(Object, number, number): Item} buildItem
  * @property {function(Object): Array<ItemTemplateControl>} buildControls

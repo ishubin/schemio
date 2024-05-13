@@ -22,7 +22,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [set (List)](#set-list)
       - [insert (List)](#insert-list)
       - [size (List)](#size-list)
-      - [find (List)](#find-list)
+      - [findIndex (List)](#findindex-list)
       - [forEach (List)](#foreach-list)
       - [map (List)](#map-list)
       - [filter (List)](#filter-list)
@@ -45,6 +45,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [has (Set)](#has-set)
       - [forEach (Set)](#foreach-set)
 - [Function declaration](#function-declaration)
+- [Local variables](#local-variables)
 - [Structs](#structs)
 - [Functions](#functions)
     - [abs](#abs)
@@ -566,6 +567,35 @@ myMin = (a) => {
     }
 }
 log(myMin(4)(3))
+```
+
+
+Local variables
+----------------
+You may want to isolate your local variables to the scope of your function, loop or if statement. For such cases you should use `local` keyword:
+
+```
+name = 'John'
+
+func someFunc() {
+    local name
+    name = 'Sara'
+    log(someVar)
+}
+
+someFunc()
+log(someVar)
+```
+
+The example above should first output 'Sara' and then 'John', because the `name` variable in `someFunc` function is redefined as local.
+
+You can also assign a value to a local variable on the same line with `local` keyword:
+
+```
+func someFunc() {
+    local name = 'Sara'
+    // ...
+}
 ```
 
 

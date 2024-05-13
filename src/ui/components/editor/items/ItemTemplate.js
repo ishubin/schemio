@@ -132,11 +132,11 @@ export function compileItemTemplate(editorId, template, templateRef) {
 
     const initAST = parseTemplateExpressionBlock(initBlock);
 
-    const eventHandlers = {};
-    if (template.events) {
-        forEachObject(template.events, (expression, eventName) => {
+    const templateHandlers = {};
+    if (template.handlers) {
+        forEachObject(template.handlers, (expression, eventName) => {
             const eventExpressions = toExpressionBlock(expression);
-            eventHandlers[eventName] = parseTemplateExpressionBlock(eventExpressions);
+            templateHandlers[eventName] = parseTemplateExpressionBlock(eventExpressions);
         });
     }
 
@@ -154,9 +154,10 @@ export function compileItemTemplate(editorId, template, templateRef) {
         args       : template.args || {},
         defaultArgs: defaultArgs,
 
+        hasHandler: (handlerName) => templateHandlers.hasOwnProperty(handlerName),
 
         triggerTemplateEvent(rootItem, eventName, eventData) {
-            if (!eventHandlers.hasOwnProperty(eventName)) {
+            if (!templateHandlers.hasOwnProperty(eventName)) {
                 return null;
             }
             const fullData = {
@@ -174,7 +175,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                 scope.set(name, value);
             });
 
-            eventHandlers[eventName].evalNode(scope);
+            templateHandlers[eventName].evalNode(scope);
             const updatedData = scope.getData();
 
             const templateArgs = {};
@@ -202,51 +203,10 @@ export function compileItemTemplate(editorId, template, templateRef) {
             return this.triggerTemplateEvent(rootItem, 'copy', {itemId, item});
         },
 
-        // /**
-        //  * @param {Item} rootItem
-        //  * @param {String} eventName
-        //  * @param  {...any} eventArgs
-        //  * @returns {Object|null} returns updated template args. null if there were no subscribers for the event
-        //  */
-        // triggerTemplateEvent : (rootItem, eventName, ...eventArgs) => {
-        //     const allEventHandlers = [];
-        //     const data = {
-        //         ...defaultArgs,
-        //         ...rootItem.args.templateArgs,
-        //         ...createTemplateFunctions(editorId, rootItem),
-        //         width: rootItem.area.w,
-        //         height: rootItem.area.h,
-        //         on: (eventName, callback) => {
-        //             allEventHandlers.push({eventName, callback});
-        //         }
-        //     };
-        //     const updatedData = eventExpressions(data);
+        onPasteItemInto(rootItem, itemId, items) {
+            return this.triggerTemplateEvent(rootItem, 'paste', {itemId, items})
+        },
 
-        //     let eventCalled = false;
-        //     allEventHandlers.forEach(handler => {
-        //         if (handler.eventName !== eventName) {
-        //             return;
-        //         }
-        //         handler.callback(...eventArgs);
-        //         eventCalled = true;
-        //     });
-
-        //     if (!eventCalled) {
-        //         return null;
-        //     }
-
-        //     const templateArgs = {};
-        //     forEachObject(template.args, (argDef, argName) => {
-        //         templateArgs[argName] = updatedData[argName];
-        //     });
-        //     if (updatedData.hasOwnProperty('width')) {
-        //         templateArgs.width = updatedData.width;
-        //     }
-        //     if (updatedData.hasOwnProperty('height')) {
-        //         templateArgs.height = updatedData.height;
-        //     }
-        //     return templateArgs;
-        // },
         buildItem : (args, width, height) => itemBuilder({ ...args, width, height }).item,
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds),

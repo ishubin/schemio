@@ -253,6 +253,29 @@ export class ASTIFStatement extends ASTNode {
 }
 
 
+export class ASTLocalVariable extends ASTNode {
+    /**
+     * @param {String} varName
+     * @param {ASTAssign|undefined} expression
+     */
+    constructor(varName, expression) {
+        super('local');
+        this.varName = varName;
+        this.expression = expression;
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        scope.setLocal(this.varName, null);
+        if (this.expression) {
+            this.expression.evalNode(scope);
+        }
+    }
+}
+
+
 export class ASTStringTemplate extends ASTNode {
     /**
      *

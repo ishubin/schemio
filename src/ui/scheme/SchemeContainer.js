@@ -2745,6 +2745,38 @@ class SchemeContainer {
      * @param {Item} dstItem
      */
     pasteItemsInto(items, dstItem) {
+        let promise = Promise.resolve(false);
+        if (dstItem.meta.templated && dstItem.meta.templateRootId && dstItem.args.templatedId) {
+            const rootItem = this.findItemById(dstItem.meta.templateRootId);
+            if (rootItem && rootItem.args.templated && rootItem.args.templateRef) {
+                promise = this.getTemplate(rootItem.args.templateRef)
+                .then(template => {
+                    if (template.hasHandler('paste')) {
+                        const updatedArgs = template.onPasteItemInto(rootItem, dstItem.args.templatedId, items)
+                        rootItem.args.templateArgs = updatedArgs;
+                        this.regenerateTemplatedItem(rootItem, template, rootItem.args.templateArgs, rootItem.area.w, rootItem.area.h);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                        EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, rootItem.id);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        }
+
+        promise.then(isPasteOverriden => {
+            if (!isPasteOverriden) {
+                this._pasteItemsIntoRegularItem(items, dstItem);
+            }
+        });
+    }
+
+
+    /**
+     * @param {Array<Item>} items
+     * @param {Item} dstItem
+     */
+    _pasteItemsIntoRegularItem(items, dstItem) {
         if (!items || items.length === 0) {
             return;
         }

@@ -24,7 +24,7 @@ args:
 import:
   - ./src/tabs-panel.sch
 
-events:
+handlers:
   delete: onDeleteItem(itemId, item)
 
 controls:

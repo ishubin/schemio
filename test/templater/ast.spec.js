@@ -755,4 +755,37 @@ describe('templater ast parser', () => {
         const result = node.evalNode(new Scope({}));
         expect(result).toBe(-3);
     });
+
+    it('should let define local variables', () => {
+        const node = parseExpression(`
+            someVar = 12
+
+            func testFunc() {
+                local someVar
+                someVar = 14
+            }
+
+            testFunc()
+
+            someVar
+        `)
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(12);
+    });
+
+    it('should let define local variable with assignment', () => {
+        const node = parseExpression(`
+            someVar = 12
+
+            func testFunc() {
+                local someVar = 14
+            }
+
+            testFunc()
+
+            someVar
+        `)
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(12);
+    });
 });

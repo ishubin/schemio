@@ -21,10 +21,11 @@ import:
     - ./src/control.sch
     - ./src/mind-map.sch
 
-events:
+handlers:
     delete: onDeleteItem(itemId, item)
     area: onAreaUpdate(itemId, item, area)
     copy: onCopyItem(itemId, item)
+    paste: onPasteItems(itemId, items)
 
 controls:
 -   $-foreach: {source: "controls", it: "control"}

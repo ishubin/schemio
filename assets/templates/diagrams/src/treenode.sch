@@ -15,7 +15,7 @@ struct TreeNode {
         if (this.id == nodeId) {
             this
         } else {
-            foundNode = null
+            local foundNode = null
             for (i = 0; i < this.children.size && !foundNode; i++) {
                 foundNode = this.children.get(i).findById(nodeId)
             }
@@ -24,7 +24,7 @@ struct TreeNode {
     }
 
     map(callback) {
-        mappedChildren = List()
+        local mappedChildren = List()
         this.children.forEach((childNode) => {
             mappedChildren.add(childNode.map(callback))
         })
@@ -46,7 +46,7 @@ struct TreeNode {
     }
 
     encodeTree(nodeSeparator, paramSeparator) {
-        encoded = this.id
+        local encoded = this.id
         this.data.forEach((value, name) => {
             encoded = encoded + paramSeparator + name + '=' + value
         })
@@ -77,10 +77,11 @@ struct TreeNode {
     }
 }
 
-decodeTreeNode = (nodeEncoded, paramSeparator) => {
-    nodeParts = splitString(nodeEncoded, paramSeparator)
-    nodeId = nodeParts.shift()
-    nodeData = Map()
+func decodeTreeNode(nodeEncoded, paramSeparator) {
+    local nodeParts = splitString(nodeEncoded, paramSeparator)
+    local nodeId = nodeParts.shift()
+    local nodeData = Map()
+
     nodeParts.forEach((encodedParameter) => {
         paramParts = splitString(encodedParameter, '=')
         if (paramParts.size == 2) {
@@ -91,10 +92,10 @@ decodeTreeNode = (nodeEncoded, paramSeparator) => {
     TreeNode(nodeId, nodeData)
 }
 
-decodeTree = (encodedText, nodeSeparator, paramSeparator) => {
-    nodeList = splitString(encodedText, nodeSeparator)
-    rootNode = decodeTreeNode(nodeList.shift(), paramSeparator)
-    currentNode = rootNode
+func decodeTree(encodedText, nodeSeparator, paramSeparator) {
+    local nodeList = splitString(encodedText, nodeSeparator)
+    local rootNode = decodeTreeNode(nodeList.shift(), paramSeparator)
+    local currentNode = rootNode
     while(nodeList.size > 0) {
         nodeEncoded = nodeList.shift()
         if (nodeEncoded == 'N') {

@@ -1,6 +1,8 @@
 padding = 60
 controlPadding = 40
 controls = List()
+rootNode = null
+ABS_POS = 'absolutePosition'
 
 allIcons = Map(
     'search', '/assets/art/google-cloud/bigquery/bigquery.svg',
@@ -47,7 +49,7 @@ allIcons = Map(
 
 
 func getAllAvailableIcons() {
-    icons = List()
+    local icons = List()
 
     allIcons.forEach((url, id) => {
         icons.add(toJSON(Map('id', id, 'url', url)))
@@ -56,9 +58,9 @@ func getAllAvailableIcons() {
 }
 
 func getNodeIcons(node) {
-    icons = List()
+    local icons = List()
     if (node.data.has('icons')) {
-        iconSet = Set()
+        local iconSet = Set()
         splitString(node.data.get('icons'), ',').forEach((iconId) => {
             if (iconId && !iconSet.has(iconId)) {
                 icons.add(iconId)
@@ -70,7 +72,7 @@ func getNodeIcons(node) {
 }
 
 func encodeIcons(icons) {
-    encoded = ''
+    local encoded = ''
     icons.forEach((id, idx) => {
         if (idx > 0) {
             encoded += ','
@@ -82,9 +84,9 @@ func encodeIcons(icons) {
 
 
 func setNodeIcon(node, iconId) {
-    icons = getNodeIcons(node)
+    local icons = getNodeIcons(node)
 
-    idx = icons.findIndex((id) => { id == iconId })
+    local idx = icons.findIndex((id) => { id == iconId })
     if (idx < 0) {
         icons.add(iconId)
     } else {
@@ -96,8 +98,8 @@ func setNodeIcon(node, iconId) {
 }
 
 func removeNodeIcon(node, iconId) {
-    icons = getNodeIcons(node)
-    idx = icons.findIndex((id) => { id == iconId })
+    local icons = getNodeIcons(node)
+    local idx = icons.findIndex((id) => { id == iconId })
 
     if (idx >= 0) {
         icons.remove(idx)
@@ -118,15 +120,15 @@ func isPointInsideZone(testPoint, zonePoints) {
     if (zonePoints.size < 3) {
         false
     } else {
-        lines = List()
+        local lines = List()
 
         for (i = 0; i < zonePoints.size - 1; i++) {
-            p1 = zonePoints.get(i)
-            p2 = zonePoints.get(i+1)
+            local p1 = zonePoints.get(i)
+            local p2 = zonePoints.get(i+1)
             lines.add(Math.createLineEquation(p2.x, p2.y, p1.x, p1.y))
         }
 
-        isInZone = true
+        local isInZone = true
         for (i = 0; i < lines.size && isInZone; i++) {
             if (Math.sideAgainstLine(testPoint.x, testPoint.y, lines.get(i)) < 0) {
                 isInZone = false
@@ -162,35 +164,34 @@ struct SuggestedConnection {
 }
 
 func findPinsForNodes(node, child) {
+    local p1 = Vector(0, 0)
+    local p2 = Vector(node.w, 0)
+    local p3 = Vector(node.w, node.h)
+    local p4 = Vector(0, node.h)
 
-    p1 = Vector(0, 0)
-    p2 = Vector(node.w, 0)
-    p3 = Vector(node.w, node.h)
-    p4 = Vector(0, node.h)
+    local topRightV    = Vector(1, -3)
+    local bottomLeftV  = -topRightV
+    local topLeftV     = Vector(-1, -3)
+    local bottomRightV = -topLeftV
 
-    topRightV    = Vector(1, -3)
-    bottomLeftV  = -topRightV
-    topLeftV     = Vector(-1, -3)
-    bottomRightV = -topLeftV
+    local srcTopPin    = getPinPointById('t', node)
+    local srcBottomPin = getPinPointById('b', node)
+    local srcLeftPin   = getPinPointById('l', node)
+    local srcRightPin  = getPinPointById('r', node)
 
-    srcTopPin    = getPinPointById('t', node)
-    srcBottomPin = getPinPointById('b', node)
-    srcLeftPin   = getPinPointById('l', node)
-    srcRightPin  = getPinPointById('r', node)
+    local dstTopPin    = getPinPointById('t', child)
+    local dstBottomPin = getPinPointById('b', child)
+    local dstLeftPin   = getPinPointById('l', child)
+    local dstRightPin  = getPinPointById('r', child)
 
-    dstTopPin    = getPinPointById('t', child)
-    dstBottomPin = getPinPointById('b', child)
-    dstLeftPin   = getPinPointById('l', child)
-    dstRightPin  = getPinPointById('r', child)
+    local childOffset = Vector(child.x, child.y)
 
-    childOffset = Vector(child.x, child.y)
+    local t = Vector(node.w/2, 0)
+    local t2 = t + Vector(0, -10)
+    local b = Vector(node.w/2, node.h)
+    local b2 = b + Vector(0, 10)
 
-    t = Vector(node.w/2, 0)
-    t2 = t + Vector(0, -10)
-    b = Vector(node.w/2, node.h)
-    b2 = b + Vector(0, 10)
-
-    connections = List(
+    local connections = List(
         () => { SuggestedConnection(srcTopPin, dstRightPin, List(p1 + topLeftV, p1, t, t2)) },
         () => { SuggestedConnection(srcTopPin, dstLeftPin, List(t2, t, p2, p2 + topRightV)) },
         () => { SuggestedConnection(srcBottomPin, dstLeftPin, List(p3 + bottomRightV, p3, b, b2)) },
@@ -202,16 +203,16 @@ func findPinsForNodes(node, child) {
         () => { SuggestedConnection(srcBottomPin, dstTopPin, List(p3 + bottomRightV, p3, p4, p4 + bottomLeftV)) },
     )
 
-    srcPin = srcRightPin
-    dstPin = dstLeftPin
-    matches = false
+    local srcPin = srcRightPin
+    local dstPin = dstLeftPin
+    local matches = false
 
-    for (i = 0; i < connections.size && !matches; i++) {
-        connection = connections.get(i)()
+    for (local i = 0; i < connections.size && !matches; i++) {
+        local connection = connections.get(i)()
         srcPin = connection.srcPin
         dstPin = connection.dstPin
 
-        testPoint = Vector(dstPin.x, dstPin.y) + childOffset
+        local testPoint = Vector(dstPin.x, dstPin.y) + childOffset
         matches = isPointInsideZone(testPoint, connection.zonePoints)
     }
 
@@ -219,19 +220,19 @@ func findPinsForNodes(node, child) {
 }
 
 func prepareConnectorForNode(node, parent) {
-    connector = Item(`connector-${parent.id}-${node.id}`, `${node.id} -> ${parent.id}`, 'connector', 0, 0, 100, 50, Map())
+    local connector = Item(`connector-${parent.id}-${node.id}`, `${node.id} -> ${parent.id}`, 'connector', 0, 0, 100, 50, Map())
 
-    x1 = parent.w/2
-    y1 = parent.h/2
+    local x1 = parent.w/2
+    local y1 = parent.h/2
 
-    x2 = node.x + node.w/2
-    y2 = node.y + node.h/2
+    local x2 = node.x + node.w/2
+    local y2 = node.y + node.h/2
 
-    childOffset = Vector(node.x, node.y)
+    local childOffset = Vector(node.x, node.y)
 
-    pins = findPinsForNodes(parent, node)
-    pin1 = pins.get(0)
-    pin2 = pins.get(1)
+    local pins = findPinsForNodes(parent, node)
+    local pin1 = pins.get(0)
+    local pin2 = pins.get(1)
 
     connector.shapeProps.set('points', List(
         Map('id', pin1.id, 'x', pin1.x, 'y', pin1.y, 'nx', pin1.normal.x, 'ny', pin1.normal.y),
@@ -258,14 +259,13 @@ func prepareConnectorForNode(node, parent) {
     pin2.id
 }
 
-ABS_POS = 'absolutePosition'
 
 func updateAbsoluteNodePosition(node) {
-    x = parseInt(node.data.get('x'))
-    y = parseInt(node.data.get('y'))
-    localPos = Vector(x, y)
+    local x = parseInt(node.data.get('x'))
+    local y = parseInt(node.data.get('y'))
+    local localPos = Vector(x, y)
 
-    pos = (if (node.parent) {
+    local pos = (if (node.parent) {
         if (node.parent.tempData.has(ABS_POS)) {
             node.parent.tempData.get(ABS_POS) + localPos
         } else {
@@ -283,11 +283,11 @@ func updateAbsoluteNodePosition(node) {
 
 
 rootNode.traverse((node, parent) => {
-    x = parseInt(node.data.get('x'))
-    y = parseInt(node.data.get('y'))
-    w = parseInt(node.data.get('w'))
-    h = parseInt(node.data.get('h'))
-    p = 0
+    local x = parseInt(node.data.get('x'))
+    local y = parseInt(node.data.get('y'))
+    local w = parseInt(node.data.get('w'))
+    local h = parseInt(node.data.get('h'))
+    local p = 0
     if (node.data.has('p')) {
         p = parseInt(node.data.get('p'))
     }
@@ -300,16 +300,16 @@ rootNode.traverse((node, parent) => {
 
     node.x = x
     node.y = y
-    pos = updateAbsoluteNodePosition(node)
+    local pos = updateAbsoluteNodePosition(node)
 
-    addingControl = (location, placement, cx, cy) => {
+    local addingControl = (location, placement, cx, cy) => {
         Control(`add_child_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
     }
 
     if (parent) {
         node.w = w
         node.h = h
-        pinId = prepareConnectorForNode(node, parent)
+        local pinId = prepareConnectorForNode(node, parent)
         controls.extendList(List(
             addingControl('top', 'BL', pos.x + node.w / 2 - 10, pos.y - controlPadding),
             addingControl('bottom', 'TL', pos.x + node.w / 2 - 10, pos.y + node.h + controlPadding),
@@ -331,22 +331,22 @@ rootNode.traverse((node, parent) => {
 
 
 func createProgressPaths(percent) {
-    R = 50
-    angle = 2 * Math.PI * percent / 100
+    local R = 50
+    local angle = 2 * Math.PI * percent / 100
 
-    v1 = Vector(0, -50)
-    v2 = v1.rotate(angle)
+    local v1 = Vector(0, -50)
+    local v2 = v1.rotate(angle)
 
-    p2 = Vector(50, 50) + v2
+    local p2 = Vector(50, 50) + v2
 
-    L = (Vector(50, 0) - p2).length()
+    local L = (Vector(50, 0) - p2).length()
 
-    solution = Math.solveQuadratic(0.5, -R, L*L/8)
+    local solution = Math.solveQuadratic(0.5, -R, L*L/8)
 
-    h = 50
+    local h = 50
 
     if (solution) {
-        H = 0
+        local H = 0
         if (percent <= 50) {
             H = min(solution.v1, solution.v2)
         } else {
@@ -383,16 +383,16 @@ func createProgressPaths(percent) {
 }
 
 func createProgressIconItems(nodeId, percent, color, x, y) {
-    items = List()
+    local items = List()
 
     if (gradientProgress) {
-        t = if (percent <= 50) { percent / 50 } else { (percent - 50) / 50 }
-        c1 = decodeColor(if (percent <= 50) { (progressColor) } else { progressColor2 })
-        c2 = decodeColor(if (percent <= 50) { (progressColor2) } else { progressColor3 })
+        local t = if (percent <= 50) { percent / 50 } else { (percent - 50) / 50 }
+        local c1 = decodeColor(if (percent <= 50) { (progressColor) } else { progressColor2 })
+        local c2 = decodeColor(if (percent <= 50) { (progressColor2) } else { progressColor3 })
         color = c1.gradient(c2, t).encode()
     }
 
-    isNotFull = percent < 99.5
+    local isNotFull = percent < 99.5
 
     items.add(Item(
         `${nodeId}_progress_stroke`, 'progress container', 'ellipse', x, y, progressSize, progressSize, Map(
@@ -421,30 +421,30 @@ func createProgressIconItems(nodeId, percent, color, x, y) {
 }
 
 func createNodeIconItems(node) {
-    items = List()
+    local items = List()
 
-    margin = 5
+    local margin = 5
 
     if (showProgress) {
-        percent = 0
-        color = progressColor
+        local percent = 0
+        local color = progressColor
         if (node.children.size == 0) {
             color = progressColor2
         }
         if (node.data.has('p')) {
             percent = max(0, min(parseInt(node.data.get('p')), 100))
         }
-        x = 10
-        y = node.h / 2 - progressSize / 2
+        local x = 10
+        local y = node.h / 2 - progressSize / 2
 
         items.extendList(createProgressIconItems(node.id, percent, color, x, y))
     }
 
-    progressOffset = if (showProgress) { margin + progressSize } else { 0 }
+    local progressOffset = if (showProgress) { margin + progressSize } else { 0 }
 
     getNodeIcons(node).forEach((iconId, idx) => {
-        x = (iconSize + margin) * idx + 10 + progressOffset
-        y = node.h / 2 - iconSize / 2
+        local x = (iconSize + margin) * idx + 10 + progressOffset
+        local y = node.h / 2 - iconSize / 2
         items.add(Item(
             `${node.id}_icon_${iconId}`, iconId, 'image', x, y, iconSize, iconSize, Map('image', allIcons.get(iconId)), List(), Map(
                 'mindMapType', 'icon',
@@ -458,10 +458,10 @@ func createNodeIconItems(node) {
 }
 
 rootItem = rootNode.map((node, childItems) => {
-    x = node.data.get('x')
-    y = node.data.get('y')
-    w = node.data.get('w')
-    h = node.data.get('h')
+    local x = node.data.get('x')
+    local y = node.data.get('y')
+    local w = node.data.get('w')
+    local h = node.data.get('h')
 
     childItems.extendList(createNodeIconItems(node))
 
@@ -469,9 +469,9 @@ rootItem = rootNode.map((node, childItems) => {
         childItems.extendList(node.tempData.get('connectors'))
     }
 
-    shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
+    local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
-    item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems, Map(
+    local item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems, Map(
         'mindMapType', 'node'
     ))
     item.args.set('templateIgnoredProps', List('name', 'shape', 'shapeProps.*'))
@@ -494,16 +494,16 @@ rootItem.h = height
 
 
 func createNewChildFor(nodeId, placement) {
-    node = rootNode.findById(nodeId)
+    local node = rootNode.findById(nodeId)
     if (node) {
-        x = 0
-        y = 0
-        w = max(1, node.w)
-        h = max(1, node.h)
-        shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
+        local x = 0
+        local y = 0
+        local w = max(1, node.w)
+        local h = max(1, node.h)
+        local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
         if (node.children.size > 0) {
-            childNode = node.children.get(0)
+            local childNode = node.children.get(0)
             if (childNode.data.has('s')) {
                 shape = if (childNode.data.has('s')) { childNode.data.get('s') } else { shape }
             }
@@ -526,7 +526,7 @@ func createNewChildFor(nodeId, placement) {
             y = node.h / 2 - h / 2
         }
 
-        childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h, 's', shape, 'p', 0))
+        local childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h, 's', shape, 'p', 0))
         node.children.add(childNode)
 
         updateProgress(rootNode)
@@ -536,7 +536,7 @@ func createNewChildFor(nodeId, placement) {
 }
 
 func shouldNodeShapeSelectorBeDisplayed(selectedItemIds) {
-    shown = false
+    local shown = false
     selectedItemIds.forEach((itemId) => {
         if (rootNode.findById(itemId)) {
             shown = true
@@ -554,7 +554,7 @@ func selectShapeForItems(selectedItemIds, panelItem) {
                     setObjectField(item.shapeProps, name, value)
                 }
             })
-            node = rootNode.findById(itemId)
+            local node = rootNode.findById(itemId)
             if (node) {
                 node.data.set('s', panelItem.shape)
                 encodeMindMap()
@@ -581,7 +581,7 @@ func shouldNodeIconSelectorBeDisplayed(selectedItemIds) {
 
 func selectIconForItems(selectedItemIds, panelItem) {
     selectedItemIds.forEach((itemId) => {
-        node = rootNode.findById(itemId)
+        local node = rootNode.findById(itemId)
         if (node) {
             setNodeIcon(node, panelItem.id)
         }
@@ -590,9 +590,9 @@ func selectIconForItems(selectedItemIds, panelItem) {
 
 func shouldNodeProgressEditorBeDisplayed(selectedItemIds) {
     if (showProgress) {
-        showPanel = false
+        local showPanel = false
         selectedItemIds.forEach((itemId) => {
-            node = rootNode.findById(itemId)
+            local node = rootNode.findById(itemId)
             if (node && node.children.size == 0) {
                 showPanel = true
             }
@@ -614,12 +614,12 @@ func getAllProgressIconItems() {
 
 func updateProgress(node) {
     if (node.children.size > 0) {
-        sumProgress = 0
+        local sumProgress = 0
         node.children.forEach((childNode) => {
             sumProgress += updateProgress(childNode)
         })
 
-        totalProgress = sumProgress / node.children.size
+        local totalProgress = sumProgress / node.children.size
         node.data.set('p', totalProgress)
         totalProgress
     } else {
@@ -633,7 +633,7 @@ func updateProgress(node) {
 
 func selectProgressForItems(selectedItemIds, panelItem) {
     selectedItemIds.forEach((itemId) => {
-        node = rootNode.findById(itemId)
+        local node = rootNode.findById(itemId)
         if (node && node.children.size == 0) {
             node.data.set('p', panelItem.args.mindMapProgress)
         }
@@ -647,7 +647,7 @@ func selectProgressForItems(selectedItemIds, panelItem) {
 // triggered when item area changes as a result of edit box modifications
 // the handler is supposed to mutate the area object in case the area is changed
 func onAreaUpdate(itemId, item, area) {
-    node = rootNode.findById(itemId)
+    local node = rootNode.findById(itemId)
     if (node) {
         node.data.set('x', area.x)
         node.data.set('y', area.y)
@@ -659,6 +659,7 @@ func onAreaUpdate(itemId, item, area) {
 
 // Template special function. Triggered when user deletes templated item
 func onDeleteItem(itemId, item) {
+    local node
     if (item.args.mindMapType == 'icon') {
         node = rootNode.findById(item.args.mindMapNodeId)
         if (node) {
@@ -675,9 +676,31 @@ func onDeleteItem(itemId, item) {
 }
 
 func onCopyItem(itemId, item) {
-    node = rootNode.findById(itemId)
+    local node = rootNode.findById(itemId)
     if (node) {
-        encodedNode = rootNode.encodeTree(' | ', ';')
-        setObjectField(item.args, 'mindMapEncodedNode', encodedNode)
+        encodedNode = node.encodeTree(' | ', ';')
+        setObjectField(item.args, 'mindMap_EncodedNode', encodedNode)
+    }
+}
+
+func onPasteItems(itemId, items) {
+    local dstNode = rootNode.findById(itemId)
+    if (dstNode) {
+        items.forEach((item) => {
+            if (item.args && item.args.mindMap_EncodedNode) {
+                log('Will attach', item.args.mindMap_EncodedNode)
+
+                newRootNode = decodeTree(item.args.mindMap_EncodedNode, ' | ', ';')
+
+                newRootNode.traverse((node) => {
+                    node.id = uid()
+                })
+
+                dstNode.children.add(newRootNode)
+            }
+        })
+
+        log(rootNode)
+        encodeMindMap()
     }
 }
