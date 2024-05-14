@@ -21,7 +21,7 @@ import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation'
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
-import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem } from '../components/editor/items/ItemTemplate.js';
+import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -2075,10 +2075,8 @@ class SchemeContainer {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
-                            const newArgs = template.onDeleteItem(rootItem, item.args.templatedId, item);
-                            if (newArgs) {
-                                this.regenerateTemplatedItem(rootItem, template, newArgs, rootItem.area.w, rootItem.area.h);
-                            }
+                            template.onDeleteItem(rootItem, item.args.templatedId, item);
+                            this.regenerateTemplatedItem(rootItem, template, rootItem.args.templateArgs, rootItem.area.w, rootItem.area.h);
                         });
                     }
                 } else {
@@ -2752,9 +2750,8 @@ class SchemeContainer {
                 promise = this.getTemplate(rootItem.args.templateRef)
                 .then(template => {
                     if (template.hasHandler('paste')) {
-                        const updatedArgs = template.onPasteItemInto(rootItem, dstItem.args.templatedId, items)
-                        rootItem.args.templateArgs = updatedArgs;
-                        this.regenerateTemplatedItem(rootItem, template, rootItem.args.templateArgs, rootItem.area.w, rootItem.area.h);
+                        const updatedScopeData = template.onPasteItemInto(rootItem, dstItem.args.templatedId, items)
+                        this.regenerateTemplatedItemWithExistingScopeData(rootItem, template, updatedScopeData, rootItem.area.w, rootItem.area.h);
                         EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, rootItem.id);
                         return true;
@@ -3039,12 +3036,11 @@ class SchemeContainer {
                         }
                         this.getTemplate(templateRootItem.args.templateRef)
                         .then(template => {
-                            const updatedTemplateArgs = template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea);
+                            template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea);
                             item.area.x = modifiedArea.x;
                             item.area.y = modifiedArea.y;
                             item.area.w = modifiedArea.w;
                             item.area.h = modifiedArea.h;
-                            templateRootItem.args.templateArgs = updatedTemplateArgs;
 
                             if (!isSoft) {
                                 this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
@@ -3734,11 +3730,21 @@ class SchemeContainer {
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
-        this.reindexItems();
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
+        this.reindexItems();
+    }
+
+    regenerateTemplatedItemWithExistingScopeData(rootItem, template, scopeData, width, height) {
+        const idOldToNewConversions = regenerateTemplatedItemWithPostBuilder(rootItem, template, scopeData, width, height);
+        this.fixItemsReferences([rootItem], idOldToNewConversions);
+        traverseItems([rootItem], item => {
+            this.readjustItem(item.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+        });
+        this.reindexItems();
     }
 
     _alignItemsWith(items, correctionCallback) {

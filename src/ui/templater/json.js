@@ -75,3 +75,35 @@ function convertObjectToJSON(obj) {
     }
     return result;
 }
+
+
+
+export function convertJSONToScriptObject(obj) {
+    if (obj === null) {
+        return null;
+    }
+
+    if (Array.isArray(obj)) {
+        return convertArrayToList(obj);
+    } else if (typeof obj === 'object') {
+        return convertJSONObjectToMap(obj);
+    }
+    return obj;
+}
+
+/**
+ * @param {Array} arr
+ */
+function convertArrayToList(arr) {
+    return new List(...arr.map(convertJSONToScriptObject));
+}
+
+function convertJSONObjectToMap(obj) {
+    const m = new Map();
+    for(let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            m.set(key, convertJSONToScriptObject(obj[key]));
+        }
+    }
+    return m;
+}

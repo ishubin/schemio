@@ -125,6 +125,10 @@ export function compileItemTemplate(editorId, template, templateRef) {
         item: template.item,
     });
 
+    const itemPostBuilder = compileJSONTemplate({
+        item: template.item
+    });
+
     const editorJSONBuilder = compileJSONTemplate({
         '$-eval': initBlock,
         editor: template.editor || defaultEditor,
@@ -176,19 +180,20 @@ export function compileItemTemplate(editorId, template, templateRef) {
             });
 
             templateHandlers[eventName].evalNode(scope);
-            const updatedData = scope.getData();
+            const updatedScopeData = scope.getData();
 
             const templateArgs = {};
             forEachObject(template.args, (argDef, argName) => {
-                templateArgs[argName] = updatedData[argName];
+                templateArgs[argName] = updatedScopeData[argName];
             });
-            if (updatedData.hasOwnProperty('width')) {
-                templateArgs.width = updatedData.width;
+            if (updatedScopeData.hasOwnProperty('width')) {
+                templateArgs.width = updatedScopeData.width;
             }
-            if (updatedData.hasOwnProperty('height')) {
-                templateArgs.height = updatedData.height;
+            if (updatedScopeData.hasOwnProperty('height')) {
+                templateArgs.height = updatedScopeData.height;
             }
-            return templateArgs;
+            rootItem.args.templateArgs = templateArgs;
+            return updatedScopeData;
         },
 
         onDeleteItem(rootItem, itemId, item) {
@@ -204,10 +209,15 @@ export function compileItemTemplate(editorId, template, templateRef) {
         },
 
         onPasteItemInto(rootItem, itemId, items) {
-            return this.triggerTemplateEvent(rootItem, 'paste', {itemId, items})
+            return this.triggerTemplateEvent(rootItem, 'paste', {itemId, items});
         },
 
-        buildItem : (args, width, height) => itemBuilder({ ...args, width, height }).item,
+        buildItem : (args, width, height, postBuild) => {
+            if (postBuild) {
+                return itemPostBuilder({ ...args, width, height }).item;
+            }
+            return itemBuilder({ ...args, width, height }).item;
+        },
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds),
 
@@ -244,10 +254,11 @@ export function compileItemTemplate(editorId, template, templateRef) {
  * @param {Object} args
  * @param {Number} width
  * @param {Number} height
+ * @param {Boolean} postBuild
  * @returns {Item}
  */
-export function generateItemFromTemplate(template, args, width, height) {
-    const item = template.buildItem(args, width, height);
+export function generateItemFromTemplate(template, args, width, height, postBuild = false) {
+    const item = template.buildItem(args, width, height, postBuild);
     item.area.w = width;
     item.area.h = height;
 
@@ -268,10 +279,18 @@ export function generateItemFromTemplate(template, args, width, height) {
     });
 
     item.args.templateRef = template.templateRef;
-    item.args.templateArgs = args;
+    item.args.templateArgs = {};
+    forEachObject(template.args, (argDef, argName) => {
+        if (args.hasOwnProperty(argName)) {
+            item.args.templateArgs[argName] = args[argName];
+        }
+    });
     return item;
 }
 
+export function regenerateTemplatedItemWithPostBuilder(rootItem, template, templateArgs, width, height) {
+    return regenerateTemplatedItem(rootItem, template, templateArgs, width, height, true);
+}
 
 /**
  * @param {Item} rootItem
@@ -279,9 +298,10 @@ export function generateItemFromTemplate(template, args, width, height) {
  * @param {Object} templateArgs
  * @param {Number} width
  * @param {Number} height
+ * @param {Boolean} postBuild
  * @returns
  */
-export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
+export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height, postBuild = false) {
     if (templateArgs.hasOwnProperty('width')) {
         width = templateArgs.width;
         rootItem.area.w = width;
@@ -290,13 +310,13 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         height = templateArgs.height;
         rootItem.area.h = height;
     }
-    const finalArgs = {...template.getDefaultArgs()};
-    forEachObject(template.args, (argDef, argName) => {
-        if (templateArgs.hasOwnProperty(argName)) {
-            finalArgs[argName] = templateArgs[argName];
-        }
-    });
-    const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height);
+    const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
+    // forEachObject(template.args, (argDef, argName) => {
+    //     if (templateArgs.hasOwnProperty(argName)) {
+    //         finalArgs[argName] = templateArgs[argName];
+    //     }
+    // });
+    const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height, postBuild);
 
     /** @type {Map<String, Item>} */
     const regeneratedItemsById = new Map();

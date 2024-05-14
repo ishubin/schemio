@@ -3,10 +3,10 @@ import { StringTemplate } from "./strings";
 import { Vector } from "./vector";
 import { Scope } from "./scope";
 import shortid from "shortid";
-import { convertScriptObjectToJSON } from "./json";
+import { convertJSONToScriptObject, convertScriptObjectToJSON } from "./json";
 import { forEach } from "../collections";
 import SchemioScriptMath from "./astmath";
-import { encodeColor, parseColor } from "../colors";
+import { parseColor } from "../colors";
 import { Color } from "./color";
 
 const FUNC_INVOKE = 'funcInvoke';
@@ -570,6 +570,7 @@ const reservedFunctions = new Map(Object.entries({
     matchesRegex  : (text, pattern) => new RegExp(pattern).test(text),
     splitString   : (str, separator) => new List(...str.split(separator)),
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
+    fromJSON      : (obj) => convertJSONToScriptObject(obj),
     forEach       : forEach,
     setObjectField: setObjectFieldFunc,
     Math          : SchemioScriptMath,

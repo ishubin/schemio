@@ -4,6 +4,9 @@ controls = List()
 rootNode = null
 ABS_POS = 'absolutePosition'
 
+// rootItem is used for building all of the template items
+rootItem = null
+
 allIcons = Map(
     'search', '/assets/art/google-cloud/bigquery/bigquery.svg',
     'time', '/assets/art/azure/General/10006-icon-service-Recent.svg',
@@ -151,7 +154,6 @@ func getPinPointById(pinId, node) {
     }
 }
 
-rootNode = decodeTree(nodes, ' | ', ';')
 
 func encodeMindMap() {
     nodes = rootNode.encodeTree(' | ', ';')
@@ -282,54 +284,6 @@ func updateAbsoluteNodePosition(node) {
 }
 
 
-rootNode.traverse((node, parent) => {
-    local x = parseInt(node.data.get('x'))
-    local y = parseInt(node.data.get('y'))
-    local w = parseInt(node.data.get('w'))
-    local h = parseInt(node.data.get('h'))
-    local p = 0
-    if (node.data.has('p')) {
-        p = parseInt(node.data.get('p'))
-    }
-
-    node.data.set('x', x)
-    node.data.set('y', y)
-    node.data.set('w', w)
-    node.data.set('h', h)
-    node.data.set('p', p)
-
-    node.x = x
-    node.y = y
-    local pos = updateAbsoluteNodePosition(node)
-
-    local addingControl = (location, placement, cx, cy) => {
-        Control(`add_child_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
-    }
-
-    if (parent) {
-        node.w = w
-        node.h = h
-        local pinId = prepareConnectorForNode(node, parent)
-        controls.extendList(List(
-            addingControl('top', 'BL', pos.x + node.w / 2 - 10, pos.y - controlPadding),
-            addingControl('bottom', 'TL', pos.x + node.w / 2 - 10, pos.y + node.h + controlPadding),
-            addingControl('left', 'TR', pos.x - controlPadding, pos.y + node.h / 2 - 10),
-            addingControl('right', 'TL', pos.x + node.w + controlPadding, pos.y + node.h / 2 - 10)
-        ).filter((control) => {!control.name.startsWith(`add_child_${pinId}`)}))
-    } else {
-        node.w = width
-        node.h = height
-
-        controls.extendList(List(
-            addingControl('top', 'BL', node.w / 2 - 10, -controlPadding),
-            addingControl('bottom', 'TL', node.w / 2 - 10, node.h + controlPadding),
-            addingControl('left', 'TR', -controlPadding, node.h / 2 - 10),
-            addingControl('right', 'TL', node.w + controlPadding, node.h / 2 - 10)
-        ))
-    }
-})
-
-
 func createProgressPaths(percent) {
     local R = 50
     local angle = 2 * Math.PI * percent / 100
@@ -457,41 +411,48 @@ func createNodeIconItems(node) {
     items
 }
 
-rootItem = rootNode.map((node, childItems) => {
-    local x = node.data.get('x')
-    local y = node.data.get('y')
-    local w = node.data.get('w')
-    local h = node.data.get('h')
+func buildTemplateItems(rootNode) {
+    rootNode.map((node, childItems) => {
+        local x = node.data.get('x')
+        local y = node.data.get('y')
+        local w = node.data.get('w')
+        local h = node.data.get('h')
 
-    childItems.extendList(createNodeIconItems(node))
+        childItems.extendList(createNodeIconItems(node))
 
-    if (node.tempData.has('connectors')) {
-        childItems.extendList(node.tempData.get('connectors'))
-    }
+        if (node.tempData.has('connectors')) {
+            childItems.extendList(node.tempData.get('connectors'))
+        }
 
-    local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
+        local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
-    local item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems, Map(
-        'mindMapType', 'node'
-    ))
-    item.args.set('templateIgnoredProps', List('name', 'shape', 'shapeProps.*'))
-    item.locked = false
-    if (node.id != rootNode.id) {
-        item.args.set('tplArea', 'controlled')
-    }
-    item.args.set('tplRotation', 'off')
-    item.args.set('tplConnector', 'off')
+        local item = Item(node.id, `item ${node.id}`, shape, x, y, w, h, Map(), childItems, Map(
+            'mindMapType', 'node'
+        ))
 
-    if (shape == 'none') {
-        item.setText('body', 'Add your text...')
-    }
-    item
-})
+        if (node.tempData.has('sourceItem')) {
+            srcItem = node.tempData.get('sourceItem')
+            if (srcItem) {
+                item.shape = srcItem.shape
+                item.shapeProps = fromJSON(srcItem.shapeProps)
+                item.textSlots = fromJSON(srcItem.textSlots)
+            }
+        }
 
-rootItem.name = 'Mind map'
-rootItem.w = width
-rootItem.h = height
+        item.args.set('templateIgnoredProps', List('name', 'shape', 'shapeProps.*'))
+        item.locked = false
+        if (node.id != rootNode.id) {
+            item.args.set('tplArea', 'controlled')
+        }
+        item.args.set('tplRotation', 'off')
+        item.args.set('tplConnector', 'off')
 
+        if (shape == 'none') {
+            item.setText('body', 'Add your text...')
+        }
+        item
+    })
+}
 
 func createNewChildFor(nodeId, placement) {
     local node = rootNode.findById(nodeId)
@@ -688,19 +649,94 @@ func onPasteItems(itemId, items) {
     if (dstNode) {
         items.forEach((item) => {
             if (item.args && item.args.mindMap_EncodedNode) {
-                log('Will attach', item.args.mindMap_EncodedNode)
-
                 newRootNode = decodeTree(item.args.mindMap_EncodedNode, ' | ', ';')
 
+                nodesById = Map()
                 newRootNode.traverse((node) => {
+                    nodesById.set(node.id, node)
                     node.id = uid()
                 })
 
-                dstNode.children.add(newRootNode)
+                traverseItems = (item) => {
+                    if (item.args.templated && item.args.templatedId && nodesById.has(item.args.templatedId)) {
+                        node = nodesById.get(item.args.templatedId)
+                        node.tempData.set('sourceItem', item)
+                    }
+                    if (item.childItems) {
+                        item.childItems.forEach(traverseItems)
+                    }
+                }
+                traverseItems(item)
+
+                // dstNode.children.add(newRootNode)
+                newRootNode.attachTo(dstNode)
             }
         })
 
-        log(rootNode)
+        reindexTree(rootNode)
+        rootItem = buildTemplateItems(rootNode)
+        rootItem.name = 'Mind map'
+        rootItem.w = width
+        rootItem.h = height
+
         encodeMindMap()
     }
 }
+
+func reindexTree(rootNode) {
+    rootNode.traverse((node, parent) => {
+        local x = parseInt(node.data.get('x'))
+        local y = parseInt(node.data.get('y'))
+        local w = parseInt(node.data.get('w'))
+        local h = parseInt(node.data.get('h'))
+        local p = 0
+        if (node.data.has('p')) {
+            p = parseInt(node.data.get('p'))
+        }
+
+        node.data.set('x', x)
+        node.data.set('y', y)
+        node.data.set('w', w)
+        node.data.set('h', h)
+        node.data.set('p', p)
+
+        node.x = x
+        node.y = y
+        local pos = updateAbsoluteNodePosition(node)
+
+        local addingControl = (location, placement, cx, cy) => {
+            Control(`add_child_${location}`, Map('nodeId', node.id), `createNewChildFor(control.data.nodeId, '${location}')`, cx, cy, 20, 20, '+', placement, node.id)
+        }
+
+        if (parent) {
+            node.w = w
+            node.h = h
+            local pinId = prepareConnectorForNode(node, parent)
+            controls.extendList(List(
+                addingControl('top', 'BL', pos.x + node.w / 2 - 10, pos.y - controlPadding),
+                addingControl('bottom', 'TL', pos.x + node.w / 2 - 10, pos.y + node.h + controlPadding),
+                addingControl('left', 'TR', pos.x - controlPadding, pos.y + node.h / 2 - 10),
+                addingControl('right', 'TL', pos.x + node.w + controlPadding, pos.y + node.h / 2 - 10)
+            ).filter((control) => {!control.name.startsWith(`add_child_${pinId}`)}))
+        } else {
+            node.w = width
+            node.h = height
+
+            controls.extendList(List(
+                addingControl('top', 'BL', node.w / 2 - 10, -controlPadding),
+                addingControl('bottom', 'TL', node.w / 2 - 10, node.h + controlPadding),
+                addingControl('left', 'TR', -controlPadding, node.h / 2 - 10),
+                addingControl('right', 'TL', node.w + controlPadding, node.h / 2 - 10)
+            ))
+        }
+    })
+}
+
+
+rootNode = decodeTree(nodes, ' | ', ';')
+reindexTree(rootNode)
+
+rootItem = buildTemplateItems(rootNode)
+rootItem.name = 'Mind map'
+rootItem.w = width
+rootItem.h = height
