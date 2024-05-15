@@ -13,6 +13,20 @@ import { Scope } from "../../../templater/scope";
 import { ASTNode } from "../../../templater/nodes";
 
 
+const ContextPhases = {
+    BUILD     : 'build',
+    POST_BUILD: 'post-build',
+    EVENT     : 'event',
+};
+
+class TemplateContext {
+    constructor(phase, eventName, eventId) {
+        this.phase = phase;
+        this.eventName = eventName;
+        this.eventId = eventId;
+    }
+}
+
 
 const defaultEditor = {
     panels: []
@@ -39,7 +53,11 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
         selectedItemIds: new List(...selectedItemIds),
         ...createTemplateFunctions(editorId, templateRootItem)
     };
-    const finalData = {...data, ...extraData};
+    const finalData = {
+        ...data,
+        ...extraData,
+        context: new TemplateContext(ContextPhases.EVENT, 'editor', '')
+    };
 
     const editor = editorJSONBuilder(finalData).editor;
     if (!editor || !Array.isArray(editor.panels)) {
@@ -54,7 +72,9 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
             }
             let click = null;
             if (panel.click) {
-                const clickCallback = compileTemplateExpressions(initBlock.concat([panel.click]), {});
+                const clickCallback = compileTemplateExpressions(initBlock.concat([panel.click]), {
+                    context: new TemplateContext(ContextPhases.EVENT, 'panel-click', panel.id)
+                });
                 click = (panelItem) => {
                     // panel click callback is supposed to return the object that contains the top-level scope fields
                     // This can be used in order to update template args in the template root item
@@ -170,6 +190,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                 ...createTemplateFunctions(editorId, rootItem),
                 width: rootItem.area.w,
                 height: rootItem.area.h,
+                context: new TemplateContext(ContextPhases.EVENT, eventName, rootItem.id)
             };
             const scope = new Scope(fullData);
 
@@ -214,16 +235,28 @@ export function compileItemTemplate(editorId, template, templateRef) {
 
         buildItem : (args, width, height, postBuild) => {
             if (postBuild) {
-                return itemPostBuilder({ ...args, width, height }).item;
+                return itemPostBuilder({
+                    ...args, width, height,
+                    context: new TemplateContext(ContextPhases.POST_BUILD, null, '')
+                }).item;
             }
-            return itemBuilder({ ...args, width, height }).item;
+            return itemBuilder({
+                ...args, width, height,
+                context: new TemplateContext(ContextPhases.BUILD, null, '')
+            }).item;
         },
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds),
 
-        buildControls: (args, width, height) => compiledControlBuilder({...args, width, height}).controls.map(control => {
+        buildControls: (args, width, height) => compiledControlBuilder({
+                ...args, width, height,
+                context: new TemplateContext(ContextPhases.EVENT, 'control', '')
+            }).controls.map(control => {
             const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
-            const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height});
+            const clickExecutor = compileTemplateExpressions(controlExpressions, {
+                ...args, width, height,
+                context: new TemplateContext(ContextPhases.EVENT, 'control', control.id)
+            });
             return {
                 ...control,
 
@@ -311,11 +344,6 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         rootItem.area.h = height;
     }
     const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
-    // forEachObject(template.args, (argDef, argName) => {
-    //     if (templateArgs.hasOwnProperty(argName)) {
-    //         finalArgs[argName] = templateArgs[argName];
-    //     }
-    // });
     const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height, postBuild);
 
     /** @type {Map<String, Item>} */

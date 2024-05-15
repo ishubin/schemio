@@ -1,3 +1,5 @@
+log('context', context)
+
 padding = 60
 controlPadding = 40
 controls = List()
@@ -667,13 +669,12 @@ func onPasteItems(itemId, items) {
                     }
                 }
                 traverseItems(item)
-
-                // dstNode.children.add(newRootNode)
                 newRootNode.attachTo(dstNode)
             }
         })
 
         reindexTree(rootNode)
+        updateProgress(rootNode)
         rootItem = buildTemplateItems(rootNode)
         rootItem.name = 'Mind map'
         rootItem.w = width
@@ -732,11 +733,13 @@ func reindexTree(rootNode) {
     })
 }
 
-
 rootNode = decodeTree(nodes, ' | ', ';')
 reindexTree(rootNode)
 
-rootItem = buildTemplateItems(rootNode)
-rootItem.name = 'Mind map'
-rootItem.w = width
-rootItem.h = height
+ if (context.phase == 'build') {
+    rootItem = buildTemplateItems(rootNode)
+    rootItem.name = 'Mind map'
+    rootItem.w = width
+    rootItem.h = height
+}
+
