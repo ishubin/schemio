@@ -1,5 +1,3 @@
-log('context', context)
-
 padding = 60
 controlPadding = 40
 controls = List()
@@ -465,6 +463,8 @@ func createNewChildFor(nodeId, placement) {
         local h = max(1, node.h)
         local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
+
+
         if (node.children.size > 0) {
             local childNode = node.children.get(0)
             if (childNode.data.has('s')) {
@@ -475,12 +475,16 @@ func createNewChildFor(nodeId, placement) {
             h = max(1, childNode.h)
         }
 
+        correctiveVector = Vector(0, h * 0.8)
+
         if (placement == 'top') {
             y = - padding - h
             x = node.w / 2 - w / 2
+            correctiveVector = Vector(w * 0.6, 0)
         } else if (placement == 'bottom') {
             y = node.h + padding
             x = node.w / 2 - w / 2
+            correctiveVector = Vector(w * 0.6, 0)
         } else if (placement == 'left') {
             x = - padding - w
             y = node.h / 2 - h / 2
@@ -489,7 +493,30 @@ func createNewChildFor(nodeId, placement) {
             y = node.h / 2 - h / 2
         }
 
-        local childNode = TreeNode(uid(), Map('x', x, 'y', y, 'w', w, 'h', h, 's', shape, 'p', 0))
+        local childAreas = node.children.map((childNode) => { Area(childNode.x, childNode.y, childNode.w, childNode.h) })
+
+        func overlapsChildren(area) {
+            local overlaps = false
+            for (local i = 0; !overlaps && i < childAreas.size; i++) {
+                overlaps = area.overlaps(childAreas.get(i))
+            }
+            overlaps
+        }
+
+        local overlaps = true
+        local tries = 0
+
+        local area
+
+        while(overlaps && tries < 1000) {
+            direction = if (tries % 2 == 0) { 1 } else { -1 }
+            displacement = correctiveVector * tries * direction
+            area = Area(x + displacement.x, y + displacement.y, w, h)
+            overlaps = overlapsChildren(area)
+            tries++
+        }
+
+        local childNode = TreeNode(uid(), Map('x', area.x, 'y', area.y, 'w', w, 'h', h, 's', shape, 'p', 0))
         node.children.add(childNode)
 
         updateProgress(rootNode)
@@ -712,13 +739,16 @@ func reindexTree(rootNode) {
         if (parent) {
             node.w = w
             node.h = h
-            local pinId = prepareConnectorForNode(node, parent)
-            controls.extendList(List(
-                addingControl('top', 'BL', pos.x + node.w / 2 - 10, pos.y - controlPadding),
-                addingControl('bottom', 'TL', pos.x + node.w / 2 - 10, pos.y + node.h + controlPadding),
-                addingControl('left', 'TR', pos.x - controlPadding, pos.y + node.h / 2 - 10),
-                addingControl('right', 'TL', pos.x + node.w + controlPadding, pos.y + node.h / 2 - 10)
-            ).filter((control) => {!control.name.startsWith(`add_child_${pinId}`)}))
+            local srcPinId = prepareConnectorForNode(node, parent)
+            if (srcPinId == 't') {
+                controls.add(addingControl('bottom', 'TL', pos.x + node.w / 2 - 10, pos.y + node.h + controlPadding))
+            } else if (srcPinId == 'b') {
+                controls.add(addingControl('top', 'BL', pos.x + node.w / 2 - 10, pos.y - controlPadding))
+            } else if (srcPinId == 'l') {
+                controls.add(addingControl('right', 'TL', pos.x + node.w + controlPadding, pos.y + node.h / 2 - 10))
+            } else if (srcPinId == 'r') {
+                controls.add(addingControl('left', 'TR', pos.x - controlPadding, pos.y + node.h / 2 - 10))
+            }
         } else {
             node.w = width
             node.h = height

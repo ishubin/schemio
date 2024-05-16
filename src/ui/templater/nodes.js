@@ -8,6 +8,7 @@ import { forEach } from "../collections";
 import SchemioScriptMath from "./astmath";
 import { parseColor } from "../colors";
 import { Color } from "./color";
+import { Area } from "./area";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -539,6 +540,7 @@ const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     Vector    : (x, y) => new Vector(x, y),
     List      : (...items) => new List(...items),
+    Area      : (x, y, w, h) => new Area(x, y, w, h),
     Map       : (...args) => createHashMap(...args),
     Set       : (...items) => new Set(items),
     max       : Math.max,
