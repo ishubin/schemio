@@ -19,8 +19,8 @@
             />
 
             <Panel v-for="panel in editorPanels" :name="panel.name" :uid="panel.id">
-                <ul class="template-editor-panel-items-container">
-                    <li v-for="item in panel.items" @click="onEditPanelItemClicked(panel, item)"
+                <ul v-if="panel.type === 'item-menu'" class="template-editor-panel-items-container">
+                    <li v-for="item in panel.items" @click="onEditorPanelItemClicked(panel, item)"
                         :style="{width: `${panel.slotSize.width}px`, height: `${panel.slotSize.height}px`, }"
                         >
                         <svg :width="`${panel.slotSize.width}px`" :height="`${panel.slotSize.height}px`">
@@ -29,6 +29,11 @@
                             </g>
                             <rect x="0" y="0" :width="`${panel.slotSize.width}px`" :height="`${panel.slotSize.height}px`" fill="rgba(0,0,0,0.0)" stroke="none"/>
                         </svg>
+                    </li>
+                </ul>
+                <ul v-if="panel.type === 'buttons'" class="template-editor-panel-buttons-menu">
+                    <li v-for="button in panel.buttons">
+                        <span class="btn btn-secondary" @click="onEditorPanelItemClicked(panel, button)">{{ button.name }}</span>
                     </li>
                 </ul>
             </Panel>
@@ -80,7 +85,7 @@ export default {
     },
 
     methods: {
-        onEditPanelItemClicked(panel, panelItem) {
+        onEditorPanelItemClicked(panel, panelItem) {
             const templateData = panel.click(panelItem);
 
             if (this.template.args) {

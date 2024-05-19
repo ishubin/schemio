@@ -3728,22 +3728,30 @@ class SchemeContainer {
     }
 
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
+        log.info('regenerateTemplatedItem', rootItem.id, templateArgs);
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
+        this.updateChildTransforms(rootItem);
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
+
+        // the full reindex is needed in order to update spatial index
         this.reindexItems();
     }
 
     regenerateTemplatedItemWithExistingScopeData(rootItem, template, scopeData, width, height) {
+        log.info('regenerateTemplatedItemWithExistingScopeData', rootItem.id, scopeData);
         const idOldToNewConversions = regenerateTemplatedItemWithPostBuilder(rootItem, template, scopeData, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
+        this.updateChildTransforms(rootItem);
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
+
+        // the full reindex is needed in order to update spatial index
         this.reindexItems();
     }
 

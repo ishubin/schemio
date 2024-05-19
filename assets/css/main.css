@@ -4207,7 +4207,8 @@ input.condition-function-send-event {
 
 /************** Template properties ********************/
 
-.template-properties  ul.template-editor-panel-items-container {
+.template-properties  ul.template-editor-panel-items-container,
+.template-properties ul.template-editor-panel-buttons-menu {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -4223,4 +4224,15 @@ input.condition-function-send-event {
 .template-properties  ul.template-editor-panel-items-container > li:hover {
     border: 1px solid var(--faint-weak-down-down);
     background: var(--base-weak);
+}
+
+.template-properties ul.template-editor-panel-buttons-menu > li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+}
+.template-properties ul.template-editor-panel-buttons-menu > li > .btn {
+    display: block;
+    min-width: 200px;
 }

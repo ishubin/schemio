@@ -36,7 +36,7 @@ editor:
 
     -   id: node-progress
         condition: 'shouldNodeProgressEditorBeDisplayed(selectedItemIds)'
-        type: slot-menu
+        type: item-menu
         click: 'selectProgressForItems(selectedItemIds, panelItem)'
         name: Select progress
         slotSize:
@@ -49,7 +49,7 @@ editor:
 
     -   id: node-icon-selector
         condition: 'shouldNodeIconSelectorBeDisplayed(selectedItemIds)'
-        type: slot-menu
+        type: item-menu
         click: 'selectIconForItems(selectedItemIds, panelItem)'
         name: Choose icons
         slotSize:
@@ -65,7 +65,7 @@ editor:
 
     -   id: node-shape-selector
         condition: 'shouldNodeShapeSelectorBeDisplayed(selectedItemIds)'
-        type: slot-menu
+        type: item-menu
         click: 'selectShapeForItems(selectedItemIds, panelItem)'
         name: Select shape
         slotSize:
@@ -118,6 +118,17 @@ editor:
                 body:
                     text: 'Simple label'
 
+    -   id: node-operations
+        condition: 'shouldNodeOperationsPanelBeDisplayed(selectedItemIds)'
+        type: buttons
+        name: Operations
+        click: 'onOperationsPanelClick(selectedItemIds, panelItem)'
+        buttons:
+        -   id: insert-new-parent
+            name: Insert new parent
+
+        -   id: delete-node-preserve-children
+            name: Delete (preserve children)
 
 item:
     $-recurse: {object: {"$-expr": "rootItem"}, it: 'it', children: 'it.childItems', dstChildren: 'childItems'}
@@ -128,10 +139,6 @@ item:
     args: {$-expr: "it.getArgs()"}
     locked: {$-expr: "it.locked"}
     textSlots: {$-expr: "toJSON(it.textSlots)"}
-    # args: { templateIgnoredProps: [] }
-    # args: {
-    #     tplArea: controlled
-    # }
     area:
         x: {$-expr: "it.x"}
         y: {$-expr: "it.y"}

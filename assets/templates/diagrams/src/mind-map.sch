@@ -763,6 +763,58 @@ func reindexTree(rootNode) {
     })
 }
 
+
+func shouldNodeOperationsPanelBeDisplayed(selectedItemIds) {
+    shouldNodeShapeSelectorBeDisplayed(selectedItemIds)
+    local shown = false
+    selectedItemIds.forEach((itemId) => {
+        node = rootNode.findById(itemId)
+        if (node && node.parent) {
+            shown = true
+        }
+    })
+    shown
+}
+
+func onOperationsPanelClick(selectedItemIds, panelItem) {
+    selectedItemIds.forEach((itemId) => {
+        node = rootNode.findById(itemId)
+        if (node) {
+            if (panelItem.id == 'insert-new-parent' && node.parent) {
+                insertNewParentFor(node)
+            }
+        }
+    })
+}
+
+func insertNewParentFor(node) {
+    local oldParent = node.parent
+    local dx = node.x - node.parent.x
+    local dy = node.y - node.parent.y
+
+    local found = false
+    for (local i = 0; !found && i < node.parent.children.size; i++) {
+        local childNode = node.parent.children.get(i)
+        if (childNode.id == node.id) {
+            found = true
+            node.parent.children.remove(i)
+        }
+    }
+
+    local newParent = TreeNode(uid())
+    node.data.forEach((value, name) => { newParent.data.set(name, value) })
+    newParent.x = node.x
+    newParent.y = node.y
+    newParent.w = node.w
+    newParent.h = node.h
+
+    node.attachTo(newParent)
+    newParent.attachTo(oldParent)
+    // reindexTree(rootNode)
+    updateProgress(rootNode)
+    encodeMindMap()
+}
+
 rootNode = decodeTree(nodes, ' | ', ';')
 reindexTree(rootNode)
 
@@ -772,4 +824,3 @@ reindexTree(rootNode)
     rootItem.w = width
     rootItem.h = height
 }
-

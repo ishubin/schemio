@@ -108,9 +108,6 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
                 click
             };
         }).filter(panel => {
-            if (!panel.click) {
-                return false;
-            }
             const result = panel.condition();
             return result;
         })
@@ -246,7 +243,9 @@ export function compileItemTemplate(editorId, template, templateRef) {
             }).item;
         },
 
-        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds),
+        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => {
+            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds);
+        },
 
         buildControls: (args, width, height) => compiledControlBuilder({
                 ...args, width, height,
@@ -335,6 +334,20 @@ export function regenerateTemplatedItemWithPostBuilder(rootItem, template, templ
  * @returns
  */
 export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height, postBuild = false) {
+    /* Regeneration algorithm
+    1. (dstRootItem) - Index all items in generated item
+        - note positions (sortOrder in array) and parent id (templated id)
+    2. (srcRootItem) - Index all items in previous version of root item
+        - note external items (external to this template, which are either non templated or are template roots)
+    3. Create a new root item
+        - use dstRootItem for hierarchy and sort order reference
+        - but first search templated items from srcRootItem and strip its children
+        - if templated item exists in srcRootItem index:
+            - copy over properties from dst templated item and merge them accordingly
+          else:
+            - take the item from dst template as is but without children
+    */
+
     if (templateArgs.hasOwnProperty('width')) {
         width = templateArgs.width;
         rootItem.area.w = width;
@@ -344,163 +357,100 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         rootItem.area.h = height;
     }
     const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
-    const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height, postBuild);
+    const dstRootItem = generateItemFromTemplate(template, finalArgs, width, height, postBuild);
 
-    /** @type {Map<String, Item>} */
-    const regeneratedItemsById = new Map();
+    const srcItemsByTemplatedId = new Map();
 
-    traverseItems([regeneratedRootItem], (item, parentItem) => {
-        if (parentItem) {
-            item.meta.parentId = parentItem.id;
+    const foreignChildrenByTemplatedId = new Map();
+
+    traverseItemsConditionally([rootItem], (item, parentItem, sortOrder) => {
+        if (parentItem && (
+            !item.args || !item.args.templatedId
+            || item.args.templateRef // templateRef indicates that this is a new template root so it cannot be part of current template
+        )) {
+            if (!foreignChildrenByTemplatedId.has(parentItem.args.templatedId)) {
+                foreignChildrenByTemplatedId.set(parentItem.args.templatedId, [item]);
+            } else {
+                foreignChildrenByTemplatedId.get(parentItem.args.templatedId).push(item);
+            }
+            return false;
         }
-        regeneratedItemsById.set(item.id, item);
+
+        srcItemsByTemplatedId.set(item.args.templatedId, item);
+        return true;
     });
 
+    const flattenDstItems = [];
     const idOldToNewConversions = new Map();
-    if (rootItem.args.templatedId) {
-        idOldToNewConversions.set(rootItem.args.templatedId, rootItem.id);
-    }
 
-    const forDeletion = [];
+    traverseItems([dstRootItem], (item, parentItem, sortOrder) => {
 
-    // stores ids of templated items that were present in the origin rootItem
-    // this way we can find out whether new templated items were added
-    const existingTemplatedIds = new Set();
-    traverseItemsConditionally([rootItem], (item, parentItem, sortOrder) => {
-        if (!item.args || !item.args.templatedId) {
-            return false;
+        const srcItem = srcItemsByTemplatedId.get(item.args.templatedId);
+        if (!srcItem) {
+            const id = shortid.generate();
+            idOldToNewConversions.set(item.id, id);
+            item.id = id;
+            flattenDstItems.push(item);
+            return;
         }
 
-        if (parentItem && item.args.templateRef) {
-            // this means that another template was attached to this template
-            // therefor it should stop traversing its children so it does not confuse it for items of current template
-            return false;
-        }
+        const propMatcher = createTemplatePropertyMatcher(item.args ? (item.args.templateIgnoredProps || []) : []);
 
-        existingTemplatedIds.add(item.args.templatedId);
-        idOldToNewConversions.set(item.args.templatedId, item.id);
-
-        const regeneratedItem = regeneratedItemsById.get(item.args.templatedId);
-        if (!regeneratedItem) {
-            if (!parentItem || !Array.isArray(parentItem.childItems)) {
-                // we don't want to delete root item but we do want to keep traversing its children
-                return true;
-            }
-
-            forDeletion.push({parentItem, sortOrder});
-            return false;
-        }
-
+        // to optimize performance of template regeneration we want to keep all the old references to previous items with the same `templatedId`
+        // Because of this we need to merge the properties from regenerated templated items
+        // and then replace the item object in the childItems array of its regenarated templated parent
+        srcItem.childItems = item.childItems;
+        const regeneratedItem = item;
         for (let key in regeneratedItem) {
             let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'childItems' && key !== '_childItems' && key !== 'textSlots';
             // for root item we should ignore area, name, tags, description as it is defined by user and not by template
             if (shouldCopyField && !parentItem) {
                 shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
             }
-            const propMatcher = createTemplatePropertyMatcher(regeneratedItem.args ? (regeneratedItem.args.templateIgnoredProps || []) : []);
             if (shouldCopyField) {
                 if (key === 'shapeProps' && regeneratedItem.shapeProps) {
-                    if (!item.shapeProps) {
-                        item.shapeProps = {};
+                    if (!srcItem.shapeProps) {
+                        srcItem.shapeProps = {};
                     }
                     forEachObject(regeneratedItem.shapeProps, (value, propName) => {
                         if (!propMatcher(`shapeProps.${propName}`)) {
-                            item.shapeProps[propName] = value;
+                            srcItem.shapeProps[propName] = value;
                         }
                     });
                 } else {
                     if (!propMatcher(key)) {
                         if (key === 'behavior') {
-                            item.behavior = mergeItemBehavior(regeneratedItem.behavior, item.behavior);
+                            srcItem.behavior = mergeItemBehavior(regeneratedItem.behavior, srcItem.behavior);
                         } else {
-                            item[key] = regeneratedItem[key];
+                            srcItem[key] = regeneratedItem[key];
                         }
                     }
                 }
             }
         }
-        return true;
-    });
-
-    for (let i = forDeletion.length - 1; i >= 0; i--) {
-        const {parentItem, sortOrder} = forDeletion[i];
-        parentItem.childItems.splice(sortOrder, 1);
-    }
-
-    const findItemByTemplatedId = (items, templatedId) => {
-        let queue = [].concat(items);
-        while(queue.length > 0) {
-            const item = queue.shift();
-            if (item.args && item.args.templatedId === templatedId) {
-                return item;
-            }
-
-            if (item.childItems && item.childItems.length > 0) {
-                queue = queue.concat(item.childItems);
-            }
-        }
-        return null;
-    }
-
-    const addNewGeneratedItemToOrigin = (templatedItem, templatedParentId, sortOrder) => {
-        const parentItem = findItemByTemplatedId([rootItem], templatedParentId);
-        if (!parentItem) {
-            return;
-        }
-        traverseItems([templatedItem], item => {
-            const newId = shortid.generate();
-            idOldToNewConversions.set(item.id, newId);
-            item.id = newId;
-        });
-
-        if (!parentItem.childItems) {
-            parentItem.childItems = [];
-        }
-        parentItem.childItems.splice(Math.max(sortOrder, parentItem.childItems.length), 0, templatedItem);
-    };
-
-    const expectedSortOrders = new Map();
-
-    traverseItems([regeneratedRootItem], (item, parentItem, sortOrder) => {
-        expectedSortOrders.set(item.id, sortOrder);
-        if (existingTemplatedIds.has(item.id || !parentItem)) {
-            return;
-        }
-
         if (parentItem) {
-            addNewGeneratedItemToOrigin(item, parentItem.id, sortOrder);
+            idOldToNewConversions.set(item.args.templatedId, srcItem.id);
+            parentItem.childItems[sortOrder] = srcItem;
+            flattenDstItems.push(srcItem);
         }
     });
 
-    const swappingItems = [];
 
-    traverseItems([rootItem], (item, parentItem, sortOrder) => {
-        if (!parentItem || !item.args || !item.args.templatedId) {
-            return;
+    for (let i = 0; i < flattenDstItems.length; i++) {
+        const item = flattenDstItems[i];
+        const foreignChildItems = foreignChildrenByTemplatedId.get(item.args.templatedId);
+        if (foreignChildItems && foreignChildItems.length > 0) {
+            if (!item.childItems) {
+                item.childItems = [];
+            }
+            item.childItems = item.childItems.concat(foreignChildItems);
         }
-
-        if (!expectedSortOrders.has(item.args.templatedId)) {
-            return;
-        }
-
-        const expectedSortOrder = expectedSortOrders.get(item.args.templatedId);
-        if (sortOrder !== expectedSortOrder) {
-            swappingItems.push({parentItem, expectedSortOrder, sortOrder});
-        }
-    });
-
-    swappingItems.forEach(({parentItem, expectedSortOrder, sortOrder}) => {
-        const item = parentItem.childItems[sortOrder];
-        parentItem.childItems.splice(sortOrder, 1)
-        if (expectedSortOrder > sortOrder) {
-            expectedSortOrder--;
-        }
-
-        parentItem.childItems.splice(expectedSortOrder, 0, item);
-    });
+    }
 
     return idOldToNewConversions;
+
 }
+
 
 /**
  *
