@@ -782,6 +782,8 @@ func onOperationsPanelClick(selectedItemIds, panelItem) {
         if (node) {
             if (panelItem.id == 'insert-new-parent' && node.parent) {
                 insertNewParentFor(node)
+            } else if (panelItem.id == 'delete-node-preserve-children' && node.parent) {
+                deleteNodePreservingChildren(node)
             }
         }
     })
@@ -810,7 +812,25 @@ func insertNewParentFor(node) {
 
     node.attachTo(newParent)
     newParent.attachTo(oldParent)
-    // reindexTree(rootNode)
+    updateProgress(rootNode)
+    encodeMindMap()
+}
+
+func deleteNodePreservingChildren(node) {
+    local found = false
+    local parent = node.parent
+    for (local i = 0; !found && i < parent.children.size; i++) {
+        if (node.id == parent.children.get(i).id) {
+            parent.children.remove(i)
+            local oldSize = parent.children.size - 1
+            parent.children.extendList(node.children)
+            node.children.forEach((childNode, idx) => {
+                childNode.parent = parent
+                childNode.siblingIdx = oldSize + idx
+            })
+        }
+    }
+
     updateProgress(rootNode)
     encodeMindMap()
 }
