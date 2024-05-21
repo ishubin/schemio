@@ -4,6 +4,8 @@ controls = List()
 rootNode = null
 ABS_POS = 'absolutePosition'
 
+connectorDefaultColor = 'rgba(80,80,80,1.0)'
+
 // rootItem is used for building all of the template items
 rootItem = null
 
@@ -221,14 +223,151 @@ func findPinsForNodes(node, child) {
     List(srcPin, dstPin)
 }
 
+struct PathPoint {
+    t: 'B'
+    x: 0
+    y: 0
+    x1: 0
+    y1: 0
+    x2: 0
+    y2: 0
+}
+
+func updatePrettyConnector(connector, pin1, pin2, childOffset, node, parent) {
+    connector.id = `connector-pretty-${parent.id}-${node.id}`
+    connector.shape = 'path'
+
+    // rotating pin by 90 degrees clockwise
+    local Vx = -pin1.normal.y * capSize / 2
+    local Vy = pin1.normal.x * capSize / 2
+
+    local d1 = 0
+    local d2 = 0
+
+    if (abs(pin1.normal.x * pin2.normal.x + pin1.normal.x * pin2.normal.x) > 0.5) {
+        // the normals are not perpendicular to each other
+        // local d = sqrt((pin2.x + childOffset.x - pin1.x) * (pin2.x + childOffset.x - pin1.x) + (pin2.y + childOffset.y - pin1.y) * (pin2.y + childOffset.y - pin1.y)) / 2
+        local x2 = pin2.x + childOffset.x
+        local y2 = pin2.y + childOffset.y
+        // creating line that is perpendicular to the pin1 normal
+        local line = Math.createLineEquation(x2, y2, x2 - pin1.normal.y, y2 + pin1.normal.x)
+        d1 = Math.distanceFromPointToLine(pin1.x, pin1.y, line) / 2
+        d2 = d1
+    } else {
+        // normals are perpendicular to each other
+        local x2 = pin2.x + childOffset.x
+        local y2 = pin2.y + childOffset.y
+        local line2 = Math.createLineEquation(x2, y2, x2 + pin2.normal.x, y2 + pin2.normal.y)
+        d1 = Math.distanceFromPointToLine(pin1.x, pin1.y, line2) / 2
+
+        local line1 = Math.createLineEquation(pin1.x, pin1.y, pin1.x + pin1.normal.x, pin1.y + pin1.normal.y)
+        d2 = Math.distanceFromPointToLine(x2, y2, line1) / 2
+    }
+
+    local Nx = pin1.normal.x * d1
+    local Ny = pin1.normal.y * d1
+    local Mx = pin2.normal.x * d2
+    local My = pin2.normal.y * d2
+
+    local Ax = pin1.x + Vx
+    local Ay = pin1.y + Vy
+    local Bx = pin1.x - Vx
+    local By = pin1.y - Vy
+
+    local minX = min(Ax, Bx, pin1.x, pin2.x + childOffset.x)
+    local maxX = max(Ax, Bx, pin1.x, pin2.x + childOffset.x)
+    local minY = min(Ay, By, pin1.y, pin2.y + childOffset.y)
+    local maxY = max(Ay, By, pin1.y, pin2.y + childOffset.y)
+
+    local points = List(
+        PathPoint('B', Ax, Ay, Nx, Ny, -Vx, -Vy),
+        PathPoint('B', Bx, By, Vx, Vy, Nx, Ny),
+        PathPoint('B', pin2.x + childOffset.x, pin2.y + childOffset.y, Mx, My, Mx, My),
+    )
+
+    local dx = maxX - minX
+    local dy = maxY - minY
+
+    if (dx > 0.0001 && dy > 0.0001) {
+        points.forEach((p) => {
+            p.x = 100 * (p.x - minX) / dx
+            p.y = 100 * (p.y - minY) / dy
+            p.x1 = 100 * p.x1 / dx
+            p.y1 = 100 * p.y1 / dy
+            p.x2 = 100 * p.x2 / dx
+            p.y2 = 100 * p.y2 / dy
+        })
+    }
+
+    connector.x = minX
+    connector.y = minY
+    connector.w = dx
+    connector.h = dy
+
+    connector.shapeProps.set('paths', List(
+        Map(
+            'id', 'a',
+            'closed', true,
+            'pos', 'relative',
+            'points', points
+        )
+    ))
+    connector.shapeProps.set('strokeColor', connectorDefaultColor)
+    connector.shapeProps.set('strokeSize', 2)
+    connector.shapeProps.set('fill', Map('type', 'solid', 'color', connectorDefaultColor))
+}
+
+func updateConnector(connector, pin1, pin2, childOffset, node, parent) {
+    connector.args.set('templateIgnoredProps', List('name', 'shapeProps.fill', 'shapeProps.stroke*'))
+
+    if (connectorType == 'pretty') {
+        updatePrettyConnector(connector, pin1, pin2, childOffset, node, parent)
+    } else {
+        connector.shapeProps.set('points', List(
+            Map('id', pin1.id, 'x', pin1.x, 'y', pin1.y, 'nx', pin1.normal.x, 'ny', pin1.normal.y),
+            Map('id', pin2.id, 'x', pin2.x + childOffset.x, 'y', pin2.y + childOffset.y, 'nx', pin2.normal.x, 'ny', pin2.normal.y)
+        ))
+
+        connector.shapeProps.set('strokeColor', connectorDefaultColor)
+        connector.shapeProps.set('sourceItem', `#${parent.id}`)
+        connector.shapeProps.set('sourcePin', pin1.id)
+        connector.shapeProps.set('destinationItem', `#${node.id}`)
+        connector.shapeProps.set('destinationPin', pin2.id)
+        connector.shapeProps.set('sourceCap', 'empty')
+        connector.shapeProps.set('destinationCap', capType)
+        connector.shapeProps.set('destinationCapSize', capSize)
+        connector.shapeProps.set('smoothing', connectorType)
+    }
+}
+
+
+func updateConnectorForMovingNode(node) {
+    local parent = node.parent
+    local connectorId = if (connectorType == 'pretty') {
+        `connector-pretty-${parent.id}-${node.id}`
+    } else {
+        `connector-${parent.id}-${node.id}`
+    }
+
+    local connector = Item(connectorId, `${node.id} -> ${parent.id}`, 'connector', 0, 0, 100, 50, Map())
+    local childOffset = Vector(node.x, node.y)
+    local pins = findPinsForNodes(parent, node)
+    local pin1 = pins.get(0)
+    local pin2 = pins.get(1)
+    updateConnector(connector, pin1, pin2, childOffset, node, parent)
+
+    updateItem(connectorId, (item) => {
+        item.shape = connector.shape
+        item.area.x = connector.x
+        item.area.y = connector.y
+        item.area.w = connector.w
+        item.area.h = connector.h
+        item.shapeProps = toJSON(connector.shapeProps)
+    })
+}
+
 func prepareConnectorForNode(node, parent) {
     local connector = Item(`connector-${parent.id}-${node.id}`, `${node.id} -> ${parent.id}`, 'connector', 0, 0, 100, 50, Map())
-
-    local x1 = parent.w/2
-    local y1 = parent.h/2
-
-    local x2 = node.x + node.w/2
-    local y2 = node.y + node.h/2
 
     local childOffset = Vector(node.x, node.y)
 
@@ -236,21 +375,7 @@ func prepareConnectorForNode(node, parent) {
     local pin1 = pins.get(0)
     local pin2 = pins.get(1)
 
-    connector.shapeProps.set('points', List(
-        Map('id', pin1.id, 'x', pin1.x, 'y', pin1.y, 'nx', pin1.normal.x, 'ny', pin1.normal.y),
-        Map('id', pin2.id, 'x', pin2.x + childOffset.x, 'y', pin2.y + childOffset.y, 'nx', pin2.normal.x, 'ny', pin2.normal.y)
-    ))
-
-    connector.args.set('templateIgnoredProps', List('name', 'shapeProps.fill', 'shapeProps.stroke*'))
-
-    connector.shapeProps.set('sourceItem', `#${parent.id}`)
-    connector.shapeProps.set('sourcePin', pin1.id)
-    connector.shapeProps.set('destinationItem', `#${node.id}`)
-    connector.shapeProps.set('destinationPin', pin2.id)
-    connector.shapeProps.set('sourceCap', 'empty')
-    connector.shapeProps.set('destinationCap', capType)
-    connector.shapeProps.set('destinationCapSize', capSize)
-    connector.shapeProps.set('smoothing', connectorType)
+    updateConnector(connector, pin1, pin2, childOffset, node, parent)
 
     if (parent.tempData.has('connectors')) {
         parent.tempData.get('connectors').add(connector)
@@ -463,8 +588,6 @@ func createNewChildFor(nodeId, placement) {
         local h = max(1, node.h)
         local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
 
-
-
         if (node.children.size > 0) {
             local childNode = node.children.get(0)
             if (childNode.data.has('s')) {
@@ -643,6 +766,10 @@ func onAreaUpdate(itemId, item, area) {
         node.data.set('y', area.y)
         node.data.set('w', area.w)
         node.data.set('h', area.h)
+
+        if (node.parent) {
+            updateConnectorForMovingNode(node)
+        }
         encodeMindMap()
     }
 }
@@ -754,8 +881,6 @@ func reindexTree(rootNode) {
             node.h = height
 
             controls.extendList(List(
-                addingControl('top', 'BL', node.w / 2 - 10, -controlPadding),
-                addingControl('bottom', 'TL', node.w / 2 - 10, node.h + controlPadding),
                 addingControl('left', 'TR', -controlPadding, node.h / 2 - 10),
                 addingControl('right', 'TL', node.w + controlPadding, node.h / 2 - 10)
             ))
