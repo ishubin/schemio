@@ -97,6 +97,10 @@ export class List {
         }
     }
 
+    sort(comparator) {
+        this.items.sort(comparator);
+    }
+
     get size() {
         return this.items.length;
     }

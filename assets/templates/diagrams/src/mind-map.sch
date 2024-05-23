@@ -588,6 +588,50 @@ func buildTemplateItems(rootNode) {
     })
 }
 
+func findProperPositionValue(node, placement) {
+    local values = List()
+
+    node.children.forEach((childNode) => {
+        if (placement == 'top') {
+            if (childNode.y < 0) {
+                values.add(childNode.y)
+            }
+        } else if (placement == 'bottom') {
+            if (childNode.y > 0) {
+                values.add(childNode.y)
+            }
+        } else if (placement == 'left') {
+            if (childNode.x < 0) {
+                values.add(childNode.x)
+            }
+        } else if (placement == 'right') {
+            if (childNode.x > 0) {
+                values.add(childNode.x)
+            }
+        }
+    })
+
+    values.sort((a, b) => { if (a < b) { -1 } else { 1 } })
+
+    local w = max(1, node.w)
+    local h = max(1, node.h)
+
+    if (values.size == 0) {
+        if (placement == 'top') {
+            - padding - h
+        } else if (placement == 'bottom') {
+            node.h + padding
+        } else if (placement == 'left') {
+            - padding - w
+        } else if (placement == 'right') {
+            node.w + padding
+        }
+    } else {
+        local i = floor(values.size / 2)
+        values.get(i)
+    }
+}
+
 func createNewChildFor(nodeId, placement) {
     local node = rootNode.findById(nodeId)
     if (node) {
@@ -610,18 +654,18 @@ func createNewChildFor(nodeId, placement) {
         local correctiveVector = Vector(0, h * 0.1)
 
         if (placement == 'top') {
-            y = - padding - h
+            y = findProperPositionValue(node, placement)
             x = node.w / 2 - w / 2
-            correctiveVector = Vector(w * 0.6, 0)
+            correctiveVector = Vector(w * 0.2, 0)
         } else if (placement == 'bottom') {
-            y = node.h + padding
+            y = findProperPositionValue(node, placement)
             x = node.w / 2 - w / 2
-            correctiveVector = Vector(w * 0.6, 0)
+            correctiveVector = Vector(w * 0.2, 0)
         } else if (placement == 'left') {
-            x = - padding - w
+            x = findProperPositionValue(node, placement)
             y = node.h / 2 - h / 2
         } else if (placement == 'right') {
-            x = node.w + padding
+            x = findProperPositionValue(node, placement)
             y = node.h / 2 - h / 2
         }
 
