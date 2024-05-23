@@ -1,4 +1,5 @@
 import { List } from "./list";
+import { TreeNode, decodeTree } from "./treenode";
 import { StringTemplate } from "./strings";
 import { Vector } from "./vector";
 import { Scope } from "./scope";
@@ -540,6 +541,8 @@ const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     Vector    : (x, y) => new Vector(x, y),
     List      : (...items) => new List(...items),
+    TreeNode  : (...items) => new TreeNode(...items),
+    decodeTree: decodeTree,
     Area      : (x, y, w, h) => new Area(x, y, w, h),
     Map       : (...args) => createHashMap(...args),
     Set       : (...items) => new Set(items),

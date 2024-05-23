@@ -543,10 +543,19 @@ func buildTemplateItems(rootNode) {
         local w = node.data.get('w')
         local h = node.data.get('h')
 
-        childItems.extendList(createNodeIconItems(node))
+        childItems.extendList()
+
+        createNodeIconItems(node).forEach((iconItem, i) => {
+            childItems.insert(i, iconItem)
+        })
 
         if (node.tempData.has('connectors')) {
-            childItems.extendList(node.tempData.get('connectors'))
+            local connectors = node.tempData.get('connectors')
+            if (connectors) {
+                connectors.forEach((connector, i) => {
+                    childItems.insert(i, connector)
+                })
+            }
         }
 
         local shape = if (node.data.has('s')) { node.data.get('s') } else { 'rect' }
@@ -598,7 +607,7 @@ func createNewChildFor(nodeId, placement) {
             h = max(1, childNode.h)
         }
 
-        correctiveVector = Vector(0, h * 0.8)
+        local correctiveVector = Vector(0, h * 0.1)
 
         if (placement == 'top') {
             y = - padding - h
@@ -632,8 +641,8 @@ func createNewChildFor(nodeId, placement) {
         local area
 
         while(overlaps && tries < 1000) {
-            direction = if (tries % 2 == 0) { 1 } else { -1 }
-            displacement = correctiveVector * tries * direction
+            local direction = if (tries % 2 == 0) { 1 } else { -1 }
+            local displacement = correctiveVector * tries * direction
             area = Area(x + displacement.x, y + displacement.y, w, h)
             overlaps = overlapsChildren(area)
             tries++
@@ -805,17 +814,23 @@ func onPasteItems(itemId, items) {
     if (dstNode) {
         items.forEach((item) => {
             if (item.args && item.args.mindMap_EncodedNode) {
-                newRootNode = decodeTree(item.args.mindMap_EncodedNode, ' | ', ';')
+                local newRootNode = decodeTree(item.args.mindMap_EncodedNode, ' | ', ';')
 
-                nodesById = Map()
+                local nodesById = Map()
                 newRootNode.traverse((node) => {
                     nodesById.set(node.id, node)
+                    node.x = parseInt(node.data.get('x'))
+                    node.y = parseInt(node.data.get('y'))
+                    node.w = parseInt(node.data.get('w'))
+                    node.h = parseInt(node.data.get('h'))
                     node.id = uid()
                 })
 
-                traverseItems = (item) => {
+                local traverseItems = (item) => {
                     if (item.args.templated && item.args.templatedId && nodesById.has(item.args.templatedId)) {
-                        node = nodesById.get(item.args.templatedId)
+                        local node = nodesById.get(item.args.templatedId)
+                        // this will be used when building items to make sure that all shapeProps and textSlots fields are copied as well
+                        // as those could be overriden by the user
                         node.tempData.set('sourceItem', item)
                     }
                     if (item.childItems) {
@@ -824,6 +839,17 @@ func onPasteItems(itemId, items) {
                 }
                 traverseItems(item)
                 newRootNode.attachTo(dstNode)
+
+                if (dstNode.parent && dstNode.x < 0) {
+                    newRootNode.x = - padding - newRootNode.w
+                    newRootNode.y = 0
+                } else {
+                    newRootNode.x = dstNode.w + padding
+                    newRootNode.y = 0
+                }
+                newRootNode.data.set('x', newRootNode.x)
+                newRootNode.data.set('y', newRootNode.y)
+                autoAlignChildNodes(newRootNode, newRootNode.x < 0)
             }
         })
 
@@ -837,6 +863,34 @@ func onPasteItems(itemId, items) {
         encodeMindMap()
     }
 }
+
+
+func autoAlignChildNodes(node, toLeft) {
+    local vPad = 20
+    local totalHeight = node.children.size * vPad
+
+    node.children.forEach((childNode) => {
+        totalHeight += childNode.h
+    })
+
+    local y = node.h/2 - totalHeight/2
+
+    node.children.forEach((childNode) => {
+        childNode.y = y
+        y = y + childNode.h + vPad
+
+        if (toLeft) {
+            childNode.x = -childNode.w - padding
+        } else {
+            childNode.x = node.w + padding
+        }
+
+        childNode.data.set('x', childNode.x)
+        childNode.data.set('y', childNode.y)
+        autoAlignChildNodes(childNode, toLeft)
+    })
+}
+
 
 func reindexTree(rootNode) {
     rootNode.traverse((node, parent) => {

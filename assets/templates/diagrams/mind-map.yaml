@@ -16,7 +16,6 @@ preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
 
 import:
-    - ./src/treenode.sch
     - ./src/item.sch
     - ./src/control.sch
     - ./src/mind-map.sch
