@@ -1,4 +1,4 @@
-padding = 60
+padding = 120
 controlPadding = 40
 controls = List()
 rootNode = null
