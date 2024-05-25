@@ -409,58 +409,6 @@ func updateAbsoluteNodePosition(node) {
 }
 
 
-func createProgressPaths(percent) {
-    local R = 50
-    local angle = 2 * Math.PI * percent / 100
-
-    local v1 = Vector(0, -50)
-    local v2 = v1.rotate(angle)
-
-    local p2 = Vector(50, 50) + v2
-
-    local L = (Vector(50, 0) - p2).length()
-
-    local solution = Math.solveQuadratic(0.5, -R, L*L/8)
-
-    local h = 50
-
-    if (solution) {
-        local H = 0
-        if (percent <= 50) {
-            H = min(solution.v1, solution.v2)
-        } else {
-            H = max(solution.v1, solution.v2)
-        }
-        h = H / L * 100
-    }
-
-    List(Map(
-        'closed', 'true',
-        'pos', 'relative',
-        'points', List(
-            Map(
-                'id', '1',
-                't', 'L',
-                'x', 50,
-                'y', 50,
-            ),
-            Map(
-                'id', '2',
-                't', 'A',
-                'x', 50,
-                'y', 0,
-                'h', h
-            ),
-            Map(
-                'id', '3',
-                't', 'L',
-                'x', p2.x,
-                'y', p2.y,
-            ),
-        )
-    ))
-}
-
 func createProgressIconItems(nodeId, percent, color, x, y) {
     local items = List()
 
@@ -485,11 +433,11 @@ func createProgressIconItems(nodeId, percent, color, x, y) {
     ))
     if (percent > 0.5 && isNotFull) {
         items.add(Item(
-            `${nodeId}_progress`, 'progress', 'path', x, y, progressSize, progressSize, Map(
-                'paths', createProgressPaths(percent),
+            `${nodeId}_progress`, 'progress', 'pie_segment', x, y, progressSize, progressSize, Map(
                 'strokeSize', 0,
                 'strokeColor', color,
-                'fill', Map('type', 'solid', 'color', color)
+                'fill', Map('type', 'solid', 'color', color),
+                'percent', percent
             ), List(), Map(
                 'mindMapType', 'progress',
                 'mindMapNodeId', nodeId,

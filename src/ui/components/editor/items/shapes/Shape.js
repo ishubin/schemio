@@ -29,6 +29,9 @@ let _shapes = [
     require('./basic/Diamond.js').default,
     require('./templated/star.js').default,
 
+    require('./PieSegment.js').default,
+    require('./DonutSegment.js').default,
+
     require('./StickyNote.vue').default,
     require('./Component.vue').default,
     require('./Textfield.vue').default,

@@ -56,7 +56,8 @@ editor:
             height: 30
         items:
         -   $-foreach: {source: "getAllAvailableIcons()",  it: 'icon'}
-            id: {$-expr: "icon.id"}
+            id: {$-expr: icon.id}
+            name: {$-expr: icon.id}
             shape: 'image'
             area: {x: -2, y: -2, w: 26, h: 26}
             shapeProps:

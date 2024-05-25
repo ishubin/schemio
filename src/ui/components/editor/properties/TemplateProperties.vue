@@ -18,10 +18,11 @@
                 @argument-changed="onArgChanged"
             />
 
-            <Panel v-for="panel in editorPanels" :name="panel.name" :uid="panel.id">
+            <Panel :key="`editor-panel-${panel.id}`" v-for="panel in editorPanels" :name="panel.name" :uid="panel.id">
                 <ul v-if="panel.type === 'item-menu'" class="template-editor-panel-items-container">
                     <li v-for="item in panel.items" @click="onEditorPanelItemClicked(panel, item)"
                         :style="{width: `${panel.slotSize.width}px`, height: `${panel.slotSize.height}px`, }"
+                        :title="item.name"
                         >
                         <svg :width="`${panel.slotSize.width}px`" :height="`${panel.slotSize.height}px`">
                             <g transform="translate(4, 4)">
@@ -47,7 +48,7 @@
 
 <script>
 import ArgumentsEditor from '../ArgumentsEditor.vue';
-import {forEach} from '../../../collections';
+import {forEach, forEachObject} from '../../../collections';
 import {compileItemTemplate} from '../items/ItemTemplate';
 import EditorEventBus from '../EditorEventBus';
 import ItemSvg from '../items/ItemSvg.vue';
@@ -120,15 +121,7 @@ export default {
                             }
                         });
                     }
-
-                    const selectedTemplateItemIds = [];
-                    forEach(this.schemeContainer.selectedItems, item => {
-                        if (item.meta.templateRootId === this.item.id) {
-                            selectedTemplateItemIds.push(item.args.templatedId);
-                        }
-                    });
-                    const editor = this.template.buildEditor(this.item, this.args, this.item.area.w, this.item.area.h, selectedTemplateItemIds);
-                    this.editorPanels = editor.panels;
+                    this.updateEditorPanels();
                 }).catch(err => {
                     this.isLoading = false;
                     console.error(err);
@@ -141,9 +134,31 @@ export default {
             }
         },
 
+        updateEditorPanels() {
+            const selectedTemplateItemIds = [];
+            forEach(this.schemeContainer.selectedItems, item => {
+                if (item.meta.templateRootId === this.item.id) {
+                    selectedTemplateItemIds.push(item.args.templatedId);
+                }
+            });
+            const editor = this.template.buildEditor(this.item, this.args, this.item.area.w, this.item.area.h, selectedTemplateItemIds);
+            this.editorPanels = editor.panels;
+        },
+
         onArgChanged(name, value) {
+            // syncing template args that are saved in the template
+            // to make sure that we don't override them
+            if (this.item.args && this.item.args.templateArgs) {
+                forEachObject(this.item.args.templateArgs, (existingValue, existingName) => {
+                    if (name !== existingName) {
+                        this.args[existingName] = existingValue;
+                    }
+                });
+            }
             this.args[name] = value;
             this.$emit('updated', this.item.id, this.template, this.args);
+
+            this.updateEditorPanels();
             this.$forceUpdate();
         },
 
