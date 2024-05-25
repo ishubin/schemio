@@ -15,7 +15,7 @@ defaultArea: {x: 0, y: 0, w: 120, h: 60}
 import:
     - ./src/hiearachy-chart.sch
 
-events:
+handlers:
     delete: onDeleteItem(itemId, item)
 
 controls:
