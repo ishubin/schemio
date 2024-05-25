@@ -519,6 +519,14 @@ func buildTemplateItems(rootNode) {
                 item.shapeProps = fromJSON(srcItem.shapeProps)
                 item.textSlots = fromJSON(srcItem.textSlots)
             }
+        } else {
+            item.textSlots = Map('body', Map(
+                'text', '',
+                'paddingLeft', 5,
+                'paddingRight', 5,
+                'paddingTop', 5,
+                'paddingBottom', 5,
+            ))
         }
 
         item.args.set('templateIgnoredProps', List('name', 'shape', 'shapeProps.*'))
