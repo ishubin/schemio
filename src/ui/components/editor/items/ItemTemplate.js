@@ -428,8 +428,8 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
                 }
             }
         }
+        idOldToNewConversions.set(item.args.templatedId, srcItem.id);
         if (parentItem) {
-            idOldToNewConversions.set(item.args.templatedId, srcItem.id);
             parentItem.childItems[sortOrder] = srcItem;
             flattenDstItems.push(srcItem);
         }

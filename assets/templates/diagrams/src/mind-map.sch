@@ -714,6 +714,11 @@ func shouldNodeProgressEditorBeDisplayed(selectedItemIds) {
     if (showProgress) {
         local showPanel = false
         selectedItemIds.forEach((itemId) => {
+            if (itemId.endsWith('_progress')) {
+                itemId = itemId.substring(0, itemId.length - 9)
+            } else if (itemId.endsWith('_progress_stroke')) {
+                itemId = itemId.substring(0, itemId.length - 16)
+            }
             local node = rootNode.findById(itemId)
             if (node && node.children.size == 0) {
                 showPanel = true
@@ -755,6 +760,11 @@ func updateProgress(node) {
 
 func selectProgressForItems(selectedItemIds, panelItem) {
     selectedItemIds.forEach((itemId) => {
+        if (itemId.endsWith('_progress')) {
+            itemId = itemId.substring(0, itemId.length - 9)
+        } else if (itemId.endsWith('_progress_stroke')) {
+            itemId = itemId.substring(0, itemId.length - 16)
+        }
         local node = rootNode.findById(itemId)
         if (node && node.children.size == 0) {
             node.data.set('p', panelItem.args.mindMapProgress)

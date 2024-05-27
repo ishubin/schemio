@@ -157,6 +157,10 @@ export const fsClientProvider = {
             getStaticExportStatus() {
                 return axios.get('/v1/static-export/status').then(unwrapAxios);
             },
+
+            get(url) {
+                return axios.get(url).then(unwrapAxios);
+            }
         });
     }
 }

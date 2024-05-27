@@ -13,6 +13,10 @@ export const offlineClientProvider = {
 
             getAllTemplates,
             getTemplate,
+
+            get(url) {
+                return axios.get(url).then(unwrapAxios);
+            }
         });
     }
 }

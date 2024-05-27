@@ -977,10 +977,6 @@ export default {
                 newZoom = Math.max(0.0001, newZoom);
             }
 
-            // if (newZoom > 0.2 && newZoom < 2) {
-            //     newZoom = 1;
-            // }
-
             const oldX = this.schemeContainer.screenTransform.x;
             const oldY = this.schemeContainer.screenTransform.y;
             const oldZoom = this.schemeContainer.screenTransform.scale;

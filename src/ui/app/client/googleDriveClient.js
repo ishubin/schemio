@@ -386,6 +386,10 @@ export const googleDriveClientProvider = {
 
                 },
                 getExportHTMLResources,
+
+                get(url) {
+                    return axios.get(url).then(unwrapAxios);
+                }
             };
         })
         .catch(err => {

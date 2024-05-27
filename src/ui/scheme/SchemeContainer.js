@@ -2615,7 +2615,7 @@ class SchemeContainer {
         }
     }
 
-    cloneItems(items, preserveOriginalNames, shouldIndexClones) {
+    cloneItems(items, preserveOriginalNames = false, shouldIndexClones = false) {
         const copiedItemIds = {};
         const copiedItems = [];
         forEach(items, item => {

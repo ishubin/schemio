@@ -185,6 +185,11 @@
                             @image-crop-requested="startCroppingImage"
                             @close="floatingHelperPanel.shown = false"
                             />
+
+                        <StarterProposalModal v-if="starterProposalModalShown"
+                            @close="closeStarterProposalModal"
+                            @selected="onStarterProposalSelected"
+                            />
                     </div>
                 </SvgEditor>
 
@@ -644,6 +649,7 @@ import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
 import {breakItemTemplate} from './editor/items/ItemTemplate';
 import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
 import ExportAnimationModal from './editor/ExportAnimationModal.vue';
+import StarterProposalModal from './editor/StarterProposalModal.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -751,7 +757,7 @@ export default {
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
         LinkEditModal, InPlaceTextEditBox, TemplateProperties,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
-        ConnectorDestinationProposal, 
+        ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
         DrawingControlsPanel, ExportAnimationModal
@@ -967,7 +973,7 @@ export default {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file and if history is undone/redone
             editorRevision: 0,
-            
+
             // used for reloading only of SvgEditor component
             svgEditorRevision: 0,
 
@@ -1129,6 +1135,8 @@ export default {
             itemDetailsMouseOutTimer: null,
 
             templatePropertiesKey: 0,
+
+            starterProposalModalShown: false,
         }
     },
     methods: {
@@ -1191,6 +1199,7 @@ export default {
             this.schemeLoadErrorMessage = null;
             this.loadingStep = 'load-shapes';
             this.isLoading = true;
+
             collectAndLoadAllMissingShapes(scheme.items, this.$store)
             .catch(err => {
                 console.error(err);
@@ -1242,6 +1251,12 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
+
+                if (this.mode === 'edit' && (!scheme.items || scheme.items.length === 0)) {
+                    this.starterProposalModalShown = true;
+                    this.sidePanelRightWidth = 0;
+                    this.sidePanelLeftWidth = 0;
+                }
             })
             .catch(err => {
                 console.error(err);
@@ -3278,6 +3293,38 @@ export default {
             this.itemDetailsMouseOutTimer = setTimeout(() => {
                 this.itemDetails.item = null;
             }, 1000);
+        },
+
+        closeStarterProposalModal() {
+            this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
+            this.sidePanelLeftWidth = this.sidePanelLeftWidthLastUsed;
+            this.starterProposalModalShown = false;
+        },
+
+        onStarterProposalSelected(items) {
+            this.closeStarterProposalModal();
+
+            const tempContainer = new SchemeContainer({name: '', items}, 'temp-editor', 'edit', this.schemeContainer.apiClient);
+            tempContainer.reindexItems();
+
+
+            this.schemeContainer.scheme.items = tempContainer.cloneItems(tempContainer.scheme.items);
+            this.schemeContainer.reindexItems();
+            const bbox = getBoundingBoxOfItems(this.schemeContainer.getItems());
+
+
+            const svg = document.getElementById(`svg-plot-${this.editorId}`);
+            this.schemeContainer.screenTransform.scale = 1.0;
+            if (svg) {
+                const svgBox = svg.getBoundingClientRect();
+                this.schemeContainer.screenTransform.x = svgBox.width/2 - (bbox.x + bbox.w/2);
+                this.schemeContainer.screenTransform.y = (svgBox.height)/2 - (bbox.y + bbox.h/2);
+            } else {
+                this.schemeContainer.screenTransform.x = bbox.x + bbox.w/2;
+                this.schemeContainer.screenTransform.y = bbox.y + bbox.h/2;
+            }
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         //calculates from world to screen
