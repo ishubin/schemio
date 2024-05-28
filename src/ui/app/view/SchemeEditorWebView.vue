@@ -47,6 +47,7 @@
             :isSaving="isSaving"
             :modificationKey="modificationKey"
             :schemeReloadKey="schemeReloadKey"
+            :starterTemplates="starterTemplates"
             @mode-changed="onSchemeEditorModeChanged"
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @scheme-save-requested="onSaveSchemeRequested"
@@ -118,6 +119,9 @@ export default {
         editAllowed      : {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: true},
         projectArtEnabled: {type: Boolean, default: true},
+
+        // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
+        starterTemplates : {type: Array, default: () => []},
     },
 
     beforeMount() {

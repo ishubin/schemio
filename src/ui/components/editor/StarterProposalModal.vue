@@ -12,6 +12,9 @@
                             <div class="title">{{ proposal.name }}</div>
                             <img class="icon" v-if="proposal.iconUrl" :src="proposal.iconUrl"/>
                             <div v-else class="empty-icon"></div>
+                            <div v-if="proposal.isLoading" class="start-proposal-loading-overlay">
+                                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            </div>
                         </div>
                     </li>
                 </ul>
@@ -25,46 +28,15 @@
 import StoreUtils from '../../store/StoreUtils';
 
 export default {
-    props: {},
+    props: {
+        templates: { type: Array, default: () => []}
+    },
 
     data() {
         return {
-            proposals: [{
-                id: 'empty',
-                name: 'Empty canvas',
-                docUrl: null,
-                isLoading: false
-            }, {
-                id: 'mind-map',
-                name: 'Mind map',
-                iconUrl: '/assets/templates/previews/mind-map.svg',
-                docUrl: '/assets/starters/mind-map.json',
-                isLoading: false
-            }, {
-                id: 'mind-map-progress',
-                name: 'Mind map (progress tracker)',
-                iconUrl: '/assets/starters/mind-map-progress.svg',
-                docUrl: '/assets/starters/mind-map-progress.json',
-                isLoading: false
-            }, {
-                id: 'hierarchy-chart',
-                name: 'Hierarchy Chart',
-                iconUrl: '/assets/starters/hierarchy-chart.svg',
-                docUrl: '/assets/starters/hierarchy-chart.json',
-                isLoading: false
-            }, {
-                id: 'layered-diagram',
-                name: 'Layered diagram',
-                iconUrl: '/assets/starters/layered-diagram.svg',
-                docUrl: '/assets/starters/layered-diagram.json',
-                isLoading: false
-            }, {
-                id: 'app-prototype',
-                name: 'App prototype',
-                iconUrl: '/assets/starters/app-prototype.svg',
-                docUrl: '/assets/starters/app-prototype.json',
-                isLoading: false
-            }]
+            proposals: this.templates.map(template => {
+                return {...template, isLoading: false}
+            })
         };
     },
 
@@ -82,6 +54,7 @@ export default {
                 proposal.isLoading = true;
                 this.$store.state.apiClient.get(proposal.docUrl)
                 .then((doc) => {
+                    proposal.isLoading = false;
                     if (!doc || !doc.items) {
                         this.emitItems([]);
                     }
@@ -92,7 +65,7 @@ export default {
                     console.error(err);
                     proposal.isLoading = false;
                     StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load template')
-                })
+                });
             }
         },
 

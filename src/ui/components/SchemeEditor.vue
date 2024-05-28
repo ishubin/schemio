@@ -186,7 +186,8 @@
                             @close="floatingHelperPanel.shown = false"
                             />
 
-                        <StarterProposalModal v-if="starterProposalModalShown"
+                        <StarterProposalModal v-if="starterProposalModalShown && starterTemplates && starterTemplates.length > 0"
+                            :templates="starterTemplates"
                             @close="closeStarterProposalModal"
                             @selected="onStarterProposalSelected"
                             />
@@ -793,7 +794,10 @@ export default {
         // used for customizing schemio with additional context menu options.
         // The provider should be in form of {provide: (items) => {return []}}
         // It should return an array of options in the format of {name: 'Name', iconClass: '', clicked: () => {}}
-        contextMenuExtraProvider: {type: Object, default: null}
+        contextMenuExtraProvider: {type: Object, default: null},
+
+        // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
+        starterTemplates : {type: Array, default: () => []},
     },
 
     created() {
@@ -1252,7 +1256,7 @@ export default {
             .then(() => {
                 this.isLoading = false;
 
-                if (this.mode === 'edit' && (!scheme.items || scheme.items.length === 0)) {
+                if (this.mode === 'edit' && (!scheme.items || scheme.items.length === 0) && this.starterTemplates && this.starterTemplates.length > 0) {
                     this.starterProposalModalShown = true;
                     this.sidePanelRightWidth = 0;
                     this.sidePanelLeftWidth = 0;

@@ -1,4 +1,5 @@
-import { getAllTemplates, getExportHTMLResources, getTemplate } from "./clientCommons";
+import axios from "axios";
+import { getAllTemplates, getExportHTMLResources, getTemplate, unwrapAxios } from "./clientCommons";
 
 export const offlineClientProvider = {
     type: 'offline',

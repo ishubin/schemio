@@ -23,6 +23,7 @@
             :extraTabs="extraTabs"
             :customItemMenuPanels="customItemMenuPanels"
             :contextMenuExtraProvider="contextMenuExtraProvider"
+            :starterTemplates="starterTemplates"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
@@ -128,7 +129,10 @@ export default {
         // used for customizing schemio with additional context menu options.
         // The provider should be in form of {provide: (items) => {return []}}
         // It should return an array of options in the format of {name: 'Name', iconClass: '', clicked: () => {}}
-        contextMenuExtraProvider: {type: Object, default: null}
+        contextMenuExtraProvider: {type: Object, default: null},
+
+        // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
+        starterTemplates : {type: Array, default: () => []},
     },
 
     beforeMount() {

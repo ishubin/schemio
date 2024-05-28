@@ -70,6 +70,7 @@
             <panel v-for="panel in customItemMenuPanels" :name="panel.name">
                 <component :is="panel.component"
                     :search-keyword="searchKeyword"
+                    :editor-id="editorId"
                     @stop-preview-item="stopPreviewItem"
                     @show-preview-item="showPreviewItem"
                     @item-mouse-down="onItemMouseDown"

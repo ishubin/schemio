@@ -22,6 +22,7 @@ import { testAST } from './templater/ast';
 import { Scope } from './templater/scope';
 import { generateSchemePatch } from './scheme/SchemePatch';
 import { processJSONTemplate } from './templater/templater.js';
+import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
 
 Vue.use(VueRouter);
 applyVueFilters(Vue);
@@ -43,8 +44,8 @@ window.schemioDebug = {
 
 
 const routes = [
-    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: fsClientProvider}),
-    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
+    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: fsClientProvider, starterTemplates: defaultStarterTemplates}),
+    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, starterTemplates: defaultStarterTemplates, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
     route('AboutView',              '/about',            AboutView),
     route('NotFoundView',           '/not-found',        NotFoundView),
     route('HomeView',               '/',                 FolderView, {clientProvider: fsClientProvider}),
