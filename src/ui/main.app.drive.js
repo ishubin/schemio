@@ -20,6 +20,7 @@ import HomeDriveView from './app/view/HomeDriveView.vue';
 import { googleDriveClientProvider } from './app/client/googleDriveClient';
 import { offlineClientProvider } from './app/client/offlineClient';
 import { initGoogleAPI } from './googleApi';
+import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
 
 
 initGoogleAPI();
@@ -35,8 +36,19 @@ function route(name, path, component, props) {
 }
 
 const routes = [
-    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: googleDriveClientProvider, userStylesEnabled: false, projectArtEnabled: false}),
-    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true , userStylesEnabled: false, projectArtEnabled: false}),
+    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {
+        clientProvider: googleDriveClientProvider,
+        userStylesEnabled: false,
+        projectArtEnabled: false,
+        starterTemplates: defaultStarterTemplates
+    }),
+    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {
+        clientProvider: offlineClientProvider,
+        isOfflineEditor: true,
+        userStylesEnabled: false,
+        projectArtEnabled: false,
+        starterTemplates: defaultStarterTemplates
+    }),
     route('AboutView',              '/about',            AboutView),
     route('NotFoundView',           '/not-found',        NotFoundView),
     route('HomeView',               '/',                 HomeDriveView),
