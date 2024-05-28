@@ -185,6 +185,12 @@
                             @image-crop-requested="startCroppingImage"
                             @close="floatingHelperPanel.shown = false"
                             />
+
+                        <StarterProposalModal v-if="starterProposalModalShown && starterTemplates && starterTemplates.length > 0"
+                            :templates="starterTemplates"
+                            @close="closeStarterProposalModal"
+                            @selected="onStarterProposalSelected"
+                            />
                     </div>
                 </SvgEditor>
 
@@ -456,13 +462,14 @@
                         </div>
                         <div v-if="mode !== 'view' && currentTab === 'template' && !inPlaceTextEditor.shown && selectedTemplateRootItem && selectedTemplateRef">
                             <TemplateProperties
-                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}`"
+                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
                                 :editorId="editorId"
                                 :item="selectedTemplateRootItem"
                                 :schemeContainer="schemeContainer"
                                 :templateRef="selectedTemplateRef"
                                 @updated="onTemplatePropertiesUpdated"
                                 @break-template="breakTemplate"
+                                @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
                             />
                         </div>
 
@@ -552,6 +559,16 @@
             </div>
         </modal>
 
+        <modal v-if="isCopying" :width="380" :show-header="false" :show-footer="false" :use-mask="false">
+            <div class="scheme-loading-icon">
+                <div>
+                    <i class="fas fa-spinner fa-spin fa-1x"></i>
+                    <span>Copying...  </span>
+                    <span class="btn btn-secondary" @click="isCopying = false">Cancel</span>
+                </div>
+            </div>
+        </modal>
+
         <export-template-modal v-if="exportTemplateModal.shown"
             :item="exportTemplateModal.item"
             @close="exportTemplateModal.shown = false"/>
@@ -633,6 +650,7 @@ import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
 import {breakItemTemplate} from './editor/items/ItemTemplate';
 import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
 import ExportAnimationModal from './editor/ExportAnimationModal.vue';
+import StarterProposalModal from './editor/StarterProposalModal.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -740,7 +758,7 @@ export default {
         SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
         LinkEditModal, InPlaceTextEditBox, TemplateProperties,
         ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
-        ConnectorDestinationProposal, 
+        ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
         DrawingControlsPanel, ExportAnimationModal
@@ -776,7 +794,10 @@ export default {
         // used for customizing schemio with additional context menu options.
         // The provider should be in form of {provide: (items) => {return []}}
         // It should return an array of options in the format of {name: 'Name', iconClass: '', clicked: () => {}}
-        contextMenuExtraProvider: {type: Object, default: null}
+        contextMenuExtraProvider: {type: Object, default: null},
+
+        // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
+        starterTemplates : {type: Array, default: () => []},
     },
 
     created() {
@@ -956,7 +977,7 @@ export default {
             // this is used to trigger full reload of SvgEditor component
             // it is needed only when scheme is imported from file and if history is undone/redone
             editorRevision: 0,
-            
+
             // used for reloading only of SvgEditor component
             svgEditorRevision: 0,
 
@@ -970,6 +991,7 @@ export default {
             schemeRevision: new Date().getTime(),
 
             isLoading: false,
+            isCopying: false,
             loadingStep: 'load', // can be "load", "img-preload"
             schemeLoadErrorMessage: null,
 
@@ -1114,7 +1136,11 @@ export default {
                 item: null,
                 x: 0, y: 0
             },
-            itemDetailsMouseOutTimer: null
+            itemDetailsMouseOutTimer: null,
+
+            templatePropertiesKey: 0,
+
+            starterProposalModalShown: false,
         }
     },
     methods: {
@@ -1177,6 +1203,7 @@ export default {
             this.schemeLoadErrorMessage = null;
             this.loadingStep = 'load-shapes';
             this.isLoading = true;
+
             collectAndLoadAllMissingShapes(scheme.items, this.$store)
             .catch(err => {
                 console.error(err);
@@ -1228,6 +1255,12 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
+
+                if (this.mode === 'edit' && (!scheme.items || scheme.items.length === 0) && this.starterTemplates && this.starterTemplates.length > 0) {
+                    this.starterProposalModalShown = true;
+                    this.sidePanelRightWidth = 0;
+                    this.sidePanelLeftWidth = 0;
+                }
             })
             .catch(err => {
                 console.error(err);
@@ -1702,8 +1735,16 @@ export default {
 
 
         copySelectedItems() {
-            const copyBuffer = this.schemeContainer.copySelectedItems();
-            copyToClipboard(copyBuffer);
+            this.isCopying = true;
+            this.schemeContainer.copySelectedItems()
+            .then(copyBuffer => {
+                copyToClipboard(copyBuffer);
+                this.isCopying = false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.isCopying = false;
+            });
         },
 
         copySelectedItemStyle() {
@@ -1748,28 +1789,52 @@ export default {
             }
         },
 
-        pasteItemsFromClipboardAt(mx, my) {
-            getTextFromClipboard().then(text => {
-                if (text) {
-                    const items = this.schemeContainer.decodeItemsFromText(text);
-                    if (items) {
-                        this.isLoading = true;
-                        this.loadingStep = 'load-shapes';
-                        collectAndLoadAllMissingShapes(items, this.$store)
-                        .catch(err => {
-                            console.error(err);
-                            StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
-                        })
-                        .then(() => {
-                            this.isLoading = false;
-                            const centerX = (mx - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
-                            const centerY = (my - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
-                            this.schemeContainer.pasteItems(items, centerX, centerY);
-                            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-                        });
-                    }
+        loadCopiedItemsFromClipboard() {
+            return getTextFromClipboard().then(text => {
+                if (!text) {
+                    return [];
                 }
-            })
+                const items = this.schemeContainer.decodeItemsFromText(text);
+                if (!items) {
+                    return [];
+                }
+                this.isLoading = true;
+                this.loadingStep = 'load-shapes';
+
+                return collectAndLoadAllMissingShapes(items, this.$store)
+                .then(() => {
+                    this.isLoading = false;
+                    return items;
+                })
+                .catch(err => {
+                    this.isLoading = false;
+                    console.error(err);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
+                    return [];
+                })
+            });
+        },
+
+        pasteItemsFromClipboardInto(item) {
+            this.loadCopiedItemsFromClipboard()
+            .then(items => {
+                if (!items) {
+                    return;
+                }
+                this.schemeContainer.pasteItemsInto(items, item);
+            });
+        },
+
+        pasteItemsFromClipboardAt(mx, my) {
+            this.loadCopiedItemsFromClipboard()
+            .then(items => {
+                if (!items) {
+                    return;
+                }
+                const centerX = (mx - this.schemeContainer.screenTransform.x) / this.schemeContainer.screenTransform.scale;
+                const centerY = (my - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale;
+                this.schemeContainer.pasteItems(items, centerX, centerY);
+            });
         },
 
         pasteItemsFromClipboard() {
@@ -1937,6 +2002,7 @@ export default {
          */
         onItemSelectionUpdated() {
             if (this.schemeContainer.selectedItems.length > 0) {
+                this.templatePropertiesKey += 1;
                 this.$emit('items-selected');
                 this.currentTab = 'Item';
                 const item = this.schemeContainer.selectedItems[0];
@@ -2140,19 +2206,10 @@ export default {
 
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
-            const selectedItemIds = this.schemeContainer.selectedItems.map(item => item.id);
             this.rebuildTemplate(originItemId, template, templateArgs);
             this.schemeContainer.reindexItems();
 
-            const itemsToSelect = [];
-            selectedItemIds.forEach(itemId => {
-                const item = this.schemeContainer.findItemById(itemId);
-                if (item) {
-                    itemsToSelect.push(item);
-                }
-            });
-
-            this.schemeContainer.selectMultipleItems(itemsToSelect);
+            this.schemeContainer.updateEditBox();
         },
 
         onTemplatePropertiesUpdated(originItemId, template, templateArgs) {
@@ -2316,6 +2373,13 @@ export default {
                 clicked: () => {this.copySelectedItemStyle(item);}
             }]);
 
+            if (selectedOnlyOne) {
+                contextMenuOptions.push({
+                    name: 'Paste into',
+                    clicked: () => { this.pasteItemsFromClipboardInto(item) }
+                });
+            }
+
             if (this.$store.state.copiedStyleItem) {
                 contextMenuOptions.push({
                     name: 'Apply copied item style',
@@ -2452,7 +2516,7 @@ export default {
                 });
             }
 
-            if (item.shape === 'path') {
+            if (item.shape === 'path' && !item.locked) {
                 contextMenuOptions.push({
                     name: 'Edit Path',
                     clicked: () => { this.onEditPathRequested(item); }
@@ -3233,6 +3297,38 @@ export default {
             this.itemDetailsMouseOutTimer = setTimeout(() => {
                 this.itemDetails.item = null;
             }, 1000);
+        },
+
+        closeStarterProposalModal() {
+            this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
+            this.sidePanelLeftWidth = this.sidePanelLeftWidthLastUsed;
+            this.starterProposalModalShown = false;
+        },
+
+        onStarterProposalSelected(items) {
+            this.closeStarterProposalModal();
+
+            const tempContainer = new SchemeContainer({name: '', items}, 'temp-editor', 'edit', this.schemeContainer.apiClient);
+            tempContainer.reindexItems();
+
+
+            this.schemeContainer.scheme.items = tempContainer.cloneItems(tempContainer.scheme.items);
+            this.schemeContainer.reindexItems();
+            const bbox = getBoundingBoxOfItems(this.schemeContainer.getItems());
+
+
+            const svg = document.getElementById(`svg-plot-${this.editorId}`);
+            this.schemeContainer.screenTransform.scale = 1.0;
+            if (svg) {
+                const svgBox = svg.getBoundingClientRect();
+                this.schemeContainer.screenTransform.x = svgBox.width/2 - (bbox.x + bbox.w/2);
+                this.schemeContainer.screenTransform.y = (svgBox.height)/2 - (bbox.y + bbox.h/2);
+            } else {
+                this.schemeContainer.screenTransform.x = bbox.x + bbox.w/2;
+                this.schemeContainer.screenTransform.y = bbox.y + bbox.h/2;
+            }
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         //calculates from world to screen

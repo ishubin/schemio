@@ -70,6 +70,7 @@
             <panel v-for="panel in customItemMenuPanels" :name="panel.name">
                 <component :is="panel.component"
                     :search-keyword="searchKeyword"
+                    :editor-id="editorId"
                     @stop-preview-item="stopPreviewItem"
                     @show-preview-item="showPreviewItem"
                     @item-mouse-down="onItemMouseDown"
@@ -113,7 +114,11 @@
 
             <panel v-for="artPack in filteredArtPacks" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
                 <div class="art-pack">
-                    <div class="art-pack-author">Created by <a :href="artPack.link">{{artPack.author}}</a></div>
+                    <div class="art-pack-author" v-if="artPack.author">
+                        Created by
+                        <a v-if="artPack.link" :href="artPack.link">{{artPack.author}}</a>
+                        <span v-else>{{artPack.author}}</span>
+                    </div>
                     <div class="item-menu">
                         <div class="item-container"
                             v-for="icon in artPack.icons"
@@ -657,7 +662,7 @@ export default {
                 return;
             }
             this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
-                const compiledTemplate = compileItemTemplate(template, templateEntry.path);
+                const compiledTemplate = compileItemTemplate(this.editorId, template, templateEntry.path);
                 const templatedItem = this.schemeContainer.generateItemFromTemplate(compiledTemplate, compiledTemplate.getDefaultArgs(), compiledTemplate.defaultArea.w, compiledTemplate.defaultArea.h);
 
                 this.onItemMouseDown(event, {

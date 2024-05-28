@@ -32,7 +32,8 @@ export const ReservedTerms = {
     FOR   : 'for',
     NULL  : 'null',
     STRUCT: 'struct',
-    FUNC  : 'func'
+    FUNC  : 'func',
+    LOCAL : 'local'
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));

@@ -82,6 +82,10 @@ export class List {
         return new List(...filteredArray);
     }
 
+    findIndex(predicate) {
+        return this.items.findIndex(predicate);
+    }
+
     /**
      * @param {List|Array} otherList
      */
@@ -91,6 +95,10 @@ export class List {
                 this.items.push(item);
             });
         }
+    }
+
+    sort(comparator) {
+        this.items.sort(comparator);
     }
 
     get size() {

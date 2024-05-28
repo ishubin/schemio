@@ -139,6 +139,15 @@ const EditorEventBus = {
             $emit: (editorId, templateRootItem, templateRef) => {
                 $emit(editorId,   'item-template-selected', [], templateRootItem, templateRef);
             },
+        },
+        templateArgsUpdated: {
+            specific: {
+                $on: (editorId, itemId, callback) => $on(editorId, 'item-template-args-changed', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'item-template-args-changed', [itemId], callback),
+                $emit: (editorId, itemId) => {
+                    $emit(editorId, 'item-template-args-changed', [itemId], itemId);
+                }
+            },
         }
     },
 

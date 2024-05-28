@@ -22,6 +22,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [set (List)](#set-list)
       - [insert (List)](#insert-list)
       - [size (List)](#size-list)
+      - [findIndex (List)](#findindex-list)
       - [forEach (List)](#foreach-list)
       - [map (List)](#map-list)
       - [filter (List)](#filter-list)
@@ -44,6 +45,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [has (Set)](#has-set)
       - [forEach (Set)](#foreach-set)
 - [Function declaration](#function-declaration)
+- [Local variables](#local-variables)
 - [Structs](#structs)
 - [Functions](#functions)
     - [abs](#abs)
@@ -352,6 +354,15 @@ for (i = 0; i < items.size; i++) {
 }
 ```
 
+##### findIndex (List)
+
+`findIndex(callback)` function finds the index of the first element that satisfies the provided testing function. It returns `-1` if no element could be found.
+
+```js
+items = List('a', 'b', 'c')
+idx = items.findIndex((item) => { item == 'b' })
+```
+
 ##### forEach (List)
 
 `forEach(callback)` function iterates the list and calls specified `callback` function with each item value and its position in the List:
@@ -556,6 +567,35 @@ myMin = (a) => {
     }
 }
 log(myMin(4)(3))
+```
+
+
+Local variables
+----------------
+You may want to isolate your local variables to the scope of your function, loop or if statement. For such cases you should use `local` keyword:
+
+```
+name = 'John'
+
+func someFunc() {
+    local name
+    name = 'Sara'
+    log(someVar)
+}
+
+someFunc()
+log(someVar)
+```
+
+The example above should first output 'Sara' and then 'John', because the `name` variable in `someFunc` function is redefined as local.
+
+You can also assign a value to a local variable on the same line with `local` keyword:
+
+```
+func someFunc() {
+    local name = 'Sara'
+    // ...
+}
 ```
 
 

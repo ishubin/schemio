@@ -124,7 +124,7 @@ export function dragAndDropBuilder(originalEvent) {
                 }
             }
 
-            const coords = getPageCoordsFromEvent(event)
+            const coords = getPageCoordsFromEvent(this.originalEvent)
             const originalClickX = coords.pageX;
             const originalClickY = coords.pageY;
 

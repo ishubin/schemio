@@ -37,7 +37,7 @@
                             title="Stroke"
                             />
                     </li>
-                    <li v-if="item.shape === 'path'">
+                    <li v-if="item.shape === 'path' && !item.locked">
                         <span class="toggle-button" @click="editPath" title="Edit path"><img width="20px" :src="`${assetsPath}/images/icons/create-curve.svg`"/></span>
                     </li>
                     <li v-if="item.shape === 'image'">

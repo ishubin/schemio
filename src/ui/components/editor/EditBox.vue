@@ -147,7 +147,7 @@
         </g>
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
-            <ellipse v-if="kind === 'regular' && !isLocked" class="boundary-box-dragger"
+            <ellipse v-if="kind === 'regular' && !isLocked && editBox.rotationEnabled" class="boundary-box-dragger"
                 data-type="edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
@@ -156,7 +156,7 @@
                 :ry="controlPointSize/safeZoom"
             />
 
-            <transition name="edit-box-controls" v-if="!isLocked && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+            <transition name="edit-box-controls" v-if="!isLocked && editBox.connectorStarterEnabled && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
                 <g>
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
@@ -608,7 +608,7 @@ export default {
                 return;
             }
             this.apiClient.getTemplate(templateRef).then(templateDef => {
-                this.template = compileItemTemplate(templateDef, templateRef);
+                this.template = compileItemTemplate(this.editorId, templateDef, templateRef);
                 this.buildTemplateControls();
             });
         },
@@ -704,7 +704,7 @@ export default {
                     }
                 }
             }
-            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, updatedArgs);
+            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
         },
 
         onColorControlToggled(expanded) {

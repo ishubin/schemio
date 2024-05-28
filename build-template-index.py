@@ -37,7 +37,11 @@ def process_template(template, template_path):
         for import_path in template['import']:
             imported_script = read_file(os.path.join(dir_name, import_path))
             init_script_prefix += imported_script + '\n\n'
-        template['init'] = init_script_prefix + template['init']
+        if 'init' in template:
+            template['init'] = init_script_prefix + template['init']
+        else:
+            template['init'] = init_script_prefix
+
 
 
 

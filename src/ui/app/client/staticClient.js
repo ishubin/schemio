@@ -187,6 +187,10 @@ export const staticClientProvider = {
             },
 
             getExportHTMLResources,
+
+            get(url) {
+                return axios.get(url).then(unwrapAxios);
+            }
         });
     }
 }

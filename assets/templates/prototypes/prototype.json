@@ -100,7 +100,7 @@
         },
         "textSlots": {
             "body": {
-                "text": "This is a root of the page. Do not use it.",
+                "text": "<p>This is a root of the page. <b>Do not use it</b>. Instead add items to other pages.</p><p>Each page has \"<b>Open page</b>\" event, which, when triggered, displays the page on top of the root item</p>",
                 "color":"rgba(170, 170, 170, 1)"
             }
         },

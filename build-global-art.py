@@ -40,7 +40,7 @@ def scan_art(path, art):
                 'url' : urllib.request.pathname2url('/' + full_path)
             })
 
-
+    icons.sort(key=lambda icon: icon['name'])
     return icons
 
 

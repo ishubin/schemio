@@ -1,9 +1,15 @@
 import { List } from "./list";
+import { TreeNode, decodeTree } from "./treenode";
 import { StringTemplate } from "./strings";
 import { Vector } from "./vector";
 import { Scope } from "./scope";
 import shortid from "shortid";
-import { convertScriptObjectToJSON } from "./json";
+import { convertJSONToScriptObject, convertScriptObjectToJSON } from "./json";
+import { forEach } from "../collections";
+import SchemioScriptMath from "./astmath";
+import { parseColor } from "../colors";
+import { Color } from "./color";
+import { Area } from "./area";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -245,6 +251,29 @@ export class ASTIFStatement extends ASTNode {
         const trueBlock = this.trueBlock ? this.trueBlock.print() : '';
         const falseBlock = this.falseBlock ? this.falseBlock.print() : '';
         return `if (${this.conditionExpression.print()}) {${trueBlock}} else {${falseBlock}}`;
+    }
+}
+
+
+export class ASTLocalVariable extends ASTNode {
+    /**
+     * @param {String} varName
+     * @param {ASTAssign|undefined} expression
+     */
+    constructor(varName, expression) {
+        super('local');
+        this.varName = varName;
+        this.expression = expression;
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        scope.setLocal(this.varName, null);
+        if (this.expression) {
+            this.expression.evalNode(scope);
+        }
     }
 }
 
@@ -497,11 +526,24 @@ function createHashMap(...args) {
     return map;
 }
 
+function setObjectFieldFunc(obj, name, value) {
+    if (typeof obj !== 'object') {
+        return;
+    }
+    obj[name] = value
+}
+
+function log(...args) {
+    console.log(...args);
+}
 
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     Vector    : (x, y) => new Vector(x, y),
     List      : (...items) => new List(...items),
+    TreeNode  : (...items) => new TreeNode(...items),
+    decodeTree: decodeTree,
+    Area      : (x, y, w, h) => new Area(x, y, w, h),
     Map       : (...args) => createHashMap(...args),
     Set       : (...items) => new Set(items),
     max       : Math.max,
@@ -513,7 +555,7 @@ const reservedFunctions = new Map(Object.entries({
     asin      : Math.asin,
     abs       : Math.abs,
     uid       : () => shortid.generate(),
-    log       : console.log,
+    log       : log,
     round     : Math.round,
     ceil      : Math.ceil,
     floor     : Math.floor,
@@ -530,9 +572,16 @@ const reservedFunctions = new Map(Object.entries({
         }
         return falseValue;
     },
-    matchesRegex: (text, pattern) => new RegExp(pattern).test(text),
-    splitString : (str, separator) => new List(...str.split(separator)),
-    toJSON : (obj) => convertScriptObjectToJSON(obj)
+    matchesRegex  : (text, pattern) => new RegExp(pattern).test(text),
+    splitString   : (str, separator) => new List(...str.split(separator)),
+    toJSON        : (obj) => convertScriptObjectToJSON(obj),
+    fromJSON      : (obj) => convertJSONToScriptObject(obj),
+    forEach       : forEach,
+    setObjectField: setObjectFieldFunc,
+    Math          : SchemioScriptMath,
+
+    Color         : (r,g,b,a) => new Color(r,g,b,a),
+    decodeColor   : (text) => {const c = parseColor(text); return new Color(c.r, c.g, c.b, c.a)}
 }));
 
 

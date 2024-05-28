@@ -1,6 +1,6 @@
 import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
-import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
+import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
 import { ASTStructNode } from "./struct";
 import { normalizeTokens } from "./normalization";
@@ -131,6 +131,9 @@ class ASTParser extends TokenScanner {
         }
     }
 
+    /**
+     * @returns {ASTNode}
+     */
     parseSingleExpression() {
         this.skipNewlinesAndDelimeters();
 
@@ -288,6 +291,8 @@ class ASTParser extends TokenScanner {
                 return this.parseStruct();
             } else if (token.v === ReservedTerms.FUNC) {
                 return this.parseFunctionDeclaration();
+            } else if (token.v === ReservedTerms.LOCAL) {
+                return this.parseLocalVarDeclaration();
             }
         } else if (token.t === TokenTypes.TERM) {
             return this.parseTermGroup(new ASTVarRef(token.v));
@@ -340,6 +345,20 @@ class ASTParser extends TokenScanner {
 
         const whileBlock = parseAST(token.groupTokens);
         return new ASTWhileStatement(whileExpression, whileBlock);
+    }
+
+    parseLocalVarDeclaration() {
+        const node = this.parseSingleExpression();
+        if (!node) {
+            throw new Error('Expected variable declaration after "local"');
+        }
+        if (node instanceof ASTVarRef) {
+            return new ASTLocalVariable(node.varName, null);
+        } else if (node instanceof ASTAssign && node.a instanceof ASTVarRef) {
+            return new ASTLocalVariable(node.a.varName, node);
+        } else {
+            throw new Error('Invalid local variable declaration');
+        }
     }
 
     parseFunctionDeclaration() {

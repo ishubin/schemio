@@ -1,1 +1,102 @@
-[{"name": "Azure", "ref": "/assets/art/azure/art.json", "author": "Microsoft", "link": "https://docs.microsoft.com/en-us/azure/architecture/icons/", "previewImages": ["/assets/art/azure/Databases/10133-icon-service-Azure-Database-Migration-Services.svg", "/assets/art/azure/Databases/00606-icon-service-Azure-Synapse-Analytics.svg", "/assets/art/azure/Databases/02392-icon-service-SSIS-Lift-And-Shift-IR.svg", "/assets/art/azure/Databases/10122-icon-service-Azure-Database-MySQL-Server.svg", "/assets/art/azure/Databases/10137-icon-service-Azure-SQL-Server-Stretch-Databases.svg", "/assets/art/azure/Databases/10139-icon-service-Instance-Pools.svg", "/assets/art/azure/Databases/10128-icon-service-Elastic-Job-Agents.svg", "/assets/art/azure/Databases/10121-icon-service-Azure-Cosmos-DB.svg", "/assets/art/azure/Databases/10134-icon-service-SQL-Elastic-Pools.svg", "/assets/art/azure/Databases/10136-icon-service-SQL-Managed-Instance.svg", "/assets/art/azure/Databases/10145-icon-service-Azure-Data-Explorer-Clusters.svg", "/assets/art/azure/Databases/10123-icon-service-Azure-Database-MariaDB-Server.svg"]}, {"name": "WHCompare Servers Isometric", "ref": "/assets/art/whcompare-isometric/art.json", "author": "WHCompare", "link": "https://www.iconfinder.com/WHCompare", "previewImages": ["/assets/art/whcompare-isometric/backup.svg", "/assets/art/whcompare-isometric/builder.svg", "/assets/art/whcompare-isometric/speed.svg", "/assets/art/whcompare-isometric/firewall.svg", "/assets/art/whcompare-isometric/laptop-02.svg", "/assets/art/whcompare-isometric/laptop-03.svg", "/assets/art/whcompare-isometric/raid.svg", "/assets/art/whcompare-isometric/laptop-01.svg", "/assets/art/whcompare-isometric/http-2.svg", "/assets/art/whcompare-isometric/server-secure.svg", "/assets/art/whcompare-isometric/laptop-04.svg", "/assets/art/whcompare-isometric/db-cloud.svg"]}, {"name": "WHCompare Servers Flat", "ref": "/assets/art/whcompare-servers-flat/art.json", "author": "WHCompare", "link": "https://www.iconfinder.com/WHCompare", "previewImages": ["/assets/art/whcompare-servers-flat/user.svg", "/assets/art/whcompare-servers-flat/server-protection.svg", "/assets/art/whcompare-servers-flat/sftp.svg", "/assets/art/whcompare-servers-flat/headset.svg", "/assets/art/whcompare-servers-flat/http-2.svg", "/assets/art/whcompare-servers-flat/desktop.svg", "/assets/art/whcompare-servers-flat/server-wordpress.svg", "/assets/art/whcompare-servers-flat/connection.svg", "/assets/art/whcompare-servers-flat/server-cloud.svg", "/assets/art/whcompare-servers-flat/ssd-gray.svg", "/assets/art/whcompare-servers-flat/browser.svg", "/assets/art/whcompare-servers-flat/cdn.svg"]}, {"name": "Google Cloud", "ref": "/assets/art/google-cloud/art.json", "author": "Google", "link": "https://cloud.google.com/icons", "previewImages": ["/assets/art/google-cloud/stackdriver/stackdriver.svg", "/assets/art/google-cloud/key_management_service/key_management_service.svg", "/assets/art/google-cloud/dataflow/dataflow.svg", "/assets/art/google-cloud/automl_translation/automl_translation.svg", "/assets/art/google-cloud/cloud_gpu/cloud_gpu.svg", "/assets/art/google-cloud/gce_systems_management/gce_systems_management.svg", "/assets/art/google-cloud/cloud_interconnect/cloud_interconnect.svg", "/assets/art/google-cloud/identity-aware_proxy/identity-aware_proxy.svg", "/assets/art/google-cloud/datastream/datastream.svg", "/assets/art/google-cloud/connectors/connectors.svg", "/assets/art/google-cloud/beyondcorp/beyondcorp.svg", "/assets/art/google-cloud/home/home.svg"]}]
+[
+  {
+    "name": "Azure",
+    "ref": "/assets/art/azure/art.json",
+    "author": "Microsoft",
+    "link": "https://docs.microsoft.com/en-us/azure/architecture/icons/",
+    "previewImages": [
+      "/assets/art/azure/Blockchain/10374-icon-service-ABS-Member.svg",
+      "/assets/art/azure/Integration/10042-icon-service-API-Management-Services.svg",
+      "/assets/art/azure/app-services/10042-icon-service-API-Management-Services.svg",
+      "/assets/art/azure/azure-vmware-solution/00524-icon-service-AVS.svg",
+      "/assets/art/azure/Identity/10224-icon-service-Active-Directory-Connect-Health.svg",
+      "/assets/art/azure/management-Governance/00007-icon-service-Activity-Log.svg",
+      "/assets/art/azure/management-Governance/00003-icon-service-Advisor.svg",
+      "/assets/art/azure/management-Governance/00002-icon-service-Alerts.svg",
+      "/assets/art/azure/General/10001-icon-service-All-Resources.svg",
+      "/assets/art/azure/Analytics/10148-icon-service-Analysis-Services.svg",
+      "/assets/art/azure/Identity/10232-icon-service-App-Registrations.svg",
+      "/assets/art/azure/app-services/00049-icon-service-App-Service-Certificates.svg"
+    ]
+  },
+  {
+    "name": "Google Cloud",
+    "ref": "/assets/art/google-cloud/art.json",
+    "author": "Google",
+    "link": "https://cloud.google.com/icons",
+    "previewImages": [
+      "/assets/art/google-cloud/access_context_manager/access_context_manager.svg",
+      "/assets/art/google-cloud/administration/administration.svg",
+      "/assets/art/google-cloud/advanced_agent_modeling/advanced_agent_modeling.svg",
+      "/assets/art/google-cloud/advanced_solutions_lab/advanced_solutions_lab.svg",
+      "/assets/art/google-cloud/agent_assist/agent_assist.svg",
+      "/assets/art/google-cloud/ai_hub/ai_hub.svg",
+      "/assets/art/google-cloud/ai_platform/ai_platform.svg",
+      "/assets/art/google-cloud/ai_platform_unified/ai_platform_unified.svg",
+      "/assets/art/google-cloud/analytics_hub/analytics_hub.svg",
+      "/assets/art/google-cloud/anthos/anthos.svg",
+      "/assets/art/google-cloud/anthos_config_management/anthos_config_management.svg",
+      "/assets/art/google-cloud/anthos_service_mesh/anthos_service_mesh.svg"
+    ]
+  },
+  {
+    "name": "Icons & Emoji",
+    "ref": "/assets/art/icons/art.json",
+    "author": null,
+    "link": null,
+    "previewImages": [
+      "/assets/art/icons/check.svg",
+      "/assets/art/icons/cross.svg",
+      "/assets/art/icons/depressed.svg",
+      "/assets/art/icons/emoji-angry.svg",
+      "/assets/art/icons/emoji-angry-2.svg",
+      "/assets/art/icons/emoji-cry.svg",
+      "/assets/art/icons/emoji-dead.svg",
+      "/assets/art/icons/emoji-hah.svg",
+      "/assets/art/icons/emoji-happy.svg",
+      "/assets/art/icons/emoji-heart.svg",
+      "/assets/art/icons/emoji-puke.svg",
+      "/assets/art/icons/emoji-rest.svg"
+    ]
+  },
+  {
+    "name": "WHCompare Servers Isometric",
+    "ref": "/assets/art/whcompare-isometric/art.json",
+    "author": "WHCompare",
+    "link": "https://www.iconfinder.com/WHCompare",
+    "previewImages": [
+      "/assets/art/whcompare-isometric/analytics.svg",
+      "/assets/art/whcompare-isometric/backup.svg",
+      "/assets/art/whcompare-isometric/build-http.svg",
+      "/assets/art/whcompare-isometric/builder.svg",
+      "/assets/art/whcompare-isometric/cdn.svg",
+      "/assets/art/whcompare-isometric/computer.svg",
+      "/assets/art/whcompare-isometric/computer-02.svg",
+      "/assets/art/whcompare-isometric/connection.svg",
+      "/assets/art/whcompare-isometric/db.svg",
+      "/assets/art/whcompare-isometric/db-cache.svg",
+      "/assets/art/whcompare-isometric/db-cloud.svg",
+      "/assets/art/whcompare-isometric/email.svg"
+    ]
+  },
+  {
+    "name": "WHCompare Servers Flat",
+    "ref": "/assets/art/whcompare-servers-flat/art.json",
+    "author": "WHCompare",
+    "link": "https://www.iconfinder.com/WHCompare",
+    "previewImages": [
+      "/assets/art/whcompare-servers-flat/browser.svg",
+      "/assets/art/whcompare-servers-flat/cdn.svg",
+      "/assets/art/whcompare-servers-flat/connection.svg",
+      "/assets/art/whcompare-servers-flat/desktop.svg",
+      "/assets/art/whcompare-servers-flat/hdd.svg",
+      "/assets/art/whcompare-servers-flat/headset.svg",
+      "/assets/art/whcompare-servers-flat/http-2.svg",
+      "/assets/art/whcompare-servers-flat/ip.svg",
+      "/assets/art/whcompare-servers-flat/server-cloud.svg",
+      "/assets/art/whcompare-servers-flat/server-gauge.svg",
+      "/assets/art/whcompare-servers-flat/server-protection.svg",
+      "/assets/art/whcompare-servers-flat/server-wordpress.svg"
+    ]
+  }
+]

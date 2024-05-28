@@ -5,19 +5,132 @@ import shortid from "shortid";
 import { forEachObject } from "../../../collections";
 import { traverseItems, traverseItemsConditionally } from "../../../scheme/Item";
 import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
-import { compileJSONTemplate, compileTemplateExpressions } from "../../../templater/templater";
+import { compileJSONTemplate, compileTemplateCall, compileTemplateExpressions } from "../../../templater/templater";
 import { createTemplateFunctions } from "./ItemTemplateFunctions";
+import { List } from "../../../templater/list";
+import { parseExpression } from "../../../templater/ast";
+import { Scope } from "../../../templater/scope";
+import { ASTNode } from "../../../templater/nodes";
 
-function mockedFunc() {
+
+const ContextPhases = {
+    BUILD     : 'build',
+    POST_BUILD: 'post-build',
+    EVENT     : 'event',
+};
+
+class TemplateContext {
+    constructor(phase, eventName, eventId) {
+        this.phase = phase;
+        this.eventName = eventName;
+        this.eventId = eventId;
+    }
+}
+
+
+const defaultEditor = {
+    panels: []
+};
+
+function enrichPanelItem(item) {
+    enrichItemWithDefaults(item);
+    if (Array.isArray(item.childItems))  {
+        item.childItems.forEach(enrichPanelItem);
+    }
 }
 
 /**
- *
+ * @param {String} editorId
+ * @param {function(Object): Object} editorJSONBuilder
+ * @param {Array<String>} initBlock
+ * @param {Item} templateRootItem
+ * @param {Object} data
+ * @param {Array<String>} selectedItemIds
+ */
+function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, data, selectedItemIds) {
+    // cloning selected items to make sure that the script cannot mutate items
+    const extraData = {
+        selectedItemIds: new List(...selectedItemIds),
+        ...createTemplateFunctions(editorId, templateRootItem)
+    };
+    const finalData = {
+        ...data,
+        ...extraData,
+        context: new TemplateContext(ContextPhases.EVENT, 'editor', '')
+    };
+
+    const editor = editorJSONBuilder(finalData).editor;
+    if (!editor || !Array.isArray(editor.panels)) {
+        return defaultEditor;
+    }
+
+    return {
+        panels: editor.panels.map(panel => {
+            let condition = () => true;
+            if (panel.condition) {
+                condition = compileTemplateCall(panel.condition, finalData);
+            }
+            let click = null;
+            if (panel.click) {
+                const clickCallback = compileTemplateExpressions(initBlock.concat([panel.click]), {
+                    context: new TemplateContext(ContextPhases.EVENT, 'panel-click', panel.id)
+                });
+                click = (panelItem) => {
+                    // panel click callback is supposed to return the object that contains the top-level scope fields
+                    // This can be used in order to update template args in the template root item
+                    const lastTemplateArgs = templateRootItem.args && templateRootItem.args.templateArgs ? templateRootItem.args.templateArgs : {};
+                    // overriding scope with the last version of template args saved in the template root item.
+                    // This part is important as it could be that the template args have changed through user clicking template controls
+                    // and right after selecting a new item and clicking the editor panel item. Because of the last action the TemplateProperties component
+                    // has not been updated and therefore the "data" variable in this function contains outdated template args
+
+                    const clickData = {
+                        ...lastTemplateArgs,
+                        width: templateRootItem.area.w,
+                        height: templateRootItem.area.h,
+                        ...extraData,
+                        panelItem
+                    };
+                    return clickCallback(clickData);
+                };
+            }
+
+            const panelItems = (panel.items || []).map(item => {
+                enrichPanelItem(item);
+                return item;
+            });
+
+            return {
+                ...panel,
+                slotSize: panel.slotSize || {width: 100, height: 60},
+                items: panelItems,
+                condition,
+                click
+            };
+        }).filter(panel => {
+            const result = panel.condition();
+            return result;
+        })
+    };
+}
+
+
+/**
+ * @param {Array<String>} expressions
+ * @returns {ASTNode}
+ */
+function parseTemplateExpressionBlock(expressions) {
+    const raw = expressions.join('\n');
+    return parseExpression(raw);
+}
+
+/**
+ * @param {String} editorId
  * @param {ItemTemplate} template
  * @param {String} templateRef
  * @returns {CompiledItemTemplate}
  */
-export function compileItemTemplate(template, templateRef) {
+export function compileItemTemplate(editorId, template, templateRef) {
     const initBlock = toExpressionBlock(template.init);
     const compiledControlBuilder = compileJSONTemplate({
         '$-eval': initBlock,
@@ -29,8 +142,24 @@ export function compileItemTemplate(template, templateRef) {
         item: template.item,
     });
 
+    const itemPostBuilder = compileJSONTemplate({
+        item: template.item
+    });
 
-    const eventExpressions = compileTemplateExpressions(initBlock, {});
+    const editorJSONBuilder = compileJSONTemplate({
+        '$-eval': initBlock,
+        editor: template.editor || defaultEditor,
+    });
+
+    const initAST = parseTemplateExpressionBlock(initBlock);
+
+    const templateHandlers = {};
+    if (template.handlers) {
+        forEachObject(template.handlers, (expression, eventName) => {
+            const eventExpressions = toExpressionBlock(expression);
+            templateHandlers[eventName] = parseTemplateExpressionBlock(eventExpressions);
+        });
+    }
 
     const defaultArgs = {};
     forEachObject(template.args, (arg, argName) => {
@@ -46,58 +175,87 @@ export function compileItemTemplate(template, templateRef) {
         args       : template.args || {},
         defaultArgs: defaultArgs,
 
-        /**
-         * @param {Item} rootItem
-         * @param {String} eventName
-         * @param  {...any} eventArgs
-         * @returns {Object|null} returns updated template args. null if there were no subscribers for the event
-         */
-        triggerEvent : (rootItem, eventName, ...eventArgs) => {
-            const allEventHandlers = [];
-            const data = {
-                ...defaultArgs,
-                ...rootItem.args.templateArgs,
-                ...createTemplateFunctions(rootItem),
-                width: rootItem.area.w,
-                height: rootItem.area.h,
-                on: (eventName, callback) => {
-                    allEventHandlers.push({eventName, callback});
-                }
-            };
-            const updatedData = eventExpressions(data);
+        hasHandler: (handlerName) => templateHandlers.hasOwnProperty(handlerName),
 
-            let eventCalled = false;
-            allEventHandlers.forEach(handler => {
-                if (handler.eventName !== eventName) {
-                    return;
-                }
-                handler.callback(...eventArgs);
-                eventCalled = true;
-            });
-
-            if (!eventCalled) {
+        triggerTemplateEvent(rootItem, eventName, eventData) {
+            if (!templateHandlers.hasOwnProperty(eventName)) {
                 return null;
             }
+            const fullData = {
+                ...defaultArgs,
+                ...rootItem.args.templateArgs,
+                ...createTemplateFunctions(editorId, rootItem),
+                width: rootItem.area.w,
+                height: rootItem.area.h,
+                context: new TemplateContext(ContextPhases.EVENT, eventName, rootItem.id)
+            };
+            const scope = new Scope(fullData);
+
+            initAST.evalNode(scope);
+
+            forEachObject(eventData, (value, name) => {
+                scope.set(name, value);
+            });
+
+            templateHandlers[eventName].evalNode(scope);
+            const updatedScopeData = scope.getData();
 
             const templateArgs = {};
             forEachObject(template.args, (argDef, argName) => {
-                templateArgs[argName] = updatedData[argName];
+                templateArgs[argName] = updatedScopeData[argName];
             });
-            if (updatedData.hasOwnProperty('width')) {
-                templateArgs.width = updatedData.width;
+            if (updatedScopeData.hasOwnProperty('width')) {
+                templateArgs.width = updatedScopeData.width;
             }
-            if (updatedData.hasOwnProperty('height')) {
-                templateArgs.height = updatedData.height;
+            if (updatedScopeData.hasOwnProperty('height')) {
+                templateArgs.height = updatedScopeData.height;
             }
-            return templateArgs;
+            rootItem.args.templateArgs = templateArgs;
+            return updatedScopeData;
         },
-        buildItem : (args, width, height) => itemBuilder({
-            ...args, width, height,
-            on: mockedFunc
-        }).item,
-        buildControls: (args, width, height) => compiledControlBuilder({...args, width, height, on: mockedFunc}).controls.map(control => {
+
+        onDeleteItem(rootItem, itemId, item) {
+            return this.triggerTemplateEvent(rootItem, 'delete', {itemId, item});
+        },
+
+        onAreaUpdate(rootItem, itemId, item, area) {
+            return this.triggerTemplateEvent(rootItem, 'area', {itemId, item, area});
+        },
+
+        onCopyItem(rootItem, itemId, item) {
+            return this.triggerTemplateEvent(rootItem, 'copy', {itemId, item});
+        },
+
+        onPasteItemInto(rootItem, itemId, items) {
+            return this.triggerTemplateEvent(rootItem, 'paste', {itemId, items});
+        },
+
+        buildItem : (args, width, height, postBuild) => {
+            if (postBuild) {
+                return itemPostBuilder({
+                    ...args, width, height,
+                    context: new TemplateContext(ContextPhases.POST_BUILD, null, '')
+                }).item;
+            }
+            return itemBuilder({
+                ...args, width, height,
+                context: new TemplateContext(ContextPhases.BUILD, null, '')
+            }).item;
+        },
+
+        buildEditor: (templateRootItem, args, width, height, selectedItemIds) => {
+            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds);
+        },
+
+        buildControls: (args, width, height) => compiledControlBuilder({
+                ...args, width, height,
+                context: new TemplateContext(ContextPhases.EVENT, 'control', '')
+            }).controls.map(control => {
             const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
-            const clickExecutor = compileTemplateExpressions(controlExpressions, {...args, width, height, on: mockedFunc});
+            const clickExecutor = compileTemplateExpressions(controlExpressions, {
+                ...args, width, height,
+                context: new TemplateContext(ContextPhases.EVENT, 'control', control.id)
+            });
             return {
                 ...control,
 
@@ -108,7 +266,7 @@ export function compileItemTemplate(template, templateRef) {
                  *                  but everything that was declared in the global scope of the template script
                  */
                 click: (item) => {
-                    return clickExecutor({control, ...createTemplateFunctions(item)});
+                    return clickExecutor({control, ...createTemplateFunctions(editorId, item)});
                 }
             }
         }),
@@ -128,10 +286,11 @@ export function compileItemTemplate(template, templateRef) {
  * @param {Object} args
  * @param {Number} width
  * @param {Number} height
+ * @param {Boolean} postBuild
  * @returns {Item}
  */
-export function generateItemFromTemplate(template, args, width, height) {
-    const item = template.buildItem(args, width, height);
+export function generateItemFromTemplate(template, args, width, height, postBuild = false) {
+    const item = template.buildItem(args, width, height, postBuild);
     item.area.w = width;
     item.area.h = height;
 
@@ -139,7 +298,8 @@ export function generateItemFromTemplate(template, args, width, height) {
         if (!it.args) {
             it.args = {};
         }
-        if (parentItem !== null) {
+        // locking items by default unless a template specifically defines locking
+        if (parentItem !== null && !it.hasOwnProperty('locked')) {
             it.locked = true;
         }
 
@@ -151,10 +311,18 @@ export function generateItemFromTemplate(template, args, width, height) {
     });
 
     item.args.templateRef = template.templateRef;
-    item.args.templateArgs = args;
+    item.args.templateArgs = {};
+    forEachObject(template.args, (argDef, argName) => {
+        if (args.hasOwnProperty(argName)) {
+            item.args.templateArgs[argName] = args[argName];
+        }
+    });
     return item;
 }
 
+export function regenerateTemplatedItemWithPostBuilder(rootItem, template, templateArgs, width, height) {
+    return regenerateTemplatedItem(rootItem, template, templateArgs, width, height, true);
+}
 
 /**
  * @param {Item} rootItem
@@ -162,9 +330,24 @@ export function generateItemFromTemplate(template, args, width, height) {
  * @param {Object} templateArgs
  * @param {Number} width
  * @param {Number} height
+ * @param {Boolean} postBuild
  * @returns
  */
-export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
+export function regenerateTemplatedItem(rootItem, template, templateArgs, width, height, postBuild = false) {
+    /* Regeneration algorithm
+    1. (dstRootItem) - Index all items in generated item
+        - note positions (sortOrder in array) and parent id (templated id)
+    2. (srcRootItem) - Index all items in previous version of root item
+        - note external items (external to this template, which are either non templated or are template roots)
+    3. Create a new root item
+        - use dstRootItem for hierarchy and sort order reference
+        - but first search templated items from srcRootItem and strip its children
+        - if templated item exists in srcRootItem index:
+            - copy over properties from dst templated item and merge them accordingly
+          else:
+            - take the item from dst template as is but without children
+    */
+
     if (templateArgs.hasOwnProperty('width')) {
         width = templateArgs.width;
         rootItem.area.w = width;
@@ -173,169 +356,101 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         height = templateArgs.height;
         rootItem.area.h = height;
     }
-    const finalArgs = {...template.getDefaultArgs()};
-    forEachObject(template.args, (argDef, argName) => {
-        if (templateArgs.hasOwnProperty(argName)) {
-            finalArgs[argName] = templateArgs[argName];
-        }
-    });
-    const regeneratedRootItem = generateItemFromTemplate(template, finalArgs, width, height);
+    const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
+    const dstRootItem = generateItemFromTemplate(template, finalArgs, width, height, postBuild);
 
-    /** @type {Map<String, Item>} */
-    const regeneratedItemsById = new Map();
+    const srcItemsByTemplatedId = new Map();
 
-    traverseItems([regeneratedRootItem], (item, parentItem) => {
-        if (parentItem) {
-            item.meta.parentId = parentItem.id;
-        }
-        regeneratedItemsById.set(item.id, item);
-    });
+    const foreignChildrenByTemplatedId = new Map();
 
-    const idOldToNewConversions = new Map();
-    if (rootItem.args.templatedId) {
-        idOldToNewConversions.set(rootItem.args.templatedId, rootItem.id);
-    }
-
-    const forDeletion = [];
-
-    // stores ids of templated items that were present in the origin rootItem
-    // this way we can find out whether new templated items were added
-    const existingTemplatedIds = new Set();
     traverseItemsConditionally([rootItem], (item, parentItem, sortOrder) => {
-        if (!item.args || !item.args.templatedId) {
-            return false;
-        }
-
-        if (parentItem && item.args.templateRef) {
-            // this means that another template was attached to this template
-            // therefor it should stop traversing its children so it does not confuse it for items of current template
-            return false;
-        }
-
-        existingTemplatedIds.add(item.args.templatedId);
-        idOldToNewConversions.set(item.args.templatedId, item.id);
-
-        const regeneratedItem = regeneratedItemsById.get(item.args.templatedId);
-        if (!regeneratedItem) {
-            if (!parentItem || !Array.isArray(parentItem.childItems)) {
-                // we don't want to delete root item but we do want to keep traversing its children
-                return true;
+        if (parentItem && (
+            !item.args || !item.args.templatedId
+            || item.args.templateRef // templateRef indicates that this is a new template root so it cannot be part of current template
+        )) {
+            if (!foreignChildrenByTemplatedId.has(parentItem.args.templatedId)) {
+                foreignChildrenByTemplatedId.set(parentItem.args.templatedId, [item]);
+            } else {
+                foreignChildrenByTemplatedId.get(parentItem.args.templatedId).push(item);
             }
-
-            forDeletion.push({parentItem, sortOrder});
             return false;
         }
 
+        srcItemsByTemplatedId.set(item.args.templatedId, item);
+        return true;
+    });
+
+    const flattenDstItems = [];
+    const idOldToNewConversions = new Map();
+
+    traverseItems([dstRootItem], (item, parentItem, sortOrder) => {
+
+        const srcItem = srcItemsByTemplatedId.get(item.args.templatedId);
+        if (!srcItem) {
+            const id = shortid.generate();
+            idOldToNewConversions.set(item.id, id);
+            item.id = id;
+            flattenDstItems.push(item);
+            return;
+        }
+
+        const propMatcher = createTemplatePropertyMatcher(item.args ? (item.args.templateIgnoredProps || []) : []);
+
+        // to optimize performance of template regeneration we want to keep all the old references to previous items with the same `templatedId`
+        // Because of this we need to merge the properties from regenerated templated items
+        // and then replace the item object in the childItems array of its regenarated templated parent
+        srcItem.childItems = item.childItems;
+        const regeneratedItem = item;
         for (let key in regeneratedItem) {
             let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'childItems' && key !== '_childItems' && key !== 'textSlots';
             // for root item we should ignore area, name, tags, description as it is defined by user and not by template
             if (shouldCopyField && !parentItem) {
                 shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
             }
-            const propMatcher = createTemplatePropertyMatcher(regeneratedItem.args ? (regeneratedItem.args.templateIgnoredProps || []) : []);
             if (shouldCopyField) {
                 if (key === 'shapeProps' && regeneratedItem.shapeProps) {
-                    if (!item.shapeProps) {
-                        item.shapeProps = {};
+                    if (!srcItem.shapeProps) {
+                        srcItem.shapeProps = {};
                     }
                     forEachObject(regeneratedItem.shapeProps, (value, propName) => {
                         if (!propMatcher(`shapeProps.${propName}`)) {
-                            item.shapeProps[propName] = value;
+                            srcItem.shapeProps[propName] = value;
                         }
                     });
                 } else {
                     if (!propMatcher(key)) {
                         if (key === 'behavior') {
-                            item.behavior = mergeItemBehavior(regeneratedItem.behavior, item.behavior);
+                            srcItem.behavior = mergeItemBehavior(regeneratedItem.behavior, srcItem.behavior);
                         } else {
-                            item[key] = regeneratedItem[key];
+                            srcItem[key] = regeneratedItem[key];
                         }
                     }
                 }
             }
         }
-        return true;
-    });
-
-    for (let i = forDeletion.length - 1; i >= 0; i--) {
-        const {parentItem, sortOrder} = forDeletion[i];
-        parentItem.childItems.splice(sortOrder, 1);
-    }
-
-    const findItemByTemplatedId = (items, templatedId) => {
-        let queue = [].concat(items);
-        while(queue.length > 0) {
-            const item = queue.shift();
-            if (item.args && item.args.templatedId === templatedId) {
-                return item;
-            }
-
-            if (item.childItems && item.childItems.length > 0) {
-                queue = queue.concat(item.childItems);
-            }
-        }
-        return null;
-    }
-
-    const addNewGeneratedItemToOrigin = (templatedItem, templatedParentId, sortOrder) => {
-        const parentItem = findItemByTemplatedId([rootItem], templatedParentId);
-        if (!parentItem) {
-            return;
-        }
-        traverseItems([templatedItem], item => {
-            const newId = shortid.generate();
-            idOldToNewConversions.set(item.id, newId);
-            item.id = newId;
-        });
-
-        if (!parentItem.childItems) {
-            parentItem.childItems = [];
-        }
-        parentItem.childItems.splice(Math.max(sortOrder, parentItem.childItems.length), 0, templatedItem);
-    };
-
-    const expectedSortOrders = new Map();
-
-    traverseItems([regeneratedRootItem], (item, parentItem, sortOrder) => {
-        expectedSortOrders.set(item.id, sortOrder);
-        if (existingTemplatedIds.has(item.id || !parentItem)) {
-            return;
-        }
-
+        idOldToNewConversions.set(item.args.templatedId, srcItem.id);
         if (parentItem) {
-            addNewGeneratedItemToOrigin(item, parentItem.id, sortOrder);
+            parentItem.childItems[sortOrder] = srcItem;
+            flattenDstItems.push(srcItem);
         }
     });
 
-    const swappingItems = [];
 
-    traverseItems([rootItem], (item, parentItem, sortOrder) => {
-        if (!parentItem || !item.args || !item.args.templatedId) {
-            return;
+    for (let i = 0; i < flattenDstItems.length; i++) {
+        const item = flattenDstItems[i];
+        const foreignChildItems = foreignChildrenByTemplatedId.get(item.args.templatedId);
+        if (foreignChildItems && foreignChildItems.length > 0) {
+            if (!item.childItems) {
+                item.childItems = [];
+            }
+            item.childItems = item.childItems.concat(foreignChildItems);
         }
-
-        if (!expectedSortOrders.has(item.args.templatedId)) {
-            return;
-        }
-
-        const expectedSortOrder = expectedSortOrders.get(item.args.templatedId);
-        if (sortOrder !== expectedSortOrder) {
-            swappingItems.push({parentItem, expectedSortOrder, sortOrder});
-        }
-    });
-
-    swappingItems.forEach(({parentItem, expectedSortOrder, sortOrder}) => {
-        const item = parentItem.childItems[sortOrder];
-        parentItem.childItems.splice(sortOrder, 1)
-        if (expectedSortOrder > sortOrder) {
-            expectedSortOrder--;
-        }
-
-        parentItem.childItems.splice(expectedSortOrder, 0, item);
-    });
+    }
 
     return idOldToNewConversions;
+
 }
+
 
 /**
  *

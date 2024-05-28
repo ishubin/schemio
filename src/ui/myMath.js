@@ -1028,5 +1028,26 @@ export default {
             hval += (hval << 1) + (hval << 4) + (hval << 7) + (hval << 8) + (hval << 24);
         }
         return hval >>> 0;
+    },
+
+
+    /**
+     * Solves a quadratic equation (a*x^2 + b*x + c = 0) and returns either a result containing two possible solutions or null if there are no solutions
+     * @param {Number} a
+     * @param {Number} b
+     * @param {Number} c
+     * @returns {Object|null}
+     */
+    solveQuadratic(a, b, c) {
+        const dSquared = b * b - 4 * a * c
+        if (dSquared <= 0) {
+            return null;
+        }
+        const d = Math.sqrt(dSquared);
+
+        return {
+            v1: (-b - d) / (2*a),
+            v2: (d - b) / (2*a),
+        };
     }
 }

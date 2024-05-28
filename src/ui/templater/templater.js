@@ -14,6 +14,7 @@ const $_ELSE_IF = '$-else-if';
 const $_ELSE = '$-else';
 const $_FOR = '$-for';
 const $_FOREACH = '$-foreach';
+const $_EXTEND = '$-extend';
 const $_RECURSE = '$-recurse';
 const $_EVAL = '$-eval';
 
@@ -47,13 +48,33 @@ export function processJSONTemplate(obj, data) {
  */
 export function compileTemplateExpressions(expressions, data) {
     if (!Array.isArray(expressions)) {
-        return;
+        expressions = [expressions];
     }
+
+    const fullScript = expressions.join('\n');
+    const expressionNode = parseExpression(fullScript);
 
     return (extraData) => {
         const scope = new Scope({...data, ...(extraData || {})});
-        expressions.forEach(expr => processExpression(expr, scope));
+        expressionNode.evalNode(scope);
         return scope.getData();
+    };
+}
+
+
+/**
+ * This function is used for processing of template editor panels.
+ * It executes the expression and returns its result
+ * @param {String} expression
+ * @param {Object} data
+ * @returns {function(Object|undefined): Object} - a function that takes extra data object as an argument, that should be added to the scope and, when invoked, will execute the expressions and will return the updated data with arguments
+ */
+export function compileTemplateCall(expression, data) {
+    const expr = parseExpression(expression);
+
+    return (extraData) => {
+        const scope = new Scope({...data, ...(extraData || {})});
+        return expr.evalNode(scope);
     };
 }
 
@@ -72,6 +93,9 @@ function compileRawString(obj) {
  * @returns {function(Scope): any}
  */
 function compile(obj, customDefinitions) {
+    if (obj === null) {
+        return () => null;
+    }
     if (Array.isArray(obj)) {
         return compileArray(obj, customDefinitions);
     } else if (typeof obj === 'object') {
@@ -89,7 +113,6 @@ function compile(obj, customDefinitions) {
                 throw new Error('Unknown reference: ' + refName);
             }
             const refValue = customDefinitions.get(refName);
-            console.log('REF:', refName, refValue);
             return compile(refValue, customDefinitions);
         }
 
@@ -133,6 +156,12 @@ function compile(obj, customDefinitions) {
 function compileObjectProcessor(obj, customDefinitions) {
     const fieldBuilders = [];
 
+    let extendBuilder = null;
+
+    if (obj.hasOwnProperty($_EXTEND)) {
+        extendBuilder = compile(obj[$_EXTEND], customDefinitions);
+    }
+
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
             if (key.startsWith($_DEF)) {
@@ -148,7 +177,7 @@ function compileObjectProcessor(obj, customDefinitions) {
     }
     /** @property {Scope} scope */
     return (scope) => {
-        const finalObject = {};
+        const finalObject = extendBuilder ? extendBuilder(scope.newScope()) : {};
         fieldBuilders.forEach(fieldBuilder => {
             finalObject[fieldBuilder.key] = fieldBuilder.build(scope.newScope());
         });

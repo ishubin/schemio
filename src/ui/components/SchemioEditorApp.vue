@@ -25,6 +25,7 @@
             :extraTabs="extraTabs"
             :customItemMenuPanels="customItemMenuPanels"
             :contextMenuExtraProvider="contextMenuExtraProvider"
+            :starterTemplates="starterTemplates"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -62,6 +63,7 @@
             :extraTabs="extraTabs"
             :customItemMenuPanels="customItemMenuPanels"
             :contextMenuExtraProvider="contextMenuExtraProvider"
+            :starterTemplates="starterTemplates"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -161,7 +163,10 @@ export default{
         patchControls        : { type: Array, default: () => []},
         extraTabs            : { type: Array, default: () => []},
         customItemMenuPanels : {type: Array, default: () => []},
-        contextMenuExtraProvider: {type: Object, default: null}
+        contextMenuExtraProvider: {type: Object, default: null},
+
+        // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
+        starterTemplates : {type: Array, default: () => []},
     },
 
     beforeMount() {

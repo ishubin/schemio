@@ -21,7 +21,7 @@ import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation'
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
-import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem } from '../components/editor/items/ItemTemplate.js';
+import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -1025,7 +1025,7 @@ class SchemeContainer {
 
         this.apiClient.getTemplate(templateRef)
         .then(templateDef => {
-            const template = compileItemTemplate(templateDef, templateRef);
+            const template = compileItemTemplate(this.editorId, templateDef, templateRef);
             this.compiledTemplates.set(templateRef, template);
         })
         .catch(err => {
@@ -1043,7 +1043,7 @@ class SchemeContainer {
         } else {
             this.apiClient.getTemplate(templateRef)
             .then(templateDef => {
-                const template = compileItemTemplate(templateDef, templateRef);
+                const template = compileItemTemplate(this.editorId, templateDef, templateRef);
                 this.compiledTemplates.set(templateRef, template);
                 return template;
             })
@@ -2075,10 +2075,8 @@ class SchemeContainer {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
-                            const newArgs = template.triggerEvent(rootItem, 'delete', item.args.templatedId, item);
-                            if (newArgs) {
-                                this.regenerateTemplatedItem(rootItem, template, newArgs, rootItem.area.w, rootItem.area.h);
-                            }
+                            template.onDeleteItem(rootItem, item.args.templatedId, item);
+                            this.regenerateTemplatedItem(rootItem, template, rootItem.args.templateArgs, rootItem.area.w, rootItem.area.h);
                         });
                     }
                 } else {
@@ -2477,7 +2475,7 @@ class SchemeContainer {
         }
 
         if (selector.charAt(0) === '#') {
-            const id = selector.substr(1);
+            const id = selector.substring(1);
             const item = this.findItemById(id);
             if (item) {
                 return [item];
@@ -2487,7 +2485,7 @@ class SchemeContainer {
             if (colonIndex > 0) {
                 const expression = selector.substring(0, colonIndex).trim();
                 if (expression === 'tag') {
-                    return this.findItemsByTag(selector.substr(colonIndex + 1).trim());
+                    return this.findItemsByTag(selector.substring(colonIndex + 1).trim());
                 }
             }
         }
@@ -2495,12 +2493,53 @@ class SchemeContainer {
     }
 
     copySelectedItems() {
+        /** @type {Array<Item>} */
         const copyBuffer = [];
+        // ensuring that we don't copy the same item twice
+        // It could be that user has selected ites using multi-select box
+        // In this case all items are flatten out in the selectedItems array
+        const selectedIds = new Set();
         forEach(this.selectedItems, item => {
+            if (selectedIds.has(item.id)) {
+                return;
+            }
+            traverseItems([item], childItem => {
+                selectedIds.add(childItem.id);
+            });
             copyBuffer.push(utils.clone(item));
         });
 
-        return JSON.stringify(copyBuffer);
+        return this.triggerCopyEventForTemplatedItems(copyBuffer).then(() => {
+            return JSON.stringify(copyBuffer);
+        });
+    }
+
+    /**
+     * @param {Array<Item>} copyBuffer
+     */
+    triggerCopyEventForTemplatedItems(copyBuffer) {
+        const promises = [];
+        copyBuffer.forEach(item => {
+            if (!item.meta.templated || !item.meta.templateRootId) {
+                return;
+            }
+            const templateRoot = this.findItemById(item.meta.templateRootId);
+            if (!templateRoot || !templateRoot.args || !templateRoot.args.templateRef) {
+                return;
+            }
+
+            promises.push(
+                this.getTemplate(templateRoot.args.templateRef)
+                .then(template => {
+                    template.onCopyItem(templateRoot, item.args.templatedId, item);
+                })
+                .catch(err => {
+                    console.error(err);
+                })
+            );
+        });
+
+        return Promise.all(promises);
     }
 
     decodeItemsFromText(text) {
@@ -2576,7 +2615,7 @@ class SchemeContainer {
         }
     }
 
-    cloneItems(items, preserveOriginalNames, shouldIndexClones) {
+    cloneItems(items, preserveOriginalNames = false, shouldIndexClones = false) {
         const copiedItemIds = {};
         const copiedItems = [];
         forEach(items, item => {
@@ -2700,6 +2739,83 @@ class SchemeContainer {
     }
 
     /**
+     * @param {Array<Item>} items
+     * @param {Item} dstItem
+     */
+    pasteItemsInto(items, dstItem) {
+        let promise = Promise.resolve(false);
+        if (dstItem.meta.templated && dstItem.meta.templateRootId && dstItem.args.templatedId) {
+            const rootItem = this.findItemById(dstItem.meta.templateRootId);
+            if (rootItem && rootItem.args.templated && rootItem.args.templateRef) {
+                promise = this.getTemplate(rootItem.args.templateRef)
+                .then(template => {
+                    if (template.hasHandler('paste')) {
+                        const updatedScopeData = template.onPasteItemInto(rootItem, dstItem.args.templatedId, items)
+                        this.regenerateTemplatedItemWithExistingScopeData(rootItem, template, updatedScopeData, rootItem.area.w, rootItem.area.h);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                        EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, rootItem.id);
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        }
+
+        promise.then(isPasteOverriden => {
+            if (!isPasteOverriden) {
+                this._pasteItemsIntoRegularItem(items, dstItem);
+            }
+        });
+    }
+
+
+    /**
+     * @param {Array<Item>} items
+     * @param {Item} dstItem
+     */
+    _pasteItemsIntoRegularItem(items, dstItem) {
+        if (!items || items.length === 0) {
+            return;
+        }
+
+        const copiedItems = this.cloneItems(items);
+        const copiedIds = new Set();
+
+        let minX = items[0].area.x;
+        let minY = items[0].area.y;
+
+        for (let i = 1; i < items.length; i++) {
+            const p1 = {x: items[i].area.x, y: items[i].area.y};
+
+            minX = Math.min(minX, p1.x);
+            minY = Math.min(minY, p1.y);
+        }
+
+        const offsetX = Math.min(10, dstItem.area.w) - minX;
+        const offsetY = Math.min(10, dstItem.area.h) - minY;
+
+        copiedItems.forEach(item => {
+            copiedIds.add(item.id);
+            item.locked = false;
+            this.itemMap[item.id] = item;
+            item.area.x += offsetX;
+            item.area.y += offsetY;
+            if (!dstItem.childItems) {
+                dstItem.childItems = [];
+            }
+            dstItem.childItems.push(item);
+            this.itemMap[item.id] = item;
+        });
+
+        this.fixPastedConnectors(copiedItems, copiedIds);
+        this.reindexItems();
+
+        this.selectMultipleItems(copiedItems, false);
+
+        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+    }
+
+    /**
      *
      * @param {Array<Item>} items array of items that should be copied and pasted
      * @param {Number} centerX x in relative transform for which items should put pasted to
@@ -2717,8 +2833,36 @@ class SchemeContainer {
             copiedIds.add(item.id);
             item.locked = false;
             this.scheme.items.push(item);
+            this.itemMap[item.id] = item;
         });
 
+        this.fixPastedConnectors(copiedItems, copiedIds);
+        this.selectMultipleItems(copiedItems, false);
+
+        //since all items are already selected, the relative multi item edit box should be centered on the specified center point
+        if (this.editBox) {
+            const boxArea = this.editBox.area;
+            const boxCenterX = boxArea.x + boxArea.w / 2;
+            const boxCenterY = boxArea.y + boxArea.h / 2;
+            const dx = centerX - boxCenterX;
+            const dy = centerY - boxCenterY;
+
+            boxArea.x += dx;
+            boxArea.y += dy;
+            this.updateEditBoxItems(this.editBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
+        }
+
+        this.reindexItems();
+
+        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+    }
+
+    /**
+     *
+     * @param {Array<Item>} copiedItems
+     * @param {Set} copiedIds
+     */
+    fixPastedConnectors(copiedItems, copiedIds) {
         // doing the selection afterwards so that item has all meta transform calculated after re-indexing
         // and its edit box would be aligned with the item
         forEach(copiedItems, item => {
@@ -2739,23 +2883,6 @@ class SchemeContainer {
                 }
             }
         });
-
-        this.selectMultipleItems(copiedItems, false);
-
-        //since all items are already selected, the relative multi item edit box should be centered on the specified center point
-        if (this.editBox) {
-            const boxArea = this.editBox.area;
-            const boxCenterX = boxArea.x + boxArea.w / 2;
-            const boxCenterY = boxArea.y + boxArea.h / 2;
-            const dx = centerX - boxCenterX;
-            const dy = centerY - boxCenterY;
-
-            boxArea.x += dx;
-            boxArea.y += dy;
-            this.updateEditBoxItems(this.editBox, false, DEFAULT_ITEM_MODIFICATION_CONTEXT);
-        }
-
-        this.reindexItems();
     }
 
     copyItem(oldItem) {
@@ -2794,7 +2921,7 @@ class SchemeContainer {
         }
 
         // this is need as there is a situation when user pastes new items to the scene and the reindex was not run yet
-        // It uses edit box to move the newly pasted items. Because of the missing reindex it SchemeContainer
+        // It uses edit box to move the newly pasted items. Because of the missing reindex SchemeContainer
         // is not able to find these items by id
         const itemsMap = new Map();
         if (Array.isArray(editBox.items)) {
@@ -2863,7 +2990,7 @@ class SchemeContainer {
                 // calculating new position of item based on their pre-calculated projections
                 const itemProjection = editBox.itemProjections[item.id];
 
-                // this condition is needed becase there can be a situation when edit box is first rotated and only then resized
+                // this condition is needed because there can be a situation when edit box is first rotated and only then resized
                 // in this case we should skip rotation of child items if their parents were already rotated.
                 if (!parentWasAlreadyUpdated) {
                     item.area.r = itemProjection.r + editBox.area.r;
@@ -2879,22 +3006,57 @@ class SchemeContainer {
 
                 const newPoint = myMath.findTranslationMatchingWorldPoint(worldTopLeft.x, worldTopLeft.y, 0, 0, item.area, parentTransform);
 
+                const modifiedArea = {
+                    x: item.area.x,
+                    y: item.area.y,
+                    w: item.area.w,
+                    h: item.area.h
+                };
+
                 if (newPoint) {
-                    item.area.x = newPoint.x;
-                    item.area.y = newPoint.y;
+                    modifiedArea.x = newPoint.x;
+                    modifiedArea.y = newPoint.y;
                 }
 
                 // recalculated width and height only in case multi item edit box was resized
                 // otherwise it doesn't make sense
+
                 if (context.resized) {
                     const worldBottomRight = projectBack(itemProjection.bottomRight);
                     const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
-                    item.area.w = Math.max(0, localBottomRight.x);
-                    item.area.h = Math.max(0, localBottomRight.y);
+                    modifiedArea.w = Math.max(0, localBottomRight.x);
+                    modifiedArea.h = Math.max(0, localBottomRight.y);
+                }
 
-                    if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
-                        this.readjustComponentContainerRect(item);
+                if (item.meta && item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id && item.args && item.args.templatedId) {
+                    if (item.args && item.args.tplArea ===  'controlled') {
+                        const templateRootItem = this.findItemById(item.meta.templateRootId);
+                        if (!templateRootItem || !templateRootItem.args || !templateRootItem.args.templateRef) {
+                            return;
+                        }
+                        this.getTemplate(templateRootItem.args.templateRef)
+                        .then(template => {
+                            template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea);
+                            item.area.x = modifiedArea.x;
+                            item.area.y = modifiedArea.y;
+                            item.area.w = modifiedArea.w;
+                            item.area.h = modifiedArea.h;
+
+                            if (!isSoft) {
+                                this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
+                            }
+                            EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, templateRootItem.id);
+                        });
                     }
+                } else {
+                    item.area.x = modifiedArea.x;
+                    item.area.y = modifiedArea.y;
+                    item.area.w = modifiedArea.w;
+                    item.area.h = modifiedArea.h;
+                }
+
+                if (context.resized && item.shape === 'component' && item.shapeProps.kind === 'embedded') {
+                    this.readjustComponentContainerRect(item);
                 }
             }
         });
@@ -3036,8 +3198,12 @@ class SchemeContainer {
 
     updateEditBox() {
         log.info('updateEditBox');
-        if (this.selectedItems.length > 0 || this.selectedConnectorPoints.length > 0) {
-            this.editBox = this.generateEditBox(this.selectedItems, this.selectedConnectorPoints);
+
+        // making sure that items in selectedItems array and actual items in the scheme are not out of sync
+        // it could happen that some items were removed by the template, when user changed template args.
+        const items = this.selectedItems.map(selectedItem => this.findItemById(selectedItem.id)).filter(item => item);
+        if (items.length > 0 || this.selectedConnectorPoints.length > 0) {
+            this.editBox = this.generateEditBox(items, this.selectedConnectorPoints);
         } else {
             this.editBox = null;
         }
@@ -3077,8 +3243,8 @@ class SchemeContainer {
             y: 0.5
         };
 
-        // this is need as there is a situation when user pastes new items to the scene and the reindex was not run yet
-        // It uses edit box to move the newly pasted items. Because of the missing reindex it SchemeContainer
+        // this is needed as there could be a situation, when user pastes new items to the scene and the reindex was not run yet
+        // It uses edit box to move the newly pasted items. Because of the missing reindex in SchemeContainer
         // is not able to find these items by id
         const connectorItemsMap = new Map();
 
@@ -3086,7 +3252,7 @@ class SchemeContainer {
         const allConnectorPointRefs = [].concat(connectorPointRefs);
         items.forEach(item => {
             connectorItemsMap.set(item.id, item);
-            if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points)) {
+            if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points) || item.locked) {
                 return;
             }
             item.shapeProps.points.forEach((p, pointIdx) => {
@@ -3266,6 +3432,8 @@ class SchemeContainer {
 
         let templateRef = null;
         let templateItemRoot = null;
+        let rotationEnabled = true;
+        let connectorStarterEnabled = true;
 
         if (items.length === 1) {
             const item = items[0];
@@ -3280,6 +3448,13 @@ class SchemeContainer {
                         templateItemRoot = ancestor;
                     }
                 }
+
+                if (templateRef && item.args.tplRotation === 'off') {
+                    rotationEnabled = false;
+                }
+                if (templateRef && item.args.tplConnector === 'off') {
+                    connectorStarterEnabled = false;
+                }
             }
         }
 
@@ -3292,6 +3467,8 @@ class SchemeContainer {
             area,
             itemProjections,
             pivotPoint,
+            rotationEnabled,
+            connectorStarterEnabled,
             connectorPoints,
             connectorOriginalAttachments,
             cache: new Map(),
@@ -3551,13 +3728,31 @@ class SchemeContainer {
     }
 
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
+        log.info('regenerateTemplatedItem', rootItem.id, templateArgs);
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
-        this.reindexItems();
+        this.updateChildTransforms(rootItem);
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
+
+        // the full reindex is needed in order to update spatial index
+        this.reindexItems();
+    }
+
+    regenerateTemplatedItemWithExistingScopeData(rootItem, template, scopeData, width, height) {
+        log.info('regenerateTemplatedItemWithExistingScopeData', rootItem.id, scopeData);
+        const idOldToNewConversions = regenerateTemplatedItemWithPostBuilder(rootItem, template, scopeData, width, height);
+        this.fixItemsReferences([rootItem], idOldToNewConversions);
+        this.updateChildTransforms(rootItem);
+        traverseItems([rootItem], item => {
+            this.readjustItem(item.id);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+        });
+
+        // the full reindex is needed in order to update spatial index
+        this.reindexItems();
     }
 
     _alignItemsWith(items, correctionCallback) {

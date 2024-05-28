@@ -468,7 +468,7 @@ class ResizeEditBoxState extends EditBoxState {
         if (editBox.templateRef) {
             if (this.store.state.apiClient && this.store.state.apiClient.getTemplate) {
                 this.store.state.apiClient.getTemplate(editBox.templateRef).then(templateDef => {
-                    this.template = compileItemTemplate(templateDef, editBox.templateRef);
+                    this.template = compileItemTemplate(this.editorId, templateDef, editBox.templateRef);
                 });
             }
         }
@@ -674,10 +674,15 @@ class DragEditBoxState extends EditBoxState {
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         super.mouseUp(x, y, mx, my, object, event);
 
+        this.schemeContainer.updateEditBoxItems(this.editBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+
         if (!this.store.state.autoRemount || this.parentState.isRecording) {
             return;
         }
-        const items = this.editBox.items.filter(item => !item.locked);
+        const isPartOfTemplate = (item) => {
+            return item.meta && item.meta.templated && item.meta.templateRootId;
+        };
+        const items = this.editBox.items.filter(item => !item.locked && !isPartOfTemplate(item));
         if (items.length === 0) {
             return;
         }
@@ -870,6 +875,10 @@ class IdleState extends SubState {
 
     onItemDoubleClick(item, x, y) {
         if (item.shape === 'path') {
+            // restricting modifications for locked path items
+            if (item.locked) {
+                return;
+            }
             this.listener.onEditPathRequested(item);
         } else if (item.shape === 'connector') {
             this.handleDoubleClickOnConnector(item, x, y);
@@ -974,6 +983,10 @@ class IdleState extends SubState {
 
     handleDoubleClickOnConnector(item, x, y) {
         //TODO refactor it to use path segments in order to identify clicked segment
+        if (item.locked) {
+            // not letting to modify a locked connector
+            return;
+        }
         const shape = Shape.find(item.shape);
         if (!shape) {
             return;
