@@ -5,7 +5,7 @@ import {forEach} from '../../collections';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
-import { worldPointOnItem } from '../../scheme/SchemeContainer';
+import { worldPointOnItem } from '../../scheme/ItemMath';
 import myMath from '../../myMath';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 import shortid from 'shortid';

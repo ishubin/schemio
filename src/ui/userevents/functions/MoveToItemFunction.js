@@ -4,7 +4,8 @@
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import { convertTime } from '../../animations/ValueAnimation';
-import SchemeContainer, { worldPointOnItem, worldVectorOnItem} from '../../scheme/SchemeContainer';
+import SchemeContainer  from '../../scheme/SchemeContainer';
+import { worldPointOnItem, worldVectorOnItem} from '../../scheme/ItemMath';
 import myMath from '../../myMath';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 

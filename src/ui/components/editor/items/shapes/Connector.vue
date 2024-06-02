@@ -36,7 +36,7 @@ import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
 import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
-import { localPointOnItem, worldPointOnItem } from '../../../../scheme/SchemeContainer';
+import { localPointOnItem, worldPointOnItem } from '../../../../scheme/ItemMath';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 import { Vector } from '../../../../templater/vector';
 

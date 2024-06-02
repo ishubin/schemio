@@ -11,7 +11,7 @@ import {enrichItemWithDefaults} from '../../../scheme/ItemFixer';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {forEach} from '../../../collections';
-import { localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { localPointOnItem, worldPointOnItem } from '../../../scheme/ItemMath.js';
 import shortid from 'shortid';
 
 const IS_NOT_SOFT = false;

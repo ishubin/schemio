@@ -1,4 +1,5 @@
-import SchemeContainer, { getBoundingBoxOfItems } from "../scheme/SchemeContainer";
+import SchemeContainer from "../scheme/SchemeContainer";
+import { getBoundingBoxOfItems } from "../scheme/ItemMath";
 import { exportEntireSvgPlotAsImageData } from "../diagramExporter";
 import {GIFEncoder, quantize, applyPalette} from 'gifenc';
 

@@ -12,7 +12,7 @@ import Pagination from './components/Pagination.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import EditorEventBus from './components/editor/EditorEventBus';
 import { snapshotSvg } from './svgPreview.js';
-import { getBoundingBoxOfItems } from './scheme/SchemeContainer.js';
+import { getBoundingBoxOfItems } from './scheme/ItemMath.js';
 import { traverseItems } from './scheme/Item.js';
 import Dropdown from './components/Dropdown.vue';
 import MenuDropdown from './components/MenuDropdown.vue';

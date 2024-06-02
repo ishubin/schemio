@@ -4181,7 +4181,10 @@ ul.patch-field-list {
     font-size: 10px;
 }
 
-
+.auto-layout-rules-container .auto-layout-rule {
+    display: flex;
+    align-items: center;
+}
 input.condition-function-send-event {
     font-size: 16px;
     padding: 4px;

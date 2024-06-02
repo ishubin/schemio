@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import {forEach} from '../collections';
 import Shape from '../components/editor/items/shapes/Shape';
-import { worldScalingVectorOnItem } from '../scheme/SchemeContainer';
+import { worldScalingVectorOnItem } from '../scheme/ItemMath';
 import '../typedef';
 
 export default {

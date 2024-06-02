@@ -22,6 +22,8 @@ import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
+import { readjustItemAreaByRules } from './ItemRules.js';
+import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform } from './ItemMath.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -57,48 +59,6 @@ export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
     id: ''
 };
 
-export function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
-}
-
-export function localPointOnItem(x, y, item) {
-    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
-}
-
-export function localPointOnItemToLocalPointOnOtherItem(x, y, srcItem, dstItem) {
-    const worldPoint = worldPointOnItem(x, y, srcItem);
-    return localPointOnItem(worldPoint.x, worldPoint.y, dstItem);
-}
-
-export function worldAngleOfItem(item) {
-    const v = worldVectorOnItem(item.area.w, 0, item);
-    return myMath.fullAngleForVector(v.x, v.y) * 180 / Math.PI;
-}
-
-export function worldVectorOnItem(x, y, item) {
-    const p0 = worldPointOnItem(0, 0, item);
-    const p1 = worldPointOnItem(x, y, item);
-    return {
-        x: p1.x - p0.x,
-        y: p1.y - p0.y
-    };
-}
-
-/**
- *
- * @param {Item} item
- * @param {SVGPathElement} shadowSvgPath
- * @param {Number} positionOnPath
- * @returns {Point}
- */
-export function pointOnItemPath(item, shadowSvgPath, positionOnPath) {
-    if (shadowSvgPath) {
-        const point = shadowSvgPath.getPointAtLength(positionOnPath);
-        return worldPointOnItem(point.x, point.y, item);
-    }
-    // returning the center of item if it failed to find its path
-    return worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
-}
 /**
  * This function is only used for calculating bounds of reference items
  * so that they can be properly fit inside of an component
@@ -204,94 +164,6 @@ function createEditBoxAveragedArea(items) {
     };
 }
 
-/**
- *
- * @param {Array<Item>} items
- * @returns {Area}
- */
-export function getBoundingBoxOfItems(items) {
-    if (!items || items.length === 0) {
-        return {x: 0, y: 0, w: 0, h: 0};
-    }
-
-    let range = null;
-
-    forEach(items, item => {
-        const points = [
-            worldPointOnItem(0, 0, item),
-            worldPointOnItem(item.area.w, 0, item),
-            worldPointOnItem(item.area.w, item.area.h, item),
-            worldPointOnItem(0, item.area.h, item),
-        ];
-
-        forEach(points, point => {
-            if (!range) {
-                range = {
-                    x1: point.x,
-                    x2: point.x,
-                    y1: point.y,
-                    y2: point.y,
-                }
-            } else {
-                if (range.x1 > point.x) {
-                    range.x1 = point.x;
-                }
-                if (range.x2 < point.x) {
-                    range.x2 = point.x;
-                }
-                if (range.y1 > point.y) {
-                    range.y1 = point.y;
-                }
-                if (range.y2 < point.y) {
-                    range.y2 = point.y;
-                }
-            }
-        });
-    });
-
-    const schemeBoundaryBox = {
-        x: range.x1,
-        y: range.y1,
-        w: range.x2 - range.x1,
-        h: range.y2 - range.y1,
-    };
-
-    return schemeBoundaryBox;
-}
-
-/**
- * Calculates scaling effect of the item relative to the world
- * This is needed for proper computation of control points for scaled items
- * @param {Item} item
- * @returns {Point}
- */
-export function worldScalingVectorOnItem(item) {
-    const topLengthVector = worldVectorOnItem(1, 0, item);
-    const leftLengthVector = worldVectorOnItem(0, 1, item);
-
-    return {
-        x: myMath.vectorLength(topLengthVector.x, topLengthVector.y),
-        y: myMath.vectorLength(leftLengthVector.x, leftLengthVector.y)
-    }
-}
-
-export function itemCompleteTransform(item) {
-    const parentTransform = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
-    return myMath.standardTransformWithArea(parentTransform, item.area);
-}
-
-/**
- * Checks whether the item is a descendant of ancestorItem
- * @param {Item} item
- * @param {String} ancestorItemId
- * @returns {Boolean}
- */
-export function isItemDescendantOf(item, ancestorItemId) {
-    if (!item.meta || !Array.isArray(item.meta.ancestorIds)) {
-        return false;
-    }
-    return item.meta.ancestorIds.indexOf(ancestorItemId) >= 0;
-}
 
 /**
  * Copies templateRef to item meta so that it is easier to access this information in the editor components
@@ -484,7 +356,7 @@ class SchemeContainer {
         this.hudItems = []; //used for storing hud items that are supposed to be rendered in the viewport transform
         this.worldItems = []; // used for storing top-level items with default area
         this.worldItemAreas = new Map(); // used for storing rough item bounding areas in world transform (used for finding suitable parent)
-        this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. curve item can be attached to other items)
+        this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. path item can be attached to other items)
 
         this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the component from the reference item
         this.itemCloneReferenceIds = new Map(); // stores ids of reference items that were used for cloned items
@@ -520,6 +392,20 @@ class SchemeContainer {
         // this is used in order to optimize performance when user is changing templated item arguments
         this.reindexTimeoutId = null;
         this.reindexItems();
+    }
+
+    hasDependencyOnItem(itemId, potentialDependencyItemId) {
+        const dependencyIds = this.dependencyItemMap[itemId];
+        if (!dependencyIds || dependencyIds.length === 0) {
+            return false;
+        }
+
+        for (let i = 0; i < dependencyIds.length; i++) {
+            if (dependencyIds[i] === potentialDependencyItemId) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -960,6 +846,14 @@ class SchemeContainer {
                 }
             }
 
+            if (Array.isArray(item.rules)) {
+                item.rules.forEach(rule => {
+                    if (rule.ref) {
+                        registerDependant(rule.ref, item.id);
+                    }
+                });
+            }
+
             // calculating real visibility based on parents visibility
             let parentVisible = true;
             if (parentItem) {
@@ -1077,7 +971,7 @@ class SchemeContainer {
             {x: item.area.w, y: item.area.h},
             {x: 0, y: item.area.h},
         ];
-        const worldPoints = map(points, point => this.worldPointOnItem(point.x, point.y, item));
+        const worldPoints = map(points, point => worldPointOnItem(point.x, point.y, item));
 
         const area = {
             x: worldPoints[0].x,
@@ -1121,12 +1015,12 @@ class SchemeContainer {
         if (!pinPoint) {
             return null;
         };
-        const worldPinPoint = this.worldPointOnItem(pinPoint.x, pinPoint.y, item);
+        const worldPinPoint = worldPointOnItem(pinPoint.x, pinPoint.y, item);
 
         // we need to recalculate pins as the item might be rotated
         if (pinPoint.nx || pinPoint.ny) {
-            const p0 = this.worldPointOnItem(0, 0, item);
-            const p1 = this.worldPointOnItem(pinPoint.nx, pinPoint.ny, item);
+            const p0 = worldPointOnItem(0, 0, item);
+            const p1 = worldPointOnItem(pinPoint.nx, pinPoint.ny, item);
 
             worldPinPoint.nx = p1.x - p0.x;
             worldPinPoint.ny = p1.y - p0.y;
@@ -1256,12 +1150,12 @@ class SchemeContainer {
 
 
         forEach(shape.getPins(item), (p, pinId) => {
-            const worldPoint = this.worldPointOnItem(p.x, p.y, item);
+            const worldPoint = worldPointOnItem(p.x, p.y, item);
 
             // checking if pin point has normals and converting normal to world transform
             if (p.hasOwnProperty('nx')) {
-                const w0 = this.worldPointOnItem(0, 0, item);
-                const worldNormal = this.worldPointOnItem(p.nx, p.ny, item);
+                const w0 = worldPointOnItem(0, 0, item);
+                const worldNormal = worldPointOnItem(p.nx, p.ny, item);
                 worldPoint.nx = worldNormal.x - w0.x;
                 worldPoint.ny = worldNormal.y - w0.y;
             }
@@ -1343,7 +1237,7 @@ class SchemeContainer {
         let pathDistance = 0;
         while (pathDistance < totalLength) {
             const point = svgPath.getPointAtLength(pathDistance);
-            const worldPoint = this.worldPointOnItem(point.x, point.y, item);
+            const worldPoint = worldPointOnItem(point.x, point.y, item);
             this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
                 itemId: item.id,
                 pathDistance
@@ -1628,8 +1522,18 @@ class SchemeContainer {
         }
 
         const shape = Shape.find(item.shape);
+        let readjusted = false;
         if (shape && shape.readjustItem) {
             shape.readjustItem(item, this, isSoft, context, precision);
+            readjusted = true;
+        }
+
+        if (item.rules && item.rules.length > 0) {
+            readjustItemAreaByRules(item, item.rules, this);
+            readjusted = true;
+        }
+
+        if (readjusted) {
             updateItemRevision(item);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             this.svgOutlinePathCache.forceUpdate(item);
@@ -1649,6 +1553,7 @@ class SchemeContainer {
 
         item.meta.revision = (item.meta.revision || 1) + 1;
     }
+
 
     /**
      *
@@ -1812,7 +1717,7 @@ class SchemeContainer {
         }
 
         // Recalculating item area so that its world coords would match under new transform
-        const topLeftWorldPoint = this.worldPointOnItem(0, 0, item);
+        const topLeftWorldPoint = worldPointOnItem(0, 0, item);
 
         let previousParentWorldAngle = 0;
         let otherItemWorldAngle = 0;
@@ -1953,7 +1858,7 @@ class SchemeContainer {
             stopDistance,
             precision
         });
-        const worldPoint = this.worldPointOnItem(closestPoint.x, closestPoint.y, item);
+        const worldPoint = worldPointOnItem(closestPoint.x, closestPoint.y, item);
         worldPoint.distanceOnPath = closestPoint.distance;
 
         if (withNormal) {
@@ -1995,8 +1900,8 @@ class SchemeContainer {
         vy = -t;
 
         // ^ calculated perpendicular vector in local to attachmentItem transform, now it should be converted to the world transform
-        const topLeftCorner = this.worldPointOnItem(0, 0, item);
-        const vectorOffset = this.worldPointOnItem(vx, vy, item);
+        const topLeftCorner = worldPointOnItem(0, 0, item);
+        const vectorOffset = worldPointOnItem(vx, vy, item);
         let Vx = vectorOffset.x - topLeftCorner.x;
         let Vy = vectorOffset.y - topLeftCorner.y;
 
@@ -2130,7 +2035,7 @@ class SchemeContainer {
 
     /**
      * Adds item to scene and returns a reference to it
-     * @param {Item} item 
+     * @param {Item} item
      * @returns {Item}
      */
     addItem(item) {
@@ -2453,6 +2358,11 @@ class SchemeContainer {
         return items;
     }
 
+    /**
+     * @param {String} selector
+     * @param {Item} selfItem
+     * @returns {Item}
+     */
     findFirstElementBySelector(selector, selfItem) {
         const elements = this.findElementsBySelector(selector, selfItem);
         if (elements.length > 0) {
@@ -3408,8 +3318,8 @@ class SchemeContainer {
             // caclulating projection of item world coords on the top and left edges of original edit box
             // since some items can be children of other items we need to project only their world location
 
-            const worldTopLeftPoint = this.worldPointOnItem(0, 0, item);
-            const worldBottomRightPoint = this.worldPointOnItem(item.area.w, item.area.h, item);
+            const worldTopLeftPoint = worldPointOnItem(0, 0, item);
+            const worldBottomRightPoint = worldPointOnItem(item.area.w, item.area.h, item);
 
             itemProjections[item.id] = {
                 topLeft: projectPoint(worldTopLeftPoint.x, worldTopLeftPoint.y),

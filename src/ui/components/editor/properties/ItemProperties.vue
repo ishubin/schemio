@@ -39,6 +39,16 @@
                 />
         </div>
 
+        <div v-if="currentTab === 'auto-layout'">
+            <AutoLayoutProperties
+                :key="`auto-layout-properties-panel-${item.id}`"
+                :editorId="editorId"
+                :item="item"
+                :schemeContainer="schemeContainer"
+                />
+        </div>
+
+
         <div v-if="currentTab === 'styles'">
             <styles-palette :key="`styles-palette-for-item-${item.id}`" :userStylesEnabled="userStylesEnabled" :item="item" @style-applied="onStyleApplied"/>
         </div>
@@ -261,13 +271,15 @@ import PropertyInput from './PropertyInput.vue';
 import utils from '../../../utils.js';
 import myMath from '../../../myMath.js';
 import shortid from 'shortid';
+import AutoLayoutProperties from './AutoLayoutProperties.vue';
 
 const ALL_TABS = [
     {name: 'description', displayName: 'Description',       icon: 'fas fa-paragraph'},
     {name: 'shape',       displayName: 'Shape Properties',  icon: 'fas fa-vector-square'},
     {name: 'behavior',    displayName: 'Behavior (Script)', icon: 'fas fa-running'},
+    {name: 'auto-layout', displayName: 'Auto-layout',       icon: 'fa-solid fa-ruler'},
     {name: 'effects',     displayName: 'Effects',           icon: 'fa-solid fa-wand-magic-sparkles'},
-    {name: 'styles',      displayName: 'Style Palette',     icon: 'fas fa-palette'}
+    {name: 'styles',      displayName: 'Style Palette',     icon: 'fas fa-palette'},
 ];
 
 const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
@@ -282,10 +294,11 @@ export default {
         userStylesEnabled: { type: Boolean, default: false}
     },
     components: {
-        Panel, Tooltip, ColorPicker,  PositionPanel, LinksPanel,
-        GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
-        EditEffectModal, PropertyInput
-    },
+    Panel, Tooltip, ColorPicker, PositionPanel, LinksPanel,
+    GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
+    EditEffectModal, PropertyInput,
+    AutoLayoutProperties
+},
 
     beforeMount() {
         let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);

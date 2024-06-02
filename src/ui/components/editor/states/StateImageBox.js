@@ -3,7 +3,7 @@ import myMath from "../../../myMath";
 import utils from "../../../utils";
 import State from "./State";
 import { dragEditBoxByDragger } from "./StateDragItem";
-import { localPointOnItem } from '../../../scheme/SchemeContainer';
+import { localPointOnItem } from '../../../scheme/ItemMath';
 
 export default class StateImageBox extends State {
     constructor(editorId, store, listener) {

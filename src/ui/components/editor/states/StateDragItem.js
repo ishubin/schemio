@@ -13,7 +13,8 @@ import shortid from 'shortid';
 import { Keys } from '../../../events';
 import StoreUtils from '../../../store/StoreUtils.js';
 import utils from '../../../utils.js';
-import SchemeContainer, { worldScalingVectorOnItem, localPointOnItem, DEFAULT_ITEM_MODIFICATION_CONTEXT, isItemDescendantOf } from '../../../scheme/SchemeContainer.js';
+import SchemeContainer, { DEFAULT_ITEM_MODIFICATION_CONTEXT } from '../../../scheme/SchemeContainer.js';
+import { worldScalingVectorOnItem, localPointOnItem, isItemDescendantOf } from '../../../scheme/ItemMath.js';
 import EditorEventBus from '../EditorEventBus.js';
 import {traverseItems} from '../../../scheme/Item';
 import { compileItemTemplate } from '../items/ItemTemplate.js';
@@ -652,7 +653,16 @@ class DragEditBoxState extends EditBoxState {
                 }
 
                 const editBoxItemIds = Array.from(this.editBox.itemIds);
-                return editBoxItemIds.findIndex(potentialAncestorId => isItemDescendantOf(item, potentialAncestorId)) < 0;
+                if (editBoxItemIds.findIndex(potentialAncestorId => isItemDescendantOf(item, potentialAncestorId)) >= 0) {
+                    return false;
+                }
+
+                for (let i = 0; i < editBoxItemIds.length; i++) {
+                    if (this.schemeContainer.hasDependencyOnItem(editBoxItemIds[i], item.id)) {
+                        return false;
+                    }
+                }
+                return true;
             });
         } else {
             this.proposedItemForMounting = null;

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import {map, find, indexOf} from '../../../../collections';
-import {localPointOnItem, worldAngleOfItem, worldPointOnItem} from '../../../../scheme/SchemeContainer';
+import {localPointOnItem, worldPointOnItem} from '../../../../scheme/ItemMath';
 import myMath from '../../../../myMath';
 import { defaultTextSlotProps, traverseItems } from '../../../../scheme/Item';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';

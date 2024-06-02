@@ -25,7 +25,7 @@ import '../../../../typedef';
 import { computeCurvePath, convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 import EditorEventBus from '../../EditorEventBus';
 import {Vector} from '../../../../templater/vector';
-import { localPointOnItem, worldPointOnItem } from '../../../../scheme/SchemeContainer';
+import { localPointOnItem, worldPointOnItem } from '../../../../scheme/ItemMath';
 
 const log = new Logger('Path');
 

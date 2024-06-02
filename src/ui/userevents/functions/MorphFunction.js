@@ -9,7 +9,7 @@ import { encodeColor, parseColor } from "../../colors";
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import Shape from '../../components/editor/items/shapes/Shape';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from "../../components/editor/items/shapes/StandardCurves";
-import { localPointOnItem, worldPointOnItem } from "../../scheme/SchemeContainer";
+import { localPointOnItem, worldPointOnItem } from "../../scheme/ItemMath";
 
 export default {
     name: 'Morph',

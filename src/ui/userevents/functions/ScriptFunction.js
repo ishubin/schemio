@@ -11,7 +11,8 @@ import { Scope } from "../../templater/scope";
 import htmlSanitize, { stripAllHtml } from "../../../htmlSanitize";
 import { sendEventToChildren } from "./SendEventToChildrenFunction";
 import { sendEventToParent } from "./SendEventToParentFuction";
-import SchemeContainer, {localPointOnItem, worldPointOnItem} from '../../scheme/SchemeContainer';
+import SchemeContainer from '../../scheme/SchemeContainer';
+import {localPointOnItem, worldPointOnItem} from '../../scheme/ItemMath';
 import myMath from "../../myMath";
 import { Vector } from "../../templater/vector";
 import Events from "../Events";
@@ -21,7 +22,6 @@ import { List } from "../../templater/list";
 
 
 const IS_SOFT = true;
-const IS_NOT_SOFT = false;
 const INFINITE_LOOP = 'infinite-loop';
 
 const initScriptDescription = `

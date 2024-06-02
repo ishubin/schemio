@@ -64,7 +64,7 @@
     </g>
 </template>
 <script>
-import { worldPointOnItem } from '../../scheme/SchemeContainer';
+import { worldPointOnItem } from '../../scheme/ItemMath';
 import EditorEventBus from './EditorEventBus';
 import { computeCurvePath, convertCurvePointToItemScale, PATH_POINT_CONVERSION_SCALE } from './items/shapes/StandardCurves';
 

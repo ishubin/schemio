@@ -222,6 +222,14 @@
  * @property {String} tplRotation - 'on' or 'off'. Tells whether rotation of this item is supported
  */
 
+/**
+ * @typedef {Object} ItemRule
+ * @property {String} t - rule type (e.g. "left-of", "right-of", "above", "hcenter", etc.)
+ * @property {String|undefined} ref - element selector that references the other item (e.g. "left-of" another item)
+ * @property {String|undefined} edge - clarifies the edge of the referenced item. Can be "left", "right", "top", "bottom"
+ * @property {Number} v - value for the rule, depending on what the rule means
+ */
+
 
 /**
  * @typedef {Object} Item
@@ -239,6 +247,7 @@
  * @property {Number} opacity
  * @property {Array}  links
  * @property {Object} textSlots
+ * @property {Array<ItemRule>} rules - array of item positioning rules
  * @property {Boolean} clip
  * @property {Boolean} mount - specifies whether the item can be used for auto mounting other items to it (e.g. when creating or dragging)
  * @property {ItemBehavior} behavior

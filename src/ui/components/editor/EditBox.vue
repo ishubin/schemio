@@ -428,7 +428,7 @@ import Shape from './items/shapes/Shape';
 import StoreUtils from '../../store/StoreUtils';
 import StrokePattern from './items/StrokePattern';
 import myMath from '../../myMath';
-import { itemCompleteTransform, worldPointOnItem } from '../../scheme/SchemeContainer';
+import { itemCompleteTransform, worldPointOnItem } from '../../scheme/ItemMath';
 import { compileItemTemplate } from './items/ItemTemplate';
 import EditorEventBus from './EditorEventBus';
 

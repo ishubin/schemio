@@ -1,6 +1,6 @@
 import { map } from "./collections";
 import { traverseItems } from "./scheme/Item";
-import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./scheme/SchemeContainer";
+import { getBoundingBoxOfItems, worldAngleOfItem, worldPointOnItem } from "./scheme/ItemMath";
 import { processSvgElementsForExport, rasterizeAllImagesToDataURL } from './svgPreview';
 import { encode } from 'js-base64';
 import axios from "axios";

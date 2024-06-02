@@ -5,10 +5,11 @@
 import State, { DragScreenState, isEventMiddleClick, SubState } from './State.js';
 import UserEventBus from '../../../userevents/UserEventBus.js';
 import Events from '../../../userevents/Events.js';
-import {DragType, findFirstItemBreadthFirst, hasItemDescription, ItemInteractionMode, traverseItems} from '../../../scheme/Item.js';
+import {DragType, hasItemDescription, ItemInteractionMode, traverseItems} from '../../../scheme/Item.js';
 import { Keys } from '../../../events';
 import Shape from '../items/shapes/Shape.js';
-import SchemeContainer, { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import SchemeContainer from '../../../scheme/SchemeContainer.js';
+import { getBoundingBoxOfItems, getItemOutlineSVGPath, localPointOnItem, worldPointOnItem } from '../../../scheme/ItemMath.js';
 import EditorEventBus from '../EditorEventBus.js';
 import myMath from '../../../myMath.js';
 import { indexOf } from '../../../collections.js';

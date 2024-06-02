@@ -46,7 +46,7 @@
 </template>
 
 <script>
-import { getBoundingBoxOfItems } from '../../scheme/SchemeContainer';
+import { getBoundingBoxOfItems } from '../../scheme/ItemMath';
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import ElementPicker from './ElementPicker.vue';

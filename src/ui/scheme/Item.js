@@ -134,6 +134,7 @@ export const defaultItemDefinition = {
     },
     description: '',
     interactionMode: ItemInteractionMode.TOOLTIP,
+    rules: [],
     behavior: {
         events: [],
         // specifies whether the item can be dragged
@@ -166,6 +167,7 @@ export const defaultItem = {
     description: '',
     links: [],
     textSlots: {},
+    rules: [],
     behavior: {
         events: [],
         // specifies whether the item can be dragged

@@ -8,7 +8,7 @@ import utils from '../../../utils';
 import myMath from '../../../myMath.js';
 import { Keys } from '../../../events.js';
 import StoreUtils from '../../../store/StoreUtils.js';
-import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../scheme/SchemeContainer.js';
+import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../scheme/ItemMath.js';
 import { convertCurvePointToItemScale, convertCurvePointToRelative, PATH_POINT_CONVERSION_SCALE } from '../items/shapes/StandardCurves.js';
 import History from '../../../history/History.js';
 import shortid from 'shortid';
