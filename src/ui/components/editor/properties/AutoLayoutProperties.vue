@@ -5,17 +5,20 @@
         </div>
 
         <div class="auto-layout-rules-container">
-            <div class="auto-layout-rule" v-for="(rule, ruleIdx) in item.rules">
+            <div class="auto-layout-rule" v-for="(rule, ruleIdx) in rules" v-if="rule.definition">
                 <div>
                     <span class="rule-delete" @click="deleteRule(ruleIdx)"><i class="fa-solid fa-xmark"></i></span>
                 </div>
+
                 <Dropdown
                     :options="knownRuleTypes"
                     @selected="onRuleTypeChanged(ruleIdx, arguments[0].id)"
                     >
                     {{ rule.t }}
                 </Dropdown>
+
                 <ElementPicker
+                    v-if="rule.definition.useRef"
                     :editorId="editorId"
                     :schemeContainer="schemeContainer"
                     :excludedItemIds="[item.id]"
@@ -25,7 +28,9 @@
                     :allowNone="true"
                     @selected="onRuleRefChange(ruleIdx, arguments[0])"
                     />
+
                 <NumberTextfield
+                    v-if="rule.definition.useValue"
                     :value="rule.v"
                     @changed="onRuleValueChange(ruleIdx, arguments[0])"
                     />
@@ -40,7 +45,7 @@ import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import EditorEventBus from '../EditorEventBus';
 import ElementPicker from '../ElementPicker.vue';
-import {knownRuleTypes} from '../../../scheme/ItemRules';
+import {getItemRuleDefinitionById, knownRuleTypes} from '../../../scheme/ItemRules';
 
 
 export default {
@@ -54,10 +59,23 @@ export default {
 
     data() {
         return {
-            knownRuleTypes
+            knownRuleTypes,
+            rules: this.buildRules()
         };
     },
     methods: {
+        buildRules() {
+            const rules = Array.isArray(this.item.rules) ? this.item.rules : [];
+            return rules.map(rule => this.wrapRule(rule));
+        },
+
+        wrapRule(rule) {
+            return {
+                ...rule,
+                definition: getItemRuleDefinitionById(rule.t)
+            };
+        },
+
         addNewRule() {
             this.item.rules.push({
                 t: 'left-of',
@@ -65,28 +83,39 @@ export default {
                 ref: null,
                 edge: null
             });
+            this.rules = this.buildRules();
             this.$forceUpdate();
             this.emitUpdate();
         },
+
         onRuleTypeChanged(ruleIdx, ruleType) {
             this.item.rules[ruleIdx].t = ruleType;
+            this.rules[ruleIdx] = this.wrapRule(this.item.rules[ruleIdx]);
+            this.$forceUpdate();
             this.emitUpdate();
         },
+
         deleteRule(ruleIdx) {
             this.item.rules.splice(ruleIdx, 1);
+            this.rules = this.buildRules();
             this.$forceUpdate();
             this.emitUpdate();
         },
+
         onRuleRefChange(ruleIdx, selector) {
             this.item.rules[ruleIdx].ref = selector;
+            this.rules[ruleIdx].ref = selector;
             this.$forceUpdate();
             this.emitUpdate();
         },
+
         onRuleValueChange(ruleIdx, value) {
             this.item.rules[ruleIdx].v = value;
+            this.rules[ruleIdx].v = value;
             this.$forceUpdate();
             this.emitUpdate();
         },
+
         emitUpdate() {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         }
