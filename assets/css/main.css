@@ -4349,3 +4349,17 @@ input.condition-function-send-event {
     border-radius: var(--middle-border-radius);
     flex: 1;
 }
+
+
+
+
+/************ Rule Guides **************/
+.edit-box-rule-guide {
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.edit-box-rule-guide:hover {
+    cursor: pointer;
+    opacity: 1.0;
+}

@@ -22,7 +22,7 @@ import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
-import { readjustItemAreaByRules } from './ItemRules.js';
+import { readjustItemAreaByRules, generateItemRuleGuides } from './ItemRules.js';
 import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform } from './ItemMath.js';
 
 const log = new Logger('SchemeContainer');
@@ -3384,6 +3384,7 @@ class SchemeContainer {
             cache: new Map(),
             templateRef: templateRef,
             templateItemRoot: templateItemRoot,
+            ruleGuides: items.length === 1 ? generateItemRuleGuides(items[0], this) : [],
 
             // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
             // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world

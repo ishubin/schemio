@@ -419,7 +419,41 @@
 
         </g>
 
-
+        <g v-for="ruleGuide in editBox.ruleGuides">
+            <line v-if="ruleGuide.t === 'line'"
+                class="edit-box-rule-guide"
+                :x1="ruleGuide.p1.x"
+                :y1="ruleGuide.p1.y"
+                :x2="ruleGuide.p2.x"
+                :y2="ruleGuide.p2.y"
+                :stroke="boundaryBoxColor"
+                :stroke-width="3/safeZoom"
+            />
+            <g v-if="ruleGuide.t === 'label' && ruleGuide.limit > (guideLabelSymbolSize * ruleGuide.text.length + 4) / safeZoom" :transform="`translate(${ruleGuide.x}, ${ruleGuide.y}) scale(${1/safeZoom}, ${1/safeZoom}) translate(${-guideLabelSymbolSize * ruleGuide.text.length / 2 - 2}, -8)`">
+                <rect
+                    x="0"
+                    y="0"
+                    :width="guideLabelSymbolSize * ruleGuide.text.length + 4"
+                    height="16"
+                    :stroke="boundaryBoxColor"
+                    fill="rgba(255,255,255,1.0)"
+                    :stroke-width="1"
+                />
+                <foreignObject
+                    x="0"
+                    y="0"
+                    :width="guideLabelSymbolSize * ruleGuide.text.length + 4"
+                    height="16"
+                    >
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        style="color: white; display: table-cell; text-align: center; vertical-align: middle; font-family: 'Courier New', monospace;"
+                        :style="{'font-size': `10px`, width: `${guideLabelSymbolSize * ruleGuide.text.length + 4}px`, height: `16px`, color: boundaryBoxColor}"
+                        >
+                        {{ ruleGuide.text }}
+                    </div>
+                </foreignObject>
+            </g>
+        </g>
     </g>
 </template>
 
@@ -728,6 +762,9 @@ export default {
     },
 
     computed: {
+        guideLabelSymbolSize() {
+            return 9;
+        },
         editBoxFill() {
             if (this.draggingFileOver) {
                 return 'rgba(140, 255, 140, 0.6)';
