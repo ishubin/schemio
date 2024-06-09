@@ -3,22 +3,15 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import myMath from "../myMath";
-import  { getBoundingBoxOfItems, worldPointOnItem } from "./ItemMath";
+import  { getBoundingBoxOfItems, localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from "./ItemMath";
 
-
-/**
- * @typedef {Object} ItemEdge
- * @property {Number} value
- */
 
 /**
  * @typedef {Object} ItemEdges
- * @property {ItemEdge} left
- * @property {ItemEdge} right
- * @property {ItemEdge} top
- * @property {ItemEdge} bottom
- * @property {Boolean} leftAligned - flag that specifies whether the item should be considered aligned to the left when constraining its width
- * @property {Boolean} topAligned - flag that specifies whether the item should be considered aligned to the top when constraining its height
+ * @property {Boolean} leftFixed
+ * @property {Boolean} rightFixed
+ * @property {Boolean} topFixed
+ * @property {Boolean} bottomFixed
  */
 
 
@@ -416,307 +409,90 @@ export function generateItemRuleGuides(item, schemeContainer) {
     return allGuides;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyLeftOf(item, edges, rule, parentItem, refItem, refBox) {
-    if (!refBox) {
-        return;
-    }
-
-    edges.leftAligned = true;
-
-    edges.left = { value: refBox.x + refBox.w + rule.v };
-    if (!edges.right) {
-        edges.right = { value: edges.left.value + item.area.w };
-    }
-}
-
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyRightOf(item, edges, rule, parentItem, refItem, refBox) {
-    if (!refBox) {
-        return;
-    }
-
-    edges.leftAligned = false;
-
-    edges.right = { value: refBox.x - rule.v };
-    if (!edges.left) {
-        edges.left = { value: edges.right.value - item.area.w };
-    }
-}
-
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyAbove(item, edges, rule, parentItem, refItem, refBox) {
-    if (!refBox) {
-        return;
-    }
-
-    edges.topAligned = true;
-
-    edges.bottom = { value: refBox.y - rule.v };
-    if (!edges.top) {
-        edges.top = { value: edges.bottom.value - item.area.h };
-    }
-}
-
-
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyBelow(item, edges, rule, parentItem, refItem, refBox) {
-    if (!refBox) {
-        return;
-    }
-
-    edges.topAligned = false;
-
-    edges.top = { value: refBox.y + refBox.h + rule.v };
-    if (!edges.bottom) {
-        edges.bottom = { value: edges.top.value + item.area.h };
-    }
-}
-
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyMaxWidth(item, edges, rule, parentItem, refItem, refBox) {
-    if (!edges.left || !edges.right) {
-        if (item.area.w > rule.v) {
-            item.area.w = rule.v;
-        }
-        return;
-    }
-
-    const width = edges.right.value - edges.left.value;
-    if (width < rule.v) {
-        return;
-    }
-
-    if (edges.leftAligned) {
-        edges.right.value = edges.left.value + rule.v;
+function applyRightOf(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    const dx = itemBox.x - refBox.x - refBox.w - rule.v;
+    if (edges.rightFixed) {
+        itemBox.x -= dx;
+        itemBox.w = Math.max(0, itemBox.w + dx);
     } else {
-        edges.left.value = edges.right.value - rule.v;
+        itemBox.x -= dx;
     }
+    edges.leftFixed = true;
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyMinWidth(item, edges, rule, parentItem, refItem, refBox) {
-    if (!edges.left || !edges.right) {
-        if (item.area.w < rule.v) {
-            item.area.w = rule.v;
-        }
-        return;
-    }
-
-    const width = edges.right.value - edges.left.value;
-    if (width > rule.v) {
-        return;
-    }
-
-    if (edges.leftAligned) {
-        edges.right.value = edges.left.value + rule.v;
+function applyLeftOf(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    const dx = refBox.x - (itemBox.x + itemBox.w) - rule.v
+    if (edges.leftFixed) {
+        itemBox.w += dx;
     } else {
-        edges.left.value = edges.right.value - rule.v;
+        itemBox.x += dx;
     }
+    edges.rightFixed = true;
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyMaxHeight(item, edges, rule, parentItem, refItem, refBox) {
-    if (!edges.top || !edges.bottom) {
-        if (item.area.h > rule.v) {
-            item.area.h = rule.v;
-        }
-        return;
-    }
-
-    const height = edges.bottom.value - edges.top.value;
-    if (height < rule.v) {
-        return;
-    }
-
-    if (edges.topAligned) {
-        edges.bottom.value = edges.top.value + rule.v;
+function applyAbove(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    const dy = refBox.y - (itemBox.y + itemBox.h) - rule.v
+    if (edges.topFixed) {
+        itemBox.h += dy;
     } else {
-        edges.top.value = edges.bottom.value - rule.v;
+        itemBox.y += dy;
     }
+    edges.bottomFixed = true;
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyMinHeight(item, edges, rule, parentItem, refItem, refBox) {
-    if (!edges.top || !edges.bottom) {
-        if (item.area.h < rule.v) {
-            item.area.h = rule.v;
-        }
-        return;
-    }
-
-    const height = edges.bottom.value - edges.top.value;
-    if (height > rule.v) {
-        return;
-    }
-
-    if (edges.topAligned) {
-        edges.bottom.value = edges.top.value + rule.v;
+function applyBelow(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    const dy = itemBox.y - refBox.y - refBox.h - rule.v;
+    if (edges.bottomFixed) {
+        itemBox.y -= dy;
+        itemBox.h = Math.max(0, itemBox.h + dy);
     } else {
-        edges.top.value = edges.bottom.value - rule.v;
+        itemBox.y -= dy;
     }
+    edges.topFixed = true;
+    return itemBox;
 }
 
-
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyHorizontalCentered(item, edges, rule, parentItem, refItem, refBox) {
-    if (!parentItem) {
-        return;
-    }
-    item.area.x = parentItem.area.w / 2 - item.area.w / 2;
+function applyMaxWidth(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyVerticallyCentered(item, edges, rule, parentItem, refItem, refBox) {
-    if (!parentItem) {
-        return;
-    }
-    item.area.y = parentItem.area.h / 2 - item.area.h / 2;
+function applyMinWidth(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
 }
 
-
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyInsideLeft(item, edges, rule, parentItem, refItem, refBox) {
-    if (!parentItem) {
-        return;
-    }
-    item.area.x = rule.v;
+function applyMaxHeight(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyInsideTop(item, edges, rule, parentItem, refItem, refBox) {
-    if (!parentItem) {
-        return;
-    }
-    item.area.y = rule.v;
+function applyMinHeight(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyInsideRight(item, edges, rule, parentItem, refItem, refBox) {
-    if (!parentItem) {
-        return;
-    }
-    item.area.x = parentItem.area.w - item.area.w - rule.v;
+function applyHorizontalCentered(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
 }
 
-/**
- * @param {Item} item
- * @param {ItemEdges} edges
- * @param {ItemRule} rule
- * @param {Item} parentItem
- * @param {Item} refItem
- * @param {Area} refBox
- * @returns
- */
-function applyInsideBottom(item, edges, rule, parentItem, refItem, refBox) {
-    if (!parentItem) {
-        return;
-    }
-    item.area.y = parentItem.area.h - item.area.h - rule.v;
+function applyVerticallyCentered(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
+}
+
+function applyInsideLeft(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
+}
+
+function applyInsideTop(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
+}
+
+function applyInsideRight(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
+}
+
+function applyInsideBottom(item, edges, itemBox, rule, parentItem, refItem, refBox) {
+    return itemBox;
 }
 
 
@@ -743,19 +519,19 @@ ruleHandlers[INSIDE_BOTTOM] = applyInsideBottom;
  * @param {SchemeContainer} schemeContainer
  */
 export function readjustItemAreaByRules(item, rules, schemeContainer) {
+    if (!rules || rules.length === 0) {
+        return;
+    }
 
     /** @type {ItemEdges} */
     const edges = {
-        left: null,
-        right: null,
-        top: null,
-        bottom: null,
-        leftAligned: true,
-        topAligned: true
+        leftFixed: false,
+        topFixed: false,
+        rightFixed: false,
+        bottomFixed: false
     };
 
     const ruleStages = {};
-
     rules.forEach(rule => {
         const ruleDef = rulesDefById[rule.t];
         if (!ruleDef) {
@@ -767,8 +543,35 @@ export function readjustItemAreaByRules(item, rules, schemeContainer) {
         ruleStages[ruleDef.stage].push(rule);
     });
 
+    const parentItem = item.meta && item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
+    let itemBox = getBBoxRelativeToItemTransform(item, parentItem);
+    const itemBoxArea = {
+        ...itemBox,
+        r: 0,
+        px: 0,
+        py: 0,
+        sx: 1,
+        sy: 1
+    };
 
-    for(let i = 0; i < 2; i++) {
+    // We need to project the item top-left and bottom-right points onto itemBox.
+    // Once the itemBox gets modified by various rules, it project back the points in order to adjust item area
+
+    const projectPoint = (x, y) => {
+        const p = parentItem ? localPointOnItemToLocalPointOnOtherItem(x, y, item, parentItem) : worldPointOnItem(x, y, item);
+        const lp = myMath.localPointInArea(p.x, p.y, itemBoxArea);
+        if (itemBox.w > 0) {
+            lp.x = lp.x / itemBox.w;
+        }
+        if (itemBox.h > 0) {
+            lp.y = lp.y / itemBox.h;
+        }
+        return lp;
+    };
+    const topLeftProjection = projectPoint(0, 0);
+    const bottomRightProjection = projectPoint(item.area.w, item.area.h);
+
+    for(let i = 0; i <= maxStage; i++) {
         if (ruleStages.hasOwnProperty(i)) {
             ruleStages[i].forEach(rule => {
                 let refItem = null;
@@ -777,34 +580,98 @@ export function readjustItemAreaByRules(item, rules, schemeContainer) {
                     refItem = schemeContainer.findFirstElementBySelector(rule.ref);
                 }
                 if (refItem) {
-                    refBox = getBoundingBoxOfItems([refItem]);
+                    refBox = getBBoxRelativeToItemTransform(refItem, parentItem);
                 }
-                const parentItem = item.meta && item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
                 if (ruleHandlers.hasOwnProperty(rule.t)) {
-                    ruleHandlers[rule.t](item, edges, rule, parentItem, refItem, refBox);
+                    itemBox = ruleHandlers[rule.t](item, edges, itemBox, rule, parentItem, refItem, refBox);
                 }
             });
         }
     }
 
-    if (edges.left && edges.right) {
-        const wp = worldPointOnItem(0, 0, item);
-        const np = myMath.findTranslationMatchingWorldPoint(edges.left.value, wp.y, 0, 0, item.area, item.meta.transformMatrix);
-        if (np) {
-            item.area.x = np.x;
-        }
-        const worldWidth = Math.max(0, edges.right.value - edges.left.value);
-        item.area.w = worldWidth;
+    const projectBack = (x, y) => {
+        const lx = x * itemBox.w + itemBox.x;
+        const ly = y * itemBox.h + itemBox.y;
+
+        return parentItem ? worldPointOnItem(lx, ly, parentItem) : {x: lx, y: ly};
+    };
+
+    const worldTopLeft = projectBack(topLeftProjection.x, topLeftProjection.y);
+
+    const newPoint = myMath.findTranslationMatchingWorldPoint(worldTopLeft.x, worldTopLeft.y, 0, 0, item.area, item.meta.transformMatrix);
+
+    const modifiedArea = {
+        x: item.area.x,
+        y: item.area.y,
+        w: item.area.w,
+        h: item.area.h
+    };
+
+    if (newPoint) {
+        modifiedArea.x = newPoint.x;
+        modifiedArea.y = newPoint.y;
     }
 
+    const worldBottomRight = projectBack(bottomRightProjection.x, bottomRightProjection.y);
+    const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
+    modifiedArea.w = Math.max(0, localBottomRight.x);
+    modifiedArea.h = Math.max(0, localBottomRight.y);
 
-    if (edges.top && edges.bottom) {
-        const wp = worldPointOnItem(0, 0, item);
-        const np = myMath.findTranslationMatchingWorldPoint(wp.x, edges.top.value, 0, 0, item.area, item.meta.transformMatrix);
-        if (np) {
-            item.area.y = np.y;
+    item.area.x = modifiedArea.x;
+    item.area.y = modifiedArea.y;
+    item.area.w = modifiedArea.w;
+    item.area.h = modifiedArea.h;
+}
+
+
+/**
+ * Calculates bounding box relative to the transform `relativeItem`
+ * @param {Item} boxItem
+ * @param {Item|undefined} relativeItem
+ * @returns {Area}
+ */
+function getBBoxRelativeToItemTransform(boxItem, relativeItem) {
+    const points = [
+        {x: 0, y: 0},
+        {x: boxItem.area.w, y: 0},
+        {x: boxItem.area.w, y: boxItem.area.h},
+        {x: 0, y: boxItem.area.h},
+    ];
+
+    let range = null;
+
+    points.forEach(p => {
+        const wp = worldPointOnItem(p.x, p.y, boxItem);
+        const lp = relativeItem ? localPointOnItem(wp.x, wp.y, relativeItem) : wp;
+
+        if (!range) {
+            range = {
+                x1: lp.x,
+                x2: lp.x,
+                y1: lp.y,
+                y2: lp.y,
+            }
+        } else {
+            if (range.x1 > lp.x) {
+                range.x1 = lp.x;
+            }
+            if (range.x2 < lp.x) {
+                range.x2 = lp.x;
+            }
+            if (range.y1 > lp.y) {
+                range.y1 = lp.y;
+            }
+            if (range.y2 < lp.y) {
+                range.y2 = lp.y;
+            }
         }
-        const worldHeight = Math.max(0, edges.bottom.value - edges.top.value);
-        item.area.h = worldHeight;
-    }
+
+    });
+
+    return {
+        x: range.x1,
+        y: range.y1,
+        w: range.x2 - range.x1,
+        h: range.y2 - range.y1,
+    };
 }
