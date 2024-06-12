@@ -22,8 +22,8 @@ import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
-import { readjustItemAreaByRules, generateItemRuleGuides } from './ItemRules.js';
 import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform } from './ItemMath.js';
+import { generateItemAreaByAutoLayoutRules } from './AutoLayout.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -846,14 +846,6 @@ class SchemeContainer {
                 }
             }
 
-            if (Array.isArray(item.rules)) {
-                item.rules.forEach(rule => {
-                    if (rule.ref) {
-                        registerDependant(rule.ref, item.id);
-                    }
-                });
-            }
-
             // calculating real visibility based on parents visibility
             let parentVisible = true;
             if (parentItem) {
@@ -1528,8 +1520,9 @@ class SchemeContainer {
             readjusted = true;
         }
 
-        if (item.rules && item.rules.length > 0) {
-            readjustItemAreaByRules(item, item.rules, this);
+        const parentItem = item.meta && item.meta.parentId ? this.findItemById(item.meta.parentId) : null;
+        if (parentItem && item.autoLayout && item.autoLayout.on && item.autoLayout.rules) {
+            item.area = generateItemAreaByAutoLayoutRules(item, parentItem, item.autoLayout.rules);
             readjusted = true;
         }
 
@@ -3384,7 +3377,8 @@ class SchemeContainer {
             cache: new Map(),
             templateRef: templateRef,
             templateItemRoot: templateItemRoot,
-            ruleGuides: items.length === 1 ? generateItemRuleGuides(items[0], this) : [],
+            ruleGuides: [],
+            // ruleGuides: items.length === 1 ? generateItemRuleGuides(items[0], this) : [],
 
             // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
             // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world

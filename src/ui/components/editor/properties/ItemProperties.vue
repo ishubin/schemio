@@ -39,7 +39,7 @@
                 />
         </div>
 
-        <div v-if="currentTab === 'auto-layout'">
+        <div v-if="currentTab === 'auto-layout' && item">
             <AutoLayoutProperties
                 :key="`auto-layout-properties-panel-${item.id}`"
                 :editorId="editorId"

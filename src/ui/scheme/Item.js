@@ -134,7 +134,10 @@ export const defaultItemDefinition = {
     },
     description: '',
     interactionMode: ItemInteractionMode.TOOLTIP,
-    rules: [],
+    autoLayout: {
+        on: false,
+        rules: {}
+    },
     behavior: {
         events: [],
         // specifies whether the item can be dragged
@@ -167,7 +170,9 @@ export const defaultItem = {
     description: '',
     links: [],
     textSlots: {},
-    rules: [],
+    autoLayout: {
+        on: false
+    },
     behavior: {
         events: [],
         // specifies whether the item can be dragged

@@ -32,7 +32,7 @@
                         </svg>
                     </li>
                 </ul>
-                <ul v-if="panel.type === 'buttons'" class="template-editor-panel-buttons-menu">
+                <ul v-if="panel.type === 'buttons'" class="properties-button-list">
                     <li v-for="button in panel.buttons">
                         <span class="btn btn-secondary" @click="onEditorPanelItemClicked(panel, button)">{{ button.name }}</span>
                     </li>

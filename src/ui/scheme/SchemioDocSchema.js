@@ -95,6 +95,12 @@ const baseSchema = {
                     effect: {type: 'string', patching: ['replace']},
                     name  : {type: 'string', patching: ['patch-text', 'replace']},
                     args  : {type: 'conditional', contidionalParentField: 'effect', conditions: [ /* dynamically built */]}
+                }},
+                autoLayout: {type: 'object', patching: ['modify'], fields: {
+                    on: {type: 'boolean', patching: ['replace']},
+                    rules: {type: 'map', of: 'any', patching: ['patch-map'], fields: {
+                        '*'  : {type: 'any', patching: ['replace'] },
+                    }}
                 }}
             }
         }

@@ -4207,11 +4207,26 @@ input.condition-function-send-event {
     font-size: 11px;
 }
 
+ul.properties-button-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+ul.properties-button-list > li {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+}
+ul.properties-button-list > li > .btn {
+    display: block;
+    min-width: 200px;
+}
+
 
 /************** Template properties ********************/
 
-.template-properties  ul.template-editor-panel-items-container,
-.template-properties ul.template-editor-panel-buttons-menu {
+.template-properties  ul.template-editor-panel-items-container {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -4227,17 +4242,6 @@ input.condition-function-send-event {
 .template-properties  ul.template-editor-panel-items-container > li:hover {
     border: 1px solid var(--faint-weak-down-down);
     background: var(--base-weak);
-}
-
-.template-properties ul.template-editor-panel-buttons-menu > li {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 10px;
-}
-.template-properties ul.template-editor-panel-buttons-menu > li > .btn {
-    display: block;
-    min-width: 200px;
 }
 
 
@@ -4362,4 +4366,103 @@ input.condition-function-send-event {
 .edit-box-rule-guide:hover {
     cursor: pointer;
     opacity: 1.0;
+}
+
+
+/********** Auto-layout editor ************/
+.auto-layout-editor-plot {
+    margin: 10px;
+}
+.auto-layout-editor-plot table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--faint-strong-down);
+}
+.auto-layout-editor-plot table td {
+    height: 80px;
+    background: var(--base-weak);
+}
+.auto-layout-editor-plot table .guide-container {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+.auto-layout-editor-plot table .guide-container .guide {
+    flex: 1;
+}
+.auto-layout-editor-plot table .guide-top .guide-container,
+.auto-layout-editor-plot table .guide-bottom .guide-container {
+    flex-direction: column;
+}
+.auto-layout-editor-plot table .guide-top .guide-container .guide,
+.auto-layout-editor-plot table .guide-bottom .guide-container .guide {
+    width: 3px;
+}
+.auto-layout-editor-plot table .guide-left .guide-container .guide,
+.auto-layout-editor-plot table .guide-right .guide-container .guide {
+    height: 3px;
+}
+.auto-layout-editor-plot table .guide-center .box {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--faint-strong-down-down);
+    background: var(--faint-weak);
+}
+
+.auto-layout-editor-plot table .guide-center .box .label-width {
+    position: absolute;
+    right: 10px;
+    top: 4px;
+    cursor: pointer;
+}
+.auto-layout-editor-plot table .guide-center .box .label-height {
+    position: absolute;
+    left: 4px;
+    bottom: 10px;
+    cursor: pointer;
+}
+.auto-layout-editor-plot table .guide-center .box .label:hover {
+    border: 1px solid var(--accent-strong);
+    color: var(--accent-strong);
+}
+.auto-layout-editor-plot table .guide-center .box .label:hover .label-width-arrow,
+.auto-layout-editor-plot table .guide-center .box .label:hover .label-height-arrow {
+    color: var(--accent-strong);
+}
+.auto-layout-editor-plot table .guide-center .box .label-width-arrow {
+    position: absolute;
+    right: -9px;
+    top: 3px;
+    color: var(--accent-faint);
+}
+.auto-layout-editor-plot table .guide-center .box .label-height-arrow {
+    position: absolute;
+    bottom: -10px;
+    left: calc(50% - 4px);
+    color: var(--accent-faint);
+}
+.auto-layout-editor-plot table .guide-side .guide-container .guide {
+    background: var(--accent-faint-up);
+}
+.auto-layout-editor-plot table .label {
+    display: inline-block;
+    position: absolute;
+    font-size: 10px;
+    background: var(--base-weak);
+    border: 1px solid var(--accent-faint);
+}
+.auto-layout-editor-plot table .label .guide-input {
+    padding: 2px 4px;
+    outline: none;
+    min-width: 15px;
+    display: inline-block;
+    text-align: right;
+}
+.auto-layout-editor-plot table .label .dropdown-click-area .fa-xmark {
+    opacity: 0.4;
 }
