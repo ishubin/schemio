@@ -1739,6 +1739,11 @@ class SchemeContainer {
             return;
         }
 
+        if (item.autoLayout && item.autoLayout.on) {
+            item.autoLayout.on = false;
+            item.autoLayout.rules = {};
+        }
+
         // removing item from its original position in array
         itemsArray.splice(index, 1);
 
@@ -3304,7 +3309,8 @@ class SchemeContainer {
                 originalArea: utils.clone(item.area)
             };
             itemIds.add(item.id);
-            if (!item.locked) {
+            // locked and auto-layout enabled items are not allowed to moved
+            if (!item.locked && (!item.autoLayout || !item.autoLayout.on)) {
                 locked = false;
             }
 
