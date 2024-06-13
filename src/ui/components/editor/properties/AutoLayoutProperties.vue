@@ -12,7 +12,7 @@
                     <tbody>
                         <tr>
                             <td></td>
-                            <td class="guide-top guide-side">
+                            <td class="guide-top guide-side" :class="[`guide-type-${topGuide.type}`]">
                                 <div class="guide-container">
                                     <span class="guide"></span>
                                     <GuideLabel :key="topGuide.id" :guide="topGuide"
@@ -25,12 +25,14 @@
                             <td></td>
                         </tr>
                         <tr>
-                            <td class="guide-left guide-side">
+                            <td class="guide-left guide-side" :class="[`guide-type-${leftGuide.type}`]">
                                 <div class="guide-container">
                                     <span class="guide"></span>
                                     <GuideLabel :key="leftGuide.id" :guide="leftGuide"
                                         :guideOptions="sideHorizontalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'left', 'relLeft')"/>
+                                        @value-changed="onGuideValueChange(arguments[0], 'left', 'relLeft')"
+                                        @type-selected="onLeftTypeChange"
+                                        />
                                 </div>
                             </td>
                             <td class="guide-center">
@@ -39,35 +41,41 @@
                                         <GuideLabel class="label-width" :key="widthGuide.id" :guide="widthGuide"
                                             :guideOptions="sizeGuideOptions"
                                             @value-changed="onGuideValueChange(arguments[0], 'width', 'relWidth')"
+                                            @type-selected="onWidthTypeChange"
                                             >
                                             <i class="label-width-arrow fa-solid fa-angle-right"></i>
                                         </GuideLabel>
                                         <GuideLabel class="label-height" :key="heightGuide.id" :guide="heightGuide"
                                             :guideOptions="sizeGuideOptions"
                                             @value-changed="onGuideValueChange(arguments[0], 'height', 'relHeight')"
+                                            @type-selected="onHeightTypeChange"
                                             >
                                             <i class="label-height-arrow fa-solid fa-angle-down"></i>
                                         </GuideLabel>
                                     </div>
                                 </div>
                             </td>
-                            <td class="guide-right guide-side">
+                            <td class="guide-right guide-side" :class="[`guide-type-${rightGuide.type}`]">
                                 <div class="guide-container">
                                     <span class="guide"></span>
                                     <GuideLabel :key="rightGuide.id" :guide="rightGuide"
                                         :guideOptions="sideHorizontalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'right', 'relRight')"/>
+                                        @value-changed="onGuideValueChange(arguments[0], 'right', 'relRight')"
+                                        @type-selected="onRightTypeChange"
+                                        />
                                 </div>
                             </td>
                         </tr>
                         <tr>
                             <td></td>
-                            <td class="guide-bottom guide-side">
+                            <td class="guide-bottom guide-side" :class="[`guide-type-${bottomGuide.type}`]">
                                 <div class="guide-container">
                                     <span class="guide"></span>
                                     <GuideLabel :key="bottomGuide.id" :guide="bottomGuide"
                                         :guideOptions="sideVerticalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'bottom', 'relBottom')"/>
+                                        @value-changed="onGuideValueChange(arguments[0], 'bottom', 'relBottom')"
+                                        @type-selected="onBottomTypeChange"
+                                        />
                                 </div>
                             </td>
                             <td></td>
@@ -76,14 +84,6 @@
                 </table>
             </div>
 
-            <ul class="properties-button-list">
-                <li>
-                    <span v-if="!item.autoLayout.rules.hcenter" class="btn btn-secondary" @click="centerHorizontally">Center Horizontally</span>
-                </li>
-                <li>
-                    <span v-if="!item.autoLayout.rules.vcenter" class="btn btn-secondary" @click="centerVertically">Center Vertically</span>
-                </li>
-            </ul>
         </div>
         <div v-else>
             <div v-if="!autoLayoutAllowed" class="msg msg-info">
@@ -100,7 +100,22 @@ import NumberTextfield from '../../NumberTextfield.vue';
 import EditorEventBus from '../EditorEventBus';
 import ElementPicker from '../ElementPicker.vue';
 import { generateAutoLayoutForItem, autoLayoutCenterItemHorizontally,
-        autoLayoutCenterItemVertically, autoLayoutRemoveTop, autoLayoutSwitchTopToAbsolute, autoLayoutSwitchTopToRelative } from '../../../scheme/AutoLayout';
+        autoLayoutCenterItemVertically, autoLayoutRemoveTop, autoLayoutSwitchTopToAbsolute, autoLayoutSwitchTopToRelative,
+        autoLayoutRemoveBottom,
+        autoLayoutSwitchBottomToAbsolute,
+        autoLayoutSwitchBottomToRelative,
+        autoLayoutRemoveLeft,
+        autoLayoutSwitchLeftToAbsolute,
+        autoLayoutSwitchLeftToRelative,
+        autoLayoutRemoveRight,
+        autoLayoutSwitchRightToAbsolute,
+        autoLayoutSwitchRightToRelative,
+        autoLayoutRemoveWidth,
+        autoLayoutSwitchWidthToAbsolute,
+        autoLayoutSwitchWidthToRelative,
+        autoLayoutRemoveHeight,
+        autoLayoutSwitchHeightToAbsolute,
+        autoLayoutSwitchHeightToRelative} from '../../../scheme/AutoLayout';
 import GuideLabel from './GuideLabel.vue';
 
 
@@ -204,20 +219,82 @@ export default {
 
         onTopTypeChange(option) {
             if (option.type === 'centered') {
-                this.centerVertically();
+                autoLayoutCenterItemVertically(this.item, this.parentItem);
             } else if (option.type === 'removed') {
                 autoLayoutRemoveTop(this.item, this.parentItem);
-                this.updateItem();
-                this.rebuildAllGuides();
             } else if (option.type === 'absolute') {
                 autoLayoutSwitchTopToAbsolute(this.item, this.parentItem);
-                this.updateItem();
-                this.rebuildAllGuides();
             } else if (option.type === 'relative') {
                 autoLayoutSwitchTopToRelative(this.item, this.parentItem);
-                this.updateItem();
-                this.rebuildAllGuides();
             }
+            this.updateItem();
+            this.rebuildAllGuides();
+        },
+
+        onBottomTypeChange(option) {
+            if (option.type === 'centered') {
+                autoLayoutCenterItemVertically(this.item, this.parentItem);
+            } else if (option.type === 'removed') {
+                autoLayoutRemoveBottom(this.item, this.parentItem);
+            } else if (option.type === 'absolute') {
+                autoLayoutSwitchBottomToAbsolute(this.item, this.parentItem);
+            } else if (option.type === 'relative') {
+                autoLayoutSwitchBottomToRelative(this.item, this.parentItem);
+            }
+            this.updateItem();
+            this.rebuildAllGuides();
+        },
+
+        onLeftTypeChange(option) {
+            if (option.type === 'centered') {
+                autoLayoutCenterItemHorizontally(this.item, this.parentItem);
+            } else if (option.type === 'removed') {
+                autoLayoutRemoveLeft(this.item, this.parentItem);
+            } else if (option.type === 'absolute') {
+                autoLayoutSwitchLeftToAbsolute(this.item, this.parentItem);
+            } else if (option.type === 'relative') {
+                autoLayoutSwitchLeftToRelative(this.item, this.parentItem);
+            }
+            this.updateItem();
+            this.rebuildAllGuides();
+        },
+
+        onRightTypeChange(option) {
+            if (option.type === 'centered') {
+                autoLayoutCenterItemHorizontally(this.item, this.parentItem);
+            } else if (option.type === 'removed') {
+                autoLayoutRemoveRight(this.item, this.parentItem);
+            } else if (option.type === 'absolute') {
+                autoLayoutSwitchRightToAbsolute(this.item, this.parentItem);
+            } else if (option.type === 'relative') {
+                autoLayoutSwitchRightToRelative(this.item, this.parentItem);
+            }
+            this.updateItem();
+            this.rebuildAllGuides();
+        },
+
+        onWidthTypeChange(option) {
+            if (option.type === 'removed') {
+                autoLayoutRemoveWidth(this.item, this.parentItem);
+            } else if (option.type === 'absolute') {
+                autoLayoutSwitchWidthToAbsolute(this.item, this.parentItem);
+            } else if (option.type === 'relative') {
+                autoLayoutSwitchWidthToRelative(this.item, this.parentItem);
+            }
+            this.updateItem();
+            this.rebuildAllGuides();
+        },
+
+        onHeightTypeChange(option) {
+            if (option.type === 'removed') {
+                autoLayoutRemoveHeight(this.item, this.parentItem);
+            } else if (option.type === 'absolute') {
+                autoLayoutSwitchHeightToAbsolute(this.item, this.parentItem);
+            } else if (option.type === 'relative') {
+                autoLayoutSwitchHeightToRelative(this.item, this.parentItem);
+            }
+            this.updateItem();
+            this.rebuildAllGuides();
         },
 
         onGuideValueChange(value, ...fields) {
@@ -239,10 +316,8 @@ export default {
                 return;
             }
             this.item.autoLayout = generateAutoLayoutForItem(this.item, this.parentItem);
-            this.schemeContainer.readjustItemAndDescendants(this.item.id);
-            this.schemeContainer.reindexItems();
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.autoLayout`);
+            this.updateItem();
+            this.rebuildAllGuides();
         },
 
         turnAutoLayoutOff() {
@@ -252,22 +327,8 @@ export default {
             }
             this.item.autoLayout.on = false;
             this.item.autoLayout.rules = {};
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'area');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.item.id}.autoLayout`);
-        },
-
-        centerHorizontally() {
-            autoLayoutCenterItemHorizontally(this.item, this.parentItem);
             this.updateItem();
             this.rebuildAllGuides();
-            this.$forceUpdate();
-        },
-
-        centerVertically() {
-            autoLayoutCenterItemVertically(this.item, this.parentItem);
-            this.updateItem();
-            this.rebuildAllGuides();
-            this.$forceUpdate();
         },
 
         buildLeftGuide() {
@@ -406,6 +467,7 @@ export default {
             if (this.item.autoLayout.rules.hasOwnProperty('width')) {
                 return {
                     id: shortid.generate(),
+                    type: 'absolute',
                     value: this.item.autoLayout.rules.width,
                     number: true,
                     icon: ICON_ABSOLUTE,
@@ -413,6 +475,7 @@ export default {
             } else if (this.item.autoLayout.rules.hasOwnProperty('relWidth')) {
                 return {
                     id: shortid.generate(),
+                    type: 'relative',
                     value: this.item.autoLayout.rules.relWidth,
                     number: true,
                     icon: ICON_RELATIVE
@@ -420,6 +483,7 @@ export default {
             }
             return {
                 id: shortid.generate(),
+                type: 'removed',
                 value: '',
                 icon: ICON_REMOVE
             };
@@ -429,6 +493,7 @@ export default {
             if (this.item.autoLayout.rules.hasOwnProperty('height')) {
                 return {
                     id: shortid.generate(),
+                    type: 'absolute',
                     value: this.item.autoLayout.rules.height,
                     number: true,
                     icon: ICON_ABSOLUTE,
@@ -436,6 +501,7 @@ export default {
             } else if (this.item.autoLayout.rules.hasOwnProperty('relHeight')) {
                 return {
                     id: shortid.generate(),
+                    type: 'relative',
                     value: this.item.autoLayout.rules.relHeight,
                     number: true,
                     icon: ICON_RELATIVE
@@ -443,6 +509,7 @@ export default {
             }
             return {
                 id: shortid.generate(),
+                type: 'removed',
                 value: '',
                 icon: ICON_REMOVE
             };

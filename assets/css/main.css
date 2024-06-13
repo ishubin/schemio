@@ -4446,6 +4446,9 @@ ul.properties-button-list > li > .btn {
     left: calc(50% - 4px);
     color: var(--accent-faint);
 }
+.auto-layout-editor-plot table .guide-side.guide-type-removed .guide-container .guide {
+    background: var(--accent-weak-up);
+}
 .auto-layout-editor-plot table .guide-side .guide-container .guide {
     background: var(--accent-faint-up);
 }

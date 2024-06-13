@@ -147,7 +147,7 @@
         </g>
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
-            <ellipse v-if="kind === 'regular' && !isLocked && editBox.rotationEnabled" class="boundary-box-dragger"
+            <ellipse v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && editBox.rotationEnabled" class="boundary-box-dragger"
                 data-type="edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
@@ -184,7 +184,7 @@
                 </g>
             </transition>
 
-            <g v-if="kind === 'regular' && !isLocked">
+            <g v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked">
                 <rect class="boundary-box-dragger"
                     data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,left"
@@ -842,6 +842,15 @@ export default {
         isThin() {
             const safeZoom = this.zoom > 0.001 ? this.zoom : 1.0;
             return this.editBox.area.w/safeZoom < 3 || this.editBox.area.h/safeZoom < 3;
+        },
+
+        isAutoLayoutEnabled() {
+            let allAutoLayout = true;
+
+            this.editBox.items.forEach(item => {
+                allAutoLayout = allAutoLayout & (item.autoLayout && item.autoLayout.on);
+            });
+            return allAutoLayout;
         },
 
         isLocked() {

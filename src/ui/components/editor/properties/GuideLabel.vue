@@ -47,7 +47,6 @@ export default {
         onValueKeyUp(event) {
             const value = parseInt(this.$refs.input.innerHTML);
             if (!isNaN(value)) {
-                console.log('Emit value', value);
                 this.$emit('value-changed', value);
             }
         }
