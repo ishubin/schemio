@@ -82,7 +82,6 @@ export const patchTestData = [{
         }
     }
 }, {
-    //TODO test for more field changes to make sure every field is covered
     name: 'item field changes',
     origin: {
         items: [
@@ -1828,4 +1827,100 @@ export const patchTestData = [{
             }]},
         }
     }
-}];
+}, {
+    name: 'autoLayout object',
+    origin: {
+        items: [
+            { id: 'qwe1', name: 'item1'},
+        ]
+    },
+    modified: {
+        items: [
+            { id: 'qwe1', name: 'item1', autoLayout: {on: false, rules: {}}},
+        ]
+    },
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['autoLayout'],
+                    op: 'replace',
+                    value: {on: false, rules: {}}
+                }]
+            }]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'qwe1',
+                fields: [
+                    'autoLayout'
+                ]
+            }]},
+        }
+    }
+}, {
+    name: 'autoLayout rules patching',
+    origin: {
+        items: [
+            { id: 'qwe1', name: 'item1', autoLayout: {on: false, rules: {}}},
+        ]
+    },
+    modified: {
+        items: [
+            { id: 'qwe1', name: 'item1', autoLayout: {on: false, rules: {left: 25}}},
+        ]
+    },
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+
+        changes: [{
+            path: ['items'],
+            op: 'patch-id-array',
+            changes: [{
+                id: 'qwe1',
+                op: 'modify',
+                changes: [{
+                    path: ['autoLayout', 'rules'],
+                    op: 'patch-map',
+                    changes: [{
+                        id: 'left',
+                        op: 'add',
+                        value: 25
+                    }]
+                }]
+            }]
+        }],
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'qwe1',
+                fields: [
+                    'autoLayout.rules.left'
+                ]
+            }]},
+        }
+    }
+} ];

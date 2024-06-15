@@ -5,7 +5,7 @@
 import utils from "../../../src/ui/utils";
 
 
-// This script is use for generating random permutations to various structures
+// This script is used for generating random permutations to various structures
 // and stores test data for patcher spec
 
 
