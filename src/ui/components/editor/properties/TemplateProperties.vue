@@ -110,28 +110,26 @@ export default {
         loadTemplate() {
             this.templateNotFound = false;
             this.isLoading = true;
-            if (this.$store.state.apiClient && this.$store.state.apiClient.getTemplate) {
-                this.$store.state.apiClient.getTemplate(this.templateRef).then(template => {
-                    this.isLoading = false;
-                    this.template = compileItemTemplate(this.editorId, template, this.templateRef);
-                    if (template.args) {
-                        forEach(template.args, (arg, argName) => {
-                            if (!this.args.hasOwnProperty(argName)) {
-                                this.args[argName] = arg.value;
-                            }
-                        });
-                    }
-                    this.updateEditorPanels();
-                }).catch(err => {
-                    this.isLoading = false;
-                    console.error(err);
-                    if (err.response && err.response.status === 404) {
-                        this.templateNotFound = true;
-                    } else {
-                        this.errorMessage = 'Something went wrong, could not load template';
-                    }
-                });
-            }
+            this.schemeContainer.getTemplate(this.templateRef).then(compiledTemplate => {
+                this.isLoading = false;
+                this.template = compiledTemplate
+                if (compiledTemplate.argsDef) {
+                    forEach(compiledTemplate.argsDef, (arg, argName) => {
+                        if (!this.args.hasOwnProperty(argName)) {
+                            this.args[argName] = arg.value;
+                        }
+                    });
+                }
+                this.updateEditorPanels();
+            }).catch(err => {
+                this.isLoading = false;
+                console.error(err);
+                if (err.response && err.response.status === 404) {
+                    this.templateNotFound = true;
+                } else {
+                    this.errorMessage = 'Something went wrong, could not load template';
+                }
+            });
         },
 
         updateEditorPanels() {

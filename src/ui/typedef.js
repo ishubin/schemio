@@ -463,6 +463,7 @@
  * @property {String} name
  * @property {String} description
  * @property {Object} args - contains template argument descriptors
+ * @property {Object} argsDef - template argument definitions (specifies type and template default values)
  * @property {Object} defaultArgs - contains args object with default values
  * @property {function(String): Boolean} hasHandler - returns true if template has defined a handler with specified name
  * @property {function(Item, String, ...Object): Item} triggerTemplateEvent
@@ -480,6 +481,14 @@
  * @returns {Boolean} true if it should keeps traversing items
  */
 
+/**
+ * @typedef {Object} SchemioDoc
+ * @property {String} id
+ * @property {String} name
+ * @property {String} description
+ * @property {Array<String>} tags
+ * @property {Array<Item>} items
+ */
 
 
 /**

@@ -1745,6 +1745,9 @@ ul.links-editor .edit-link:hover {
     cursor: pointer;
 }
 
+.create-item-menu .buttons {
+    margin: 8px;
+}
 .create-item-menu .preview-item {
     position: fixed;
     padding: 5px;

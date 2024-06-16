@@ -173,6 +173,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
         defaultArea: template.defaultArea || {x: 0, y: 0, w: 350, h: 200, px: 0.5, py: 0.5, sx: 1, sy: 1},
         templateRef: templateRef,
         args       : template.args || {},
+        argsDef    : template.args,
         defaultArgs: defaultArgs,
 
         hasHandler: (handlerName) => templateHandlers.hasOwnProperty(handlerName),
@@ -557,4 +558,20 @@ function mergeItemBehavior(templatedBehavior, oldBehavior) {
     });
 
     return {...templatedBehavior, events};
+}
+
+
+/**
+ * @param {SchemioDoc} doc
+ * @param {String} id - id of a document
+ * @param {String} editorId
+ */
+export function compileTemplateFromDoc(doc, id, editorId) {
+    const template = {
+        name: doc.name,
+        args: {},
+        defaultArea: {x: 0, y: 0, w: 100, h: 100},
+        item: doc.items[0]
+    };
+    return compileItemTemplate(editorId, template, '#doc:' + id);
 }

@@ -503,6 +503,7 @@ export default {
         useFill: {type: Boolean, default: true},
         apiClient: {type: Object, required: true},
         editorId: {type: String, required: true},
+        schemeContainer: {type: Object, required: true},
         cursor: {type: Object},
 
         /** @type {EditBox} */
@@ -638,12 +639,10 @@ export default {
                 });
             });
         },
+
         fetchTemplate(templateRef) {
-            if (!this.apiClient.getTemplate) {
-                return;
-            }
-            this.apiClient.getTemplate(templateRef).then(templateDef => {
-                this.template = compileItemTemplate(this.editorId, templateDef, templateRef);
+            this.schemeContainer.getTemplate(templateRef).then(compiledTemplate => {
+                this.template = compiledTemplate;
                 this.buildTemplateControls();
             });
         },

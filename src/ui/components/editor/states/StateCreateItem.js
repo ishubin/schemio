@@ -34,11 +34,9 @@ export default class StateCreateItem extends State {
         this.template = template;
 
         if (!template && item.args && item.args.templated && item.args.templateRef) {
-            if (this.store.state.apiClient && this.store.state.apiClient.getTemplate) {
-                this.store.state.apiClient.getTemplate(item.args.templateRef).then(templateDef => {
-                    this.template = compileItemTemplate(this.editorId, templateDef, item.args.templateRef);
-                });
-            }
+            this.schemeContainer.getTemplate(item.args.templateRef).then(compiledTemplate => {
+                this.template = compiledTemplate;
+            })
         }
 
         const shape = Shape.find(item.shape);

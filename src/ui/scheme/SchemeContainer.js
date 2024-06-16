@@ -21,7 +21,7 @@ import { compileAnimations, FrameAnimation } from '../animations/FrameAnimation'
 import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
-import { compileItemTemplate, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
+import { compileItemTemplate, compileTemplateFromDoc, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
 import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform } from './ItemMath.js';
 import { autoLayoutGenerateEditBoxRuleGuides, generateItemAreaByAutoLayoutRules } from './AutoLayout.js';
 
@@ -927,13 +927,23 @@ class SchemeContainer {
         if (this.compiledTemplates.has(templateRef)) {
             return Promise.resolve(this.compiledTemplates.get(templateRef));
         } else {
-            this.apiClient.getTemplate(templateRef)
-            .then(templateDef => {
-                const template = compileItemTemplate(this.editorId, templateDef, templateRef);
+            let promise = null;
+            if (templateRef.startsWith('#doc:')) {
+                const docId = templateRef.substring(5);
+                promise = this.apiClient.getScheme(docId)
+                .then(doc => {
+                    return compileTemplateFromDoc(doc.scheme, docId, this.editorId);
+                });
+            } else {
+                promise = this.apiClient.getTemplate(templateRef)
+                .then(templateDef => {
+                    return compileItemTemplate(this.editorId, templateDef, templateRef);
+                });
+            }
+            return promise.then(template => {
                 this.compiledTemplates.set(templateRef, template);
                 return template;
-            })
-            .catch(err => {
+            }).catch(err => {
                 console.error(`Failed to compile template: ${templateRef}`, err);
                 throw err;
             });

@@ -78,8 +78,10 @@
             </panel>
 
             <panel v-if="projectArtEnabled" name="Project Art">
-                <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
-                <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
+                <div class="buttons">
+                    <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
+                    <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
+                </div>
                 <div class="item-menu">
                     <div class="item-container"
                         v-for="art in artList"
@@ -96,6 +98,9 @@
             </panel>
 
             <panel v-if="templates || templatesLoading" name="Templates">
+                <div class="buttons">
+                    <span class="btn btn-secondary" @click="showExternalTemplateModal"><i class="fa-solid fa-square-up-right"></i> External Template...</span>
+                </div>
                 <div class="item-menu">
                     <div class="item-container item-container-template"
                         v-for="template in templates"
@@ -197,6 +202,8 @@
                 <ItemSvg :editorId="editorId" :item="itemCreationDragged.item" mode="edit"/>
             </svg>
         </div>
+
+        <SchemeSearchModal v-if="externalTemplateModalShown" @close="externalTemplateModalShown = false" @selected-scheme="onExternalDiagramPicked"/>
     </div>
 </template>
 
@@ -218,7 +225,8 @@ import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
-import { compileItemTemplate } from './items/ItemTemplate';
+import { compileItemTemplate, compileTemplateFromDoc } from './items/ItemTemplate';
+import SchemeSearchModal from './SchemeSearchModal.vue';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -239,7 +247,10 @@ export default {
         customItemMenuPanels: {type: Array, default: () => []},
     },
 
-    components: { Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditModal, ItemSvg, ExtraShapesModal, ExtraShapesModal },
+    components: {
+        Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditModal,
+        ItemSvg, ExtraShapesModal, ExtraShapesModal, SchemeSearchModal
+    },
 
     beforeMount() {
         this.loadProjectArt();
@@ -300,6 +311,8 @@ export default {
             },
             templates: [],
             templatesLoading: false,
+
+            externalTemplateModalShown: false
         }
     },
     methods: {
@@ -658,11 +671,7 @@ export default {
         },
 
         onTemplateMouseDown(event, templateEntry) {
-            if (!this.$store.state.apiClient && !this.$store.state.apiClient.getTemplate) {
-                return;
-            }
-            this.$store.state.apiClient.getTemplate(templateEntry.path).then(template => {
-                const compiledTemplate = compileItemTemplate(this.editorId, template, templateEntry.path);
+            this.schemeContainer.getTemplate(templateEntry.path).then(compiledTemplate => {
                 const templatedItem = this.schemeContainer.generateItemFromTemplate(compiledTemplate, compiledTemplate.getDefaultArgs(), compiledTemplate.defaultArea.w, compiledTemplate.defaultArea.h);
 
                 this.onItemMouseDown(event, {
@@ -774,6 +783,31 @@ export default {
         closeArtPack(artPack) {
             StoreUtils.removeArtPack(this.$store, artPack.id);
             this.filterArtPacks();
+        },
+
+        showExternalTemplateModal() {
+            this.externalTemplateModalShown = true;
+        },
+
+        onExternalDiagramPicked(docEntry) {
+            this.externalTemplateModalShown = false;
+
+            this.schemeContainer.getTemplate(`#doc:${docEntry.id}`).then(compiledTemplate => {
+                const templatedItem = this.schemeContainer.generateItemFromTemplate(compiledTemplate, compiledTemplate.getDefaultArgs(), compiledTemplate.defaultArea.w, compiledTemplate.defaultArea.h);
+                const mokedEvent = {
+                    pageX: 0,
+                    pageY: 0,
+                    buttons: 0,
+                };
+                this.onItemMouseDown(mokedEvent, {
+                    item: templatedItem,
+                    name: templatedItem.name
+                }, true, compiledTemplate);
+            })
+            .catch(err => {
+                console.error(err);
+                StoreUtils.addErrorSystemMessage(this.$store, `Could to load template`, 'no-items-template');
+            });
         }
     },
 
