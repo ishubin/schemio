@@ -56,7 +56,6 @@
 <script>
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {forEach, forEachObject} from '../../../collections';
-import {compileItemTemplate} from '../items/ItemTemplate';
 import EditorEventBus from '../EditorEventBus';
 import ItemSvg from '../items/ItemSvg.vue';
 import Panel from '../Panel.vue';

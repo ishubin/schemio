@@ -757,6 +757,9 @@ function timeoutPromise(timeInMillis) {
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
 
+let latestSchemeTransform = null;
+
+
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
@@ -927,7 +930,7 @@ export default {
     },
 
     beforeMount() {
-        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.commitHistory);
+        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChangeCommitted);
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
         EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionUpdated);
@@ -947,7 +950,7 @@ export default {
     },
 
     beforeDestroy() {
-        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.commitHistory);
+        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChangeCommitted);
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionUpdated);
@@ -1187,21 +1190,34 @@ export default {
         },
 
         getInitialScreenTransform() {
-            let screenTransform = { x: 0, y: 0, scale: 1.0 };
-
             if (this.scheme && this.scheme.id) {
                 const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
                 if (schemeSettings && schemeSettings.screenPosition) {
                     const zoom = parseFloat(schemeSettings.screenPosition.zoom);
-                    screenTransform = {
+                    return {
                         x: schemeSettings.screenPosition.offsetX,
                         y: schemeSettings.screenPosition.offsetY,
                         scale: parseFloat(zoom) / 100.0,
                     };
                 }
             }
+            if (latestSchemeTransform) {
+                return latestSchemeTransform;
+            }
+            if (this.scheme.items && this.scheme.items.length > 0) {
+                const width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+                const height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
 
-            return screenTransform;
+                const area = getBoundingBoxOfItems(this.scheme.items);
+
+                return {
+                    x: width/2 - (area.x + area.w/2),
+                    y: (height)/2 - (area.y + area.h/2),
+                    scale: 1.0
+                };
+            }
+
+            return { x: 0, y: 0, scale: 1.0 };
         },
 
         initSchemeContainer(scheme) {
@@ -1669,6 +1685,7 @@ export default {
                     zoom: this.zoom
                 }
             });
+            latestSchemeTransform = { ...schemeContainer.screenTransform };
         },
 
         onAnyItemClicked(item) {
@@ -1868,6 +1885,11 @@ export default {
             this.sidePanelItemForViewMode = item;
             this.showSidePanelRight();
             this.currentTab = 'Item';
+        },
+
+        onSchemeChangeCommitted() {
+            this.commitHistory();
+            this.saveSchemeSettings();
         },
 
         commitHistory(affinityId) {
