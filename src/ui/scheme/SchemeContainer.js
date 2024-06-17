@@ -909,9 +909,8 @@ class SchemeContainer {
             return;
         }
 
-        this.apiClient.getTemplate(templateRef)
-        .then(templateDef => {
-            const template = compileItemTemplate(this.editorId, templateDef, templateRef);
+        this.getTemplate(templateRef)
+        .then(template => {
             this.compiledTemplates.set(templateRef, template);
         })
         .catch(err => {

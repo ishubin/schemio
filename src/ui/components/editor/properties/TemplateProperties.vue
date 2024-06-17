@@ -39,10 +39,17 @@
                 </ul>
             </Panel>
         </div>
-        <span class="btn btn-danger"
-            @click="breakTemplate"
-            title="After the template is broken the items will not be regenerated"
-            >Break template</span>
+
+        <div class="section">
+            <span class="btn btn-secondary"
+                @click="updateTemplate"
+                title="Updates all items with the latest changes in the template"
+                >Update template</span>
+            <span class="btn btn-danger"
+                @click="breakTemplate"
+                title="After the template is broken the items will not be regenerated"
+                >Break template</span>
+        </div>
     </div>
 </template>
 
@@ -162,6 +169,10 @@ export default {
 
         breakTemplate() {
             this.$emit('break-template', this.item);
+        },
+
+        updateTemplate() {
+            this.$emit('update-template', this.item.id, this.template, this.args);
         }
     },
 

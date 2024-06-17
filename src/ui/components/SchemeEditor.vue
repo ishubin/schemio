@@ -472,6 +472,7 @@
                                 :templateRef="selectedTemplateRef"
                                 @updated="onTemplatePropertiesUpdated"
                                 @break-template="breakTemplate"
+                                @update-template="updateTemplate"
                                 @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
                             />
                         </div>
@@ -2232,6 +2233,10 @@ export default {
             traverseItems([originItem], item => {
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             });
+        },
+
+        updateTemplate(originItemId, template, templateArgs) {
+            this.rebuildTemplate(originItemId, template, templateArgs);
         },
 
         breakTemplate(rootItem) {
