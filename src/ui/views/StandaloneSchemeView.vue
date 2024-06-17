@@ -264,7 +264,7 @@ export default {
 
         stateLoop(deltaTime) {
             const oldTime = performance.now();
-            this.stateInteract.loop(deltaTime);
+            this.stateInteract.loop(Math.min(100.0, deltaTime));
             if (this.isStateLooping) {
                 window.requestAnimationFrame(() => {
                     this.stateLoop(performance.now() - oldTime);

@@ -138,7 +138,7 @@ function loopCycle(registry, timeMarker, deltaTime) {
             let status = true;
             try {
                 if (animation.enabled) {
-                    status = animation.play(deltaTime);
+                    status = animation.play(Math.min(100.0, deltaTime));
                 } else {
                     status = false;
                 }

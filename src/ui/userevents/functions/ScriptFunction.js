@@ -112,7 +112,7 @@ export default {
         const execScript = (t) => {
             if (args.animationType === INFINITE_LOOP) {
                 // in infinite loop users should "deltaTime" as time in seconds from last call
-                scope.set('deltaTime', t);
+                scope.set('deltaTime', Math.min(0.1, t));
             } else {
                 // in a regular animation users may rely on "t" which represents the progress of animation from 0 to 1
                 scope.set('t', t);
@@ -571,7 +571,7 @@ class ScriptInfiniteLoopAnimation extends Animation {
 
     play(dt) {
         try {
-            this.scriptExecutor(dt/1000);
+            this.scriptExecutor(Math.min(100.0, dt) / 1000);
         } catch(err) {
             console.error(err);
             return false;
