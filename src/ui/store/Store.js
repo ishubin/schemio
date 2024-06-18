@@ -53,10 +53,6 @@ const store = new Vuex.Store({
         showItemDetailMarkers: myStorage.get('showItemDetailMarkers', true),
 
 
-        // toggles clickable item markers in view mode so that users can see
-        // what they can click on the diagram and which elements are interactive
-        showClickableMarkers: false,
-
         // item which style should be copied to other items
         copiedStyleItem: null,
 
@@ -137,10 +133,6 @@ const store = new Vuex.Store({
         TOGGLE_ITEM_DETAIL_MARKERS(state) {
             state.showItemDetailMarkers = !state.showItemDetailMarkers;
             myStorage.save('showItemDetailMarkers', state.showItemDetailMarkers);
-        },
-
-        SET_SHOW_CLICKABLE_MARKERS(state, show) {
-            state.showClickableMarkers = show;
         },
 
         SET_DEFAULT_CONNECTOR_SMOOTHING(state, smoothing) {
@@ -445,10 +437,6 @@ const store = new Vuex.Store({
             commit('TOGGLE_ITEM_DETAIL_MARKERS');
         },
 
-        setShowClickableMarkers({commit}, show) {
-            commit('SET_SHOW_CLICKABLE_MARKERS', show);
-        },
-
         proposeConnectorDestinationItems({commit}, payload) {
             commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', payload);
         },
@@ -536,7 +524,6 @@ const store = new Vuex.Store({
         autoRemount: state => state.autoRemount,
         showPivot: state => state.showPivot,
         showItemDetailMarkers: state => state.showItemDetailMarkers,
-        showClickableMarkers: state => state.showClickableMarkers,
 
         connectorProposedDestination: state => state.connectorProposedDestination,
 

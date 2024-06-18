@@ -53,7 +53,7 @@
             <div class="quick-helper-panel-section" v-if="mode === 'view'">
                 <ul class="button-group">
                     <li>
-                        <span title="Toggle clickable items" class="toggle-button" :class="{toggled: showClickableMarkers}" @click="toggleClickableMarkers(!showClickableMarkers)">
+                        <span title="Toggle clickable items" class="toggle-button" @click="toggleClickableMarkers()">
                             <i class="fa-solid fa-hand-pointer"></i>
                         </span>
                     </li>
@@ -461,11 +461,8 @@ export default {
             StoreUtils.toggleItemDetailMarkers(this.$store);
         },
 
-        toggleClickableMarkers(shown) {
-            if (shown) {
-                EditorEventBus.clickableMarkers.toggled.$emit(this.editorId);
-            }
-            StoreUtils.setShowClickableMarkers(this.$store, shown);
+        toggleClickableMarkers() {
+            EditorEventBus.clickableMarkers.toggled.$emit(this.editorId);
         },
 
         onZoomOutClicked() {
@@ -649,10 +646,6 @@ export default {
 
         showItemDetailMarkers() {
             return this.$store.getters.showItemDetailMarkers;
-        },
-
-        showClickableMarkers() {
-            return this.$store.getters.showClickableMarkers;
         },
     }
 }

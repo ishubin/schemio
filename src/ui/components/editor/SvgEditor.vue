@@ -35,21 +35,11 @@
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" fill="none" :stroke="item.stroke"
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
                             :stroke-width="`${item.strokeSize + 6/(item.scalingFactor*safeZoom)}px`"
                             :data-item-id="item.id"
-                            style="opacity: 0.5"
+                            :style="{opacity: item.opacity}"
                             data-preview-ignore="true"/>
-                    </g>
-                    <g data-preview-ignore="true" v-if="showClickableMarkers">
-                        <circle v-for="marker in clickableItemMarkers"
-                            v-if="marker.visible"
-                            class="clickable-item-marker"
-                            :cx="marker.x" :cy="marker.y"
-                            :r="5 / safeZoom"
-                            :data-item-id="marker.itemId"
-                            :stroke="schemeContainer.scheme.style.itemMarkerColor"
-                            :fill="schemeContainer.scheme.style.itemMarkerColor"/>
                     </g>
                 </g>
 
@@ -150,10 +140,10 @@
 
 
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
-                        <path :d="item.path" fill="none" :stroke="item.stroke"
+                        <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
                             :stroke-width="`${item.strokeSize + 6/(item.scalingFactor*safeZoom)}px`"
                             :data-item-id="item.id"
-                            style="opacity: 0.5"
+                            :style="{opacity: item.opacity}"
                             stroke-linejoin="round"
                             data-preview-ignore="true"/>
                         <circle v-for="pin in item.pins" :cx="pin.x" :cy="pin.y" :r="8/(item.scalingFactor*safeZoom)" style="opacity:0.5" data-preview-ignore="true" :fill="item.stroke"/>
@@ -189,7 +179,7 @@ import {forEach, map, filter, find} from '../../collections';
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {defaultItem, traverseItems, hasItemDescription} from '../../scheme/Item';
+import {defaultItem, traverseItems, hasItemDescription, traverseItemsConditionally} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
@@ -244,7 +234,7 @@ export default {
         schemeContainer : { default: null, type: Object },
         zoom            : { default: 1.0, type: Number },
         useMouseWheel   : { default: true, type: Boolean},
-        
+
         // used to reload item svg components when scheme is rebased
         itemsReloadKey  : { default: 0, type: Number },
     },
@@ -252,8 +242,6 @@ export default {
     components: { ItemSvg },
     beforeMount() {
         if (this.mode === 'view') {
-            StoreUtils.setShowClickableMarkers(this.$store, this.schemeContainer.scheme.style.itemMarkerToggled);
-            this.buildClickableItemMarkers();
             this.reindexUserEvents();
             this.prepareFrameAnimations();
         }
@@ -273,7 +261,7 @@ export default {
         EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
 
         EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
-        EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.updateClickableMarkers);
+        EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.toggleClickableMarkers);
 
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
@@ -296,6 +284,7 @@ export default {
         }
     },
     beforeDestroy(){
+        this.highlightAnimated = true;
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
         EditorEventBus.zoomToAreaRequested.$off(this.editorId, this.onBringToView);
@@ -312,7 +301,7 @@ export default {
         EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
 
         EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
-        EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.updateClickableMarkers);
+        EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.toggleClickableMarkers);
 
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
@@ -355,7 +344,10 @@ export default {
             lastTouchStartTime: 0,
             lastTouchStartCoords: {x: -1000, y: -1000},
 
-            draggingFileOver: false
+            draggingFileOver: false,
+
+            highlightAnimated : false,
+            highlightAnimationTime: 0,
         };
     },
     methods: {
@@ -675,63 +667,60 @@ export default {
             }
         },
 
-        buildClickableItemMarkers() {
-            const markers = [];
+        generateItemHighlight(item, showPins) {
+            const shape = Shape.find(item.shape);
+            if (!shape) {
+                return;
+            }
 
-            const traverseVisibleItems = (itemArray, callback) => {
-                if (!itemArray || !Array.isArray(itemArray)) {
-                    return;
+            const path = shape.computeOutline(item);
+            if (!path) {
+                return;
+            }
+
+            const m = itemCompleteTransform(item);
+            const scalingVector = worldScalingVectorOnItem(item);
+
+            let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
+            if (myMath.tooSmall(scalingFactor)) {
+                scalingFactor = 1;
+            }
+
+            let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
+            let strokeSize = 6;
+            if (item.shape === 'path') {
+                strokeSize = item.shapeProps.strokeSize;
+                if (item.shapeProps.fill.type === 'none') {
+                    fill = 'none';
                 }
-                itemArray.forEach(item => {
-                    if (item.visible && item.opacity > 0) {
-                        if (item.selfOpacity > 0) {
-                            callback(item);
-                        }
-
-                        traverseVisibleItems(item.childItems, callback);
-                        traverseVisibleItems(item._childItems, callback);
-                    }
-                });
+            } else {
+                const shape = Shape.find(item.shape);
+                if (Shape.getShapePropDescriptor(shape, 'strokeSize')) {
+                    strokeSize = item.shapeProps.strokeSize;
+                }
+            }
+            const itemHighlight = {
+                id: item.id,
+                transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
+                path,
+                fill,
+                strokeSize,
+                stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
+                pins: [],
+                opacity: 0.5,
+                scalingFactor
             };
 
-            traverseVisibleItems(this.schemeContainer.worldItems, item => {
-                const hasItemLinks = item.links && item.links.length > 0;
-                const hasItemClickEvents = find(item.behavior.events, event => event.event === Events.standardEvents.clicked.id);
-
-                if (hasItemDescription(item) || hasItemLinks || hasItemClickEvents) {
-                    const box = getBoundingBoxOfItems([item]);
-                    markers.push({
-                        x: box.x + box.w,
-                        y: box.y,
-                        itemId: item.id,
-                        visible: true
-                    });
-                }
-
-                if (item.shape === 'component' && item.shapeProps.showButton) {
-                    const buttonLocalArea = calculateComponentButtonArea(item);
-
-                    const p = worldPointOnItem(buttonLocalArea.x + buttonLocalArea.w, buttonLocalArea.y, item);
-                    markers.push({
-                        x: p.x,
-                        y: p.y,
-                        itemId: item.id,
-                        visible: true
-                    });
-                }
-            });
-            this.clickableItemMarkers = markers;
-        },
-
-        updateClickableMarkers() {
-            if (this.mode === 'view') {
-                this.buildClickableItemMarkers();
-                this.$forceUpdate();
+            if (showPins) {
+                itemHighlight.pins = shape.getPins(item);
             }
+            return itemHighlight;
         },
 
         highlightItems(itemIds, showPins) {
             this.worldHighlightedItems = [];
+            this.highlightAnimated = false;
+            this.highlightAnimationTime = 0;
 
             forEach(itemIds, itemId => {
                 const item = this.schemeContainer.findItemById(itemId);
@@ -739,55 +728,7 @@ export default {
                     return;
                 }
 
-                const shape = Shape.find(item.shape);
-                if (!shape) {
-                    return;
-                }
-
-                const path = shape.computeOutline(item);
-                if (!path) {
-                    return;
-                }
-
-                const m = itemCompleteTransform(item);
-                const scalingVector = worldScalingVectorOnItem(item);
-
-                let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
-                if (myMath.tooSmall(scalingFactor)) {
-                    scalingFactor = 1;
-                }
-
-                let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
-                let strokeSize = 6;
-                if (item.shape === 'path') {
-                    strokeSize = item.shapeProps.strokeSize;
-                    if (item.shapeProps.fill.type === 'none') {
-                        fill = 'none';
-                    }
-                } else {
-                    const shape = Shape.find(item.shape);
-                    if (Shape.getShapePropDescriptor(shape, 'strokeSize')) {
-                        strokeSize = item.shapeProps.strokeSize;
-                    }
-                }
-
-
-
-                const itemHighlight = {
-                    id: itemId,
-                    transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
-                    path,
-                    fill,
-                    strokeSize,
-                    stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
-                    pins: [],
-                    scalingFactor
-                };
-
-                if (showPins) {
-                    itemHighlight.pins = shape.getPins(item);
-                }
-
+                const itemHighlight = this.generateItemHighlight(item, showPins);
                 this.worldHighlightedItems.push(itemHighlight);
             });
         },
@@ -929,6 +870,8 @@ export default {
         },
 
         resetHighlightedItems() {
+            this.highlightAnimated = false;
+            this.highlightAnimationTime = 0;
             if (this.worldHighlightedItems.length > 0) {
                 this.worldHighlightedItems = [];
             }
@@ -1187,7 +1130,6 @@ export default {
                 return;
             }
 
-
             const mp = this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
             const p = this.toLocalPoint(mp.x, mp.y);
 
@@ -1250,18 +1192,81 @@ export default {
             });
         },
 
+        toggleClickableMarkers() {
+            const hasMouseEvent = (events) => {
+                if (events.length === 0) {
+                    return false;
+                }
+                for (let i = 0; i < events.length; i++) {
+                    const event = events[i].event;
+                    if (event === Events.standardEvents.mousein.id
+                        || event === Events.standardEvents.clicked.id) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+
+            const highlights = [];
+
+            traverseItemsConditionally(this.schemeContainer.scheme.items, (item) => {
+                if (!item.visible) {
+                    return false;
+                }
+                if ((item.description && item.description.length > 4)
+                    || (item.links && item.links.lengt > 0)
+                    || hasMouseEvent(item.behavior.events)
+                    || (item.behavior.dragging && item.behavior.dragging !== 'none')
+                ) {
+                    const itemHighlight = this.generateItemHighlight(item, false);
+                    itemHighlight.fill = itemHighlight.stroke;
+                    highlights.push(itemHighlight);
+                }
+                return true;
+            });
+
+            this.worldHighlightedItems = highlights;
+            this.animateCurrentHighlightedItems();
+        },
+
+        animateCurrentHighlightedItems() {
+            this.highlightAnimationTime = 0;
+            if (this.highlightAnimated) {
+                return;
+            }
+            this.highlightAnimated = true;
+
+            if (this.worldHighlightedItems.length === 0) {
+                return;
+            }
+
+            const highlightAnimationLoop = (time) => {
+                const latestTime = performance.now();
+                const dt = latestTime - time;
+                this.highlightAnimationTime += dt;
+
+                if (!this.highlightAnimated || this.highlightAnimationTime > 5000.0 || this.worldHighlightedItems.length === 0) {
+                    this.highlightAnimationTime = 0.0;
+                    this.highlightAnimated = true;
+                    this.worldHighlightedItems = [];
+                    this.$forceUpdate();
+                    return;
+                }
+
+                for (let i = 0; i < this.worldHighlightedItems.length; i++) {
+                    this.worldHighlightedItems[i].opacity = 0.2 * Math.cos(this.highlightAnimationTime / 300) + 0.3;
+                }
+                this.$forceUpdate();
+
+                requestAnimationFrame(() => highlightAnimationLoop(latestTime));
+            };
+            requestAnimationFrame(() => highlightAnimationLoop(performance.now()));
+        },
 
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
         _z(v) { return v * this.schemeContainer.screenTransform.scale; },
-
-        //TODO apparently something is off if the formula is identical to conversion from world to screen. This needs to be investigated
-        //calculates from screen to world
-        x_(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
-        y_(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
-        z_(v) { return v * this.schemeContainer.screenTransform.scale; },
-
     },
     computed: {
         fileDropLayerFill() {
@@ -1336,10 +1341,6 @@ export default {
 
         shouldShowDropMask() {
             return this.$store.getters.isDraggingItemCreation;
-        },
-
-        showClickableMarkers() {
-            return this.$store.getters.showClickableMarkers;
         },
     },
     filters: {

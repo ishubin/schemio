@@ -76,10 +76,6 @@ export default {
         store.dispatch('toggleItemDetailMarkers');
     },
 
-    setShowClickableMarkers(store, show) {
-        store.dispatch('setShowClickableMarkers', show);
-    },
-
     proposeConnectorDestinationItems(store, connectorItemId, mx, my) {
         store.dispatch('proposeConnectorDestinationItems', {connectorItemId, mx, my});
     },
