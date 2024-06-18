@@ -20,8 +20,8 @@ const baseSchema = {
             gridColor         : {type: 'string', patching: ['replace']},
             boundaryBoxColor  : {type: 'string', patching: ['replace']},
             controlPointsColor: {type: 'string', patching: ['replace']},
-            itemMarkerColor   : {type: 'string', patching: ['replace']},
-            itemMarkerToggled : {type: 'boolean', patching: ['replace']}
+            itemMarkerColor   : {type: 'ignored'},
+            itemMarkerToggled : {type: 'ignored'}
         }},
         settings: {type: 'object', patching: ['modify'], fields: {
             screen: {type: 'object', patching: ['modify'], fields: {
