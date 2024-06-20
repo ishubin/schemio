@@ -403,7 +403,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         srcItem.childItems = item.childItems;
         const regeneratedItem = item;
         for (let key in regeneratedItem) {
-            let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'childItems' && key !== '_childItems' && key !== 'textSlots';
+            let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'description' && key !== 'childItems' && key !== '_childItems' && key !== 'textSlots';
             // for root item we should ignore area, name, tags, description as it is defined by user and not by template
             if (shouldCopyField && !parentItem) {
                 shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
