@@ -436,9 +436,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         }
     });
 
-
-    for (let i = 0; i < flattenDstItems.length; i++) {
-        const item = flattenDstItems[i];
+    const recoverForeignItems = (item) => {
         const foreignChildItems = foreignChildrenByTemplatedId.get(item.args.templatedId);
         if (foreignChildItems && foreignChildItems.length > 0) {
             if (!item.childItems) {
@@ -446,6 +444,11 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             }
             item.childItems = item.childItems.concat(foreignChildItems);
         }
+    };
+
+    recoverForeignItems(rootItem);
+    for (let i = 0; i < flattenDstItems.length; i++) {
+        recoverForeignItems(flattenDstItems[i]);
     }
 
     return idOldToNewConversions;
