@@ -1518,6 +1518,8 @@ class SchemeContainer {
             return;
         }
 
+        log.info('Readjusting item', item.id, item.name);
+
         if (item.shape === 'connector') {
             this._readjustConnectorItem(item, context, precision);
         }
@@ -3657,9 +3659,12 @@ class SchemeContainer {
 
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
         log.info('regenerateTemplatedItem', rootItem.id, templateArgs);
+        const parentItem = rootItem.meta.parentId ? this.findItemById(rootItem.meta.parentId) : null;
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
-        this.updateChildTransforms(rootItem);
+        // It is possible that the template was updated in the background and it has more items which were not yet indexed
+        this.reindexSpecifiedItems([rootItem], parentItem);
+
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
@@ -3671,9 +3676,12 @@ class SchemeContainer {
 
     regenerateTemplatedItemWithExistingScopeData(rootItem, template, scopeData, width, height) {
         log.info('regenerateTemplatedItemWithExistingScopeData', rootItem.id, scopeData);
+        const parentItem = rootItem.meta.parentId ? this.findItemById(rootItem.meta.parentId) : null;
         const idOldToNewConversions = regenerateTemplatedItemWithPostBuilder(rootItem, template, scopeData, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
-        this.updateChildTransforms(rootItem);
+        // It is possible that the template was updated in the background and it has more items which were not yet indexed
+        this.reindexSpecifiedItems([rootItem], parentItem);
+
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
