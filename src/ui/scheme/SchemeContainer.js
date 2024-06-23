@@ -3657,13 +3657,22 @@ class SchemeContainer {
         return clonnedItem;
     }
 
+    /**
+     *
+     * @param {Item} rootItem
+     * @param {*} template
+     * @param {*} templateArgs
+     * @param {*} width
+     * @param {*} height
+     */
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
         log.info('regenerateTemplatedItem', rootItem.id, templateArgs);
         const parentItem = rootItem.meta.parentId ? this.findItemById(rootItem.meta.parentId) : null;
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
+        this.updateChildTransforms(rootItem);
         // It is possible that the template was updated in the background and it has more items which were not yet indexed
-        this.reindexSpecifiedItems([rootItem], parentItem);
+        this.reindexSpecifiedItems([rootItem], rootItem.meta.transformMatrix, parentItem, rootItem.meta.ancestorIds, false);
 
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);
@@ -3679,8 +3688,9 @@ class SchemeContainer {
         const parentItem = rootItem.meta.parentId ? this.findItemById(rootItem.meta.parentId) : null;
         const idOldToNewConversions = regenerateTemplatedItemWithPostBuilder(rootItem, template, scopeData, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
+        this.updateChildTransforms(rootItem);
         // It is possible that the template was updated in the background and it has more items which were not yet indexed
-        this.reindexSpecifiedItems([rootItem], parentItem);
+        this.reindexSpecifiedItems([rootItem], rootItem.meta.transformMatrix, parentItem, rootItem.meta.ancestorIds, false);
 
         traverseItems([rootItem], item => {
             this.readjustItem(item.id);

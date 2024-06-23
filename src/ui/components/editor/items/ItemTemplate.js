@@ -406,7 +406,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             let shouldCopyField = regeneratedItem.hasOwnProperty(key) && key !== 'id' && key !== 'meta' && key !== 'description' && key !== 'childItems' && key !== '_childItems' && key !== 'textSlots';
             // for root item we should ignore area, name, tags, description as it is defined by user and not by template
             if (shouldCopyField && !parentItem) {
-                shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area';
+                shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area' && key !== 'autoLayout';
             }
             if (shouldCopyField) {
                 if (key === 'shapeProps' && regeneratedItem.shapeProps) {
