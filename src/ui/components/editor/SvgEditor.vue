@@ -686,13 +686,9 @@ export default {
                 scalingFactor = 1;
             }
 
-            let fill = this.schemeContainer.scheme.style.boundaryBoxColor;
             let strokeSize = 6;
             if (item.shape === 'path') {
                 strokeSize = item.shapeProps.strokeSize;
-                if (item.shapeProps.fill.type === 'none') {
-                    fill = 'none';
-                }
             } else {
                 const shape = Shape.find(item.shape);
                 if (Shape.getShapePropDescriptor(shape, 'strokeSize')) {
@@ -703,7 +699,7 @@ export default {
                 id: item.id,
                 transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
                 path,
-                fill,
+                fill: 'none',
                 strokeSize,
                 stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
                 pins: [],
