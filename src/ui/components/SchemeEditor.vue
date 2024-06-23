@@ -2255,6 +2255,7 @@ export default {
             traverseItems([originItem], item => {
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             });
+            this.schemeContainer.reindexItems();
         },
 
         updateTemplate(originItemId, template, templateArgs) {

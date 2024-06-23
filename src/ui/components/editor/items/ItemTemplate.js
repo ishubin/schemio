@@ -349,6 +349,10 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             - take the item from dst template as is but without children
     */
 
+    if (!templateArgs) {
+        templateArgs = {};
+    }
+
     if (templateArgs.hasOwnProperty('width')) {
         width = templateArgs.width;
         rootItem.area.w = width;

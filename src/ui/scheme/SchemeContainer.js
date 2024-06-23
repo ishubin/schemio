@@ -1518,6 +1518,44 @@ class SchemeContainer {
             return;
         }
 
+        this._readjustSingleItem(item, visitedItems, isSoft, context, precision);
+
+        // searching for items that depend on changed item
+        if (this.dependencyItemMap[changedItemId]) {
+            forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
+                this._readjustItem(dependantItemId, visitedItems, isSoft, context, precision);
+            });
+        }
+
+        // scanning through children of the item and readjusting them as well
+        forEach(item.childItems, childItem => {
+            // The following branching is used because because when template is regenerated it also readjusts all of its child items recursively
+            // In order to avoid double readjustment we do it this way
+            if (childItem.autoLayout && childItem.autoLayout.on && childItem.args && childItem.args.templated && childItem.args.templateRef) {
+                const template = this.compiledTemplates.get(childItem.meta.templateRef);
+                if (template) {
+                    visitedItems[childItem.id] = true;
+                    this._readjustSingleItem(childItem, visitedItems, isSoft, context, precision);
+                    this.regenerateTemplatedItem(childItem, template, childItem.args.templateArgs, childItem.area.w, childItem.area.h);
+                } else {
+                    this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
+                }
+            } else {
+                this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
+            }
+        });
+
+        item.meta.revision = (item.meta.revision || 1) + 1;
+    }
+
+    /**
+     * @param {Item} item
+     * @param {*} visitedItems
+     * @param {*} isSoft
+     * @param {*} context
+     * @param {*} precision
+     */
+    _readjustSingleItem(item, visitedItems, isSoft, context, precision) {
         log.info('Readjusting item', item.id, item.name);
 
         if (item.shape === 'connector') {
@@ -1542,20 +1580,6 @@ class SchemeContainer {
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             this.svgOutlinePathCache.forceUpdate(item);
         }
-
-        // searching for items that depend on changed item
-        if (this.dependencyItemMap[changedItemId]) {
-            forEach(this.dependencyItemMap[changedItemId], dependantItemId => {
-                this._readjustItem(dependantItemId, visitedItems, isSoft, context, precision);
-            });
-        }
-
-        // scanning through children of the item and readjusting them as well
-        forEach(item.childItems, childItem => {
-            this._readjustItem(childItem.id, visitedItems, isSoft, context, precision);
-        });
-
-        item.meta.revision = (item.meta.revision || 1) + 1;
     }
 
 
@@ -3666,7 +3690,7 @@ class SchemeContainer {
      * @param {*} height
      */
     regenerateTemplatedItem(rootItem, template, templateArgs, width, height) {
-        log.info('regenerateTemplatedItem', rootItem.id, templateArgs);
+        log.info('regenerateTemplatedItem', rootItem.id, rootItem.name, template.templateRef, templateArgs);
         const parentItem = rootItem.meta.parentId ? this.findItemById(rootItem.meta.parentId) : null;
         const idOldToNewConversions = regenerateTemplatedItem(rootItem, template, templateArgs, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
@@ -3674,17 +3698,15 @@ class SchemeContainer {
         // It is possible that the template was updated in the background and it has more items which were not yet indexed
         this.reindexSpecifiedItems([rootItem], rootItem.meta.transformMatrix, parentItem, rootItem.meta.ancestorIds, false);
 
+        this.readjustItem(rootItem.id);
+
         traverseItems([rootItem], item => {
-            this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
-
-        // the full reindex is needed in order to update spatial index
-        this.reindexItems();
     }
 
     regenerateTemplatedItemWithExistingScopeData(rootItem, template, scopeData, width, height) {
-        log.info('regenerateTemplatedItemWithExistingScopeData', rootItem.id, scopeData);
+        log.info('regenerateTemplatedItemWithExistingScopeData', rootItem.id, rootItem.name, template.templateRef, scopeData);
         const parentItem = rootItem.meta.parentId ? this.findItemById(rootItem.meta.parentId) : null;
         const idOldToNewConversions = regenerateTemplatedItemWithPostBuilder(rootItem, template, scopeData, width, height);
         this.fixItemsReferences([rootItem], idOldToNewConversions);
@@ -3692,13 +3714,10 @@ class SchemeContainer {
         // It is possible that the template was updated in the background and it has more items which were not yet indexed
         this.reindexSpecifiedItems([rootItem], rootItem.meta.transformMatrix, parentItem, rootItem.meta.ancestorIds, false);
 
+        this.readjustItem(rootItem.id);
         traverseItems([rootItem], item => {
-            this.readjustItem(item.id);
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
-
-        // the full reindex is needed in order to update spatial index
-        this.reindexItems();
     }
 
     _alignItemsWith(items, correctionCallback) {
