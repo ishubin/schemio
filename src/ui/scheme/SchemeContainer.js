@@ -3696,7 +3696,7 @@ class SchemeContainer {
         this.fixItemsReferences([rootItem], idOldToNewConversions);
         this.updateChildTransforms(rootItem);
         // It is possible that the template was updated in the background and it has more items which were not yet indexed
-        this.reindexSpecifiedItems([rootItem], rootItem.meta.transformMatrix, parentItem, rootItem.meta.ancestorIds, false);
+        this._reindexRegeneratedTemplatedItem(rootItem, parentItem);
 
         this.readjustItem(rootItem.id);
 
@@ -3712,11 +3712,30 @@ class SchemeContainer {
         this.fixItemsReferences([rootItem], idOldToNewConversions);
         this.updateChildTransforms(rootItem);
         // It is possible that the template was updated in the background and it has more items which were not yet indexed
-        this.reindexSpecifiedItems([rootItem], rootItem.meta.transformMatrix, parentItem, rootItem.meta.ancestorIds, false);
+        this._reindexRegeneratedTemplatedItem(rootItem, parentItem);
 
         this.readjustItem(rootItem.id);
         traverseItems([rootItem], item => {
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+        });
+    }
+
+    /**
+     * @param {Item} rootItem
+     * @param {Item|undefined} parentItem
+     */
+    _reindexRegeneratedTemplatedItem(rootItem, parentItem) {
+        this.itemMap[rootItem.id] = rootItem;
+        rootItem.meta.ancestorIds = parentItem ? parentItem.meta.ancestorIds.concat([parentItem.id]) : [];
+        rootItem.meta.parentId = parentItem ? parentItem.id : null;
+
+        traverseItems([rootItem], (item, parentItem) => {
+            if (item.id === rootItem.id) {
+                return;
+            }
+            this.itemMap[item.id] = item;
+            item.meta.ancestorIds = parentItem ? parentItem.meta.ancestorIds.concat([parentItem.id]) : [];
+            item.meta.parentId = parentItem ? parentItem.id : null;
         });
     }
 
