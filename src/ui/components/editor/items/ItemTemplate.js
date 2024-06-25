@@ -597,6 +597,22 @@ function prepareDocTemplateItem(rootItem) {
             }
             item.args.templateIgnoredProps = ['shapeProps.kind', 'shapeProps.schemeId', 'shapeProps.referenceItem'];
         }
+
+        const tagIgnorePrefix = 'template-ignore-';
+        if (Array.isArray(item.tags)) {
+            item.tags.forEach(tag => {
+                if (tag.startsWith(tagIgnorePrefix)) {
+                    const property = tagIgnorePrefix.substring(tagIgnorePrefix.length);
+                    if (!item.args) {
+                        item.args = {};
+                    }
+                    if (!Array.isArray(item.args.templateIgnoredProps)) {
+                        item.args.templateIgnoredProps = [];
+                    }
+                    item.args.templateIgnoredProps.push(property);
+                }
+            });
+        }
     });
     return itemClone;
 }
