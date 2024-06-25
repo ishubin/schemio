@@ -1775,8 +1775,10 @@ class SchemeContainer {
         }
 
         if (item.autoLayout && item.autoLayout.on) {
-            item.autoLayout.on = false;
-            item.autoLayout.rules = {};
+            if (previousParentId !== otherItemId) {
+                item.autoLayout.on = false;
+                item.autoLayout.rules = {};
+            }
         }
 
         // removing item from its original position in array
@@ -1800,12 +1802,14 @@ class SchemeContainer {
 
         newItemsArray.splice(position + positionCorrection, 0, item);
 
-        item.area.r += previousParentWorldAngle - otherItemWorldAngle;
+        if (previousParentId !== otherItemId) {
+            item.area.r += previousParentWorldAngle - otherItemWorldAngle;
 
-        const newLocalPoint = myMath.findTranslationMatchingWorldPoint(topLeftWorldPoint.x, topLeftWorldPoint.y, 0, 0, item.area, newParentTransform);
-        if (newLocalPoint) {
-            item.area.x = newLocalPoint.x;
-            item.area.y = newLocalPoint.y;
+            const newLocalPoint = myMath.findTranslationMatchingWorldPoint(topLeftWorldPoint.x, topLeftWorldPoint.y, 0, 0, item.area, newParentTransform);
+            if (newLocalPoint) {
+                item.area.x = newLocalPoint.x;
+                item.area.y = newLocalPoint.y;
+            }
         }
 
         if (previousParentId) {
