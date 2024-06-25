@@ -11,6 +11,7 @@ import { List } from "../../../templater/list";
 import { parseExpression } from "../../../templater/ast";
 import { Scope } from "../../../templater/scope";
 import { ASTNode } from "../../../templater/nodes";
+import utils from "../../../utils";
 
 
 const ContextPhases = {
@@ -574,11 +575,28 @@ function mergeItemBehavior(templatedBehavior, oldBehavior) {
  * @param {String} editorId
  */
 export function compileTemplateFromDoc(doc, id, editorId) {
+    const rootItem = prepareDocTemplateItem(doc.items[0]);
     const template = {
         name: doc.name,
         args: {},
         defaultArea: {x: 0, y: 0, w: 100, h: 100},
-        item: doc.items[0]
+        item: rootItem
     };
     return compileItemTemplate(editorId, template, '#doc:' + id);
+}
+
+/**
+ * @param {Item} rootItem
+ */
+function prepareDocTemplateItem(rootItem) {
+    const itemClone = utils.clone(rootItem);
+    traverseItems([itemClone], item => {
+        if (item.shape === 'component') {
+            if (!item.args) {
+                item.args = {};
+            }
+            item.args.templateIgnoredProps = ['shapeProps.kind', 'shapeProps.schemeId', 'shapeProps.referenceItem'];
+        }
+    });
+    return itemClone;
 }

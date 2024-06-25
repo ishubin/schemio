@@ -1,5 +1,5 @@
 {
-    "name": "Framed diagram",
+    "name": "Frame-by-frame diagram",
     "args": {
         "frames": {"type": "number", "value": 3, "name": "Frames", "min": 1},
         "background": {"type": "advanced-color", "value": { "type": "solid", "color": "rgba(240, 240, 240, 1)" }, "name": "Background"},

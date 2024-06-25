@@ -74,7 +74,10 @@ export default {
 
     computed: {
         filteredItemTags() {
-            return this.existingItemTags.filter(i => new RegExp(this.itemTag, 'i').test(i.text));
+            const lowerText = this.itemTag.toLowerCase();
+            return this.existingItemTags.filter(tag => {
+                return tag.text.toLowerCase().indexOf(lowerText) >= 0;
+            });
         },
         itemTags() {
             return map(this.item.tags, tag => {return {text: tag}});

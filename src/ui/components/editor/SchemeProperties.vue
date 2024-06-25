@@ -137,7 +137,10 @@ export default {
 
     computed: {
         filteredSchemeTags() {
-            return this.existingSchemeTags.filter(i => new RegExp(this.schemeTag, 'i').test(i.text));
+            const lowerText = this.schemeTag.toLowerCase();
+            return this.existingSchemeTags.filter(tag => {
+                return tag.text.toLowerCase().indexOf(lowerText) >= 0;
+            });
         },
         schemeTags() {
             return map(this.schemeContainer.scheme.tags, tag => {return {text: tag}});
