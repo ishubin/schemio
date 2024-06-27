@@ -786,6 +786,14 @@ export default {
         },
 
         showExternalTemplateModal() {
+            const apiClient = this.$store.state.apiClient;
+            if (apiClient && apiClient.diagramSearchProvider) {
+                apiClient.diagramSearchProvider(this.diagramId).then(pickedDiagram => {
+                    this.onExternalDiagramPicked(pickedDiagram);
+                });
+                return;
+            }
+
             this.externalTemplateModalShown = true;
         },
 
