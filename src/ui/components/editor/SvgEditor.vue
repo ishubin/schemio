@@ -174,33 +174,31 @@
 </template>
 
 <script>
-import {forEach, map, filter, find} from '../../collections';
+import {forEach, map, filter} from '../../collections';
 
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {defaultItem, traverseItems, hasItemDescription, traverseItemsConditionally} from '../../scheme/Item';
+import {defaultItem, traverseItems, traverseItemsConditionally} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { getBoundingBoxOfItems, itemCompleteTransform, worldPointOnItem, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
-import Compiler from '../../userevents/Compiler.js';
+import { getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
+import { compileActions } from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, calculateComponentButtonArea } from './items/shapes/Component.vue';
+import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED} from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
-
-const behaviorCompiler = new Compiler();
 
 // milliseconds between mouse down events that should trigger double click event
 const DOUBLE_CLICK_REACTION_MILLIS = 400;
@@ -743,10 +741,9 @@ export default {
          */
         indexUserEventsInItems(items, itemsForInit) {
             traverseItems(items, item => {
-                if (item.behavior && item.behavior.events) {
-                    forEach(item.behavior.events, event => {
-                        const eventCallback = behaviorCompiler.compileActions(this.schemeContainer, item, event.actions);
-
+                if (item.behavior && Array.isArray(item.behavior.events)) {
+                    item.behavior.events.forEach(event => {
+                        const eventCallback = compileActions(this.schemeContainer, item, event.actions);
                         if (event.event === Events.standardEvents.init.id) {
                             itemsForInit[item.id] = 1;
                         }

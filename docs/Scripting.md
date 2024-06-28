@@ -111,6 +111,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [findParent](#findparent)
       - [getValue](#getvalue)
       - [setValue](#setvalue)
+      - [duplicate](#duplicate)
     - [Connector functions](#connector-functions)
       - [totalPoints (connector)](#totalpoints-connector)
       - [getPointWorldPos (connector)](#getpointworldpos-connector)
@@ -1110,6 +1111,18 @@ Example:
 ```js
 textfield = findItemByName('Name textfield')
 textfield.setValue('John')
+```
+
+
+##### duplicate
+
+`duplicate` function creates a copy of the item (for which the `script` function is executed) and places it on scene at the same parent as the original item.
+The duplicated item also copies all events a actions from the original item.
+
+Example:
+```js
+newItem = duplicate()
+newItem.setWorldPos(100, 0)
 ```
 
 

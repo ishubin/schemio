@@ -3,9 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import Events from "../Events";
-import Compiler from '../Compiler.js';
+import { compileActions } from '../Compiler.js';
 
-const behaviorCompiler = new Compiler();
 export default {
     name: 'Copy events',
 
@@ -39,7 +38,7 @@ export default {
                 dstItems.forEach(dstItem => {
                     item.behavior.events.forEach(event => {
                         if (event.event !== Events.standardEvents.init.id) {
-                            const eventCallback = behaviorCompiler.compileActions(schemeContainer, dstItem, event.actions);
+                            const eventCallback = compileActions(schemeContainer, dstItem, event.actions);
                             userEventBus.subscribeItemEvent(dstItem.id, event.event, eventCallback);
                         }
                     });

@@ -19,6 +19,8 @@ import Events from "../Events";
 import Shape from "../../components/editor/items/shapes/Shape";
 import ScriptFunctionEditor from '../../components/editor/properties/behavior/ScriptFunctionEditor.vue';
 import { List } from "../../templater/list";
+import utils from "../../utils";
+import { compileActions } from "../Compiler";
 
 
 const IS_SOFT = true;
@@ -430,6 +432,32 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             item.args.value = value;
             EditorEventBus.item.userEvent.$emit(schemeContainer.editorId, item.id, Events.standardEvents.valueChange.id, value);
             emitItemChanged();
+        },
+
+        duplicate: () => {
+            const clonedItems = schemeContainer.cloneItems([item]);
+            const clonedItem = clonedItems[0];
+            const parentItem = item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
+
+            if (parentItem) {
+                parentItem.childItems.push(clonedItem);
+            } else {
+                schemeContainer.addItem(clonedItem);
+            }
+
+            schemeContainer.reindexItems();
+
+            if (clonedItem.behavior && Array.isArray(clonedItem.behavior.events)) {
+                clonedItem.behavior.events.forEach(event => {
+                    const eventCallback = compileActions(schemeContainer, clonedItem, event.actions);
+                    if (event.event === Events.standardEvents.init.id) {
+                        eventCallback(userEventBus, 1, clonedItem.id, Events.standardEvents.init.id);
+                    } else {
+                        userEventBus.subscribeItemEvent(clonedItem.id, event.event, eventCallback);
+                    }
+                });
+            }
+            return createItemScriptWrapper(clonedItem, schemeContainer, userEventBus);
         },
 
         // remounts item to another item

@@ -2562,6 +2562,13 @@ class SchemeContainer {
         }
     }
 
+    /**
+     *
+     * @param {Array<Item>} items
+     * @param {Boolean} preserveOriginalNames
+     * @param {Boolean} shouldIndexClones
+     * @returns {Array<Item>}
+     */
     cloneItems(items, preserveOriginalNames = false, shouldIndexClones = false) {
         const copiedItemIds = {};
         const copiedItems = [];

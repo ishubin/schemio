@@ -1,5 +1,5 @@
 
-import Compiler from '../../src/ui/userevents/Compiler.js';
+import { compileActions } from '../../src/ui/userevents/Compiler.js';
 import expect from 'expect';
 import UserEventBus from '../../src/ui/userevents/UserEventBus.js';
 
@@ -11,7 +11,6 @@ const mockedUserEventBus = {
 
 describe('UserEvents Compiler', () => {
     it('should compile simple actions for items', () => {
-        const compiler = new Compiler();
         const selfItem = {
             id: 'qwe',
             opacity: 1.0
@@ -36,7 +35,7 @@ describe('UserEvents Compiler', () => {
             }
         };
 
-        const action = compiler.compileActions(schemeContainer, selfItem, [{
+        const action = compileActions(schemeContainer, selfItem, [{
             element: 'self',
             method: 'set',
             on: true,
@@ -70,7 +69,6 @@ describe('UserEvents Compiler', () => {
 
 
     it('should compile actions for item tags', () => {
-        const compiler = new Compiler();
         const selfItem = {id: 'self-item-id'};
         const items = [{
             id: 'qwe',
@@ -98,7 +96,7 @@ describe('UserEvents Compiler', () => {
             }
         };
 
-        const action = compiler.compileActions(schemeContainer, selfItem, [{
+        const action = compileActions(schemeContainer, selfItem, [{
             element: 'tag: my-group',
             method: 'set',
             on: true,
@@ -199,8 +197,7 @@ describe('UserEvents Compiler', () => {
 
             const userEventBus = new UserEventBus();
 
-            const compiler = new Compiler();
-            const action1 = compiler.compileActions(schemeContainer, items[0], [{
+            const action1 = compileActions(schemeContainer, items[0], [{
                 element: 'self',
                 method: 'script',
                 on: true,
@@ -212,7 +209,7 @@ describe('UserEvents Compiler', () => {
                 }
             }]);
 
-            const action2 = compiler.compileActions(schemeContainer, items[1], [{
+            const action2 = compileActions(schemeContainer, items[1], [{
                 element: 'self',
                 method: 'script',
                 on: true,
