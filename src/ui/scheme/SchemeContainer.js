@@ -1961,7 +1961,6 @@ class SchemeContainer {
 
     deleteItem(item) {
         this._deleteItem(item);
-        //TODO refactor it so that it does not have to run a full reindex
         this.reindexItems();
     }
 

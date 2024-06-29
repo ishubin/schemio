@@ -21,6 +21,7 @@ import ScriptFunctionEditor from '../../components/editor/properties/behavior/Sc
 import { List } from "../../templater/list";
 import utils from "../../utils";
 import { compileActions } from "../Compiler";
+import { traverseItems } from "../../scheme/Item";
 
 
 const IS_SOFT = true;
@@ -407,25 +408,25 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             sendEventToParent(item, eventName, userEventBus, schemeContainer, args);
         },
 
-        findChildItemByName: (name) => {
+        findChildItemByName(name) {
             return createItemScriptWrapper(findChildItemByName(item, name), schemeContainer, userEventBus);
         },
 
-        findChildItemsByTag: (tag) => {
+        findChildItemsByTag(tag) {
             const items = findChildItemsByTag(item, tag);
             return new List(...items.map(item => createItemScriptWrapper(item, schemeContainer, userEventBus)));
         },
 
-        distanceToItem: (anotherItem) => {
+        distanceToItem(anotherItem) {
             return distanceBetweenItems(item, anotherItem);
         },
-        getValue: () => {
+        getValue() {
             if (item.args && item.args.hasOwnProperty('value')) {
                 return item.args.value;
             }
             return 0;
         },
-        setValue: (value) => {
+        setValue(value) {
             if (!item.args) {
                 item.args = {};
             }
@@ -434,7 +435,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             emitItemChanged();
         },
 
-        duplicate: () => {
+        duplicate() {
             const clonedItems = schemeContainer.cloneItems([item]);
             const clonedItem = clonedItems[0];
             const parentItem = item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
@@ -447,21 +448,29 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
             schemeContainer.reindexItems();
 
-            if (clonedItem.behavior && Array.isArray(clonedItem.behavior.events)) {
-                clonedItem.behavior.events.forEach(event => {
-                    const eventCallback = compileActions(schemeContainer, clonedItem, event.actions);
-                    if (event.event === Events.standardEvents.init.id) {
-                        eventCallback(userEventBus, 1, clonedItem.id, Events.standardEvents.init.id);
-                    } else {
-                        userEventBus.subscribeItemEvent(clonedItem.id, event.event, eventCallback);
-                    }
-                });
-            }
+            traverseItems([clonedItem], cItem => {
+                if (cItem.behavior && Array.isArray(cItem.behavior.events)) {
+                    cItem.behavior.events.forEach(event => {
+                        const eventCallback = compileActions(schemeContainer, cItem, event.actions);
+                        if (event.event === Events.standardEvents.init.id) {
+                            eventCallback(userEventBus, userEventBus.revision, cItem.id, Events.standardEvents.init.id);
+                        } else {
+                            userEventBus.subscribeItemEvent(cItem.id, event.event, eventCallback);
+                        }
+                    });
+                }
+            });
             return createItemScriptWrapper(clonedItem, schemeContainer, userEventBus);
         },
 
+
+        remove() {
+            schemeContainer.deleteItem(item);
+            userEventBus.clearEventsForItem(item.id);
+        },
+
         // remounts item to another item
-        mount: (otherItem) => {
+        mount(otherItem) {
             if (!otherItem) {
                 schemeContainer.remountItemToRoot(item.id)
             } else {
