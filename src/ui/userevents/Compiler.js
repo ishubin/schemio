@@ -103,6 +103,13 @@ export function compileActions(schemeContainer, selfItem, actions) {
 
             log.info('Executing', f.func.name, 'function');
 
+            // Checking if the element is still present because it is also possible to remove element from the scene
+            // by invoking "remove" script function
+            if (!f.element || !schemeContainer.findItemById(f.element.id)) {
+                execNext();
+                return;
+            }
+
             if (f.func.execute) {
                 f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName, eventArgs);
             } else if (f.func.executeWithBranching) {
