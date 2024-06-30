@@ -1798,9 +1798,10 @@ class SchemeContainer {
         if (newParentId) {
             EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
         }
-        this.listener.onSchemeChangeCommitted(this.editorId);
 
-
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
 
         this.reindexItems();
         this.updateEditBox();
@@ -3569,7 +3570,9 @@ class SchemeContainer {
             item.area.y += correction.y;
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
-        this.listener.onSchemeChangeCommitted(this.editorId);
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
         this.updateEditBox();
     }
 
@@ -3631,7 +3634,9 @@ class SchemeContainer {
             item.area.y += correction.y;
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
-        this.listener.onSchemeChangeCommitted(this.editorId);
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
         this.updateEditBox();
     }
 
@@ -3738,7 +3743,9 @@ class SchemeContainer {
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
             });
         });
-        this.listener.onSchemeChangeCommitted(this.editorId);
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
         this.updateEditBox();
     }
 
