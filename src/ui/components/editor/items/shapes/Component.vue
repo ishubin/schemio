@@ -100,9 +100,11 @@ function calculateButtonArea(item, maxWidth, maxHeight) {
 function computeButtonPath(item) {
     const area = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
     const R = Math.min(item.shapeProps.buttonCornerRadius, area.w/2, area.h/2);
+    const X = area.x;
+    const Y = area.y;
     const W = area.w;
     const H = area.h;
-    return `M ${W-R} ${area.y + H}  L ${area.x + R} ${area.y + H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L ${area.x} ${area.y+R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${area.x+W-R} ${area.y}   a ${R} ${R} 0 0 1 ${R} ${R}  L ${area.x+W} ${area.y+H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+    return `M ${X+W-R} ${Y+H}  L ${X+R} ${Y+H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L ${X} ${Y+R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${X+W-R} ${Y}   a ${R} ${R} 0 0 1 ${R} ${R}  L ${X+W} ${Y+H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 }
 
 export const COMPONENT_LOADED_EVENT = 'Component Loaded';
