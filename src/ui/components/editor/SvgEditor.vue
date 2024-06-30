@@ -379,6 +379,7 @@ export default {
                 });
                 this.schemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
                 this.schemeContainer.prepareFrameAnimationsForItems();
+                this.schemeContainer.reindexTags();
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
 
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {
