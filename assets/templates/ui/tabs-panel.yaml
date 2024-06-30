@@ -163,7 +163,7 @@ item:
           - id: a1
             element: { $-str: 'tag: ${tabTag}' }
             method: set
-            on: true
+            'on': true
             args:
               field: shapeProps.fill
               value: { $-expr: inactiveBackground }
@@ -175,7 +175,7 @@ item:
           - id: a2
             element: '#tab-1'
             method: set
-            on: true
+            'on': true
             args:
               field: shapeProps.fill
               value: { $-expr: tabBackground }
@@ -187,7 +187,7 @@ item:
           - id: a3
             element: '#tab-container-1'
             method: toggleGroup
-            on: true
+            'on': true
             args:
               group: { $-str: 'tag: ${containerTag}' }
   effects:
@@ -245,7 +245,7 @@ item:
               - id: a1
                 element: { $-str: 'tag: ${tabTag}' }
                 method: set
-                on: true
+                'on': true
                 args:
                   field: shapeProps.fill
                   value: { $-expr: inactiveBackground }
@@ -257,7 +257,7 @@ item:
               - id: a2
                 element: self
                 method: set
-                on: true
+                'on': true
                 args:
                   field: shapeProps.fill
                   value: { $-expr: tabBackground }
@@ -269,7 +269,7 @@ item:
               - id: a3
                 element: { $-str: '#tab-container-${idx+1}' }
                 method: toggleGroup
-                on: true
+                'on': true
                 args:
                   group: { $-str: 'tag: ${containerTag}' }
 
@@ -316,7 +316,7 @@ item:
             event: init
             actions:
               - id: a1
-                on: true
+                'on': true
                 element: self
                 method: set
                 args:
@@ -324,7 +324,7 @@ item:
                   value: rgba(0,0,0,0.0)
 
               - id: a2
-                on: true
+                'on': true
                 element: self
                 method: move
                 args:
@@ -334,7 +334,7 @@ item:
 
               - $-if: idx > 0
                 id: a3
-                on: true
+                'on': true
                 element: self
                 method: hide
                 args:

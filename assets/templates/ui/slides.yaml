@@ -200,7 +200,7 @@ item:
               - id: a1
                 element: self
                 method: set
-                on: true
+                'on': true
                 args:
                   field: clip
                   value: true
@@ -273,7 +273,7 @@ item:
                 actions:
                   - id: a1_1
                     method: script
-                    on: true
+                    'on': true
                     element: self
                     args:
                       script: setVar('currentSlide', 1)
@@ -283,7 +283,7 @@ item:
                 actions:
                   - id: a2_1
                     method: condition
-                    on: true
+                    'on': true
                     element: self
                     args:
                       expression: getVar('currentSlide', 1) < 2
@@ -292,7 +292,7 @@ item:
 
                   - id: a2_2
                     method: script
-                    on: true
+                    'on': true
                     element: self
                     args:
                       script:
@@ -304,21 +304,21 @@ item:
 
                   - id: a2_3
                     method: sendEvent
-                    on: true
+                    'on': true
                     element: '#btn-prev'
                     args:
                       event: update_state
 
                   - id: a2_4
                     method: sendEvent
-                    on: true
+                    'on': true
                     element: '#btn-next'
                     args:
                       event: update_state
 
                   - id: a2_5
                     method: script
-                    on: true
+                    'on': true
                     element: self
                     args:
                       script: setPosX(getVar('srcX') * (1 - t) + getVar('dstX') * t)
@@ -332,7 +332,7 @@ item:
                 actions:
                   - id: a3_1
                     method: condition
-                    on: true
+                    'on': true
                     element: self
                     args:
                       expression: { $-str: "getVar('currentSlide', 1) > ${numSlides}" }
@@ -341,21 +341,21 @@ item:
 
                   - id: a3_2
                     method: sendEvent
-                    on: true
+                    'on': true
                     element: '#btn-prev'
                     args:
                       event: update_state
 
                   - id: a3_3
                     method: sendEvent
-                    on: true
+                    'on': true
                     element: '#btn-next'
                     args:
                       event: update_state
 
                   - id: a3_4
                     method: script
-                    on: true
+                    'on': true
                     element: self
                     args:
                       script:
@@ -367,7 +367,7 @@ item:
 
                   - id: a3_5
                     method: script
-                    on: true
+                    'on': true
                     element: self
                     args:
                       script: setPosX(getVar('srcX') * (1 - t) + getVar('dstX') * t)
@@ -398,7 +398,7 @@ item:
             event: init
             actions:
               - id: a1_1
-                on: true
+                'on': true
                 element: self
                 method: hide
                 args:
@@ -419,7 +419,7 @@ item:
               - id: a2_2
                 element: self
                 method: hide
-                on: true
+                'on': true
                 args:
                   animated: true
                   animationDuration: 0.2
@@ -427,7 +427,7 @@ item:
               - id: a2_3
                 element: '#moving-container'
                 method: condition
-                on: true
+                'on': true
                 args:
                   expression: { $-str: "getVar('currentSlide', 1) > 1" }
                   success: pass
@@ -436,7 +436,7 @@ item:
               - id: a2_4
                 element: self
                 method: condition
-                on: true
+                'on': true
                 args:
                   expression: { $-str: "isVisible() != true" }
                   success: pass
@@ -445,7 +445,7 @@ item:
               - id: a2_5
                 element: self
                 method: show
-                on: true
+                'on': true
                 args:
                   animated: true
                   targetOpacity: { $-expr: "buttonOpacity" }
@@ -549,7 +549,7 @@ item:
             actions:
               - id: a1
                 method: condition
-                on: true
+                'on': true
                 element: '#moving-container'
                 args:
                   expression: { $-str: "getVar('currentSlide', 1) >= ${numSlides - 1}" }
@@ -559,7 +559,7 @@ item:
               - id: a2
                 element: self
                 method: hide
-                on: true
+                'on': true
                 args:
                   animated: true
                   animationDuration: 0.2
@@ -567,7 +567,7 @@ item:
               - id: a3
                 element: '#moving-container'
                 method: condition
-                on: true
+                'on': true
                 args:
                   expression: { $-str: "getVar('currentSlide', 1) < ${numSlides}" }
                   success: pass
@@ -576,7 +576,7 @@ item:
               - id: a4
                 element: self
                 method: condition
-                on: true
+                'on': true
                 args:
                   expression: { $-str: "isVisible() != true" }
                   success: pass
