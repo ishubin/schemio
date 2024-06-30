@@ -22,6 +22,7 @@ import { List } from "../../templater/list";
 import utils from "../../utils";
 import { compileActions } from "../Compiler";
 import { traverseItems } from "../../scheme/Item";
+import { forEachObject } from "../../collections";
 
 
 const IS_SOFT = true;
@@ -485,12 +486,47 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
     const shape = Shape.find(item.shape);
 
     if (shape && shape.scriptFunctions) {
-        return {...itemScope, ...shape.scriptFunctions(schemeContainer.editorId, schemeContainer, item)};
+        return {
+            ...itemScope,
+            ...shape.scriptFunctions(schemeContainer.editorId, schemeContainer, item),
+            ...generateGettersAndSettersForShapeProps(item, shape)
+        };
     }
 
     return itemScope;
 }
 
+
+/**
+ * @param {Item} item
+ * @param {*} shape
+ */
+function generateGettersAndSettersForShapeProps(item, shape) {
+    const shapeArgs = Shape.getShapeArgs(shape);
+
+    const methods = {};
+
+    forEachObject(shapeArgs, (arg, name) => {
+        const upperName = name.substring(0, 1).toUpperCase() + name.substring(1);
+        methods['set' + upperName] = createShapePropSetter(item, name, arg);
+        methods['get' + upperName] = createShapePropGetter(item, name);
+    });
+    return methods;
+}
+
+function createShapePropSetter(item, name, argDef) {
+    return (value) => {
+        //TODO check for value types
+        //TODO emit item update event
+        item.shapeProps[name] = value;
+    };
+}
+
+function createShapePropGetter(item, name) {
+    return () => {
+        return item.shapeProps[name];
+    };
+}
 
 function findChildItemByName(item, name) {
     if (!item || !Array.isArray(item.childItems)) {
