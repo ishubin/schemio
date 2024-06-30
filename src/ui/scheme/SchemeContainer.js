@@ -22,7 +22,7 @@ import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, compileTemplateFromDoc, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
-import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform } from './ItemMath.js';
+import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform, getItemOutlineSVGPath } from './ItemMath.js';
 import { autoLayoutGenerateEditBoxRuleGuides, generateItemAreaByAutoLayoutRules } from './AutoLayout.js';
 
 const log = new Logger('SchemeContainer');
@@ -205,26 +205,6 @@ function _markTemplateRef(items, templateRef, templateRootId) {
         }
     })
 }
-
-/**
- * Creates svg path element for item outline
- * @param {Item} item
- * @returns {SVGPathElement}
- */
-export function getItemOutlineSVGPath(item) {
-    log.info('Computing shape outline for item', item.id, item.name);
-    const shape = Shape.find(item.shape);
-    if (shape) {
-        const path = shape.computeOutline(item);
-        if (path) {
-            const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            shadowSvgPath.setAttribute('d', path);
-            return shadowSvgPath;
-        }
-    }
-    return null;
-}
-
 
 function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
