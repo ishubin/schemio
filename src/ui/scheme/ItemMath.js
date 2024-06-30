@@ -1,5 +1,10 @@
 import { forEach } from "../collections";
+import Shape from "../components/editor/items/shapes/Shape";
+import { Logger } from "../logger";
 import myMath from "../myMath";
+
+
+const log = new Logger('ItemMath');
 
 export function worldPointOnItem(x, y, item) {
     return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
@@ -133,3 +138,24 @@ export function isItemDescendantOf(item, ancestorItemId) {
     }
     return item.meta.ancestorIds.indexOf(ancestorItemId) >= 0;
 }
+
+
+/**
+ * Creates svg path element for item outline
+ * @param {Item} item
+ * @returns {SVGPathElement}
+ */
+export function getItemOutlineSVGPath(item) {
+    log.info('Computing shape outline for item', item.id, item.name);
+    const shape = Shape.find(item.shape);
+    if (shape) {
+        const path = shape.computeOutline(item);
+        if (path) {
+            const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shadowSvgPath.setAttribute('d', path);
+            return shadowSvgPath;
+        }
+    }
+    return null;
+}
+

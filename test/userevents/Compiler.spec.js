@@ -31,6 +31,11 @@ describe('UserEvents Compiler', () => {
             },
 
             findItemById(itemId) {
+                if (itemId === 'qwe') {
+                    return selfItem;
+                } else if (itemId === 'abc') {
+                    return abcItem;
+                }
                 return null;
             }
         };
@@ -92,6 +97,10 @@ describe('UserEvents Compiler', () => {
             },
 
             findItemById(itemId) {
+                const ids = {qwe: 0, zxc: 1, ert: 2};
+                if (ids.hasOwnProperty(itemId)) {
+                    return items[ids[itemId]];
+                }
                 return null;
             }
         };

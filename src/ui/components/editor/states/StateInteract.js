@@ -52,19 +52,7 @@ class StateInteract extends State {
         }
         this.screenBounds = null;
         this.updateScreenBounds();
-        this.prepareItems();
         this.migrateSubState(new IdleState(this, this.listener, this.userEventBus));
-    }
-
-    prepareItems() {
-        traverseItems(this.schemeContainer.scheme.items, (item, parentItem) => {
-            if (item.behavior.dragging !== 'none') {
-                item.cursor = 'grab';
-            } else if (parentItem && parentItem.behavior.dragging !== 'none') {
-                item.meta.ancestorDraggableId = parentItem.id;
-                item.cursor = 'grab';
-            }
-        });
     }
 
     scheduleScreenBoundsUpdate() {

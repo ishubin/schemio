@@ -22,7 +22,7 @@ import { enrichObjectWithDefaults } from '../../defaultify';
 import AnimationFunctions from '../animations/functions/AnimationFunctions';
 import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, compileTemplateFromDoc, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
-import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform } from './ItemMath.js';
+import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform, getItemOutlineSVGPath } from './ItemMath.js';
 import { autoLayoutGenerateEditBoxRuleGuides, generateItemAreaByAutoLayoutRules } from './AutoLayout.js';
 
 const log = new Logger('SchemeContainer');
@@ -205,26 +205,6 @@ function _markTemplateRef(items, templateRef, templateRootId) {
         }
     })
 }
-
-/**
- * Creates svg path element for item outline
- * @param {Item} item
- * @returns {SVGPathElement}
- */
-export function getItemOutlineSVGPath(item) {
-    log.info('Computing shape outline for item', item.id, item.name);
-    const shape = Shape.find(item.shape);
-    if (shape) {
-        const path = shape.computeOutline(item);
-        if (path) {
-            const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            shadowSvgPath.setAttribute('d', path);
-            return shadowSvgPath;
-        }
-    }
-    return null;
-}
-
 
 function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
@@ -472,7 +452,9 @@ class SchemeContainer {
         log.time('reindexItems');
 
         this.itemMap = {};
+        this.itemsByName = new Map();
         this._itemArray = [];
+        this.itemsByName = new Map();
         this.worldItems = [];
         this._itemTagsToIds = {};
         this.worldItemAreas = new Map();
@@ -581,7 +563,7 @@ class SchemeContainer {
 
     /*
         Traverses all items and makes their tags and tag selectors unique.
-        This is needed so that behavior actions defined inside components affects only items within itself
+        This is needed so that behavior actions defined inside components affect only items within itself
     */
     isolateItemTags(items) {
         const tagConversions = new Map();
@@ -619,6 +601,12 @@ class SchemeContainer {
         traverseItems(items, item => {
             if (!item.behavior || !Array.isArray(item.behavior.events)) {
                 return;
+            }
+            if (item.behavior.dragPath) {
+                item.behavior.dragPath = replaceSelector(item.behavior.dragPath);
+            }
+            if (item.behavior.dropTo) {
+                item.behavior.dropTo = replaceSelector(item.behavior.dropTo);
             }
             item.behavior.events.forEach(event => {
                 if (!Array.isArray(event.actions)) {
@@ -662,12 +650,6 @@ class SchemeContainer {
             item.opacity = 100;
             item.selfOpacity = 100;
             item.visible = true;
-
-            // also clearing item tags for root items
-            // This is needed because reference items can have tags,
-            // which could be used to hide multiple items in a single event
-            // We don't want that event to get triggered for cloned component root items
-            item.tags = [];
         });
 
         let scale = 1.0, dx = 0, dy = 0;
@@ -801,6 +783,8 @@ class SchemeContainer {
                 this._itemArray.push(item);
             }
 
+            this.itemsByName.set(item.name, item);
+
             if (item.args && item.args.templateRef && item.args.templated) {
                 markTemplateRef(item, item.args.templateRef);
                 if (this.mode === 'edit') {
@@ -816,6 +800,19 @@ class SchemeContainer {
 
             if (parentItem && (parentItem.meta.isInHUD || parentItem.shape === 'hud')) {
                 item.meta.isInHUD = true;
+            }
+
+            if (item.behavior.dragging !== 'none') {
+                item.cursor = 'grab';
+                item.meta.ancestorDraggableId = null;
+            } else if (parentItem) {
+                if (parentItem.behavior.dragging !== 'none') {
+                    item.meta.ancestorDraggableId = parentItem.id;
+                    item.cursor = 'grab';
+                } else if (parentItem.meta.ancestorDraggableId) {
+                    item.meta.ancestorDraggableId = parentItem.meta.ancestorDraggableId;
+                    item.cursor = 'grab';
+                }
             }
 
             if (item.shape === 'component') {
@@ -1818,9 +1815,10 @@ class SchemeContainer {
         if (newParentId) {
             EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
         }
-        this.listener.onSchemeChangeCommitted(this.editorId);
 
-
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
 
         this.reindexItems();
         this.updateEditBox();
@@ -2358,13 +2356,7 @@ class SchemeContainer {
     }
 
     findItemByName(name) {
-        const items = this.getItems();
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].name === name) {
-                return items[i];
-            }
-        }
-        return null;
+        return this.itemsByName.get(name);
     }
 
     /**
@@ -3589,7 +3581,9 @@ class SchemeContainer {
             item.area.y += correction.y;
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
-        this.listener.onSchemeChangeCommitted(this.editorId);
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
         this.updateEditBox();
     }
 
@@ -3651,7 +3645,9 @@ class SchemeContainer {
             item.area.y += correction.y;
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
         }
-        this.listener.onSchemeChangeCommitted(this.editorId);
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
         this.updateEditBox();
     }
 
@@ -3758,7 +3754,9 @@ class SchemeContainer {
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'area');
             });
         });
-        this.listener.onSchemeChangeCommitted(this.editorId);
+        if (this.listener) {
+            this.listener.onSchemeChangeCommitted(this.editorId);
+        }
         this.updateEditBox();
     }
 
