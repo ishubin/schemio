@@ -19,7 +19,6 @@ import Events from "../Events";
 import Shape from "../../components/editor/items/shapes/Shape";
 import ScriptFunctionEditor from '../../components/editor/properties/behavior/ScriptFunctionEditor.vue';
 import { List } from "../../templater/list";
-import utils from "../../utils";
 import { compileActions } from "../Compiler";
 import { traverseItems } from "../../scheme/Item";
 import { forEachObject } from "../../collections";
@@ -245,6 +244,8 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         callback(item.textSlots[name]);
         emitItemChanged();
     };
+
+    const shape = Shape.find(item.shape);
 
     const itemScope = {
         getId() {
@@ -481,17 +482,21 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         mountRoot: () => schemeContainer.remountItemToRoot(item.id),
 
         getOutline: () => getItemOutlineFunction(item, schemeContainer),
+
+        ...generateGettersAndSettersForShapeProps(item, shape, schemeContainer)
     };
 
-    const shape = Shape.find(item.shape);
-
     if (shape && shape.scriptFunctions) {
-        return {
+        const updatedScope = {
             ...itemScope,
             ...shape.scriptFunctions(schemeContainer.editorId, schemeContainer, item),
-            ...generateGettersAndSettersForShapeProps(item, shape)
         };
+
+        updatedScope.debugItem = createDebugItemFunc(updatedScope);
+        return updatedScope;
     }
+
+    itemScope.debugItem = createDebugItemFunc(itemScope);
 
     return itemScope;
 }
@@ -500,25 +505,36 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 /**
  * @param {Item} item
  * @param {*} shape
+ * @param {SchemeContainer} schemeContainer
  */
-function generateGettersAndSettersForShapeProps(item, shape) {
+function generateGettersAndSettersForShapeProps(item, shape, schemeContainer) {
+    if (!shape) {
+        return {};
+    }
     const shapeArgs = Shape.getShapeArgs(shape);
 
     const methods = {};
 
     forEachObject(shapeArgs, (arg, name) => {
         const upperName = name.substring(0, 1).toUpperCase() + name.substring(1);
-        methods['set' + upperName] = createShapePropSetter(item, name, arg);
+        methods['set' + upperName] = createShapePropSetter(item, name, arg, schemeContainer);
         methods['get' + upperName] = createShapePropGetter(item, name);
     });
     return methods;
 }
 
-function createShapePropSetter(item, name, argDef) {
+/**
+ *
+ * @param {Item} item
+ * @param {String} name
+ * @param {*} argDef
+ * @param {SchemeContainer} schemeContainer
+ * @returns
+ */
+function createShapePropSetter(item, name, argDef, schemeContainer) {
     return (value) => {
-        //TODO check for value types
-        //TODO emit item update event
         item.shapeProps[name] = value;
+        EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id, 'shapeProps.' +  name);
     };
 }
 
@@ -671,4 +687,16 @@ function distanceBetweenItems(item1, item2) {
     const p2 = worldPointOnItem(item2.area.px * item2.area.w, item2.area.py * item2.area.h, item2);
 
     return myMath.distanceBetweenPoints(p1.x, p1.y, p2.x, p2.y)
+}
+
+
+function createDebugItemFunc(itemScope) {
+    return () => {
+        let text = 'Item functions:';
+        for (let key in itemScope) {
+            text += `\n    - ${key}`;
+        }
+
+        console.log(text);
+    }
 }

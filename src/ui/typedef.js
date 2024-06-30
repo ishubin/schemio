@@ -319,7 +319,8 @@
 
 /**
  * @typedef {Object} GradientPoint
- * @property {}
+ * @property {Number} p - position of gradient color picker in percents
+ * @property {String} c - encoded color
  */
 
 /**
