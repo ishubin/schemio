@@ -105,10 +105,24 @@ export function compileActions(schemeContainer, selfItem, actions) {
 
             // Checking if the element is still present because it is also possible to remove element from the scene
             // by invoking "remove" script function
-            if (!f.element || !schemeContainer.findItemById(f.element.id)) {
-                execNext();
-                return;
+            // Also sometimes element can be an array of items, depending on which function is it applied to
+            // So we also have to handle it differently
+            if (Array.isArray(f.element)) {
+                let allItemsPresent = false;
+
+                for (let i = 0; i < f.element.length && !allItemsPresent; i++) {
+                    if (schemeContainer.findItemById(f.element[i].id)) {
+                        allItemsPresent = true;
+                    }
+                }
+
+            } else {
+                if (!f.element || !schemeContainer.findItemById(f.element.id)) {
+                    execNext();
+                    return;
+                }
             }
+
 
             if (f.func.execute) {
                 f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName, eventArgs);
