@@ -802,6 +802,19 @@ class SchemeContainer {
                 item.meta.isInHUD = true;
             }
 
+            if (item.behavior.dragging !== 'none') {
+                item.cursor = 'grab';
+                item.meta.ancestorDraggableId = null;
+            } else if (parentItem) {
+                if (parentItem.behavior.dragging !== 'none') {
+                    item.meta.ancestorDraggableId = parentItem.id;
+                    item.cursor = 'grab';
+                } else if (parentItem.meta.ancestorDraggableId) {
+                    item.meta.ancestorDraggableId = parentItem.meta.ancestorDraggableId;
+                    item.cursor = 'grab';
+                }
+            }
+
             if (item.shape === 'component') {
                 this.componentItems.push(item);
             }
