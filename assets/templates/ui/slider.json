@@ -69,10 +69,10 @@
         "links": [],
         "behavior": {
             "events": [ {
-                "id": {"$-expr": "uid()"},
+                "id": "init",
                 "event": "init",
                 "actions": [ {
-                    "id": {"$-expr": "uid()"},
+                    "id": "init-action-1",
                     "element": "self",
                     "method": "script",
                     "on": true,
@@ -153,18 +153,18 @@
             "shape": "path",
             "shapeProps": {
                 "paths": [ {
-                    "id": {"$-expr": "uid()"},
+                    "id": "a",
                     "closed": false,
                     "points": [ {
                         "t": "L",
                         "x": {"$-expr": "lowPos.x * 100 / max(0.0001, width)"},
                         "y": {"$-expr": "lowPos.y * 100 / max(0.0001, height)"},
-                        "id": {"$-expr": "uid()"}
+                        "id": "a"
                     }, {
                         "t": "L",
                         "x": {"$-expr": "highPos.x * 100 / max(0.0001, width)"},
                         "y": {"$-expr": "highPos.y * 100 / max(0.0001, height)"},
-                        "id": {"$-expr": "uid()"}
+                        "id": "b"
                     } ],
                     "pos": "relative"
                 } ],
@@ -215,10 +215,10 @@
             "opacity": 100,
             "behavior": {
                 "events": [ {
-                    "id": {"$-expr": "uid()"},
+                    "id": "drag",
                     "event": "drag",
                     "actions": [ {
-                        "id": {"$-expr": "uid()"},
+                        "id": "send-to-parent",
                         "element": "self",
                         "method": "sendEventToParent",
                         "on": true,
@@ -227,10 +227,10 @@
                         }
                     } ]
                 }, {
-                    "id": {"$-expr": "uid()"},
+                    "id": "dragStart",
                     "event": "dragStart",
                     "actions": [ {
-                        "id": {"$-expr": "uid()"},
+                        "id": "show",
                         "element": "#slider_label",
                         "method": "show",
                         "on": true,
@@ -243,10 +243,10 @@
                         }
                     } ]
                 }, {
-                    "id": {"$-expr": "uid()"},
+                    "id": "dragEnd",
                     "event": "dragEnd",
                     "actions": [ {
-                        "id": {"$-expr": "uid()"},
+                        "id": "hide",
                         "element": "#slider_label",
                         "method": "hide",
                         "on": true,
@@ -331,10 +331,10 @@
                 },
                 "behavior": {
                     "events": [ {
-                        "id": {"$-expr": "uid()"},
+                        "id": "init",
                         "event": "init",
                         "actions": [ {
-                            "id": {"$-expr": "uid()"},
+                            "id": "hide",
                             "element": "self",
                             "method": "hide",
                             "on": true,
