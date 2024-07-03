@@ -160,7 +160,7 @@ export default {
                 });
             }
             this.args[name] = value;
-            this.$emit('updated', this.item.id, this.template, this.args);
+            this.$emit('updated', this.item.id, this.template, this.args, name);
 
             this.updateEditorPanels();
             this.$forceUpdate();

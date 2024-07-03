@@ -1887,8 +1887,8 @@ export default {
             this.currentTab = 'Item';
         },
 
-        onSchemeChangeCommitted() {
-            this.commitHistory();
+        onSchemeChangeCommitted(affinityId) {
+            this.commitHistory(affinityId);
             this.saveSchemeSettings();
         },
 
@@ -2239,10 +2239,11 @@ export default {
             this.schemeContainer.updateEditBox();
         },
 
-        onTemplatePropertiesUpdated(originItemId, template, templateArgs) {
+        onTemplatePropertiesUpdated(originItemId, template, templateArgs, changedArgName) {
             this.rebuildTemplate(originItemId, template, templateArgs);
             // delaying full reindex to optimize performance, when user changes color in color picker we don't need to reindex all items right away
             this.schemeContainer.delayFullReindex();
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${originItemId}.args.templateArgs.${changedArgName}`);
         },
 
         rebuildTemplate(originItemId, template, templateArgs) {
