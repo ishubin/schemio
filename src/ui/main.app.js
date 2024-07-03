@@ -20,7 +20,7 @@ import { fsClientProvider } from './app/client/fsClient';
 import { offlineClientProvider } from './app/client/offlineClient';
 import { testAST } from './templater/ast';
 import { Scope } from './templater/scope';
-import { generateSchemePatch } from './scheme/SchemePatch';
+import { generateMapPatch, generateSchemePatch } from './scheme/SchemePatch';
 import { processJSONTemplate } from './templater/templater.js';
 import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
 
@@ -39,6 +39,7 @@ window.schemioDebug = {
     generateSchemePatch,
     testAST,
     processJSONTemplate,
+    generateMapPatch,
     testEvalAST : (expr, data) => testAST(expr).evalNode(new Scope(data))
 };
 

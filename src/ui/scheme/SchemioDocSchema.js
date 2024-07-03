@@ -51,8 +51,11 @@ const baseSchema = {
                 tooltipBackground: {type: 'string', patching: ['replace']},
                 tooltipColor     : {type: 'string', patching: ['replace']},
                 tags             : {type: 'array', of: 'string', patching: ['patch-set']},
-                args             : {type: 'map', of: 'any', patching: ['patch-map', 'replace'], fields: {
-                    '*': {patching: ['replace', 'delete']},
+                args             : {type: 'object', patching: ['modify'], fields: {
+                    '*': {type: 'any', patching: ['replace', 'delete']},
+                    templateArgs: {type: 'object', patching: ['modify', 'delete'], fields: {
+                        '*': {type: 'any', patching: ['replace', 'delete']}
+                    }}
                 }},
                 area             : {type: 'object', patching: ['modify'], fields: {
                     x : {type: 'number', patching: ['replace']},

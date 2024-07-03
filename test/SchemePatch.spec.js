@@ -1,4 +1,4 @@
-import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchStatistic, generateSchemePatch, generateStringPatch, leastMutationsForArray, stringLCS } from '../src/ui/scheme/SchemePatch'
+import { applyArrayPatch, applyMapPatch, applySchemePatch, applyStringPatch, arrayLCS, generateArrayPatch, generateMapPatch, generatePatchForObject, generatePatchStatistic, generateSchemePatch, generateStringPatch, leastMutationsForArray, stringLCS } from '../src/ui/scheme/SchemePatch'
 import expect from 'expect';
 import { forEach } from '../src/ui/collections';
 import { patchTestData } from './data/patch/patch-test-data';
@@ -488,7 +488,103 @@ describe('SchemaPatch.generateMapPatch', () => {
             }
         }]);
     });
+
+
 });
+
+
+describe('generatePatchForObject', () => {
+    it('should generate patch for "args" object from slider template', () => {
+        const schema = {type: 'object', patching: ['modify'], fields: {
+            '*': {type: 'any', patching: ['replace', 'delete']},
+            templateArgs: {type: 'object', patching: ['modify', 'delete'], fields: {
+                '*': {type: 'any', patching: ['replace', 'delete']}
+            }}
+        }};
+
+        const origin = {
+            highPos: { x: 13.5, y: 13.5 },
+            isVertical: true,
+            lowPos: { x: 13.5, y: 220.5 },
+            maxVal: 100,
+            templateArgs: {
+                background: { color: "rgba(216, 222, 227, 1)", type: "solid" },
+                initVal: 30,
+                knobFill: {
+                    color: "rgba(93, 169, 247, 1)",
+                    gradient: {
+                        colors: [
+                            { c: "rgba(93, 169, 247, 1)", p: 0 },
+                            { c: "rgba(59, 135, 212, 1)", p: 100 }
+                        ],
+                        direction: 0,
+                        type: "linear"
+                    },
+                    type: "gradient"
+                },
+                knobStrokeColor: "rgba(86, 149, 218, 1)",
+                knobStrokeSize: 3,
+                maxVal: 100,
+                minVal: 0,
+                strokeColor: "#B7C1C7",
+                strokeSize: 1
+            },
+            templateRef: "/assets/templates/ui/slider.json",
+            templated: true,
+            templatedId: "root",
+            value: 50
+        };
+
+        const modified = {
+            isVertical: true,
+            lowPos: { x: 13.5, y: 120.5 },
+            highPos: { x: 13.5, y: 13.5 },
+            minVal: 0,
+            value: 39,
+            templatedId: "root",
+            templated: true,
+            templateRef: "/assets/templates/ui/slider.json",
+            templateArgs: {
+                maxVal: 100,
+                minVal: 0,
+                initVal: 39,
+                background: { color: "rgba(0, 0, 227, 1)", type: "solid" },
+                strokeColor: "#B7C1C7",
+                strokeSize: 1,
+                knobFill: {
+                    color: "rgba(93, 169, 247, 1)",
+                    gradient: {
+                        colors: [
+                            { c: "rgba(93, 169, 247, 1)", p: 0 },
+                            { c: "rgba(59, 135, 212, 1)", p: 100 }
+                        ],
+                        direction: 0,
+                        type: "linear"
+                    },
+                    type: "gradient"
+                },
+                knobStrokeColor: "rgba(86, 149, 218, 1)",
+                knobStrokeSize: 3
+            }
+        };
+
+        const patch = generatePatchForObject(origin, modified, schema, []);
+
+        expect(patch).toStrictEqual([
+            { op: 'delete', path: [ 'maxVal' ] },
+            {
+                path: [ 'templateArgs', 'background' ],
+                op: 'replace',
+                value: { color: 'rgba(0, 0, 227, 1)', type: 'solid' }
+            },
+            { path: [ 'templateArgs', 'initVal' ], op: 'replace', value: 39 },
+            { path: [ 'lowPos' ], op: 'replace', value: { x: 13.5, y: 120.5 } },
+            { path: [ 'value' ], op: 'replace', value: 39 },
+            { path: [ 'minVal' ], op: 'replace', value: 0 }
+        ]);
+    });
+});
+
 
 describe('SchemaPatch.applyMapPatch', () => {
     it('should apply patch for maps', () => {

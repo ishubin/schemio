@@ -1,4 +1,3 @@
-import { defaultifyScheme } from "../../../src/ui/scheme/Scheme";
 import utils from "../../../src/ui/utils";
 
 

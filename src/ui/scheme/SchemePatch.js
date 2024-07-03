@@ -652,7 +652,7 @@ function generatePatch(originObject, modifiedObject, schema) {
  * @param {Array<String>} fieldPath
  * @returns
  */
-function generatePatchForObject(originObject, modifiedObject, patchSchema, fieldPath) {
+export function generatePatchForObject(originObject, modifiedObject, patchSchema, fieldPath) {
     let ops = [];
     const fieldNames = new Set();
     forEachObject(originObject, (value, name) => {
@@ -951,11 +951,11 @@ export function applyMapPatch(origin, changes, fieldPath, schemaIndex) {
     changes.forEach(change => {
         if (change.op === 'delete' && modified.hasOwnProperty(change.id)) {
             delete modified[change.id];
-        }
-        if (change.op === 'modify' && modified.hasOwnProperty(change.id)) {
+        } else if (change.op === 'modify' && modified.hasOwnProperty(change.id)) {
             modified[change.id] = applyPatch(modified[change.id], change, fieldPath, schemaIndex);
-        }
-        if (change.op === 'add' && !modified.hasOwnProperty(change.id)) {
+        } else if (change.op === 'replace' && modified.hasOwnProperty(change.id)) {
+            modified[change.id] = change.value;
+        } else if (change.op === 'add' && !modified.hasOwnProperty(change.id)) {
             modified[change.id] = change.value;
         }
     });
@@ -1627,7 +1627,7 @@ export function generateMapPatch(origin, modified, patchSchemaEntry) {
     valuePatchSchema.type = 'object';
     valuePatchSchema.patching = ['modify'];
 
-    const changes = []
+    const changes = [];
 
     for (let key in origin) {
         const oHas = origin.hasOwnProperty(key);

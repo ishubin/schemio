@@ -16,7 +16,7 @@ import { getBoundingBoxOfItems } from './scheme/ItemMath.js';
 import { traverseItems } from './scheme/Item.js';
 import Dropdown from './components/Dropdown.vue';
 import MenuDropdown from './components/MenuDropdown.vue';
-import { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic  } from './scheme/SchemePatch.js';
+import { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch.js';
 import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
 import htmlSanitize from '../htmlSanitize.js';
 import RichTextEditor from './components/RichTextEditor.vue';
