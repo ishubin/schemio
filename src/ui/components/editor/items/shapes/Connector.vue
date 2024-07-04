@@ -872,6 +872,11 @@ function scriptFunctions(editorId, schemeContainer, item) {
 
         setPointWorldPos(pointIdx, x, y) {
             return withPoint(pointIdx, point => {
+                if (pointIdx === 0) {
+                    item.shapeProps.sourceItem = null;
+                } else if (pointIdx === item.shapeProps.points.length - 1) {
+                    item.shapeProps.destinationItem = null;
+                }
                 const lp = localPointOnItem(x, y, item);
                 point.x = lp.x;
                 point.y = lp.y;
