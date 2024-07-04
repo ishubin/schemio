@@ -865,18 +865,16 @@ function scriptFunctions(editorId, schemeContainer, item) {
         },
 
         getPointWorldPos(pointIdx) {
-            return withPoint(pointIdx, point => {
-                const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+            return withPoint(pointIdx, p => {
                 return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
             });
         },
 
         setPointWorldPos(pointIdx, x, y) {
             return withPoint(pointIdx, point => {
-                const localPoint = localPointOnItem(x, y, item);
-                const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
-                point.x = p.x;
-                point.y = p.y;
+                const lp = localPointOnItem(x, y, item);
+                point.x = lp.x;
+                point.y = lp.y;
                 emitItemChanged();
             });
         },

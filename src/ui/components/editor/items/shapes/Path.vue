@@ -26,6 +26,7 @@ import { computeCurvePath, convertCurvePointToItemScale, convertCurvePointToRela
 import EditorEventBus from '../../EditorEventBus';
 import {Vector} from '../../../../templater/vector';
 import { localPointOnItem, worldPointOnItem } from '../../../../scheme/ItemMath';
+import ItemProperties from '../../properties/ItemProperties.vue';
 
 const log = new Logger('Path');
 
@@ -168,6 +169,28 @@ function scriptFunctions(editorId, schemeContainer, item) {
         },
 
         setPathPointWorldPos(pathIdx, pointIdx, x, y) {
+            if (item.area.w < 1 || item.area.h < 1) {
+                const allPathWorldPoints = item.shapeProps.paths.map(path => {
+                    return path.points.map(point => {
+                        const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                        return worldPointOnItem(p.x, p.y, item);
+                    });
+                });
+
+                item.area.w = 100;
+                item.area.h = 100;
+
+                item.shapeProps.paths.forEach((path, pathIdx) => {
+                    path.points.forEach((point, pointIdx) => {
+                        const wp = allPathWorldPoints[pathIdx][pointIdx];
+                        const localPoint = localPointOnItem(wp.x, wp.y, item);
+                        const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                        point.x = p.x;
+                        point.y = p.y;
+                    });
+                });
+            }
+
             return withPath(pathIdx, path => {
                 return withPoint(path, pointIdx, point => {
                     const localPoint = localPointOnItem(x, y, item);
