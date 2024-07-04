@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="dropdown-container" :class="{inline: inline, borderless: borderless}">
+    <div ref="container" class="dropdown-container" :class="{inline: inline, borderless: borderless}">
         <div class="dropdown-click-area" :style="dropwonClickAreaStyle" :class="{'hover-effect': hoverEffect && !disabled}" @click="toggleDropdown">
             <slot v-if="value === null"></slot>
             <div v-else>
@@ -95,6 +95,7 @@ export default {
             maxWidth: 400,
             elementRect: null,
             selectedOption,
+            isAbove: false,
             hoveredOption: {
                 shown: false,
                 title: '',
@@ -111,7 +112,7 @@ export default {
                 return;
             }
 
-            const bbRect = event.target.getBoundingClientRect();
+            const bbRect = this.$refs.container.getBoundingClientRect();
             this.elementRect = bbRect;
 
             this.lastTimeClicked = new Date().getTime();
@@ -160,13 +161,25 @@ export default {
                 if (window.innerHeight - originalY - this.searchTextfieldHeight > originalY) {
                     this.y = originalY;
                     this.maxHeight = window.innerHeight - originalY - this.searchTextfieldHeight;
+                    this.isAbove = false;
                 } else {
-                    this.y = Math.max(5, originalY - height);
-                    this.maxHeight = Math.max(100 ,Math.min(300, originalY - this.y - this.searchTextfieldHeight - 5));
+                    this.y = Math.max(5, originalY - height - this.elementRect.height);
+                    this.maxHeight = Math.max(100, Math.min(300, originalY - this.y - this.searchTextfieldHeight - 5));
+                    this.isAbove = true;
                 }
             } else {
                 this.y = originalY;
+                this.isAbove = false;
             }
+        },
+
+        updateYPosition() {
+            if (!this.isAbove) {
+                return;
+            }
+            const height = this.$refs.dropdownPopup.getBoundingClientRect().height;
+            const containerY = this.$refs.container.getBoundingClientRect().y;
+            this.y = Math.max(5, containerY - height);
         },
 
         onOptionClicked(option) {
@@ -256,6 +269,12 @@ export default {
     watch: {
         value(newValue) {
             this.selectedOption = find(this.options, option => option.name === newValue);
+        },
+
+        searchKeyword() {
+            this.$nextTick(() => {
+                this.updateYPosition();
+            });
         }
     }
 }
