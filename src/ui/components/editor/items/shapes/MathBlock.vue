@@ -1,13 +1,10 @@
 <template>
     <g>
-        <foreignObject
-            :id="`math-formula-foreign-object-${editorId}-${item.id}`"
-            x="0" y="0" :width="item.area.w" :height="item.area.h"
-            >
-            <div ref="formulaContainer" class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
+        <foreignObject x="0" y="0" :width="item.area.w" :height="item.area.h">
+            <div ref="expressionContainer" class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
                 :style="htmlStyle"
                 :data-item-id="item.id"
-                v-html="formulaHTML"
+                v-html="expressionHTML"
                 >
             </div>
         </foreignObject>
@@ -22,21 +19,21 @@ import MathBlockPropertiesEditor from './MathBlockPropertiesEditor.vue';
 const cache = new InMemoryCache();
 const itemCache = new InMemoryCache();
 
-function renderFormula($store, item) {
+function renderExpression($store, item) {
     let assetsPath = $store.state.assetsPath;
     if (assetsPath === '/') {
         assetsPath = '';
     }
 
-    const formula = item.shapeProps.formula;
+    const expression = item.shapeProps.expression;
 
-    return cache.get(formula, () => {
+    return cache.get(expression, () => {
         return new Promise((resolve, reject) => {
             const worker = new Worker(`${assetsPath}/js/katex-worker.js`);
             worker.onmessage = (event) => {
                 resolve(event.data);
             };
-            worker.postMessage({formula: formula});
+            worker.postMessage({expression: expression});
         });
     });
 }
@@ -47,16 +44,16 @@ export default {
     components: {MathBlockPropertiesEditor},
 
     mounted() {
-        renderFormula(this.$store, this.item)
+        renderExpression(this.$store, this.item)
         .then(html => {
-            this.formulaHTML = html;
+            this.expressionHTML = html;
             itemCache.set(this.item.id, html);
         });
     },
 
     data() {
         return {
-            formulaHTML: itemCache.getInstant(this.item.id, ''),
+            expressionHTML: itemCache.getInstant(this.item.id, ''),
             htmlStyle: {
                 fontSize: `${this.item.shapeProps.fontSize}px`,
                 width: `${this.item.area.w}px`,
@@ -75,11 +72,11 @@ export default {
 
         menuItems: [{
             group: 'General',
-            name: 'Math Formula',
+            name: 'Math Expression',
             iconUrl: '/assets/images/items/math-block.svg',
             item: {
                 shapeProps: {
-                    formula: 'c = \\pm\\sqrt{a^2 + b^2}'
+                    expression: 'c = \\pm\\sqrt{a^2 + b^2}'
                 }
             },
         }],
@@ -99,7 +96,7 @@ export default {
         },
 
         args: {
-            formula : {type: 'string', value: '', name: 'Formula'},
+            expression : {type: 'string', value: '', name: 'Expression'},
             fontSize: {type: 'number', value: 15, name: 'Font size', min: 1},
             halign: {type: 'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal Align'},
             valign: {type: 'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical Align'},

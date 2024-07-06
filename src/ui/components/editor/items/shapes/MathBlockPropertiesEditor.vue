@@ -1,8 +1,13 @@
 <template>
     <div>
-        <div class="ctrl-label">Formula</div>
+        <div class="hint hint-small">
+            Use <a href="https://katex.org/">KaTeX</a> library (TeX math syntax) for generating beautyful mathematical expressions.
+            To see all supported functions visit <a class="link" target="_blank" href="https://katex.org/docs/supported.html">this documentation page</a>
+        </div>
 
-        <textarea style="width: 100%;" cols="12" v-model="formula"></textarea>
+        <div class="ctrl-label">Expression</div>
+
+        <textarea style="width: 100%;" cols="12" v-model="expression"></textarea>
 
 
         <table class="properties-table">
@@ -65,7 +70,7 @@ export default {
 
     data() {
         return {
-            formula: this.item.shapeProps.formula,
+            expression: this.item.shapeProps.expression,
             fontSize: this.item.shapeProps.fontSize,
             halign: this.item.shapeProps.halign,
             valign: this.item.shapeProps.valign,
@@ -112,10 +117,10 @@ export default {
     },
 
     watch: {
-        formula(value) {
-            this.item.shapeProps.formula = value;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'formula');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.formula`);
+        expression(value) {
+            this.item.shapeProps.expression = value;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'expression');
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.expression`);
         }
     }
 }
