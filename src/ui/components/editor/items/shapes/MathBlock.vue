@@ -5,7 +5,7 @@
             x="0" y="0" :width="item.area.w" :height="item.area.h"
             >
             <div ref="formulaContainer" class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
-                :style="{'font-size': `${item.shapeProps.fontSize}px`}"
+                :style="htmlStyle"
                 :data-item-id="item.id"
                 v-html="formulaHTML"
                 >
@@ -56,7 +56,15 @@ export default {
 
     data() {
         return {
-            formulaHTML: itemCache.getInstant(this.item.id, '')
+            formulaHTML: itemCache.getInstant(this.item.id, ''),
+            htmlStyle: {
+                fontSize: `${this.item.shapeProps.fontSize}px`,
+                width: `${this.item.area.w}px`,
+                height: `${this.item.area.h}px`,
+                display: 'table-cell',
+                'text-align': this.item.shapeProps.halign,
+                'vertical-align': this.item.shapeProps.valign,
+            }
         }
     },
 
@@ -93,6 +101,8 @@ export default {
         args: {
             formula : {type: 'string', value: '', name: 'Formula'},
             fontSize: {type: 'number', value: 15, name: 'Font size', min: 1},
+            halign: {type: 'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal Align'},
+            valign: {type: 'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical Align'},
         },
     }
 }
