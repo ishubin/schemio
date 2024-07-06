@@ -124,6 +124,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [openPath (path)](#openpath-path)
       - [getPathPointWorldPos (path)](#getpathpointworldpos-path)
       - [setPathPointWorldPos (path)](#setpathpointworldpos-path)
+    - [Math block functions](#math-block-functions)
+      - [setExpression](#setexpression)
 
 
 Basic syntax
@@ -1226,4 +1228,17 @@ log('x', p.x, 'y', p.y)
 ```js
 pathItem = findItemByName('Path 1')
 pathItem.setPathPointWorldPos(0, 4, 100, -54)
+```
+
+
+#### Math block functions
+
+##### setExpression
+
+`setExpression(expression)` updates the TeX format based expression in math block.
+Keep in mind that since TeX is using `\` for denoting functions, you will need to escape it in the script with additional `\`
+
+```js
+mathBlock = findItemByName('Math 1')
+mathBlock.setExpression('c = \\pm\\sqrt{a^{23} + b^{-12}}')
 ```
