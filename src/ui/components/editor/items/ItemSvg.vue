@@ -292,7 +292,7 @@ export default {
 
         const shape = Shape.find(this.item.shape);
         if (shape && shape.shapeEvents.mounted) {
-            shape.shapeEvents.mounted(this.$store, this.item, this.$refs.textSlots);
+            shape.shapeEvents.mounted(this.$store, this.item, this.$refs.textSlots, this.editorId);
         }
 
         if (this.mode === 'edit') {

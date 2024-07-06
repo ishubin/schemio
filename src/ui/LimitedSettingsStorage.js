@@ -136,6 +136,23 @@ export class InMemoryCache {
         this.counter = 0;
     }
 
+    set(key, value) {
+        this._makeSpace();
+        this.counter += 1;
+        this.items.set(key, { value, rev: this.counter });
+    }
+
+    getInstant(name, defaultValue) {
+        if (this.items.has(name)) {
+            const entry = this.items.get(name);
+            if (entry) {
+                return entry.value;
+            }
+        }
+
+        return defaultValue;
+    }
+
     get(name, promiseCallback) {
         if (this.items.has(name)) {
             return Promise.resolve(this.items.get(name).value);
