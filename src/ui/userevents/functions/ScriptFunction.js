@@ -493,11 +493,11 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             ...shape.scriptFunctions(schemeContainer.editorId, schemeContainer, item),
         };
 
-        updatedScope.debugItem = createDebugItemFunc(updatedScope);
+        updatedScope.debugItem = createDebugItemFunc(updatedScope, item, schemeContainer.editorId);
         return updatedScope;
     }
 
-    itemScope.debugItem = createDebugItemFunc(itemScope, schemeContainer.editorId);
+    itemScope.debugItem = createDebugItemFunc(itemScope, item, schemeContainer.editorId);
 
     return itemScope;
 }
@@ -683,14 +683,19 @@ function distanceBetweenItems(item1, item2) {
 }
 
 
-function createDebugItemFunc(itemScope, editorId) {
+function createDebugItemFunc(itemScope, item, editorId) {
     return () => {
-        let text = 'Item functions:';
+        let text = `Item "${item.name}"\nx = ${item.area.x} y = ${item.area.y} width = ${item.area.w} height = ${item.area.h}`;
+        const wp = worldPointOnItem(0, 0, item);
+        text += `\nWorld: x = ${wp.x} y = ${wp.x}`;
+        text += `\nRotation: ${item.area.r}`;
+        text += `\nShape: ${item.shape}`;
+        text += '\nFunctions:';
         for (let key in itemScope) {
             text += `\n    - ${key}`;
         }
 
-        EditorEventBus.scriptLog.$emit(editorId);
+        EditorEventBus.scriptLog.$emit(editorId, 'info', text);
         console.log(text);
     }
 }
