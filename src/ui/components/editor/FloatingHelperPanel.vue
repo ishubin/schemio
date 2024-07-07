@@ -65,7 +65,7 @@
                 <h5>Description</h5>
                 <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
 
-                <LinksPanel :editorId="editorId" :item="item"/>
+                <LinksPanel :key="`floating-links-panel-${updateKey}`" :editorId="editorId" :item="item"/>
             </modal>
 
             <div class="styles-popup" v-if="stylesPopup.shown" :style="{top: `${stylesPopup.y}px`, left: `${stylesPopup.x}px`}">
@@ -107,6 +107,14 @@ export default {
         this.updatePosition();
     },
 
+    beforeMount() {
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemUpdated);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemUpdated);
+    },
+
     data() {
         let fillColor = null;
         let supportsFill = false;
@@ -122,6 +130,7 @@ export default {
         }
 
         return {
+            updateKey: 0,
             fillColor,
             supportsFill,
             supportsStroke,
@@ -143,6 +152,10 @@ export default {
     },
 
     methods: {
+        onItemUpdated() {
+            this.updateKey += 1;
+        },
+
         onStrokeControlCollapsed() {
             EditorEventBus.colorControlToggled.$emit(this.editorId, false);
         },
