@@ -36,15 +36,17 @@ export default {
     },
 
     executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback) {
+        let scriptAST = null;
         try {
-            const scriptAST = parseExpression(args.expression);
-            if (!scriptAST) {
-                resultCallback({skip: 0, break: false});
-                return;
-            }
+            scriptAST = parseExpression(args.expression);
         }
         catch(err) {
             EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', `Error in script: ${err.message}\n${args.expression}`)
+            resultCallback({skip: 0, break: false});
+            return;
+        }
+
+        if (!scriptAST) {
             resultCallback({skip: 0, break: false});
             return;
         }
