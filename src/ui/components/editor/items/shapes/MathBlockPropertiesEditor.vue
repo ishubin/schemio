@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="hint hint-small">
-            Use <a href="https://katex.org/">KaTeX</a> library (TeX math syntax) for generating beautyful mathematical expressions.
+            Uses <a href="https://katex.org/">KaTeX</a> library (TeX math syntax) for generating beautyful mathematical expressions.
             To see all supported functions visit <a class="link" target="_blank" href="https://katex.org/docs/supported.html">this documentation page</a>
         </div>
 
