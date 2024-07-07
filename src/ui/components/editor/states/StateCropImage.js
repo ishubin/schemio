@@ -3,6 +3,7 @@ import myMath from "../../../myMath";
 import utils from "../../../utils";
 import State from "./State";
 import { dragEditBoxByDragger } from "./StateDragItem";
+import EditorEventBus from '../EditorEventBus';
 
 const IS_SOFT = true;
 const IS_NOT_SOFT = false;
@@ -123,13 +124,15 @@ export default class StateCropImage extends State {
         }, this.getUpdatePrecision());
 
         if (!myMath.tooSmall(this.item.area.w)) {
-            this.item.shapeProps.crop.x = (localPoint.x - x0) / this.item.area.w;
-            this.item.shapeProps.crop.w = w0 / this.item.area.w - this.item.shapeProps.crop.x - 1;
+            this.item.shapeProps.crop.x = myMath.roundPrecise((localPoint.x - x0) / this.item.area.w, 3);
+            this.item.shapeProps.crop.w = myMath.roundPrecise(w0 / this.item.area.w - this.item.shapeProps.crop.x - 1, 3);
         }
         if (!myMath.tooSmall(this.item.area.h)) {
-            this.item.shapeProps.crop.y = (localPoint.y - y0) / this.item.area.h;
-            this.item.shapeProps.crop.h = h0 / this.item.area.h - this.item.shapeProps.crop.y - 1;
+            this.item.shapeProps.crop.y = myMath.roundPrecise((localPoint.y - y0) / this.item.area.h, 3);
+            this.item.shapeProps.crop.h = myMath.roundPrecise(h0 / this.item.area.h - this.item.shapeProps.crop.y - 1, 3);
         }
+
+        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'shapeProps.crop');
 
         if (changeCommitted) {
             this.listener.onSchemeChangeCommitted();
@@ -137,15 +140,17 @@ export default class StateCropImage extends State {
     }
 
     resetCrop() {
-        this.item.area.x -= this.item.shapeProps.crop.x * this.item.area.w;
-        this.item.area.y -= this.item.shapeProps.crop.y * this.item.area.h;
+        this.item.area.x -= myMath.roundPrecise2(this.item.shapeProps.crop.x * this.item.area.w);
+        this.item.area.y -= myMath.roundPrecise2(this.item.shapeProps.crop.y * this.item.area.h);
 
-        this.item.area.w = this.item.area.w * (1 + this.item.shapeProps.crop.x + this.item.shapeProps.crop.w);
-        this.item.area.h = this.item.area.h * (1 + this.item.shapeProps.crop.y + this.item.shapeProps.crop.h);
+        this.item.area.w = myMath.roundPrecise2(this.item.area.w * (1 + this.item.shapeProps.crop.x + this.item.shapeProps.crop.w));
+        this.item.area.h = myMath.roundPrecise2(this.item.area.h * (1 + this.item.shapeProps.crop.y + this.item.shapeProps.crop.h));
         this.item.shapeProps.crop.x = 0;
         this.item.shapeProps.crop.y = 0;
         this.item.shapeProps.crop.w = 0;
         this.item.shapeProps.crop.h = 0;
+
+        EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'shapeProps.crop');
 
         this.listener.onSchemeChangeCommitted();
         this.cancel();

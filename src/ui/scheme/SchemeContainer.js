@@ -2968,7 +2968,7 @@ class SchemeContainer {
 
                 if (context.resized) {
                     const worldBottomRight = projectBack(itemProjection.bottomRight);
-                    const localBottomRight = localPointOnItem(worldBottomRight.x, worldBottomRight.y, item);
+                    const localBottomRight = myMath.localPointInArea(worldBottomRight.x, worldBottomRight.y, {...item.area, ...modifiedArea}, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null)
                     modifiedArea.w = Math.max(0, localBottomRight.x);
                     modifiedArea.h = Math.max(0, localBottomRight.y);
                 }
