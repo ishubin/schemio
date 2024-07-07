@@ -55,6 +55,7 @@ export default {
         return {
             expressionHTML: itemCache.getInstant(this.item.id, ''),
             htmlStyle: {
+                color: this.item.shapeProps.color,
                 fontSize: `${this.item.shapeProps.fontSize}px`,
                 width: `${this.item.area.w}px`,
                 height: `${this.item.area.h}px`,
@@ -97,6 +98,7 @@ export default {
 
         args: {
             expression : {type: 'string', value: '', name: 'Expression'},
+            color: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Color'},
             fontSize: {type: 'number', value: 15, name: 'Font size', min: 1},
             halign: {type: 'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal Align'},
             valign: {type: 'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical Align'},

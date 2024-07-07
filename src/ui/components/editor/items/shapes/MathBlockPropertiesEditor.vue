@@ -17,7 +17,15 @@
                         Font size
                     </td>
                     <td class="value" width="50%">
-                        <NumberTextfield :value="fontSize" :disabled="disabled" @changed="onFontSizeUpdate(arguments[0])" :min="1"/>
+                        <ColorPicker :editorId="editorId" :color="item.shapeProps.color" @input="onColorUpdate"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label" width="50%">
+                        Font size
+                    </td>
+                    <td class="value" width="50%">
+                        <NumberTextfield :value="fontSize" @changed="onFontSizeUpdate(arguments[0])" :min="1"/>
                     </td>
                 </tr>
                 <tr>
@@ -58,6 +66,7 @@
 <script>
 import EditorEventBus from '../../EditorEventBus';
 import NumberTextfield from '../../../NumberTextfield.vue';
+import ColorPicker from '../../ColorPicker.vue';
 
 export default {
     props: {
@@ -66,7 +75,7 @@ export default {
         refreshKey: {type: String}
     },
 
-    components: {NumberTextfield},
+    components: {NumberTextfield, ColorPicker},
 
     data() {
         return {
@@ -94,25 +103,32 @@ export default {
     },
 
     methods: {
+        emitChange(field) {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, field);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.${field}`);
+        },
+
+        onColorUpdate(color) {
+            this.item.shapeProps.color = color;
+            this.emitChange('color');
+        },
+
         updateHAlign(halign) {
             this.halign = halign;
             this.item.shapeProps.halign = halign;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'halign');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.halign`);
+            this.emitChange('halign');
         },
 
         updateVAlign(valign) {
             this.valign = valign;
             this.item.shapeProps.valign = valign;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'valign');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.valign`);
+            this.emitChange('valign');
         },
 
         onFontSizeUpdate(fontSize) {
             this.fontSize = fontSize;
             this.item.shapeProps.fontSize = fontSize;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'fontSize');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.fontSize`);
+            this.emitChange('fontSize');
         }
     },
 
