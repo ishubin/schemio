@@ -574,13 +574,12 @@ export default {
                     return;
                 }
                 item.effects.splice(idx, 1);
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
             });
         },
 
         onEffectIdChanged(newEffectId) {
-            this.updateCurrentItem(`effects.${idx}`, item => {
+            this.updateCurrentItem(`effects`, item => {
                 if (this.editEffectModal.currentEffectIndex < 0 || this.editEffectModal.currentEffectIndex >= item.effects.length) {
                     return;
                 }
@@ -594,7 +593,7 @@ export default {
                     name: effect.name,
                     args: this.editEffectModal.effectArgs
                 };
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
             });
         }
     },
