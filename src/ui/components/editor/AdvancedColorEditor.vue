@@ -69,7 +69,7 @@
                     <div class="gradient-controls">
                         <div class="ctrl-group">
                             <div class="ctrl-label">Gradient Type</div>
-                            <select v-model="color.gradient.type" @change="emitChange">
+                            <select v-model="color.gradient.type" @change="onGradientTypeChange">
                                 <option value="linear">Linear</option>
                                 <option value="radial">Radial</option>
                             </select>
@@ -210,6 +210,11 @@ export default {
         onImageStretchChange(event) {
             this.color.stretch = event.target.checked;
             this.emitChange();
+        },
+
+        onGradientTypeChange() {
+            this.emitChange();
+            this.$forceUpdate();
         },
 
         emitChange() {
