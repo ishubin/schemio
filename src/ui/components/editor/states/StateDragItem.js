@@ -643,25 +643,36 @@ class DragEditBoxState extends EditBoxState {
         }
 
         // checking if it can fit into another item
-        if (this.store.state.autoRemount && !this.parentState.isRecording ) {
-            const fakeItem = {meta: {}, area: this.editBox.area};
-            this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => {
-                if (this.editBox.itemIds.has(item.id)) {
-                    return false;
+        if (this.store.state.autoRemount && !this.parentState.isRecording && this.editBox.items.length > 0) {
+            // we don't want to propose to remount a part of template, only if it is a template root
+            let areAllItemsTemplated = true;
+            for (let i = 0; i < this.editBox.items.length && areAllItemsTemplated; i++) {
+                const item = this.editBox.items[i];
+                if ((item.args && item.args.templateRef) || !item.meta || !item.meta.templateRootId) {
+                    areAllItemsTemplated = false;
                 }
+            }
 
-                const editBoxItemIds = Array.from(this.editBox.itemIds);
-                if (editBoxItemIds.findIndex(potentialAncestorId => isItemDescendantOf(item, potentialAncestorId)) >= 0) {
-                    return false;
-                }
-
-                for (let i = 0; i < editBoxItemIds.length; i++) {
-                    if (this.schemeContainer.hasDependencyOnItem(editBoxItemIds[i], item.id)) {
+            if (!areAllItemsTemplated) {
+                const fakeItem = {meta: {}, area: this.editBox.area};
+                this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => {
+                    if (this.editBox.itemIds.has(item.id)) {
                         return false;
                     }
-                }
-                return true;
-            });
+
+                    const editBoxItemIds = Array.from(this.editBox.itemIds);
+                    if (editBoxItemIds.findIndex(potentialAncestorId => isItemDescendantOf(item, potentialAncestorId)) >= 0) {
+                        return false;
+                    }
+
+                    for (let i = 0; i < editBoxItemIds.length; i++) {
+                        if (this.schemeContainer.hasDependencyOnItem(editBoxItemIds[i], item.id)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                });
+            }
         } else {
             this.proposedItemForMounting = null;
         }
@@ -687,10 +698,10 @@ class DragEditBoxState extends EditBoxState {
         if (!this.store.state.autoRemount || this.parentState.isRecording) {
             return;
         }
-        const isPartOfTemplate = (item) => {
-            return item.meta && item.meta.templated && item.meta.templateRootId;
+        const isPartOfTemplateButNotRoot = (item) => {
+            return item.meta && item.meta.templated && item.meta.templateRootId && item.args && !item.args.templateRef;
         };
-        const items = this.editBox.items.filter(item => !item.locked && !isPartOfTemplate(item));
+        const items = this.editBox.items.filter(item => !item.locked && !isPartOfTemplateButNotRoot(item));
         if (items.length === 0) {
             return;
         }
