@@ -68,6 +68,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [getEventName](#geteventname)
     - [getEventArg](#geteventarg)
     - [Item functions](#item-functions)
+      - [debugItem](#debugitem)
       - [getId](#getid)
       - [setVar](#setvar)
       - [getVar](#getvar)
@@ -818,6 +819,11 @@ The code above will return `-1` in case if `y` value is `0` and will return `1` 
 #### Item functions
 
 Since all the script and condition functions are executed on some particular item, you get access to that items data.
+
+
+##### debugItem
+
+`debugItem()` prints various information to script console about the item including its position, size, shape and all supported functions
 
 
 ##### getId
