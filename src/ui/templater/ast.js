@@ -620,8 +620,13 @@ export function parseAST(tokens, originalText) {
  * @returns {ASTNode}
  */
 export function parseExpression(expression) {
-    const tokens = normalizeTokens(tokenizeExpression(expression));
-    return parseAST(tokens, expression);
+    try {
+        const tokens = normalizeTokens(tokenizeExpression(expression));
+        return parseAST(tokens, expression);
+    }
+    catch(err) {
+        throw new Error(`Error parsing script:\n${expression}\n\nError: ${err.message}`);
+    }
 }
 
 

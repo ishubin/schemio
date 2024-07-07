@@ -744,7 +744,9 @@ export default {
             traverseItems(items, item => {
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, item, event.actions);
+                        const eventCallback = compileActions(this.schemeContainer, item, event.actions, (err) => {
+                            this.onCompilerError(err);
+                        });
                         if (event.event === Events.standardEvents.init.id) {
                             itemsForInit[item.id] = 1;
                         }
@@ -752,6 +754,12 @@ export default {
                     });
                 }
             });
+        },
+
+        onCompilerError(err) {
+            // cannot use EditorEvent bus to pass error message to ScriptConsole component
+            // due to the race condition of when components subscribe to event bus
+            this.$emit('compiler-error', err);
         },
 
         onComponentSchemeMounted(item) {

@@ -62,8 +62,8 @@ export default {
         return script;
     },
 
-    precompileItemScript(item, script) {
-        const scriptAST = parseItemScript(script);
+    precompileItemScript(item, script, editorId) {
+        const scriptAST = parseExpression(script);
         if (!scriptAST) {
             return;
         }
@@ -80,12 +80,12 @@ export default {
     // init function is called on compile phase
     // this is used to optimize parsing of the script
     init(item, args, schemeContainer, userEventBus) {
-        this.precompileItemScript(item, args.script);
+        this.precompileItemScript(item, args.script, schemeContainer.editorId);
         if (args.initScript) {
-            this.precompileItemScript(item, args.initScript);
+            this.precompileItemScript(item, args.initScript, schemeContainer.editorId);
         }
         if (args.endScript) {
-            this.precompileItemScript(item, args.endScript);
+            this.precompileItemScript(item, args.endScript, schemeContainer.editorId);
         }
     },
 
@@ -166,6 +166,7 @@ export default {
             try {
                 execScript(0);
             } catch (err) {
+                EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', err.message);
                 console.error(`Failed executing item script: ${args.script}`, err);
             }
             resultCallback();
@@ -496,7 +497,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         return updatedScope;
     }
 
-    itemScope.debugItem = createDebugItemFunc(itemScope);
+    itemScope.debugItem = createDebugItemFunc(itemScope, schemeContainer.editorId);
 
     return itemScope;
 }
@@ -625,17 +626,9 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
         findItemByName: (name) => {
             return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer, userEventBus);
         },
-        ...itemInterface
+        ...itemInterface,
+        log: createLogFunction(schemeContainer.editorId)
     });
-}
-
-export function parseItemScript(text) {
-    try {
-        return parseExpression(text);
-    } catch (err) {
-        console.error('Failed to parse item script: ' + text, err);
-        return null;
-    }
 }
 
 class ScriptInfiniteLoopAnimation extends Animation {
@@ -690,13 +683,21 @@ function distanceBetweenItems(item1, item2) {
 }
 
 
-function createDebugItemFunc(itemScope) {
+function createDebugItemFunc(itemScope, editorId) {
     return () => {
         let text = 'Item functions:';
         for (let key in itemScope) {
             text += `\n    - ${key}`;
         }
 
+        EditorEventBus.scriptLog.$emit(editorId);
         console.log(text);
+    }
+}
+
+function createLogFunction(editorId) {
+    return (...args) => {
+        EditorEventBus.scriptLog.$emit(editorId, 'info', args.join(' '))
+        console.log(...args);
     }
 }

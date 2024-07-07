@@ -357,6 +357,12 @@ const EditorEventBus = {
         $off: (editorId, callback) => $off(editorId, 'editor-resized', [], callback),
         $emit: (editorId) => $emit(editorId, 'editor-resized', []),
     },
+
+    scriptLog: {
+        $on: (editorId, callback) => $on(editorId, 'script-log', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'script-log', [], callback),
+        $emit: (editorId, level, message) => $emit(editorId, 'script-log', [], level, message),
+    }
 };
 
 export default EditorEventBus;

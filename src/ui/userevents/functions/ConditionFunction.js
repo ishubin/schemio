@@ -2,8 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { createItemBasedScope, parseItemScript } from "./ScriptFunction";
+import { createItemBasedScope } from "./ScriptFunction";
 import ConditionFunctionEditor from '../../components/editor/properties/behavior/ConditionFunctionEditor.vue';
+import EditorEventBus from "../../components/editor/EditorEventBus";
+import { parseExpression } from "../../templater/ast";
 
 
 const conditionBranchOptions = ['pass', 'skip-next', 'break-event', 'send-event'];
@@ -34,8 +36,15 @@ export default {
     },
 
     executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback) {
-        const scriptAST = parseItemScript(args.expression);
-        if (!scriptAST) {
+        try {
+            const scriptAST = parseExpression(args.expression);
+            if (!scriptAST) {
+                resultCallback({skip: 0, break: false});
+                return;
+            }
+        }
+        catch(err) {
+            EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', `Error in script: ${err.message}\n${args.expression}`)
             resultCallback({skip: 0, break: false});
             return;
         }

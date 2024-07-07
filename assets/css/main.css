@@ -1233,6 +1233,20 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     border-radius: 0 var(--control-border-radius) var(--control-border-radius) 0;
 }
 
+.notifier-marker {
+    position: absolute;
+    background: var(--accent-faint);
+    display: block;
+    top: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 10px;
+}
+.notifier-marker.notifier-error {
+    background: var(--critic-faint);
+}
+
 
 /***************************/
 /*   Side Panel            */
@@ -4471,4 +4485,47 @@ ul.properties-button-list > li > .btn {
 }
 .auto-layout-editor-plot table .label .dropdown-click-area .fa-xmark {
     opacity: 0.4;
+}
+
+
+.script-console-container {
+    background: var(--base-weak);
+    min-height: 200px;
+    padding: 4px;
+    user-select: text;
+}
+.script-console-entries {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+}
+.script-console-entries > li {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--faint-weak);
+    display: flex;
+    gap: 5px;
+}
+.script-console-entries > li > .console-status-label {
+    width: 60px;
+    border-radius: 4px;
+    padding: 4px 8px;
+    color: var(--base-weak);
+    text-align: center;
+    font-size: 10px;
+    max-height: 20px;
+}
+.script-console-entries > li.status-info > .console-status-label {
+    background: var(--accent-strong);
+}
+.script-console-entries > li.status-error > .console-status-label {
+    background: var(--critic-faint);
+}
+.script-console-entries > li > .console-message {
+    white-space: pre;
+}
+.script-console-entries > li.status-error > .console-message {
+    color: var(--critic-strong);
 }

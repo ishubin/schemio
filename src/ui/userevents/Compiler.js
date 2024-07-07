@@ -23,8 +23,9 @@ function enrichFuncArgs(args, funcDef) {
  * @param {SchemeContainer} schemeContainer
  * @param {SchemeItem} selfItem
  * @param {Array} actions
+ * @param {function(error)} errorCallback
  */
-export function compileActions(schemeContainer, selfItem, actions) {
+export function compileActions(schemeContainer, selfItem, actions, errorCallback) {
 
     const funcs = [];
     forEach(actions, action => {
@@ -54,6 +55,7 @@ export function compileActions(schemeContainer, selfItem, actions) {
                                     } catch(err) {
                                         if (err) {
                                             console.error(err);
+                                            errorCallback(err);
                                         }
                                     }
                                 }

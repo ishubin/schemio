@@ -81,6 +81,9 @@
             <div class="filler"></div>
             <div class="quick-helper-panel-section">
                 <ul class="button-group">
+                    <li v-if="mode === 'view'">
+                        <ScriptConsole :editorId="editorId" :newEntries="scriptConsoleNewEntries"/>
+                    </li>
                     <li>
                         <span v-if="!fullScreen" title="Fullscreen view" class="toggle-button" @click="switchToFullScreen"><i class="fa-solid fa-expand"></i></span>
                         <span v-else title="Exit fullscreen" class="toggle-button" @click="exitFullScreen"><i class="fa-solid fa-compress"></i></span>
@@ -220,6 +223,7 @@
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
                     @screen-transform-updated="onScreenTransformUpdated"
+                    @compiler-error="onCompilerError"
                     >
 
                     <div slot="overlay">
@@ -656,6 +660,7 @@ import {breakItemTemplate} from './editor/items/ItemTemplate';
 import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
 import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import StarterProposalModal from './editor/StarterProposalModal.vue';
+import ScriptConsole from './editor/ScriptConsole.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -769,7 +774,7 @@ export default {
         ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
-        DrawingControlsPanel, ExportAnimationModal
+        DrawingControlsPanel, ExportAnimationModal, ScriptConsole
     },
 
     props: {
@@ -1149,9 +1154,20 @@ export default {
             templatePropertiesKey: 0,
 
             starterProposalModalShown: false,
+            scriptConsoleNewEntries: []
         }
     },
     methods: {
+        onCompilerError(err) {
+            this.scriptConsoleNewEntries = [{
+                level: 'error',
+                message: err.message
+            }];
+            this.$nextTick(() => {
+                this.scriptConsoleNewEntries = [];
+            })
+        },
+
         switchToFullScreen() {
             const elem = this.$refs.editorComponent;
             this.fullScreen = true;
