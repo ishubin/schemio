@@ -21,7 +21,7 @@
                 <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html" x="-50%" y="-50%" width="200%" height="200%"></filter>
             </defs>
 
-            <g :filter="filterUrl">
+            <g :filter="filterUrl" :data-component-key="`item-component-${item.id}-${item.shape}-${revision}`">
                 <component
                     :key="`item-component-${item.id}-${item.shape}-${revision}`"
                     v-if="shouldBeDrawn && shapeComponent && item.visible"
@@ -506,7 +506,7 @@ export default {
             this.isSelected = true;
         },
 
-        onItemChanged(propertyPath) {
+        onItemChanged(itemId, propertyPath) {
             this.svgItemTransform = this.calculateSVGItemTransform();
 
             this.effectFill = this.getEffectFill();

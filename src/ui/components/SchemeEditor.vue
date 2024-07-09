@@ -1557,9 +1557,11 @@ export default {
         onInPlaceTextEditorUpdate(text) {
             if (this.inPlaceTextEditor.shown) {
                 const slotName = this.inPlaceTextEditor.slotName;
-                this.schemeContainer.updateItem(this.inPlaceTextEditor.item.id, `textSlots.${slotName}.text`, item => {
-                    item.textSlots[slotName].text = text;
-                });
+                const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.item.id);
+                if (!item || !item.textSlots || !item.textSlots[slotName]) {
+                    return;
+                }
+                item.textSlots[slotName].text = text;
             }
         },
 
