@@ -127,6 +127,7 @@ function buildConditionsForAnimationFunctions() {
 
 const schemaForShapeArgType = {
     string          : {type: 'string', patching: ['replace']},
+    script          : {type: 'string', patching: ['patch-text', 'replace']},
     text            : {type: 'string', patching: ['replace']},
     image           : {type: 'string', patching: ['replace']},
     color           : {type: 'string', patching: ['replace']},
