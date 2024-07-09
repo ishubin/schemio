@@ -1216,7 +1216,7 @@ export default {
                     return false;
                 }
                 if ((item.description && item.description.length > 4)
-                    || (item.links && item.links.lengt > 0)
+                    || (item.links && item.links.length > 0)
                     || hasMouseEvent(item.behavior.events)
                     || (item.behavior.dragging && item.behavior.dragging !== 'none')
                 ) {
@@ -1232,31 +1232,38 @@ export default {
         },
 
         animateCurrentHighlightedItems() {
+            const maxDuration = 5000;
+            const fadeDurationTrigger = 4000;
+
             this.highlightAnimationTime = 0;
             if (this.highlightAnimated) {
                 return;
             }
-            this.highlightAnimated = true;
-
             if (this.worldHighlightedItems.length === 0) {
                 return;
             }
+
+            this.highlightAnimated = true;
 
             const highlightAnimationLoop = (time) => {
                 const latestTime = performance.now();
                 const dt = latestTime - time;
                 this.highlightAnimationTime += dt;
 
-                if (!this.highlightAnimated || this.highlightAnimationTime > 5000.0 || this.worldHighlightedItems.length === 0) {
+                if (!this.highlightAnimated || this.highlightAnimationTime > maxDuration || this.worldHighlightedItems.length === 0) {
                     this.highlightAnimationTime = 0.0;
-                    this.highlightAnimated = true;
+                    this.highlightAnimated = false;
                     this.worldHighlightedItems = [];
                     this.$forceUpdate();
                     return;
                 }
 
+                let fadeMultiplier = 1;
+                if (this.highlightAnimationTime > fadeDurationTrigger) {
+                    fadeMultiplier = (maxDuration - this.highlightAnimationTime) / (maxDuration - fadeDurationTrigger);
+                }
                 for (let i = 0; i < this.worldHighlightedItems.length; i++) {
-                    this.worldHighlightedItems[i].opacity = 0.2 * Math.cos(this.highlightAnimationTime / 300) + 0.3;
+                    this.worldHighlightedItems[i].opacity = fadeMultiplier * (0.2 * Math.cos(this.highlightAnimationTime / 300) + 0.3);
                 }
                 this.$forceUpdate();
 
