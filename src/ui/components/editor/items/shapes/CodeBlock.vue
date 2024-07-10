@@ -10,9 +10,11 @@
             :stroke="item.shapeProps.strokeColor"
             :fill="svgFill"></path>
 
-        <circle cx="15" cy="15" r="5" fill="#EC6762"/>
-        <circle cx="30" cy="15" r="5" fill="#F4BE5E"/>
-        <circle cx="45" cy="15" r="5" fill="#61C761"/>
+        <g v-if="item.shapeProps.frame === 'mac'">
+            <circle cx="15" cy="15" r="5" fill="#EC6762"/>
+            <circle cx="30" cy="15" r="5" fill="#F4BE5E"/>
+            <circle cx="45" cy="15" r="5" fill="#61C761"/>
+        </g>
     </g>
 </template>
 <script>
@@ -175,19 +177,27 @@ export default {
         },
 
         getTextSlots(item) {
-            return [{
-                name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
-            }, {
+            const headerHeight = item.shapeProps.frame === 'none' ? 0 : item.shapeProps.headerHeight;
+
+            const slots = [{
                 name: 'body',
                 markupDisabled: true,
                 cssClass: `syntax-theme-${item.shapeProps.theme}`,
-                area: {x: 0, y: item.shapeProps.headerHeight, w: item.area.w, h: Math.max(1, item.area.h - item.shapeProps.headerHeight)}
+                area: {x: 0, y: headerHeight, w: item.area.w, h: Math.max(1, item.area.h - headerHeight)}
             }];
+            if (item.shapeProps.frame !== 'none') {
+                slots.push({
+                    name: 'title', area: {x: 0, y: 0, w: item.area.w, h: Math.max(0, item.shapeProps.headerHeight)}
+                });
+            }
+
+            return slots;
         },
 
         editorProps: {},
         args: {
             theme       : {type: 'choice', value: 'dark', options: ['dark', 'light'], name: 'Theme', onUpdate: onThemeUpdate },
+            frame       : {type: 'choice', value: 'mac', options: ['mac', 'none'], name: 'Frame'},
             lang        : {type: 'choice', value: 'JavaScript', options: allLanguages, name: 'Language', onUpdate: onLangUpdate},
             fill        : {type: 'advanced-color', value: {type: 'solid', color: darkBackground}, name: 'Fill'},
             strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
