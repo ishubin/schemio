@@ -14,6 +14,9 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [Vector functions](#vector-functions)
       - [length](#length)
       - [normalized](#normalized)
+      - [projection](#projection)
+      - [rotate](#rotate)
+      - [inverse](#inverse)
 - [List](#list)
     - [List functions](#list-functions)
       - [add (List)](#add-list)
@@ -284,6 +287,40 @@ v = Vector(10, -2)
 normal = v.normalized()
 ```
 
+##### projection
+
+`projection(v)` returns a scalar value of projection of one vector to another vector.
+For example, if we want to project vection v1 to vector v2:
+
+```js
+v1 = Vector(1, 3)
+v2 = vector(4, 1)
+
+p = v1.projection(v2)
+```
+
+
+##### rotate
+
+`rotate(angle)` returns a vector that is rotated by `angle` radians.
+
+```js
+v = Vector(2, 7)
+
+// Rotating vector by 90 degrees
+v2 = v.rotate(PI() / 2)
+```
+
+
+##### inverse
+
+`inverse()` returns an inversed vector
+
+```js
+
+v = Vector(2, 7)
+v = v2.inverse()
+```
 
 List
 --------------------
