@@ -34,7 +34,6 @@ export default {
 
     beforeMount() {
         EditorEventBus.scriptLog.$on(this.editorId, this.addLogEntry);
-        console.log('Subscribed to scriptLog event');
     },
 
     beforeDestroy() {

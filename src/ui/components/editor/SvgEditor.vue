@@ -400,11 +400,17 @@ export default {
 
         zoomToItems(items) {
             if (items.length === 0) {
+                if (this.schemeContainer.scheme.items.length === 0) {
+                    this.schemeContainer.screenTransform.scale = 1;
+                    this.schemeContainer.screenTransform.x = 0;
+                    this.schemeContainer.screenTransform.y = 0;
+                    this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
+                }
                 return;
             }
             const area = this.calculateZoomingAreaForItems(items);
             if (area) {
-                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, true);
+                this.onBringToView(area, true);
             }
         },
 

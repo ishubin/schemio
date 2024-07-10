@@ -1197,16 +1197,8 @@ export default {
             this.initSchemeContainer(this.scheme);
         },
 
-        getInitialZoom() {
-            const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
-            if (schemeSettings && schemeSettings.screenPosition) {
-                return parseFloat(schemeSettings.screenPosition.zoom);
-            }
-            return 100;
-        },
-
         getInitialScreenTransform() {
-            if (this.scheme && this.scheme.id) {
+            if (this.scheme.id && this.scheme.items.length > 0) {
                 const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
                 if (schemeSettings && schemeSettings.screenPosition) {
                     const zoom = parseFloat(schemeSettings.screenPosition.zoom);
@@ -1217,22 +1209,6 @@ export default {
                     };
                 }
             }
-            if (latestSchemeTransform) {
-                return latestSchemeTransform;
-            }
-            if (this.scheme.items && this.scheme.items.length > 0) {
-                const width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-                const height = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-
-                const area = getBoundingBoxOfItems(this.scheme.items);
-
-                return {
-                    x: width/2 - (area.x + area.w/2),
-                    y: (height)/2 - (area.y + area.h/2),
-                    scale: 1.0
-                };
-            }
-
             return { x: 0, y: 0, scale: 1.0 };
         },
 
@@ -1265,7 +1241,7 @@ export default {
                     this.switchToEditMode(initialScreenTransform);
                 }
 
-                this.zoom = this.getInitialZoom();
+                this.zoom = myMath.roundPrecise1(initialScreenTransform.scale * 100);
 
                 // Text tab is only rendered when in place text edit is triggered
                 // therefore it does not make sense to set it as current on scheme load
