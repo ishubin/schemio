@@ -192,7 +192,7 @@ import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED} from './items/shapes/Component.vue';
+import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath} from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
@@ -1223,6 +1223,24 @@ export default {
                     const itemHighlight = this.generateItemHighlight(item, false);
                     itemHighlight.fill = itemHighlight.stroke;
                     highlights.push(itemHighlight);
+                } else if (item.shape === 'component' && item.shapeProps.kind === 'external' && item.shapeProps.showButton === true) {
+                    const scalingVector = worldScalingVectorOnItem(item);
+                    let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
+                    if (myMath.tooSmall(scalingFactor)) {
+                        scalingFactor = 1;
+                    }
+                    const m = itemCompleteTransform(item);
+                    highlights.push({
+                        id: item.id,
+                        transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
+                        path: computeButtonPath(item),
+                        fill: this.schemeContainer.scheme.style.boundaryBoxColor,
+                        strokeSize: Math.max(2, item.shapeProps.buttonStrokeSize + 2),
+                        stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
+                        pins: [],
+                        opacity: 0.5,
+                        scalingFactor
+                    });
                 }
                 return true;
             });

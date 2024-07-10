@@ -79,10 +79,6 @@ const computePath = (item) => {
     return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 };
 
-export function calculateComponentButtonArea(item) {
-    return calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
-}
-
 function calculateButtonArea(item, maxWidth, maxHeight) {
     const minPadding = 5;
     const itemMaxWidth = item.area.w - 2 * minPadding;
@@ -97,7 +93,7 @@ function calculateButtonArea(item, maxWidth, maxHeight) {
     return { x, y, w, h };
 }
 
-function computeButtonPath(item) {
+export function computeButtonPath(item) {
     const area = calculateButtonArea(item, item.shapeProps.buttonWidth, item.shapeProps.buttonHeight);
     const R = Math.min(item.shapeProps.buttonCornerRadius, area.w/2, area.h/2);
     const X = area.x;
