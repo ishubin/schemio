@@ -39,3 +39,7 @@ export function createRoundRectPath(w, h, cornerRadius) {
 
     return `M ${w-R} ${h}  L ${R} ${h} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${w-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${w} ${h-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
 }
+
+export function createRectPath(w, h) {
+    return `M ${w} ${h}  L 0 ${h}  L 0 0  L ${w} 0  L ${w} ${h} Z`;
+}

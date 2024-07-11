@@ -38,6 +38,7 @@ let _shapes = [
     require('./Textfield.vue').default,
 
     require('./Table.vue').default,
+    require('./Grid.vue').default,
 
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
