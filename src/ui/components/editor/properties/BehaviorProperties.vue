@@ -464,12 +464,24 @@ export default {
                     }
 
                     if (shouldAddMethod) {
-                        methods.push({
-                            method: funcId,
-                            name: func.name,
-                            iconClass: 'fas fa-running',
-                            description: func.description
-                        });
+                        if (Array.isArray(func.menuOptions)) {
+                            func.menuOptions.forEach(option => {
+                                methods.push({
+                                    method: funcId,
+                                    name: option.name,
+                                    args: option.args,
+                                    iconClass: 'fas fa-running',
+                                    description: option.description ? option.description : func.description
+                                });
+                            });
+                        } else {
+                            methods.push({
+                                method: funcId,
+                                name: func.name,
+                                iconClass: 'fas fa-running',
+                                description: func.description
+                            });
+                        }
                     }
                 }
             });
@@ -699,7 +711,11 @@ export default {
                     action.args = {event: methodOption.event};
                 } else {
                     action.method = methodOption.method;
-                    action.args = this.getDefaultArgsForMethod(action, methodOption.method);
+                    let optionArgs = methodOption.args || {};
+                    action.args = {
+                        ...this.getDefaultArgsForMethod(action, methodOption.method),
+                        ...optionArgs
+                    };
                     const elementPickerArgumentName = this.findFirstElementPickerArgument(methodOption.method);
                     if (elementPickerArgumentName) {
                         EditorEventBus.elementPick.requested.$emit(this.editorId, (element) => {

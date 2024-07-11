@@ -16,6 +16,18 @@ export default {
         inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
     },
 
+    menuOptions: [{
+        name: 'Hide (animated)',
+        args: {
+            animated: true
+        }
+    }, {
+        name: 'Hide (instantly)',
+        args: {
+            animated: false
+        }
+    }],
+
     argsToShortString(args) {
         if (args.animated) {
             return `animated, ${args.animationDuration} sec`
