@@ -17,7 +17,6 @@ import SchemeContainer, { DEFAULT_ITEM_MODIFICATION_CONTEXT } from '../../../sch
 import { worldScalingVectorOnItem, localPointOnItem, isItemDescendantOf } from '../../../scheme/ItemMath.js';
 import EditorEventBus from '../EditorEventBus.js';
 import {traverseItems} from '../../../scheme/Item';
-import { compileItemTemplate } from '../items/ItemTemplate.js';
 import { ObjectTypes } from '../ObjectTypes.js';
 
 const log = new Logger('StateDragItem');
@@ -320,11 +319,14 @@ class DragControlPointState extends SubState {
             vertical: [{x, y}],
         }, excludedIds, 0, 0);
 
-        const closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+        let closestPointToItem = null;
+        if (this.item.shapeProps.autoAttach) {
+            closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+        }
 
         let worldX, worldY;
         // Not letting connectors attach to themselves
-        if (closestPointToItem && closestPointToItem.itemId !== this.item.id
+        if (this.item.shapeProps.autoAttach && closestPointToItem && closestPointToItem.itemId !== this.item.id
             && !this.schemeContainer.doesItemDependOn(closestPointToItem.itemId, this.item.id)) {
             worldX = closestPointToItem.x;
             worldY = closestPointToItem.y;
@@ -390,8 +392,6 @@ class DragControlPointState extends SubState {
             this.schemeContainer.editBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
         }
 
-
-        const shape = Shape.find(this.item.shape);
 
         this.listener.onItemChanged(this.item.id);
         this.schemeContainer.readjustItem(this.item.id, IS_SOFT, {...ITEM_MODIFICATION_CONTEXT_DEFAULT, controlPoint: true}, this.getUpdatePrecision());

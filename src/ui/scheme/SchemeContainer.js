@@ -834,7 +834,7 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
-            if (item.shape === 'connector') {
+            if (item.shape === 'connector' && item.shapeProps.autoAttach) {
                 if (item.shapeProps.sourceItem) {
                     registerDependant(item.shapeProps.sourceItem, item.id);
                 }
@@ -1674,6 +1674,10 @@ class SchemeContainer {
                 ny: normal.y,
             };
         };
+
+        if (!item.shapeProps.autoAttach) {
+            return;
+        }
 
         const sourcePoint = findAttachmentPoint(item.shapeProps.sourceItem, item.shapeProps.sourceItemPosition, item.shapeProps.sourcePin, 0);
         if (sourcePoint) {
@@ -3050,6 +3054,9 @@ class SchemeContainer {
      */
     tryReattachingConnector(item, editBox, pointIdx) {
         log.info('trying to reattach connector', 'pointIdx:', pointIdx);
+        if (!item.shapeProps.autoAttach) {
+            return;
+        }
         // since the connector item was moved, rotated or scaled completely we need
         // to try to attach it back with the following steps:
         // 1) first try to attach it at the same spot as before (x,y not by distance on path)
