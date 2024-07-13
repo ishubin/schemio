@@ -249,6 +249,14 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
     const shape = Shape.find(item.shape);
 
     const itemScope = {
+        findParent: () => {
+            let parentId = null;
+            if (item && item.meta) {
+                parentId = item.meta.parentId
+            }
+            return createItemScriptWrapper(schemeContainer.findItemById(parentId), schemeContainer, userEventBus);
+        },
+
         getId() {
             return item.id;
         },
@@ -351,13 +359,16 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
 
         setPosX: withTransformUpdate(x => item.area.x = x),
         setPosY: withTransformUpdate(y => item.area.y = y),
-        setPos: (v) => {
-            if (! v instanceof Vector) {
-                throw new Error('setPos support only vector');
+        setPos: (x, y) => {
+            let dstX = x, dstY = y;
+            if (x instanceof Vector) {
+                const v = x;
+                dstX = v.x;
+                dstY = v.y;
             }
 
-            item.area.x = v.x;
-            item.area.y = v.y;
+            item.area.x = dstX;
+            item.area.y = dstY;
             emitItemChanged();
             schemeContainer.updateChildTransforms(item);
             schemeContainer.readjustItemAndDescendants(item.id, IS_SOFT);
@@ -613,13 +624,6 @@ function findChildItemsByTag(item, tag) {
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
     return new Scope({
-        findParent: () => {
-            let parentId = null;
-            if (item && item.meta) {
-                parentId = item.meta.parentId
-            }
-            return createItemScriptWrapper(schemeContainer.findItemById(parentId), schemeContainer, userEventBus);
-        },
         findItemById: (id) => {
             return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
         },

@@ -990,7 +990,18 @@ dstX = getVar('dstX')
 
 ##### setPos
 
-`setPos(pos)` takes `pos` [Vector](#vector) argument and sets the items position in its local coordinates
+`setPos(x, y)` sets the position of item to the specified `x` and `y` in local coordinates.
+
+```js
+setPos(4, 5)
+```
+
+`setPos` function can also be called using a single `Vector` argument
+
+```js
+v = Vector(3, 5)
+setPos(v)
+```
 
 
 ##### setWidth
