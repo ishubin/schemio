@@ -50,8 +50,8 @@ export default {
         },
 
         args: {
-            cols       : {type: 'number', value: 10, min: 1, name: 'Columns'},
-            rows       : {type: 'number', value: 10, min: 1, name: 'Rows'},
+            gridCols   : {type: 'number', value: 10, min: 1, name: 'Columns'},
+            gridRows   : {type: 'number', value: 10, min: 1, name: 'Rows'},
             fill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255, 255, 255, 1.0)'}, name: 'Fill'},
             edges      : {type: 'boolean', value: true, name: 'Edges'},
             strokeColor: {type: 'color', value: 'rgba(230, 230, 230, 1.0)', name: 'Stroke'},
@@ -61,8 +61,8 @@ export default {
 
     data() {
         return {
-            xLines: generateLineValues(this.item.area.w, Math.max(1, this.item.shapeProps.cols)),
-            yLines: generateLineValues(this.item.area.h, Math.max(1, this.item.shapeProps.rows)),
+            xLines: generateLineValues(this.item.area.w, Math.max(1, this.item.shapeProps.gridCols)),
+            yLines: generateLineValues(this.item.area.h, Math.max(1, this.item.shapeProps.gridRows)),
         }
     },
 

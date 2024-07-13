@@ -690,7 +690,13 @@ describe('SchemioDocSchema', () => {
                 }
 
                 const entry = fields.get(fieldName);
-                expect(fieldSchema).toStrictEqual(entry.schema);
+
+                try {
+                    expect(fieldSchema).toStrictEqual(entry.schema);
+                }
+                catch(err) {
+                    throw new Error(`Mismatch for "${condition.on}" for "${fieldName}" field`, err);
+                }
                 entry.on.push(condition.on);
             });
         });
