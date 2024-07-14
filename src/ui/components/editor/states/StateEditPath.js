@@ -1199,7 +1199,7 @@ export default class StateEditPath extends State {
 
         if (pId2 === 0) {
             if (pId1 === 0) {
-                path1.points = path1.points.reverse();
+                this.invertPath(pathId1);
             }
             path1.points.pop();
             path2.points[0].x = mx;
@@ -1208,7 +1208,7 @@ export default class StateEditPath extends State {
             this.item.shapeProps.paths.splice(pathId2, 1);
         } else if (pId1 === 0) {
             if (pId2 === 0) {
-                path2.points = path2.points.reverse();
+                this.invertPath(pathId2);
             }
             path2.points.pop();
             path1.points[0].x = mx;
@@ -1216,7 +1216,7 @@ export default class StateEditPath extends State {
             path2.points = path2.points.concat(path1.points);
             this.item.shapeProps.paths.splice(pathId1, 1);
         } else {
-            path2.points = path2.points.reverse();
+            this.invertPath(pathId2);
             path1.points.pop();
             path2.points[0].x = mx;
             path2.points[0].y = my;
