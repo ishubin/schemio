@@ -911,6 +911,23 @@ export default class StateEditPath extends State {
         return selectedPoints;
     }
 
+    pointsSuitableForMerging(points) {
+        if (points.length !== 2) {
+            return false;
+        }
+
+        const path1 = this.item.shapeProps.paths[points[0].pathId];
+        const path2 = this.item.shapeProps.paths[points[1].pathId];
+        const idx1 = points[0].pointId;
+        const idx2 = points[1].pointId;
+
+        const isEdgePoint = (path, idx) => {
+            return idx === 0 || idx === path.points.length - 1;
+        };
+
+        return !path1.closed && !path2.closed && isEdgePoint(path1, idx1) && isEdgePoint(path2, idx2);
+    }
+
     contextMenuHandler(x, y, mx, my, object, event) {
         if (!isValidObject(object)) {
             this.listener.onContextMenuRequested(mx, my, [{
@@ -940,11 +957,11 @@ export default class StateEditPath extends State {
                 name: 'Convert to arc',
                 clicked: () => selectedPoints.forEach(p => this.convertPointToArc(p.pathId, p.pointId))
             }];
-            if (selectedPoints.length === 2) {
+            if (this.pointsSuitableForMerging(selectedPoints)) {
                 menuOptions.push({
                     name: 'Merge points',
                     clicked: () => this.mergePoints(selectedPoints[0], selectedPoints[1])
-                })
+                });
             }
             this.listener.onContextMenuRequested(mx, my, menuOptions);
             return;
