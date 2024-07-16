@@ -57,6 +57,7 @@ export default {
         title     : { type: String, default: 'Add effect' },
         isAdding  : { type: Boolean, default: true },
         effectId  : { type: String, required: true },
+        name      : { type: String, required: true},
         effectArgs: { type: Object, required: true },
         schemeContainer: { type: Object, required: true },
     },
@@ -66,7 +67,7 @@ export default {
 
         return {
             knownEffects: getKnownEffects(),
-            effectName: effect.name,
+            effectName: this.name,
             description: effect.description
         };
     },

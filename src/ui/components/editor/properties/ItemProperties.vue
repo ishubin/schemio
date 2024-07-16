@@ -234,6 +234,7 @@
             :key="`edit-effect-modal-${item.id}-${editEffectModal.currentEffectIndex}-${editEffectModal.effectId}`"
             :editorId="editorId"
             :isAdding="editEffectModal.isAdding"
+            :name="editEffectModal.name"
             :effectId="editEffectModal.effectId"
             :effectArgs="editEffectModal.effectArgs"
             :schemeContainer="schemeContainer"
@@ -247,7 +248,7 @@
 </template>
 
 <script>
-import {forEach, map, mapObjectValues, indexOf} from '../../../collections';
+import {forEach, map, mapObjectValues, indexOf, giveUniqueName} from '../../../collections';
 import EditorEventBus from '../EditorEventBus.js';
 import Panel from '../Panel.vue';
 import Tooltip from '../../Tooltip.vue';
@@ -342,6 +343,7 @@ export default {
 
             editEffectModal: {
                 effectId: 'drop-shadow',
+                name : '',
                 isAdding: true,
                 shown: false,
                 currentEffectIndex: -1,
@@ -496,10 +498,12 @@ export default {
                 const effectId = getDefaultEffectId();
                 const effect = findEffect(effectId);
                 this.editEffectModal.effectArgs = generateEffectArgs(effect);
+                const name = this.ensureUniqueEffectName(effect.name);
+                this.editEffectModal.name = name;
                 item.effects.push({
                     id: shortid.generate(),
                     effect: effectId,
-                    name: effect.name,
+                    name: name,
                     args: this.editEffectModal.effectArgs
                 });
                 this.editEffectModal.isAdding = true;
@@ -508,6 +512,14 @@ export default {
                 this.editEffectModal.currentEffectIndex = item.effects.length - 1;
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
             });
+        },
+
+        ensureUniqueEffectName(effectName) {
+            if (!Array.isArray(this.item.effects)) {
+                return effectName;
+            }
+            const allNames = this.item.effects.map(effect => effect.name);
+            return giveUniqueName(effectName, allNames);
         },
 
         effectModalClosed() {
@@ -587,11 +599,13 @@ export default {
 
                 const effect = findEffect(newEffectId);
                 this.editEffectModal.effectArgs = generateEffectArgs(effect);
+                const name = this.ensureUniqueEffectName(effect.name);
+                this.editEffectModal.name = name;
                 this.editEffectModal.effectId = newEffectId;
                 item.effects[this.editEffectModal.currentEffectIndex] = {
                     id: item.effects[this.editEffectModal.currentEffectIndex].id,
                     effect: newEffectId,
-                    name: effect.name,
+                    name: name,
                     args: this.editEffectModal.effectArgs
                 };
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
