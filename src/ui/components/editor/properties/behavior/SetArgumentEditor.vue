@@ -102,13 +102,16 @@ export default {
             transitions: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'],
             isChoice,
             choiceOptions,
-            argumentType: this.argumentDescription.type,
+            argumentType: this.argumentDescription ? this.argumentDescription.type : null,
             animationEditorShown: false
         };
     },
 
     computed: {
         supportsAnimation() {
+            if (!this.argumentDescription) {
+                return false;
+            }
             return supportsAnimationForSetFunction(this.argumentDescription.type);
         }
     },

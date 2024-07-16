@@ -242,10 +242,19 @@
  */
 
 /**
+ * @typedef {Object} ItemEffect
+ * @property {String} id
+ * @property {String} name
+ * @property {String} effect
+ * @property {Object} args
+ */
+
+/**
  * @typedef {Object} Item
  * @property {String} id
  * @property {String} name
  * @property {Array<String>} tags
+ * @property {Array<ItemEffect>} effects
  * @property {ItemArgs} args
  * @property {ItemMeta} meta
  * @property {Boolean} visible

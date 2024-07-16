@@ -157,7 +157,7 @@
                         <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
                         <SetArgumentEditor v-if="action.method === 'set'"
-                            :key="action.args.field"
+                            :key="`${action.id}-${action.args.field}`"
                             :editorId="editorId"
                             :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                             :argument-value="action.args.value"
@@ -233,7 +233,7 @@ import Dropdown from '../../Dropdown.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import Panel from '../Panel.vue';
 import Functions from '../../../userevents/functions/Functions.js';
-import {supportsAnimationForSetFunction} from '../../../userevents/functions/SetFunction';
+import {findItemEffectById, fieldPathToEffectData, getEffectArgumentDescription, isArgTypeSupportedInSetFunction, supportsAnimationForSetFunction} from '../../../userevents/functions/SetFunction';
 import Events from '../../../userevents/Events.js';
 import ElementPicker from '../ElementPicker.vue';
 import {generateEnrichedElement} from '../ElementPicker.vue';
@@ -247,6 +247,7 @@ import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../
 import EditorEventBus from '../EditorEventBus.js';
 import { dragAndDropBuilder } from '../../../dragndrop';
 import Modal from '../../Modal.vue';
+import { getEffects } from '../../effects/Effects';
 
 
 function byName(a, b) {
@@ -275,16 +276,16 @@ function sanitizeEvent(event) {
 }
 
 function createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
+    let item = null;
+    if (element === 'self') {
+        item = selfItem;
+    } else {
+        item = schemeContainer.findFirstElementBySelector(element);
+    }
     const coreProp = coreItemPropertyTypes[propertyPath];
     if (coreProp) {
         return coreProp.name;
     } else if (propertyPath.indexOf('shapeProps.') === 0) {
-        let item = null;
-        if (element === 'self') {
-            item = selfItem;
-        } else {
-            item = schemeContainer.findFirstElementBySelector(element);
-        }
         if (item && item.shape) {
             const shape = Shape.find(item.shape);
             const shapeArgName = propertyPath.substr('shapeProps.'.length);
@@ -303,6 +304,25 @@ function createPrettyPropertyName(propertyPath, element, selfItem, schemeContain
         if (fieldDescription) {
             return `Text / ${textSlotName} / ${fieldDescription.name}`;
         }
+    } else if (propertyPath.indexOf('effects.') === 0) {
+        const firstDotIdx = propertyPath.indexOf('.');
+        const secondDotIdx = propertyPath.indexOf('.', firstDotIdx + 1);
+        const effectId = propertyPath.substring(firstDotIdx + 1, secondDotIdx);
+        const argName = propertyPath.substring(secondDotIdx + 1);
+        const effect = item && Array.isArray(item.effects) ? item.effects.find(effect => effect.id === effectId) : null;
+
+        if (!effect) {
+            return 'Missing effect';
+        }
+        const knownEffect = getEffects()[effect.effect];
+        if (!knownEffect) {
+            return 'Missing effect';
+        }
+        const argDef = knownEffect.args[argName];
+        if (!argDef) {
+            return 'Missing effect';
+        }
+        return `Effect / ${effect.name} / ${argDef.name}`;
     }
     return propertyPath;
 }
@@ -507,7 +527,12 @@ export default {
                 }
             });
 
-            const properties = [];
+            const properties = this.createSetFunctionPropertySuggestions(item);
+            return methods.concat(properties);
+        },
+
+        createSetFunctionPropertySuggestions(item) {
+            let properties = [];
             forEach(coreItemPropertyTypes, (arg, name) => {
                 properties.push({
                     method: 'set',
@@ -520,12 +545,14 @@ export default {
             const shape = Shape.find(item.shape);
             if (shape) {
                 forEach(shape.args, (arg, argName) => {
-                    properties.push({
-                        method: 'set',
-                        name: arg.name,
-                        fieldPath: `shapeProps.${argName}`,
-                        iconClass: 'fas fa-cog'
-                    });
+                    if (isArgTypeSupportedInSetFunction(arg.type)) {
+                        properties.push({
+                            method: 'set',
+                            name: arg.name,
+                            fieldPath: `shapeProps.${argName}`,
+                            iconClass: 'fas fa-cog'
+                        });
+                    }
                 });
             }
 
@@ -540,6 +567,10 @@ export default {
                 });
             });
 
+            if (Array.isArray(item.effects)) {
+                properties = properties.concat(this.createEffectPropertySuggestions(item.effects));
+            }
+
             properties.sort((a,b) => {
                 if (a.name < b.name) {
                     return -1;
@@ -548,7 +579,34 @@ export default {
                 }
             });
 
-            return methods.concat(properties);
+            return properties;
+        },
+
+        /**
+         * @param {Array<ItemEffect>} effects
+         */
+        createEffectPropertySuggestions(effects) {
+            const properties = [];
+
+            const knownEffects = getEffects();
+
+            effects.forEach(effect => {
+                const knownEffect = knownEffects[effect.effect];
+                if (!knownEffect) {
+                    return;
+                }
+                forEach(knownEffect.args, (arg, argName) => {
+                    if (isArgTypeSupportedInSetFunction(arg.type)) {
+                        properties.push({
+                            method: 'set',
+                            name: `Effect / ${effect.name} / ${arg.name}`,
+                            fieldPath: `effects.${effect.id}.${argName}`,
+                            iconClass: 'fa-solid fa-wand-magic-sparkles'
+                        });
+                    }
+                });
+            });
+            return properties;
         },
 
         collectAllItemCustomEvents(item) {
@@ -699,11 +757,26 @@ export default {
 
                     const element = this.findElement(action.element);
                     if (element) {
-                        const property = getItemPropertyDescriptionForShape(Shape.find(element.shape), methodOption.fieldPath);
-                        if (property && supportsAnimationForSetFunction(property.type)) {
-                            args.animated = true;
+                        if (methodOption.fieldPath.startsWith('effects.')) {
+                            const effectData = fieldPathToEffectData(methodOption.fieldPath);
+                            if (effectData) {
+                                const itemEffect = findItemEffectById(item, effectData.effectId);
+                                if (itemEffect) {
+                                    const effect = getEffects()[itemEffect.effect];
+                                    const argDescriptor = effect.args[effectData.argName];
+                                    if (effect && argDescriptor) {
+                                        args.value = itemEffect.args[effectData.argName];
+                                        args.animated = supportsAnimationForSetFunction(argDescriptor.type);
+                                    }
+                                }
+                            }
+                        } else {
+                            const property = getItemPropertyDescriptionForShape(Shape.find(element.shape), methodOption.fieldPath);
+                            if (property && supportsAnimationForSetFunction(property.type)) {
+                                args.animated = true;
+                            }
+                            args.value = utils.getObjectProperty(element, methodOption.fieldPath);
                         }
-                        args.value = utils.getObjectProperty(element, methodOption.fieldPath);
                     }
                     action.args = args;
                 } else if (methodOption.method === 'custom-event') {
@@ -770,6 +843,14 @@ export default {
 
         getArgumentDescriptionForElement(element, propertyPath) {
             const entity = this.findElement(element);
+            if (!entity) {
+                return {type: 'string'};
+            }
+
+            if (propertyPath.startsWith('effects.')) {
+                return getEffectArgumentDescription(entity, propertyPath);
+            }
+
             if (entity && entity.shape) {
                 const descriptor = getItemPropertyDescriptionForShape(Shape.find(entity.shape), propertyPath);
                 if (descriptor) {

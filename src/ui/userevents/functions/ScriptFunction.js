@@ -68,13 +68,13 @@ export default {
             return;
         }
 
-        if (!item.args) {
-            item.args = {};
+        if (!item.meta) {
+            item.meta = {};
         }
-        if (!item.args.compiledScripts) {
-            item.args.compiledScripts = {};
+        if (!item.meta.compiledScripts) {
+            item.meta.compiledScripts = {};
         }
-        item.args.compiledScripts[script] = scriptAST;
+        item.meta.compiledScripts[script] = scriptAST;
     },
 
     // init function is called on compile phase
@@ -90,18 +90,18 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-        if (!item.args || !item.args.compiledScripts) {
+        if (!item.args || !item.meta.compiledScripts) {
             resultCallback();
             return
         }
-        const scriptAST = item.args.compiledScripts[args.script];
+        const scriptAST = item.meta.compiledScripts[args.script];
         if (!scriptAST) {
             resultCallback();
             return;
         }
 
-        const initScriptAST = item.args.compiledScripts[args.initScript];
-        const endScriptAST = item.args.compiledScripts[args.endScript];
+        const initScriptAST = item.meta.compiledScripts[args.initScript];
+        const endScriptAST = item.meta.compiledScripts[args.endScript];
 
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
 
