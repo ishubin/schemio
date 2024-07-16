@@ -258,7 +258,7 @@ import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import AdvancedBehaviorProperties from './AdvancedBehaviorProperties.vue';
-import {ItemInteractionMode} from '../../../scheme/Item.js';
+import {ItemInteractionMode, traverseItems} from '../../../scheme/Item.js';
 import {knownBlendModes} from '../../../scheme/ItemConst';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import StylesPalette from './StylesPalette.vue';
@@ -573,6 +573,7 @@ export default {
                 if (idx < 0 || idx >= item.effects.length) {
                     return;
                 }
+                this.deleteAllReferencesToEffect(item.id, item.effects[idx].id);
                 item.effects.splice(idx, 1);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
             });
@@ -594,6 +595,30 @@ export default {
                     args: this.editEffectModal.effectArgs
                 };
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
+            });
+        },
+
+        deleteAllReferencesToEffect(itemId, effectId) {
+            const fieldPrefix = `effects.${effectId}`;
+
+            traverseItems(this.schemeContainer.scheme.items, item => {
+                if (!item.behavior || !Array.isArray(item.behavior.events)) {
+                    return;
+                }
+
+                item.behavior.events.forEach(event => {
+                    if (!Array.isArray(event.actions)) {
+                        return;
+                    }
+
+                    for (let i = event.actions.length - 1; i >= 0; i--) {
+                        const action = event.actions[i];
+                        if (action.method === 'set' && action.args.field.startsWith(fieldPrefix)
+                            && ((item.id === item.id && action.element === 'self') || action.element === '#' + itemId)) {
+                            event.actions.splice(i, 1);
+                        }
+                    }
+                });
             });
         }
     },

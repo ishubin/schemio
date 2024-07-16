@@ -23,6 +23,7 @@ import { compileActions } from "../Compiler";
 import { traverseItems } from "../../scheme/Item";
 import { forEachObject } from "../../collections";
 
+const COMPILED_SCRIPTS = Symbol('compiledScripts');
 
 const IS_SOFT = true;
 const INFINITE_LOOP = 'infinite-loop';
@@ -68,13 +69,13 @@ export default {
             return;
         }
 
-        if (!item.meta) {
-            item.meta = {};
+        if (!item.args) {
+            item.args = {};
         }
-        if (!item.meta.compiledScripts) {
-            item.meta.compiledScripts = {};
+        if (!item.args[COMPILED_SCRIPTS]) {
+            item.args[COMPILED_SCRIPTS] = {};
         }
-        item.meta.compiledScripts[script] = scriptAST;
+        item.args[COMPILED_SCRIPTS][script] = scriptAST;
     },
 
     // init function is called on compile phase
@@ -90,18 +91,18 @@ export default {
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-        if (!item.args || !item.meta.compiledScripts) {
+        if (!item.args || !item.args[COMPILED_SCRIPTS]) {
             resultCallback();
             return
         }
-        const scriptAST = item.meta.compiledScripts[args.script];
+        const scriptAST = item.args[COMPILED_SCRIPTS][args.script];
         if (!scriptAST) {
             resultCallback();
             return;
         }
 
-        const initScriptAST = item.meta.compiledScripts[args.initScript];
-        const endScriptAST = item.meta.compiledScripts[args.endScript];
+        const initScriptAST = item.args[COMPILED_SCRIPTS][args.initScript];
+        const endScriptAST = item.args[COMPILED_SCRIPTS][args.endScript];
 
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
 

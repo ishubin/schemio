@@ -157,7 +157,7 @@ describe('UserEvents Compiler', () => {
                     area: {x: 10, y: 70}
                 }]
             ],
-        ].forEach(([argValue1, argValue2, expectedItems]) => {
+        ].forEach(([argValue1, argValue2, expectedItems], i) => {
             const items = [{
                 id: 'qwe',
                 area: {x: 10, y: 5}
@@ -212,6 +212,7 @@ describe('UserEvents Compiler', () => {
                 on: true,
                 args: {
                     script: `
+                        log('Sending custom-move event', "${argValue1}", ${argValue2})
                         findItemById("zxc").sendEvent("custom-move", "${argValue1}", ${argValue2})
                     `,
                     animated: false

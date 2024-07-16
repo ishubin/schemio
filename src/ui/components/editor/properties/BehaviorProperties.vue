@@ -760,7 +760,7 @@ export default {
                         if (methodOption.fieldPath.startsWith('effects.')) {
                             const effectData = fieldPathToEffectData(methodOption.fieldPath);
                             if (effectData) {
-                                const itemEffect = findItemEffectById(item, effectData.effectId);
+                                const itemEffect = findItemEffectById(element, effectData.effectId);
                                 if (itemEffect) {
                                     const effect = getEffects()[itemEffect.effect];
                                     const argDescriptor = effect.args[effectData.argName];
