@@ -132,6 +132,30 @@ function scriptFunctions(editorId, schemeContainer, item) {
         return callback(path.points[pointIdx]);
     }
 
+    const ensurePathIsValid = () => {
+        if (item.area.w < 1 || item.area.h < 1) {
+            const allPathWorldPoints = item.shapeProps.paths.map(path => {
+                return path.points.map(point => {
+                    const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                    return worldPointOnItem(p.x, p.y, item);
+                });
+            });
+
+            item.area.w = 100;
+            item.area.h = 100;
+
+            item.shapeProps.paths.forEach((path, pathIdx) => {
+                path.points.forEach((point, pointIdx) => {
+                    const wp = allPathWorldPoints[pathIdx][pointIdx];
+                    const localPoint = localPointOnItem(wp.x, wp.y, item);
+                    const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                    point.x = p.x;
+                    point.y = p.y;
+                });
+            });
+        }
+    };
+
     return {
         totalPaths() {
             return item.shapeProps.paths.length;
@@ -169,28 +193,7 @@ function scriptFunctions(editorId, schemeContainer, item) {
         },
 
         setPathPointWorldPos(pathIdx, pointIdx, x, y) {
-            if (item.area.w < 1 || item.area.h < 1) {
-                const allPathWorldPoints = item.shapeProps.paths.map(path => {
-                    return path.points.map(point => {
-                        const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
-                        return worldPointOnItem(p.x, p.y, item);
-                    });
-                });
-
-                item.area.w = 100;
-                item.area.h = 100;
-
-                item.shapeProps.paths.forEach((path, pathIdx) => {
-                    path.points.forEach((point, pointIdx) => {
-                        const wp = allPathWorldPoints[pathIdx][pointIdx];
-                        const localPoint = localPointOnItem(wp.x, wp.y, item);
-                        const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
-                        point.x = p.x;
-                        point.y = p.y;
-                    });
-                });
-            }
-
+            ensurePathIsValid();
             return withPath(pathIdx, path => {
                 return withPoint(path, pointIdx, point => {
                     const localPoint = localPointOnItem(x, y, item);
@@ -199,6 +202,49 @@ function scriptFunctions(editorId, schemeContainer, item) {
                     point.y = p.y;
                     emitItemChanged();
                 });
+            });
+        },
+
+        addPath() {
+            ensurePathIsValid();
+            item.shapeProps.paths.push({
+                closed: false,
+                points: []
+            });
+            return item.shapeProps.paths.length - 1;
+        },
+
+        addPoint(pathIdx, x, y) {
+            return withPath(pathIdx, path => {
+                const localPoint = localPointOnItem(x, y, item);
+                const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                path.points.push({
+                    t: 'L',
+                    x: p.x,
+                    y: p.y
+                });
+                emitItemChanged();
+            });
+        },
+
+        addBeizerPoint(pathIdx, x, y, x1, y1, x2, y2) {
+            return withPath(pathIdx, path => {
+                const lp = localPointOnItem(x, y, item);
+                const lp1 = localPointOnItem(x + x1, y + y1, item);
+                const lp2 = localPointOnItem(x + x2, y + y2, item);
+
+                const p = convertCurvePointToRelative({
+                    t: 'B',
+                    x: lp.x,
+                    y: lp.y,
+                    x1: lp1.x - lp.x,
+                    y1: lp1.y - lp.y,
+                    x2: lp2.x - lp.x,
+                    y2: lp2.y - lp.y,
+                }, item.area.w, item.area.h);
+                path.points.push(p);
+                emitItemChanged();
+                return path.points.length - 1;
             });
         },
     };

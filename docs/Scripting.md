@@ -120,6 +120,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [totalPoints (connector)](#totalpoints-connector)
       - [getPointWorldPos (connector)](#getpointworldpos-connector)
       - [setPointWorldPos (connector)](#setpointworldpos-connector)
+      - [addWorldPoint (connector)](#addworldpoint-connector)
+      - [removePoint (connector)](#removepoint-connector)
     - [Path functions](#path-functions)
       - [totalPaths (path)](#totalpaths-path)
       - [totalPathPoints (path)](#totalpathpoints-path)
@@ -128,6 +130,9 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [openPath (path)](#openpath-path)
       - [getPathPointWorldPos (path)](#getpathpointworldpos-path)
       - [setPathPointWorldPos (path)](#setpathpointworldpos-path)
+      - [addPath](#addpath)
+      - [addPoint (path)](#addpoint-path)
+      - [addBeizerPoint (path)](#addbeizerpoint-path)
     - [Math block functions](#math-block-functions)
       - [setExpression](#setexpression)
 
@@ -1215,6 +1220,27 @@ p = connector.setPointWorldPos(1, 45, -4)
 ```
 
 
+##### addWorldPoint (connector)
+
+`addWorldPoint(x, y)` adds a new point to connector at specified `x` and `y` in world coordinates and returns the point index.
+
+```js
+connector = findItemByName('Connector 1')
+connector.addWorldPoint(6, 1)
+pointIdx = connector.addWorldPoint(1, 45)
+```
+
+
+##### removePoint (connector)
+
+`removePoint(pointIdx)` removed point at specified `pointIdx` index
+
+```js
+connector = findItemByName('Connector 1')
+connector.removePoint(2)
+```
+
+
 #### Path functions
 
 Similar to [Connector](#connector-functions) a path item allows you to manipulate its points. The main difference compared to connector is that the path item actually consists of multiple paths.
@@ -1282,6 +1308,36 @@ log('x', p.x, 'y', p.y)
 ```js
 pathItem = findItemByName('Path 1')
 pathItem.setPathPointWorldPos(0, 4, 100, -54)
+```
+
+
+##### addPath
+
+`addPath()` adds a new open path in the `path` shape and returns its index
+
+```js
+pathItem = findItemByName('Path 1')
+pathIdx = pathItem.addPath()
+```
+
+
+##### addPoint (path)
+
+`addPoint(pathIdx, x, y)` adds a new point with specified `x` and `y` in world coordinates to the path at specified `pathIdx` index
+
+```js
+pathItem = findItemByName('Path 1')
+pathItem.addPoint(0, 5, 8)
+```
+
+
+##### addBeizerPoint (path)
+
+`addBeizerPoint(pathIdx, x, y, x1, y1, x2, y2)` adds a new beizer point with specified `x` and `y` in world coordinates to the path at specified `pathIdx` index. `x1`, `y1` and `x2`, `y2` are the beizer curve points relative to the `x`, `y` point.
+
+```js
+pathItem = findItemByName('Path 1')
+pathItem.addBeizerPoint(0, 5, 8, 2, 3, -1, -3)
 ```
 
 

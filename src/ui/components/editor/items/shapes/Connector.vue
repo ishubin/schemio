@@ -883,6 +883,25 @@ function scriptFunctions(editorId, schemeContainer, item) {
                 emitItemChanged();
             });
         },
+
+        addWorldPoint(x, y) {
+            item.shapeProps.destinationItem = null;
+            const lp = localPointOnItem(x, y, item);
+            item.shapeProps.points.push({
+                x: lp.x,
+                y: lp.y
+            });
+            emitItemChanged();
+            return item.shapeProps.points.length - 1;
+        },
+
+        removePoint(pointIdx) {
+            if (pointIdx < 0 || pointIdx >= item.shapeProps.points.length) {
+                return;
+            }
+            item.shapeProps.points.splice(pointIdx, 1);
+            emitItemChanged();
+        }
     };
 }
 
