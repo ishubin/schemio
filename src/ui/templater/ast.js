@@ -1,6 +1,6 @@
 import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
-import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
+import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
 import { ASTStructNode } from "./struct";
 import { normalizeTokens } from "./normalization";
@@ -204,6 +204,24 @@ class ASTParser extends TokenScanner {
         return processLeftovers();
     }
 
+    parseExternalObjectReference() {
+        let nextToken = this.scanToken();
+        if (!nextToken) {
+            throw new Error('Missing the name after "@" symbol');
+        }
+        if (nextToken.t === TokenTypes.TERM) {
+            return new ASTExternalObjectLookup(new ASTValue(nextToken.v));
+        } else if (nextToken.t === TokenTypes.STRING) {
+            return new ASTExternalObjectLookup(new ASTValue(nextToken.v))
+        } else if (nextToken.t === TokenTypes.STRING_TEMPLATE) {
+            return new ASTExternalObjectLookup(new ASTStringTemplate(parseStringExpression(nextToken.v)));
+        } else if (nextToken.t === TokenTypes.NUMBER) {
+            return new ASTExternalObjectLookup(new ASTValue('' + nextToken.v))
+        } else {
+            throw new Error('Unsupported token after "@"');
+        }
+    }
+
     /**
      * @param {ASTNode} expression
      */
@@ -296,6 +314,9 @@ class ASTParser extends TokenScanner {
             }
         } else if (token.t === TokenTypes.TERM) {
             return this.parseTermGroup(new ASTVarRef(token.v));
+        } else if (token.t === TokenTypes.AT_SYMBOL) {
+            const extVarRef = this.parseExternalObjectReference();
+            return this.parseTermGroup(extVarRef);
         } else if (token.t === TokenTypes.STRING) {
             return this.parseTermGroup(new ASTString(token.v));
         } else if (token.t === TokenTypes.OPERATOR && token.v === '-') {

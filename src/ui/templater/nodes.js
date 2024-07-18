@@ -278,6 +278,26 @@ export class ASTLocalVariable extends ASTNode {
     }
 }
 
+export class ASTExternalObjectLookup extends ASTNode {
+    /**
+     * @param {ASTNode} nameProvider
+     */
+    constructor(nameProvider) {
+        super('@');
+        this.nameProvider = nameProvider;
+    }
+
+    /**
+     * @param {Scope} scope
+     */
+    evalNode(scope) {
+        if (!this.nameProvider) {
+            return null;
+        }
+        const name = this.nameProvider.evalNode(scope);
+        return scope.getExternalObject(name);
+    }
+}
 
 export class ASTStringTemplate extends ASTNode {
     /**

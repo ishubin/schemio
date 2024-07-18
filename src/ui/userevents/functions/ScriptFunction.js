@@ -624,6 +624,7 @@ function findChildItemsByTag(item, tag) {
  */
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
+    const cache = new Map();
     return new Scope({
         findItemById: (id) => {
             return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
@@ -633,7 +634,33 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
         },
         ...itemInterface,
         log: createLogFunction(schemeContainer.editorId)
-    });
+    }, null, createItemByNameProvider(schemeContainer, userEventBus, cache));
+}
+
+
+/**
+ * @param {SchemeContainer} schemeContainer
+ * @param {*} userEventBus
+ * @param {Map} cache
+ */
+function createItemByNameProvider(schemeContainer, userEventBus, cache) {
+    return (name) => {
+        const cachedItem = cache.get(name);
+        if (cachedItem) {
+            return cachedItem;
+        }
+        const item = schemeContainer.findItemByName(name);
+        if (!item) {
+            const errMsg = `Could not refer to item by name "${name}"`;
+            EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', errMsg)
+            console.error(errMsg);
+            return null;
+        }
+
+        const itemWrapper = createItemScriptWrapper(item, schemeContainer, userEventBus);
+        cache.set(name, itemWrapper);
+        return itemWrapper;
+    };
 }
 
 class ScriptInfiniteLoopAnimation extends Animation {

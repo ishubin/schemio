@@ -788,4 +788,24 @@ describe('templater ast parser', () => {
         const result = node.evalNode(new Scope({}));
         expect(result).toBe(12);
     });
+
+    it('should let fetch external objects by name using the "@" symbol', () => {
+        const node = parseExpression(`
+            local name = @Item1.getName()
+            name += \` \${@Item2.getName()}\`
+
+            id = 4
+            name + ' ' + @"Item 3".getName() + ' ' + @\`Item \${id}\`.getName()
+        `);
+        const externalObjects = {
+            'Item1': { getName: () => 'john' },
+            'Item2': { getName: () => 'mike' },
+            'Item 3': { getName: () => 'paul' },
+            'Item 4': { getName: () => 'claire' },
+        };
+        const result = node.evalNode(new Scope({}, null, (name) => {
+            return externalObjects[name];
+        }));
+        expect(result).toBe("john mike paul claire");
+    });
 });

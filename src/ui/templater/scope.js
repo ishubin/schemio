@@ -1,12 +1,25 @@
 
 export class Scope {
-    constructor(data, parent) {
+    /**
+     * @param {Object} data
+     * @param {Scope|null} parent
+     * @param {function(string): any} externalObjectProvider
+     */
+    constructor(data, parent, externalObjectProvider) {
         this.data = data || {};
         this.parent = parent;
+        this.externalObjectProvider = externalObjectProvider;
     }
 
     hasVar(varName) {
         return this.data.hasOwnProperty(varName);
+    }
+
+    getExternalObject(name) {
+        if (!this.externalObjectProvider) {
+            return null;
+        }
+        return this.externalObjectProvider(name);
     }
 
     get(varName) {
@@ -42,7 +55,7 @@ export class Scope {
     }
 
     newScope(data = {}) {
-        return new Scope(data, this);
+        return new Scope(data, this, this.externalObjectProvider);
     }
 
     getData() {

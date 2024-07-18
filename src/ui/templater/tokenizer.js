@@ -20,7 +20,8 @@ export const TokenTypes = {
     // token group is used to group tokens into a token sub array for things like round brackets, curly brackets.
     TOKEN_GROUP    : 17,
     COLON          : 18,
-    FIELD_ACCESSOR : 19
+    FIELD_ACCESSOR : 19,
+    AT_SYMBOL      : 20,
 };
 
 export const ReservedTerms = {
@@ -78,6 +79,7 @@ const singleCharTokens = new Map(Object.entries({
     '{': {t: TokenTypes.START_CURLY, v: '{'},
     '}': {t: TokenTypes.END_CURLY, v: '}'},
     '.': {t: TokenTypes.FIELD_ACCESSOR, v: '.'},
+    '@': {t: TokenTypes.AT_SYMBOL, v: '@'},
 }));
 
 const doubleCharTokens = new Map(Object.entries({
