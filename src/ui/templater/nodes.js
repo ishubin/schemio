@@ -116,6 +116,12 @@ export class ASTAdd extends ASTOperator {
     evaluate(aVal, bVal) { return aVal + bVal};
 }
 
+export class ASTPow extends ASTOperator {
+    constructor(a, b) { super('pow', '^', a, b); }
+    evaluate(aVal, bVal) { return Math.pow(aVal, bVal)};
+}
+
+
 export class ASTSubtract extends ASTOperator {
     constructor(a, b) { super('subtract', '-', a, b); }
     evaluate(aVal, bVal) { return aVal - bVal};

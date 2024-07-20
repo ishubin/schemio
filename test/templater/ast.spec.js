@@ -39,6 +39,8 @@ describe('templater ast parser', () => {
     it('should evaluate functions and multi expressions', () => {
         [
             ['x + pow(y + 1, 3)', {x: 7, y: 2}, 34],
+            ['x + (y + 1)^3', {x: 7, y: 2}, 34],
+            ['x + 3*y^2*5', {x: 7, y: 2}, 67],
             ['min(x, 3) + max(y, 7)', {x: 7, y: 2}, 10],
             ['min(x, 3) + max(y, 7)', {x: 2, y: 10}, 12],
             ['x = (a = 1; b = 2; a + b); x*10', {}, 30],

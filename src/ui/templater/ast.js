@@ -1,12 +1,13 @@
 import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
-import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
+import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTPow, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
 import { ASTStructNode } from "./struct";
 import { normalizeTokens } from "./normalization";
 
 
 const operatorPrecedences = new Map(Object.entries({
+    '^': 6,
     '*': 5,
     '/': 5,
     '%': 5,
@@ -32,6 +33,7 @@ function operatorPrecedence(operator) {
 
 const operatorClasses = new Map(Object.entries({
     '+': ASTAdd,
+    '^': ASTPow,
     '-': ASTSubtract,
     '*': ASTMultiply,
     '/': ASTDivide,
