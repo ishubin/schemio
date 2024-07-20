@@ -450,9 +450,12 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             emitItemChanged();
         },
 
-        duplicate() {
+        duplicate(newName) {
             const clonedItems = schemeContainer.cloneItems([item]);
             const clonedItem = clonedItems[0];
+            if (newName) {
+                clonedItem.name = newName;
+            }
             const parentItem = item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
 
             if (parentItem) {

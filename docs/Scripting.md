@@ -1219,12 +1219,12 @@ textfield.setValue('John')
 
 ##### duplicate
 
-`duplicate` function creates a copy of the item (for which the `script` function is executed) and places it on scene at the same parent as the original item.
+`duplicate(name)` function creates a copy of the item (for which the `script` function is executed) with a new name (`name` argument) and places it on scene at the same parent as the original item.
 The duplicated item also copies all events a actions from the original item.
 
 Example:
 ```js
-newItem = duplicate()
+newItem = duplicate('new_name')
 newItem.setWorldPos(100, 0)
 ```
 
