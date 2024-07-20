@@ -4,6 +4,7 @@ SchemioScript Language
 Schemio offers a possibility of simple scripting. At this moment the Schemio scripting language is still in development and is very limited in features. Yet you still can achieve complex items behavior in your diagram.
 
 - [Basic syntax](#basic-syntax)
+- [Pow operator](#pow-operator)
 - [Boolean expressions](#boolean-expressions)
 - [Templated strings](#templated-strings)
 - [If statements](#if-statements)
@@ -164,6 +165,17 @@ x = 4 +
 % 3
 
 log('x', x)
+```
+
+Pow operator
+---------------
+
+In SchemioScript you can make use of pow operator `^`. Instead of writing `a*b*b`, you can write `a*b^2`.
+
+If you need to apply pow to a more complex expression, just surround it with brackets:
+
+```
+x = (a + 10) ^ 3
 ```
 
 
