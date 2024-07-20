@@ -10,6 +10,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
 - [Loops](#loops)
     - [While](#while)
     - [For loops](#for-loops)
+- [Item referencing](#item-referencing)
 - [Vector](#vector)
     - [Vector functions](#vector-functions)
       - [length](#length)
@@ -244,6 +245,35 @@ It is also possible to use C-like for loops:
 ```js
 for (i = 0; i < 5; i++) {
     log(i)
+}
+```
+
+
+Item referencing
+-----------------
+
+If you want to use other items in your script, you can do it via `@` symbol. For example, if you have an item named "Rect", you can reference it using `@Rect`
+
+```
+pos = @Rect.getWorldPos()
+@Rect.setWorldPos(pos.x + 20, pos.y - 10)
+```
+
+
+If you use non alphanumeric symbols, then you can surround the item's name with quotes (`"` or `'`):
+
+```
+pos = @"Rect 2".getWorldPos()
+@"Rect 2".setWorldPos(pos.x + 20, pos.y - 10)
+```
+
+
+Also you can use templated strings to make use of dynamic item referencing. Imagine you have multiple similar shapes and you want to apply the same transformation to them. You can do it in a "for" loop:
+
+```
+for (i = 1; i < 10; i++) {
+    pos = @`Rect ${i}`.getWorldPos()
+    @`Rect ${i}`.setWorldPos(pos.x + 20, pos.y - 10)
 }
 ```
 
