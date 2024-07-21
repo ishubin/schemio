@@ -42,16 +42,18 @@ export default {
             return;
         }
         if (args.animated) {
+            const initialOpacity = item.opacity;
             playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
                 durationMillis: args.animationDuration * 1000.0,
                 animationType: args.transition,
                 init() {
-                    item.opacity = 0.0;
+                    // item.opacity = 0.0;
                     item.visible = true;
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 },
                 update(t) {
-                    item.opacity = args.targetOpacity * t;
+                    item.visible = true;
+                    item.opacity = initialOpacity * (1 - t) + args.targetOpacity * t;
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 },
                 destroy() {

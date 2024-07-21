@@ -64,6 +64,7 @@ export default {
             }
         } else {
             item.visible = false;
+            item.opacity = 0;
             schemeContainer.updateVisibility(item);
             EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
             resultCallback();
