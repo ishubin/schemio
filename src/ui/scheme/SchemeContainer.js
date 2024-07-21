@@ -2081,10 +2081,12 @@ class SchemeContainer {
         this.enrichItem(item);
         if (parentItem) {
             parentItem.childItems.push(item);
+            const itemTransform = myMath.standardTransformWithArea(parentItem.meta.transformMatrix, parentItem.area);
+            this.reindexSpecifiedItems([item], itemTransform, parentItem, parentItem.meta.ancestorIds.concat([parentItem.id]), true);
         } else {
             this.scheme.items.push(item);
+            this.reindexSpecifiedItems([item]);
         }
-        this.reindexSpecifiedItems([item]);
         if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
             this.reindexEmbeddedComponent(item);
         }
