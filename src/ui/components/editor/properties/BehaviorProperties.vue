@@ -739,6 +739,9 @@ export default {
         },
 
         onActionMethodSelected(eventIndex, actionIndex, methodOption) {
+            // Canceling element pick in case user previously selected a method that triggered element pick
+            EditorEventBus.elementPick.canceled.$emit(this.editorId);
+
             this.updateItem(item => {
                 const action = item.behavior.events[eventIndex].actions[actionIndex];
                 if (!action) {
@@ -795,6 +798,9 @@ export default {
                             action.args[elementPickerArgumentName] = element;
                             this.emitChangeCommited();
                         });
+                    }
+                    if (methodOption.method === 'script') {
+                        this.showFunctionArgumentsEditor(action, eventIndex, actionIndex);
                     }
                 }
                 this.emitChangeCommited();

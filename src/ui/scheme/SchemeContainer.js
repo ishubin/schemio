@@ -2074,11 +2074,16 @@ class SchemeContainer {
     /**
      * Adds item to scene and returns a reference to it
      * @param {Item} item
+     * @param {Item|null} parentItem
      * @returns {Item}
      */
-    addItem(item) {
+    addItem(item, parentItem) {
         this.enrichItem(item);
-        this.scheme.items.push(item);
+        if (parentItem) {
+            parentItem.childItems.push(item);
+        } else {
+            this.scheme.items.push(item);
+        }
         this.reindexSpecifiedItems([item]);
         if (item.shape === 'component' && item.shapeProps.kind === 'embedded') {
             this.reindexEmbeddedComponent(item);

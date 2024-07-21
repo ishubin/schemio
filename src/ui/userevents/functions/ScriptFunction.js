@@ -457,14 +457,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
                 clonedItem.name = newName;
             }
             const parentItem = item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
-
-            if (parentItem) {
-                parentItem.childItems.push(clonedItem);
-            } else {
-                schemeContainer.addItem(clonedItem);
-            }
-
-            schemeContainer.reindexItems();
+            schemeContainer.addItem(clonedItem, parentItem);
 
             traverseItems([clonedItem], cItem => {
                 if (cItem.behavior && Array.isArray(cItem.behavior.events)) {
