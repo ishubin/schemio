@@ -47,7 +47,6 @@ export default {
                 durationMillis: args.animationDuration * 1000.0,
                 animationType: args.transition,
                 init() {
-                    // item.opacity = 0.0;
                     item.visible = true;
                     EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
                 },

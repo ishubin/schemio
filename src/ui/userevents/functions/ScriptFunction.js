@@ -358,6 +358,8 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             schemeContainer.readjustItemAndDescendants(item.id, IS_SOFT);
         },
 
+        setAngle: withTransformUpdate(r => item.area.r = r),
+
         setPosX: withTransformUpdate(x => item.area.x = x),
         setPosY: withTransformUpdate(y => item.area.y = y),
         setPos: (x, y) => {

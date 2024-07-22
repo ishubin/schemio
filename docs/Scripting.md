@@ -94,6 +94,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [matchWorld](#matchworld)
       - [mount](#mount)
       - [mountRoot](#mountroot)
+      - [setAngle](#setangle)
       - [setPosX](#setposx)
       - [setPosY](#setposy)
       - [setPos](#setpos)
@@ -1024,6 +1025,11 @@ dstX = getVar('dstX')
 ##### mountRoot
 
 `mountRoot()` mounts current item to root.
+
+
+##### setAngle
+
+`setAngle(angle)` changes the angle (degrees) of the item
 
 
 ##### setPosX
