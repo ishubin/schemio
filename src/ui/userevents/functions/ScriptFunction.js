@@ -104,15 +104,23 @@ export default {
         const initScriptAST = item.args[COMPILED_SCRIPTS][args.initScript];
         const endScriptAST = item.args[COMPILED_SCRIPTS][args.endScript];
 
+        let shouldProceedAnimating = true;
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
         scope.set('getEventName', () => eventName);
         scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
+        scope.set('stop', () => {
+            shouldProceedAnimating = false;
+        });
+        if (args.animationType === INFINITE_LOOP) {
+            scope.set('deltaTime', 0);
+        } else {
+            scope.set('t', 0);
+        }
 
         if (initScriptAST) {
             initScriptAST.evalNode(scope);
         }
 
-        let shouldProceedAnimating = true;
         const shouldPlayCallback = () => shouldProceedAnimating;
 
         const execScript = (t) => {
@@ -124,9 +132,6 @@ export default {
                 scope.set('t', t);
             }
 
-            scope.set('stop', () => {
-                shouldProceedAnimating = false;
-            });
             scriptAST.evalNode(scope);
         };
 
