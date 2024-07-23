@@ -105,6 +105,8 @@ export default {
         const endScriptAST = item.args[COMPILED_SCRIPTS][args.endScript];
 
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
+        scope.set('getEventName', () => eventName);
+        scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
 
         if (initScriptAST) {
             initScriptAST.evalNode(scope);
@@ -115,15 +117,13 @@ export default {
 
         const execScript = (t) => {
             if (args.animationType === INFINITE_LOOP) {
-                // in infinite loop users should "deltaTime" as time in seconds from last call
+                // in infinite loop users should use "deltaTime" as time in seconds from last call
                 scope.set('deltaTime', Math.min(0.1, t));
             } else {
                 // in a regular animation users may rely on "t" which represents the progress of animation from 0 to 1
                 scope.set('t', t);
             }
 
-            scope.set('getEventName', () => eventName);
-            scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
             scope.set('stop', () => {
                 shouldProceedAnimating = false;
             });
