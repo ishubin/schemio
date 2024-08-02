@@ -80,7 +80,7 @@ export default {
         animated        : {name: 'Animated',          type: 'boolean',value: true},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animated: true}},
         movement        : {name: 'Movement',          type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions', depends: {animated: true}}
     },
 
     argsToShortString(args) {

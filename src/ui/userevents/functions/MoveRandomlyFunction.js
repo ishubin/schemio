@@ -102,7 +102,7 @@ export default {
         radius          : {name: 'Moving Radius',     type: 'number', value: 20, description: 'Radius within which it will perform random movements'},
         speed           : {name: 'Moving Speed',      type: 'number', value: 1.0, description: 'Speed of each random movements'},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

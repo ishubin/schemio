@@ -397,7 +397,7 @@ export default {
         rotationOffset    : {name: 'Rotation offset',   type: 'number', value: 0, description: 'Rotation angle offset', depends: {adjustRotation: true, travelAlongPath: true}},
         travelFloatRadius : {name: 'Travel float radius',type: 'number', value: 5, depends: {travelAlongPath: true}},
         travelFloatSpeed  : {name: 'Travel float speed',type: 'number', value: 10, depends: {travelAlongPath: true}},
-        inBackground      : {name: 'In background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground      : {name: 'In background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

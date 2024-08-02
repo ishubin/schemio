@@ -662,7 +662,7 @@ export class ASTFunctionInvocation extends ASTNode {
 
     evalOnObject(scope, obj) {
         if (this.functionProvider.type !== VAR_REF) {
-            throw new Error('Invalid function invokation on object: ' + obj);
+            throw new Error('Invalid function invocation on object: ' + obj);
         }
 
         const name = this.functionProvider.varName;

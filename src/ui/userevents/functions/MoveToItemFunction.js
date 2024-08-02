@@ -146,7 +146,7 @@ export default {
         rotationOffset  : {name: 'Rotation Offset',   type: 'number', value: 0.0, depends: {rotate: true}, description: 'Rotation angle offset'},
         alignWidth      : {name: 'Align Width',       type: 'boolean',value: false, description: 'Adjust items width so that it fits to the width of its destination item'},
         alignHeight     : {name: 'Align Height',      type: 'boolean',value: false, description: 'Adjust items height so that it fits to the height of its destination item'},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions', depends: {animated: true}}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

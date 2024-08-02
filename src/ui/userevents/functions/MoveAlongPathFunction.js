@@ -115,7 +115,7 @@ export default {
         endPosition     : {name: 'End position (%)',  type: 'number', value: 100, description: 'Final position on the path in percentage to its total length'},
         rotateItem      : {name: 'Rotate item',       type: 'boolean',value: false, description: 'Adjust rotation of the item to path'},
         rotationOffset  : {name: 'Rotation offset',   type: 'number', value: 0, description: 'Rotation angle offset', depends: {rotateItem: true}},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

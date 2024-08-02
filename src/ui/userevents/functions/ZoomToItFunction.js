@@ -131,7 +131,7 @@ export default {
         animationDuration   : {name: 'Animation duration (sec)', type: 'number', value: 0.5, min: 0, depends: {animated: true}},
         minZoom             : {name: 'Minimum Zoom(%)', type: 'number', value: 0, min: 0},
         maxZoom             : {name: 'Maximum Zoom(%)', type: 'number', value: 100, min: 0},
-        inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground        : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     argsToShortString(args) {

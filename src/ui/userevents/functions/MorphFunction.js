@@ -23,7 +23,7 @@ export default {
         },
         animationDuration: {name: 'Animation duration (sec)', type: 'number', value: 0.5 },
         transition       : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce']},
-        inBackground     : {name: 'In Background', type: 'boolean', value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground     : {name: 'In Background', type: 'boolean', value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     /**

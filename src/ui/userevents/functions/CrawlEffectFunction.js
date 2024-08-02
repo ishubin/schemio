@@ -91,7 +91,7 @@ export default {
         duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {infinite: false}},
         infinite      : {name: 'Infinite animation',type: 'boolean', value: false, description: 'Plays animation indefinitely'},
         strokeWidth   : {name: 'Stroke Width',      type: 'number', value: 3},
-        inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

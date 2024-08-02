@@ -14,7 +14,7 @@ export default {
         x    : {name: 'x', type: 'number', value: 0},
         y    : {name: 'y', type: 'number', value: 0},
         scale: {name: 'scale', type: 'number', value: 0},
-        inBackground : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground : {name: 'In Background', type: 'boolean', value: false, depends: {animated: true}, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     argsToShortString(args) {

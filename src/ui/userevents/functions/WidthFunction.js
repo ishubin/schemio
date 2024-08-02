@@ -16,7 +16,7 @@ export default {
         animated        : {name: 'Animated',          type: 'boolean',value: false},
         duration        : {name: 'Duration (sec)',    type: 'number', value: 1.0, depends: {animated: true}},
         animationType   : {name: 'Animation Type',    type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
-        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions', depends: {animated: true}}
+        inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions', depends: {animated: true}}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

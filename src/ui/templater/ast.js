@@ -100,7 +100,7 @@ function parseFunction(functionProvider, tokens) {
     for (let i = 0; i < args.length; i++) {
         const argTokens = args[i];
         if (argTokens.length === 0 || (argTokens.length === 1 && argTokens[0].t === TokenTypes.NEWLINE)) {
-            throw new Error(`Missing argument #${i} in function invokation`);
+            throw new Error(`Missing argument #${i} in function invocation`);
         }
     }
 

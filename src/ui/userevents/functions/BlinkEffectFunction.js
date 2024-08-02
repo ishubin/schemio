@@ -149,7 +149,7 @@ export default {
         infinite        : {name: 'Infinite animation',type: 'boolean', value: false, description: 'Plays animation indefinitely'},
         minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5},
         maxOpacity      : {name: 'Max Opacity (%)',   type: 'number', value: 80},
-        inBackground    : {name: 'In Background',     type: 'boolean', value: false, description: 'Play animation in background without blocking invokation of other acctions'}
+        inBackground    : {name: 'In Background',     type: 'boolean', value: false, description: 'Play animation in background without blocking invocation of other acctions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {

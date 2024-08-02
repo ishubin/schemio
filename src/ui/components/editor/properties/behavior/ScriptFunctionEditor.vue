@@ -30,7 +30,7 @@
                 <input id="chk-script-animation-in-background" type="checkbox" :checked="args.inBackground"
                     @input="emitArgChange('inBackground', arguments[0].target.checked)"/>
                 <label for="chk-script-animation-in-background">In background</label>
-                <Tooltip>Play animation in background without blocking invokation of other actions</Tooltip>
+                <Tooltip>Play animation in background without blocking invocation of other actions</Tooltip>
             </div>
         </div>
 

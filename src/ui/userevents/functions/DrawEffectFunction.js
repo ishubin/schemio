@@ -131,7 +131,7 @@ export default {
         strokeSize    : {name: 'Stroke size',       type: 'number',  value: 2},
         duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0},
         twoWay        : {name: 'Two way',           type: 'boolean', value: false},
-        inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invokation of other actions'}
+        inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
