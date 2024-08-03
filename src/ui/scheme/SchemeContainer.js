@@ -1820,10 +1820,6 @@ class SchemeContainer {
             EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
         }
 
-        if (this.listener) {
-            this.listener.onSchemeChangeCommitted(this.editorId);
-        }
-
         this.reindexItems();
         this.updateEditBox();
     }
