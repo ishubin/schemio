@@ -67,7 +67,7 @@
                 Duplicate current diagram in a new file
             </p>
             <input type="text" class="textfield" placeholder="Name" v-model="duplicateDiagramModal.name"/>
-            <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-danger">
+            <div v-if="duplicateDiagramModal.errorMessage" class="msg msg-error">
                 {{duplicateDiagramModal.errorMessage}}
             </div>
         </modal>

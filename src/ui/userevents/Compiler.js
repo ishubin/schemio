@@ -5,6 +5,7 @@
 import {forEach} from '../collections';
 import { Logger } from '../logger.js';
 import knownFunctions from './functions/Functions.js';
+import { findSchemeDefinedScriptFunction } from './functions/ScriptFunction.js';
 
 const log = new Logger('Compiler');
 
@@ -32,40 +33,41 @@ export function compileActions(schemeContainer, selfItem, actions, errorCallback
         if (!action.on) {
             return;
         }
-        if (knownFunctions.main.hasOwnProperty(action.method)) {
-            if (action.element) {
-                const elements = schemeContainer.findElementsBySelector(action.element, selfItem);
-                if (elements) {
-                    const knownFunc = knownFunctions.main[action.method];
-                    if (knownFunc) {
-                        const args = enrichFuncArgs(action.args, knownFunc);
-                        if (knownFunc.multiItem) {
-                            // Means that this function is always expected to get array of items and in cases when it is applied
-                            // to a group of items - it will only be invoked once with array of those items as a first argument
-                            funcs.push({
-                                func: knownFunc,
-                                element: elements,
-                                args
-                            });
-                        } else {
-                            forEach(elements, element => {
-                                if (knownFunc.init) {
-                                    try {
-                                        knownFunc.init(element, args, schemeContainer);
-                                    } catch(err) {
-                                        if (err) {
-                                            console.error(err);
-                                            errorCallback(err);
-                                        }
+        if (action.element) {
+            const elements = schemeContainer.findElementsBySelector(action.element, selfItem);
+            if (elements) {
+                let knownFunc = knownFunctions.main[action.method];
+                if (!knownFunc && action.method.startsWith('function:')) {
+                    knownFunc = findSchemeDefinedScriptFunction(schemeContainer, action.method.substring(9), action.args);
+                }
+                if (knownFunc) {
+                    const args = enrichFuncArgs(action.args, knownFunc);
+                    if (knownFunc.multiItem) {
+                        // Means that this function is always expected to get array of items and in cases when it is applied
+                        // to a group of items - it will only be invoked once with array of those items as a first argument
+                        funcs.push({
+                            func: knownFunc,
+                            element: elements,
+                            args
+                        });
+                    } else {
+                        forEach(elements, element => {
+                            if (knownFunc.init) {
+                                try {
+                                    knownFunc.init(element, args, schemeContainer);
+                                } catch(err) {
+                                    if (err) {
+                                        console.error(err);
+                                        errorCallback(err);
                                     }
                                 }
-                                funcs.push({
-                                    func: knownFunc,
-                                    element,
-                                    args
-                                });
+                            }
+                            funcs.push({
+                                func: knownFunc,
+                                element,
+                                args
                             });
-                        }
+                        });
                     }
                 }
             }

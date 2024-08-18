@@ -303,9 +303,8 @@ ul.tabs.tabs-file li .tab {
 }
 .tabs-body {
     position: relative;
-    padding: 10px;
+    padding-top: 4px;
     margin: 0;
-    background: var(--faint-weak);
 }
 .tabs-body:before {
     z-index: 1;
@@ -423,7 +422,7 @@ input.textfield.textfield-small {
     padding: 1px;
     font-size: 12px;
 }
-input.textfield.missing-field-error {
+input.textfield.field-error {
     border: 1px solid var(--critic-strong);
     box-shadow: 0 0 5px var(--critic-strong);
 }
@@ -1254,6 +1253,8 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .side-panel {
     height: 100%;
     position: absolute;
+    display: flex;
+    flex-direction: column;
     top: 0;
     background: var(--faint-weak-up);
     box-shadow: 0 0 10px var(--shadow-color);
@@ -1960,6 +1961,7 @@ ul.links-editor .edit-link:hover {
     border: 1px solid var(--faint-weak-down);
     background: var(--base-weak);
     min-width: 100px;
+    width: 100%;
     border-radius: var(--middle-border-radius);
     outline: none;
 }
@@ -2222,10 +2224,12 @@ ul.script-options .script-option.selected {
     top: 3px;
     user-select: none;
 }
+.icon-delete {
+    color: var(--critic-strong);
+}
 .behavior-action-container .icon-container .icon-delete {
     display: none;
     opacity: 0.6;
-    color: var(--critic-strong);
 }
 .behavior-action-container .icon-container .icon-move {
     display: none;
@@ -4528,4 +4532,38 @@ ul.properties-button-list > li > .btn {
 }
 .script-console-entries > li.status-error > .console-message {
     color: var(--critic-strong);
+}
+
+
+.navbar-functions-list {
+    list-style: none;
+    margin-top: 10px;
+    padding: 0px;
+}
+.navbar-functions-list > li {
+    position: relative;
+    padding: 4px 8px;
+    border: 1px solid rgba(0,0,0,0);
+}
+.navbar-functions-list .func-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    font-family: monospace;
+}
+.navbar-functions-list .icon-edit {
+    color: var(--faint-strong-down-down);
+}
+.navbar-functions-list .operations {
+    position: absolute;
+    display: none;
+    right: 0;
+    top: 3px;
+}
+.navbar-functions-list > li:hover {
+    background-color: var(--faint-weak-down);
+    border: 1px solid var(--faint-strong);
+}
+.navbar-functions-list > li:hover .operations {
+    display: inline-block;
 }

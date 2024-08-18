@@ -34,8 +34,145 @@ A script that runs before the start of animation. It is only invoked in animatio
 
 const scriptDescription = `A Schemio script expression. In animation mode this script is being executed on every animation frame`;
 
+function precompileItemScript(item, script, editorId) {
+    const scriptAST = parseExpression(script);
+    if (!scriptAST) {
+        return;
+    }
 
-export default {
+    if (!item.args) {
+        item.args = {};
+    }
+    if (!item.args[COMPILED_SCRIPTS]) {
+        item.args[COMPILED_SCRIPTS] = {};
+    }
+    item.args[COMPILED_SCRIPTS][script] = scriptAST;
+}
+
+function init(item, args, schemeContainer, userEventBus) {
+    precompileItemScript(item, args.script, schemeContainer.editorId);
+    if (args.initScript) {
+        precompileItemScript(item, args.initScript, schemeContainer.editorId);
+    }
+    if (args.endScript) {
+        precompileItemScript(item, args.endScript, schemeContainer.editorId);
+    }
+}
+
+
+function execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}) {
+    if (!item.args || !item.args[COMPILED_SCRIPTS]) {
+        resultCallback();
+        return
+    }
+    const scriptAST = item.args[COMPILED_SCRIPTS][args.script];
+    if (!scriptAST) {
+        resultCallback();
+        return;
+    }
+
+    const initScriptAST = item.args[COMPILED_SCRIPTS][args.initScript];
+    const endScriptAST = item.args[COMPILED_SCRIPTS][args.endScript];
+
+    let shouldProceedAnimating = true;
+    const scope = createItemBasedScope(item, schemeContainer, userEventBus);
+    for (let name in extraScopeData) {
+        if (extraScopeData.hasOwnProperty(name)) {
+            scope.set(name, extraScopeData[name]);
+        }
+    }
+    scope.set('getEventName', () => eventName);
+    scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
+    scope.set('stop', () => {
+        shouldProceedAnimating = false;
+    });
+    if (args.animationType === INFINITE_LOOP) {
+        scope.set('deltaTime', 0);
+    } else {
+        scope.set('t', 0);
+    }
+
+    if (initScriptAST) {
+        initScriptAST.evalNode(scope);
+    }
+
+    const shouldPlayCallback = () => shouldProceedAnimating;
+
+    const execScript = (t) => {
+        if (args.animationType === INFINITE_LOOP) {
+            // in infinite loop users should use "deltaTime" as time in seconds from last call
+            scope.set('deltaTime', Math.min(0.1, t));
+        } else {
+            // in a regular animation users may rely on "t" which represents the progress of animation from 0 to 1
+            scope.set('t', t);
+        }
+
+        scriptAST.evalNode(scope);
+    };
+
+    const onDestroy = () => {
+        if (endScriptAST) {
+            endScriptAST.evalNode(scope);
+        }
+    };
+
+    if (args.animated) {
+        if (args.animationType === INFINITE_LOOP) {
+            const animation = new ScriptInfiniteLoopAnimation(item, args, schemeContainer, resultCallback, execScript, onDestroy, shouldPlayCallback)
+            playInAnimationRegistry(schemeContainer.editorId, animation, item.id, 'script-infinite-loop-' + myMath.stringHash(args.script));
+        } else {
+            playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
+                durationMillis: args.animationDuration * 1000.0,
+                animationType: args.transition,
+                init() { },
+                update(t) {
+                    execScript(t);
+                },
+                destroy() {
+                    try {
+                        onDestroy();
+                    } catch(err) {
+                        console.error(err);
+                    }
+                    if (!args.inBackground) {
+                        resultCallback();
+                    }
+                }
+            }), item.id, 'script_' + myMath.stringHash(args.script));
+        }
+        if (args.inBackground) {
+            resultCallback();
+        }
+    } else {
+        try {
+            execScript(0);
+        } catch (err) {
+            EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', err.message);
+            console.error(`Failed executing item script: ${args.script}`, err);
+        }
+        resultCallback();
+    }
+}
+
+
+export function findSchemeDefinedScriptFunction(schemeContainer, funcName) {
+    const funcDef = schemeContainer.scheme.scripts.functions.find(f => f.name === funcName);
+    if (!funcDef) {
+        return null;
+    }
+    return {
+        init(item, args, schemeContainer, userEventBus) {
+            init(item, funcDef.props, schemeContainer, userEventBus);
+        },
+
+        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
+            execute(item, funcDef.props, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, args);
+        }
+    };
+}
+
+
+export const ScriptFunction = {
     name: 'Script',
 
     description: 'Runs user defined script using SchemioScript language.',
@@ -63,122 +200,17 @@ export default {
         return script;
     },
 
-    precompileItemScript(item, script, editorId) {
-        const scriptAST = parseExpression(script);
-        if (!scriptAST) {
-            return;
-        }
-
-        if (!item.args) {
-            item.args = {};
-        }
-        if (!item.args[COMPILED_SCRIPTS]) {
-            item.args[COMPILED_SCRIPTS] = {};
-        }
-        item.args[COMPILED_SCRIPTS][script] = scriptAST;
-    },
 
     // init function is called on compile phase
     // this is used to optimize parsing of the script
     init(item, args, schemeContainer, userEventBus) {
-        this.precompileItemScript(item, args.script, schemeContainer.editorId);
-        if (args.initScript) {
-            this.precompileItemScript(item, args.initScript, schemeContainer.editorId);
-        }
-        if (args.endScript) {
-            this.precompileItemScript(item, args.endScript, schemeContainer.editorId);
-        }
+        init(item, args, schemeContainer, userEventBus);
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-        if (!item.args || !item.args[COMPILED_SCRIPTS]) {
-            resultCallback();
-            return
-        }
-        const scriptAST = item.args[COMPILED_SCRIPTS][args.script];
-        if (!scriptAST) {
-            resultCallback();
-            return;
-        }
-
-        const initScriptAST = item.args[COMPILED_SCRIPTS][args.initScript];
-        const endScriptAST = item.args[COMPILED_SCRIPTS][args.endScript];
-
-        let shouldProceedAnimating = true;
-        const scope = createItemBasedScope(item, schemeContainer, userEventBus);
-        scope.set('getEventName', () => eventName);
-        scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
-        scope.set('stop', () => {
-            shouldProceedAnimating = false;
-        });
-        if (args.animationType === INFINITE_LOOP) {
-            scope.set('deltaTime', 0);
-        } else {
-            scope.set('t', 0);
-        }
-
-        if (initScriptAST) {
-            initScriptAST.evalNode(scope);
-        }
-
-        const shouldPlayCallback = () => shouldProceedAnimating;
-
-        const execScript = (t) => {
-            if (args.animationType === INFINITE_LOOP) {
-                // in infinite loop users should use "deltaTime" as time in seconds from last call
-                scope.set('deltaTime', Math.min(0.1, t));
-            } else {
-                // in a regular animation users may rely on "t" which represents the progress of animation from 0 to 1
-                scope.set('t', t);
-            }
-
-            scriptAST.evalNode(scope);
-        };
-
-        const onDestroy = () => {
-            if (endScriptAST) {
-                endScriptAST.evalNode(scope);
-            }
-        };
-
-        if (args.animated) {
-            if (args.animationType === INFINITE_LOOP) {
-                const animation = new ScriptInfiniteLoopAnimation(item, args, schemeContainer, resultCallback, execScript, onDestroy, shouldPlayCallback)
-                playInAnimationRegistry(schemeContainer.editorId, animation, item.id, 'script-infinite-loop-' + myMath.stringHash(args.script));
-            } else {
-                playInAnimationRegistry(schemeContainer.editorId, new ValueAnimation({
-                    durationMillis: args.animationDuration * 1000.0,
-                    animationType: args.transition,
-                    init() { },
-                    update(t) {
-                        execScript(t);
-                    },
-                    destroy() {
-                        try {
-                            onDestroy();
-                        } catch(err) {
-                            console.error(err);
-                        }
-                        if (!args.inBackground) {
-                            resultCallback();
-                        }
-                    }
-                }), item.id, this.name + myMath.stringHash(args.script));
-            }
-            if (args.inBackground) {
-                resultCallback();
-            }
-        } else {
-            try {
-                execScript(0);
-            } catch (err) {
-                EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', err.message);
-                console.error(`Failed executing item script: ${args.script}`, err);
-            }
-            resultCallback();
-        }
+        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs);
     }
-}
+};
 
 /**
  * @param {Item} item

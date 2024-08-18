@@ -36,10 +36,10 @@ import TransformScreenFunction from './TransformScreenFunction';
 import DrawEffectFunction from './DrawEffectFunction';
 import WidthFunction from './WidthFunction';
 import HeightFunction from './HeightFunction';
-import ScriptFunction from './ScriptFunction';
 import ConditionFunction from './ConditionFunction';
 import MorphFunction from './MorphFunction';
 import FlowEffectFunction from './FlowEffectFunction';
+import { ScriptFunction } from './ScriptFunction';
 
 export default {
     main: {

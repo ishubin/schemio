@@ -355,13 +355,24 @@
             </div>
 
             <div class="side-panel side-panel-left" ref="sidePanelLeft" v-if="mode === 'edit' && schemeContainer" :style="{width: `${sidePanelLeftWidth}px`}">
+                <ul v-if="sidePanelLeftWidth > 0" class="tabs">
+                    <li v-for="tab in leftTabs">
+                        <span class="tab" :class="{active: tab.name === currentLeftTab}" @click="currentLeftTab = tab.name">
+                            <i v-if="tab.iconClass" :class="tab.iconClass"></i>
+                            {{tab.name}}
+                        </span>
+                    </li>
+                </ul>
+                <div class="tabs-body">
+                </div>
+
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                     <i v-if="sidePanelLeftWidth > 0" class="fas fa-angle-left"></i>
                     <i v-else class="fas fa-angle-right"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
-                        <CreateItemMenu
+                        <CreateItemMenu v-if="currentLeftTab === 'Shapes'"
                             :key="`${editorId}-${schemeContainer.scheme.id}`"
                             :editorId="editorId"
                             :scheme-container="schemeContainer"
@@ -374,6 +385,12 @@
                             @state-drag-item-requested="cancelCurrentState"
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
+
+                        <ScriptsTab v-if="currentLeftTab === 'Scripts'" 
+                            :key="`${editorId}-${schemeContainer.scheme.id}`"
+                            :editorId="editorId"
+                            :scheme-container="schemeContainer"
+                            />
                     </div>
                 </div>
             </div>
@@ -383,54 +400,55 @@
                     <i v-if="sidePanelRightWidth > 0" class="fas fa-angle-right"></i>
                     <i v-else class="fas fa-angle-left"></i>
                 </span>
+                <ul v-if="inPlaceTextEditor.shown" class="tabs text-nonselectable">
+                    <li><span class="tab active">Text</span></li>
+                </ul>
+                <ul v-else-if="state === 'draw'" class="tabs text-nonselectable">
+                    <li><span class="tab active">Draw</span></li>
+                </ul>
+                <ul v-else class="tabs">
+                    <li v-for="tab in tabs">
+                        <span class="tab"
+                            :class="{active: currentTab === tab}"
+                            @click="changeTab(tab)"
+                            >{{tab}}</span>
+                    </li>
+                    <li v-for="tab in extraTabs">
+                        <div class="tab"
+                            :class="{active: currentTab === `extra:${tab.name}`}"
+                            @click="changeTab(`extra:${tab.name}`)"
+                            >
+                            <i v-if="tab.icon" class="tab-icon" :class="tab.icon"></i>
+                            <span v-else>{{tab.name}}</span>
+                            <span v-if="tab.count">({{tab.count}})</span>
+                        </div>
+                    </li>
+                    <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
+                        <span class="tab"
+                            :class="{active: currentTab === itemTextSlotTab.tabName}"
+                            @click="changeTab(itemTextSlotTab.tabName)"
+                            >&#167; {{itemTextSlotTab.slotName}}</span>
+                    </li>
+                    <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
+                        <span class="tab"
+                            :class="{active: currentTab === 'template'}"
+                            @click="changeTab('template')"
+                            ><i class="fa-solid fa-scroll"></i>Template</span>
+                    </li>
+                </ul>
+                <div class="tabs-body">
+                </div>
                 <div class="side-panel-overflow" v-if="sidePanelRightWidth > 0">
-                    <ul v-if="inPlaceTextEditor.shown" class="tabs text-nonselectable">
-                        <li><span class="tab active">Text</span></li>
-                    </ul>
-                    <ul v-else-if="state === 'draw'" class="tabs text-nonselectable">
-                        <li><span class="tab active">Draw</span></li>
-                    </ul>
-                    <ul v-else class="tabs">
-                        <li v-for="tab in tabs">
-                            <span class="tab"
-                                :class="{active: currentTab === tab}"
-                                @click="changeTab(tab)"
-                                >{{tab}}</span>
-                        </li>
-                        <li v-for="tab in extraTabs">
-                            <div class="tab"
-                                :class="{active: currentTab === `extra:${tab.name}`}"
-                                @click="changeTab(`extra:${tab.name}`)"
-                                >
-                                <i v-if="tab.icon" class="tab-icon" :class="tab.icon"></i>
-                                <span v-else>{{tab.name}}</span>
-                                <span v-if="tab.count">({{tab.count}})</span>
-                            </div>
-                        </li>
-                        <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
-                            <span class="tab"
-                                :class="{active: currentTab === itemTextSlotTab.tabName}"
-                                @click="changeTab(itemTextSlotTab.tabName)"
-                                >&#167; {{itemTextSlotTab.slotName}}</span>
-                        </li>
-                        <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
-                            <span class="tab"
-                                :class="{active: currentTab === 'template'}"
-                                @click="changeTab('template')"
-                                ><i class="fa-solid fa-scroll"></i>Template</span>
-                        </li>
-                    </ul>
-
                     <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
 
-                    <div class="tabs-body" v-if="state === 'draw'">
+                    <div v-if="state === 'draw'">
                         <DrawingControlsPanel
                             :isBrush="isDrawingBrush"
                             @color-picked="onDrawColorPicked"
                             @stop-drawing-requested="stopDrawing"
                             />
                     </div>
-                    <div v-else class="tabs-body">
+                    <div v-else>
                         <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.shown">
                             <SchemeProperties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
@@ -618,6 +636,7 @@ import ItemDetails from './editor/ItemDetails.vue';
 import SchemeProperties from './editor/SchemeProperties.vue';
 import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
+import ScriptsTab   from './editor/ScriptsTab.vue';
 import ElementPicker from './editor/ElementPicker.vue';
 import DiagramPicker from './editor/DiagramPicker.vue';
 import LinkEditModal from './editor/LinkEditModal.vue';
@@ -774,7 +793,7 @@ export default {
         ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
-        DrawingControlsPanel, ExportAnimationModal, ScriptConsole
+        DrawingControlsPanel, ExportAnimationModal, ScriptConsole, ScriptsTab
     },
 
     props: {
@@ -1070,6 +1089,12 @@ export default {
                 item: null,
                 shown: false
             },
+
+            currentLeftTab: 'Shapes',
+            leftTabs: [
+                {name: 'Shapes', iconClass: 'fa-solid fa-shapes'},
+                {name: 'Scripts', iconClass: 'fa-solid fa-code'},
+            ],
 
             currentTab: 'Doc',
             tabs: [ 'Doc', 'Item'],

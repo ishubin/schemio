@@ -23,6 +23,11 @@ const baseSchema = {
             itemMarkerColor   : {type: 'ignored'},
             itemMarkerToggled : {type: 'ignored'}
         }},
+        scripts: {type: 'object', patching: ['modify'], fields: {
+            main: {type: 'object', patching: ['modify'], fields: {
+                source: {type: 'string', patching: ['patch-text', 'replace']}
+            }}
+        }},
         settings: {type: 'object', patching: ['modify'], fields: {
             screen: {type: 'object', patching: ['modify'], fields: {
                 draggable: {type: 'boolean', patching: ['replace']}

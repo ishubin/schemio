@@ -5,7 +5,7 @@
 <template lang="html">
     <modal title="New Diagram" primaryButton="Create" @primary-submit="submitNewScheme()" @close="$emit('close')">
         <h5>Name</h5>
-        <input ref="schemeNameInput" class="textfield" :class="{'missing-field-error' : mandatoryFields.name.highlight}"
+        <input ref="schemeNameInput" class="textfield" :class="{'field-error' : mandatoryFields.name.highlight}"
             type="text"
             v-model="schemeName"
             placeholder="Name..."
