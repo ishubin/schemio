@@ -196,6 +196,8 @@ import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath} from './it
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
+import { parseExpression } from '../../templater/ast.js';
+import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -242,6 +244,17 @@ export default {
         if (this.mode === 'view') {
             this.reindexUserEvents();
             this.prepareFrameAnimations();
+
+            const initScriptSource = this.schemeContainer.scheme.scripts.main.source;
+            if (initScriptSource) {
+                try {
+                    this.compiledMainScript = parseExpression(initScriptSource);
+                } catch(ex) {
+                    this.compiledMainScript = null;
+                    console.error(ex);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to compile main script', 'main-script-compilation-error');
+                }
+            }
         }
 
         EditorEventBus.zoomToAreaRequested.$on(this.editorId, this.onBringToView);
@@ -264,6 +277,7 @@ export default {
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
     },
+
     mounted() {
         this.updateSvgSize();
         window.addEventListener("resize", this.updateSvgSize);
@@ -276,11 +290,23 @@ export default {
         }
 
         if (this.mode === 'view') {
+            if (this.compiledMainScript && this.userEventBus) {
+                try {
+                    const scope = createMainScriptScope(this.schemeContainer, this.userEventBus);
+                    this.compiledMainScript.evalNode(scope);
+                    this.schemeContainer.mainScopeData = scope.data;
+                } catch(ex) {
+                    console.error(ex);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to execute main script', 'main-script-failure');
+                }
+            }
+
             forEach(this.itemsForInit, (val, itemId) => {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }
     },
+
     beforeDestroy(){
         this.highlightAnimated = true;
         window.removeEventListener("resize", this.updateSvgSize);
@@ -346,6 +372,8 @@ export default {
 
             highlightAnimated : false,
             highlightAnimationTime: 0,
+
+            compiledMainScript : null,
         };
     },
     methods: {

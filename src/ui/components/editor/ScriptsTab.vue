@@ -9,21 +9,19 @@
         </Panel>
 
         <Panel uid="script-functions" name="Item Functions">
-            <div class="hint hint-small">
-                Lets you create custom item functions that you can execute for any item
-            </div>
-            
+            <Tooltip>
+                Functions let you create scripted actions for items which you can then use from items events
+            </Tooltip>
             <span class="btn btn-secondary" @click="startAddingNewFunction"><i class="fa-solid fa-florin-sign"></i> New function</span>
 
             <ul class="navbar-functions-list">
                 <li v-for="(func, funcIdx) in schemeContainer.scheme.scripts.functions">
-                    <span class="func-name">
+                    <span class="func-name" @click="openFuncEditor(funcIdx)">
                         <i class="fa-solid fa-florin-sign"></i>
                         {{ func.name }}
                     </span>
                     <div class="operations">
                         <span class="link icon-delete" @click="deleteFunc(funcIdx)"><i class="fas fa-times"></i></span>
-                        <span class="link icon-edit" @click="openFuncEditor(funcIdx)"><i class="fa-regular fa-pen-to-square"></i></span>
                     </div>
                 </li>
             </ul>

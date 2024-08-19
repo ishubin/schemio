@@ -1252,6 +1252,8 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 /***************************/
 .scheme-editor-component .side-panel {
     height: 100%;
+    padding-left: 2px;
+    padding-right: 2px;
     position: absolute;
     display: flex;
     flex-direction: column;
@@ -4542,27 +4544,25 @@ ul.properties-button-list > li > .btn {
 }
 .navbar-functions-list > li {
     position: relative;
-    padding: 4px 8px;
     border: 1px solid rgba(0,0,0,0);
+}
+.navbar-functions-list > li:hover {
+    background-color: var(--faint-weak-down);
+    border: 1px solid var(--faint-strong);
 }
 .navbar-functions-list .func-name {
     display: block;
     white-space: nowrap;
     overflow: hidden;
     font-family: monospace;
-}
-.navbar-functions-list .icon-edit {
-    color: var(--faint-strong-down-down);
+    padding: 4px 8px;
+    cursor: pointer;
 }
 .navbar-functions-list .operations {
     position: absolute;
     display: none;
-    right: 0;
+    right: 6px;
     top: 3px;
-}
-.navbar-functions-list > li:hover {
-    background-color: var(--faint-weak-down);
-    border: 1px solid var(--faint-strong);
 }
 .navbar-functions-list > li:hover .operations {
     display: inline-block;

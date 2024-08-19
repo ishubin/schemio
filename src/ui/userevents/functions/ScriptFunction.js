@@ -660,14 +660,32 @@ function findChildItemsByTag(item, tag) {
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
     const cache = new Map();
+    const mainScopeData = schemeContainer.mainScopeData || {};
     return new Scope({
+        ...mainScopeData,
+        ...itemInterface,
         findItemById: (id) => {
             return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
         },
         findItemByName: (name) => {
             return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer, userEventBus);
         },
-        ...itemInterface,
+        log: createLogFunction(schemeContainer.editorId),
+    }, null, createItemByNameProvider(schemeContainer, userEventBus, cache));
+}
+
+
+export function createMainScriptScope(schemeContainer, userEventBus) {
+    const cache = new Map();
+    const mainScopeData = schemeContainer.mainScopeData || {};
+    return new Scope({
+        ...mainScopeData,
+        findItemById: (id) => {
+            return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);
+        },
+        findItemByName: (name) => {
+            return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer, userEventBus);
+        },
         log: createLogFunction(schemeContainer.editorId)
     }, null, createItemByNameProvider(schemeContainer, userEventBus, cache));
 }

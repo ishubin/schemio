@@ -354,6 +354,9 @@ class SchemeContainer {
 
         this.componentItems = [];
 
+        // objects and functions that were initialized in the main script during scene initialization
+        this.mainScopeData = null;
+
         this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
 
         // stores all snapping rules for items (used when user drags an item)
