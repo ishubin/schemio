@@ -106,6 +106,7 @@ import Tooltip from '../Tooltip.vue';
 import PropertyInput from './properties/PropertyInput.vue';
 import ScriptFunctionEditor from './properties/behavior/ScriptFunctionEditor.vue';
 import utils from '../../utils';
+import EditorEventBus from './EditorEventBus';
 
 
 const defaultTypeValues = {
@@ -178,6 +179,7 @@ export default {
 
         deleteFunc(funcIdx) {
             this.schemeContainer.scheme.scripts.functions.splice(funcIdx, 1);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.$forceUpdate();
         },
 
@@ -234,6 +236,8 @@ export default {
                 this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx] = funcDef;
             }
             this.funcModal.shown = false;
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         onArgTypeChanged(argIdx, event) {
@@ -264,6 +268,7 @@ export default {
 
         onMainScriptChange(script) {
             this.schemeContainer.scheme.scripts.main.source = script;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.mainScript = script;
         },
 
