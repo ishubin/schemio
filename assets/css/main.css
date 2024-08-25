@@ -1427,6 +1427,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     margin: 2px;
     padding-top: 2px;
 }
+.panel-body {
+    margin-bottom: 10px;
+}
 .panel-close {
     position: absolute;
     right: 5px;

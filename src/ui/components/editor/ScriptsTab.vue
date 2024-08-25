@@ -9,6 +9,7 @@
                     </Tooltip>
                 </div>
                 <span class="col-1 btn btn-secondary" @click="toggleMainScript"><i class="fa-solid fa-code"></i>  Edit main script</span>
+                <div></div>
             </div>
         </Panel>
 
@@ -20,6 +21,7 @@
                     </Tooltip>
                 </div>
                 <span class="col-1 btn btn-secondary" @click="startAddingNewFunction"><i class="fa-solid fa-florin-sign"></i> New function</span>
+                <div></div>
             </div>
 
 
@@ -58,7 +60,7 @@
             </Panel>
 
             <Panel uid="func-modal-arguments" name="Arguments">
-                <table class="function-arguments">
+                <table v-if="funcModal.args.length > 0" class="function-arguments">
                     <thead>
                         <tr>
                             <th></th>
@@ -91,7 +93,9 @@
                         </tr>
                     </tbody>
                 </table>
-
+                <div v-else class="hint hint-small">
+                    This function does not have arguments
+                </div>
                 <span class="btn btn-secondary" @click="addFuncArgument"><i class="fa-solid fa-gear"></i> Add argument</span>
             </Panel>
             
