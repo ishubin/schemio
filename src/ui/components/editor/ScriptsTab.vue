@@ -1,18 +1,27 @@
 <template lang="html">
     <div>
         <Panel uid="main-script" name="Main">
-            <Tooltip>
-                "Main" script runs during scene initialization and registers all functions and variables in global scope.
-                These functions and variables are available from any other script.
-            </Tooltip>
-            <span class="btn btn-secondary" @click="toggleMainScript"><i class="fa-solid fa-code"></i>  Edit main script</span>
+            <div class="row gap centered">
+                <div>
+                    <Tooltip>
+                        "Main" script runs during scene initialization and registers all functions and variables in global scope.
+                        These functions and variables are available from any other script.
+                    </Tooltip>
+                </div>
+                <span class="col-1 btn btn-secondary" @click="toggleMainScript"><i class="fa-solid fa-code"></i>  Edit main script</span>
+            </div>
         </Panel>
 
         <Panel uid="script-functions" name="Item Functions">
-            <Tooltip>
-                Functions let you create scripted actions for items which you can then use from items events
-            </Tooltip>
-            <span class="btn btn-secondary" @click="startAddingNewFunction"><i class="fa-solid fa-florin-sign"></i> New function</span>
+            <div class="row gap centered">
+                <div>
+                    <Tooltip>
+                        Functions let you create scripted actions for items which you can then use from items events
+                    </Tooltip>
+                </div>
+                <span class="col-1 btn btn-secondary" @click="startAddingNewFunction"><i class="fa-solid fa-florin-sign"></i> New function</span>
+            </div>
+
 
             <ul class="navbar-functions-list">
                 <li v-for="(func, funcIdx) in schemeContainer.scheme.scripts.functions">
@@ -49,12 +58,12 @@
             </Panel>
 
             <Panel uid="func-modal-arguments" name="Arguments">
-                <table>
+                <table class="function-arguments">
                     <thead>
                         <tr>
                             <th></th>
-                            <th>Name</th>
-                            <th>Type</th>
+                            <th width="45%">Name</th>
+                            <th width="180px">Type</th>
                             <th>Default value</th>
                         </tr>
                     </thead>
@@ -63,19 +72,21 @@
                             <td><span class="link icon-delete" @click="deleteFuncArgument(argIdx)"><i class="fas fa-times"></i></span></td>
                             <td><input class="textfield" type="text" :class="{'field-error': arg.isError}" v-model="arg.name"/></td>
                             <td>
-                                <select v-model="arg.type" @change="onArgTypeChanged(argIdx, $event)">
+                                <select class="dropdown" v-model="arg.type" @change="onArgTypeChanged(argIdx, $event)">
                                     <option v-for="opt in supportedArgumentTypes" :value="opt.value">{{ opt.name }}</option>
                                 </select>
                             </td>
                             <td>
-                                <PropertyInput
-                                    :key="`arg-property-input-${argIdx}-${arg.type}`"
-                                    :editorId="editorId"
-                                    :schemeContainer="schemeContainer"
-                                    :descriptor="arg.descriptor"
-                                    :value="arg.value"
-                                    @input="onArgDefaultValueChange(argIdx, $event)"
-                                    />
+                                <div class="function-argument-value">
+                                    <PropertyInput
+                                        :key="`arg-property-input-${argIdx}-${arg.type}`"
+                                        :editorId="editorId"
+                                        :schemeContainer="schemeContainer"
+                                        :descriptor="arg.descriptor"
+                                        :value="arg.value"
+                                        @input="onArgDefaultValueChange(argIdx, $event)"
+                                        />
+                                </div>
                             </td>
                         </tr>
                     </tbody>

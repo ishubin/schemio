@@ -400,7 +400,7 @@ textarea {
       -o-tab-size : 4;
          tab-size : 4;
 }
-input.textfield, textarea.textfield {
+input.textfield, textarea.textfield, select.dropdown  {
     display: inline-block;
     width: 100%;
     color: var(--base-strong);
@@ -410,14 +410,14 @@ input.textfield, textarea.textfield {
     border: 1px solid var(--faint-strong);
     border-radius: var(--control-border-radius);
 }
-input.textfield:focus, textarea.textfield:focus {
+input.textfield:focus, textarea.textfield:focus, select.dropdown:focus {
     outline: 0;
     background: var(--accent-weak-up);
 }
 textarea.textfield {
     height: 150px;
 }
-input.textfield.textfield-small {
+input.textfield.textfield-small, select.dropdown.dropdown-small {
     width: 140px;
     padding: 1px;
     font-size: 12px;
@@ -4566,4 +4566,19 @@ ul.properties-button-list > li > .btn {
 }
 .navbar-functions-list > li:hover .operations {
     display: inline-block;
+}
+
+
+table.function-arguments {
+    width: 100%;
+    padding-bottom: 10px;
+}
+table.function-arguments thead th {
+    text-align: left;
+}
+
+table.function-arguments .function-argument-value > div {
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
