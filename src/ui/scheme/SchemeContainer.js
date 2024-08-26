@@ -639,6 +639,13 @@ class SchemeContainer {
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
 
+        traverseItems(childItems, childItem => {
+            if (!childItem.meta) {
+                childItem.meta = {};
+            }
+            childItem.meta.componentRootId = componentItem.id;
+        });
+
         if (componentItem.shapeProps.kind === 'external') {
             this.isolateItemTags(childItems);
         }

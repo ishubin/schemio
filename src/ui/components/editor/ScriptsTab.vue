@@ -98,7 +98,7 @@
                 </div>
                 <span class="btn btn-secondary" @click="addFuncArgument"><i class="fa-solid fa-gear"></i> Add argument</span>
             </Panel>
-            
+
             <Panel uid="func-modal-script" name="Script">
                 <div>
                     <ScriptFunctionEditor

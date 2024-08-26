@@ -198,6 +198,7 @@ import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
+import { isolateScriptFunctionsForComponent } from '../../scheme/Scripts.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -415,7 +416,7 @@ export default {
                 }
 
                 this.$nextTick(() => {
-                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item);
+                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item, scheme);
                 });
             })
             .catch(err => {
@@ -765,7 +766,7 @@ export default {
         reindexUserEvents() {
             if (this.userEventBus) {
                 this.userEventBus.clear();
-                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit);
+                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit, null);
             }
         },
 
@@ -773,12 +774,13 @@ export default {
          *
          * @param {Array} items
          * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
+         * @param {Item|undefined} componentRootItem
          */
-        indexUserEventsInItems(items, itemsForInit) {
+        indexUserEventsInItems(items, itemsForInit, componentRootItem) {
             traverseItems(items, item => {
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, item, event.actions, (err) => {
+                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, (err) => {
                             this.onCompilerError(err);
                         });
                         if (event.event === Events.standardEvents.init.id) {
@@ -796,10 +798,11 @@ export default {
             this.$emit('compiler-error', err);
         },
 
-        onComponentSchemeMounted(item) {
+        onComponentSchemeMounted(item, scheme) {
             if (item._childItems) {
                 const componentItemsForInit = {};
-                this.indexUserEventsInItems(item._childItems, componentItemsForInit);
+                isolateScriptFunctionsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
+                this.indexUserEventsInItems(item._childItems, componentItemsForInit, item);
                 forEach(componentItemsForInit, (val, itemId) => {
                     this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
                 });

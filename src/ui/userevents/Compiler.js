@@ -22,11 +22,12 @@ function enrichFuncArgs(args, funcDef) {
 /**
  *
  * @param {SchemeContainer} schemeContainer
+ * @param {SchemeItem} componentRootItem
  * @param {SchemeItem} selfItem
  * @param {Array} actions
  * @param {function(error)} errorCallback
  */
-export function compileActions(schemeContainer, selfItem, actions, errorCallback) {
+export function compileActions(schemeContainer, componentRootItem, selfItem, actions, errorCallback) {
 
     const funcs = [];
     forEach(actions, action => {
@@ -38,7 +39,7 @@ export function compileActions(schemeContainer, selfItem, actions, errorCallback
             if (elements) {
                 let knownFunc = knownFunctions.main[action.method];
                 if (!knownFunc && action.method.startsWith('function:')) {
-                    knownFunc = findSchemeDefinedScriptFunction(schemeContainer, action.method.substring(9), action.args);
+                    knownFunc = findSchemeDefinedScriptFunction(schemeContainer, componentRootItem, action.method.substring(9), action.args);
                 }
                 if (knownFunc) {
                     const args = enrichFuncArgs(action.args, knownFunc);
