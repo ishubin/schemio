@@ -59,9 +59,14 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [sqrt](#sqrt)
     - [cos](#cos)
     - [sin](#sin)
+    - [tan](#tan)
     - [acos](#acos)
     - [asin](#asin)
+    - [atan](#atan)
     - [uid](#uid)
+    - [logn](#logn)
+    - [log10](#log10)
+    - [log2](#log2)
     - [log](#log)
     - [round](#round)
     - [ceil](#ceil)
@@ -773,7 +778,7 @@ sqrt(25)
 
 #### cos
 
-`cos(x)` returns cosine of specified value
+`cos(x)` returns the cosine of specified value in radians
 
 ```js
 cos(0.4)
@@ -781,11 +786,16 @@ cos(0.4)
 
 #### sin
 
-`sin(x)` returns sine of specified value
+`sin(x)` returns the sine of specified value in radians
 
 ```js
 sin(0.4)
 ```
+
+#### tan
+
+`tan(x)` returns the tangent of a number in radians
+
 
 #### acos
 
@@ -803,6 +813,10 @@ acos(0.9)
 asin(0.9)
 ```
 
+#### atan
+
+`atan(x)` returns the inverse tangent (in radians) of a number `x`.
+
 
 #### uid
 
@@ -811,6 +825,32 @@ asin(0.9)
 ```
 id = uid()
 ```
+
+
+#### logn
+
+`logn(x)` returns the natural logarithm (base [e](https://en.wikipedia.org/wiki/E_(mathematical_constant))) of a number `x`
+
+```js
+b = logn(3)
+```
+
+#### log10
+
+`log10(x)` returns the base 10 logarithm of a number `x`
+
+```js
+b = log10(3)
+```
+
+#### log2
+
+`log2(x)` returns the base 2 logarithm of a number `x`
+
+```js
+b = log2(3)
+```
+
 
 
 #### log
