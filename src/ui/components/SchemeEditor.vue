@@ -406,7 +406,7 @@
                 <ul v-else-if="state === 'draw'" class="tabs text-nonselectable">
                     <li><span class="tab active">Draw</span></li>
                 </ul>
-                <ul v-else class="tabs">
+                <ul v-else-if="sidePanelRightWidth > 10" class="tabs">
                     <li v-for="tab in tabs">
                         <span class="tab"
                             :class="{active: currentTab === tab}"
