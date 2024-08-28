@@ -122,6 +122,7 @@ import PropertyInput from './properties/PropertyInput.vue';
 import ScriptFunctionEditor from './properties/behavior/ScriptFunctionEditor.vue';
 import utils from '../../utils';
 import EditorEventBus from './EditorEventBus';
+import { isValidColor, parseColor } from '../../colors';
 
 
 const defaultTypeValues = {
@@ -135,6 +136,57 @@ const defaultTypeValues = {
     'element': '',
     'scheme-ref': '',
 };
+
+function stringValidator(value) {
+    return typeof value === 'string';
+}
+
+function numberValidator(value) {
+    return typeof value === 'number' && isFinite(value);
+}
+
+function colorValidator(value) {
+    if (typeof value !== 'string') {
+        return false;
+    }
+    return isValidColor(value);
+}
+
+function fillValidator(value) {
+    if (typeof value !== 'object') {
+        return false;
+    }
+    if (!value.hasOwnProperty('type')) {
+        return false;
+    }
+    return true;
+}
+
+function booleanValidator(value) {
+    return typeof value === 'boolean';
+}
+
+const argTypeValidator = {
+    string: stringValidator,
+    number: numberValidator,
+    color: colorValidator,
+    'advanced-color': fillValidator,
+    image: stringValidator,
+    boolean: booleanValidator,
+    'stroke-pattern': stringValidator,
+    element: stringValidator,
+    'scheme-ref': stringValidator
+};
+
+function ensureCorrectArgValue(argDef, usedValue) {
+    if (argTypeValidator.hasOwnProperty(argDef.type)) {
+        const validator = argTypeValidator[argDef.type];
+        if (!validator(usedValue)) {
+            return argDef.value;
+        }
+    }
+    return usedValue;
+}
 
 export default {
     props: {
@@ -204,7 +256,7 @@ export default {
 
         onFuncSubmit() {
             const name = this.funcModal.name.trim();
-            
+
             let isError = false;
             this.funcModal.errorMessage = null;
             if (name.length === 0) {
@@ -217,19 +269,42 @@ export default {
 
             const argNameRegex = new RegExp('^[a-zA-Z_][a-zA-Z0-9_]*$');
 
+            const argNames = new Set();
+
             this.funcModal.args.forEach(arg => {
                 if (!argNameRegex.test(arg.name)) {
                     this.funcModal.errorMessage = 'Invalid argument name. It should not contain spaces or special symbols and start with a literal';
                     arg.isError = true;
                     isError = true;
                 } else {
-                    arg.isError = false;
+                    if (argNames.has(arg.name)) {
+                        arg.isError = true;
+                        isError = true;
+                        this.funcModal.errorMessage = 'Duplicated argument names';
+                    } else {
+                        argNames.add(arg.name);
+                        arg.isError = false;
+                    }
                 }
             });
-
             if (isError) {
                 return;
             }
+
+            const existentFuncNames = new Set();
+
+            this.schemeContainer.scheme.scripts.functions.forEach((funcDef, funcIdx) => {
+                if (!this.funcModal.isNew && funcIdx === this.funcModal.funcIdx) {
+                    return;
+                }
+                existentFuncNames.add(funcDef.name);
+            });
+            if (existentFuncNames.has(name)) {
+                this.funcModal.errorMessage = 'Function name is already taken by another function';
+                this.funcModal.isNameError = true;
+                return;
+            }
+
 
             const funcDef = {
                 name: name,
@@ -245,14 +320,64 @@ export default {
                 props: utils.clone(this.funcModal.props),
             };
 
+
             if (this.funcModal.isNew) {
                 this.schemeContainer.scheme.scripts.functions.push(funcDef);
             } else {
+                const oldFuncDef = this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx];
+                this.fixAllFunctionArgsInItems(funcDef.args, oldFuncDef.name, funcDef.name);
                 this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx] = funcDef;
             }
             this.funcModal.shown = false;
 
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        /**
+         * Ensures that all arguments specified in item behavior actions are consistent with the types of arguments in the function
+         * @param {Array} args
+         * @param {String} funcName the old function name
+         * @param {String} newFuncName
+         */
+        fixAllFunctionArgsInItems(args, funcName, newFuncName) {
+            const funcRefName = `function:${funcName}`;
+            this.schemeContainer.getItems().forEach(item => {
+                item.behavior.events.forEach(event => {
+                    event.actions.forEach(action => {
+                        if (action.method === funcRefName) {
+                            action.method = `function:${newFuncName}`;
+                            this.ensureFunctionArgsAreCorrect(action, args);
+                        }
+                    });
+                });
+            });
+        },
+
+
+        /**
+         * Ensures that all arguments specified in item behavior actions are consistent with the types of arguments in the function
+         * @param {Object} action
+         * @param {Array} args
+         */
+        ensureFunctionArgsAreCorrect(action, args) {
+            args.forEach(argDef => {
+                if (!action.args.hasOwnProperty(argDef.name)) {
+                    action.args[argDef.name] = utils.clone(argDef.value);
+                    return;
+                }
+                const usedValue = action.args[argDef.name];
+                action.args[argDef.name] = ensureCorrectArgValue(argDef, usedValue);
+            });
+
+            // cleaning up old args in case they were deleted from function
+            for (let argName in action.args) {
+                if (action.args.hasOwnProperty(argName)) {
+                    const idx = args.findIndex(argDef => argDef.name === argName);
+                    if (idx < 0) {
+                        delete action.args[argName];
+                    }
+                }
+            }
         },
 
         onArgTypeChanged(argIdx, event) {
