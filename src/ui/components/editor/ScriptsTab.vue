@@ -245,9 +245,24 @@ export default {
         },
 
         deleteFunc(funcIdx) {
+            const funcName = this.schemeContainer.scheme.scripts.functions[funcIdx].name;
+            this.deleteFuncRefInItems(funcName);
             this.schemeContainer.scheme.scripts.functions.splice(funcIdx, 1);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.$forceUpdate();
+        },
+
+        deleteFuncRefInItems(funcName) {
+            const funcRefName = `function:${funcName}`;
+            this.schemeContainer.getItems().forEach(item => {
+                item.behavior.events.forEach(event => {
+                    for (let i = event.actions.length - 1; i >= 0; i--) {
+                        if (event.actions[i].method === funcRefName) {
+                            event.actions.splice(i, 1);
+                        }
+                    }
+                });
+            });
         },
 
         deleteFuncArgument(argIdx) {
