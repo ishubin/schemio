@@ -90,7 +90,7 @@ export default {
             strokePattern  : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
             showName       : {type: 'boolean', value: true, name: 'Display Name'},
             screenBounds   : {type: 'boolean', value: false, name: 'Screen bounds',
-                description: 'If set to true than this item will specifies the bounds of the screen. Users will not be able to scroll outside of it in view mode.'
+                description: 'If set to true, this item specifies the bounds of the screen. Users will not be able to scroll outside of it in view mode.'
                             +'If the document is loaded inside of a component it will also work as view box and limit '
                             +'the rendering of the component items to the view box area.'
             },

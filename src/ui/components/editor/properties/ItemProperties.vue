@@ -258,7 +258,6 @@ import LinksPanel from './LinksPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
-import AdvancedBehaviorProperties from './AdvancedBehaviorProperties.vue';
 import {ItemInteractionMode, traverseItems} from '../../../scheme/Item.js';
 import {knownBlendModes} from '../../../scheme/ItemConst';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
@@ -296,7 +295,7 @@ export default {
     },
     components: {
     Panel, Tooltip, ColorPicker, PositionPanel, LinksPanel,
-    GeneralPanel, BehaviorProperties, AdvancedBehaviorProperties, StylesPalette, NumberTextfield,
+    GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
     EditEffectModal, PropertyInput,
     AutoLayoutProperties
 },
