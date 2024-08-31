@@ -687,7 +687,10 @@ export function generatePatchForObject(originObject, modifiedObject, patchSchema
         const op = fieldSchema.patching[0];
 
         if (op !== 'replace') {
-            if (typeof modifiedObject[field] !== typeof originObject[field] && (typeof originObject[field] === 'undefined' || originObject[field] === null)) {
+            if (
+                (typeof modifiedObject[field] !== typeof originObject[field] && (typeof originObject[field] === 'undefined' || originObject[field] === null))
+                || (originObject[field] === null && modifiedObject[field] !== null)
+            ) {
                 if (indexOf(fieldSchema.patching, 'replace') < 0) {
                     throw new Error('Cannot patch undefined object with ' + op);
                 }

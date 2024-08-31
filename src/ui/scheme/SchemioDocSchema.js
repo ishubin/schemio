@@ -23,10 +23,36 @@ const baseSchema = {
             itemMarkerColor   : {type: 'ignored'},
             itemMarkerToggled : {type: 'ignored'}
         }},
-        scripts: {type: 'object', patching: ['modify'], fields: {
+        scripts: {type: 'object', patching: ['modify', 'replace'], fields: {
             main: {type: 'object', patching: ['modify'], fields: {
                 source: {type: 'string', patching: ['patch-text', 'replace']}
-            }}
+            }},
+            functions: {
+                type: 'array', of: 'object',
+                patching: ['patch-id-array'],
+                fields: {
+                    id         : {type: 'string'},
+                    name       : {type: 'string', patching: ['patch-text', 'replace'], },
+                    description: {type: 'string', patching: ['patch-text'] },
+                    args       : {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+                        id         : {type: 'string'},
+                        name       : {type: 'string', patching: ['patch-text', 'replace'], },
+                        description: {type: 'string', patching: ['patch-text'] },
+                        type       : {type: 'string', patching: ['replace']},
+                        value      : {type: 'any', patching: ['replace']},
+                    }},
+                    props: {type: 'object', patching: ['modify'], fields: {
+                        initScript       : {type: 'string', patching: ['patch-text', 'replace']},
+                        script           : {type: 'string', patching: ['patch-text', 'replace']},
+                        endScript        : {type: 'string', patching: ['patch-text', 'replace']},
+                        animated         : {type: 'boolean', patching: ['replace']},
+                        animationType    : {type: 'string', patching: ['replace']},
+                        animationDuration: {type: 'number', patching: ['replace']},
+                        transition       : {type: 'string', patching: ['replace']},
+                        inBackground     : {type: 'boolean', patching: ['replace']}
+                    }}
+                }
+            }
         }},
         settings: {type: 'object', patching: ['modify'], fields: {
             screen: {type: 'object', patching: ['modify'], fields: {

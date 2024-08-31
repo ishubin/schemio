@@ -53,7 +53,7 @@
 
             <Panel uid="func-modal-name" name="Name & Description">
                 <div class="ctrl-label">Name</div>
-                <input type="text" class="textfield" :class="{'field-error': funcModal.isNameError}" v-model="funcModal.name"/> 
+                <input type="text" class="textfield" :class="{'field-error': funcModal.isNameError}" v-model="funcModal.name"/>
 
                 <div class="ctrl-label">Description</div>
                 <textarea type="text" class="textfield" v-model="funcModal.description" rows="3"></textarea>
@@ -123,6 +123,7 @@ import ScriptFunctionEditor from './properties/behavior/ScriptFunctionEditor.vue
 import utils from '../../utils';
 import EditorEventBus from './EditorEventBus';
 import { isValidColor, parseColor } from '../../colors';
+import shortid from 'shortid';
 
 
 const defaultTypeValues = {
@@ -326,6 +327,7 @@ export default {
                 description: this.funcModal.description,
                 args: this.funcModal.args.map(arg => {
                     return {
+                        id: arg.id,
                         name: arg.name,
                         description: '',
                         type: arg.type,
@@ -337,9 +339,11 @@ export default {
 
 
             if (this.funcModal.isNew) {
+                funcDef.id = shortid.generate();
                 this.schemeContainer.scheme.scripts.functions.push(funcDef);
             } else {
                 const oldFuncDef = this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx];
+                funcDef.id = oldFuncDef.id;
                 this.fixAllFunctionArgsInItems(funcDef.args, oldFuncDef.name, funcDef.name);
                 this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx] = funcDef;
             }
@@ -409,6 +413,7 @@ export default {
         addFuncArgument() {
             const idx = this.funcModal.args.length + 1;
             this.funcModal.args.push({
+                id: shortid.generate(),
                 name: `arg${idx}`,
                 type: 'string',
                 descriptor: {type: 'string'},
