@@ -321,7 +321,12 @@ export function getSchemioDocSchema() {
     baseSchema.fields.items.fields.textSlots.fields = buildTextSlotsFields();
     baseSchema.fields.items.fields.shapeProps.conditions = shapePropsConditions;
     baseSchema.fields.items.fields.effects.fields.args.conditions = buildFieldConditionsFor(getEffects());
-    baseSchema.fields.items.fields.behavior.fields.events.fields.actions.fields.args.conditions = buildFieldConditionsFor(Functions.main);
+    baseSchema.fields.items.fields.behavior.fields.events.fields.actions.fields.args.conditions = [{
+        on: null,
+        type: 'object',
+        patching: [ 'modify', 'delete' ],
+        fields: { '*': {type: 'any', patching: ['replace', 'delete']}}
+    }].concat(buildFieldConditionsFor(Functions.main));
 
     _schemioDocSchema = baseSchema;
     return _schemioDocSchema;
