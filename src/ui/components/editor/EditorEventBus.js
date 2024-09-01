@@ -257,15 +257,15 @@ const EditorEventBus = {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-component-mounted', [], callback),
                 $off: (editorId, callback) => $off(editorId, 'any-component-mounted', [], callback),
-                $emit: (editorId, item) => $emit(editorId, 'any-component-mounted', [], item),
+                $emit: (editorId, item, scheme) => $emit(editorId, 'any-component-mounted', [], item, scheme),
             },
 
             specific: {
                 $on: (editorId, itemId, callback) => $on(editorId, 'component-mounted', [itemId], callback),
                 $off: (editorId, itemId, callback) => $off(editorId, 'component-mounted', [itemId], callback),
-                $emit: (editorId, itemId, item) => {
-                    EditorEventBus.component.mounted.any.$emit(editorId, item);
-                    $emit(editorId, 'component-mounted', [itemId], item);
+                $emit: (editorId, itemId, item, scheme) => {
+                    EditorEventBus.component.mounted.any.$emit(editorId, item, scheme);
+                    $emit(editorId, 'component-mounted', [itemId], item, scheme);
                 }
             },
         },

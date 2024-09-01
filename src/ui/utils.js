@@ -24,6 +24,13 @@ function sanitizeItem(oldItem) {
     return item;
 }
 
+const _defaultScripts = {
+    main: {
+        source: ''
+    },
+    functions: []
+};
+
 function sanitizeScheme(scheme) {
     const items = map(scheme.items, sanitizeItem);
     return {
@@ -32,6 +39,7 @@ function sanitizeScheme(scheme) {
         description: scheme.description,
         tags: scheme.tags,
         modifiedTime: scheme.modifiedTime,
+        scripts: scheme.scripts || _defaultScripts,
         items: items,
         style: scheme.style || {}
     }

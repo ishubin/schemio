@@ -144,8 +144,9 @@
                                 :borderless="true"
                                 >
                                 <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
-                                <span class="behavior-function" v-if="action.method !== 'set' && action.method !== 'sendEvent'">{{action.method | toPrettyMethod(action.element) }} </span>
-                                <span class="behavior-function" v-if="action.method === 'sendEvent'"><i class="icon fas fa-play"></i> {{action.args.event}} </span>
+                                <span class="behavior-function" v-else-if="action.method === 'sendEvent'"><i class="icon fas fa-play"></i> {{action.args.event}} </span>
+                                <span class="behavior-function" v-else-if="action.method.startsWith('function:')">{{action.method | functionToPrettyName }} </span>
+                                <span class="behavior-function" v-else>{{action.method | toPrettyMethod(action.element) }} </span>
                             </dropdown>
                         </div>
                         <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
@@ -515,7 +516,16 @@ export default {
                     method: 'custom-event',
                     name: customEvent,
                     event: customEvent,
-                    iconClass: 'fas fa-running'
+                    iconClass: 'fas fa-bell'
+                });
+            });
+
+            forEach(this.schemeContainer.scheme.scripts.functions, funcDef => {
+                methods.push({
+                    method: 'function',
+                    name: funcDef.name,
+                    description: funcDef.description,
+                    iconClass: 'fa-solid fa-florin-sign'
                 });
             });
 
@@ -785,6 +795,15 @@ export default {
                 } else if (methodOption.method === 'custom-event') {
                     action.method = 'sendEvent';
                     action.args = {event: methodOption.event};
+                } else if (methodOption.method === 'function') {
+                    action.method = 'function:' + methodOption.name;
+                    action.args = {};
+                    const funcDef = this.schemeContainer.scheme.scripts.functions.find(f => f.name === methodOption.name);
+                    if (funcDef && Array.isArray(funcDef.args)) {
+                        funcDef.args.forEach(argDef => {
+                            action.args[argDef.name] = argDef.value;
+                        });
+                    }
                 } else {
                     action.method = methodOption.method;
                     let optionArgs = methodOption.args || {};
@@ -896,6 +915,24 @@ export default {
 
         showFunctionArgumentsEditor(action, eventIndex, actionIndex) {
             let functionDescription = Functions.main[action.method];
+
+            if (action.method.startsWith('function:')) {
+                const funcName = action.method.substring(9);
+                const funcDef = this.schemeContainer.scheme.scripts.functions.find(fundDef => fundDef.name === funcName);
+
+                if (funcDef) {
+                    functionDescription = {
+                        name: funcDef.name,
+                        description: funcDef.description,
+                        args: {}
+                    };
+                    if (Array.isArray(funcDef.args)) {
+                        funcDef.args.forEach(argDef => {
+                            functionDescription.args[argDef.name] = argDef;
+                        });
+                    }
+                }
+            }
 
             if (!functionDescription) {
                 functionDescription = {
@@ -1143,6 +1180,13 @@ export default {
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {
             return createPrettyPropertyName(propertyPath, element, selfItem, schemeContainer);
+        },
+
+        functionToPrettyName(methodName) {
+            if (methodName.startsWith('function:')) {
+                return methodName.substring(9);
+            }
+            return methodName;
         },
 
         toPrettyDraggingOptionName(id) {

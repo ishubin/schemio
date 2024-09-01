@@ -58,22 +58,36 @@ export function encodeColor(c) {
  * @returns {ColorRGBA} {r,g,b,a} structure
  */
 export function parseColor(text) {
-    text = text.toLowerCase();
     try {
-        const bracketIdx = text.indexOf('(');
-        const closeBracketIdx = text.indexOf(')');
-        if (bracketIdx > 0 && closeBracketIdx > 0) {
-            const firstWord = text.substring(0, bracketIdx).trim();
-            if (firstWord === 'rgb' || firstWord === 'rgba') {
-                return parseCommaSeparateRgba(text.substring(bracketIdx+1, closeBracketIdx));
-            }
-        }
-
-        if (text.charAt(0) === '#') {
-            return parseHexColor(text.substring(1));
-        }
+        return _parseColor(text);
     } catch(e) {
-        // do nothing
     }
     return {r: 0, g: 0, b: 0, a: 1.0};
+}
+
+function _parseColor(text) {
+    text = text.toLowerCase();
+    const bracketIdx = text.indexOf('(');
+    const closeBracketIdx = text.indexOf(')');
+    if (bracketIdx > 0 && closeBracketIdx > 0) {
+        const firstWord = text.substring(0, bracketIdx).trim();
+        if (firstWord === 'rgb' || firstWord === 'rgba') {
+            return parseCommaSeparateRgba(text.substring(bracketIdx+1, closeBracketIdx));
+        }
+    }
+
+    if (text.charAt(0) === '#') {
+        return parseHexColor(text.substring(1));
+    }
+
+    throw new Error('Cannot parse color: ' + text);
+}
+
+export function isValidColor(text) {
+    try {
+        _parseColor(text);
+        return true;
+    } catch(ex) {
+        return false;
+    }
 }

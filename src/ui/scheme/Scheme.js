@@ -11,6 +11,12 @@ const defaultScheme = {
     description: '',
     tags: [],
     items: [],
+    scripts: {
+        main: {
+            source: ''
+        },
+        functions: []
+    },
     settings: {
         screen: {
             draggable: true,

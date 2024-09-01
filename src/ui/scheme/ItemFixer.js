@@ -61,7 +61,8 @@ function fixAndEnrichBehaviorEvents(behavior) {
         forEach(event.actions, fixAndEnrichBehaviorAction);
 
         for (let i = event.actions.length - 1; i >= 0; i--) {
-            if (!fixAndEnrichBehaviorAction(event.actions[i])) {
+            const actionMethod = event.actions[i].method || '';
+            if (!actionMethod.startsWith('function:') && !fixAndEnrichBehaviorAction(event.actions[i])) {
                 event.actions.splice(i, 1);
             }
         }

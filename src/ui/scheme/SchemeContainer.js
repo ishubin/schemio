@@ -354,6 +354,9 @@ class SchemeContainer {
 
         this.componentItems = [];
 
+        // objects and functions that were initialized in the main script during scene initialization
+        this.mainScopeData = null;
+
         this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
 
         // stores all snapping rules for items (used when user drags an item)
@@ -635,6 +638,13 @@ class SchemeContainer {
         const shouldIndexClones = true;
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
+
+        traverseItems(childItems, childItem => {
+            if (!childItem.meta) {
+                childItem.meta = {};
+            }
+            childItem.meta.componentRootId = componentItem.id;
+        });
 
         if (componentItem.shapeProps.kind === 'external') {
             this.isolateItemTags(childItems);

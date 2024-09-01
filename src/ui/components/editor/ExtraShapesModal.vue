@@ -4,7 +4,7 @@
             <div class="loader-element"></div>
         </div>
 
-        <div v-if="errorMessage" class="msg msg-danger">{{errorMessage}}</div>
+        <div v-if="errorMessage" class="msg msg-error">{{errorMessage}}</div>
 
         <div class="external-shapes">
             <div class="external-shapes-list">

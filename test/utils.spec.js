@@ -72,7 +72,13 @@ describe('Utils.sanitizeScheme', () => {
                     id: 'asd',
                     name: 'child item'
                 }]
-            }]
+            }],
+            scripts: {
+                main: {
+                    source: ''
+                },
+                functions: []
+            }
         });
     });
 });

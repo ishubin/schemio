@@ -196,6 +196,9 @@ import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath} from './it
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
+import { parseExpression } from '../../templater/ast.js';
+import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
+import { isolateScriptFunctionsForComponent } from '../../scheme/Scripts.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -242,6 +245,17 @@ export default {
         if (this.mode === 'view') {
             this.reindexUserEvents();
             this.prepareFrameAnimations();
+
+            const initScriptSource = this.schemeContainer.scheme.scripts.main.source;
+            if (initScriptSource) {
+                try {
+                    this.compiledMainScript = parseExpression(initScriptSource);
+                } catch(ex) {
+                    this.compiledMainScript = null;
+                    console.error(ex);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to compile main script', 'main-script-compilation-error');
+                }
+            }
         }
 
         EditorEventBus.zoomToAreaRequested.$on(this.editorId, this.onBringToView);
@@ -264,6 +278,7 @@ export default {
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
     },
+
     mounted() {
         this.updateSvgSize();
         window.addEventListener("resize", this.updateSvgSize);
@@ -276,11 +291,23 @@ export default {
         }
 
         if (this.mode === 'view') {
+            if (this.compiledMainScript && this.userEventBus) {
+                try {
+                    const scope = createMainScriptScope(this.schemeContainer, this.userEventBus);
+                    this.compiledMainScript.evalNode(scope);
+                    this.schemeContainer.mainScopeData = scope.data;
+                } catch(ex) {
+                    console.error(ex);
+                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to execute main script', 'main-script-failure');
+                }
+            }
+
             forEach(this.itemsForInit, (val, itemId) => {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }
     },
+
     beforeDestroy(){
         this.highlightAnimated = true;
         window.removeEventListener("resize", this.updateSvgSize);
@@ -346,6 +373,8 @@ export default {
 
             highlightAnimated : false,
             highlightAnimationTime: 0,
+
+            compiledMainScript : null,
         };
     },
     methods: {
@@ -387,7 +416,7 @@ export default {
                 }
 
                 this.$nextTick(() => {
-                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item);
+                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item, scheme);
                 });
             })
             .catch(err => {
@@ -737,7 +766,7 @@ export default {
         reindexUserEvents() {
             if (this.userEventBus) {
                 this.userEventBus.clear();
-                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit);
+                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit, null);
             }
         },
 
@@ -745,12 +774,13 @@ export default {
          *
          * @param {Array} items
          * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
+         * @param {Item|undefined} componentRootItem
          */
-        indexUserEventsInItems(items, itemsForInit) {
+        indexUserEventsInItems(items, itemsForInit, componentRootItem) {
             traverseItems(items, item => {
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, item, event.actions, (err) => {
+                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, (err) => {
                             this.onCompilerError(err);
                         });
                         if (event.event === Events.standardEvents.init.id) {
@@ -768,10 +798,11 @@ export default {
             this.$emit('compiler-error', err);
         },
 
-        onComponentSchemeMounted(item) {
+        onComponentSchemeMounted(item, scheme) {
             if (item._childItems) {
                 const componentItemsForInit = {};
-                this.indexUserEventsInItems(item._childItems, componentItemsForInit);
+                isolateScriptFunctionsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
+                this.indexUserEventsInItems(item._childItems, componentItemsForInit, item);
                 forEach(componentItemsForInit, (val, itemId) => {
                     this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
                 });

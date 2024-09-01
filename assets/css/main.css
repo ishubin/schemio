@@ -303,9 +303,8 @@ ul.tabs.tabs-file li .tab {
 }
 .tabs-body {
     position: relative;
-    padding: 10px;
+    padding-top: 4px;
     margin: 0;
-    background: var(--faint-weak);
 }
 .tabs-body:before {
     z-index: 1;
@@ -401,7 +400,7 @@ textarea {
       -o-tab-size : 4;
          tab-size : 4;
 }
-input.textfield, textarea.textfield {
+input.textfield, textarea.textfield, select.dropdown  {
     display: inline-block;
     width: 100%;
     color: var(--base-strong);
@@ -411,19 +410,19 @@ input.textfield, textarea.textfield {
     border: 1px solid var(--faint-strong);
     border-radius: var(--control-border-radius);
 }
-input.textfield:focus, textarea.textfield:focus {
+input.textfield:focus, textarea.textfield:focus, select.dropdown:focus {
     outline: 0;
     background: var(--accent-weak-up);
 }
 textarea.textfield {
     height: 150px;
 }
-input.textfield.textfield-small {
+input.textfield.textfield-small, select.dropdown.dropdown-small {
     width: 140px;
     padding: 1px;
     font-size: 12px;
 }
-input.textfield.missing-field-error {
+input.textfield.field-error {
     border: 1px solid var(--critic-strong);
     box-shadow: 0 0 5px var(--critic-strong);
 }
@@ -1253,7 +1252,11 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 /***************************/
 .scheme-editor-component .side-panel {
     height: 100%;
+    padding-left: 2px;
+    padding-right: 2px;
     position: absolute;
+    display: flex;
+    flex-direction: column;
     top: 0;
     background: var(--faint-weak-up);
     box-shadow: 0 0 10px var(--shadow-color);
@@ -1423,6 +1426,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     box-shadow: 0 -1px 0 #ddd;
     margin: 2px;
     padding-top: 2px;
+}
+.panel-body {
+    margin-bottom: 10px;
 }
 .panel-close {
     position: absolute;
@@ -1960,6 +1966,7 @@ ul.links-editor .edit-link:hover {
     border: 1px solid var(--faint-weak-down);
     background: var(--base-weak);
     min-width: 100px;
+    width: 100%;
     border-radius: var(--middle-border-radius);
     outline: none;
 }
@@ -2222,10 +2229,12 @@ ul.script-options .script-option.selected {
     top: 3px;
     user-select: none;
 }
+.icon-delete {
+    color: var(--critic-strong);
+}
 .behavior-action-container .icon-container .icon-delete {
     display: none;
     opacity: 0.6;
-    color: var(--critic-strong);
 }
 .behavior-action-container .icon-container .icon-move {
     display: none;
@@ -4528,4 +4537,67 @@ ul.properties-button-list > li > .btn {
 }
 .script-console-entries > li.status-error > .console-message {
     color: var(--critic-strong);
+}
+
+
+.navbar-functions-list {
+    list-style: none;
+    margin-top: 10px;
+    padding: 0px;
+}
+.navbar-functions-list > li {
+    position: relative;
+    border: 1px solid rgba(0,0,0,0);
+}
+.navbar-functions-list > li:hover {
+    background-color: var(--faint-weak-down);
+    border: 1px solid var(--faint-strong);
+}
+.navbar-functions-list .func-name {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    font-family: monospace;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.navbar-functions-list .operations {
+    position: absolute;
+    display: none;
+    right: 6px;
+    top: 3px;
+}
+.navbar-functions-list > li:hover .operations {
+    display: inline-block;
+}
+
+
+table.function-arguments {
+    width: 100%;
+    padding-bottom: 10px;
+}
+table.function-arguments thead th {
+    text-align: left;
+}
+
+table.function-arguments .function-argument-value > div {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.function-import-container {
+    background: var(--base-weak);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+.function-import-container ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.function-import-container li {
+    padding-top: 5px;
+    padding-bottom: 5px;
 }

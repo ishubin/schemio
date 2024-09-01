@@ -120,6 +120,7 @@ export default {
     methods: {
         selectScriptTab(tabIdx) {
             this.selectedTabIdx = tabIdx;
+            this.$forceUpdate();
         },
 
         emitArgChange(argName, argValue) {
