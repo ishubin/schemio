@@ -971,8 +971,6 @@ export default {
         EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
         registerKeyPressHandler(this.keyPressHandler);
-
-        window.addEventListener('message', this.onExternalMessage, false);
     },
 
     beforeDestroy() {
@@ -995,7 +993,6 @@ export default {
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
-        window.removeEventListener('message', this.onExternalMessage);
         this.stopStateLoop();
         window.removeEventListener('message');
     },
@@ -1186,35 +1183,6 @@ export default {
         }
     },
     methods: {
-        /**
-         * Triggered when user sends a message from outside (e.g. when Schemio player is loaded via iframe).
-         * This could be used when Schemio player is embedded into some presentation (e.g. Reveal.js).
-         * The user is supposed to send event like this
-         *
-         * 	document.getElementById('my-iframe').contentWindow.postMessage({
-		 *		type: 'item-event',
-		 *		name: 'GlobalFrameHandler',
-		 *		event: 'My Frame event'
-		 *	}, '*');
-         * @param event
-         */
-        onExternalMessage(event) {
-            if (this.mode !== 'view' || !this.userEventBus || typeof event.data !== 'object') {
-                return;
-            }
-            if (event.data.type === 'item-event' && event.data.hasOwnProperty('name') && event.data.hasOwnProperty('event')) {
-                const itemName = event.data.name;
-                const eventName = event.data.event;
-                const eventArgs = Array.isArray(event.data.args) ? event.data.args : [];
-                const item = this.schemeContainer.findItemByName(itemName);
-                if (!item) {
-                    return;
-                }
-
-                this.userEventBus.emitItemEvent(item.id, eventName, ...eventArgs);
-            }
-        },
-
         onCompilerError(err) {
             this.scriptConsoleNewEntries = [{
                 level: 'error',

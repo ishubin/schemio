@@ -282,6 +282,7 @@ export default {
     mounted() {
         this.updateSvgSize();
         window.addEventListener("resize", this.updateSvgSize);
+        window.addEventListener('message', this.onExternalMessage, false);
 
         if (this.useMouseWheel) {
             var svgElement = this.$refs.svgDomElement;
@@ -310,6 +311,7 @@ export default {
 
     beforeDestroy(){
         this.highlightAnimated = true;
+        window.removeEventListener('message', this.onExternalMessage);
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
         EditorEventBus.zoomToAreaRequested.$off(this.editorId, this.onBringToView);
@@ -378,6 +380,35 @@ export default {
         };
     },
     methods: {
+        /**
+         * Triggered when user sends a message from outside (e.g. when Schemio player is loaded via iframe).
+         * This could be used when Schemio player is embedded into some presentation (e.g. Reveal.js).
+         * The user is supposed to send event like this
+         *
+         * 	document.getElementById('my-iframe').contentWindow.postMessage({
+		 *		type: 'item-event',
+		 *		name: 'GlobalFrameHandler',
+		 *		event: 'My Frame event'
+		 *	}, '*');
+         * @param event
+         */
+        onExternalMessage(event) {
+            if (this.mode !== 'view' || !this.userEventBus || typeof event.data !== 'object') {
+                return;
+            }
+            if (event.data.type === 'item-event' && event.data.hasOwnProperty('name') && event.data.hasOwnProperty('event')) {
+                const itemName = event.data.name;
+                const eventName = event.data.event;
+                const eventArgs = Array.isArray(event.data.args) ? event.data.args : [];
+                const item = this.schemeContainer.findItemByName(itemName);
+                if (!item) {
+                    return;
+                }
+
+                this.userEventBus.emitItemEvent(item.id, eventName, ...eventArgs);
+            }
+        },
+
         onComponentLoadRequested(item) {
             if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
                 return;
