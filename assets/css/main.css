@@ -4585,3 +4585,19 @@ table.function-arguments .function-argument-value > div {
     display: flex;
     align-items: center;
 }
+
+.function-import-container {
+    background: var(--base-weak);
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+.function-import-container ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.function-import-container li {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}

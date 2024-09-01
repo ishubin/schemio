@@ -20,7 +20,8 @@
                         Functions let you create scripted actions for items which you can then use from items events
                     </Tooltip>
                 </div>
-                <span class="col-1 btn btn-secondary" @click="startAddingNewFunction"><i class="fa-solid fa-florin-sign"></i> New function</span>
+                <span class="col-1 btn btn-secondary" @click="startAddingNewFunction" title="Add new function"><i class="fa-solid fa-florin-sign"></i> New function</span>
+                <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import functions"><i class="fa-solid fa-file-import"></i></span>
                 <div></div>
             </div>
 
@@ -110,6 +111,55 @@
 
             <div v-if="funcModal.errorMessage" class="msg msg-error">{{ funcModal.errorMessage }}</div>
         </Modal>
+
+        <Modal v-if="importFunctionModal.shown" title="Import functions"
+            primaryButton="Import"
+            :primaryButtonDisabled="importButtonDisabled"
+            @close="importFunctionModal.shown = false"
+            @primary-submit="importSelectedFunctions"
+            >
+            <div>
+                <span v-if="importFunctionModal.searchDiagramSupported"
+                    class="btn btn-secondary"
+                    @click="openSchemeSearchModalForImport"
+                    title="Search for other documents and import their functions"
+                    >
+                    <i class="fa-solid fa-magnifying-glass"></i> Search documents
+                </span>
+                <span class="btn btn-secondary" title="Extract script functions from a file" @click="showImportJSONModal"><i class="fa-solid fa-file-arrow-up"></i> Upload document</span>
+
+                <div class="function-import-container">
+                    <div v-if="importFunctionModal.functions.length > 0">
+                        <div class="hint hint-small">Select the function you want to import</div>
+                        <ul>
+                            <li v-for="(func, funcIdx) in importFunctionModal.functions">
+                                <input type="checkbox" :id="`import-func-checkbox-${funcIdx}`" :checked="func.selected"  @input="toggleImportFunctionCheckbox(funcIdx, arguments[0].target.checked)">
+                                <label :for="`import-func-checkbox-${funcIdx}`">
+                                    <i class="fa-solid fa-florin-sign"></i>
+                                    {{ func.name }}
+                                </label>
+                                <Tooltip v-if="func.description">{{ func.description }}</Tooltip>
+                            </li>
+                        </ul>
+                    </div>
+                    <div v-else class="hint hint-small">
+                        There are no functions to import. Choose a diagram from which you want to import functions.
+                    </div>
+                </div>
+            </div>
+
+            <div class="msg msg-error" v-if="importFunctionModal.errorMessage">{{ importFunctionModal.errorMessage }}</div>
+
+            <SchemeSearchModal v-if="importFunctionModal.searchModalShown"
+                @close="importFunctionModal.searchModalShown = false"
+                @selected-scheme="onExternalDiagramPicked"
+                />
+        </Modal>
+
+        <div v-if="importSchemeFileShown" style="display: none">
+            <input ref="importSchemeFileInput" type="file" @change="onImportSchemeFileInputChanged" accept="application/json"/>
+        </div>
+
     </div>
 </template>
 
@@ -124,6 +174,7 @@ import utils from '../../utils';
 import EditorEventBus from './EditorEventBus';
 import { isValidColor, parseColor } from '../../colors';
 import shortid from 'shortid';
+import SchemeSearchModal from './SchemeSearchModal.vue';
 
 
 const defaultTypeValues = {
@@ -195,7 +246,7 @@ export default {
         schemeContainer     : {type: Object},
     },
 
-    components: {Panel, ScriptEditor, Modal, Tooltip, PropertyInput, ScriptFunctionEditor},
+    components: {Panel, ScriptEditor, Modal, Tooltip, PropertyInput, ScriptFunctionEditor, SchemeSearchModal},
 
     data() {
         const scheme = this.schemeContainer.scheme;
@@ -236,11 +287,96 @@ export default {
                 {name: 'stroke pattern', value: 'stroke-pattern'},
                 {name: 'item', value: 'element'},
                 {name: 'diagram', value: 'scheme-ref'},
-            ]
+            ],
+
+            importFunctionModal: {
+                shown: false,
+                searchModalShown: false,
+                functions: [],
+                totalSelected: 0,
+                errorMessage: null,
+                searchDiagramSupported: this.$store.state.apiClient && this.$store.state.apiClient.getScheme
+            },
+
+            importSchemeFileShown: false,
         };
     },
 
     methods: {
+        importSelectedFunctions() {
+            this.importFunctionModal.functions.forEach(func => {
+                if (func.selected) {
+                    delete func.selected;
+                    this.schemeContainer.scheme.scripts.functions.push(func);
+                }
+            });
+            this.importFunctionModal.shown = false;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        showImportJSONModal() {
+            this.importSchemeFileShown = true;
+            this.$nextTick(() => {
+                this.$refs.importSchemeFileInput.click();
+            });
+        },
+
+        openImportFunctionModal() {
+            this.importFunctionModal.functions = [];
+            this.importFunctionModal.totalSelected = 0;
+            this.importFunctionModal.searchModalShown = false;
+            this.importFunctionModal.errorMessage = null;
+            this.importFunctionModal.shown = true;
+        },
+
+        toggleImportFunctionCheckbox(idx, selected) {
+            this.importFunctionModal.functions[idx].selected = selected;
+            this.updateTotalSelectedFunctions();
+        },
+
+        updateTotalSelectedFunctions() {
+            let count = 0;
+            this.importFunctionModal.functions.forEach(func => {
+                if (func.selected) {
+                    count++;
+                }
+            });
+            this.importFunctionModal.totalSelected = count;
+        },
+
+        openSchemeSearchModalForImport() {
+            this.importFunctionModal.searchModalShown = true;
+        },
+
+        onExternalDiagramPicked(doc) {
+            this.importFunctionModal.searchModalShown = false;
+
+            this.$store.state.apiClient.getScheme(doc.id).then(doc => {
+                this.loadFunctionsFromScheme(doc.scheme)
+            })
+            .catch(err => {
+                console.error(err);
+                this.importFunctionModal.errorMessage = 'Something went wrong, try again later';
+            })
+        },
+
+        loadFunctionsFromScheme(scheme) {
+            if (scheme && scheme.scripts && Array.isArray(scheme.scripts.functions)) {
+                this.importFunctionModal.functions = scheme.scripts.functions.map(funcDef => {
+                    return {
+                        ...funcDef,
+                        id: shortid.generate(),
+                        selected: true
+                    };
+                });
+
+                this.importFunctionModal.totalSelected = this.importFunctionModal.functions.length;
+            } else {
+                this.importFunctionModal.functions = [];
+                this.importFunctionModal.totalSelected = 0;
+            }
+        },
+
         onScriptFunctionEditorPropChange(name, value) {
             this.funcModal.props[name] = value;
         },
@@ -475,8 +611,31 @@ export default {
             this.funcModal.errorMessage = null;
             this.funcModal.shown = true;
             this.funcModal.funcIdx = funcIdx;
-        }
+        },
+
+        onImportSchemeFileInputChanged(event) {
+            this.loadSchemeFile(event.target.files[0]);
+        },
+
+        loadSchemeFile(file) {
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                this.importSchemeFileShown = false;
+                try {
+                    const scheme = JSON.parse(event.target.result);
+                    this.loadFunctionsFromScheme(scheme);
+                } catch(err) {
+                    alert('Not able to import scheme. Malformed json');
+                }
+            };
+
+            reader.readAsText(file);
+        },
+
     },
+
+
 
     computed: {
         funcModalTitle() {
@@ -485,6 +644,10 @@ export default {
 
         funcModalButtonName() {
             return this.funcModal.isNew ? 'Add' : 'Update';
+        },
+
+        importButtonDisabled() {
+            return this.importFunctionModal.totalSelected === 0;
         }
     }
 }
