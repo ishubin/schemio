@@ -52,12 +52,12 @@ export default {
         dragObjectIn: {
             id: 'dragObjectIn',
             name: 'Dragging: Object In',
-            description: 'When use drags an object into another designated drop object'
+            description: 'When user drags an object into another designated drop object'
         },
         dragObjectOut: {
             id: 'dragObjectOut',
             name: 'Dragging: Object Out',
-            description: 'When use drags an object away from another designated drop object'
+            description: 'When user drags an object away from another designated drop object'
         }
     }
 }
