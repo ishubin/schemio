@@ -1,7 +1,7 @@
 import utils from "../utils";
 import { traverseItems } from "./Item";
 
-const schemeBasicFields = ['name', 'description', 'tags', 'style', 'settings'];
+const schemeBasicFields = ['name', 'description', 'tags', 'style', 'settings', 'scripts'];
 
 export function rebaseScheme(scheme, latestScheme) {
     schemeBasicFields.forEach(fieldName => {
