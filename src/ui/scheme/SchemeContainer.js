@@ -899,7 +899,6 @@ class SchemeContainer {
         }
 
         this.revision = newRevision;
-        console.log('Reindex with mode', this.mode);
     }
 
 
