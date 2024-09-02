@@ -676,6 +676,7 @@ export default {
                                 action.id = shortid.generate();
                             });
                             item.behavior.events.push(event);
+                            this.eventMetas.push(this.createBehaviorEventMeta(event));
                         });
                         EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                     });
