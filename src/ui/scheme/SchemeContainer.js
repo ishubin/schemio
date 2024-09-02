@@ -2420,6 +2420,7 @@ class SchemeContainer {
      * Finds items that match specified selector
      * @param {String} selector contains a selector for an element
      * @param {SchemeItem} selfItem
+     * @returns {Array<Item>}
      */
     findElementsBySelector(selector, selfItem) {
         if (!selector) {

@@ -183,6 +183,19 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
                 componentScopeData = componentRootItem.meta.componentScriptScopeData;
             }
             const finalArgs = {...args, ...componentScopeData};
+
+            // making sure that 'element' type arguments get converted from string to items
+            // so that it makes it usable in the user script
+            funcDef.args.forEach(argDef => {
+                if (argDef.type === 'element' && finalArgs.hasOwnProperty(argDef.name)) {
+                    const selector = finalArgs[argDef.name];
+                    const items = schemeContainer.findElementsBySelector(selector, item).map(foundItem => {
+                        return createItemScriptWrapper(foundItem, schemeContainer, userEventBus);
+                    });
+                    finalArgs[argDef.name] = new List(...items);
+                }
+            });
+            // console.log('Executing script function with args', args);
             execute(item, funcDef.props, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, finalArgs);
         }
     };
