@@ -333,6 +333,11 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             return item.name;
         },
 
+        getTags() {
+            const tags = Array.isArray(item.tags) ? item.tags : [];
+            return new List(...tags);
+        },
+
         setVar(name, value) {
             if (!item.args) {
                 item.args = {};
