@@ -11,16 +11,10 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
     flex-direction: column;
 }
 .ssc-container .ssc-header {
-    background: #555;
-    color: #f0f0f0;
-    border-bottom: 1px solid #cccccc;
     display: flex;
     flex-direction: row;
     width: 100%;
     font-size: 14px;
-}
-.ssc-container .ssc-header a {
-    color: #b0d8f5;
 }
 .ssc-container .ssc-header > div {
     padding: 5px;

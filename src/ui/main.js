@@ -24,11 +24,12 @@ import utils from './utils.js';
 import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js'
 import { diagramImageExporter } from './diagramExporter.js';
 import { compileItemTemplate } from './components/editor/items/ItemTemplate.js';
+import ColorPicker from './components/editor/ColorPicker.vue';
 
 window.Schemio = {
     components: {
         Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
-        store, Dropdown, MenuDropdown, Pagination, RichTextEditor
+        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker
     },
     utils: {
         getObjectProperty: utils.getObjectProperty,

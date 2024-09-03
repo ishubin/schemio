@@ -4,14 +4,15 @@
 
 <template>
     <div class="ssc-container" oncontextmenu="return false;" style="position: relative;">
-        <div class="ssc-header">
+        <div v-if="headerEnabled" class="ssc-header" :style="{background: headerBackground}">
             <div class="ssc-header-search">
-                Zoom:
-                <input class="ssc-zoom" type="text" v-model="textZoom" @blur="onZoomSubmitted" @keydown.enter="onZoomSubmitted"/>
-                <span class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
+                <span v-if="zoomInput" :style="{'color': headerColor}">Zoom:</span>
+                <input v-if="zoomInput" class="ssc-zoom" type="text" v-model="textZoom" @blur="onZoomSubmitted" @keydown.enter="onZoomSubmitted"/>
+                <span v-if="zoomButton" class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
             <div class="ssc-header-right">
-                built by <a target="_top" :href="homeLink">Schemio</a>
+                <span :style="{'color': headerColor}">built by</span>
+                <a :style="{'color': linkColor}"  target="_top" :href="homeLink">Schemio</a>
             </div>
         </div>
         <div class="ssc-body">
@@ -62,12 +63,18 @@ import shortid from 'shortid';
 
 export default {
     props: {
-        scheme        : {type: Object},
-        zoom          : {type: Number, default: 100},
-        autoZoom      : {type: Boolean, default: true},
-        sidePanelWidth: {type: Number, default: 400},
-        useMouseWheel : {type: Boolean, default: true},
-        homeLink      : {type: String, default: 'https://github.com/ishubin/schemio'}
+        scheme          : {type: Object},
+        zoom            : {type: Number, default: 100},
+        autoZoom        : {type: Boolean, default: true},
+        sidePanelWidth  : {type: Number, default: 400},
+        useMouseWheel   : {type: Boolean, default: true},
+        homeLink        : {type: String, default: 'https://github.com/ishubin/schemio'},
+        linkColor       : {type: String, default: '#b0d8f5'},
+        headerBackground: {type: String, default: '#555'},
+        headerColor     : {type: String, default: '#f0f0f0'},
+        headerEnabled   : {type: Boolean, default: true},
+        zoomButton      : {type: Boolean, default: true},
+        zoomInput       : {type: Boolean, default: true},
     },
 
     components: {SvgEditor, ItemTooltip, ItemDetails},

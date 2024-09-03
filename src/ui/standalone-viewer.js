@@ -28,14 +28,23 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         data() {
             return {
                 scheme,
-                zoom          : Math.max(0.00005, parseFloat(options.zoom) || 100),
-                autoZoom      : objProperty(options, 'autoZoom', true),
-                sidePanelWidth: parseInt(options.sidePanelWidth) || 400,
-                useMouseWheel : objProperty(options, 'useMouseWheel', true),
-                homeLink      : objProperty(options, 'homeLink', 'https://github.com/ishubin/schemio')
+                zoom            : Math.max(0.00005, parseFloat(options.zoom) || 100),
+                autoZoom        : objProperty(options, 'autoZoom', true),
+                sidePanelWidth  : parseInt(options.sidePanelWidth) || 400,
+                useMouseWheel   : objProperty(options, 'useMouseWheel', true),
+                homeLink        : objProperty(options, 'homeLink', 'https://schem.io'),
+                linkColor       : objProperty(options, 'linkColor', '#b0d8f5'),
+                headerBackground: objProperty(options, 'headerBackground', '#555'),
+                headerColor     : objProperty(options, 'headerColor', '#f0f0f0'),
+                headerEnabled   : objProperty(options, 'headerEnabled', true),
+                zoomButton      : objProperty(options, 'zoomButton', true),
+                zoomInput       : objProperty(options, 'zoomInput', true),
             };
         },
-        template: '<standalone-scheme-view :scheme="scheme" :zoom="zoom" :auto-zoom="autoZoom" :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
+        template: '<standalone-scheme-view :scheme="scheme" :zoom="zoom" :auto-zoom="autoZoom"'
+            +' :link-color="linkColor" :header-background="headerBackground" :headerColor="headerColor" :header-enabled="headerEnabled"'
+            +' :zoom-button="zoomButton" :zoom-input="zoomInput"'
+            +' :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
     }).$mount(elementOrSelector);
 }
 

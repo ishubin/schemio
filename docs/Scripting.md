@@ -80,6 +80,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [Item functions](#item-functions)
       - [debugItem](#debugitem)
       - [getId](#getid)
+      - [getName](#getname)
+      - [getTags](#gettags)
       - [setVar](#setvar)
       - [getVar](#getvar)
       - [getPosX](#getposx)
@@ -954,6 +956,16 @@ Since all the script and condition functions are executed on some particular ite
 ##### getId
 
 `getId()` returns item internal id
+
+
+##### getName
+
+`getName()` returns item's name
+
+
+##### getTags
+
+`getTags()` returns a [List](#list) object that contains item's tags
 
 
 ##### setVar
