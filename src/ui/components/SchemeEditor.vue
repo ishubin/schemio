@@ -994,7 +994,7 @@ export default {
 
         this.animationRegistry.destroy();
         this.stopStateLoop();
-        window.removeEventListener('message');
+        window.addEventListener('message', this.onWindowResize);
     },
 
     mounted() {
