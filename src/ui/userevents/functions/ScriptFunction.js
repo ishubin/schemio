@@ -476,6 +476,12 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         },
 
         show() {
+            // this is a special case when this function is invoked after Hide animation
+            // Hide animation brings opacity all the way to 0,
+            // if we don't handle it, it would be confusing for users
+            if (!item.visible && item.opacity === 0) {
+                item.opacity = 100;
+            }
             item.visible = true;
             emitItemChanged();
         },
