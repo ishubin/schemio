@@ -369,7 +369,7 @@ export function fsCreateDirectory(config, projectService) {
  */
 export function fsListFilesRoute(config, projectService) {
     return (req, res) => {
-        const pathPrefix = '/v1/fs/list';
+        const pathPrefix = `${config.routePrefix}/v1/fs/list`;
         if (req.path.indexOf(pathPrefix) !== 0) {
             res.$apiBadRequest();
             return;

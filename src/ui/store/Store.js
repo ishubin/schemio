@@ -14,13 +14,16 @@ const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
+const routePrefix = document.body.getAttribute('data-route-prefix') || '';
 
 const store = new Vuex.Store({
     state: {
 
-        //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages the we cannot use '/' as root path
+        //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages then we cannot use '/' as root path
         rootPath: '/',
         assetsPath: '/assets',
+
+        routePrefix: routePrefix,
 
         apiClient: null,
 
@@ -554,6 +557,7 @@ const store = new Vuex.Store({
 
         rootPath: state => state.rootPath,
         assetsPath: state => state.assetsPath,
+        routePrefix: state => state.routePrefix,
     }
 });
 

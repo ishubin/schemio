@@ -6,13 +6,15 @@ import { getAllTemplates, getExportHTMLResources, getTemplate, unwrapAxios } fro
 export const fsClientProvider = {
     type: 'fs',
     create() {
+        const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+
         return Promise.resolve({
             _getSchemeUrl(schemeId) {
-                return `/v1/fs/docs/${schemeId}?_v=${new Date().getTime()}`;
+                return `${routePrefix}/v1/fs/docs/${schemeId}?_v=${new Date().getTime()}`;
             },
 
             listEntries(path) {
-                let url = '/v1/fs/list';
+                let url = `${routePrefix}/v1/fs/list`;
                 if (path) {
                     url = url + '/' + path;
                 }
@@ -20,19 +22,19 @@ export const fsClientProvider = {
             },
 
             moveDir(oldPath, parentPath) {
-                return axios.post(`/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&parent=${encodeURIComponent(parentPath)}`).then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/fs/movedir?src=${encodeURIComponent(oldPath)}&parent=${encodeURIComponent(parentPath)}`).then(unwrapAxios);
             },
 
             deleteDir(path) {
-                return axios.delete(`/v1/fs/dir?path=${encodeURIComponent(path)}`).then(unwrapAxios);
+                return axios.delete(`${routePrefix}/v1/fs/dir?path=${encodeURIComponent(path)}`).then(unwrapAxios);
             },
 
             createDirectory(path, name) {
-                return axios.post('/v1/fs/dir', { name, path }).then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/fs/dir`, { name, path }).then(unwrapAxios);
             },
 
             renameDirectory(path, newName) {
-                return axios.patch(`/v1/fs/dir?path=${encodeURIComponent(path)}`, {name: newName}).then(unwrapAxios);
+                return axios.patch(`${routePrefix}/v1/fs/dir?path=${encodeURIComponent(path)}`, {name: newName}).then(unwrapAxios);
             },
 
             getSchemeInfo(schemeId) {
@@ -40,7 +42,7 @@ export const fsClientProvider = {
                     return Promise.reject('Invalid empty document ID');
                 }
                 return getCachedSchemeInfo(schemeId, () => {
-                    return axios.get(`/v1/fs/docs/${schemeId}/info?_v=${new Date().getTime()}`).then(unwrapAxios);
+                    return axios.get(`${routePrefix}/v1/fs/docs/${schemeId}/info?_v=${new Date().getTime()}`).then(unwrapAxios);
                 });
             },
 
@@ -56,33 +58,33 @@ export const fsClientProvider = {
             },
 
             moveScheme(schemeId, newFolder) {
-                return axios.post(`/v1/fs/movescheme?id=${encodeURIComponent(schemeId)}&parent=${encodeURIComponent(newFolder)}`).then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/fs/movescheme?id=${encodeURIComponent(schemeId)}&parent=${encodeURIComponent(newFolder)}`).then(unwrapAxios);
             },
 
             createNewScheme(path, scheme) {
-                return axios.post(`/v1/fs/docs?path=${encodeURIComponent(path || '')}`, scheme).then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/fs/docs?path=${encodeURIComponent(path || '')}`, scheme).then(unwrapAxios);
             },
 
 
             /************* Below are the functions that are used by SchemeEditor component *************/
 
             createArt(art) {
-                return axios.post('/v1/fs/art', art).then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/fs/art`, art).then(unwrapAxios);
             },
 
             getAllArt() {
-                return axios.get('/v1/fs/art').then(unwrapAxios);
+                return axios.get(`${routePrefix}/v1/fs/art`).then(unwrapAxios);
             },
 
             getAllTemplates,
             getTemplate: getTemplate,
 
             saveArt(artId, art) {
-                return axios.put(`/v1/fs/art/${artId}`, art).then(unwrapAxios);
+                return axios.put(`${routePrefix}/v1/fs/art/${artId}`, art).then(unwrapAxios);
             },
 
             deleteArt(artId) {
-                return axios.delete(`/v1/fs/art/${artId}`).then(unwrapAxios);
+                return axios.delete(`${routePrefix}/v1/fs/art/${artId}`).then(unwrapAxios);
             },
 
             saveScheme(scheme) {
@@ -94,7 +96,7 @@ export const fsClientProvider = {
             },
 
             findSchemes(filters) {
-                let url = '/v1/fs/docs';
+                let url = `${routePrefix}/v1/fs/docs`;
                 let params = {};
 
                 if (filters.query) {
@@ -121,28 +123,28 @@ export const fsClientProvider = {
             },
 
             uploadSchemePreview(schemeId, preview, format) {
-                let url = '/v1/fs/doc-preview?id=' + encodeURIComponent(schemeId);
+                let url = `${routePrefix}/v1/fs/doc-preview?id=` + encodeURIComponent(schemeId);
                 return axios.post(url, {preview, format}).then(unwrapAxios);
             },
 
             uploadFile(file) {
                 const form = new FormData();
                 form.append('file', file, file.name);
-                return axios.post(`/v1/media`, form).then(unwrapAxios).then(data => {
+                return axios.post(`${routePrefix}/v1/media`, form).then(unwrapAxios).then(data => {
                     return data.url;
                 });
             },
 
             saveStyle(fill, strokeColor, textColor) {
-                return axios.post('/v1/fs/styles', { fill, strokeColor, textColor }).then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/fs/styles`, { fill, strokeColor, textColor }).then(unwrapAxios);
             },
 
             getStyles() {
-                return axios.get('/v1/fs/styles').then(unwrapAxios);
+                return axios.get(`${routePrefix}/v1/fs/styles`).then(unwrapAxios);
             },
 
             deleteStyle(styleId) {
-                return axios.delete(`/v1/fs/styles/${styleId}`).then(unwrapAxios);
+                return axios.delete(`${routePrefix}/v1/fs/styles/${styleId}`).then(unwrapAxios);
             },
 
             /**
@@ -151,11 +153,11 @@ export const fsClientProvider = {
             getExportHTMLResources,
 
             submitStaticExport() {
-                return axios.post('/v1/static-export/start').then(unwrapAxios);
+                return axios.post(`${routePrefix}/v1/static-export/start`).then(unwrapAxios);
             },
 
             getStaticExportStatus() {
-                return axios.get('/v1/static-export/status').then(unwrapAxios);
+                return axios.get(`${routePrefix}/v1/static-export/status`).then(unwrapAxios);
             },
 
             get(url) {

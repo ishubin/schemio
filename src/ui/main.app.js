@@ -30,6 +30,8 @@ applyVueFilters(Vue);
 Vue.component('schemio-header', Header);
 Vue.component('schemio-footer', Footer);
 
+const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+
 function route(name, path, component, props) {
     return { name, path, component, props };
 }
@@ -45,13 +47,13 @@ window.schemioDebug = {
 
 
 const routes = [
-    route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: fsClientProvider, starterTemplates: defaultStarterTemplates}),
-    route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, starterTemplates: defaultStarterTemplates, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
-    route('AboutView',              '/about',            AboutView),
-    route('NotFoundView',           '/not-found',        NotFoundView),
-    route('HomeView',               '/',                 FolderView, {clientProvider: fsClientProvider}),
-    route('SearchView',             '/search',           SearchView, {clientProvider: fsClientProvider}),
-    route('FolderView',             '/f/*',              FolderView, {clientProvider: fsClientProvider}),
+    route('SchemeEditorWebView',        `${routePrefix}/docs/:schemeId`,   SchemeEditorWebView, {clientProvider: fsClientProvider, starterTemplates: defaultStarterTemplates}),
+    route('OfflineSchemeEditorWebView', `${routePrefix}/offline-editor`,   SchemeEditorWebView, {clientProvider: offlineClientProvider, starterTemplates: defaultStarterTemplates, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
+    route('AboutView',                  `${routePrefix}/about`,            AboutView),
+    route('NotFoundView',               `${routePrefix}/not-found`,        NotFoundView),
+    route('HomeView',                   `${routePrefix}/`,                 FolderView, {clientProvider: fsClientProvider}),
+    route('SearchView',                 `${routePrefix}/search`,           SearchView, {clientProvider: fsClientProvider}),
+    route('FolderView',                 `${routePrefix}/f/*`,              FolderView, {clientProvider: fsClientProvider}),
     { path: '*', redirect: '/not-found'}
 ];
 
