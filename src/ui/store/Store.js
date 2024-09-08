@@ -555,8 +555,21 @@ const store = new Vuex.Store({
             return false;
         },
 
-        rootPath: state => state.rootPath,
-        assetsPath: state => state.assetsPath,
+        rootPath: state => {
+            if (state.routePrefix) {
+                if (state.rootPath === '/') {
+                    return state.routePrefix;
+                }
+                return state.routePrefix + state.rootPath;
+            }
+            return state.rootPath;
+        },
+        assetsPath: state => {
+            if (state.routePrefix) {
+                return state.routePrefix + state.assetsPath;
+            }
+            return state.assetsPath;
+        },
         routePrefix: state => state.routePrefix,
     }
 });
