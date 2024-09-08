@@ -609,7 +609,63 @@ function generateGettersAndSettersForShapeProps(item, shape, schemeContainer) {
         methods['set' + upperName] = createShapePropSetter(item, name, arg, schemeContainer);
         methods['get' + upperName] = createShapePropGetter(item, name);
     });
+
+    if (item.shape === 'math_block' && methods.hasOwnProperty('setExpression')) {
+        methods.setExpression = createDelayedShapePropSetter(item, 'expression', methods.setExpression);
+    }
     return methods;
+}
+
+/**
+ * This function is a hack used to ensure that KaTeX formula does not get rerendered too often from user scripts.
+ * In case of large formulas and if they get updated too fast - it can cause a browser crash
+ * Thus this function ensures that the update of property is triggered not faster than every 80ms (12,5 fps)
+ * @param {Item} item
+ * @param {String} propName
+ * @param {function(any):void} setter
+ * @returns
+ */
+function createDelayedShapePropSetter(item, propName, setter) {
+    const minTimeDiff = 80;
+
+    return (value) => {
+        if (!item.meta.hasOwnProperty('delayedPropSetterTimers')) {
+            item.meta.delayedPropSetterTimers = {};
+        }
+
+        if (!item.meta.delayedPropSetterTimers.hasOwnProperty(propName)) {
+            item.meta.delayedPropSetterTimers[propName] = {
+                time: performance.now(),
+                timerId: null,
+                targetValue: value
+            };
+            setter(value);
+            return;
+        }
+
+        const timer = item.meta.delayedPropSetterTimers[propName];
+
+        const now = performance.now();
+        const timeDiff = now - timer.time;
+        if (timeDiff > minTimeDiff) {
+            timer.time = now;
+            if (timer.timerId) {
+                clearTimeout(timer.timerId);
+                timer.timerId = null;
+            }
+            timer.targetValue = value;
+            setter(value);
+        } else {
+            timer.value = value;
+            if (!timer.timerId) {
+                timer.timerId = setTimeout(() => {
+                    setter(item.meta.delayedPropSetterTimers[propName].value);
+                    clearTimeout(item.meta.delayedPropSetterTimers[propName].timerId);
+                    item.meta.delayedPropSetterTimers[propName].timerId = null;
+                }, minTimeDiff - timeDiff);
+            }
+        }
+    };
 }
 
 /**
