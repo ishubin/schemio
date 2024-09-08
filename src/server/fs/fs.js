@@ -490,7 +490,7 @@ export function fsUploadMediaFile(config) {
         .then(() => file.mv(fullFilePath))
         .then(() => {
             res.json({
-                url: `/media/${firstPart}/${id}.${extension}`
+                url: `${config.routePrefix}/media/${firstPart}/${id}.${extension}`
             })
         })
         .catch(err => {

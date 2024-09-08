@@ -35,7 +35,15 @@ export default {
     data() {
         return {
             proposals: this.templates.map(template => {
-                return {...template, isLoading: false}
+                let docUrl = template.docUrl;
+                if (docUrl && docUrl.startsWith('/assets') && this.$store.state.routePrefix) {
+                    docUrl = this.$store.state.routePrefix + docUrl;
+                }
+                let iconUrl = template.iconUrl;
+                if (iconUrl && iconUrl.startsWith('/assets') && this.$store.state.routePrefix) {
+                    iconUrl = this.$store.state.routePrefix + iconUrl;
+                }
+                return {...template, iconUrl, docUrl, isLoading: false}
             })
         };
     },

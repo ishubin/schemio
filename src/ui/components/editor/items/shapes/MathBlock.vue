@@ -24,6 +24,9 @@ function renderExpression($store, item) {
     if (assetsPath === '/') {
         assetsPath = '';
     }
+    if ($store.state.routePrefix) {
+        assetsPath = $store.state.routePrefix + assetsPath;
+    }
 
     const expression = item.shapeProps.expression;
 
@@ -33,7 +36,7 @@ function renderExpression($store, item) {
             worker.onmessage = (event) => {
                 resolve(event.data);
             };
-            worker.postMessage({expression: expression});
+            worker.postMessage({expression: expression, routePrefix: $store.state.routePrefix});
         });
     });
 }

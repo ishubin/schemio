@@ -44,9 +44,9 @@ export default {
 
             let path = '';
             if (mode === 'hash') {
-                path = `/#/${routeName}/?doc=${content}`;
+                path = `${this.$store.state.routePrefix}/#/${routeName}/?doc=${content}`;
             } else {
-                path = `/${routeName}#doc=${content}`;
+                path = `${this.$store.state.routePrefix}/${routeName}#doc=${content}`;
             }
             this.link = window.location.origin + path;
 

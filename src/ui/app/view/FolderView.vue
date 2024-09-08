@@ -316,10 +316,12 @@ export default {
             this.showProgressModal('Creating diagram', `Creating diagram "${scheme.name}"`);
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 this.progressModal.shown = false;
+
+                const routePrefix = this.$store.state.routePrefix || '';
                 if (this.$router.mode === 'history') {
-                        this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
+                    this.$router.push({path: `${routePrefix}/docs/${createdScheme.id}#m=edit`});
                 } else {
-                    this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
+                    this.$router.push({path: `${routePrefix}/docs/${createdScheme.id}?m=edit`});
                 }
             })
             .catch(err => {
@@ -442,7 +444,7 @@ export default {
 
         searchSchemes() {
             this.$router.push({
-                path: `/search?q=${encodeURIComponent(this.searchKeyword)}`
+                path: `${this.$store.state.routePrefix}/search?q=${encodeURIComponent(this.searchKeyword)}`
             });
         },
 

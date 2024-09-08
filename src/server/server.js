@@ -97,8 +97,6 @@ projectService.load()
     app.get(`${config.routePrefix}/media/*`, fsDownloadMediaFile(config));
 
     app.get('*', (req, res) => {
-        // res.sendFile(`${cwd}/html/index.html`)
-
         res.send(indexTemplate({routePrefix: config.routePrefix}));
     });
 

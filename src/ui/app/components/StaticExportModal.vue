@@ -11,7 +11,7 @@
             </p>
 
             <div v-if="exportStatus.status === 'finished'">
-                Done, you can download all your exported documents using this <a class="link" :href="`/v1/static-export/download/${exportStatus.version}`">link</a>
+                Done, you can download all your exported documents using this <a class="link" :href="`${routePrefix}/v1/static-export/download/${exportStatus.version}`">link</a>
             </div>
         </div>
     </modal>
@@ -64,6 +64,12 @@ export default {
             .catch(err => {
                 console.error(err);
             });
+        }
+    },
+
+    computed: {
+        routePrefix() {
+            return this.$store.getters.routePrefix;
         }
     }
 }

@@ -61,6 +61,11 @@ function highlightItemTextSlot($store, item, foreignObject) {
     if (assetsPath === '/') {
         assetsPath = '';
     }
+    if ($store.state.routePrefix) {
+        assetsPath = $store.state.routePrefix + assetsPath;
+    }
+
+
     const worker = new Worker(`${assetsPath}/js/syntax-highlight-worker.js`);
     worker.onmessage = (event) => {
         const itemTextElement = foreignObject.querySelector('.item-text-element');

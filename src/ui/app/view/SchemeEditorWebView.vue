@@ -7,7 +7,7 @@
             <div slot="middle-section">
                 <ul class="header-breadcrumbs">
                     <li v-for="(crumb,  crumbIdx) in breadcrumbs">
-                        <router-link v-if="crumb.kind === 'dir'" :to="`/f/${crumb.path}`">
+                        <router-link v-if="crumb.kind === 'dir'" :to="`${routePrefix}/f/${crumb.path}`">
                             <i class="fas fa-folder"/>
                             {{crumb.name}}
                         </router-link>
@@ -427,6 +427,9 @@ export default {
     computed: {
         assetsPath() {
             return this.$store.getters.assetsPath;
+        },
+        routePrefix() {
+            return this.$store.getters.routePrefix;
         }
     },
 

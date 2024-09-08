@@ -249,7 +249,7 @@ export default {
 
     components: {
         Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditModal,
-        ItemSvg, ExtraShapesModal, ExtraShapesModal, SchemeSearchModal
+        ItemSvg, ExtraShapesModal, SchemeSearchModal
     },
 
     beforeMount() {
@@ -331,7 +331,16 @@ export default {
                 this.$store.state.apiClient.getAllTemplates()
                 .then(templates => {
                     this.templatesLoading = true;
-                    this.templates = templates;
+                    this.templates = templates.map(template => {
+                        const routePrefix = this.$store.state.routePrefix;
+                        const path = template.path.startsWith('/assets') ? routePrefix + template.path : template.path;
+                        const preview = template.preview && template.preview.startsWith('/assets') ? routePrefix + template.preview : template.preview;
+                        return {
+                            ...template,
+                            path,
+                            preview
+                        };
+                    });
                     this.$forceUpdate();
                 })
                 .catch(err => {
