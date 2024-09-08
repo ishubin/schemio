@@ -174,7 +174,11 @@ export default {
         }
         const routePrefix = this.$store.state.routePrefix || '';
 
-        if (path.indexOf(`${routePrefix}/f/`) === 0) {
+        if (path.startsWith(routePrefix)) {
+            path = path.substring(routePrefix.length);
+        }
+
+        if (path.indexOf('/f/') === 0) {
             path = decodeURI(path.substring(3));
         }
 

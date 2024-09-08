@@ -46,15 +46,18 @@ window.schemioDebug = {
 };
 
 
+const rootPath = routePrefix ? routePrefix : '/';
+
 const routes = [
     route('SchemeEditorWebView',        `${routePrefix}/docs/:schemeId`,   SchemeEditorWebView, {clientProvider: fsClientProvider, starterTemplates: defaultStarterTemplates}),
     route('OfflineSchemeEditorWebView', `${routePrefix}/offline-editor`,   SchemeEditorWebView, {clientProvider: offlineClientProvider, starterTemplates: defaultStarterTemplates, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
     route('AboutView',                  `${routePrefix}/about`,            AboutView),
     route('NotFoundView',               `${routePrefix}/not-found`,        NotFoundView),
-    route('HomeView',                   `${routePrefix}/`,                 FolderView, {clientProvider: fsClientProvider}),
+    route('HomeView',                   rootPath,                 FolderView, {clientProvider: fsClientProvider}),
     route('SearchView',                 `${routePrefix}/search`,           SearchView, {clientProvider: fsClientProvider}),
     route('FolderView',                 `${routePrefix}/f/*`,              FolderView, {clientProvider: fsClientProvider}),
-    { path: '*', redirect: '/not-found'}
+    { path: '/', redirect: rootPath},
+    { path: '*', redirect: `${routePrefix}/not-found`}
 ];
 
 
