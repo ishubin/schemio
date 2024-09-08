@@ -502,7 +502,7 @@ export function fsUploadMediaFile(config) {
 
 export function fsDownloadMediaFile(config) {
     return (req, res) => {
-        const pathPrefix = '/media/';
+        const pathPrefix = `${config.routePrefix}/media/`;
         if (!req.path.startsWith(pathPrefix)) {
             res.status(400);
             res.send('Bad request');
