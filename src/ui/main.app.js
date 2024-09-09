@@ -31,6 +31,7 @@ Vue.component('schemio-header', Header);
 Vue.component('schemio-footer', Footer);
 
 const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+store.dispatch('setRoutePrefix', routePrefix);
 
 function route(name, path, component, props) {
     return { name, path, component, props };
@@ -53,7 +54,7 @@ const routes = [
     route('OfflineSchemeEditorWebView', `${routePrefix}/offline-editor`,   SchemeEditorWebView, {clientProvider: offlineClientProvider, starterTemplates: defaultStarterTemplates, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
     route('AboutView',                  `${routePrefix}/about`,            AboutView),
     route('NotFoundView',               `${routePrefix}/not-found`,        NotFoundView),
-    route('HomeView',                   rootPath,                 FolderView, {clientProvider: fsClientProvider}),
+    route('HomeView',                   rootPath,                          FolderView, {clientProvider: fsClientProvider}),
     route('SearchView',                 `${routePrefix}/search`,           SearchView, {clientProvider: fsClientProvider}),
     route('FolderView',                 `${routePrefix}/f/*`,              FolderView, {clientProvider: fsClientProvider}),
     { path: '/', redirect: rootPath},

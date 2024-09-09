@@ -14,16 +14,15 @@ const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
-const routePrefix = document.body.getAttribute('data-route-prefix') || '';
 
 const store = new Vuex.Store({
     state: {
-
         //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages then we cannot use '/' as root path
         rootPath: '/',
         assetsPath: '/assets',
 
-        routePrefix: routePrefix,
+        // routePrefix is used so that Schemio can generate proper links in all components in case custom route prefix is being used
+        routePrefix: '',
 
         apiClient: null,
 
@@ -109,8 +108,12 @@ const store = new Vuex.Store({
             pencilSize: 3,
             brushSize: 5,
         },
-    },
+},
     mutations: {
+        SET_ROUTE_PREFIX(state, routePrefix) {
+            state.routePrefix = routePrefix;
+        },
+
         SET_ROOT_PATH(state, path) {
             state.rootPath = path;
         },
@@ -367,6 +370,10 @@ const store = new Vuex.Store({
     },
 
     actions: {
+        setRoutePrefix({commit}, routePrefix) {
+            commit('SET_ROUTE_PREFIX', routePrefix);
+        },
+
         setRootPath({commit}, path) {
             commit('SET_ROOT_PATH', path);
         },
