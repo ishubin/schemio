@@ -116,16 +116,17 @@ const settingsStorage = createSettingStorageFromLocalStorage('item-selector', 5)
 /**
  * Enriches item with additional fields that are used in item selector for rendering
  * @param {Item} item
+ * @param {Store} $store
  * @returns {Item}
  */
-function enrichedItem(item) {
+function enrichedItem(item, $store) {
     const shape = Shape.find(item.shape);
     if (!shape) {
         return item;
     }
 
     if (item.shape === 'path') {
-        item.meta.iconUrl = '/assets/images/items/path.svg';
+        item.meta.iconUrl = `${$store.state.routePrefix}/assets/images/items/path.svg`;
     } else if (shape.menuItems && shape.menuItems.length > 0) {
         item.meta.iconUrl = shape.menuItems[0].iconUrl;
     }
@@ -189,7 +190,7 @@ export default {
                 itemId: null,
                 name: ''
             },
-            filteredItems: this.schemeContainer.getItems().map(enrichedItem),
+            filteredItems: this.schemeContainer.getItems().map(item => enrichedItem(item, this.$store)),
 
             // used for vertical multi-select when user holds shift
             lastClickedItem: null
@@ -322,7 +323,7 @@ export default {
                 this.dragging.items = finalDraggedItems;
 
                 this.dragging.previewItemName = item.name;
-                this.dragging.previewIconUrl = enrichedItem(item).meta.iconUrl;
+                this.dragging.previewIconUrl = enrichedItem(item, this.$store).meta.iconUrl;
                 this.dragging.startedDragging = true;
                 this.filteredItems = filter(this.filterItemsByKeyword(this.searchKeyword), itemForFilter => {
                     return !draggedItemIds.has(itemForFilter.id);
@@ -492,7 +493,10 @@ export default {
 
         filterItemsByKeyword(keyword) {
             const loweredKeyword = keyword.toLowerCase();
-            return filter(this.schemeContainer.getItems(), item => (item.name || '').toLowerCase().indexOf(loweredKeyword) >= 0).map(enrichedItem);
+            return filter(this.schemeContainer.getItems(), item => (item.name || '')
+                .toLowerCase()
+                .indexOf(loweredKeyword) >= 0)
+                .map(item => enrichedItem(item, this.$store));
         },
 
         onItemSelectorResizeDraggerMouseDown(originalEvent) {
@@ -525,7 +529,7 @@ export default {
         },
         searchKeyword(keyword) {
             if (!keyword) {
-                this.filteredItems = this.schemeContainer.getItems().map(enrichedItem);
+                this.filteredItems = this.schemeContainer.getItems().map(item => enrichedItem(item, this.$store));
             } else {
                 this.filteredItems = this.filterItemsByKeyword(keyword);
             }
