@@ -1029,8 +1029,120 @@ export default class StateEditPath extends State {
             }, {
                 name: 'Duplicate path',
                 clicked: () => this.duplicatePath(object.pathIndex)
+            }, {
+                name: 'Mirror horizontally',
+                clicked: () => this.mirrorHorizontally(object.pathIndex)
+            }, {
+                name: 'Mirror vertically',
+                clicked: () => this.mirrorVertically(object.pathIndex)
             }]);
         }
+    }
+
+    mirrorHorizontally(pathId) {
+        const points = this.item.shapeProps.paths[pathId].points;
+        if (points.length < 2) {
+            return;
+        }
+
+        let xSum = 0;
+        points.forEach(relativePoint => {
+            const lp = convertCurvePointToItemScale(relativePoint, this.item.area.w, this.item.area.h);
+            const wp = worldPointOnItem(lp.x, lp.y, this.item);
+            xSum += wp.x;
+        });
+
+        const midX = xSum / points.length;
+
+        points.forEach(relativePoint => {
+            const lp = convertCurvePointToItemScale(relativePoint, this.item.area.w, this.item.area.h);
+            const wp = worldPointOnItem(lp.x, lp.y, this.item);
+
+            const nx = 2 * midX - wp.x;
+            const nlp = localPointOnItem(nx, wp.y, this.item);
+
+            const cp = convertCurvePointToRelative(nlp, this.item.area.w, this.item.area.h);
+            relativePoint.x = cp.x;
+            relativePoint.y = cp.y;
+            if (relativePoint.t === 'A') {
+                relativePoint.h = -relativePoint.h;
+            } else if (relativePoint.t === 'B') {
+                let lx1 = lp.x + lp.x1;
+                let ly1 = lp.y + lp.y1;
+                const wp1 = worldPointOnItem(lx1, ly1, this.item);
+                const nx1 = 2 * midX - wp1.x;
+                const lp1 = localPointOnItem(nx1, wp1.y, this.item);
+                const cp1 = convertCurvePointToRelative(lp1, this.item.area.w, this.item.area.h);
+                relativePoint.x1 = cp1.x - relativePoint.x;
+                relativePoint.y1 = cp1.y - relativePoint.y;
+
+                let lx2 = lp.x + lp.x2;
+                let ly2 = lp.y + lp.y2;
+                const wp2 = worldPointOnItem(lx2, ly2, this.item);
+                const nx2 = 2 * midX - wp2.x;
+                const lp2 = localPointOnItem(nx2, wp2.y, this.item);
+                const cp2 = convertCurvePointToRelative(lp2, this.item.area.w, this.item.area.h);
+                relativePoint.x2 = cp2.x - relativePoint.x;
+                relativePoint.y2 = cp2.y - relativePoint.y;
+            }
+        });
+
+        this.listener.onItemChanged(this.item.id);
+        this.listener.updateAllCurveEditPoints(this.item);
+        this.listener.onSchemeChangeCommitted();
+    }
+
+    mirrorVertically(pathId) {
+        const points = this.item.shapeProps.paths[pathId].points;
+        if (points.length < 2) {
+            return;
+        }
+
+        let ySum = 0;
+        points.forEach(relativePoint => {
+            const lp = convertCurvePointToItemScale(relativePoint, this.item.area.w, this.item.area.h);
+            const wp = worldPointOnItem(lp.x, lp.y, this.item);
+            ySum += wp.y;
+        });
+
+        const midY = ySum / points.length;
+
+        points.forEach(relativePoint => {
+            const lp = convertCurvePointToItemScale(relativePoint, this.item.area.w, this.item.area.h);
+            const wp = worldPointOnItem(lp.x, lp.y, this.item);
+
+            const ny = 2 * midY - wp.y;
+            const nlp = localPointOnItem(wp.x, ny, this.item);
+
+            const cp = convertCurvePointToRelative(nlp, this.item.area.w, this.item.area.h);
+            relativePoint.x = cp.x;
+            relativePoint.y = cp.y;
+            if (relativePoint.t === 'A') {
+                relativePoint.h = -relativePoint.h;
+            } else if (relativePoint.t === 'B') {
+                let lx1 = lp.x + lp.x1;
+                let ly1 = lp.y + lp.y1;
+                const wp1 = worldPointOnItem(lx1, ly1, this.item);
+                const ny1 = 2 * midY - wp1.y;
+                const lp1 = localPointOnItem(wp1.x, ny1, this.item);
+                const cp1 = convertCurvePointToRelative(lp1, this.item.area.w, this.item.area.h);
+                relativePoint.x1 = cp1.x - relativePoint.x;
+                relativePoint.y1 = cp1.y - relativePoint.y;
+
+                let lx2 = lp.x + lp.x2;
+                let ly2 = lp.y + lp.y2;
+                const wp2 = worldPointOnItem(lx2, ly2, this.item);
+                const ny2 = 2 * midY - wp2.y;
+                const lp2 = localPointOnItem(wp2.x, ny2, this.item);
+                const cp2 = convertCurvePointToRelative(lp2, this.item.area.w, this.item.area.h);
+                relativePoint.x2 = cp2.x - relativePoint.x;
+                relativePoint.y2 = cp2.y - relativePoint.y;
+            }
+        });
+
+        this.listener.onItemChanged(this.item.id);
+        this.listener.updateAllCurveEditPoints(this.item);
+        this.listener.onSchemeChangeCommitted();
     }
 
     startCreatingNewPath() {

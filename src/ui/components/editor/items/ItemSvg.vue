@@ -350,7 +350,9 @@ export default {
             svgItemTransform : this.calculateSVGItemTransform(),
             customAreas      : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item): [],
 
-            draggingFileOver: false
+            draggingFileOver: false,
+
+            hoverPathFill: this.getHoverPathFill()
         };
 
         if (shape) {
@@ -373,6 +375,21 @@ export default {
     },
 
     methods: {
+        getHoverPathFill() {
+            if (this.draggingFileOver) {
+                return 'rgba(140, 255, 140, 0.6)';
+            }
+            if (this.item.shape === 'path') {
+                if (this.item.shapeProps.fill && this.item.shapeProps.fill.type === 'none') {
+                    return 'none';
+                }
+            }
+            if (this.item.shape === 'connector' && !this.item.shapeProps.thick) {
+                return 'none';
+            }
+            return 'rgba(255, 255, 255, 0)';
+        },
+
         onItemDragEnter(event) {
             if (this.mode === 'edit' && event.dataTransfer && this.$store.state.apiClient && this.$store.state.apiClient.uploadFile) {
                 this.draggingFileOver = true;
@@ -507,6 +524,7 @@ export default {
         },
 
         onItemChanged(itemId, propertyPath) {
+            this.hoverPathFill = this.getHoverPathFill();
             this.svgItemTransform = this.calculateSVGItemTransform();
 
             this.effectFill = this.getEffectFill();
@@ -631,20 +649,6 @@ export default {
             }
             return 'rgba(255, 255, 255, 0)';
         },
-        hoverPathFill() {
-            if (this.draggingFileOver) {
-                return 'rgba(140, 255, 140, 0.6)';
-            }
-            if (this.item.shape === 'path') {
-                if (this.item.shapeProps.fill && this.item.shapeProps.fill.type === 'none') {
-                    return 'none';
-                }
-            }
-            if (this.item.shape === 'connector' && !this.item.shapeProps.thick) {
-                return 'none';
-            }
-            return 'rgba(255, 255, 255, 0)';
-        },
 
         shouldBeDrawn() {
             if (!this.item.visible) {
@@ -716,6 +720,12 @@ export default {
         showItemDetailMarkers() {
             return this.$store.getters.showItemDetailMarkers;
         },
+    },
+
+    watch: {
+        draggingFileOver(value) {
+            this.hoverPathFill = this.getHoverPathFill();
+        }
     }
 }
 </script>
