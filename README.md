@@ -48,7 +48,6 @@ You can configure Schemio via the following environment variables
 | `FS_ROOT_PATH`         | `/opt/schemio` | Path to Schemio storage on file system. This is where it will store all your diagrams and uploaded files |
 | `FILE_UPLOAD_MAX_SIZE` | `10485760`     | Upload size limit for media files |
 | `VIEW_ONLY_MODE`       | `false`        | If set to true - it does not allow editing, only viewing of folders and diagrams |
-| `ROUTE_PREFIX`         | ``             | Custom route prefix for all server endpoints. Used in case you want to serve Schemio next to other web services on the same port (e.g. in a load balancer). This way you can specify custom route (e.g. `/schemio`). Make sure that it starts with `/`. |
 
 
 Running with Docker
