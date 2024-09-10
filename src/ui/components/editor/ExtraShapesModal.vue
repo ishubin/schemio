@@ -54,6 +54,10 @@ function fixAssetsPath($store, path) {
     if (path && path.startsWith(ASSETS_PREFIX)) {
         path = $store.state.assetsPath + path.substring(ASSETS_PREFIX.length);
     }
+
+    if ($store.state.routePrefix) {
+        path = $store.state.routePrefix + path;
+    }
     return path;
 }
 
@@ -62,12 +66,13 @@ export default {
 
     beforeCreate() {
         this.isLoading = true;
+        const routePrefix = this.$store.state.routePrefix;
         const assetsPath = this.$store.state.assetsPath || ASSETS_PREFIX;
         const separator = assetsPath.endsWith('/') ? '' : '/';
 
         Promise.all([
-            axios.get(`${assetsPath}${separator}shapes/shapes.json`).then(response => response.data),
-            axios.get(`${assetsPath}${separator}art/art.json`).then(response => response.data),
+            axios.get(`${routePrefix}${assetsPath}${separator}shapes/shapes.json`).then(response => response.data),
+            axios.get(`${routePrefix}${assetsPath}${separator}art/art.json`).then(response => response.data),
         ])
         .then(([shapes, artEntries]) => {
             this.isLoading = false;
@@ -138,7 +143,12 @@ export default {
 
         registerArtPack(artPackEntry) {
             this.isLoading = true;
-            axios.get(artPackEntry.ref)
+
+            let url = artPackEntry.ref;
+            if (url.startsWith('/assets') && this.$store.state.routePrefix) {
+                url = this.$store.state.routePrefix + url;
+            }
+            axios.get(url)
             .then(response => {
                 const artPack = response.data;
                 if (Array.isArray(artPack.icons)) {
@@ -158,7 +168,10 @@ export default {
         },
 
         registerShapeGroup(shapeGroup) {
-            const url = shapeGroup.ref;
+            let url = shapeGroup.ref;
+            if (url.startsWith('/assets') && this.$store.state.routePrefix) {
+                url = this.$store.state.routePrefix + url;
+            }
             this.isLoading = true;
             axios.get(url)
             .then(response => {

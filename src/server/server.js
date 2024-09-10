@@ -22,6 +22,9 @@ import { loadConfig } from './config.js';
 import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
 import { ProjectService } from '../common/fs/projectService.js';
+const { readFile } = require('node:fs/promises');
+import Handlebars from 'handlebars';
+
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 
@@ -32,7 +35,14 @@ const projectService = new ProjectService(config.fs.rootPath, false, {
     'media://local/': '/media/',
     '../assets/': '/assets/'
 });
-projectService.load().then(() => {
+
+projectService.load()
+.then(() => {
+    return readFile(`${cwd}/html/index-server.tpl.html`, { encoding: 'utf8' })
+})
+.then((templateFile) => {
+    const indexTemplate = Handlebars.compile(templateFile);
+
     const app = express();
     const modification = false;
     const deletion = true;
@@ -45,50 +55,49 @@ projectService.load().then(() => {
     }));
 
     app.use(bodyParser.urlencoded({ extended: false }));
-    app.use('/assets', express.static('assets'));
-    app.use('/v1', apiMiddleware);
+    app.use(`${config.routePrefix}/assets`, express.static('assets'));
+    app.use(`${config.routePrefix}/v1`, apiMiddleware);
 
-    app.get('/v1/fs/list',   fsListFilesRoute(config, projectService));
-    app.get('/v1/fs/list/*', fsListFilesRoute(config, projectService));
-    app.get('/v1/fs/docs/:docId', jsonBodyParser, fsGetScheme(config, projectService));
-    app.get('/v1/fs/docs/:docId/info', jsonBodyParser, fsGetSchemeInfo(config, projectService));
-    app.get('/v1/fs/docs', jsonBodyParser, fsSearchSchemes(config, projectService));
+    app.get(`${config.routePrefix}/v1/fs/list`,   fsListFilesRoute(config, projectService));
+    app.get(`${config.routePrefix}/v1/fs/list/*`, fsListFilesRoute(config, projectService));
+    app.get(`${config.routePrefix}/v1/fs/docs/:docId`, jsonBodyParser, fsGetScheme(config, projectService));
+    app.get(`${config.routePrefix}/v1/fs/docs/:docId/info`, jsonBodyParser, fsGetSchemeInfo(config, projectService));
+    app.get(`${config.routePrefix}/v1/fs/docs`, jsonBodyParser, fsSearchSchemes(config, projectService));
 
     if (!config.viewOnlyMode) {
-        app.post('/v1/fs/dir', jsonBodyParser, fsCreateDirectory(config, projectService));
-        app.delete('/v1/fs/dir', jsonBodyParser, fsDeleteDirectory(config, projectService));
-        app.patch('/v1/fs/dir', jsonBodyParser, fsPatchDirectory(config, projectService));
+        app.post(`${config.routePrefix}/v1/fs/dir`, jsonBodyParser, fsCreateDirectory(config, projectService));
+        app.delete(`${config.routePrefix}/v1/fs/dir`, jsonBodyParser, fsDeleteDirectory(config, projectService));
+        app.patch(`${config.routePrefix}/v1/fs/dir`, jsonBodyParser, fsPatchDirectory(config, projectService));
 
-        app.post('/v1/fs/movedir', jsonBodyParser, fsMoveDirectory(config, projectService));
-        app.post('/v1/fs/movescheme', jsonBodyParser, fsMoveScheme(config, projectService));
+        app.post(`${config.routePrefix}/v1/fs/movedir`, jsonBodyParser, fsMoveDirectory(config, projectService));
+        app.post(`${config.routePrefix}/v1/fs/movescheme`, jsonBodyParser, fsMoveScheme(config, projectService));
 
-        app.post('/v1/fs/docs', jsonBodyParser, fsCreateScheme(config, projectService));
-        app.patch('/v1/fs/docs/:schemeId', jsonBodyParser, fsPatchScheme(config, projectService));
-        app.delete('/v1/fs/docs/:schemeId', jsonBodyParser, fsDeleteScheme(config, projectService));
-        app.put('/v1/fs/docs/:schemeId', jsonBodyParser, fsSaveScheme(config, projectService));
-        app.post('/v1/fs/doc-preview', jsonBodyParser, fsCreateSchemePreview(config, projectService));
-        app.post('/v1/media', jsonBodyParser, fsUploadMediaFile(config));
+        app.post(`${config.routePrefix}/v1/fs/docs`, jsonBodyParser, fsCreateScheme(config, projectService));
+        app.patch(`${config.routePrefix}/v1/fs/docs/:schemeId`, jsonBodyParser, fsPatchScheme(config, projectService));
+        app.delete(`${config.routePrefix}/v1/fs/docs/:schemeId`, jsonBodyParser, fsDeleteScheme(config, projectService));
+        app.put(`${config.routePrefix}/v1/fs/docs/:schemeId`, jsonBodyParser, fsSaveScheme(config, projectService));
+        app.post(`${config.routePrefix}/v1/fs/doc-preview`, jsonBodyParser, fsCreateSchemePreview(config, projectService));
+        app.post(`${config.routePrefix}/v1/media`, jsonBodyParser, fsUploadMediaFile(config));
 
-        app.post('/v1/fs/art', jsonBodyParser, fsCreateArt(config));
-        app.get('/v1/fs/art', jsonBodyParser, fsGetArt(config));
+        app.post(`${config.routePrefix}/v1/fs/art`, jsonBodyParser, fsCreateArt(config));
+        app.get(`${config.routePrefix}/v1/fs/art`, jsonBodyParser, fsGetArt(config));
 
-        app.put('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, modification));
-        app.delete('/v1/fs/art/:artId', jsonBodyParser, fsSaveDeleteArt(config, deletion));
+        app.put(`${config.routePrefix}/v1/fs/art/:artId`, jsonBodyParser, fsSaveDeleteArt(config, modification));
+        app.delete(`${config.routePrefix}/v1/fs/art/:artId`, jsonBodyParser, fsSaveDeleteArt(config, deletion));
 
-        app.post('/v1/fs/styles', jsonBodyParser, fsSaveStyle(config));
-        app.delete('/v1/fs/styles/:styleId', jsonBodyParser, fsDeleteStyle(config));
-        app.get('/v1/fs/styles', jsonBodyParser, fsGetStyles(config));
+        app.post(`${config.routePrefix}/v1/fs/styles`, jsonBodyParser, fsSaveStyle(config));
+        app.delete(`${config.routePrefix}/v1/fs/styles/:styleId`, jsonBodyParser, fsDeleteStyle(config));
+        app.get(`${config.routePrefix}/v1/fs/styles`, jsonBodyParser, fsGetStyles(config));
 
-        app.post('/v1/static-export/start', jsonBodyParser, fsExportStatic(config));
-        app.get('/v1/static-export/status', jsonBodyParser, fsExportStatus(config));
-        app.get('/v1/static-export/download/:version', fsExportDownloadArchive(config));
+        app.post(`${config.routePrefix}/v1/static-export/start`, jsonBodyParser, fsExportStatic(config));
+        app.get(`${config.routePrefix}/v1/static-export/status`, jsonBodyParser, fsExportStatus(config));
+        app.get(`${config.routePrefix}/v1/static-export/download/:version`, fsExportDownloadArchive(config));
     }
 
-    app.get('/media/*', fsDownloadMediaFile(config));
-
+    app.get(`${config.routePrefix}/media/*`, fsDownloadMediaFile(config));
 
     app.get('*', (req, res) => {
-        res.sendFile(`${cwd}/html/index.html`)
+        res.send(indexTemplate({routePrefix: config.routePrefix}));
     });
 
     app.listen(config.serverPort, () => {

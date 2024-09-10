@@ -25,7 +25,7 @@
                 <Pagination
                     :currentPage="page"
                     :totalPages="searchResult.totalPages"
-                    :urlPrefix="`/search?q=${encodeURIComponent(query)}`"
+                    :urlPrefix="`${routePrefix}/search?q=${encodeURIComponent(query)}`"
                     :useRouter="true"
                 />
 
@@ -39,13 +39,13 @@
                     <tbody>
                         <tr v-for="(entry, entryIdx) in searchResult.results">
                             <td class="icon-column">
-                                <router-link class="entry-link" :to="`/docs/${entry.id}`">
+                                <router-link class="entry-link" :to="`${routePrefix}/docs/${entry.id}`">
                                     <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
                                 </router-link>
                             </td>
                             <td class="name-column">
-                                <router-link class="entry-link" :to="`/docs/${entry.id}`">
+                                <router-link class="entry-link" :to="`${routePrefix}/docs/${entry.id}`">
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
                             </td>
@@ -103,7 +103,7 @@ export default {
     methods: {
         toggleSearch() {
             this.$router.push({
-                path: '/search',
+                path: `${this.$store.state.routePrefix}/search`,
                 query: {
                     q: this.query,
                     page: 1
@@ -153,6 +153,12 @@ export default {
                 this.errorMessage = 'Something went wrong, failed to search for your diagrams';
             });
 
+        }
+    },
+
+    computed: {
+        routePrefix() {
+            return this.$store.getters.routePrefix;
         }
     }
 

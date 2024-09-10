@@ -369,7 +369,7 @@ export function fsCreateDirectory(config, projectService) {
  */
 export function fsListFilesRoute(config, projectService) {
     return (req, res) => {
-        const pathPrefix = '/v1/fs/list';
+        const pathPrefix = `${config.routePrefix}/v1/fs/list`;
         if (req.path.indexOf(pathPrefix) !== 0) {
             res.$apiBadRequest();
             return;
@@ -490,7 +490,7 @@ export function fsUploadMediaFile(config) {
         .then(() => file.mv(fullFilePath))
         .then(() => {
             res.json({
-                url: `/media/${firstPart}/${id}.${extension}`
+                url: `${config.routePrefix}/media/${firstPart}/${id}.${extension}`
             })
         })
         .catch(err => {
@@ -502,7 +502,7 @@ export function fsUploadMediaFile(config) {
 
 export function fsDownloadMediaFile(config) {
     return (req, res) => {
-        const pathPrefix = '/media/';
+        const pathPrefix = `${config.routePrefix}/media/`;
         if (!req.path.startsWith(pathPrefix)) {
             res.status(400);
             res.send('Bad request');

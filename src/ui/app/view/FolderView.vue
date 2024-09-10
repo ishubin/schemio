@@ -32,7 +32,7 @@
 
                 <ul class="breadcrumbs">
                     <li v-for="(entry, entryIdx) in breadcrumbs">
-                        <router-link class="breadcrumb-link" :to="`/f/${entry.path}`">{{entry.name}}</router-link>
+                        <router-link class="breadcrumb-link" :to="`${routePrefix}/f/${entry.path}`">{{entry.name}}</router-link>
                         <i v-if="entryIdx < breadcrumbs.length - 1" class="fas fa-caret-right breadcrumb-separator"></i>
                     </li>
                 </ul>
@@ -48,19 +48,19 @@
                     <tbody>
                         <tr v-for="(entry, entryIdx) in entries">
                             <td class="icon-column">
-                                <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
+                                <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`${routePrefix}/f/${entry.path}`">
                                     <i class="icon fas fa-folder fa-2x"></i>
                                 </router-link>
-                                <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`/docs/${entry.id}`">
-                                    <img v-if="entry.previewURL" class="scheme-preview" :src="`${entry.previewURL}?v=${entry.encodedTime}`"/>
+                                <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`${routePrefix}/docs/${entry.id}`">
+                                    <img v-if="entry.previewURL" class="scheme-preview" :src="`${routePrefix}${entry.previewURL}?v=${entry.encodedTime}`"/>
                                     <i v-else class="icon far fa-file fa-2x"></i>
                                 </router-link>
                             </td>
                             <td class="name-column">
-                                <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`/f/${entry.path}`">
+                                <router-link class="entry-link" v-if="entry.kind === 'dir'" :to="`${routePrefix}/f/${entry.path}`">
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
-                                <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`/docs/${entry.id}`">
+                                <router-link class="entry-link" v-else-if="entry.kind === 'schemio:doc'" :to="`${routePrefix}/docs/${entry.id}`">
                                     <span class="entry-link-text">{{entry.name}}</span>
                                 </router-link>
                             </td>
@@ -172,6 +172,12 @@ export default {
         if (path === '/') {
             path = '';
         }
+        const routePrefix = this.$store.state.routePrefix || '';
+
+        if (path.startsWith(routePrefix)) {
+            path = path.substring(routePrefix.length);
+        }
+
         if (path.indexOf('/f/') === 0) {
             path = decodeURI(path.substring(3));
         }
@@ -310,10 +316,12 @@ export default {
             this.showProgressModal('Creating diagram', `Creating diagram "${scheme.name}"`);
             this.apiClient.createNewScheme(this.path, scheme).then(createdScheme => {
                 this.progressModal.shown = false;
+
+                const routePrefix = this.$store.state.routePrefix || '';
                 if (this.$router.mode === 'history') {
-                        this.$router.push({path: `/docs/${createdScheme.id}#m=edit`});
+                    this.$router.push({path: `${routePrefix}/docs/${createdScheme.id}#m=edit`});
                 } else {
-                    this.$router.push({path: `/docs/${createdScheme.id}?m=edit`});
+                    this.$router.push({path: `${routePrefix}/docs/${createdScheme.id}?m=edit`});
                 }
             })
             .catch(err => {
@@ -436,7 +444,7 @@ export default {
 
         searchSchemes() {
             this.$router.push({
-                path: `/search?q=${encodeURIComponent(this.searchKeyword)}`
+                path: `${this.$store.state.routePrefix}/search?q=${encodeURIComponent(this.searchKeyword)}`
             });
         },
 
@@ -508,6 +516,10 @@ export default {
                 return 'Rename scheme';
             }
             return 'Rename';
+        },
+
+        routePrefix() {
+            return this.$store.getters.routePrefix;
         }
     },
 }

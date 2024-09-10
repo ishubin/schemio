@@ -24,10 +24,17 @@ function configBoolVar(varName, defaultValue) {
 }
 
 export function loadConfig() {
+    let routePrefix = configVar('ROUTE_PREFIX', '');
+    if (routePrefix === '/') {
+        routePrefix = '';
+    }
+
     return {
         fs: {
             rootPath: configVar('FS_ROOT_PATH', '/opt/schemio/')
         },
+
+        routePrefix: routePrefix,
 
         serverPort: configNumberVar('SERVER_PORT', 4010),
 

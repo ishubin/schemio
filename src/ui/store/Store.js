@@ -17,10 +17,12 @@ const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
 const store = new Vuex.Store({
     state: {
-
-        //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages the we cannot use '/' as root path
+        //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages then we cannot use '/' as root path
         rootPath: '/',
         assetsPath: '/assets',
+
+        // routePrefix is used so that Schemio can generate proper links in all components in case custom route prefix is being used
+        routePrefix: '',
 
         apiClient: null,
 
@@ -106,8 +108,12 @@ const store = new Vuex.Store({
             pencilSize: 3,
             brushSize: 5,
         },
-    },
+},
     mutations: {
+        SET_ROUTE_PREFIX(state, routePrefix) {
+            state.routePrefix = routePrefix;
+        },
+
         SET_ROOT_PATH(state, path) {
             state.rootPath = path;
         },
@@ -364,6 +370,10 @@ const store = new Vuex.Store({
     },
 
     actions: {
+        setRoutePrefix({commit}, routePrefix) {
+            commit('SET_ROUTE_PREFIX', routePrefix);
+        },
+
         setRootPath({commit}, path) {
             commit('SET_ROOT_PATH', path);
         },
@@ -552,8 +562,22 @@ const store = new Vuex.Store({
             return false;
         },
 
-        rootPath: state => state.rootPath,
-        assetsPath: state => state.assetsPath,
+        rootPath: state => {
+            if (state.routePrefix) {
+                if (state.rootPath === '/') {
+                    return state.routePrefix;
+                }
+                return state.routePrefix + state.rootPath;
+            }
+            return state.rootPath;
+        },
+        assetsPath: state => {
+            if (state.routePrefix) {
+                return state.routePrefix + state.assetsPath;
+            }
+            return state.assetsPath;
+        },
+        routePrefix: state => state.routePrefix,
     }
 });
 

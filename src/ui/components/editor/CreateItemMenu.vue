@@ -112,7 +112,7 @@
                         @drag="preventEvent"
                         >
                         <img v-if="template.preview" :src="template.preview"/>
-                        <img v-else src="/assets/images/missing-preview.svg"/>
+                        <img v-else :src="`${assetsPath}/images/missing-preview.svg`"/>
                     </div>
                 </div>
             </panel>
@@ -183,7 +183,7 @@
                 <div v-if="previewItem.template">
                     <h4>{{previewItem.template.name}}</h4>
                     <img v-if="previewItem.template.preview" :src="previewItem.template.preview" style="max-width: 100%;"/>
-                    <img v-else src="/assets/images/missing-preview.svg" style="max-width: 100%;"/>
+                    <img v-else :src="`${assetsPath}/images/missing-preview.svg`" style="max-width: 100%;"/>
                 </div>
 
                 <div v-if="previewItem.description" class="preview-item-description">{{previewItem.description}}</div>
@@ -249,7 +249,7 @@ export default {
 
     components: {
         Panel, CreateImageModal, Modal, CustomArtUploadModal, EditArtModal, LinkEditModal,
-        ItemSvg, ExtraShapesModal, ExtraShapesModal, SchemeSearchModal
+        ItemSvg, ExtraShapesModal, SchemeSearchModal
     },
 
     beforeMount() {
@@ -331,7 +331,16 @@ export default {
                 this.$store.state.apiClient.getAllTemplates()
                 .then(templates => {
                     this.templatesLoading = true;
-                    this.templates = templates;
+                    this.templates = templates.map(template => {
+                        const routePrefix = this.$store.state.routePrefix;
+                        const path = template.path.startsWith('/assets') ? routePrefix + template.path : template.path;
+                        const preview = template.preview && template.preview.startsWith('/assets') ? routePrefix + template.preview : template.preview;
+                        return {
+                            ...template,
+                            path,
+                            preview
+                        };
+                    });
                     this.$forceUpdate();
                 })
                 .catch(err => {
@@ -354,7 +363,11 @@ export default {
                     forEach(shape.menuItems, menuEntry => {
                         // this is a dirty hack to fix it for static version of schemio app
                         if (menuEntry.iconUrl && menuEntry.iconUrl.startsWith('/assets')) {
-                            menuEntry.iconUrl = this.$store.state.assetsPath + menuEntry.iconUrl.substring(7);
+                            let assetsPath = this.$store.state.assetsPath;
+                            if (this.$store.state.routePrefix) {
+                                assetsPath = this.$store.state.routePrefix + assetsPath;
+                            }
+                            menuEntry.iconUrl = assetsPath + menuEntry.iconUrl.substring(7);
                         }
                         let group = menuEntry.group || 'Ungrouped';
                         if (!panelsMap[group]) {

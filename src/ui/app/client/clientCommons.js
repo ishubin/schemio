@@ -31,7 +31,8 @@ export function getExportHTMLResources(assetsPath) {
 }
 
 export function getAllTemplates() {
-    return axios.get('/assets/templates/index.json').then(unwrapAxios);
+    const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+    return axios.get(`${routePrefix}/assets/templates/index.json`).then(unwrapAxios);
 }
 
 export function getTemplate(path) {
