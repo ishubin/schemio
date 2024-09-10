@@ -31,6 +31,11 @@ const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 const cwd = process.cwd();
 const config = loadConfig();
 
+
+if (config.routePrefix && !config.routePrefix.startsWith('/')) {
+    throw new Error(`"${config.routePrefix}" is invalid value for ROUTE_PREFIX config parameter. It should begin with "/" symbol.`);
+}
+
 const projectService = new ProjectService(config.fs.rootPath, false, {
     'media://local/': '/media/',
     '../assets/': '/assets/'
