@@ -107,7 +107,7 @@ cd "$BIN_FOLDER_PATH"
 copy_doc_files
 copy_project_file dist/assets/schemio.js
 copy_standard_assets
-copy_project_file html/index.html
+copy_project_file html/index-server.tpl.html
 cd $PROJECT_DIR/dist/release
 zip -9 -r "schemio-$NEW_VERSION.zip" $BIN_FOLDER_NAME
 
