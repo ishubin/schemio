@@ -801,9 +801,6 @@ function createItemByNameProvider(schemeContainer, userEventBus, cache) {
         }
         const item = schemeContainer.findItemByName(name);
         if (!item) {
-            const errMsg = `Could not refer to item by name "${name}"`;
-            EditorEventBus.scriptLog.$emit(schemeContainer.editorId, 'error', errMsg)
-            console.error(errMsg);
             return null;
         }
 
