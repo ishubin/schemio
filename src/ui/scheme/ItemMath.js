@@ -1,10 +1,65 @@
-import { forEach } from "../collections";
+import { filter, forEach } from "../collections";
 import Shape from "../components/editor/items/shapes/Shape";
 import { Logger } from "../logger";
 import myMath from "../myMath";
 
 
 const log = new Logger('ItemMath');
+
+/**
+ * @param {Array<Item>} items
+ * @returns {Array<Item>}
+ */
+export function filterNonHUDItems(items) {
+    return filter(items, item => item.shape !== 'hud' && !item.meta.isInHUD);
+}
+
+export function calculateZoomingAreaForItems(items, mode) {
+    if (mode === 'view') {
+        //filtering HUD items out as they are always shown in the viewport  in view mode
+        items = filterNonHUDItems(items);
+    }
+
+    if (!items || items.length === 0) {
+        return null;
+    }
+
+    let filteredItems = filter(items, item => {
+        if (mode === 'view' && item.shape === 'dummy') {
+            return false;
+        }
+        return item.visible && item.meta.calculatedVisibility;
+    });
+
+    if (filteredItems.length === 0 && items.length > 0) {
+        // this check is needed because in edit mode a user might select an item that is not visible
+        // (e.g. in item selector componnent) and click 'zoom to it'
+        filteredItems = items;
+    }
+    return getBoundingBoxOfItems(filteredItems);
+}
+
+
+/**
+ * Calculates screen transform for centering the camera on area
+ * @param {Area} area area in the world transform
+ * @param {Number} width width of canvas
+ * @param {Number} height height of canvas
+ * @returns {ScreenTransform}
+ */
+export function calculateScreenTransformForArea(area, width, height) {
+    let scale = 1.0;
+    if (area.w > 0 && area.h > 0 && width > 0 && height > 0) {
+        scale = Math.floor(100.0 * Math.min(width/area.w, height/area.h)) / 100.0;
+        scale = Math.max(0.0001, scale);
+    }
+
+    return {
+        x: width/2 - (area.x + area.w/2) * scale,
+        y: height/2 - (area.y + area.h/2) * scale,
+        scale: scale
+    };
+}
 
 export function worldPointOnItem(x, y, item) {
     return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);

@@ -24,6 +24,7 @@
             :customItemMenuPanels="customItemMenuPanels"
             :contextMenuExtraProvider="contextMenuExtraProvider"
             :starterTemplates="starterTemplates"
+            :screenTransform="screenTransform"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
@@ -125,6 +126,7 @@ export default {
         patchControls        : {type: Array, default: () => []},
         extraTabs            : {type: Array, default: () => []},
         customItemMenuPanels : {type: Array, default: () => []},
+        screenTransform      : {type: Object, default: null},
 
         // used for customizing schemio with additional context menu options.
         // The provider should be in form of {provide: (items) => {return []}}
@@ -143,9 +145,12 @@ export default {
             this.originScheme = utils.clone(this.scheme);
             enrichSchemeWithDefaults(this.originScheme);
         }
+
+        EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
     },
 
     beforeDestroy() {
+        EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
     },
 
     created() {
@@ -214,6 +219,10 @@ export default {
     },
 
     methods: {
+        onScreenTransformUpdated(transform) {
+            this.$emit('screen-transform-updated', transform);
+        },
+
         onBrowseClose() {
             if (this.modified) {
                 return 'The changes were not saved';

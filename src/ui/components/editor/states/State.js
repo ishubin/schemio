@@ -9,6 +9,7 @@ import {forEach} from '../../../collections';
 import { Keys } from '../../../events';
 import { Interpolations, convertTime } from '../../../animations/ValueAnimation';
 import SchemeContainer from '../../../scheme/SchemeContainer';
+import EditorEventBus from '../EditorEventBus';
 
 const SUB_STATE_STACK_LIMIT = 10;
 
@@ -78,6 +79,7 @@ function animateZoom(schemeContainer, newScale, screenTransformCallback) {
         schemeContainer.screenTransform.y = interpolate(t, zoomAnimation.oldY, zoomAnimation.newY);
 
         screenTransformCallback(schemeContainer.screenTransform);
+        EditorEventBus.screenTransformUpdated.$emit(schemeContainer.editorId, schemeContainer.screenTransform);
 
         if (!zoomAnimation.finished && zoomAnimation.t < 1.0) {
             window.requestAnimationFrame(() => {
@@ -320,7 +322,7 @@ class State {
         this.schemeContainer.screenTransform.x = (xa + xb) / 2;
         this.schemeContainer.screenTransform.y = (ya + yb) / 2;
 
-        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+        EditorEventBus.screenTransformUpdated.$emit(this.editorId, this.schemeContainer.screenTransform);
     }
 
     initPinchToZoom(event) {
@@ -429,7 +431,7 @@ class State {
         // calculating old center of the scheme
 
         animateZoom(this.schemeContainer, newScale, (screenTransform) => {
-            this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+            EditorEventBus.screenTransformUpdated.$emit(this.editorId, screenTransform);
         });
     }
 
@@ -490,7 +492,7 @@ class State {
             this.schemeContainer.screenTransform.y = sy;
         }
 
-        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+        EditorEventBus.screenTransformUpdated.$emit(this.editorId, this.schemeContainer.screenTransform);
     }
 
     isSnappingToItemsEnabled() {
@@ -699,7 +701,7 @@ export class DragScreenState extends SubState {
     mouseUp(x, y, mx, my, object, event) {
         this.originalClickPoint = null;
         this.parentState.initScreenInertia();
-        this.listener.onScreenTransformUpdated(this.schemeContainer.screenTransform);
+        EditorEventBus.screenTransformUpdated.$emit(this.editorId, this.schemeContainer.screenTransform);
         if (this.exitOnMouseUp) {
             this.migrateToPreviousSubState();
         }

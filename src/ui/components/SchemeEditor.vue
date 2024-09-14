@@ -119,7 +119,6 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
-                    @screen-transform-updated="onScreenTransformUpdated"
                     >
                     <g slot="scene-transform">
                         <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && state !== 'imageBox' && !inPlaceTextEditor.shown"
@@ -222,7 +221,6 @@
                     @mouse-up="mouseUp"
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
-                    @screen-transform-updated="onScreenTransformUpdated"
                     @compiler-error="onCompilerError"
                     >
 
@@ -627,7 +625,7 @@ import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer  from '../scheme/SchemeContainer.js';
-import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem } from '../scheme/ItemMath.js';
+import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea } from '../scheme/ItemMath.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import TemplateProperties from './editor/properties/TemplateProperties.vue';
@@ -828,6 +826,9 @@ export default {
         // It should return an array of options in the format of {name: 'Name', iconClass: '', clicked: () => {}}
         contextMenuExtraProvider: {type: Object, default: null},
 
+        // if set it will initialize screenTransform in SchemeContainer with this value
+        screenTransform      : {type: Object, default: null},
+
         // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
         starterTemplates : {type: Array, default: () => []},
     },
@@ -841,7 +842,6 @@ export default {
         }
         const onItemChanged = (itemId, propertyPath) => EditorEventBus.item.changed.specific.$emit(this.editorId, itemId, propertyPath);
         const onSchemeChangeCommitted = (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId);
-        const onScreenTransformUpdated = (screenTransform) => this.onScreenTransformUpdated(screenTransform);
         const onItemsHighlighted = (highlightedItems) => this.highlightedItems = highlightedItems;
         const onSubStateMigrated = () => {};
 
@@ -856,7 +856,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
             createItem: new StateCreateItem(this.editorId, this.$store, {
                 onCancel,
@@ -864,7 +863,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
             editPath: new StateEditPath(this.editorId, this.$store, {
                 onCancel,
@@ -882,7 +880,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated,
                 updateAllCurveEditPoints: (item) => this.setCurveEditItem(item),
                 updateCurveEditPoint: (item, pathId, pointId, point) => this.updateCurveEditPoint(item, pathId, pointId, point),
                 resetCurveEditPointSelection: () => this.resetCurveEditPointSelection(),
@@ -895,7 +892,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
             dragItem: new StateDragItem(this.editorId, this.$store, {
                 onCancel: () => {
@@ -915,7 +911,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated: () => {this.updateFloatingHelperPanel()},
-                onScreenTransformUpdated,
                 onItemDetailsMouseOver: (item, x, y, mx, my) => this.onItemDetailsMouseOver(item, x, y, mx, my),
                 onItemDetailsMouseOut: (item, x, y, mx, my) => this.onItemDetailsMouseOut(item, x, y, mx, my),
             }),
@@ -924,7 +919,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
             cropImage: new StateCropImage(this.editorId, this.$store, {
                 onCancel,
@@ -932,7 +926,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
             imageBox: new StateImageBox(this.editorId, this.$store, {
                 onCancel,
@@ -940,7 +933,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
             draw: new StateDraw(this.editorId, this.$store, {
                 onCancel,
@@ -948,7 +940,6 @@ export default {
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
-                onScreenTransformUpdated
             }),
         };
     },
@@ -1223,6 +1214,9 @@ export default {
         },
 
         getInitialScreenTransform() {
+            if (this.screenTransform) {
+                return this.screenTransform;
+            }
             if (this.scheme.id && this.scheme.items.length > 0) {
                 const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
                 if (schemeSettings && schemeSettings.screenPosition) {
@@ -1233,6 +1227,12 @@ export default {
                         scale: parseFloat(zoom) / 100.0,
                     };
                 }
+            }
+
+            const items = this.schemeContainer.getItems();
+            if (items.length > 0) {
+                const area = calculateZoomingAreaForItems(items, this.mode);
+                return calculateScreenTransformForArea(area, window.innerWidth, window.innerHeight);
             }
             return { x: 0, y: 0, scale: 1.0 };
         },
@@ -2338,7 +2338,7 @@ export default {
                 this.interactiveSchemeContainer.screenTransform = utils.clone(this.schemeContainer.screenTransform);
             }
 
-            const nonHUDItems = this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems());
+            const nonHUDItems = filterNonHUDItems(this.schemeContainer.getItems());
             const boundsItem = findFirstItemBreadthFirst(nonHUDItems, item => item.shape === 'dummy' && item.shapeProps.screenBounds);
             const boundingBox = getBoundingBoxOfItems(boundsItem ? [boundsItem] : nonHUDItems);
 

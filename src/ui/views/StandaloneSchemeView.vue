@@ -58,6 +58,7 @@ import StateInteract from '../components/editor/states/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
+import { filterNonHUDItems } from '../scheme/ItemMath';
 
 
 
@@ -152,7 +153,7 @@ export default {
             .then(() => {
                 this.schemeContainer = new SchemeContainer(this.scheme, this.editorId, 'view', this.$store.state.apiClient);
                 this.stateInteract.schemeContainer = this.schemeContainer;
-                const boundingBox = this.schemeContainer.getBoundingBoxOfItems(this.schemeContainer.filterNonHUDItems(this.schemeContainer.getItems()));
+                const boundingBox = this.schemeContainer.getBoundingBoxOfItems(filterNonHUDItems(this.schemeContainer.getItems()));
                 this.schemeContainer.screenSettings.boundingBox = boundingBox;
                 this.stateInteract.reset();
                 this.initialized = true;

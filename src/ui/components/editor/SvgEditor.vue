@@ -174,7 +174,7 @@
 </template>
 
 <script>
-import {forEach, map, filter} from '../../collections';
+import {forEach, map } from '../../collections';
 
 import '../../typedef';
 
@@ -185,7 +185,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
 import { compileActions } from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
@@ -468,35 +468,10 @@ export default {
                 }
                 return;
             }
-            const area = this.calculateZoomingAreaForItems(items);
+            const area = calculateZoomingAreaForItems(items, this.mode);
             if (area) {
                 this.onBringToView(area, true);
             }
-        },
-
-        calculateZoomingAreaForItems(items) {
-            if (this.mode === 'view') {
-                //filtering HUD items out as they are always shown in the viewport  in view mode
-                items = this.schemeContainer.filterNonHUDItems(items);
-            }
-
-            if (!items || items.length === 0) {
-                return null;
-            }
-
-            let filteredItems = filter(items, item => {
-                if (this.mode === 'view' && item.shape === 'dummy') {
-                    return false;
-                }
-                return item.visible && item.meta.calculatedVisibility;
-            });
-
-            if (filteredItems.length === 0 && items.length > 0) {
-                // this check is needed because in edit mode a user might select an item that is not visible
-                // (e.g. in item selector componnent) and click 'zoom to it'
-                filteredItems = items;
-            }
-            return getBoundingBoxOfItems(filteredItems);
         },
 
         updateSvgSize() {
@@ -985,36 +960,29 @@ export default {
         },
 
         onBringToView(area, animated) {
-            let newZoom = 1.0;
-            if (area.w > 0 && area.h > 0 && this.width > 0 && this.height > 0) {
-                newZoom = Math.floor(100.0 * Math.min(this.width/area.w, (this.height)/area.h)) / 100.0;
-                newZoom = Math.max(0.0001, newZoom);
-            }
+            const dstTransform = calculateScreenTransformForArea(area, this.width, this.height);
 
             const oldX = this.schemeContainer.screenTransform.x;
             const oldY = this.schemeContainer.screenTransform.y;
             const oldZoom = this.schemeContainer.screenTransform.scale;
-
-            const destX = this.width/2 - (area.x + area.w/2) * newZoom;
-            const destY = (this.height)/2 - (area.y + area.h/2) * newZoom;
 
             if (animated) {
                 playInAnimationRegistry(this.editorId, new ValueAnimation({
                     durationMillis: 400,
                     animationType: 'ease-out',
                     update: (t) => {
-                        this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + newZoom * t);
-                        this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + destX * t;
-                        this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + destY * t;
+                        this.schemeContainer.screenTransform.scale = (oldZoom * (1.0 - t) + dstTransform.scale * t);
+                        this.schemeContainer.screenTransform.x = oldX * (1.0 - t) + dstTransform.x * t;
+                        this.schemeContainer.screenTransform.y = oldY * (1.0 - t) + dstTransform.y * t;
                     },
                     destroy: () => {
                         this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
                     }
                 }), 'screen', 'screen-tansform');
             } else {
-                this.schemeContainer.screenTransform.scale = newZoom;
-                this.schemeContainer.screenTransform.x = destX;
-                this.schemeContainer.screenTransform.y = destY;
+                this.schemeContainer.screenTransform.scale = dstTransform.scale;
+                this.schemeContainer.screenTransform.x = dstTransform.x;
+                this.schemeContainer.screenTransform.y = dstTransform.y;
                 this.informUpdateOfScreenTransform(this.schemeContainer.screenTransform);
             }
         },
@@ -1088,7 +1056,7 @@ export default {
 
 
         informUpdateOfScreenTransform(screenTransform) {
-            this.$emit('screen-transform-updated', screenTransform);
+            EditorEventBus.screenTransformUpdated.$emit(this.editorId, screenTransform);
         },
 
         calculateLinkBackgroundRectWidth(link) {

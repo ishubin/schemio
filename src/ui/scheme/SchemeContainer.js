@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import {forEach, map, filter, findIndex, find, indexOf} from '../collections';
+import {forEach, map, findIndex, find, indexOf} from '../collections';
 import { SpatialIndex } from '../SpatialIndex';
 
 import '../typedef';
@@ -2120,10 +2120,6 @@ class SchemeContainer {
 
     getTopLevelItems() {
         return this.worldItems;
-    }
-
-    filterNonHUDItems(items) {
-        return filter(items, item => item.shape !== 'hud' && !item.meta.isInHUD);
     }
 
     isItemInHUD(item) {

@@ -26,6 +26,7 @@
             :customItemMenuPanels="customItemMenuPanels"
             :contextMenuExtraProvider="contextMenuExtraProvider"
             :starterTemplates="starterTemplates"
+            :screenTransform="screenTransform"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -64,6 +65,7 @@
             :customItemMenuPanels="customItemMenuPanels"
             :contextMenuExtraProvider="contextMenuExtraProvider"
             :starterTemplates="starterTemplates"
+            :screenTransform="screenTransform"
             @custom-tab-event="$emit('custom-tab-event', $event)"
             @items-selected="$emit('items-selected')"
             @items-deselected="$emit('items-deselected')"
@@ -164,6 +166,7 @@ export default{
         extraTabs            : { type: Array, default: () => []},
         customItemMenuPanels : {type: Array, default: () => []},
         contextMenuExtraProvider: {type: Object, default: null},
+        screenTransform      : {type: Object, default: null},
 
         // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
         starterTemplates : {type: Array, default: () => []},
