@@ -500,7 +500,7 @@ describe('templater ast parser', () => {
         expect(result).toBe(5);
     });
 
-    it('should support custom functions with multiple parameters', () => {
+    it('should support anonymous functions with multiple parameters', () => {
         const node = parseExpression(`
             myFunc = (arg1, arg2) => {
                 arg1 + arg2
@@ -551,6 +551,21 @@ describe('templater ast parser', () => {
 
         expect(node.evalNode(new Scope({x: 1, y: 4}))).toBe(5);
         expect(node.evalNode(new Scope({x: 6, y: 2}))).toBe(8);
+    });
+
+    it('should support anonymous function with single argument without round brackets', () => {
+        const node = parseExpression(`
+            myFunc = arg1 => {
+                arg2 => {
+                    arg1 + arg2
+                }
+            }
+            myFunc(x)(y)
+        `);
+
+        expect(node.evalNode(new Scope({x: 1, y: 4}))).toBe(5);
+        expect(node.evalNode(new Scope({x: 6, y: 2}))).toBe(8);
+
     });
 
 
@@ -654,6 +669,9 @@ describe('templater ast parser', () => {
                 id: 'default-id'
                 name: null
 
+                func1: (x) => { x + 1 }
+                func2: x => { x - 1 }
+
                 setName(aName) {
                     this.name = aName
                 }
@@ -697,6 +715,12 @@ describe('templater ast parser', () => {
         const thisNode = node2.getThis();
         expect(thisNode.id).toStrictEqual('node2');
         expect(thisNode.name).toStrictEqual('node 2 updated name');
+
+        expect(node1.func1(3)).toStrictEqual(4);
+        expect(node1.func1(5)).toStrictEqual(6);
+
+        expect(node1.func2(3)).toStrictEqual(2);
+        expect(node1.func2(5)).toStrictEqual(4);
     });
 
 

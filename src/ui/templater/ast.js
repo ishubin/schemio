@@ -315,6 +315,17 @@ class ASTParser extends TokenScanner {
                 return this.parseLocalVarDeclaration();
             }
         } else if (token.t === TokenTypes.TERM) {
+            const nextToken = this.peekToken();
+            if (nextToken && nextToken.t === TokenTypes.OPERATOR && nextToken.v === '=>') {
+                this.skipToken();
+                this.skipNewlines();
+                const argWrapper = {
+                    t: TokenTypes.TOKEN_GROUP,
+                    groupCode: TokenTypes.START_BRACKET,
+                    groupTokens: [token]
+                };
+                return parseFunctionDeclarationUsing(argWrapper, this.scanToken());
+            }
             return this.parseTermGroup(new ASTVarRef(token.v));
         } else if (token.t === TokenTypes.AT_SYMBOL) {
             const extVarRef = this.parseExternalObjectReference();
