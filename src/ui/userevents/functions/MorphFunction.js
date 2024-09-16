@@ -21,6 +21,9 @@ export default {
         recursive        : {name: 'Morph child items', type: 'boolean', value: true,
             description: 'Identify items with the same name and hierarchy and apply morphing to them as well'
         },
+        ignoreVisibility: {name: 'Ignore visibility', type: 'boolean', value: false,
+            description: 'Ignores the opacity and visibility in reference item. This allows you to hide the reference item'
+        },
         animationDuration: {name: 'Animation duration (sec)', type: 'number', value: 0.5 },
         transition       : {name: 'Transition', type: 'choice', value: 'ease-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce']},
         inBackground     : {name: 'In Background', type: 'boolean', value: false, description: 'Play animation in background without blocking invocation of other actions'}
@@ -156,8 +159,10 @@ function createItemMorpher(item, baseItem, refItem, refBaseItem, editorId, args)
         }
     });
 
-    propMorphers.push(createValueMorpher(item.opacity, refItem.opacity, (value) => item.opacity = value));
-    propMorphers.push(createValueMorpher(item.selfOpacity, refItem.selfOpacity, (value) => item.selfOpacity = value));
+    if (!args.ignoreVisibility) {
+        propMorphers.push(createValueMorpher(item.opacity, refItem.opacity, (value) => item.opacity = value));
+        propMorphers.push(createValueMorpher(item.selfOpacity, refItem.selfOpacity, (value) => item.selfOpacity = value));
+    }
 
     if (item.shape === 'path' && refItem.shape === 'path') {
         propMorphers.push(createPathMorpher(item, baseItem, refItem, refBaseItem));
