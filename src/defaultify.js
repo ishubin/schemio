@@ -85,8 +85,8 @@ export function defaultifyObject(obj, defaultObject) {
 /**
  * Enriches object with defaults specified in another object.
  * It uses the same structure as 'defaultifyObject' function
- * @param {*} obj 
- * @param {*} defaultObj 
+ * @param {*} obj
+ * @param {*} defaultObj
  */
 export function enrichObjectWithDefaults(obj, defaultObj) {
     if (!obj) {
@@ -101,9 +101,9 @@ export function enrichObjectWithDefaults(obj, defaultObj) {
             } else {
                 const subDefObj = defaultObj[field]
 
-                if (!obj.hasOwnProperty(field) 
+                if (!obj.hasOwnProperty(field)
                     || obj[field] === null
-                    || typeof obj[field] !== typeof subDefObj 
+                    || (subDefObj && typeof obj[field] !== typeof subDefObj)
                     || (Array.isArray(subDefObj) && !Array.isArray(obj[field]))) {
                     // in case they have different types - we should correct the object, otherwise it will be in broken state
                     if (Array.isArray(subDefObj)) {
