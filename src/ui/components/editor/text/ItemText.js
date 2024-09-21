@@ -16,7 +16,8 @@ export function generateTextStyle(textSlot) {
         'vertical-align'  : textSlot.valign,
         'white-space'     : textSlot.whiteSpace,
         'display'         : 'table-cell',
-        'box-sizing'      : 'border-box'
+        'box-sizing'      : 'border-box',
+        'line-height'     : '' + textSlot.lineHeight
     };
 
     if (textSlot.letterSpacing > 0) {

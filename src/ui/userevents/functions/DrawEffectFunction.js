@@ -5,6 +5,8 @@ import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import Animation from '../../animations/Animation';
 import Shape from '../../components/editor/items/shapes/Shape';
 import myMath from '../../myMath';
+import EditorEventBus from '../../components/editor/EditorEventBus';
+import { waitForItemAnimationContainer } from './FunctionCommons';
 
 /**
  *
@@ -24,20 +26,29 @@ function breakPaths(path) {
     return result;
 }
 class DrawEffectAnimation extends Animation {
-    constructor(item, args, resultCallback) {
+    constructor(item, domContainer, editorId, supportsStrokeShapeProps, color, strokeSize, args, resultCallback) {
         super();
         this.item = item;
         this.args = args;
         this.resultCallback = resultCallback;
-        this.domContainer = null;
+        this.domContainer = domContainer;
+        this.editorId = editorId;
         this.time = 0.0;
+        this.color = color;
+        this.strokeSize = strokeSize;
+        this.supportsStrokeShapeProps = supportsStrokeShapeProps;
 
         this.paths = [];
         this.totalPathsLength = 0;
+        this.srcSelfOpacity = this.item.selfOpacity;
+        this.targetSelfOpacity = this.item.selfOpacity;
+        this.targetStrokeSize = 1;
+        if (supportsStrokeShapeProps) {
+            this.targetStrokeSize = this.item.shapeProps.strokeSize;
+        }
     }
 
     init() {
-        this.domContainer = document.getElementById(`animation-container-${this.item.id}`);
         if (!this.domContainer) {
             return false;
         }
@@ -45,6 +56,14 @@ class DrawEffectAnimation extends Animation {
         const shape = Shape.find(this.item.shape);
         if (!shape) {
             return false;
+        }
+
+        if (this.args.revealItem && this.item.selfOpacity < 1) {
+            this.targetSelfOpacity = 100;
+            if (this.supportsStrokeShapeProps) {
+                this.item.shapeProps.strokeSize = 0;
+                EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
+            }
         }
 
         const path = shape.computePath(this.item);
@@ -59,8 +78,8 @@ class DrawEffectAnimation extends Animation {
         breakPaths(path).forEach(subPath => {
             const domPath = this.svg('path', {
                 'd': subPath,
-                'stroke-width': this.args.strokeSize || 1,
-                'stroke': this.args.color,
+                'stroke-width': this.strokeSize || 1,
+                'stroke': this.color,
                 'fill': 'none',
                 'stroke-linejoin': 'round',
             });
@@ -85,6 +104,11 @@ class DrawEffectAnimation extends Animation {
         let t = 1;
         if (!myMath.tooSmall(this.args.duration)) {
             t = this.time / (this.args.duration * 1000.0);
+        }
+
+        if (0.5 <= t <= 1) {
+            const t1 = (t - 0.5) * 2;
+            this.item.selfOpacity = this.srcSelfOpacity * (1 - t1) + this.targetSelfOpacity * t1;
         }
 
         const firstWay = t < 1;
@@ -112,6 +136,11 @@ class DrawEffectAnimation extends Animation {
     }
 
     destroy() {
+        this.item.shapeProps.selfOpacity = this.targetSelfOpacity;
+        if (this.supportsStrokeShapeProps) {
+            this.item.shapeProps.strokeSize = this.targetStrokeSize;
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
+        }
         if (!this.args.inBackground) {
             this.resultCallback();
         }
@@ -127,16 +156,52 @@ export default {
     description: 'Animates outline by simulating a drawing effect',
 
     args: {
-        color         : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)'},
-        strokeSize    : {name: 'Stroke size',       type: 'number',  value: 2},
+        customStroke   : {name: 'Override stroke', type: 'boolean', value: false,
+            description: 'Allows to override the stroke of the item and use custom color and stroke size'
+        },
+        color         : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)', depends: {customStroke: true}},
+        strokeSize    : {name: 'Stroke size',       type: 'number',  value: 2, depends: {customStroke: true}},
         duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0},
         twoWay        : {name: 'Two way',           type: 'boolean', value: false},
+        revealItem    : {name: 'Reveal item',       type: 'boolean', value: true,
+            description: 'If item was hidden it will slowly reveal it while drawing its outline. Only works if the item was hidden before calling this function'
+        },
         inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
+        // first making sure that the effect is going to be visible
+        if (!item.visible) {
+            item.visible = true;
+        }
+        if (item.opacity < 1) {
+            item.selfOpacity = item.opacity;
+            item.opacity = 100;
+        }
+        EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id, 'visible');
+
+        let color = args.color;
+        let strokeSize = args.strokeSize;
+        const shape = Shape.find(item.shape);
+        const shapeArgs = Shape.getShapeArgs(shape);
+        const supportsStrokeShapeProps = shapeArgs.strokeColor
+                                        && shapeArgs.strokeSize
+                                        && shapeArgs.strokeColor.type === 'color'
+                                        && shapeArgs.strokeSize.type === 'number';
+
+        if (!args.customStroke && supportsStrokeShapeProps) {
+            color = item.shapeProps.strokeColor;
+            strokeSize = item.shapeProps.strokeSize;
+        }
+
+        // have to wait for dom element to appear
         if (item) {
-            playInAnimationRegistry(schemeContainer.editorId, new DrawEffectAnimation(item, args, resultCallback), item.id, this.name);
+            waitForItemAnimationContainer(item.id, (container) => {
+                const animation = new DrawEffectAnimation(
+                    item, container, schemeContainer.editorId, supportsStrokeShapeProps, color, strokeSize, args, resultCallback
+                );
+                playInAnimationRegistry(schemeContainer.editorId, animation, item.id, this.name);
+            });
         }
         if (args.inBackground) {
             resultCallback();

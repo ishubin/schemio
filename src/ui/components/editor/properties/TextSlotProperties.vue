@@ -134,6 +134,12 @@
                             <number-textfield :value="textSlot.letterSpacing" @changed="emitTextSlotPropertyChange('letterSpacing', arguments[0])"/>
                         </td>
                     </tr>
+                    <tr>
+                        <td class="label" width="50%">Line height</td>
+                        <td class="value" width="50%">
+                            <number-textfield :value="textSlot.lineHeight" @changed="emitTextSlotPropertyChange('lineHeight', arguments[0])"/>
+                        </td>
+                    </tr>
                     <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot && !textSlotTabsDisabled">
                         <td colspan="2">
                             <span class="btn btn-secondary" style="width: 100%" @click="onMoveToSlotClicked(availableTextSlot)">Move to "{{availableTextSlot}}" slot</span>

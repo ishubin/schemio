@@ -278,6 +278,9 @@ function getRegistry() {
 }
 
 function getShapeArgs(shape) {
+    if (!shape) {
+        return {};
+    }
     if (shape.shapeType === 'standard' || shape.includeStandardArgs) {
         const args = {};
         const copyArg = (arg, argName) => args[argName] = arg;

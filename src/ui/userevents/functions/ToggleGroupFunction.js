@@ -48,6 +48,10 @@ export default {
         });
         forEach(items, item => {
             item.visible = true;
+            // this happens if prior to this a "hide" function was called. In that case the opacity is 0 and the items are not visible
+            if (item.opacity === 0) {
+                item.opacity = 100;
+            }
             EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
         });
 
