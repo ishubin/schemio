@@ -861,29 +861,27 @@ class SchemeContainer {
             item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
 
             // generating item snappers
-            if (this.mode !== 'view') {
-                const itemSnappers = this.generateItemSnappers(item);
-                if (itemSnappers) {
-                    forEach(itemSnappers, itemSnapper => {
-                        if (itemSnapper.snapperType === 'horizontal') {
-                            this.relativeSnappers.horizontal.push(itemSnapper);
-                        } else if (itemSnapper.snapperType === 'vertical') {
-                            this.relativeSnappers.vertical.push(itemSnapper);
-                        }
-                    });
-                }
-
-                if (isIndexable) {
-                    const shape = Shape.find(item.shape);
-                    if (shape) {
-                        this.indexItemPins(item, shape);
+            const itemSnappers = this.generateItemSnappers(item);
+            if (itemSnappers) {
+                forEach(itemSnappers, itemSnapper => {
+                    if (itemSnapper.snapperType === 'horizontal') {
+                        this.relativeSnappers.horizontal.push(itemSnapper);
+                    } else if (itemSnapper.snapperType === 'vertical') {
+                        this.relativeSnappers.vertical.push(itemSnapper);
                     }
-                    this.indexItemOutlinePoints(item);
-                }
+                });
+            }
 
-                if (item.shape === 'connector') {
-                    this.indexConnectorPoints(item);
+            if (isIndexable) {
+                const shape = Shape.find(item.shape);
+                if (shape) {
+                    this.indexItemPins(item, shape);
                 }
+                this.indexItemOutlinePoints(item);
+            }
+
+            if (item.shape === 'connector') {
+                this.indexConnectorPoints(item);
             }
 
             this.worldItemAreas.set(item.id, this.calculateItemWorldArea(item));
@@ -893,10 +891,8 @@ class SchemeContainer {
             this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         }
 
-        if (this.mode != 'view') {
-            this.itemTags = Object.keys(this._itemTagsToIds);
-            this.itemTags.sort();
-        }
+        this.itemTags = Object.keys(this._itemTagsToIds);
+        this.itemTags.sort();
 
         this.revision = newRevision;
     }
