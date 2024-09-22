@@ -135,7 +135,14 @@ class StateInteract extends State {
 
     emit(element, eventName, ...args) {
         if (element && element.id) {
-            this.userEventBus.emitItemEvent(element.id, eventName, ...args);
+            let userEventBus = this.userEventBus;
+            if (element.meta && element.meta.eventLayerId) {
+                userEventBus = userEventBus.findLayer(element.meta.eventLayerId);
+                if (!userEventBus) {
+                    return;
+                }
+            }
+            userEventBus.emitItemEvent(element.id, eventName, ...args);
         }
     }
 }

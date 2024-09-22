@@ -107,7 +107,7 @@ export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
 export const COMPONENT_DESTROYED = 'Component Destroyed';
 
-export function generateComponentGoBackButton(componentItem, containerItem, currentScreenTransform, screenWidth, screenHeight) {
+export function generateComponentGoBackButton(componentItem, containerItemId, currentScreenTransform) {
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
@@ -116,7 +116,8 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
 
     const sx = componentItem.area.w / (20 * btnWidth);
     const sy = componentItem.area.h / (20 * btnHeight);
-    const scale = Math.max(sx, sy) * componentItem.shapeProps.backButtonScale;
+    // const scale = Math.max(sx, sy) * componentItem.shapeProps.backButtonScale;
+    const scale = 1;
     return {
         id: componentItem.id + '-go-back-btn',
         shape: 'rect',
@@ -124,7 +125,9 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
             x: 0 + componentItem.area.w - (btnWidth + componentItem.shapeProps.backButtonHPad) * scale,
             y: (btnHeight - componentItem.shapeProps.backButtonVPad) * scale,
             w: btnWidth, h: btnHeight,
-            sx: scale, sy: scale, r: 0, px: 0, py: 0
+            // sx: scale, sy: scale,
+            sx: 1, sy: 1,
+            r: 0, px: 0, py: 0
         },
         textSlots: {
             body: {
@@ -156,7 +159,7 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
                     }
                 }, {
                     id: shortid.generate(),
-                    element: '#' + containerItem.id,
+                    element: '#' + containerItemId,
                     method: 'hide',
                     args: { }
                 }, {
@@ -397,7 +400,7 @@ export default {
     },
 
     data() {
-        const externalItemsMounted = this.item._childItems && this.item._childItems.length > 0;
+        const externalItemsMounted = this.item.meta.componentSchemeContainer ? true: false;
         return {
             buttonHovered: false,
             buttonShown: this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton && !externalItemsMounted,
@@ -429,7 +432,7 @@ export default {
             EditorEventBus.component.loadRequested.specific.$emit(this.editorId, this.item.id, this.item);
         },
         onItemChanged() {
-            if (this.item._childItems && this.item._childItems.length > 0) {
+            if (this.item.meta.componentSchemeContainer) {
                 this.buttonShown = false;
                 this.bodyTextShown = false;
             }

@@ -577,7 +577,7 @@ export default {
             }
 
             if (this.isRecording) {
-                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'edit', this.$store.state.apiClient);
+                this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), null, this.editorId, 'edit', this.$store.state.apiClient);
             }
         },
 
@@ -820,7 +820,7 @@ export default {
         startRecording() {
             this.isRecording = true;
             this.$emit('recording-state-updated', true);
-            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'edit', this.$store.state.apiClient);
+            this.originSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), null, this.editorId, 'edit', this.$store.state.apiClient);
         },
 
         stopRecording() {

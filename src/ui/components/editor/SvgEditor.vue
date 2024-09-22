@@ -185,20 +185,20 @@ import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
 import { compileActions } from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath} from './items/shapes/Component.vue';
+import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath, generateComponentGoBackButton} from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
-import { isolateScriptFunctionsForComponent } from '../../scheme/Scripts.js';
+import shortid from 'shortid';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -377,6 +377,7 @@ export default {
             highlightAnimationTime: 0,
 
             compiledMainScript : null,
+            componentSchemeContainers: new Map()
         };
     },
     methods: {
@@ -433,14 +434,53 @@ export default {
                 });
             })
             .then(schemeDetails => {
+                const eventLayerId = shortid.generate();
+                const overlayId = shortid.generate();
+                const backButton = generateComponentGoBackButton(item, overlayId, this.schemeContainer.screenTransform);
+
                 const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, this.mode, this.$store.state.apiClient, {
-                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
+
+                let componentSchemeContainer = new SchemeContainer(scheme, null, this.editorId, this.mode, this.$store.state.apiClient);
+                const bBox = getBoundingBoxOfItems(componentSchemeContainer.getItems());
+
+                const overlayItem = {
+                    id: overlayId,
+                    name: 'Component Overlay',
+                    shape: 'rect',
+                    area: {x: bBox.x, y: bBox.x, w: bBox.w, h: bBox.h},
+                    childItems: [],
+                    shapeProps: {
+                        fill: {type: 'solid', color: 'rgba(255,111,111,1.0)'},
+                        strokeSize: 1,
+                        strokeColor: 'rgba(111,255,111,1.0)'
+                    }
+                };
+
+                scheme.items.forEach(item => {
+                    item.area.x -= bBox.x;
+                    item.area.y -= bBox.y;
                 });
-                this.schemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
-                this.schemeContainer.prepareFrameAnimationsForItems();
-                this.schemeContainer.reindexTags();
+
+                overlayItem.childItems = [...scheme.items, backButton];
+                backButton.area.x = bBox.w - backButton.area.w;
+                backButton.area.y = 0;
+                scheme.items = [overlayItem];
+                componentSchemeContainer = new SchemeContainer(scheme, item, this.editorId, this.mode, this.$store.state.apiClient);
+
+                item.meta.componentSchemeContainer = componentSchemeContainer;
+                item.meta.componentEventLayerId = eventLayerId;
+                this.componentSchemeContainers.set(eventLayerId, componentSchemeContainer);
+                componentSchemeContainer.prepareFrameAnimationsForItems();
+                componentSchemeContainer.reindexTags();
+
+                traverseItems(scheme.items, item => {
+                    item.meta.eventLayerId = eventLayerId;
+                });
+
+                this.userEventBus.registerNewLayer(eventLayerId);
+
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
+
 
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {
                     this.zoomToItems([item]);
@@ -515,23 +555,34 @@ export default {
         },
 
         identifyElement(element, point) {
+            let schemeContainer = this.schemeContainer;
             if (element) {
+                const eventLayerId = element.getAttribute('data-event-layer-id') || 'default';
+                if (eventLayerId !== 'default') {
+                    schemeContainer = this.componentSchemeContainers.get(eventLayerId);
+                    if (!schemeContainer) {
+                        return EMPTY_OBJECT;
+                    }
+                }
                 const elementType = element.getAttribute('data-type');
                 if (elementType === 'path-segment') {
                     return {
                         type: elementType,
+                        eventLayerId,
                         pathIndex: parseInt(element.getAttribute('data-path-index')),
                         segmentIndex: parseInt(element.getAttribute('data-path-segment-index')),
                     };
                 } else if (elementType === 'path-point') {
                     return {
                         type: elementType,
+                        eventLayerId,
                         pointIndex: parseInt(element.getAttribute('data-path-point-index')),
                         pathIndex: parseInt(element.getAttribute('data-path-index'))
                     };
                 } else if (elementType === 'path-control-point') {
                     return {
                         type: elementType,
+                        eventLayerId,
                         pointIndex: parseInt(element.getAttribute('data-path-point-index')),
                         pathIndex: parseInt(element.getAttribute('data-path-index')),
                         controlPointIndex: parseInt(element.getAttribute('data-path-control-point-index'))
@@ -545,33 +596,38 @@ export default {
                         || elementType === 'edit-box-context-menu-button') {
                     return {
                         type: elementType,
-                        editBox: this.schemeContainer.editBox
+                        eventLayerId,
+                        editBox: schemeContainer.editBox
                     };
                 } else if (elementType === 'edit-box-resize-dragger') {
                     return {
                         type: elementType,
-                        editBox: this.schemeContainer.editBox,
+                        eventLayerId,
+                        editBox: schemeContainer.editBox,
                         draggerEdges: map(element.getAttribute('data-dragger-edges').split(','), edge => edge.trim())
                     };
                 } else if (elementType === 'custom-item-area') {
                     return {
                         type: elementType,
-                        item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
+                        eventLayerId,
+                        item: schemeContainer.findItemById(element.getAttribute('data-item-id')),
                         areaId: element.getAttribute('data-custom-area-id'),
                     };
                 } else if (elementType === ObjectTypes.ITEM_DETAILS_MARKER) {
                     return {
                         type: elementType,
-                        item: this.schemeContainer.findItemById(element.getAttribute('data-item-id')),
+                        eventLayerId,
+                        item: schemeContainer.findItemById(element.getAttribute('data-item-id')),
                     };
                 }
 
                 const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
-                    const item = this.schemeContainer.findItemById(itemId);
+                    const item = schemeContainer.findItemById(itemId);
                     if (item) {
                         return {
                             type: 'item',
+                            eventLayerId,
                             item
                         };
                     }
@@ -579,10 +635,11 @@ export default {
 
                 const connectorStarterItemId = element.getAttribute('data-connector-starter-item-id');
                 if (connectorStarterItemId) {
-                    const item = this.schemeContainer.findItemById(connectorStarterItemId);
+                    const item = schemeContainer.findItemById(connectorStarterItemId);
                     if (item) {
                         return {
                             type: 'connection-starter',
+                            eventLayerId,
                             connectorStarter: {
                                 item,
                                 point
@@ -592,10 +649,11 @@ export default {
                 }
                 const controlPointId = element.getAttribute('data-control-point-id');
                 if (controlPointId) {
-                    const item = this.schemeContainer.findItemById(element.getAttribute('data-control-point-item-id'));
+                    const item = schemeContainer.findItemById(element.getAttribute('data-control-point-item-id'));
                     if (item) {
                         return {
                             type: 'control-point',
+                            eventLayerId,
                             controlPoint: {
                                 pointId: controlPointId,
                                 item
@@ -606,10 +664,11 @@ export default {
 
                 const textContainerElement = element.closest('.item-text-element');
                 if (textContainerElement) {
-                    const item = this.schemeContainer.findItemById(textContainerElement.getAttribute('data-item-text-element-item-id'));
+                    const item = schemeContainer.findItemById(textContainerElement.getAttribute('data-item-text-element-item-id'));
                     if (item) {
                         return {
                             type: 'item-text-element',
+                            eventLayerId,
                             itemTextElement: { item }
                         };
                     }
@@ -772,27 +831,27 @@ export default {
         reindexUserEvents() {
             if (this.userEventBus) {
                 this.userEventBus.clear();
-                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit, null);
+                this.indexUserEventsInItems(this.schemeContainer, this.itemsForInit, this.userEventBus);
             }
         },
 
         /**
          *
-         * @param {Array} items
+         * @param {SchemeContainer} schemeContainer
          * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
-         * @param {Item|undefined} componentRootItem
+         * @param {UserEventBus} userEventBus
          */
-        indexUserEventsInItems(items, itemsForInit, componentRootItem) {
-            traverseItems(items, item => {
+        indexUserEventsInItems(schemeContainer, itemsForInit, userEventBus) {
+            traverseItems(schemeContainer.scheme.items, item => {
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, (err) => {
+                        const eventCallback = compileActions(schemeContainer, item, event.actions, (err) => {
                             this.onCompilerError(err);
                         });
                         if (event.event === Events.standardEvents.init.id) {
                             itemsForInit[item.id] = 1;
                         }
-                        this.userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
+                        userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
                     });
                 }
             });
@@ -804,13 +863,13 @@ export default {
             this.$emit('compiler-error', err);
         },
 
-        onComponentSchemeMounted(item, scheme) {
-            if (item._childItems) {
+        onComponentSchemeMounted(item) {
+            const componentEventBus = this.userEventBus.findLayer(item.meta.componentEventLayerId);
+            if (item.meta.componentSchemeContainer && componentEventBus) {
                 const componentItemsForInit = {};
-                isolateScriptFunctionsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
-                this.indexUserEventsInItems(item._childItems, componentItemsForInit, item);
+                this.indexUserEventsInItems(item.meta.componentSchemeContainer, componentItemsForInit, componentEventBus);
                 forEach(componentItemsForInit, (val, itemId) => {
-                    this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+                    componentEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
                 });
             }
             if (item.shape === 'component' && this.userEventBus) {

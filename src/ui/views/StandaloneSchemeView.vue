@@ -151,7 +151,7 @@ export default {
                 console.error('Failed to load shapes', err);
             })
             .then(() => {
-                this.schemeContainer = new SchemeContainer(this.scheme, this.editorId, 'view', this.$store.state.apiClient);
+                this.schemeContainer = new SchemeContainer(this.scheme, null, this.editorId, 'view', this.$store.state.apiClient);
                 this.stateInteract.schemeContainer = this.schemeContainer;
                 const boundingBox = this.schemeContainer.getBoundingBoxOfItems(filterNonHUDItems(this.schemeContainer.getItems()));
                 this.schemeContainer.screenSettings.boundingBox = boundingBox;

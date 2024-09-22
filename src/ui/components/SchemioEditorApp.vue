@@ -231,8 +231,8 @@ export default{
                 this.patch.patchedScheme = applySchemePatch(this.scheme, patch);
                 this.$emit('patch-modified-generated', this.patch.patchedScheme);
                 this.showPatchModified();
-                this.patch.originSchemeContainer = new SchemeContainer(this.scheme, this.editorId, 'edit', this.$store.state.apiClient);
-                this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme, this.editorId, 'edit', this.$store.state.apiClient);
+                this.patch.originSchemeContainer = new SchemeContainer(this.scheme, null, this.editorId, 'edit', this.$store.state.apiClient);
+                this.patch.modifiedSchemeContainer = new SchemeContainer(this.patch.patchedScheme, null, this.editorId, 'edit', this.$store.state.apiClient);
                 this.$forceUpdate();
             }
         },

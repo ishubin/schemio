@@ -65,7 +65,7 @@ export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
  * @param {Array} items
  * @returns {Area}
  */
-function getLocalBoundingBoxOfItems(items) {
+export function getLocalBoundingBoxOfItems(items) {
     const boundsItem = findFirstItemBreadthFirst(items, item => item.shape === 'dummy' && item.shapeProps.screenBounds);
 
     const filteredItems = boundsItem ? [boundsItem] : items;
@@ -296,14 +296,15 @@ class SchemeContainer {
     /**
      *
      * @param {Scheme} scheme
+     * @param {Item} parentItem - used when scheme is loaded as a component
      * @param {String} editorId
      * @param {String} mode - either 'view' or 'edit'
      * @param {*} apiClient
      * @param {*} listener
      */
-    constructor(scheme, editorId, mode, apiClient, listener) {
-        Debugger.register('SchemioContainer', this);
-
+    constructor(scheme, parentItem, editorId, mode, apiClient, listener) {
+        // Debugger.register('SchemioContainer', this);
+        this.parentItem = parentItem;
         this.scheme = scheme;
         this.editorId = editorId;
         this.mode = mode;
@@ -477,7 +478,12 @@ class SchemeContainer {
             return;
         }
 
-        this.reindexSpecifiedItems(this.scheme.items);
+        let parentTransform = null;
+        if (this.parentItem) {
+            parentTransform = myMath.standardTransformWithArea(this.parentItem.meta.transformMatrix, this.parentItem.area);
+        }
+
+        this.reindexSpecifiedItems(this.scheme.items, parentTransform);
         this.reindexComponents();
         this.fixComponentCyclicDependencies();
 
@@ -566,73 +572,6 @@ class SchemeContainer {
         }
     }
 
-
-    /*
-        Traverses all items and makes their tags and tag selectors unique.
-        This is needed so that behavior actions defined inside components affect only items within itself
-    */
-    isolateItemTags(items) {
-        const tagConversions = new Map();
-        traverseItems(items, item => {
-            if (!Array.isArray(item.tags)) {
-                return;
-            }
-            item.tags = item.tags.map(tag => {
-                if (tagConversions.has(tag)) {
-                    return tagConversions.get(tag);
-                }
-                const convertedTag = `${tag}-${shortid.generate()}`;
-                tagConversions.set(tag, convertedTag);
-                return convertedTag;
-            });
-        });
-
-        const replaceSelector = (selector) => {
-            if (!selector) {
-                return selector;
-            }
-            const colonIndex = selector.indexOf(':');
-            if (colonIndex > 0) {
-                const expression = selector.substring(0, colonIndex).trim();
-                if (expression === 'tag') {
-                    const tag = selector.substr(colonIndex + 1).trim();
-                    if (tagConversions.has(tag)) {
-                        return `tag: ${tagConversions.get(tag)}`;
-                    }
-                }
-            }
-            return selector;
-        };
-
-        traverseItems(items, item => {
-            if (!item.behavior || !Array.isArray(item.behavior.events)) {
-                return;
-            }
-            if (item.behavior.dragPath) {
-                item.behavior.dragPath = replaceSelector(item.behavior.dragPath);
-            }
-            if (item.behavior.dropTo) {
-                item.behavior.dropTo = replaceSelector(item.behavior.dropTo);
-            }
-            item.behavior.events.forEach(event => {
-                if (!Array.isArray(event.actions)) {
-                    return;
-                }
-                event.actions.forEach(action => {
-                    action.element = replaceSelector(action.element);
-                    if (action.args && Functions.main.hasOwnProperty(action.method)) {
-                        const argDefs = Functions.main[action.method].args;
-                        forEach(argDefs, (argDef, argName) => {
-                            if (argDef.type === 'element') {
-                                action.args[argName] = replaceSelector(action.args[argName]);
-                            }
-                        });
-                    }
-                });
-            })
-        });
-    }
-
     attachItemsToComponentItem(componentItem, referenceItems) {
         if (!referenceItems) {
             return;
@@ -641,17 +580,6 @@ class SchemeContainer {
         const shouldIndexClones = true;
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
-
-        traverseItems(childItems, childItem => {
-            if (!childItem.meta) {
-                childItem.meta = {};
-            }
-            childItem.meta.componentRootId = componentItem.id;
-        });
-
-        if (componentItem.shapeProps.kind === 'external') {
-            this.isolateItemTags(childItems);
-        }
 
         const bBox = getLocalBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
@@ -708,7 +636,7 @@ class SchemeContainer {
         overlayRect._childItems = [rectItem];
 
         if (componentItem.shapeProps.kind === 'external') {
-            const backButton = generateComponentGoBackButton(componentItem, overlayRect, this.screenTransform, this.screenSettings.width, this.screenSettings.height);
+            const backButton = generateComponentGoBackButton(componentItem, overlayRect.id, this.screenTransform);
             if (backButton) {
                 overlayRect._childItems.push(backButton);
             }

@@ -115,6 +115,7 @@
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
                 class="svg-event-layer"
                 data-preview-ignore="true"
+                :data-event-layer-id="eventLayerId"
                 :id="`item-svg-path-${item.id}`"
                 :d="itemSvgOutlinePath"
                 :data-item-id="item.id"
@@ -151,6 +152,7 @@
             <g v-if="mode === 'view' && !textSelectionEnabled">
                 <path v-for="customArea in customAreas"
                     class="svg-event-layer"
+                    :data-event-layer-id="eventLayerId"
                     data-preview-ignore="true"
                     :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
                     :id="`item-svg-path-${item.id}`"
@@ -166,6 +168,7 @@
 
             <rect v-if="shapeType === 'missing'"
                 class="svg-event-layer"
+                :data-event-layer-id="eventLayerId"
                 data-preview-ignore="true"
                 :data-item-id="item.id"
                 x="0" y="0"
@@ -212,6 +215,18 @@
                     @frame-animator="onFrameAnimatorEvent"
                     />
             </g>
+
+            <g v-if="componentItems" :transform="componentTransform">
+                <ItemSvg v-for="childItem in componentItems"
+                    v-if="childItem.visible && childItem.shape !== 'hud'"
+                    :key="`comp-svg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                    :item="childItem"
+                    :editorId="editorId"
+                    :textSelectionEnabled="textSelectionEnabled"
+                    :mode="mode"
+                    @frame-animator="onFrameAnimatorEvent"
+                    />
+            </g>
         </g>
     </g>
 </template>
@@ -230,6 +245,7 @@ import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
 import StoreUtils from '../../../store/StoreUtils';
 import { hasItemDescription } from '../../../scheme/Item';
+import { getLocalBoundingBoxOfItems } from '../../../scheme/SchemeContainer.js';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -352,7 +368,10 @@ export default {
 
             draggingFileOver: false,
 
-            hoverPathFill: this.getHoverPathFill()
+            hoverPathFill: this.getHoverPathFill(),
+
+            componentItems: null,
+            componentTransform: ''
         };
 
         if (shape) {
@@ -566,6 +585,25 @@ export default {
                 this.textSlots = this.generateTextSlots();
             }
 
+            if (this.item.meta.componentSchemeContainer && !this.componentItems) {
+                this.componentItems = this.item.meta.componentSchemeContainer.scheme.items;
+                const bBox = getLocalBoundingBoxOfItems(this.componentItems);
+                let scale = 1.0, dx = 0, dy = 0;
+                let w = Math.max(bBox.w, 0.00001);
+                let h = Math.max(bBox.h, 0.00001);
+                let sx = this.item.area.w / w;
+                let sy = this.item.area.h / h;
+
+                if (this.item.shapeProps.placement === 'centered') {
+                    scale = Math.min(sx, sy);
+                    sx = scale;
+                    sy = scale;
+                    dx = (this.item.area.w - w * sx) / 2;
+                    dy = (this.item.area.h - h * sy) / 2;
+                }
+                this.componentTransform = `translate(${dx - bBox.x * sx}, ${dy - bBox.y * sy}) scale(${sx}, ${sy})`;
+            }
+
             //updating filters
             const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
             this.svgFilters = svgFilters;
@@ -634,6 +672,13 @@ export default {
     },
 
     computed: {
+        eventLayerId() {
+            if (this.item.meta.eventLayerId) {
+                return this.item.meta.eventLayerId;
+            }
+            return 'default';
+        },
+
         hoverPathStrokeWidth() {
             if (this.draggingFileOver) {
                 return '8px';

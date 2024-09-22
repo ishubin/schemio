@@ -157,18 +157,11 @@ function execute(item, args, schemeContainer, userEventBus, resultCallback, subs
 
 /**
  * @param {SchemeContainer} schemeContainer
- * @param {Item} componentRootItem item that represents the component root. Only used in dynamic components and is needed for isolating the script functions
  * @param {Item} funcName
  * @returns {Object}
  */
-export function findSchemeDefinedScriptFunction(schemeContainer, componentRootItem, funcName) {
-    let funcDef = null;
-    if (componentRootItem && componentRootItem.meta && Array.isArray(componentRootItem.meta.componentScriptFunctions)) {
-        funcDef = componentRootItem.meta.componentScriptFunctions.find(f => f.name === funcName);
-    }
-    if (!funcDef) {
-        funcDef = schemeContainer.scheme.scripts.functions.find(f => f.name === funcName);
-    }
+export function findSchemeDefinedScriptFunction(schemeContainer, funcName) {
+    const funcDef = schemeContainer.scheme.scripts.functions.find(f => f.name === funcName);
     if (!funcDef) {
         return null;
     }
@@ -178,11 +171,7 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
         },
 
         execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-            let componentScopeData = {};
-            if (componentRootItem && componentRootItem.meta && componentRootItem.meta.componentScriptScopeData) {
-                componentScopeData = componentRootItem.meta.componentScriptScopeData;
-            }
-            const finalArgs = {...args, ...componentScopeData};
+            const finalArgs = {...args};
 
             // making sure that 'element' type arguments get converted from string to items
             // so that it makes it usable in the user script

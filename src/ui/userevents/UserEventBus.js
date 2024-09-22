@@ -12,10 +12,21 @@ const log = new Logger('UserEventBus');
  * when user interacts with elements
  */
 export default class UserEventBus {
-    constructor(editorId) {
+    constructor(editorId, layerId = 'default') {
         this.editorId = editorId;
         this.itemEventSubscribers = {};
         this.revision = shortid.generate();
+
+        this.layerId = layerId;
+        this.layers = new Map();
+    }
+
+    registerNewLayer(layerId) {
+        this.layers.set(layerId, new UserEventBus(this.editorId, layerId));
+    }
+
+    findLayer(layerId) {
+        return this.layers.get(layerId);
     }
 
     subscribeItemEvent(itemId, eventName, callback) {
@@ -45,6 +56,7 @@ export default class UserEventBus {
 
     clear() {
         this.itemEventSubscribers = {}
+        this.layers = new Map();
         this.revision = shortid.generate();
     }
 
