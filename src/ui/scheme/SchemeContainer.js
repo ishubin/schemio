@@ -481,6 +481,9 @@ class SchemeContainer {
         this.reindexComponents();
         this.fixComponentCyclicDependencies();
 
+        this.itemTags = Object.keys(this._itemTagsToIds);
+        this.itemTags.sort();
+
         log.timeEnd('reindexItems');
     }
 
@@ -872,7 +875,7 @@ class SchemeContainer {
                 });
             }
 
-            if (isIndexable) {
+            if (isIndexable && this.mode === 'edit') {
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     this.indexItemPins(item, shape);
@@ -880,7 +883,7 @@ class SchemeContainer {
                 this.indexItemOutlinePoints(item);
             }
 
-            if (item.shape === 'connector') {
+            if (item.shape === 'connector' && this.mode === 'edit') {
                 this.indexConnectorPoints(item);
             }
 
@@ -890,9 +893,6 @@ class SchemeContainer {
         if (isIndexable) {
             this.buildDependencyItemMapFromElementSelectors(this.dependencyItemMap, dependencyElementSelectorMap);
         }
-
-        this.itemTags = Object.keys(this._itemTagsToIds);
-        this.itemTags.sort();
 
         this.revision = newRevision;
     }

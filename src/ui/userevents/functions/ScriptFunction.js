@@ -531,7 +531,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         },
 
         duplicate(newName) {
-            const clonedItems = schemeContainer.cloneItems([item]);
+            const clonedItems = schemeContainer.cloneItems([item], true, false);
             const clonedItem = clonedItems[0];
             if (newName) {
                 clonedItem.name = newName;
