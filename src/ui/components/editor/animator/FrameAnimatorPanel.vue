@@ -462,10 +462,10 @@ function findFrameIdx(animation, frame) {
 
 export default {
     props: {
-        editorId       : {type: String, required: true},
-        schemeContainer: {type: Object, required: true},
-        framePlayer    : {type: Object, required: true},
-        light          : {type: Boolean, default: true},
+        editorId         : {type: String, required: true},
+        schemeContainer  : {type: Object, required: true},
+        framePlayerItemId: {type: String, required: true},
+        light            : {type: Boolean, default: true},
     },
 
     components: { ContextMenu, PropertyInput, ArgumentsEditor, Modal, ElementPicker, Dropdown },
@@ -473,23 +473,25 @@ export default {
     beforeMount() {
         this.compileAnimations();
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
-        EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
-        EditorEventBus.schemeRebased.$on(this.editorId, this.compileAnimations);
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayerItemId, this.onFramePlayerChanged);
+        EditorEventBus.schemeRebased.$on(this.editorId, this.onSchemeRebased);
     },
 
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
-        EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayer.id, this.onFramePlayerChanged);
-        EditorEventBus.schemeRebased.$off(this.editorId, this.compileAnimations);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayerItemId, this.onFramePlayerChanged);
+        EditorEventBus.schemeRebased.$off(this.editorId, this.onSchemeRebased);
         this.$emit('recording-state-updated', false);
     },
 
     data() {
+        const framePlayer = this.schemeContainer.findItemById(this.framePlayerItemId);
         return {
+            framePlayer: framePlayer,
             originSchemeContainer: null,
             currentFrame: 1,
-            totalFrames: this.framePlayer.shapeProps.totalFrames,
-            framesMatrix: this.buildFramesMatrix(),
+            totalFrames: framePlayer.shapeProps.totalFrames,
+            framesMatrix: this.buildFramesMatrix(framePlayer),
             compiledAnimations: [],
             isPlaying: false,
             isRecording: false,
@@ -631,7 +633,7 @@ export default {
             }
         },
 
-        fillMatrixFrames(originFrames, valueType) {
+        fillMatrixFrames(framePlayer, originFrames, valueType) {
             const matrixFrames = [];
 
             originFrames.sort((a, b) => a.frame - b.frame);
@@ -646,7 +648,7 @@ export default {
                 }
             };
 
-            const totalFrames = this.framePlayer.shapeProps.totalFrames;
+            const totalFrames = framePlayer.shapeProps.totalFrames;
 
             let prevFrame = null;
             forEach(originFrames, f => {
@@ -684,12 +686,12 @@ export default {
             }
         },
 
-        buildFramesMatrix() {
+        buildFramesMatrix(framePlayer) {
             const matrix = [];
 
-            this.fixAllAnimationFrames();
+            this.fixAllAnimationFrames(framePlayer);
 
-            forEach(this.framePlayer.shapeProps.animations, animation => {
+            forEach(framePlayer.shapeProps.animations, animation => {
                 if (animation.kind === 'function') {
                     // skipping animation tracks as they are going to be built in another function
                     return;
@@ -717,7 +719,7 @@ export default {
                     propertyDescriptor = findSchemePropertyDescriptor(animation.property);
                 }
 
-                const frames = this.fillMatrixFrames(animation.frames, valueType);
+                const frames = this.fillMatrixFrames(framePlayer, animation.frames, valueType);
 
                 const track = {
                     kind    : animation.kind,
@@ -733,17 +735,17 @@ export default {
                 matrix.push(track);
             });
 
-            matrix.push(this.buildSectionsTrack());
-            if (this.framePlayer.shapeProps.animations.length > 5) {
+            matrix.push(this.buildSectionsTrack(framePlayer));
+            if (framePlayer.shapeProps.animations.length > 5) {
                 matrix.push({
                     kind: 'panel-buttons'
                 });
             }
-            return matrix.concat(this.buildFunctionTracks());
+            return matrix.concat(this.buildFunctionTracks(framePlayer));
         },
 
         // sorts frames, removes duplicate frames
-        fixAllAnimationFrames() {
+        fixAllAnimationFrames(framePlayer) {
             const sortAndDeduplicate = (frames) => {
                 frames.sort((a, b) => a.frame - b.frame);
                 if (frames.length < 2) {
@@ -757,18 +759,18 @@ export default {
                 }
             }
 
-            forEach(this.framePlayer.shapeProps.animations, animation => {
+            forEach(framePlayer.shapeProps.animations, animation => {
                 sortAndDeduplicate(animation.frames);
             });
-            sortAndDeduplicate(this.framePlayer.shapeProps.sections);
+            sortAndDeduplicate(framePlayer.shapeProps.sections);
         },
 
-        buildSectionsTrack() {
-            let sections = this.framePlayer.shapeProps.sections;
+        buildSectionsTrack(framePlayer) {
+            let sections = framePlayer.shapeProps.sections;
             if (!sections) {
                 sections = [];
             }
-            const frames = this.fillMatrixFrames(sections, 'section');
+            const frames = this.fillMatrixFrames(framePlayer, sections, 'section');
 
             return {
                 kind: 'sections',
@@ -777,14 +779,14 @@ export default {
             };
         },
 
-        buildFunctionTracks() {
+        buildFunctionTracks(framePlayer) {
             const tracks = [];
-            forEach(this.framePlayer.shapeProps.animations, animation => {
+            forEach(framePlayer.shapeProps.animations, animation => {
                 if (animation.kind !== 'function') {
                     return;
                 }
 
-                const func = this.framePlayer.shapeProps.functions[animation.funcId];
+                const func = framePlayer.shapeProps.functions[animation.funcId];
                 if (!func) {
                     return;
                 }
@@ -810,11 +812,20 @@ export default {
                     id      : animation.id,
                     funcId  : animation.funcId,
                     property: animation.property,
-                    frames  : this.fillMatrixFrames(animation.frames, 'number'),
+                    frames  : this.fillMatrixFrames(framePlayer, animation.frames, 'number'),
                     propertyDescriptor,
                 });
             });
             return tracks;
+        },
+
+        onSchemeRebased() {
+            const item = this.schemeContainer.findItemById(this.framePlayer.id);
+            if (item) {
+                this.framePlayer = item;
+            }
+            this.compileAnimations();
+            this.updateFramesMatrix();
         },
 
         startRecording() {
@@ -933,7 +944,7 @@ export default {
         },
 
         updateFramesMatrix() {
-            this.framesMatrix = this.buildFramesMatrix();
+            this.framesMatrix = this.buildFramesMatrix(this.framePlayer);
             this.shouldRecompileAnimations = true;
         },
 
