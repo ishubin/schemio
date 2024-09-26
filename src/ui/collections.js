@@ -34,7 +34,7 @@ export function giveUniqueName(namePrefix, names) {
         }
     }
     if (largestIndex >= 0) {
-        return `${namePrefix} ${largestIndex+1}`;
+        return `${namePrefix}${largestIndex+1}`;
     }
     return namePrefix;
 }

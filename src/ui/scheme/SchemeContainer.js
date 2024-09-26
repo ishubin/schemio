@@ -3130,15 +3130,18 @@ class SchemeContainer {
         return giveUniqueName(name, itemNames);
     }
 
+    /**
+     * @param {String} name
+     * @returns {String}
+     */
     copyNameAndMakeUnique(name) {
-        const nameParts = name.trim().split(' ');
-        if (nameParts.length > 1) {
-            if (!isNaN(nameParts[nameParts.length - 1])) {
-                nameParts.splice(nameParts.length - 1, 1);
-                return this.generateUniqueName(nameParts.join(' ').trim());
+        for (let i = name.length - 1; i >= 0; i--) {
+            const code = name.charCodeAt(i);
+            if (code < 48 || code >= 57) {
+                return this.generateUniqueName(name.substring(0, i+1));
             }
         }
-        return this.generateUniqueName(name);
+        return this.generateUniqueName('');
     }
 
     /**
