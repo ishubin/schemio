@@ -3374,6 +3374,16 @@ class SchemeContainer {
             const worldTopLeftPoint = worldPointOnItem(0, 0, item);
             const worldBottomRightPoint = worldPointOnItem(item.area.w, item.area.h, item);
 
+            // the following two checks with corrections are needed for the cases when items area is 0 on either width or height
+            // in that case it is impossible to generate items area projections on the edit box
+            // and user will not be able to recover the size of the item ever
+            if (myMath.tooSmall(worldTopLeftPoint.x - worldBottomRightPoint.x)) {
+                worldBottomRightPoint.x += 1;
+            }
+            if (myMath.tooSmall(worldTopLeftPoint.y - worldBottomRightPoint.y)) {
+                worldBottomRightPoint.y += 1;
+            }
+
             itemProjections[item.id] = {
                 topLeft: projectPoint(worldTopLeftPoint.x, worldTopLeftPoint.y),
                 bottomRight: projectPoint(worldBottomRightPoint.x, worldBottomRightPoint.y),
