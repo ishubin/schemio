@@ -2292,10 +2292,18 @@ ul.script-options .script-option.selected {
     padding: 2px 5px 2px 30px;
     max-width: 250px;
     white-space: nowrap;
-    overflow: hidden;
+    /* overflow: hidden; */
     border-radius: var(--control-border-radius);
     opacity: 0.6;
 }
+
+.behavior-action-drag-preview .icon-action-copy-by-mouse {
+    position: absolute;
+    left: 0px;
+    top: 16px;
+    color: var(--complement-strong);
+}
+
 .behavior-action-drag-preview .action-name-separator {
     margin-left: 6px;
     margin-right: 6px;

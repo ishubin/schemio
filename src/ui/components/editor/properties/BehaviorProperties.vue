@@ -113,7 +113,7 @@
                     </div>
                     <div class="behavior-action-container"
                         :id="`behavior-action-container-${item.id}-${eventIndex}-${actionIndex}`"
-                        :class="{'disabled': !action.on, 'dragged': dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
+                        :class="{'disabled': !action.on, 'dragged': !dragging.isCopying && dragging.readyToDrop && eventIndex === dragging.eventIndex && actionIndex === dragging.actionIndex}"
                         >
                         <div class="icon-container">
                             <span class="link icon-delete" @click="removeAction(eventIndex, actionIndex)"><i class="fas fa-times"/></span>
@@ -214,6 +214,7 @@
         </modal>
 
         <div ref="dragPreview" class="behavior-action-drag-preview">
+            <i v-if="dragging.isCopying" class="icon-action-copy-by-mouse fa-solid fa-circle-plus"></i>
             <i v-if="dragging.preview.elementIcon" :class="dragging.preview.elementIcon"></i>
             {{dragging.preview.elementName}} <span class="action-name-separator">:</span>
             <span v-if="dragging.preview.method">{{dragging.preview.method}}</span>
@@ -328,6 +329,11 @@ function createPrettyPropertyName(propertyPath, element, selfItem, schemeContain
     return propertyPath;
 }
 
+
+function isCopyKey(event) {
+    return event.key === 'Control' || event.key === 'Meta' || event.key === 'Alt';
+}
+
 export default {
     props: {
         editorId       : {type: String, required: true},
@@ -375,6 +381,7 @@ export default {
 
             shapeEvents,
             dragging: {
+                isCopying: false,
                 action: null,
                 eventIndex: -1,
                 actionIndex: -1,
@@ -395,7 +402,29 @@ export default {
         };
     },
 
+    beforeMount() {
+        document.addEventListener('keydown', this.onKeyboardDown);
+        document.addEventListener('keyup', this.onKeyboardUp);
+    },
+
+    beforeDestroy() {
+        document.removeEventListener('keydown', this.onKeyboardDown);
+        document.removeEventListener('keyup', this.onKeyboardUp);
+    },
+
     methods: {
+        onKeyboardDown(event) {
+            if (isCopyKey(event)) {
+                this.dragging.isCopying = true;
+            }
+        },
+
+        onKeyboardUp(event) {
+            if (isCopyKey(event)) {
+                this.dragging.isCopying = false;
+            }
+        },
+
         updateItem(callback) {
             this.schemeContainer.updateItem(this.item.id, 'behavior.events', callback);
         },
@@ -1061,7 +1090,11 @@ export default {
 
         onDragEnd() {
             if (this.dragging.eventIndex >= 0 && this.dragging.actionIndex >= 0 && this.dragging.dropTo.eventIndex >= 0 && this.dragging.dropTo.actionIndex >= 0) {
-                this.moveAction(this.dragging.eventIndex, this.dragging.actionIndex, this.dragging.dropTo.eventIndex, this.dragging.dropTo.actionIndex);
+                if (this.dragging.isCopying) {
+                    this.copyAction(this.dragging.eventIndex, this.dragging.actionIndex, this.dragging.dropTo.eventIndex, this.dragging.dropTo.actionIndex);
+                } else {
+                    this.moveAction(this.dragging.eventIndex, this.dragging.actionIndex, this.dragging.dropTo.eventIndex, this.dragging.dropTo.actionIndex);
+                }
             }
             this.resetDragging();
         },
@@ -1073,6 +1106,18 @@ export default {
             this.dragging.readyToDrop = false;
             this.dragging.dropTo.eventIndex = -1;
             this.dragging.dropTo.actionIndex = -1;
+        },
+
+        copyAction(srcBehaviorIndex, srcActionIndex, dstBehaviorIndex, dstActionIndex) {
+            this.updateItem(item => {
+                if (srcBehaviorIndex === dstBehaviorIndex && srcActionIndex === dstActionIndex) {
+                    return;
+                }
+                const action = this.item.behavior.events[srcBehaviorIndex].actions[srcActionIndex];
+                this.item.behavior.events[dstBehaviorIndex].actions.splice(dstActionIndex, 0, action);
+
+                this.emitChangeCommited();
+            });
         },
 
         moveAction(srcBehaviorIndex, srcActionIndex, dstBehaviorIndex, dstActionIndex) {
