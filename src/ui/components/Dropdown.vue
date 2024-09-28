@@ -23,13 +23,16 @@
                 placeholder="Search..."
                 v-model="searchKeyword"
                 @keydown.esc="cancelPopup()"
-                @keydown.enter="pickFirstOption(filteredOptions)"
+                @keydown.enter="onEnterDown()"
+                @keydown.down="onKeyArrowDown()"
+                @keydown.up="onKeyArrowUp()"
                 data-input-type="dropdown-search"/>
 
             <div :style="{'max-width': `${maxWidth}px`,'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
-                <ul>
-                    <li v-for="option in filteredOptions"
-                        @click="onOptionClicked(option)" @mouseover="onOptionMouseOver(option)" @mouseleave="onOptionMouseLeave()"
+                <ul class="__options">
+                    <li v-for="(option, optionIdx) in filteredOptions"
+                        :class="{hovered: optionIdx === hoveredOption.idx}"
+                        @click="onOptionClicked(option)" @mouseover="onOptionMouseOver(option, optionIdx)" @mouseleave="onOptionMouseLeave()"
                         >
                         <i v-if="option.iconClass" :class="option.iconClass"/>
                         <div v-if="option.html" v-html="option.html"/>
@@ -96,17 +99,49 @@ export default {
             elementRect: null,
             selectedOption,
             isAbove: false,
+            filteredOptions: [],
             hoveredOption: {
                 shown: false,
                 title: '',
                 text: '',
                 x: 0, y: 0,
-                w: 200, h: 200
-            }
+                w: 200, h: 200,
+                idx: -1
+            },
         };
     },
     methods: {
+        updateFilteredOptions() {
+            this.hoveredOption.idx = -1;
+            this.filteredOptions = this.filterOptions();
+        },
+
+        filterOptions() {
+            return filter(this.options, option => option.name.toLowerCase().indexOf(this.searchKeyword.toLowerCase()) >= 0);
+        },
+
+        onKeyArrowDown() {
+            this.hoveredOption.idx = Math.min(this.hoveredOption.idx + 1, this.filteredOptions.length);
+            this.toggleHoverOptionByKeyboard();
+        },
+
+        onKeyArrowUp() {
+            this.hoveredOption.idx = Math.max(0, this.hoveredOption.idx - 1);
+            this.toggleHoverOptionByKeyboard();
+        },
+
+        toggleHoverOptionByKeyboard() {
+            if (this.hoveredOption.idx >= 0 && this.hoveredOption.idx < this.filteredOptions.length) {
+                this.toggleHoverOption(this.filteredOptions[this.hoveredOption.idx]);
+                const liElements = this.$refs.container.querySelectorAll('ul.__options li');
+                if (liElements && this.hoveredOption.idx >= 0 && this.hoveredOption.idx < liElements.length) {
+                    liElements[this.hoveredOption.idx].scrollIntoView();
+                }
+            }
+        },
+
         toggleDropdown(event) {
+            this.updateFilteredOptions();
             this.searchKeyword = '';
             if (this.disabled) {
                 return;
@@ -210,14 +245,21 @@ export default {
             this.shown = false;
         },
 
-        pickFirstOption(options) {
-            if (options.length > 0) {
-                this.onOptionClicked(options[0]);
+        onEnterDown() {
+            if (this.hoveredOption.idx >= 0 && this.hoveredOption.idx < this.filteredOptions.length) {
+                this.onOptionClicked(this.filteredOptions[this.hoveredOption.idx]);
+            } else if (this.filteredOptions.length > 0) {
+                this.onOptionClicked(this.filteredOptions[0]);
             }
             this.cancelPopup();
         },
 
-        onOptionMouseOver(option) {
+        onOptionMouseOver(option, optionIdx) {
+            this.hoveredOption.idx = optionIdx;
+            this.toggleHoverOption(option);
+        },
+
+        toggleHoverOption(option) {
             if (option.description) {
                 if (this.hoveredOption.title !== option.name || !this.hoveredOption.shown) {
                     this.hoveredOption.shown = true;
@@ -255,9 +297,6 @@ export default {
         }
     },
     computed: {
-        filteredOptions() {
-            return filter(this.options, option => option.name.toLowerCase().indexOf(this.searchKeyword.toLowerCase()) >= 0);
-        },
         dropwonClickAreaStyle() {
             const style = {};
             if (this.inline && this.width > 0) {
@@ -272,6 +311,7 @@ export default {
         },
 
         searchKeyword() {
+            this.updateFilteredOptions();
             this.$nextTick(() => {
                 this.updateYPosition();
             });

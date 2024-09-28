@@ -2074,7 +2074,7 @@ ul.script-options .script-option.selected {
     text-overflow: ellipsis;
     overflow-x: hidden;
 }
-.dropdown-container .dropdown-popup ul li:hover {
+.dropdown-container .dropdown-popup ul li.hovered {
     background: var(--accent-strong);
     color: var(--base-weak);
 }
