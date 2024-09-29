@@ -36,12 +36,16 @@ export default class UserEventBus {
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             forEach(itemSubs[eventName], subscriber => {
-                sendMessageToParentWindow({
-                    type : 'schemio:item-event',
-                    name : subscriber.itemName,
-                    event: eventName,
-                    args
-                });
+                try {
+                    sendMessageToParentWindow({
+                        type: 'schemio:item-event',
+                        name : subscriber.itemName,
+                        event: eventName,
+                        args
+                    });
+                } catch(ex) {
+                    console.error(ex);
+                }
                 subscriber.callback.apply(null, [this, this.revision, itemId, eventName, args]);
             });
         }
@@ -65,11 +69,7 @@ export default class UserEventBus {
 };
 
 function sendMessageToParentWindow(message) {
-    if (!window.top || !window.top.postMessage) {
-        return;
+    if (window.parent != window) {
+        window.parent.postMessage(message, '*');
     }
-    if (window == window.top) {
-        return;
-    }
-    window.top.postMessage(message, '*');
 }
