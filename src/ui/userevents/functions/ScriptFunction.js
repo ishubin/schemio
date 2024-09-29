@@ -546,7 +546,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
                         if (event.event === Events.standardEvents.init.id) {
                             eventCallback(userEventBus, userEventBus.revision, cItem.id, Events.standardEvents.init.id);
                         } else {
-                            userEventBus.subscribeItemEvent(cItem.id, event.event, eventCallback);
+                            userEventBus.subscribeItemEvent(cItem.id, cItem.name, event.event, eventCallback);
                         }
                     });
                 }

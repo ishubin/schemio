@@ -18,7 +18,7 @@ export default class UserEventBus {
         this.revision = shortid.generate();
     }
 
-    subscribeItemEvent(itemId, eventName, callback) {
+    subscribeItemEvent(itemId, itemName, eventName, callback) {
         if (!this.itemEventSubscribers.hasOwnProperty(itemId)) {
             this.itemEventSubscribers[itemId] = {};
         }
@@ -27,10 +27,8 @@ export default class UserEventBus {
             this.itemEventSubscribers[itemId][eventName] = [];
         }
 
-        this.itemEventSubscribers[itemId][eventName].push({callback});
+        this.itemEventSubscribers[itemId][eventName].push({itemName, callback});
     }
-
-
 
     emitItemEvent(itemId, eventName, ...args) {
         log.infoEvent(eventName, [itemId]);
@@ -38,6 +36,12 @@ export default class UserEventBus {
         const itemSubs = this.itemEventSubscribers[itemId];
         if (itemSubs && itemSubs[eventName]) {
             forEach(itemSubs[eventName], subscriber => {
+                sendMessageToParentWindow({
+                    type : 'schemio:item-event',
+                    name : subscriber.itemName,
+                    event: eventName,
+                    args
+                });
                 subscriber.callback.apply(null, [this, this.revision, itemId, eventName, args]);
             });
         }
@@ -59,3 +63,13 @@ export default class UserEventBus {
         return this.revision === revision;
     }
 };
+
+function sendMessageToParentWindow(message) {
+    if (!window.top || !window.top.postMessage) {
+        return;
+    }
+    if (window == window.top) {
+        return;
+    }
+    window.top.postMessage(message, '*');
+}

@@ -792,7 +792,7 @@ export default {
                         if (event.event === Events.standardEvents.init.id) {
                             itemsForInit[item.id] = 1;
                         }
-                        this.userEventBus.subscribeItemEvent(item.id, event.event, eventCallback);
+                        this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
                     });
                 }
             });

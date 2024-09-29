@@ -236,7 +236,7 @@ describe('UserEvents Compiler', () => {
                 }
             }]);
 
-            userEventBus.subscribeItemEvent('zxc', 'custom-move', (bus, revision, itemId, eventName, args) => {
+            userEventBus.subscribeItemEvent('zxc', 'zcx', 'custom-move', (bus, revision, itemId, eventName, args) => {
                 action2(bus, revision, itemId, eventName, args);
             });
 

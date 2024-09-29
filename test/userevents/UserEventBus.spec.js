@@ -15,9 +15,9 @@ describe('UserEventBus', () => {
 
         expect(eventBus.itemEventSubscribers).toStrictEqual({});
 
-        eventBus.subscribeItemEvent('abc', 'mousein', () => {});
-        eventBus.subscribeItemEvent('abc', 'mousein', () => {});
-        eventBus.subscribeItemEvent('abc', 'mouseout',() => {});
+        eventBus.subscribeItemEvent('abc', 'abc', 'mousein', () => {});
+        eventBus.subscribeItemEvent('abc', 'abc', 'mousein', () => {});
+        eventBus.subscribeItemEvent('abc', 'abc', 'mouseout',() => {});
 
         expect(eventBus.itemEventSubscribers.abc.mousein.length).toBe(2);
 
@@ -34,10 +34,10 @@ describe('UserEventBus', () => {
         let callbackInvokeCounter = 0; // this one should increment in the end
         let inactiveInvokeCounter = 0; // this one should stay unchanged
 
-        eventBus.subscribeItemEvent('abc', 'mousein', () => {
+        eventBus.subscribeItemEvent('abc', 'abc', 'mousein', () => {
             callbackInvokeCounter += 1;
         });
-        eventBus.subscribeItemEvent('ab', 'mousein', () => {
+        eventBus.subscribeItemEvent('ab', 'ab', 'mousein', () => {
             inactiveInvokeCounter += 1;
         });
 
