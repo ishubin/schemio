@@ -25,6 +25,7 @@ let _shapes = [
     require('./MathBlock.vue').default,
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
+    require('./KeyBind.js').default,
 
     require('./basic/Triangle.js').default,
     require('./basic/Diamond.js').default,

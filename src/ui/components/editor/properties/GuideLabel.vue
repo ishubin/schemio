@@ -1,6 +1,6 @@
 <template>
     <div class="label">
-        <span ref="input" class="guide-input" v-if="guide.number" contenteditable="true" @keypress="onValueKeyPress" @keyup="onValueKeyUp">{{ guide.value }}</span>
+        <span ref="input" class="guide-input" v-if="guide.number" contenteditable="true" @keydown="onValueKeyPress" @keyup="onValueKeyUp">{{ guide.value }}</span>
         <Dropdown
             :inline="true"
             :borderless="true"

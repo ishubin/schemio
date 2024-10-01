@@ -78,20 +78,22 @@
                     </foreignObject>
                 </g>
 
-                <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName" :style="{'opacity': item.selfOpacity/100.0}">
-                    <foreignObject
-                        ref="textSlots"
-                        :data-text-slot-name="slot.name"
-                        :id="`item-text-slot-${item.id}-${slot.name}`"
-                        :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
-                        <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
-                            :class="slot.cssClass"
-                            :style="slot.style"
-                            :data-item-id="item.id"
-                            >
-                            <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
-                        </div>
-                    </foreignObject>
+                <g v-if="shouldBeDrawn">
+                    <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName" :style="{'opacity': item.selfOpacity/100.0}">
+                        <foreignObject
+                            ref="textSlots"
+                            :data-text-slot-name="slot.name"
+                            :id="`item-text-slot-${item.id}-${slot.name}`"
+                            :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
+                            <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
+                                :class="slot.cssClass"
+                                :style="slot.style"
+                                :data-item-id="item.id"
+                                >
+                                <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
+                            </div>
+                        </foreignObject>
+                    </g>
                 </g>
             </g>
 

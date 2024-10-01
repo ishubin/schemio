@@ -199,6 +199,7 @@ import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { isolateScriptFunctionsForComponent } from '../../scheme/Scripts.js';
+import { KeyBinder } from './KeyBinder.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -243,6 +244,7 @@ export default {
     components: { ItemSvg },
     beforeMount() {
         if (this.mode === 'view') {
+            this.loadUserKeyBinders();
             this.reindexUserEvents();
             this.prepareFrameAnimations();
 
@@ -333,6 +335,10 @@ export default {
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
 
+        if (this.mode === 'view') {
+            this.destroyUserKeyBinders();
+        }
+
         if (this.useMouseWheel) {
             const svgElement = this.$refs.svgDomElement;
             if (svgElement) {
@@ -377,9 +383,24 @@ export default {
             highlightAnimationTime: 0,
 
             compiledMainScript : null,
+
+            keyBinder: new KeyBinder(this.userEventBus, this.schemeContainer)
         };
     },
     methods: {
+        loadUserKeyBinders() {
+            this.keyBinder.init();
+            this.schemeContainer.getItems().forEach(item => {
+                if (item.shape === 'key_bind') {
+                    this.keyBinder.registerKeyBindItem(item);
+                }
+            });
+        },
+
+        destroyUserKeyBinders() {
+            this.keyBinder.destroy();
+        },
+
         /**
          * Triggered when user sends a message from outside (e.g. when Schemio player is loaded via iframe).
          * This could be used when Schemio player is embedded into some presentation (e.g. Reveal.js).
@@ -808,6 +829,11 @@ export default {
             if (item._childItems) {
                 const componentItemsForInit = {};
                 isolateScriptFunctionsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
+                traverseItems(item._childItems, childItem => {
+                    if (childItem.shape === 'key_bind') {
+                        this.keyBinder.registerKeyBindItem(childItem);
+                    }
+                });
                 this.indexUserEventsInItems(item._childItems, componentItemsForInit, item);
                 forEach(componentItemsForInit, (val, itemId) => {
                     this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
