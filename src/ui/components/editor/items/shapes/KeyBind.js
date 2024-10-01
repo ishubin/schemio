@@ -98,9 +98,9 @@ export default {
         },
 
         args: {
-            key    : {type: 'choice', value: 'Space', options: keyOptions, name: 'Key'},
-            down   : {type: 'boolean', value: true, name: 'Kew down event'},
-            up     : {type: 'boolean', value: true, name: 'Kew up event'},
+            key    : {type: 'choice', value: 'Space', options: keyOptions, name: 'Key', immutable: true},
+            down   : {type: 'boolean', value: true, name: 'Key down event', immutable: true},
+            up     : {type: 'boolean', value: true, name: 'Key up event', immutable: true},
             active : {type: 'boolean', value: true, name: 'Active'}
         }
     }

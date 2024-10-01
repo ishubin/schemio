@@ -584,7 +584,7 @@ export default {
             const shape = Shape.find(item.shape);
             if (shape) {
                 forEach(shape.args, (arg, argName) => {
-                    if (isArgTypeSupportedInSetFunction(arg.type)) {
+                    if (!arg.immutable && isArgTypeSupportedInSetFunction(arg.type)) {
                         properties.push({
                             method: 'set',
                             name: arg.name,
