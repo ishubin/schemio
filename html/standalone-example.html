@@ -12,7 +12,18 @@
             xhttp.onreadystatechange = function() {
                 if (this.readyState == 4 && this.status == 200) {
                     schemioViewScheme('#app', JSON.parse(this.responseText), {
-                        sidePanelWidth: 400
+                        sidePanelWidth  : 400,
+                        title           : '',
+                        zoom            : 100,
+                        autoZoom        : true,
+                        useMouseWheel   : true,
+                        homeLink        : 'https://schem.io',
+                        linkColor       : '#b0d8f5',
+                        headerBackground: '#555',
+                        headerColor     : '#f0f0f0',
+                        headerEnabled   : true,
+                        zoomButton      : true,
+                        zoomInput       : true,
                     });
                 }
             };

@@ -10,8 +10,11 @@
                 <input v-if="zoomInput" class="ssc-zoom" type="text" v-model="textZoom" @blur="onZoomSubmitted" @keydown.enter="onZoomSubmitted"/>
                 <span v-if="zoomButton" class="ssc-button" @click="zoomToScheme">Auto-Zoom</span>
             </div>
+            <div class="ssc-header-title" :style="{'color': headerColor}">
+                {{ title }}
+            </div>
             <div class="ssc-header-right">
-                <span :style="{'color': headerColor}">built by</span>
+                <span :style="{'color': headerColor}">built with</span>
                 <a :style="{'color': linkColor}"  target="_top" :href="homeLink">Schemio</a>
             </div>
         </div>
@@ -76,6 +79,7 @@ export default {
         headerEnabled   : {type: Boolean, default: true},
         zoomButton      : {type: Boolean, default: true},
         zoomInput       : {type: Boolean, default: true},
+        title           : {type: String, default: ''},
     },
 
     components: {SvgEditor, ItemTooltip, ItemDetails},

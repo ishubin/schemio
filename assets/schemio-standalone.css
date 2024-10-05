@@ -15,14 +15,16 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
     flex-direction: row;
     width: 100%;
     font-size: 14px;
+    align-items: center;
 }
 .ssc-container .ssc-header > div {
     padding: 5px;
 }
 
-.ssc-container .ssc-header .ssc-header-search {
+.ssc-container .ssc-header .ssc-header-title {
     flex: 1;
 }
+
 .ssc-container .ssc-header .ssc-zoom {
     width: 60px;
     padding: 2px;

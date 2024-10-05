@@ -39,12 +39,13 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
                 headerEnabled   : objProperty(options, 'headerEnabled', true),
                 zoomButton      : objProperty(options, 'zoomButton', true),
                 zoomInput       : objProperty(options, 'zoomInput', true),
+                title           : objProperty(options, 'title', ''),
             };
         },
         template: '<standalone-scheme-view :scheme="scheme" :zoom="zoom" :auto-zoom="autoZoom"'
             +' :link-color="linkColor" :header-background="headerBackground" :headerColor="headerColor" :header-enabled="headerEnabled"'
             +' :zoom-button="zoomButton" :zoom-input="zoomInput"'
-            +' :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel"/>'
+            +' :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel" :title="title"/>'
     }).$mount(elementOrSelector);
 }
 
