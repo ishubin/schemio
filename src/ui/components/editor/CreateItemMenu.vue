@@ -79,8 +79,8 @@
 
             <panel v-if="projectArtEnabled" name="Project Art">
                 <div class="buttons">
-                    <span class="btn btn-primary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
-                    <span class="btn btn-primary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
+                    <span class="btn btn-secondary" @click="customArtUploadModalShown = true" title="Upload art icon"><i class="fas fa-file-upload"></i></span>
+                    <span class="btn btn-secondary" @click="editArtModalShown = true" title="Edit art icons"><i class="fas fa-pencil-alt"></i></span>
                 </div>
                 <div class="item-menu">
                     <div class="item-container"

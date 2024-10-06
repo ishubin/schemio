@@ -64,6 +64,174 @@
     --page-content-font-size: 20px;
 }
 
+
+[data-theme="dark"] {
+    --min-paragraph-height: 18px;
+    --paragraph-top-margin: 0px;
+
+    --header-background: #363636;
+    --header-text-color: #dcdcdc;
+
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --shadow-color-light: rgba(0, 0, 0, 0.3);
+
+    --base-strong: #bebebe;
+    --base-strong-up: #8e8d8d;
+    --base-strong-up-up: #7b7b7b;
+    --base-strong-up-up-up: #666;
+    --base-weak: #262626;
+
+    --faint-weak-down: #333;
+    --faint-weak-down-down: #3a3a3a;
+    --faint-weak: #444;
+    --faint-weak-up: #4a4a4a;
+
+    --faint-strong-down: #6b6c6c;
+    --faint-strong-down-down: #4a4a4a;
+    --faint-strong: #525252;
+    --faint-strong-up: #373636;
+    --faint-strong-up-up: #414040;
+
+    --accent-strong-down: #243e5c;
+    --accent-strong: #3b618c;
+    --accent-faint: #6a84a1;
+    --accent-faint-up: #b1cdec;
+
+    --accent-weak-down: #4d555f;
+    --accent-weak: #777d86;
+    --accent-weak-up: #1f1f20;
+
+    --complement-strong: #7fcf18;
+    --complement-faint: #5f7245;
+    --complement-weak: #575951;
+
+    --critic-strong: #d13c31;
+    --critic-faint: #e46960;
+    --critic-weak-down: #f3dedb;
+    --critic-weak: #f5e7e5;
+    --critic-weak-up: #f3e8e7;
+
+    --warning-strong: #eeaa45;
+    --warning-weak: #eedaba;
+
+    --success-strong: #23a85a;
+    --success-weak: #d6f1e1;
+
+
+    --section-delimiter-color: #414243;
+
+    --control-border-radius: 3px;
+    --middle-border-radius: 5px;
+    --modal-border-radius: 10px;
+
+    --page-content-font-size: 20px;
+}
+
+/*********** DARK MODE *************/
+
+[data-theme="dark"] {
+    color-scheme: dark;
+}
+[data-theme="dark"]  .vue-tags-input .input,
+[data-theme="dark"]  input[type="text"],
+[data-theme="dark"]  textarea {
+    background: var(--faint-weak-down) !important;
+}
+[data-theme="dark"]  .vue-tags-input .tag {
+    background: #535465;
+}
+[data-theme="dark"]  .vue-tags-input > .input {
+    border: 1px solid var(--faint-strong);
+}
+
+[data-theme="dark"] .menu-dropdown > ul li a:hover, [data-theme="dark"] .menu-dropdown > ul li span:hover {
+    background: var(--faint-strong);
+}
+
+[data-theme="dark"] .btn.btn-secondary {
+    background: var(--faint-strong);
+    color: var(--base-strong);
+    border-top: 1px solid var(--base-strong-up-up-up);
+    border-left: 1px solid var(--faint-weak);
+    border-right: 1px solid var(--faint-weak);
+    border-bottom: 1px solid var(--faint-weak-down-down);
+}
+[data-theme="dark"] .btn.btn-secondary:hover {
+    color: var(--base-strong);
+    background: var(--faint-strong-up-up);
+    border-top: 1px solid var(--faint-strong);
+    border-left: 1px solid var(--faint-strong);
+    border-right: 1px solid var(--faint-weak-down-down);
+    border-bottom: 1px solid var(--faint-weak-down-down);
+}
+
+
+[data-theme="dark"] .btn.btn-primary {
+    background: var(--accent-strong);
+    color: var(--base-strong);
+    border-top: 1px solid var(--accent-faint);
+    border-left: 1px solid var(--faint-weak);
+    border-right: 1px solid var(--accent-strong-down);
+    border-bottom: 1px solid var(--accent-strong-down);
+}
+[data-theme="dark"] .btn.btn-primary:hover {
+    background: var(--accent-strong-down);
+    color: var(--base-strong);
+    border-top: 1px solid var(--accent-strong);
+    border-left: 1px solid var(--faint-weak);
+    border-right: 1px solid var(--accent-strong-down);
+    border-bottom: 1px solid var(--accent-strong-down);
+}
+
+[data-theme="dark"] .header .scheme-title {
+    color: var(--base-strong);
+}
+
+[data-theme="dark"] .panel {
+    border-top: 1px solid #656565;
+    box-shadow: 0 -1px 0 #393939;
+}
+
+[data-theme="dark"] .panel-title {
+    color: var(--base-strong);
+    font-weight: normal;
+}
+[data-theme="dark"] .panel-title:hover {
+    color: var(--base-strong-up);
+}
+
+
+[data-theme="dark"] .rich-text-editor-container .editor-frame {
+    border: 1px solid var(--faint-strong);
+    background: var(--faint-weak-down);
+}
+
+[data-theme="dark"] .properties-table > tbody > tr:nth-child(even) {
+    background: none;
+}
+
+[data-theme="dark"] ul.tabs li .tab {
+    border: 1px solid var(--faint-strong);
+    border-bottom: 1px solid var(--faint-strong-down);
+    color: var(--base-strong);
+}
+[data-theme="dark"] ul.tabs li .tab:hover {
+    background: var(--faint-weak-up);
+    color: var(--base-strong);
+    border: 1px solid var(--faint-strong-down);
+    border-bottom: 1px solid var(--faint-strong-down);
+}
+[data-theme="dark"] .tabs-body:before {
+    border-bottom: 1px solid var(--faint-strong-down);
+}
+[data-theme="dark"] ul.tabs li .tab.active, [data-theme="dark"] ul.tabs li .tab.active:hover {
+    background: var(--faint-weak-up);
+    border: 1px solid var(--faint-strong-down);
+    border-bottom: 1px solid var(--faint-weak-up);
+}
+/*********** END OF DARK MODE *************/
+
+
 html, body, .app-container {
     width: 100%;
     height: 100%;
@@ -224,14 +392,14 @@ a:hover, .link:hover {
 .menu-dropdown > ul > li {
     padding: 0;
     margin: 0;
-    border-top: 1px solid var(--faint-weak-up);
 }
 .menu-dropdown > ul > li:first-child {
     border-top: none;
 }
 .menu-dropdown > ul > li a, .menu-dropdown > ul > li span {
     display: block;
-    padding: 10px 20px;
+    font-size: 14px;
+    padding: 8px 12px;
     text-decoration: none;
     color: var(--base-strong-up);
     font-weight: normal;
@@ -1463,7 +1631,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     content: '\25BA';
 }
 .panel-title:hover {
-    color: #555;
+    color: var(--faint-strong-down-down);
 }
 
 
@@ -1681,10 +1849,14 @@ ul.links-editor .edit-link:hover {
 
 /******************** Tags Input **********************/
 .vue-tags-input {
+    background: none !important;
     max-width: none !important;
     width: 100% !important;
 }
 
+.vue-tags-input .input {
+    border-radius: 3px;
+}
 
 /******************* Create Item Menu *****************/
 .item-menu {
@@ -1888,7 +2060,8 @@ ul.links-editor .edit-link:hover {
 .rich-text-editor-container .editor-frame {
     position: relative;
     border: 1px solid var(--faint-strong);
-    background: white;
+    background: var(--faint-weak);
+    border-radius: 3px;
 }
 .rich-text-editor-container .editor-content {
     padding: 4px;
