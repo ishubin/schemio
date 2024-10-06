@@ -98,15 +98,17 @@
     --accent-faint-up: #b1cdec;
 
     --accent-weak-down: #4d555f;
-    --accent-weak: #777d86;
+    --accent-weak: #3f454f;
     --accent-weak-up: #1f1f20;
 
     --complement-strong: #7fcf18;
     --complement-faint: #5f7245;
     --complement-weak: #575951;
 
-    --critic-strong: #d13c31;
-    --critic-faint: #e46960;
+    --critic-strong-down-down: #60302c;
+    --critic-strong-down: #853a35;
+    --critic-strong: #bb524a;
+    --critic-faint: #cf847e;
     --critic-weak-down: #f3dedb;
     --critic-weak: #f5e7e5;
     --critic-weak-up: #f3e8e7;
@@ -132,9 +134,12 @@
 [data-theme="dark"] {
     color-scheme: dark;
 }
-[data-theme="dark"]  .vue-tags-input .input,
-[data-theme="dark"]  input[type="text"],
-[data-theme="dark"]  textarea {
+[data-theme="dark"] .vue-tags-input .input,
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] textarea,
+[data-theme="dark"] input.textfield,
+[data-theme="dark"]  textarea.textfield,
+[data-theme="dark"]  select.dropdown  {
     background: var(--faint-weak-down) !important;
 }
 [data-theme="dark"]  .vue-tags-input .tag {
@@ -144,11 +149,48 @@
     border: 1px solid var(--faint-strong);
 }
 
+[data-theme="dark"] .dropdown-container .dropdown-popup {
+    color: var(--base-strong);
+    background: var(--faint-weak);
+    border:1px solid var(--faint-weak-up);
+}
+[data-theme="dark"] .dropdown-container .dropdown-click-area {
+    border: 1px solid var(--faint-strong-up);
+}
+[data-theme="dark"] .dropdown-container .dropdown-popup .dropdown-search {
+    background: var(--faint-weak);
+}
+[data-theme="dark"] .dropdown-container .dropdown-popup ul li.hovered {
+    background: var(--accent-strong);
+    color: var(--base-strong);
+}
+
+
+[data-theme="dark"] .tooltip .tooltip-text {
+    background: var(--faint-weak-down);
+    color: var(--base-strong);
+}
+
+[data-theme="dark"] .toggle-group > .toggle-button {
+    color: var(--faint-strong-down);
+}
+[data-theme="dark"] .toggle-group > .toggle-button.toggled {
+    background: var(--faint-strong-up);
+}
+
 [data-theme="dark"] .menu-dropdown > ul li a:hover, [data-theme="dark"] .menu-dropdown > ul li span:hover {
     background: var(--faint-strong);
 }
 
-[data-theme="dark"] .btn.btn-secondary {
+[data-theme="dark"] .msg.msg-info {
+    color: var(--accent-faint-up);
+    background: var(--accent-weak);
+    border: 1px solid var(--accent-faint);
+    border-radius: var(--control-border-radius);
+    padding: 10px;
+}
+
+[data-theme="dark"] .btn.btn-secondary, [data-theme="dark"] .btn.btn-secondary.disabled:hover {
     background: var(--faint-strong);
     color: var(--base-strong);
     border-top: 1px solid var(--base-strong-up-up-up);
@@ -156,6 +198,7 @@
     border-right: 1px solid var(--faint-weak);
     border-bottom: 1px solid var(--faint-weak-down-down);
 }
+
 [data-theme="dark"] .btn.btn-secondary:hover {
     color: var(--base-strong);
     background: var(--faint-strong-up-up);
@@ -164,7 +207,6 @@
     border-right: 1px solid var(--faint-weak-down-down);
     border-bottom: 1px solid var(--faint-weak-down-down);
 }
-
 
 [data-theme="dark"] .btn.btn-primary {
     background: var(--accent-strong);
@@ -182,6 +224,25 @@
     border-right: 1px solid var(--accent-strong-down);
     border-bottom: 1px solid var(--accent-strong-down);
 }
+
+
+[data-theme="dark"] .btn.btn-danger {
+    background: var(--critic-strong);
+    color: var(--critic-weak-up);
+    border-top: 1px solid var(--critic-faint);
+    border-left: 1px solid var(--faint-weak);
+    border-right: 1px solid var(--critic-strong-down);
+    border-bottom: 1px solid var(--critic-strong-down);
+}
+[data-theme="dark"] .btn.btn-danger:hover {
+    background: var(--critic-strong-down);
+    color: var(--critic-weak-up);
+    border-top: 1px solid var(--critic-strong);
+    border-left: 1px solid var(--faint-weak);
+    border-right: 1px solid var(--critic-strong-down);
+    border-bottom: 1px solid var(--critic-strong-down);
+}
+
 
 [data-theme="dark"] .header .scheme-title {
     color: var(--base-strong);
@@ -228,6 +289,18 @@
     background: var(--faint-weak-up);
     border: 1px solid var(--faint-strong-down);
     border-bottom: 1px solid var(--faint-weak-up);
+}
+
+[data-theme="dark"] .behavior-container {
+    border:1px solid var(--faint-strong-up-up);
+    background: var(--faint-strong);
+}
+
+[data-theme="dark"] a, [data-theme="dark"] .link {
+    color: var(--accent-faint-up);
+}
+[data-theme="dark"] .icon-delete {
+    color: var(--critic-strong);
 }
 /*********** END OF DARK MODE *************/
 
@@ -331,6 +404,8 @@ a:hover, .link:hover {
 .msg {
     margin-top: 10px;
     margin-bottom: 10px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 .msg.msg-small {
     font-size: 12px;
@@ -947,7 +1022,8 @@ ul.pagination li a.current {
 .zoom-control .dropdown-container,
 .zoom-control .dropdown-container .dropdown-click-area {
     padding: 0;
-    margin: 0
+    margin: 0;
+    border-radius: 0;
 }
 .zoom-control .dropdown-container input {
     border: none;
@@ -1440,6 +1516,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     width: 100%;
     overflow: auto;
     position: relative;
+    padding-bottom: 10px;
 }
 .scheme-editor-component .side-panel .side-panel-close {
     position: absolute;
