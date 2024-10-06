@@ -92,7 +92,8 @@
     --faint-strong-up: #373636;
     --faint-strong-up-up: #414040;
 
-    --accent-strong-down: #243e5c;
+    --accent-strong-down-down: #243e5c;
+    --accent-strong-down: #304f73;
     --accent-strong: #3b618c;
     --accent-faint: #6a84a1;
     --accent-faint-up: #b1cdec;
@@ -101,7 +102,7 @@
     --accent-weak: #3f454f;
     --accent-weak-up: #1f1f20;
 
-    --complement-strong: #7fcf18;
+    --complement-strong: #c1dd9b;
     --complement-faint: #5f7245;
     --complement-weak: #575951;
 
@@ -118,7 +119,6 @@
 
     --success-strong: #23a85a;
     --success-weak: #d6f1e1;
-
 
     --section-delimiter-color: #414243;
 
@@ -142,6 +142,12 @@
 [data-theme="dark"]  select.dropdown  {
     background: var(--faint-weak-down) !important;
 }
+
+[data-theme="dark"] .dropdown-container .dropdown-click-area.hover-effect:hover {
+    background: var(--faint-weak);
+    border: 1px solid var(--faint-strong-down);
+}
+
 [data-theme="dark"]  .vue-tags-input .tag {
     background: #535465;
 }
@@ -156,12 +162,13 @@
 }
 [data-theme="dark"] .dropdown-container .dropdown-click-area {
     border: 1px solid var(--faint-strong-up);
+    background: var(--faint-weak-down);
 }
 [data-theme="dark"] .dropdown-container .dropdown-popup .dropdown-search {
     background: var(--faint-weak);
 }
 [data-theme="dark"] .dropdown-container .dropdown-popup ul li.hovered {
-    background: var(--accent-strong);
+    background: var(--faint-weak-down);
     color: var(--base-strong);
 }
 
@@ -213,16 +220,16 @@
     color: var(--base-strong);
     border-top: 1px solid var(--accent-faint);
     border-left: 1px solid var(--faint-weak);
-    border-right: 1px solid var(--accent-strong-down);
-    border-bottom: 1px solid var(--accent-strong-down);
+    border-right: 1px solid var(--accent-strong-down-down);
+    border-bottom: 1px solid var(--accent-strong-down-down);
 }
 [data-theme="dark"] .btn.btn-primary:hover {
     background: var(--accent-strong-down);
     color: var(--base-strong);
     border-top: 1px solid var(--accent-strong);
     border-left: 1px solid var(--faint-weak);
-    border-right: 1px solid var(--accent-strong-down);
-    border-bottom: 1px solid var(--accent-strong-down);
+    border-right: 1px solid var(--accent-strong-down-down);
+    border-bottom: 1px solid var(--accent-strong-down-down);
 }
 
 
