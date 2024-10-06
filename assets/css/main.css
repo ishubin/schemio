@@ -130,10 +130,52 @@
 }
 
 /*********** DARK MODE *************/
-
 [data-theme="dark"] {
     color-scheme: dark;
 }
+body[data-theme="dark"] {
+    background: var(--faint-weak-down);
+}
+
+[data-theme="dark"] .header {
+    background: #222;
+}
+[data-theme="dark"] .header .current-user .user-profile .user-name {
+    color: var(--base-strong);
+}
+
+[data-theme="dark"] .header .current-user .user-profile-menu .link {
+    color: var(--accent-faint-up);
+}
+
+[data-theme="dark"] .header .scheme-title {
+    color: var(--base-strong);
+}
+
+[data-theme="dark"] .header .right-section .theme-switcher {
+    cursor: pointer;
+    color: var(--base-strong);
+}
+[data-theme="dark"] .header .right-section .theme-switcher:hover {
+    color: var(--accent-faint-up)
+}
+
+[data-theme="dark"] .footer {
+    background: var(--base-weak);
+    color: var(--base-strong);
+}
+[data-theme="dark"] .footer a, [data-theme="dark"] .footer .link {
+    color: var(--base-strong);
+}
+[data-theme="dark"] .footer a:hover, [data-theme="dark"] .footer .link:hover {
+    color: var(--accent-faint-up);
+}
+
+[data-theme="dark"] table.entries-table tbody .entry-link {
+    color: var(--accent-faint-up);
+}
+
+
 [data-theme="dark"] .vue-tags-input .input,
 [data-theme="dark"] input[type="text"],
 [data-theme="dark"] textarea,
@@ -250,11 +292,6 @@
     border-bottom: 1px solid var(--critic-strong-down);
 }
 
-
-[data-theme="dark"] .header .scheme-title {
-    color: var(--base-strong);
-}
-
 [data-theme="dark"] .panel {
     border-top: 1px solid #656565;
     box-shadow: 0 -1px 0 #393939;
@@ -293,7 +330,7 @@
     border-bottom: 1px solid var(--faint-strong-down);
 }
 [data-theme="dark"] ul.tabs li .tab.active, [data-theme="dark"] ul.tabs li .tab.active:hover {
-    background: var(--faint-weak-up);
+    background: var(--faint-weak);
     border: 1px solid var(--faint-strong-down);
     border-bottom: 1px solid var(--faint-weak-up);
 }
@@ -308,6 +345,26 @@
 }
 [data-theme="dark"] .icon-delete {
     color: var(--critic-strong);
+}
+
+[data-theme="dark"] .editor-top-hint-label {
+    background: var(--accent-strong-down);
+    color: var(--base-strong);
+}
+
+[data-theme="dark"] .file-upload-button {
+    background: var(--faint-strong-up);
+    border: 1px solid var(--faint-strong);
+}
+
+[data-theme="dark"] .item-menu .item-container img,
+[data-theme="dark"] .item-selector .item-row .item img.item-icon {
+    filter: invert(0.8);
+}
+
+
+[data-theme="dark"] .scheme-editor-component .side-panel {
+    background: var(--faint-weak);
 }
 /*********** END OF DARK MODE *************/
 
@@ -1354,9 +1411,17 @@ textarea.in-place-text-editor {
 
 .header .right-section {
     display: flex;
+    gap: 20px;
     align-items: center;
     margin-right: 10px;
     margin-left: 10px;
+}
+.header .right-section .theme-switcher {
+    cursor: pointer;
+    color: var(--faint-weak);
+}
+.header .right-section .theme-switcher:hover {
+    color: var(--accent-faint-up)
 }
 .header .right-section a, .header .right-section span.link {
     color: var(--accent-weak-down);
@@ -2070,6 +2135,7 @@ ul.links-editor .edit-link:hover {
     border: 1px solid var(--base-strong);
     cursor: pointer;
     margin-left: 5px;
+    border-radius: 3px;
 }
 .file-upload-button input[type='file']{
     position: absolute;

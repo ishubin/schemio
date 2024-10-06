@@ -10,8 +10,15 @@
             <div class="header-middle-section">
                 <slot name="middle-section" class="header-middle-section-container"></slot>
             </div>
-            <div v-if="staticExportAllowed" class="right-section">
-                <div class="current-user">
+            <div class="right-section">
+                <span v-if="currentColorScheme === 'dark'" class="theme-switcher" @click="changeTheme('light')" title="Switch to light theme">
+                    <i class="fa-solid fa-sun"></i>
+                </span>
+                <span v-else class="theme-switcher" @click="changeTheme('dark')" title="Switch to light theme">
+                    <i class="fa-solid fa-moon"></i>
+                </span>
+
+                <div v-if="staticExportAllowed" class="current-user">
                     <div class="user-profile">
                         <span class="user-name">Admin</span>
                     </div>
@@ -37,10 +44,23 @@ import StaticExportModal from './StaticExportModal.vue';
 export default {
     components: {StaticExportModal},
 
+    mounted() {
+        this.currentColorScheme = document.body.getAttribute('data-theme');
+    },
+
     data() {
         return {
-            staticExportModalShown: false
+            staticExportModalShown: false,
+            currentColorScheme: 'light',
         };
+    },
+
+    methods: {
+        changeTheme(theme) {
+            this.currentColorScheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
     },
 
     computed: {
