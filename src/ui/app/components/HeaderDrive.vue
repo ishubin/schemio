@@ -11,6 +11,13 @@
                 <slot name="middle-section"></slot>
             </div>
             <div class="right-section">
+                <span v-if="currentColorScheme === 'dark'" class="theme-switcher" @click="changeTheme('light')" title="Switch to light theme">
+                    <i class="fa-solid fa-sun"></i>
+                </span>
+                <span v-else class="theme-switcher" @click="changeTheme('dark')" title="Switch to light theme">
+                    <i class="fa-solid fa-moon"></i>
+                </span>
+
                 <div v-if="isSignedIn">
                     <span class="link" @click="logout">Logout</span>
                 </div>
@@ -33,10 +40,15 @@ export default {
         })
     },
 
+    mounted() {
+        this.currentColorScheme = document.body.getAttribute('data-theme');
+    },
+
     data() {
         return {
             isSignedIn: false,
-            loginModalShown: false
+            loginModalShown: false,
+            currentColorScheme: 'light',
         };
     },
 
@@ -47,6 +59,11 @@ export default {
                 this.$emit('user-logged-out');
                 this.$router.push({path: '/'});
             });
+        },
+        changeTheme(theme) {
+            this.currentColorScheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
         }
     }
 }

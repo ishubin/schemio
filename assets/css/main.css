@@ -83,6 +83,7 @@
 
     --faint-weak-down: #333;
     --faint-weak-down-down: #3a3a3a;
+    --faint-weak-down-3: #303030;
     --faint-weak: #444;
     --faint-weak-up: #4a4a4a;
 
@@ -157,8 +158,12 @@ body[data-theme="dark"] {
     color: var(--base-strong);
 }
 [data-theme="dark"] .header .right-section .theme-switcher:hover {
-    color: var(--accent-faint-up)
+    color: var(--accent-faint-up);
 }
+[data-theme="dark"] .header .right-section a, [data-theme="dark"]  .header .right-section span.link {
+    color: var(--accent-faint-up);
+}
+
 
 [data-theme="dark"] .footer {
     background: var(--base-weak);
@@ -359,12 +364,21 @@ body[data-theme="dark"] {
 
 [data-theme="dark"] .item-menu .item-container img,
 [data-theme="dark"] .item-selector .item-row .item img.item-icon {
-    filter: invert(0.8);
+    filter: invert(0.78) brightness(1.15);
 }
 
+[data-theme="dark"] .item-selector .item-selector-items {
+    overflow: scroll;
+    background: var(--faint-weak-down-3);
+    border: 1px solid var(--faint-strong);
+}
 
 [data-theme="dark"] .scheme-editor-component .side-panel {
     background: var(--faint-weak);
+}
+
+[data-theme="dark"] .floating-helper-panel .item-name span {
+    color: var(--base-strong);
 }
 /*********** END OF DARK MODE *************/
 
@@ -2877,7 +2891,7 @@ ul.script-options .script-option.selected {
 .item-selector .item-selector-items {
     overflow: scroll;
     background: var(--base-weak);
-    border: 1px solid #999;
+    border: 1px solid var(--faint-strong);
     padding: 2px;
     user-select: none;
 }
