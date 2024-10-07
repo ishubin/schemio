@@ -135,11 +135,11 @@
     color-scheme: dark;
 }
 body[data-theme="dark"] {
-    background: var(--faint-weak-down);
+    background: var(--base-weak);
 }
 
 [data-theme="dark"] .header {
-    background: #222;
+    background: #1a1a1a;
 }
 [data-theme="dark"] .header .current-user .user-profile .user-name {
     color: var(--base-strong);
@@ -166,7 +166,7 @@ body[data-theme="dark"] {
 
 
 [data-theme="dark"] .footer {
-    background: var(--base-weak);
+    background: #111;
     color: var(--base-strong);
 }
 [data-theme="dark"] .footer a, [data-theme="dark"] .footer .link {
@@ -233,7 +233,10 @@ body[data-theme="dark"] {
 }
 
 [data-theme="dark"] .menu-dropdown > ul li a:hover, [data-theme="dark"] .menu-dropdown > ul li span:hover {
-    background: var(--faint-strong);
+    background: var(--faint-strong-up);
+}
+[data-theme="dark"] .menu-dropdown > ul > li a, [data-theme="dark"] .menu-dropdown > ul > li span {
+    color: var(--base-strong);
 }
 
 [data-theme="dark"] .msg.msg-info {
@@ -262,7 +265,7 @@ body[data-theme="dark"] {
     border-bottom: 1px solid var(--faint-weak-down-down);
 }
 
-[data-theme="dark"] .btn.btn-primary {
+[data-theme="dark"] .btn.btn-primary, [data-theme="dark"] .btn.btn-primary.disabled:hover{
     background: var(--accent-strong);
     color: var(--base-strong);
     border-top: 1px solid var(--accent-faint);
@@ -280,7 +283,7 @@ body[data-theme="dark"] {
 }
 
 
-[data-theme="dark"] .btn.btn-danger {
+[data-theme="dark"] .btn.btn-danger, [data-theme="dark"] .btn.btn-danger.disabled:hover {
     background: var(--critic-strong);
     color: var(--critic-weak-up);
     border-top: 1px solid var(--critic-faint);
@@ -379,6 +382,24 @@ body[data-theme="dark"] {
 
 [data-theme="dark"] .floating-helper-panel .item-name span {
     color: var(--base-strong);
+}
+
+[data-theme="dark"] table.entries-table tbody tr:hover {
+    background: var(--faint-weak-down);
+}
+
+[data-theme="dark"] .hint {
+   font-style: italic;
+    color: var(--base-strong-up);
+}
+
+[data-theme="dark"] .modal-container {
+    background-color: var(--faint-weak);
+}
+
+[data-theme="dark"] .properties-table .value select {
+    border-color: var(--faint-strong);
+    background: var(--faint-weak-down);
 }
 /*********** END OF DARK MODE *************/
 
@@ -1393,7 +1414,7 @@ textarea.in-place-text-editor {
 }
 .modal-header h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
     color: var(--base-strong-up);
 }
 .modal-header .modal-close {
@@ -1957,7 +1978,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .properties-table .value select {
     width: 100%;
-    height: 22px;
+    height: 24px;
 }
 .properties-table .value input.textfield {
     width: 100%;
