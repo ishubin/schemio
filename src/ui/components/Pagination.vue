@@ -7,7 +7,7 @@
             <li>
                 <span v-if="currentPage > 1">
                     <router-link v-if="useRouter" :to="{path: urlForPage(currentPage - 1)}"><i class="fas fa-chevron-circle-left"></i></router-link>
-                    <a v-else @click="onNonRoutablePageClicked(currentPage - 1)" href="#"><i class="fas fa-chevron-circle-left"></i></a>
+                    <a v-else @click="onNonRoutablePageClicked($event, currentPage - 1)" href="#"><i class="fas fa-chevron-circle-left"></i></a>
                 </span>
                 <span v-else><i class="fas fa-chevron-circle-left"></i></span>
             </li>
@@ -15,7 +15,7 @@
             <li v-for="page in pages">
                 <span v-if="page.active">
                     <router-link v-if="useRouter" :to="{path: urlForPage(page.page)}">{{page.page}}</router-link>
-                    <a v-else @click="onNonRoutablePageClicked(page.page)" :class="{'current': currentPage === page.page}" href="#">{{page.page}}</a>
+                    <a v-else @click="onNonRoutablePageClicked($event, page.page)" :class="{'current': currentPage === page.page}" href="#">{{page.page}}</a>
                 </span>
                 <span v-else>{{page.page}}</span>
             </li>
@@ -23,7 +23,7 @@
             <li>
                 <span v-if="currentPage < totalPages">
                     <router-link v-if="useRouter" :to="{path: urlForPage(currentPage + 1)}"><i class="fas fa-chevron-circle-right"></i></router-link>
-                    <a v-else @click="onNonRoutablePageClicked(currentPage + 1)" href="#"><i class="fas fa-chevron-circle-right"></i></a>
+                    <a v-else @click="onNonRoutablePageClicked($event, currentPage + 1)" href="#"><i class="fas fa-chevron-circle-right"></i></a>
                 </span>
                 <span v-else><i class="fas fa-chevron-circle-right"></i></span>
             </li>
@@ -68,7 +68,8 @@ export default {
         },
 
         // This event is only triggered in case useRouter is false
-        onNonRoutablePageClicked(page) {
+        onNonRoutablePageClicked(event, page) {
+            event.preventDefault();
             this.$emit('page-clicked', page);
             return false;
         },

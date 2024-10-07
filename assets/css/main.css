@@ -404,6 +404,10 @@ body[data-theme="dark"] {
     border-color: var(--faint-strong);
     background: var(--faint-weak-down);
 }
+
+[data-theme="dark"] ul.pagination li a, [data-theme="dark"] ul.pagination li a:visited {
+    color: var(--accent-faint-up);
+}
 /*********** END OF DARK MODE *************/
 
 

@@ -21,6 +21,7 @@
                 :key="`${currentPage}-${totalPages}`"
                 :current-page="currentPage"
                 :total-pages="totalPages"
+                :useRouter="false"
                 @page-clicked="selectSearchPage"
             />
             <table class="scheme-search-results">
