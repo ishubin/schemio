@@ -340,7 +340,7 @@ body[data-theme="dark"] {
 [data-theme="dark"] ul.tabs li .tab.active, [data-theme="dark"] ul.tabs li .tab.active:hover {
     background: var(--faint-weak);
     border: 1px solid var(--faint-strong-down);
-    border-bottom: 1px solid var(--faint-weak-up);
+    border-bottom: 1px solid var(--faint-weak);
 }
 
 [data-theme="dark"] .behavior-container {
@@ -368,6 +368,9 @@ body[data-theme="dark"] {
 [data-theme="dark"] .item-menu .item-container img,
 [data-theme="dark"] .item-selector .item-row .item img.item-icon {
     filter: invert(0.78) brightness(1.15);
+}
+[data-theme="dark"] .item-menu .item-container.item-container-template img {
+    filter: none
 }
 
 [data-theme="dark"] .item-selector .item-selector-items {
