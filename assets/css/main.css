@@ -187,7 +187,12 @@ body[data-theme="dark"] {
 [data-theme="dark"] input.textfield,
 [data-theme="dark"]  textarea.textfield,
 [data-theme="dark"]  select.dropdown  {
-    background: var(--faint-weak-down) !important;
+    background: var(--faint-weak-down);
+}
+
+[data-theme="dark"]  input[type="text"].custom-event-textfield  {
+    background: none;
+    outline: none;
 }
 
 [data-theme="dark"] .dropdown-container .dropdown-click-area.hover-effect:hover {
@@ -407,6 +412,34 @@ body[data-theme="dark"] {
 
 [data-theme="dark"] ul.pagination li a, [data-theme="dark"] ul.pagination li a:visited {
     color: var(--accent-faint-up);
+}
+
+[data-theme="dark"] ul.script-options .script-option.selected {
+    color: var(--base-weak);
+    background: var(--base-strong);
+}
+[data-theme="dark"] ul.script-options .script-option.selected .tooltip .tooltip-icon {
+    color: var(--base-weak);
+    opacity: 0.4;
+}
+
+[data-theme="dark"] .msg.msg-error {
+    color: var(--critic-weak);
+    background: var(--critic-strong-down);
+    border: 1px solid var(--critic-strong);
+}
+
+[data-theme="dark"] .system-message-panel  .message.message-error {
+    color: var(--critic-weak);
+    background: var(--critic-strong-down);
+    border: 1px solid var(--critic-strong);
+}
+
+[data-theme="dark"] .system-message-panel .message {
+    color: var(--base-strong-up);
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong-up);
+    box-shadow: 1px 1px 10px var(--shadow-color);
 }
 /*********** END OF DARK MODE *************/
 
@@ -1389,7 +1422,8 @@ textarea.in-place-text-editor {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
     display: table;
 }
 .modal-mask.modal-mask-transparent {
@@ -2373,6 +2407,9 @@ ul.script-options .script-option.selected {
 
 .script-parameters .script-parameter .number-textfield-container {
     flex: 1;
+}
+.script-parameters .script-parameter select {
+    height: 24px;
 }
 
 /**************  Dropdown    ********************/

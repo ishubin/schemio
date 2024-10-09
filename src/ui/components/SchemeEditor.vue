@@ -384,7 +384,7 @@
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
 
-                        <ScriptsTab v-if="currentLeftTab === 'Scripts'" 
+                        <ScriptsTab v-if="currentLeftTab === 'Scripts'"
                             :key="`${editorId}-${schemeContainer.scheme.id}`"
                             :editorId="editorId"
                             :scheme-container="schemeContainer"

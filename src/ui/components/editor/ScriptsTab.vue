@@ -39,25 +39,21 @@
             </ul>
         </Panel>
 
-        <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="false">
+        <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="true">
             <ScriptEditor :value="mainScript" @changed="onMainScriptChange"/>
         </Modal>
 
 
-        <Modal v-if="funcModal.shown" :title="funcModalTitle" :width="900" @close="funcModal.shown = false"
-            :primaryButton="funcModalButtonName"
-            closeName="Cancel"
-            @primary-submit="onFuncSubmit"
-            >
-
-            <div v-if="funcModal.errorMessage" class="msg msg-error">{{ funcModal.errorMessage }}</div>
-
+        <Modal v-if="funcModal.shown" title="Function editor" :width="900" @close="funcModal.shown = false" closeName="Close">
             <Panel uid="func-modal-name" name="Name & Description">
                 <div class="ctrl-label">Name</div>
-                <input type="text" class="textfield" :class="{'field-error': funcModal.isNameError}" v-model="funcModal.name"/>
+                <input type="text" class="textfield" :class="{'field-error': funcModal.isNameError}"
+                    v-model="funcModal.name"
+                    @input="onFuncNameChange($event.target.value)"/>
 
                 <div class="ctrl-label">Description</div>
-                <textarea type="text" class="textfield" v-model="funcModal.description" rows="3"></textarea>
+                <textarea type="text" class="textfield" v-model="funcModal.description" rows="3"
+                    @input="onFuncDescriptionChange($event.target.value)"></textarea>
             </Panel>
 
             <Panel uid="func-modal-arguments" name="Arguments">
@@ -73,7 +69,8 @@
                     <tbody>
                         <tr v-for="(arg, argIdx) in funcModal.args">
                             <td><span class="link icon-delete" @click="deleteFuncArgument(argIdx)"><i class="fas fa-times"></i></span></td>
-                            <td><input class="textfield" type="text" :class="{'field-error': arg.isError}" v-model="arg.name"/></td>
+                            <td><input class="textfield" type="text" :class="{'field-error': arg.isError}" v-model="arg.name"
+                                    @input="onFunctionArgNameChange($event.target.value, argIdx)"/></td>
                             <td>
                                 <select class="dropdown" v-model="arg.type" @change="onArgTypeChanged(argIdx, $event)">
                                     <option v-for="opt in supportedArgumentTypes" :value="opt.value">{{ opt.name }}</option>
@@ -175,6 +172,7 @@ import EditorEventBus from './EditorEventBus';
 import { isValidColor, parseColor } from '../../colors';
 import shortid from 'shortid';
 import SchemeSearchModal from './SchemeSearchModal.vue';
+import StoreUtils from '../../store/StoreUtils';
 
 
 const defaultTypeValues = {
@@ -240,6 +238,8 @@ function ensureCorrectArgValue(argDef, usedValue) {
     return usedValue;
 }
 
+const _argNameRegex = new RegExp('^[a-zA-Z_][a-zA-Z0-9_]*$');
+
 export default {
     props: {
         editorId            : {type: String, required: true},
@@ -303,6 +303,28 @@ export default {
     },
 
     methods: {
+        onFunctionArgNameChange(name, argIdx) {
+            if (!name || !_argNameRegex.test(name)) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'Invalid argument name. It should not contain spaces or special symbols and start with a literal', 'invalid-arg-name');
+                this.funcModal.args[argIdx].isError = true;
+            } else {
+                this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].name = name;
+            }
+        },
+
+        onFuncNameChange(name) {
+            if (!name.trim()) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'Function should have a name', 'invalid-func-name');
+                this.funcModal.args[argIdx].isError = true;
+            } else {
+                this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].name = name;
+            }
+        },
+
+        onFuncDescriptionChange(value) {
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].description = value;
+        },
+
         importSelectedFunctions() {
             this.importFunctionModal.functions.forEach(func => {
                 if (func.selected) {
@@ -379,6 +401,7 @@ export default {
 
         onScriptFunctionEditorPropChange(name, value) {
             this.funcModal.props[name] = value;
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].props[name] = value;
         },
 
         deleteFunc(funcIdx) {
@@ -404,88 +427,6 @@ export default {
 
         deleteFuncArgument(argIdx) {
             this.funcModal.args.splice(argIdx, 1);
-        },
-
-        onFuncSubmit() {
-            const name = this.funcModal.name.trim();
-
-            let isError = false;
-            this.funcModal.errorMessage = null;
-            if (name.length === 0) {
-                this.funcModal.errorMessage = 'Missing function name';
-                this.funcModal.isNameError = true;
-                isError = true;
-            } else {
-                this.funcModal.isNameError = false;
-            }
-
-            const argNameRegex = new RegExp('^[a-zA-Z_][a-zA-Z0-9_]*$');
-
-            const argNames = new Set();
-
-            this.funcModal.args.forEach(arg => {
-                if (!argNameRegex.test(arg.name)) {
-                    this.funcModal.errorMessage = 'Invalid argument name. It should not contain spaces or special symbols and start with a literal';
-                    arg.isError = true;
-                    isError = true;
-                } else {
-                    if (argNames.has(arg.name)) {
-                        arg.isError = true;
-                        isError = true;
-                        this.funcModal.errorMessage = 'Duplicated argument names';
-                    } else {
-                        argNames.add(arg.name);
-                        arg.isError = false;
-                    }
-                }
-            });
-            if (isError) {
-                return;
-            }
-
-            const existentFuncNames = new Set();
-
-            this.schemeContainer.scheme.scripts.functions.forEach((funcDef, funcIdx) => {
-                if (!this.funcModal.isNew && funcIdx === this.funcModal.funcIdx) {
-                    return;
-                }
-                existentFuncNames.add(funcDef.name);
-            });
-            if (existentFuncNames.has(name)) {
-                this.funcModal.errorMessage = 'Function name is already taken by another function';
-                this.funcModal.isNameError = true;
-                return;
-            }
-
-
-            const funcDef = {
-                name: name,
-                description: this.funcModal.description,
-                args: this.funcModal.args.map(arg => {
-                    return {
-                        id: arg.id,
-                        name: arg.name,
-                        description: '',
-                        type: arg.type,
-                        value: arg.value
-                    };
-                }),
-                props: utils.clone(this.funcModal.props),
-            };
-
-
-            if (this.funcModal.isNew) {
-                funcDef.id = shortid.generate();
-                this.schemeContainer.scheme.scripts.functions.push(funcDef);
-            } else {
-                const oldFuncDef = this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx];
-                funcDef.id = oldFuncDef.id;
-                this.fixAllFunctionArgsInItems(funcDef.args, oldFuncDef.name, funcDef.name);
-                this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx] = funcDef;
-            }
-            this.funcModal.shown = false;
-
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
         /**
@@ -540,22 +481,29 @@ export default {
             const newType = event.target.value;
             argDef.descriptor = {type: newType};
             argDef.value = defaultTypeValues[newType];
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].type = newType;
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].value = argDef.value;
         },
 
         onArgDefaultValueChange(argIdx, value) {
             this.funcModal.args[argIdx].value = value;
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].value = value;
         },
 
         addFuncArgument() {
             const idx = this.funcModal.args.length + 1;
-            this.funcModal.args.push({
+            const argDef = {
                 id: shortid.generate(),
                 name: `arg${idx}`,
                 type: 'string',
-                descriptor: {type: 'string'},
                 value: '',
+            };
+            this.funcModal.args.push({
+                ...argDef,
+                descriptor: {type: 'string'},
                 isError: false,
             });
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args.push(argDef);
         },
 
         onFuncScriptChanged(script) {
@@ -573,15 +521,13 @@ export default {
         },
 
         startAddingNewFunction() {
-            this.funcModal.name = '';
+            this.funcModal.name = 'Unnamed function...';
             this.funcModal.isNameError = false;
             this.funcModal.description = '';
-            this.funcModal.isNew = true;
             this.funcModal.args = [];
             this.funcModal.script = '';
-            this.funcModal.errorMessage = null;
             this.funcModal.shown = true;
-            this.funcModal.funcIdx = -1;
+            this.funcModal.funcIdx = this.schemeContainer.scheme.scripts.functions.length;
             this.funcModal.props = {
                 initScript          :  '',
                 script              :  '',
@@ -592,6 +538,15 @@ export default {
                 transition          :  'ease-out',
                 inBackground        :  false,
             };
+
+            const funcDef = {
+                name: this.funcModal.name,
+                description: this.funcModal.description,
+                args: [],
+                props: utils.clone(this.funcModal.props),
+            };
+
+            this.schemeContainer.scheme.scripts.functions.push(funcDef);
         },
 
         openFuncEditor(funcIdx) {
@@ -608,7 +563,6 @@ export default {
             });
             this.funcModal.props = utils.clone(funcDef.props);
             this.funcModal.script = funcDef.source;
-            this.funcModal.errorMessage = null;
             this.funcModal.shown = true;
             this.funcModal.funcIdx = funcIdx;
         },
@@ -638,14 +592,6 @@ export default {
 
 
     computed: {
-        funcModalTitle() {
-            return this.funcModal.isNew ? 'New function ...' : 'Function editor';
-        },
-
-        funcModalButtonName() {
-            return this.funcModal.isNew ? 'Add' : 'Update';
-        },
-
         importButtonDisabled() {
             return this.importFunctionModal.totalSelected === 0;
         }
