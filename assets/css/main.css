@@ -186,13 +186,18 @@ body[data-theme="dark"] {
 [data-theme="dark"] textarea,
 [data-theme="dark"] input.textfield,
 [data-theme="dark"]  textarea.textfield,
+[data-theme="dark"]  .vc-chrome-fields .vc-input__input,
 [data-theme="dark"]  select.dropdown  {
     background: var(--faint-weak-down);
+    color: var(--base-strong);
 }
-
 [data-theme="dark"]  input[type="text"].custom-event-textfield  {
     background: none;
     outline: none;
+}
+
+[data-theme="dark"]  .vc-chrome-fields .vc-input__input {
+    border: 1px solid var(--faint-strong-up);
 }
 
 [data-theme="dark"] .dropdown-container .dropdown-click-area.hover-effect:hover {

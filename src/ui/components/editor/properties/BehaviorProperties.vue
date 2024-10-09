@@ -1113,7 +1113,8 @@ export default {
                 if (srcBehaviorIndex === dstBehaviorIndex && srcActionIndex === dstActionIndex) {
                     return;
                 }
-                const action = this.item.behavior.events[srcBehaviorIndex].actions[srcActionIndex];
+                const action = utils.clone(this.item.behavior.events[srcBehaviorIndex].actions[srcActionIndex]);
+                action.id = shortid.generate();
                 this.item.behavior.events[dstBehaviorIndex].actions.splice(dstActionIndex, 0, action);
 
                 this.emitChangeCommited();
