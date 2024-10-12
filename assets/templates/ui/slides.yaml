@@ -15,6 +15,12 @@ args:
   frameFill      : {type: "advanced-color", value: { type: "solid", color: "rgba(250, 250, 250, 1)" }, name: "Frame background"}
   frameColor     : {type: "color", value: "rgba(212,212,212,1.0)", name: "Frame color"}
   frameStrokeSize: {type: "number", value: 1, min: 0, name: "Frame stroke size"}
+  useKeys:
+    type: boolean
+    value: true
+    name: Use keyboard
+    description: |
+      Use "Left", "Right" and "Space" keys for switching slides
   showAllSlides:
     type: boolean
     value: true
@@ -151,6 +157,51 @@ item:
         blur: 20
         opacity: 20
         inside: false
+  behavior:
+    events:
+      - id: prev-slide
+        event: Previous slide
+        actions:
+        - id: next-slide
+          element: '#moving-container'
+          method: sendEvent
+          args:
+            event: slide_prev
+
+      - id: next-slide
+        event: Next slide
+        actions:
+        - id: next-slide
+          element: '#moving-container'
+          method: sendEvent
+          args:
+            event: slide_next
+
+      - id: keys-activate
+        event: Enable keys
+        actions:
+        - $-foreach: {source: 'keys', it: 'key'}
+          id: {$-expr: 'key'}
+          element: {$-str: '#${key}'}
+          method: set
+          args:
+            field: shapeProps.active
+            value: true
+            animated: false
+
+      - id: keys-deactivate
+        event: Disable keys
+        actions:
+        - $-foreach: {source: 'keys', it: 'key'}
+          id: {$-expr: 'key'}
+          element: {$-str: '#${key}'}
+          method: set
+          args:
+            field: shapeProps.active
+            value: false
+            animated: false
+
+
   childItems:
 
     - id: header
@@ -665,3 +716,65 @@ item:
                       field: opacity
                       value: { $-expr: "buttonOpacity" }
                       animated: true
+    - id: key-right
+      name: RightKey
+      shape: key_bind
+      area: {x: 0, y: 0, w: 60, h: 20, r: 0}
+      visible: false
+      shapeProps:
+        key: Right
+        down: true
+        up: false
+        active: true
+      behavior:
+        events:
+          - id: key-down
+            event: Key down
+            actions:
+            - id: key-next-slide
+              element: '#root'
+              method: sendEvent
+              args:
+                event: Next slide
+
+    - id: key-space
+      name: SpaceKey
+      shape: key_bind
+      area: {x: 0, y: 0, w: 60, h: 20, r: 0}
+      visible: false
+      shapeProps:
+        key: Space
+        down: true
+        up: false
+        active: true
+      behavior:
+        events:
+          - id: key-down
+            event: Key down
+            actions:
+            - id: key-next-slide
+              element: '#root'
+              method: sendEvent
+              args:
+                event: Next slide
+
+    - id: key-left
+      name: LeftKey
+      shape: key_bind
+      area: {x: 0, y: 0, w: 60, h: 20, r: 0}
+      visible: false
+      shapeProps:
+        key: Left
+        down: true
+        up: false
+        active: true
+      behavior:
+        events:
+          - id: key-down
+            event: Key down
+            actions:
+            - id: key-prev-slide
+              element: '#root'
+              method: sendEvent
+              args:
+                event: Previous slide

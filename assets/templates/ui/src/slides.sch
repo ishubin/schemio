@@ -11,6 +11,8 @@ slideMargin           = 10
 currentSlideVarName   = 'current-slide-' + uid()
 headerWidth           = min(max(200, round(width / 2)), width)
 
+keys = List('key-left', 'key-right', 'key-space')
+
 func swapSlides(idx1, idx2) {
     swapNativeChildren(`slide-${idx1}`, `slide-${idx2}`)
 }
