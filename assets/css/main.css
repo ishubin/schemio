@@ -446,6 +446,36 @@ body[data-theme="dark"] {
     border: 1px solid var(--faint-strong-up);
     box-shadow: 1px 1px 10px var(--shadow-color);
 }
+
+[data-theme="dark"] table.frame-animator-matrix td.frame-animator-property .frame-item-property,
+[data-theme="dark"] table.frame-animator-matrix td.frame-animator-property .frame-item-name {
+    color: var(--base-weak);
+}
+
+[data-theme="dark"] table.frame-animator-matrix .btn-small {
+    color: var(--base-strong);
+}
+
+[data-theme="dark"] table.frame-animator-matrix td.frame-animator-property {
+    color: var(--base-strong);
+}
+
+[data-theme="dark"]  table.frame-animator-matrix td.frame .empty-frame-number {
+    color: var(--faint-weak-down-3);
+    opacity: 0.6;
+}
+
+[data-theme="dark"] table.frame-animator-matrix td.frame .active-frame {
+    color: var(--faint-weak-down-3);
+    opacity: 1;
+}
+[data-theme="dark"] table.frame-animator-matrix td.current {
+    background: var(--base-strong-up);
+}
+[data-theme="dark"] table.frame-animator-matrix th.current {
+    background: var(--accent-strong);
+    color: var(--base-strong);
+}
 /*********** END OF DARK MODE *************/
 
 
@@ -714,7 +744,7 @@ ul.tabs.tabs-file li .tab {
     padding: 5px 10px 5px 10px;
     font-size: 14px;
     cursor: pointer;
-    background: linear-gradient( 0deg , var(--faint-strong-up-up) 0%, var(--base-weak) 50%, var(--base-weak) 100%);
+    background: var(--faint-strong-up-up);
     color: var(--base-strong-up);
     border: 1px solid var(--faint-strong-down);
     border-radius: var(--control-border-radius);
@@ -3279,7 +3309,8 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
     display: flex;
 }
 .frame-animator-panel .frame-animator-controls .frame-animator-player-buttons {
-    display: inline-block;
+    display: flex;
+    align-items: center;
     margin-right: 10px;
     height: 30px;
 }
@@ -3344,6 +3375,9 @@ table.frame-animator-matrix tr.track-missing td.frame {
 table.frame-animator-matrix td.frame-animator-property .frame-item-name {
     font-weight: bold;
 }
+table.frame-animator-matrix td.frame-animator-property .btn-small {
+    padding: 3px 6px;
+}
 table.frame-animator-matrix td.frame-animator-property .frame-item-property {
     font-style: italic;
     white-space: nowrap;
@@ -3390,7 +3424,7 @@ table.frame-animator-matrix td.current {
     background: var(--faint-strong-up);
 }
 table.frame-animator-matrix tbody tr.selected-track td.current {
-    background: var(--faint-strong-down);
+    background: var(--accent-faint);
 }
 
 table.frame-animator-matrix td.frame {

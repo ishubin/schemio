@@ -4,7 +4,7 @@
 <template>
     <div class="frame-animator-panel">
         <div v-if="light" class="frame-animator-light">
-            <span class="btn btn-secondary btn-small" @click="openAnimationEditor"><i class="fas fa-film"></i> Open Animation Editor</span>
+            <span class="btn btn-secondary" @click="openAnimationEditor"><i class="fas fa-film"></i> Open Animation Editor</span>
             <span class="frame-animator-title">{{framePlayer.name}}</span>
         </div>
 
