@@ -181,6 +181,10 @@ export function diagramImageExporter(items) {
                 svg.setAttribute('height', `${options.height - options.paddingTop - options.paddingBottom}px`);
             }
 
+            if (options.backgroundColor) {
+                svg.setAttribute('style', `background: ${options.backgroundColor}`);
+            }
+
             return rasterizeAllImagesToDataURL(svg)
             .then(() => insertCustomFonts(svg))
             .then(() => {
