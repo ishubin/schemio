@@ -177,8 +177,8 @@ export function diagramImageExporter(items) {
             svg.setAttribute('viewBox', `${-options.paddingLeft} ${-options.paddingTop} ${viewBoxWidth} ${viewBoxHeight}`);
 
             if (options.format === 'png') {
-                svg.setAttribute('width', `${options.width}px`);
-                svg.setAttribute('height', `${options.height}px`);
+                svg.setAttribute('width', `${options.width - options.paddingLeft - options.paddingRight}px`);
+                svg.setAttribute('height', `${options.height - options.paddingTop - options.paddingBottom}px`);
             }
 
             return rasterizeAllImagesToDataURL(svg)
