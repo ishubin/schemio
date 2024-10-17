@@ -250,6 +250,12 @@ function collectAllUsedFonts(node, fonts) {
         if (fontFamily) {
             fonts.add(fontFamily.replaceAll(/("|')/g, ''));
         }
+    } else if (node.classList && node.classList.contains('katex')) {
+        for (let fontName in fontMapping) {
+            if (fontMapping.hasOwnProperty(fontName) && fontName.indexOf('KaTeX') === 0) {
+                fonts.add(fontName);
+            }
+        }
     }
     node.childNodes.forEach(childNode => collectAllUsedFonts(childNode, fonts));
     return fonts;
@@ -264,6 +270,8 @@ function insertCustomFonts(svg) {
             fontPromises.push(axios.get(fontMapping[font]));
         }
     });
+
+    fontPromises.push(axios.get('/assets/katex/katex.css'));
 
     return Promise.all(fontPromises)
     .then(fontResponses => {

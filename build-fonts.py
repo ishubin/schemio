@@ -16,12 +16,19 @@ def font_format(ext):
         return 'truetype'
     return ext
 
-def convert_font_url(text):
+def convert_font_url(font_path_prefix, text):
     if not text.startswith('url('):
         return text
 
     bracket_idx = text.index(')')
-    font_path = 'assets/custom-fonts/' + text[5:bracket_idx-1]
+    sub_path = text[4:bracket_idx]
+    if sub_path[0] == '\'' or sub_path[0] == '"':
+        sub_path = sub_path[1:]
+
+    if sub_path[-1] == '\'' or sub_path[-1] == '"':
+        sub_path = sub_path[0:len(sub_path)-1]
+
+    font_path = font_path_prefix + sub_path
 
     ext = font_path[font_path.rfind('.')+1:]
     font_path = font_path[:font_path.rfind('.')] + '.' + ext
@@ -33,36 +40,44 @@ def convert_font_url(text):
 
 
 def extract_font_name(font_family):
-    return re.sub('\'', '', font_family['font-family'])
+    return re.sub('[\'\"]', '', font_family['font-family'])
 
 
 if __name__ == '__main__':
-    font_css_lines = read_file('assets/custom-fonts/fonts.css')
+    font_files = [
+        'assets/custom-fonts/fonts.css',
+        'assets/katex/katex.css'
+    ]
 
     font_families = []
 
     next_family = None
 
-    for raw_line in font_css_lines:
-        line = raw_line.strip()
+    for font_file_path in font_files:
+        font_css_lines = read_file(font_file_path)
 
-        if line == '@font-face {':
-            next_family = {}
-            font_families.append(next_family)
-        elif not next_family is None:
-            match = re.search(__field_def_pattern__, line)
-            if not match is None:
-                field = match.group(1)
-                value = match.group(2)
+        font_path_prefix = font_file_path[0:font_file_path.rfind('/')+1]
 
-                if field == 'src':
-                    next_family[field] = convert_font_url(value)
-                else:
-                    next_family[field] = value
+        for raw_line in font_css_lines:
+            line = raw_line.strip()
+
+            if line == '@font-face {':
+                next_family = {}
+                font_families.append(next_family)
+            elif not next_family is None:
+                match = re.search(__field_def_pattern__, line)
+                if not match is None:
+                    field = match.group(1)
+                    value = match.group(2)
+
+                    if field == 'src':
+                        next_family[field] = convert_font_url(font_path_prefix, value)
+                    else:
+                        next_family[field] = value
 
 
-        elif line == '}':
-            next_family = None
+            elif line == '}':
+                next_family = None
 
     font_mapping = dict()
 
