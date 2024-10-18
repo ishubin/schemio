@@ -476,6 +476,10 @@ body[data-theme="dark"] {
     background: var(--accent-strong);
     color: var(--base-strong);
 }
+
+[data-theme="dark"] .context-menu ul li {
+    color: var(--base-strong);
+}
 /*********** END OF DARK MODE *************/
 
 

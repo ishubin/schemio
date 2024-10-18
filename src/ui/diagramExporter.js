@@ -272,6 +272,7 @@ function insertCustomFonts(svg) {
     });
 
     fontPromises.push(axios.get('/assets/katex/katex.css'));
+    fontPromises.push(axios.get('/assets/css/syntax-highlight.css'));
 
     return Promise.all(fontPromises)
     .then(fontResponses => {
