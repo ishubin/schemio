@@ -480,6 +480,26 @@ body[data-theme="dark"] {
 [data-theme="dark"] .context-menu ul li {
     color: var(--base-strong);
 }
+
+[data-theme="dark"] .diagram-picker .diagram-title {
+    color: var(--base-strong);
+}
+[data-theme="dark"] .diagram-picker .diagram-picker-external-link {
+    color: var(--accent-faint);
+    opacity: 0.8;
+}
+[data-theme="dark"] .diagram-picker .diagram-picker-external-link:hover {
+    color: var(--accent-faint-up);
+    opacity: 1;
+}
+
+[data-theme="dark"] .vue-tags-input .autocomplete {
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong-down);
+}
+[data-theme="dark"] .vue-tags-input .autocomplete .selected-item {
+    background: var(--accent-strong);
+}
 /*********** END OF DARK MODE *************/
 
 
