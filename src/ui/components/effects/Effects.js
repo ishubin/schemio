@@ -236,6 +236,25 @@ const effects = {
         }
     },
 
+    'invert': {
+        name: 'Invert',
+        args: {
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            let matrixEncoded =   '-1 0 0 0 1 '
+                                + '0 -1 0 0 1 '
+                                + '0 0 -1 0 1 '
+                                + '0 0 0  1 0';
+            return {
+                kind: 'svg-filter',
+                html: $('feColorMatrix', {
+                    type: 'matrix',
+                    values: matrixEncoded
+                }).outerHTML
+            };
+        }
+    },
+
     'adjust-color': {
         name: 'Adjust Color',
         args: {
@@ -251,9 +270,9 @@ const effects = {
         },
 
         applyEffect(item, effectIdx, effectArgs) {
-            let matrixEncoded =   '1 0 0 0 0'
-                                + '0 1 0 0 0'
-                                + '0 0 1 0 0'
+            let matrixEncoded =   '1 0 0 0 0 '
+                                + '0 1 0 0 0 '
+                                + '0 0 1 0 0 '
                                 + '0 0 0 1 0';
             if (Array.isArray(effectArgs.matrix)) {
                 matrixEncoded = '';
