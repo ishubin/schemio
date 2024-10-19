@@ -382,6 +382,9 @@ body[data-theme="dark"] {
 [data-theme="dark"] .item-menu .item-container.item-container-template img {
     filter: none
 }
+[data-theme="dark"] .art-pack .item-menu .item-container img {
+    filter: none
+}
 
 [data-theme="dark"] .item-selector .item-selector-items {
     overflow: scroll;
