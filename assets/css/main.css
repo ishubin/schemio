@@ -3254,15 +3254,17 @@ ul.effects-list {
     margin-top: 10px;
     margin-bottom: 20px;
     padding: 0;
-    background: var(--base-weak);
     border-radius: var(--middle-border-radius);
+    user-select: none;
 }
 ul.effects-list > li {
     position: relative;
+    border-top: 1px solid var(--base-weak);
     border-bottom: 1px solid var(--faint-weak);
+    background: var(--base-weak);
 }
 ul.effects-list > li:last-child {
-    border-bottom: none;
+    border-bottom: 1px solid var(--base-weak);
 }
 ul.effects-list > li .effect-name {
     padding: 8px;
@@ -3292,6 +3294,35 @@ ul.effects-list > li .effect-right-panel .icon-effect-delete {
     color: var(--critic-faint);
 }
 
+ul.effects-list > li.dragged-effect {
+    background: none;
+}
+
+ul.effects-list > li.dragged-effect .effect-entry-container {
+    opacity: 0.5;
+}
+
+ul.effects-list .dragged-effect .effect-right-panel {
+    display: none;
+}
+
+ul.effects-list > li.effect-drop-destination.effect-drop-above {
+    border-top: 4px solid var(--accent-faint);
+}
+ul.effects-list > li.effect-drop-destination.effect-drop-below {
+    border-bottom: 4px solid var(--accent-faint);
+}
+
+.effect-drag-preview {
+    position: fixed;
+    white-space:nowrap;
+    border: 1px solid var(--base-strong-up-up);
+    background: var(--faint-weak);
+    padding: 8px;
+    font-size: 13px;
+    font-style: italic;
+    min-width: 150px;
+}
 
 /************************ Frame Animator *************************/
 .frame-animator-panel {

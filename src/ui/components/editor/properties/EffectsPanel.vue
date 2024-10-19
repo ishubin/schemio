@@ -2,21 +2,31 @@
     <div>
         <div class="hint hint-small" v-if="!item.effects || item.effects.length === 0">There are no effects yet</div>
         <ul class="effects-list" v-else>
-            <li v-for="(effect, effectIndex) in item.effects">
+            <li v-for="(effect, effectIndex) in item.effects"
+                @mousedown="onEffectMouseDown($event, effectIndex)"
+                class="effect-dropable"
+                :class="{'dragged-effect': dragging.isDragging && dragging.srcIdx === effectIndex, 'effect-drop-destination': dragging.dstIdx === effectIndex, 'effect-drop-above': dragging.dstIdx === effectIndex && dragging.above, 'effect-drop-below': dragging.dstIdx === effectIndex && !dragging.above}"
+                :data-effect-index="effectIndex"
+                >
+                <div class="effect-entry-container">
+                    <div class="effect-name" @click="openEditEffectModal(effectIndex)">{{effect.name | prettyEffectName}}</div>
 
-                <div class="effect-name" @click="openEditEffectModal(effectIndex)">{{effect.name | prettyEffectName}}</div>
-
-                <div class="effect-right-panel">
-                    <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">
-                        <i class="fas fa-edit"></i>
-                    </span>
-                    <span class="icon icon-effect-delete" @click="deleteEffect(effectIndex)">
-                        <i class="fas fa-times"></i>
-                    </span>
-
+                    <div class="effect-right-panel">
+                        <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">
+                            <i class="fas fa-edit"></i>
+                        </span>
+                        <span class="icon icon-effect-delete" @click="deleteEffect(effectIndex)">
+                            <i class="fas fa-times"></i>
+                        </span>
+                    </div>
                 </div>
             </li>
         </ul>
+
+        <div ref="effectDragPreview" class="effect-drag-preview" :style="{display: dragging.isDragging ? 'inline-block' : 'none' }">
+            {{ dragging.name }}
+        </div>
+
         <span class="btn btn-secondary" @click="startAddingEffect">Add Effect</span>
 
         <EditEffectModal v-if="editEffectModal.shown"
@@ -43,6 +53,7 @@ import { findEffect, generateEffectArgs, getDefaultEffectId } from '../../effect
 import { traverseItems } from '../../../scheme/Item';
 import EditorEventBus from '../EditorEventBus';
 import { giveUniqueName } from '../../../collections';
+import { dragAndDropBuilder } from '../../../dragndrop';
 
 export default {
     props: ['editorId', 'item', 'schemeContainer'],
@@ -58,10 +69,59 @@ export default {
                 currentEffectIndex: -1,
                 effectArgs: {}
             },
+            dragging: {
+                srcIdx: -1,
+                dstIdx: -1,
+                name: '',
+                isDragging: false,
+                above: false
+            }
         };
     },
 
     methods: {
+        onEffectMouseDown(event, effectIdx) {
+            dragAndDropBuilder(event)
+            .withDraggedElement(this.$refs.effectDragPreview)
+            .withDroppableClass('effect-dropable')
+            .onDragStart(() => {
+                this.dragging.srcIdx = effectIdx;
+                this.dragging.name = this.item.effects[effectIdx].name;
+                this.dragging.isDragging = true;
+            })
+            .onDone(() => {
+                if (this.dragging.dstIdx >= 0 && this.dragging.srcIdx >= 0) {
+                    let dstIdx = this.dragging.dstIdx;
+                    if (dstIdx > this.dragging.srcIdx) {
+                        dstIdx -= 1;
+                    }
+                    if (!this.dragging.above) {
+                        dstIdx += 1;
+                    }
+                    this.updateCurrentItem('effects', (item) => {
+                        const effect = item.effects[this.dragging.srcIdx];
+                        item.effects.splice(this.dragging.srcIdx, 1);
+                        item.effects.splice(dstIdx, 0, effect);
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
+                    });
+                }
+                this.dragging.srcIdx = -1;
+                this.dragging.dstIdx = -1;
+                this.dragging.name = '';
+                this.dragging.isDragging = false;
+            })
+            .onDragOver((event, element) => {
+                const dstIdx = element.getAttribute('data-effect-index');
+                if (!dstIdx) {
+                    return;
+                }
+                this.dragging.dstIdx = parseInt(dstIdx);
+                const bbox = element.getBoundingClientRect();
+                this.dragging.above = event.clientY < bbox.top + bbox.height/2;
+            })
+            .build();
+        },
+
         updateCurrentItem(property, callback) {
             this.schemeContainer.updateItem(this.item.id, property, callback);
         },
