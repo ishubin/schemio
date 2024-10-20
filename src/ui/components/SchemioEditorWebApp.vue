@@ -34,7 +34,6 @@
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
             @delete-diagram-requested="deleteDiagram"
-            @export-picture-requested="openExportPictureModal"
             @context-menu-requested="onContextMenuRequested"
             @patch-origin-toggled="onPatchOriginToggled"
             @patch-modified-toggled="onPatchModifiedToggled"

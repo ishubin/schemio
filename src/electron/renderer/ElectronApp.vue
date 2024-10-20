@@ -67,7 +67,6 @@
                             @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
                             @undo-history-requested="undoHistory(file)"
                             @redo-history-requested="redoHistory(file)"
-                            @export-picture-requested="openExportPictureModal(file, arguments[0], arguments[1])"
                             @context-menu-requested="onContextMenuRequested(files, arguments[2])"
                             @new-diagram-requested-for-item="onNewDiagramRequestedForItem(file, arguments[0], arguments[1])"
                         />

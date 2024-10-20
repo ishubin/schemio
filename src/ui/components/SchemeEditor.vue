@@ -2776,7 +2776,7 @@ export default {
             if (items.length === 0) {
                 return;
             }
-            this.$emit('export-picture-requested', items, kind)
+            this.openExportPictureModal(items, kind);
         },
 
         collectSelectedItems() {
