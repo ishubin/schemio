@@ -26,9 +26,10 @@ import { fontMapping } from "./scheme/FontMapping";
 /**
  * Fetches svg content for specified items, calculates their bounding box and returns it
  * @param {Array<Object>} items items from the diagram
+ * @param {Area|null} area
  * @returns {DiagramPictureBox}
  */
-export function prepareDiagramForPictureExport(items) {
+export function prepareDiagramForPictureExport(items, area) {
     if (items.length === 0) {
         return {
             exportedItems: [],
@@ -46,24 +47,26 @@ export function prepareDiagramForPictureExport(items) {
         if (item.visible && item.opacity > 0.0001) {
             const domElement = document.querySelector(`g[data-svg-item-container-id="${item.id}"]`);
             if (domElement) {
-                const itemBoundingBox = calculateBoundingBoxOfAllSubItems(item);
-                if (minP) {
-                    minP.x = Math.min(minP.x, itemBoundingBox.x);
-                    minP.y = Math.min(minP.y, itemBoundingBox.y);
-                } else {
-                    minP = {
-                        x: itemBoundingBox.x,
-                        y: itemBoundingBox.y
-                    };
-                }
-                if (maxP) {
-                    maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
-                    maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
-                } else {
-                    maxP = {
-                        x: itemBoundingBox.x + itemBoundingBox.w,
-                        y: itemBoundingBox.y + itemBoundingBox.h
-                    };
+                if (!area) {
+                    const itemBoundingBox = calculateBoundingBoxOfAllSubItems(item);
+                    if (minP) {
+                        minP.x = Math.min(minP.x, itemBoundingBox.x);
+                        minP.y = Math.min(minP.y, itemBoundingBox.y);
+                    } else {
+                        minP = {
+                            x: itemBoundingBox.x,
+                            y: itemBoundingBox.y
+                        };
+                    }
+                    if (maxP) {
+                        maxP.x = Math.max(maxP.x, itemBoundingBox.x + itemBoundingBox.w);
+                        maxP.y = Math.max(maxP.y, itemBoundingBox.y + itemBoundingBox.h);
+                    } else {
+                        maxP = {
+                            x: itemBoundingBox.x + itemBoundingBox.w,
+                            y: itemBoundingBox.y + itemBoundingBox.h
+                        };
+                    }
                 }
                 const itemDom = domElement.cloneNode(true);
                 processSvgElementsForExport(itemDom);
@@ -79,8 +82,15 @@ export function prepareDiagramForPictureExport(items) {
         const itemDom = collectedItem.itemDom;
         const worldPoint = worldPointOnItem(0, 0, item);
         const angle = worldAngleOfItem(item);
-        const x = worldPoint.x - minP.x;
-        const y = worldPoint.y - minP.y;
+        let x = 0;
+        let y = 0;
+        if (area) {
+            x = worldPoint.x - area.x;
+            y = worldPoint.y - area.y;
+        } else {
+            x = worldPoint.x - minP.x;
+            y = worldPoint.y - minP.y;
+        }
 
         itemDom.setAttribute('transform', `translate(${x},${y}) rotate(${angle})`);
         const html = new XMLSerializer().serializeToString(itemDom);
@@ -89,8 +99,8 @@ export function prepareDiagramForPictureExport(items) {
 
     const result = {
         exportedItems,
-        width: maxP.x - minP.x,
-        height: maxP.y - minP.y,
+        width: area ? area.w : maxP.x - minP.x,
+        height: area ? area.h: maxP.y - minP.y,
     }
     if (result.width > 5) {
         result.width = Math.round(result.width);
@@ -150,14 +160,23 @@ const defaultDiagramExporterOptions = {
     format: 'svg'
 }
 
-export function diagramImageExporter(items) {
-    const result = prepareDiagramForPictureExport(items);
+/**
+ * @param {Array<Item>} items
+ * @param {Area|null} area - an optional viewbox area
+ * @returns
+ */
+export function diagramImageExporter(items, area) {
+    const result = prepareDiagramForPictureExport(items, area);
     const previewSvgHtml = map(result.exportedItems, e => e.html).join('\n');
 
     return {
         previewSvgHtml,
         width: result.width,
         height: result.height,
+
+        getExportedItems() {
+            return result.exportedItems;
+        },
 
         /**
          *

@@ -1468,13 +1468,46 @@ textarea.in-place-text-editor {
 }
 
 /***************************************/
-/* Export SVG Preview                  */
+/* Export Picture Modal                */
 /***************************************/
 .export-svg-preview {
     background: white;
     border: 1px solid var(--faint-strong);
 }
 
+.export-picture-item-selector {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.export-picture-item-selector .export-picture-item-selector-all-items {
+    font-style: italic;
+}
+
+.export-picture-item-selector ul {
+    flex: 1;
+    overflow: scroll;
+    margin: 0;
+    padding: 5px;
+    background: var(--base-weak);
+    color: var(--base-strong);
+}
+
+.export-picture-item-selector li {
+    padding: 4px 8px;
+    cursor: pointer;
+}
+.export-picture-item-selector li.selected {
+    background: var(--accent-strong);
+}
+.export-picture-item-selector li:hover {
+    background: var(--accent-faint);
+}
+
+[data-theme="light"] .export-picture-item-selector li.selected {
+    color: var(--base-weak);
+}
 
 /******************************* Modal ********************************/
 .modal-mask {

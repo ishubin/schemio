@@ -67,24 +67,35 @@
                 </div>
             </div>
         </div>
-        <div>
+        <div class="row">
+            <div class="col-2" style="height: 300px;">
+                <div class="export-picture-item-selector">
+                    <div class="ctrl-label">Select item</div>
+                    <ul>
+                        <li class="export-picture-item-selector-all-items" :class="{selected: !selectedItem}" @click="deselectItem">All visible items</li>
+                        <li v-for="item in flatItems" :class="{selected: selectedItem && selectedItem.id === item.id}" @click="selectItem(item)">{{ item.name }}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-3">
+                <svg ref="svgContainer" class="export-svg-preview"
+                    width="100%" height="300px"
+                    :viewBox="`${-paddingLeft - previewPadding} ${-paddingTop - previewPadding} ${viewBoxWidth + 4*previewPadding} ${viewBoxHeight + 4*previewPadding}`"
+                    :preserveAspectRatio="preserveAspectRatio"
+                    :style="svgStyle"
+                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns:xhtml="http://www.w3.org/1999/xhtml"
+                    xmlns:xlink="http://www.w3.org/1999/xlink" >
+                    <g data-preview-ignore="true">
+                        <rect :x="-paddingLeft" :y="-paddingTop" :width="viewBoxWidth+paddingLeft" :height="viewBoxHeight+paddingTop"
+                            style="fill:none; stroke-width:1; stroke:rgba(100,100,255, 0.2)"
+                            :style="{'stroke-width': previewStrokeSize}"/>
+                    </g>
+                    <g v-html="svgHtml"></g>
+                </svg>
+            </div>
         </div>
 
-        <svg ref="svgContainer" class="export-svg-preview"
-            width="100%" height="300px"
-            :viewBox="`${-paddingLeft - previewPadding} ${-paddingTop - previewPadding} ${viewBoxWidth + 4*previewPadding} ${viewBoxHeight + 4*previewPadding}`"
-            :preserveAspectRatio="preserveAspectRatio"
-            :style="svgStyle"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xhtml="http://www.w3.org/1999/xhtml"
-            xmlns:xlink="http://www.w3.org/1999/xlink" >
-            <g data-preview-ignore="true">
-                <rect :x="-paddingLeft" :y="-paddingTop" :width="viewBoxWidth+paddingLeft" :height="viewBoxHeight+paddingTop"
-                    style="fill:none; stroke-width:1; stroke:rgba(100,100,255, 0.2)"
-                    :style="{'stroke-width': previewStrokeSize}"/>
-            </g>
-            <g v-html="svgHtml"></g>
-        </svg>
 
         <modal v-if="dataURLModal.shown" title="Image Data URL" @close="dataURLModal.shown = false">
             <p>Your image data URL is ready! Copy it from this textarea</p>
@@ -98,8 +109,7 @@ import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import {forEach} from '../../collections';
 import {diagramImageExporter} from '../../diagramExporter';
-
-
+import { traverseItems } from '../../scheme/Item';
 
 export default {
     props: {
@@ -134,8 +144,15 @@ export default {
             paddingBottom = 2 * largestStrokeSize;
         }
 
+        const flatItems = [];
+        traverseItems(this.items, item => {
+            flatItems.push(item);
+        });
+
         return {
             exporter,
+            flatItems,
+            selectedItem: null,
             shouldExportBackground: this.kind === 'png',
             shouldExportDataURL: false,
 
@@ -162,12 +179,42 @@ export default {
                 text: ''
             },
 
+            viewBoxWidth: exporter.width + paddingRight,
+            viewBoxHeight: exporter.height + paddingBottom,
+
             sizeLocked: true,
             ratio: Math.max(1, exporter.width) / Math.max(1, exporter.height)
         };
     },
 
     methods: {
+        deselectItem() {
+            this.selectedItem = null;
+            this.exporter = diagramImageExporter(this.items);
+            this.svgHtml = this.exporter.previewSvgHtml;
+            this.viewBoxWidth = this.exporter.width + this.paddingRight;
+            this.viewBoxHeight = this.exporter.height + this.paddingBottom;
+            this.width = this.exporter.width;
+            this.height = this.exporter.height;
+            this.rasterWidth = this.exporter.width;
+            this.rasterHeight = this.exporter.height;
+            this.ratio = Math.max(1, this.exporter.width) / Math.max(1, this.exporter.height)
+            this.updateViewBox();
+        },
+
+        selectItem(item) {
+            this.selectedItem = item;
+            this.exporter = diagramImageExporter(this.items, item.area);
+            this.svgHtml = this.exporter.previewSvgHtml;
+            this.viewBoxWidth = this.exporter.width + this.paddingRight;
+            this.viewBoxHeight = this.exporter.height + this.paddingBottom;
+            this.width = this.exporter.width;
+            this.height = this.exporter.height;
+            this.rasterWidth = this.exporter.width;
+            this.rasterHeight = this.exporter.height;
+            this.updateViewBox();
+        },
+
         saveIt() {
             this.isLoading = true;
             this.errorMessage = null;
@@ -218,12 +265,14 @@ export default {
             if (this.sizeLocked) {
                 this.rasterHeight = Math.max(1, Math.round(this.rasterWidth / this.ratio));
             }
+            this.updateViewBox();
         },
         onHeightChange(height) {
             this.rasterHeight = Math.max(1, height);
             if (this.sizeLocked) {
                 this.rasterWidth = Math.max(1, Math.round(this.rasterHeight * this.ratio));
             }
+            this.updateViewBox();
         },
         toggleSizeLock() {
             this.sizeLocked = !this.sizeLocked;
@@ -231,6 +280,11 @@ export default {
                 this.ratio = Math.max(1, this.rasterWidth) / Math.max(1, this.rasterHeight);
             }
         },
+
+        updateViewBox() {
+            this.viewBoxWidth = this.width + this.paddingRight;
+            this.viewBoxHeight = this.height + this.paddingBottom;
+        }
     },
 
     watch: {
@@ -247,6 +301,12 @@ export default {
                 this.paddingTop = this.padding;
                 this.paddingBottom = this.padding;
             }
+        },
+        paddingRight(value) {
+            this.updateViewBox();
+        },
+        paddingBottom(value) {
+            this.updateViewBox();
         }
     },
 
@@ -278,14 +338,6 @@ export default {
             }
 
             return 2 * Math.max(Math.abs(vw/600), Math.abs(vh/380));
-        },
-
-        viewBoxWidth() {
-            return this.width + this.paddingRight;
-        },
-
-        viewBoxHeight() {
-            return this.height + this.paddingBottom;
         },
 
         title() {
