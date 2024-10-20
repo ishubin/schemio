@@ -117,12 +117,6 @@
             @close="importSchemeModal.shown = false"
             @import-scheme-submitted="importDiagramSubmitted"/>
 
-        <ExportPictureModal v-if="exportPictureModal.shown"
-            :items="exportPictureModal.items"
-            :kind="exportPictureModal.kind"
-            :background-color="exportPictureModal.backgroundColor"
-            @close="exportPictureModal.shown = false"/>
-
         <Modal v-if="newFolderModal.shown" @close="newFolderModal.shown = false" title="New folder" primaryButton="Create" @primary-submit="newFolderSubmitted">
             <input ref="newFolderName" type="text" class="textfield" v-model="newFolderModal.name" placeholder="Folder name..."/>
         </Modal>
@@ -143,9 +137,7 @@ import CreateNewSchemeModal from '../../ui/components/CreateNewSchemeModal.vue';
 import Modal from '../../ui/components/Modal.vue';
 import ExportJSONModal from '../../ui/components/editor/ExportJSONModal.vue';
 import ImportSchemeModal from '../../ui/components/editor/ImportSchemeModal.vue';
-import ExportPictureModal from '../../ui/components/editor/ExportPictureModal.vue';
 import {addEntryToFileTree, deleteEntryFromFileTree, findEntryInFileTree, traverseFileTree, renameEntryInFileTree, findParentEntryInFileTree } from '../../common/fs/fileTree';
-import StoreUtils from '../../ui/store/StoreUtils';
 import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
@@ -188,7 +180,7 @@ function initSchemioDiagramFile(originalFile) {
 export default {
     components: {
         Navigator, SchemioEditorApp, FileTabPanel, Modal,
-        ExportPictureModal, CreateNewSchemeModal, ImportSchemeModal,
+        CreateNewSchemeModal, ImportSchemeModal,
         'export-json-modal': ExportJSONModal,
     },
 
@@ -218,8 +210,6 @@ export default {
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
         window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
-        window.electronAPI.$on('file:exportAsSVG', this.onFileExportAsSVG);
-        window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
         window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$on('project-selected', this.onProjectSelected);
 
@@ -251,8 +241,6 @@ export default {
         window.electronAPI.$off('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$off('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$off('file:openProject', this.onMenuFileOpenProject);
-        window.electronAPI.$off('file:exportAsPNG', this.onFileExportAsPNG);
-        window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$off('file:exportAsJSON', this.onFileExportAsJSON);
         window.electronAPI.$off('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$off('project-selected', this.onProjectSelected);
@@ -288,13 +276,6 @@ export default {
             exportJSONModalShown: {
                 diagram: null,
                 shown: false
-            },
-
-            exportPictureModal: {
-                kind: 'svg',
-                shown: false,
-                items: [],
-                backgroundColor: 'rgba(255,255,255,1.0)'
             },
 
             newDiagramModal: {
@@ -677,13 +658,6 @@ export default {
             simulateKeyPress(Keys.CTRL_ZERO, true);
         },
 
-        onFileExportAsPNG() {
-            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
-                const file = this.files[this.currentOpenFileIdx];
-                this.openExportPictureModal(file, file.document.items, 'png');
-            }
-        },
-
         onImportDiagramFromText(event, text) {
             if (this.currentOpenFileIdx < 0 || this.currentOpenFileIdx >= this.files.length || this.files.length == 0) {
                 return;
@@ -714,26 +688,6 @@ export default {
                 this.exportJSONModalShown.shown = true;
             }
         },
-
-        onFileExportAsSVG() {
-            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
-                const file = this.files[this.currentOpenFileIdx];
-                this.openExportPictureModal(file, file.document.items, 'svg');
-            }
-        },
-
-        openExportPictureModal(file, items, kind) {
-            if (!Array.isArray(items) || items.length === 0) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
-                return;
-            }
-
-            this.exportPictureModal.items = items;
-            this.exportPictureModal.backgroundColor = file.document.style.backgroundColor;
-            this.exportPictureModal.kind = kind;
-            this.exportPictureModal.shown = true;
-        },
-
 
         onContextMenuRequested(file, menuOptions) {
             this.contextMenu.id = shortid.generate();
