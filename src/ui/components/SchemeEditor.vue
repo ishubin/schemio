@@ -602,6 +602,13 @@
             :schemeContainer="schemeContainer"
             @close="exportAnimationModalShown = false"
             @export-requested="onAnimationExportRequested"/>
+        
+        <ExportPictureModal v-if="exportPictureModal.shown"
+            :items="exportPictureModal.items"
+            :kind="exportPictureModal.kind"
+            :background-color="exportPictureModal.backgroundColor"
+            @close="exportPictureModal.shown = false"/>
+
 
     </div>
 
@@ -678,6 +685,7 @@ import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
 import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import StarterProposalModal from './editor/StarterProposalModal.vue';
 import ScriptConsole from './editor/ScriptConsole.vue';
+import ExportPictureModal from './editor/ExportPictureModal.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -791,7 +799,8 @@ export default {
         ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
-        DrawingControlsPanel, ExportAnimationModal, ScriptConsole, ScriptsTab
+        DrawingControlsPanel, ExportAnimationModal, ScriptConsole, ScriptsTab,
+        ExportPictureModal,
     },
 
     props: {
@@ -1170,10 +1179,38 @@ export default {
             templatePropertiesKey: 0,
 
             starterProposalModalShown: false,
-            scriptConsoleNewEntries: []
+            scriptConsoleNewEntries: [],
+
+            exportPictureModal: {
+                kind: 'svg',
+                shown: false,
+                items: [],
+                backgroundColor: 'rgba(255,255,255,1.0)'
+            },
         }
     },
     methods: {
+        exportAsSVG() {
+            const schemeContainer = this.mode === 'view' ? this.interactiveSchemeContainer : this.schemeContainer;
+            this.openExportPictureModal(schemeContainer.scheme.items, 'svg');
+        },
+
+        exportAsPNG() {
+            const schemeContainer = this.mode === 'view' ? this.interactiveSchemeContainer : this.schemeContainer;
+            this.openExportPictureModal(schemeContainer.scheme.items, 'png');
+        },
+
+        openExportPictureModal(items, kind) {
+            if (!Array.isArray(items) || items.length === 0) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
+                return;
+            }
+            this.exportPictureModal.items = items;
+            this.exportPictureModal.backgroundColor = this.scheme.style.backgroundColor;
+            this.exportPictureModal.kind = kind;
+            this.exportPictureModal.shown = true;
+        },
+
         onCompilerError(err) {
             this.scriptConsoleNewEntries = [{
                 level: 'error',
@@ -3430,11 +3467,15 @@ export default {
 
     computed: {
         finalMenuOptions() {
-            return this.menuOptions.concat({
+            return this.menuOptions.concat([ {
+                name: 'Export as SVG', callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'
+            }, {
+                name: 'Export as PNG', callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'
+            }, {
                 name: 'Export animation',
                 iconClass: 'fas fa-file-export',
                 callback: () => {this.exportAnimationModalShown = true}
-            });
+            }]);
         },
 
         currentSchemeContainer() {

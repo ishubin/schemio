@@ -65,12 +65,6 @@
 
         <export-json-modal v-if="exportJSONModalShown" :scheme="scheme" @close="exportJSONModalShown = false"/>
 
-        <ExportPictureModal v-if="exportPictureModal.shown"
-            :items="exportPictureModal.items"
-            :kind="exportPictureModal.kind"
-            :background-color="exportPictureModal.backgroundColor"
-            @close="exportPictureModal.shown = false"/>
-
         <export-html-modal v-if="exportHTMLModalShown" :scheme="scheme" @close="exportHTMLModalShown = false"/>
 
         <div v-if="loadPatchFileShown" style="display: none">
@@ -90,7 +84,6 @@ import Modal from './Modal.vue';
 import ImportSchemeModal from './editor/ImportSchemeModal.vue';
 import ContextMenu from './editor/ContextMenu.vue';
 import ExportJSONModal from './editor/ExportJSONModal.vue';
-import ExportPictureModal from './editor/ExportPictureModal.vue';
 import ExportHTMLModal from './editor/ExportHTMLModal.vue';
 import History from '../history/History.js';
 import EditorEventBus from './editor/EditorEventBus';
@@ -99,7 +92,7 @@ const defaultHistorySize = 30;
 
 export default {
     components: {
-        SchemioEditorApp, CreatePatchModal, ImportSchemeModal, ContextMenu, ExportPictureModal, Modal,
+        SchemioEditorApp, CreatePatchModal, ImportSchemeModal, ContextMenu, Modal,
         'export-json-modal': ExportJSONModal,
         'export-html-modal': ExportHTMLModal
     },
@@ -184,8 +177,6 @@ export default {
                 {name: 'Apply patch',       callback: () => this.triggerApplyPatchUpload(), iconClass: 'fas fa-file-import'},
             ]).concat([
                 {name: 'Export as JSON',    callback: () => {this.exportJSONModalShown = true}, iconClass: 'fas fa-file-export'},
-                {name: 'Export as SVG',     callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'},
-                {name: 'Export as PNG',     callback: () => this.exportAsPNG(),  iconClass: 'fas fa-file-export'},
                 {name: 'Export as HTML',    callback: () => {this.exportHTMLModalShown = true}, iconClass: 'fas fa-file-export'},
             ]),
 
@@ -201,13 +192,6 @@ export default {
             loadPatchFileShown: false,
 
             schemePatch: this.patch,
-
-            exportPictureModal: {
-                kind: 'svg',
-                shown: false,
-                items: [],
-                backgroundColor: 'rgba(255,255,255,1.0)'
-            },
 
             exportHTMLModalShown: false,
 
@@ -243,25 +227,6 @@ export default {
             this.customContextMenu.mouseY = y;
             this.customContextMenu.menuOptions = menuOptions;
             this.customContextMenu.show = true;
-        },
-
-        exportAsSVG() {
-            this.openExportPictureModal(this.scheme.items, 'svg');
-        },
-
-        exportAsPNG() {
-            this.openExportPictureModal(this.scheme.items, 'png');
-        },
-
-        openExportPictureModal(items, kind) {
-            if (!Array.isArray(items) || items.length === 0) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'You have no items in your document');
-                return;
-            }
-            this.exportPictureModal.items = items;
-            this.exportPictureModal.backgroundColor = this.scheme.style.backgroundColor;
-            this.exportPictureModal.kind = kind;
-            this.exportPictureModal.shown = true;
         },
 
         showImportJSONModal() {

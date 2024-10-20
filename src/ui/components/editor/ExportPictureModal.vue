@@ -136,7 +136,7 @@ export default {
 
         return {
             exporter,
-            shouldExportBackground: false,
+            shouldExportBackground: this.kind === 'png',
             shouldExportDataURL: false,
 
             simplePadding: true,
