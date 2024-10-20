@@ -199,7 +199,7 @@ export default {
             this.height = this.exporter.height;
             this.rasterWidth = this.exporter.width;
             this.rasterHeight = this.exporter.height;
-            this.ratio = Math.max(1, this.exporter.width) / Math.max(1, this.exporter.height)
+            this.ratio = Math.max(1, this.exporter.width) / Math.max(1, this.exporter.height);
             this.updateViewBox();
         },
 
@@ -214,6 +214,7 @@ export default {
             this.height = this.exporter.height;
             this.rasterWidth = this.exporter.width;
             this.rasterHeight = this.exporter.height;
+            this.ratio = Math.max(1, this.exporter.width) / Math.max(1, this.exporter.height);
             this.updateViewBox();
         },
 
