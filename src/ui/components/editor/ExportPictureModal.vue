@@ -110,6 +110,7 @@ import NumberTextfield from '../NumberTextfield.vue';
 import {forEach} from '../../collections';
 import {diagramImageExporter} from '../../diagramExporter';
 import { traverseItems } from '../../scheme/Item';
+import { getBoundingBoxOfItems } from '../../scheme/ItemMath';
 
 export default {
     props: {
@@ -204,7 +205,8 @@ export default {
 
         selectItem(item) {
             this.selectedItem = item;
-            this.exporter = diagramImageExporter(this.items, item.area);
+            const bbox = getBoundingBoxOfItems([item]);
+            this.exporter = diagramImageExporter(this.items, bbox);
             this.svgHtml = this.exporter.previewSvgHtml;
             this.viewBoxWidth = this.exporter.width + this.paddingRight;
             this.viewBoxHeight = this.exporter.height + this.paddingBottom;
@@ -236,7 +238,8 @@ export default {
                         this.$refs.dataURLTextarea.focus();
                     });
                 } else {
-                    this.downloadViaLink(`${this.items[0].name}.${this.kind}`, imageDataUrl);
+                    const name = this.selectedItem ? this.selectedItem.name : this.items[0].name;
+                    this.downloadViaLink(`${name}.${this.kind}`, imageDataUrl);
                 }
             })
             .catch(err => {
