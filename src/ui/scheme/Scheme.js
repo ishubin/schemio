@@ -15,7 +15,29 @@ const defaultScheme = {
         main: {
             source: ''
         },
-        functions: []
+        functions: [],
+        classes: [ /*{
+            id: 'ew235',
+            name: 'Graph',
+            description: 'this is a description of the class',
+
+            // args are used as initial property values for items
+            args:  [ {
+                description: "",
+                id: "j6HCGAfoE",
+                name: "graphValues",
+                type: "string",
+                value: "100, 105, 340, 100, 120"
+            }, {
+                description: "",
+                id: "ZhyMBV7CK",
+                name: "xStep",
+                type: "number",
+                value: 40
+            } ],
+            // same as the regular items behavior
+            events: []
+        }*/ ]
     },
     settings: {
         screen: {

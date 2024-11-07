@@ -805,9 +805,30 @@ export default {
          */
         indexUserEventsInItems(items, itemsForInit, componentRootItem) {
             traverseItems(items, item => {
+                if (Array.isArray(item.classes)) {
+                    item.classes.forEach(itemClass => {
+                        const classDef = this.schemeContainer.findClassById(itemClass.id);
+                        if (!classDef) {
+                            return;
+                        }
+
+                        const itemClassArgs = {...itemClass.args};
+
+                        classDef.events.forEach(event => {
+                            const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, itemClassArgs, (err) => {
+                                this.onCompilerError(err);
+                            });
+                            if (event.event === Events.standardEvents.init.id) {
+                                itemsForInit[item.id] = 1;
+                            }
+                            this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
+                        });
+                    });
+                }
+
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, (err) => {
+                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, {}, (err) => {
                             this.onCompilerError(err);
                         });
                         if (event.event === Events.standardEvents.init.id) {

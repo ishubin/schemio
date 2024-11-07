@@ -39,8 +39,72 @@
             </ul>
         </Panel>
 
+
+        <Panel uid="item-classes" name="Item Classes">
+            <div class="row gap centered">
+                <div>
+                    <Tooltip>
+                        Classes let you define global and parameterized behavior and re-use accross numerous items.
+                        Any item can be extended with multiple classes.
+                    </Tooltip>
+                </div>
+                <span class="col-1 btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-layer-group"></i> New class</span>
+                <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import classes"><i class="fa-solid fa-file-import"></i></span>
+                <div></div>
+            </div>
+            <ul class="navbar-functions-list">
+                <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
+                    <span class="func-name" @click="openClassEditor(classIdx)">
+                        <i class="fa-solid fa-layer-group"></i>
+                        {{ clazz.name }}
+                    </span>
+                    <div class="operations">
+                        <span class="link icon-delete" @click="deleteClass(classIdx)"><i class="fas fa-times"></i></span>
+                    </div>
+                </li>
+            </ul>
+        </Panel>
+
         <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="true">
             <ScriptEditor :value="mainScript" @changed="onMainScriptChange"/>
+        </Modal>
+
+
+        <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close">
+            <Panel uid="func-modal-name" name="Name & Description">
+                <div class="ctrl-label">Name</div>
+                <input type="text" class="textfield" :class="{'field-error': classModal.isNameError}"
+                    v-model="classModal.name"
+                    @input="onClassNameChange($event.target.value)"/>
+
+                <div class="ctrl-label">Description</div>
+                <textarea type="text" class="textfield" v-model="classModal.description" rows="3"
+                    @input="onClassDescriptionChange($event.target.value)"></textarea>
+            </Panel>
+
+            <Panel uid="class-modal-arguments" name="Arguments">
+                <CustomArgsEditor
+                    :editorId="editorId"
+                    :args="classModal.args"
+                    :schemeContainer="schemeContainer"
+                    @arg-added="onClassArgAdded(arguments[0], classModal.classIdx)"
+                    @arg-deleted="deleteClassArgument(arguments[0])"
+                    @arg-name-changed="onClassArgNameChange"
+                    @arg-type-changed="onClassArgTypeChanged"
+                    @arg-value-changed="onClassArgDefaultValueChange"
+                />
+            </Panel>
+
+
+            <BehaviorProperties
+                :key="`class-behavior-panel-${classModal.id}`"
+                :editorId="editorId"
+                :item="classModal.item"
+                :onlyEvents="true"
+                :schemeContainer="schemeContainer"
+                :shadowItem="true"
+                @shadow-item-updated="onBehaviorPropertiesUpdate"
+                />
         </Modal>
 
 
@@ -57,44 +121,16 @@
             </Panel>
 
             <Panel uid="func-modal-arguments" name="Arguments">
-                <table v-if="funcModal.args.length > 0" class="function-arguments">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th width="45%">Name</th>
-                            <th width="180px">Type</th>
-                            <th>Default value</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(arg, argIdx) in funcModal.args">
-                            <td><span class="link icon-delete" @click="deleteFuncArgument(argIdx)"><i class="fas fa-times"></i></span></td>
-                            <td><input class="textfield" type="text" :class="{'field-error': arg.isError}" v-model="arg.name"
-                                    @input="onFunctionArgNameChange($event.target.value, argIdx)"/></td>
-                            <td>
-                                <select class="dropdown" v-model="arg.type" @change="onArgTypeChanged(argIdx, $event)">
-                                    <option v-for="opt in supportedArgumentTypes" :value="opt.value">{{ opt.name }}</option>
-                                </select>
-                            </td>
-                            <td>
-                                <div class="function-argument-value">
-                                    <PropertyInput
-                                        :key="`arg-property-input-${argIdx}-${arg.type}`"
-                                        :editorId="editorId"
-                                        :schemeContainer="schemeContainer"
-                                        :descriptor="arg.descriptor"
-                                        :value="arg.value"
-                                        @input="onArgDefaultValueChange(argIdx, $event)"
-                                        />
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div v-else class="hint hint-small">
-                    This function does not have arguments
-                </div>
-                <span class="btn btn-secondary" @click="addFuncArgument"><i class="fa-solid fa-gear"></i> Add argument</span>
+                <CustomArgsEditor
+                    :editorId="editorId"
+                    :args="funcModal.args"
+                    :schemeContainer="schemeContainer"
+                    @arg-added="onFuncArgAdded(arguments[0], funcModal.funcIdx)"
+                    @arg-deleted="deleteFuncArgument(arguments[0])"
+                    @arg-name-changed="onFunctionArgNameChange"
+                    @arg-type-changed="onFuncArgTypeChanged"
+                    @arg-value-changed="onFuncArgDefaultValueChange"
+                />
             </Panel>
 
             <Panel uid="func-modal-script" name="Script">
@@ -165,27 +201,17 @@ import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
 import ScriptEditor from './ScriptEditor.vue';
 import Tooltip from '../Tooltip.vue';
-import PropertyInput from './properties/PropertyInput.vue';
 import ScriptFunctionEditor from './properties/behavior/ScriptFunctionEditor.vue';
 import utils from '../../utils';
 import EditorEventBus from './EditorEventBus';
-import { isValidColor, parseColor } from '../../colors';
+import { isValidColor } from '../../colors';
 import shortid from 'shortid';
 import SchemeSearchModal from './SchemeSearchModal.vue';
 import StoreUtils from '../../store/StoreUtils';
+import { defaultItemDefinition } from '../../scheme/Item';
+import CustomArgsEditor from './CustomArgsEditor.vue';
+import BehaviorProperties from './properties/BehaviorProperties.vue';
 
-
-const defaultTypeValues = {
-    'string': '',
-    'number': 0,
-    'color': 'rgba(255,255,255,1.0)',
-    'advanced-color': {type: 'solid', color: 'rgba(255,255,255,1.0)'},
-    'image': '',
-    'boolean': true,
-    'stroke-pattern': 'solid',
-    'element': '',
-    'scheme-ref': '',
-};
 
 function stringValidator(value) {
     return typeof value === 'string';
@@ -238,15 +264,16 @@ function ensureCorrectArgValue(argDef, usedValue) {
     return usedValue;
 }
 
-const _argNameRegex = new RegExp('^[a-zA-Z_][a-zA-Z0-9_]*$');
-
 export default {
     props: {
         editorId            : {type: String, required: true},
         schemeContainer     : {type: Object},
     },
 
-    components: {Panel, ScriptEditor, Modal, Tooltip, PropertyInput, ScriptFunctionEditor, SchemeSearchModal},
+    components: {
+        Panel, ScriptEditor, Modal, Tooltip, ScriptFunctionEditor,
+        SchemeSearchModal, CustomArgsEditor, BehaviorProperties
+    },
 
     data() {
         const scheme = this.schemeContainer.scheme;
@@ -259,7 +286,6 @@ export default {
                 isNameError: false,
                 description: '',
                 shown: false,
-                isNew: true,
                 script: '',
                 args: [],
                 errorMessage: null,
@@ -277,17 +303,19 @@ export default {
                 },
             },
 
-            supportedArgumentTypes: [
-                {name: 'string', value: 'string'},
-                {name: 'number', value: 'number'},
-                {name: 'color', value: 'color'},
-                {name: 'fill', value: 'advanced-color'},
-                {name: 'image', value: 'image'},
-                {name: 'checkbox', value: 'boolean'},
-                {name: 'stroke pattern', value: 'stroke-pattern'},
-                {name: 'item', value: 'element'},
-                {name: 'diagram', value: 'scheme-ref'},
-            ],
+            classModal: {
+                shown: false,
+                name: '',
+                description: '',
+                isNameError: false,
+                args: [],
+                classIdx: -1,
+                errorMessage: null,
+
+                // used as a mock item to be passed into BehaviorProperties component
+                // for editting class behavior
+                item: null
+            },
 
             importFunctionModal: {
                 shown: false,
@@ -303,22 +331,118 @@ export default {
     },
 
     methods: {
-        onFunctionArgNameChange(name, argIdx) {
-            if (!name || !_argNameRegex.test(name)) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'Invalid argument name. It should not contain spaces or special symbols and start with a literal', 'invalid-arg-name');
-                this.funcModal.args[argIdx].isError = true;
+        onBehaviorPropertiesUpdate(item) {
+            const idx = this.classModal.classIdx;
+            if (!this.classModal.shown || idx < 0) {
+                return;
+            }
+            this.schemeContainer.scheme.scripts.classes[idx].events = item.behavior.events;
+            this.classModal.item = item;
+        },
+
+        startAddingNewClass() {
+            const classDef = {
+                id: shortid.generate(),
+                name: 'Unnamed class...',
+                description: '',
+                args: [],
+                events: utils.clone(defaultItemDefinition.behavior.events)
+            };
+
+            this.schemeContainer.scheme.scripts.classes.push(classDef);
+            const idx = this.schemeContainer.scheme.scripts.classes.length - 1;
+            this.classModal.classIdx = idx;
+            this.classModal.name = this.schemeContainer.scheme.scripts.classes[idx].name;
+            this.classModal.description = this.schemeContainer.scheme.scripts.classes[idx].description;
+            this.classModal.args = [];
+            this.classModal.isNameError = false;
+            this.classModal.errorMessage = null;
+            this.classModal.item = {
+                ...utils.clone(defaultItemDefinition),
+                id: classDef.id,
+            };
+            this.classModal.id = classDef.id;
+            this.classModal.shown = true;
+        },
+
+        openClassEditor(classIdx) {
+            const classDef = this.schemeContainer.scheme.scripts.classes[classIdx];
+            this.classModal.name = classDef.name;
+            this.classModal.isNameError = false;
+            this.classModal.errorMessage = null;
+            this.classModal.description = classDef.description;
+            this.classModal.args = classDef.args.map(arg => {
+                return {
+                    ...arg,
+                    descriptor: {type: arg.type},
+                };
+            });
+            this.classModal.classIdx = classIdx;
+            this.classModal.item = {
+                ...utils.clone(defaultItemDefinition),
+                id: classDef.id,
+                behavior: {
+                    events: classDef.events,
+                }
+            };
+            this.classModal.shown = true;
+        },
+
+        onClassNameChange(name) {
+            if (!name.trim()) {
+                StoreUtils.addErrorSystemMessage(this.$store, 'Class should have a name', 'invalid-class-name');
+                this.classModal.isNameError = true;
             } else {
-                this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].name = name;
+                this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].name = name;
             }
         },
 
+        onClassDescriptionChange(value) {
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].description = value;
+        },
+
+        deleteClass(idx) {
+            this.schemeContainer.scheme.scripts.classes.splice(idx, 1);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.$forceUpdate();
+            // TODO delete all class references in all items
+            throw new Error('Unfinished');
+        },
+
+        deleteClassArgument(argIdx) {
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args.splice(argIdx, 1);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}`);
+        },
+
+        onClassArgNameChange(argIdx, name) {
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
+        },
+
+        onClassArgAdded(argDef, classIdx) {
+            this.schemeContainer.scheme.scripts.classes[classIdx].args.push(argDef);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onClassArgTypeChanged(argIdx, argType, argValue) {
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].type = argType;
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].value = argValue;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.type`);
+        },
+
+        onClassArgDefaultValueChange(argIdx, value) {
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].value = value;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.value`);
+        },
+
+        onClassNameChange(name) {
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].name = name;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.name`);
+        },
+
         onFuncNameChange(name) {
-            if (!name.trim()) {
-                StoreUtils.addErrorSystemMessage(this.$store, 'Function should have a name', 'invalid-func-name');
-                this.funcModal.args[argIdx].isError = true;
-            } else {
-                this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].name = name;
-            }
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].name = name;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.name`);
         },
 
         onFuncDescriptionChange(value) {
@@ -426,7 +550,8 @@ export default {
         },
 
         deleteFuncArgument(argIdx) {
-            this.funcModal.args.splice(argIdx, 1);
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args.splice(argIdx, 1);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}`);
         },
 
         /**
@@ -476,34 +601,25 @@ export default {
             }
         },
 
-        onArgTypeChanged(argIdx, event) {
-            const argDef = this.funcModal.args[argIdx];
-            const newType = event.target.value;
-            argDef.descriptor = {type: newType};
-            argDef.value = defaultTypeValues[newType];
-            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].type = newType;
-            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].value = argDef.value;
+        onFunctionArgNameChange(argIdx, name) {
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].name = name;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.name`);
         },
 
-        onArgDefaultValueChange(argIdx, value) {
-            this.funcModal.args[argIdx].value = value;
+        onFuncArgAdded(argDef, funcIdx) {
+            this.schemeContainer.scheme.scripts.functions[funcIdx].args.push(argDef);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+        },
+
+        onFuncArgTypeChanged(argIdx, argType, argValue) {
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].type = argType;
+            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].value = argValue;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.type`);
+        },
+
+        onFuncArgDefaultValueChange(argIdx, value) {
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].value = value;
-        },
-
-        addFuncArgument() {
-            const idx = this.funcModal.args.length + 1;
-            const argDef = {
-                id: shortid.generate(),
-                name: `arg${idx}`,
-                type: 'string',
-                value: '',
-            };
-            this.funcModal.args.push({
-                ...argDef,
-                descriptor: {type: 'string'},
-                isError: false,
-            });
-            this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args.push(argDef);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.value`);
         },
 
         onFuncScriptChanged(script) {
@@ -554,13 +670,7 @@ export default {
             this.funcModal.name = funcDef.name;
             this.funcModal.isNameError = false;
             this.funcModal.description = funcDef.description;
-            this.funcModal.isNew = false;
-            this.funcModal.args = funcDef.args.map(arg => {
-                return {
-                    ...arg,
-                    descriptor: {type: arg.type},
-                };
-            });
+            this.funcModal.args = funcDef.args;
             this.funcModal.props = utils.clone(funcDef.props);
             this.funcModal.script = funcDef.source;
             this.funcModal.shown = true;

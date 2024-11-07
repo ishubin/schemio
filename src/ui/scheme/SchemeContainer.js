@@ -440,6 +440,18 @@ class SchemeContainer {
         visitItems(mainItem.childItems, callback, recalculatedTransform, mainItem, mainItem.meta.ancestorIds);
     }
 
+    findClassById(classId) {
+        if (!Array.isArray(this.scheme.scripts.classes)) {
+            return null;
+        }
+        for (let i = 0; i < this.scheme.scripts.classes.length; i++) {
+            if (this.scheme.scripts.classes[i].id === classId) {
+                return this.scheme.scripts.classes[i];
+            }
+        }
+        return null;
+    }
+
     delayFullReindex() {
         if (this.reindexTimeoutId) {
             clearTimeout(this.reindexTimeoutId);

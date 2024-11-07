@@ -25,9 +25,10 @@ function enrichFuncArgs(args, funcDef) {
  * @param {SchemeItem} componentRootItem
  * @param {SchemeItem} selfItem
  * @param {Array} actions
+ * @param {Object} classArgs
  * @param {function(error)} errorCallback
  */
-export function compileActions(schemeContainer, componentRootItem, selfItem, actions, errorCallback) {
+export function compileActions(schemeContainer, componentRootItem, selfItem, actions, classArgs = {}, errorCallback = null) {
 
     const funcs = [];
     forEach(actions, action => {
@@ -55,11 +56,13 @@ export function compileActions(schemeContainer, componentRootItem, selfItem, act
                         forEach(elements, element => {
                             if (knownFunc.init) {
                                 try {
-                                    knownFunc.init(element, args, schemeContainer);
+                                    knownFunc.init(element, args, schemeContainer, classArgs);
                                 } catch(err) {
                                     if (err) {
                                         console.error(err);
-                                        errorCallback(err);
+                                        if (errorCallback) {
+                                            errorCallback(err);
+                                        }
                                     }
                                 }
                             }
@@ -130,7 +133,7 @@ export function compileActions(schemeContainer, componentRootItem, selfItem, act
 
 
             if (f.func.execute) {
-                f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName, eventArgs);
+                f.func.execute(f.element, f.args, schemeContainer, userEventBus, execNext, subscribedItem, eventName, eventArgs, classArgs);
             } else if (f.func.executeWithBranching) {
                 const branchingCallback = (result) => {
                     log.info('Branch result', result);
@@ -145,7 +148,7 @@ export function compileActions(schemeContainer, componentRootItem, selfItem, act
                     }
                     execNext();
                 };
-                f.func.executeWithBranching(f.element, f.args, schemeContainer, userEventBus, branchingCallback, subscribedItem, eventName, eventArgs);
+                f.func.executeWithBranching(f.element, f.args, schemeContainer, userEventBus, branchingCallback, subscribedItem, eventName, eventArgs, classArgs);
             } else {
                 execNext();
             }
