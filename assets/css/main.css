@@ -969,6 +969,12 @@ input.textfield.field-error {
     margin-top: 10px;
     margin-bottom: 5px;
 }
+.ctrl-label-inline {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 10pt;
+    margin-right: 10px;
+}
 .ctrl-group {
     margin-bottom: 10px;
 }

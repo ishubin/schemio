@@ -20,6 +20,7 @@ const defaultScheme = {
             id: 'ew235',
             name: 'Graph',
             description: 'this is a description of the class',
+            shape: 'all',
 
             // args are used as initial property values for items
             args:  [ {

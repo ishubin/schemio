@@ -71,7 +71,14 @@
 
 
         <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close">
-            <Panel uid="func-modal-name" name="Name & Description">
+            <Panel uid="class-modal-name" name="General">
+                <div class="section">
+                    <div class="ctrl-label-inline">Shape support:</div>
+                    <Dropdown :inline="true" :width="200" :options="allShapeOptions" @selected="onClassShapeSelected">
+                        {{ classModal.shape }}
+                    </Dropdown>
+                </div>
+
                 <div class="ctrl-label">Name</div>
                 <input type="text" class="textfield" :class="{'field-error': classModal.isNameError}"
                     v-model="classModal.name"
@@ -80,7 +87,9 @@
                 <div class="ctrl-label">Description</div>
                 <textarea type="text" class="textfield" v-model="classModal.description" rows="3"
                     @input="onClassDescriptionChange($event.target.value)"></textarea>
+
             </Panel>
+
 
             <Panel uid="class-modal-arguments" name="Arguments">
                 <CustomArgsEditor
@@ -208,9 +217,11 @@ import { isValidColor } from '../../colors';
 import shortid from 'shortid';
 import SchemeSearchModal from './SchemeSearchModal.vue';
 import StoreUtils from '../../store/StoreUtils';
-import { defaultItemDefinition } from '../../scheme/Item';
+import { defaultItemDefinition, traverseItems } from '../../scheme/Item';
 import CustomArgsEditor from './CustomArgsEditor.vue';
 import BehaviorProperties from './properties/BehaviorProperties.vue';
+import Shape from './items/shapes/Shape';
+import Dropdown from '../Dropdown.vue';
 
 
 function stringValidator(value) {
@@ -272,7 +283,7 @@ export default {
 
     components: {
         Panel, ScriptEditor, Modal, Tooltip, ScriptFunctionEditor,
-        SchemeSearchModal, CustomArgsEditor, BehaviorProperties
+        SchemeSearchModal, CustomArgsEditor, BehaviorProperties, Dropdown
     },
 
     data() {
@@ -280,6 +291,15 @@ export default {
         return {
             mainScriptEditorShown: false,
             mainScript: scheme.scripts.main.source,
+
+            allShapeOptions : [
+                {name: 'All', shape: 'all', description: 'Support all shapes'}
+            ].concat(Shape.getShapeIds().map(shapeId => {
+                return {
+                    name: shapeId,
+                    shape: shapeId,
+                };
+            })),
 
             funcModal: {
                 name: '',
@@ -311,6 +331,7 @@ export default {
                 args: [],
                 classIdx: -1,
                 errorMessage: null,
+                shape: 'all',
 
                 // used as a mock item to be passed into BehaviorProperties component
                 // for editting class behavior
@@ -331,6 +352,12 @@ export default {
     },
 
     methods: {
+        onClassShapeSelected(option) {
+            const idx = this.classModal.classIdx;
+            this.classModal.shape = option.shape;
+            this.schemeContainer.scheme.scripts.classes[idx].shape = option.shape;
+        },
+
         onBehaviorPropertiesUpdate(item) {
             const idx = this.classModal.classIdx;
             if (!this.classModal.shown || idx < 0) {
@@ -357,6 +384,7 @@ export default {
             this.classModal.args = [];
             this.classModal.isNameError = false;
             this.classModal.errorMessage = null;
+            this.classModal.shape = 'all';
             this.classModal.item = {
                 ...utils.clone(defaultItemDefinition),
                 id: classDef.id,
@@ -371,6 +399,7 @@ export default {
             this.classModal.isNameError = false;
             this.classModal.errorMessage = null;
             this.classModal.description = classDef.description;
+            this.classModal.shape = classDef.shape || 'all';
             this.classModal.args = classDef.args.map(arg => {
                 return {
                     ...arg,
@@ -402,32 +431,97 @@ export default {
         },
 
         deleteClass(idx) {
+            const classDef = this.schemeContainer.scheme.scripts.classes[idx];
             this.schemeContainer.scheme.scripts.classes.splice(idx, 1);
+            traverseItems(this.schemeContainer.scheme.items, item => {
+                if (!Array.isArray(item.classes)) {
+                    return;
+                }
+                for (let i = item.classes.length - 1; i >= 0; i--) {
+                    if (item.classes[i].id === classDef.id) {
+                        item.classes.splice(i, 1);
+                    }
+                }
+            });
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.$forceUpdate();
-            // TODO delete all class references in all items
-            throw new Error('Unfinished');
         },
 
         deleteClassArgument(argIdx) {
-            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args.splice(argIdx, 1);
+            const classDef = this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx];
+            const argDef = this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx];
+            classDef.args.splice(argIdx, 1);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}`);
+            traverseItems(this.schemeContainer.scheme.items, item => {
+                if (!Array.isArray(item.classes)) {
+                    return;
+                }
+                item.classes.forEach(itemClass => {
+                    if (!itemClass.id === classDef.id) {
+                        return;
+                    }
+                    if (!itemClass.args) {
+                        return;
+                    }
+                    if (itemClass.args.hasOwnProperty(argDef.name)) {
+                        delete itemClass.args[argDef.name];
+                    }
+                });
+            });
         },
 
         onClassArgNameChange(argIdx, name) {
-            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
+            const classDef = this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx];
+            const oldName = classDef.args[argIdx].name;
+            classDef.args[argIdx].name = name;
+
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
         },
 
         onClassArgAdded(argDef, classIdx) {
-            this.schemeContainer.scheme.scripts.classes[classIdx].args.push(argDef);
+            const classDef = this.schemeContainer.scheme.scripts.classes[classIdx];
+            classDef.args.push(argDef);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+
+            traverseItems(this.schemeContainer.scheme.items, item => {
+                if (!Array.isArray(item.classes)) {
+                    return;
+                }
+                item.classes.forEach(itemClass => {
+                    if (!itemClass.id === classDef.id) {
+                        return;
+                    }
+                    if (!itemClass.args) {
+                        itemClass.args = {};
+                    }
+                    itemClass.args[argDef.name] = argDef.value;
+                });
+            });
         },
 
         onClassArgTypeChanged(argIdx, argType, argValue) {
-            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].type = argType;
-            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].value = argValue;
+            const classDef = this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx];
+            if (classDef.args[argIdx].type === argType) {
+                return;
+            }
+            classDef.args[argIdx].type = argType;
+            classDef.args[argIdx].value = argValue;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.type`);
+
+            traverseItems(this.schemeContainer.scheme.items, item => {
+                if (!Array.isArray(item.classes)) {
+                    return;
+                }
+                item.classes.forEach(itemClass => {
+                    if (!itemClass.id === classDef.id) {
+                        return;
+                    }
+                    if (!itemClass.args) {
+                        itemClass.args = {};
+                    }
+                    itemClass.args[classDef.args[argIdx].name] = argValue;
+                });
+            });
         },
 
         onClassArgDefaultValueChange(argIdx, value) {

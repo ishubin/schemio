@@ -371,6 +371,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         getAngle: () => item.area.r,
         getScaleX: () => item.area.sx,
         getScaleY: () => item.area.sy,
+        getShape: () => item.shape,
 
         /**
          * Converts local point to world

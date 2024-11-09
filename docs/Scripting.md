@@ -77,10 +77,16 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [ifcond](#ifcond)
     - [getEventName](#geteventname)
     - [getEventArg](#geteventarg)
+    - [Colors](#colors)
+      - [Color](#color)
+      - [decodeColor](#decodecolor)
+      - [Color.encode](#colorencode)
+      - [Color.gradient](#colorgradient)
     - [Item functions](#item-functions)
       - [debugItem](#debugitem)
       - [getId](#getid)
       - [getName](#getname)
+      - [getShape](#getshape)
       - [getTags](#gettags)
       - [setVar](#setvar)
       - [getVar](#getvar)
@@ -943,6 +949,49 @@ The code above will return `-1` in case if `y` value is `0` and will return `1` 
 `getEventArg(i)` returns the event argument value at position `i` which is the number of argument starting from 0. It only makes sense to use this function if the event was sent using [sendEvent](#sendevent) function with custom arguments.
 
 
+#### Colors
+
+##### Color
+
+`Color(r,g,b,a)` function lets you create a color object. The function takes 4 arguments `r`, `g`, `b`, `a`, which represent red, green, blue and alpha components of the color
+
+```js
+```
+
+##### decodeColor
+
+`decodeColor(text)` decodes the color from `text` argument and returns `Color` object that represents given color
+
+```js
+color = decodeColor("rgba(255,240,200,1.0)")
+
+log(color.r)
+log(color.g)
+log(color.b)
+log(color.a)
+```
+
+
+##### Color.encode
+
+`encode()` function on the [Color](#color) object encodes the color to a string and returns it.
+
+```js
+color = Color(255, 145, 140, 1.0)
+log(color.encode())
+```
+
+##### Color.gradient
+
+`gradient(anotherColor, t)` is a function on the [Color](#color) object, that takes two parameters `anotherColor` and `t` and returns a mix of the two colors: the one that is stored in the color object itself and the 1st argument (`anotherColor`) of the function. The level of the color mix is controlled by the second argument `t`, which represents a value between 0 and 1.
+
+```js
+color = Color(255, 145, 140, 1.0)
+color2 = Color(100, 0, 10, 1.0)
+
+color3 = color.gradient(color2, 0.7)
+```
+
 #### Item functions
 
 Since all the script and condition functions are executed on some particular item, you get access to that items data.
@@ -962,6 +1011,9 @@ Since all the script and condition functions are executed on some particular ite
 
 `getName()` returns item's name
 
+##### getShape
+
+`getShape()` returns the id of a shape that is used by the item
 
 ##### getTags
 

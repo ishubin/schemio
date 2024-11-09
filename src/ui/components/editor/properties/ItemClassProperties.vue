@@ -63,7 +63,16 @@ export default {
         buildClassOptions() {
             return this.schemeContainer.scheme.scripts.classes
                 // filtering for classes that are not yet used by the item
-                .filter(classDef => findIndex(this.item.classes, itemClass => itemClass.id === classDef.id) < 0)
+                .filter(classDef => {
+                    if (findIndex(this.item.classes, itemClass => itemClass.id === classDef.id) >= 0) {
+                        return false;
+                    }
+
+                    if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== this.item.shape) {
+                        return false;
+                    }
+                    return true;
+                })
                 .map(classDef => {
                 return {
                     name: classDef.name,

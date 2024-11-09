@@ -811,6 +811,9 @@ export default {
                         if (!classDef) {
                             return;
                         }
+                        if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== item.shape) {
+                            return false;
+                        }
 
                         const itemClassArgs = {...itemClass.args};
 
