@@ -440,7 +440,20 @@ class SchemeContainer {
         visitItems(mainItem.childItems, callback, recalculatedTransform, mainItem, mainItem.meta.ancestorIds);
     }
 
-    findClassById(classId) {
+    /**
+     * @param {String} classId
+     * @param {Item|undefined} componentRootItem in case componentRootItem is defined it should first search in its classes in meta object
+     * @returns
+     */
+    findClassById(classId, componentRootItem) {
+        if (componentRootItem && Array.isArray(componentRootItem.meta.componentClasses)) {
+            for (let i = 0; i < componentRootItem.meta.componentClasses.length; i++) {
+                if (componentRootItem.meta.componentClasses[i].id === classId) {
+                    return componentRootItem.meta.componentClasses[i];
+                }
+            }
+        }
+
         if (!Array.isArray(this.scheme.scripts.classes)) {
             return null;
         }

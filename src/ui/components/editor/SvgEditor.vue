@@ -198,7 +198,7 @@ import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
-import { isolateScriptFunctionsForComponent } from '../../scheme/Scripts.js';
+import { isolateGlobalScriptsForComponent } from '../../scheme/Scripts.js';
 import { KeyBinder } from './KeyBinder.js';
 
 const EMPTY_OBJECT = {type: 'void'};
@@ -807,7 +807,7 @@ export default {
             traverseItems(items, item => {
                 if (Array.isArray(item.classes)) {
                     item.classes.forEach(itemClass => {
-                        const classDef = this.schemeContainer.findClassById(itemClass.id);
+                        const classDef = this.schemeContainer.findClassById(itemClass.id, componentRootItem);
                         if (!classDef) {
                             return;
                         }
@@ -852,7 +852,7 @@ export default {
         onComponentSchemeMounted(item, scheme) {
             if (item._childItems) {
                 const componentItemsForInit = {};
-                isolateScriptFunctionsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
+                isolateGlobalScriptsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
                 traverseItems(item._childItems, childItem => {
                     if (childItem.shape === 'key_bind') {
                         this.keyBinder.registerKeyBindItem(childItem);

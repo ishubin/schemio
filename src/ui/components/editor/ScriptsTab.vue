@@ -591,6 +591,11 @@ export default {
             this.updateTotalSelectedForImport();
         },
 
+        toggleImportClassCheckbox(idx, selected) {
+            this.importFunctionModal.classes[idx].selected = selected;
+            this.updateTotalSelectedForImport();
+        },
+
         updateTotalSelectedForImport() {
             let count = 0;
             this.importFunctionModal.functions.forEach(func => {

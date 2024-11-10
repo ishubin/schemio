@@ -3,14 +3,14 @@ import { createMainScriptScope } from "../userevents/functions/ScriptFunction";
 import { traverseItems } from "./Item";
 
 /**
- * Takes global scripts (main and functions) and replaces all the function references
+ * Takes global scripts (main and functions) and classes and replaces all the function and class references
  * @param {SchemeContainer} schemeContainer
  * @param {SchemioDoc} scheme
  * @param {Item} componentItem item that the dynamic component was attached to
- * @param {Array<Item>} items
+ * @param {Array<Item>} items items of the dynamic component
  * @param {*} userEventBus
  */
-export function isolateScriptFunctionsForComponent(schemeContainer, scheme, componentItem, items, userEventBus) {
+export function isolateGlobalScriptsForComponent(schemeContainer, scheme, componentItem, items, userEventBus) {
     if (!componentItem.meta) {
         componentItem.meta = {};
     }
@@ -34,6 +34,10 @@ export function isolateScriptFunctionsForComponent(schemeContainer, scheme, comp
             name: `${componentItem.id}/${funcDef.name}`
         });
     });
+
+    if (Array.isArray(scheme.scripts.classes)) {
+        componentItem.meta.componentClasses = scheme.scripts.classes;
+    }
 
     traverseItems(items, item => {
         if (!item.behavior && !Array.isArray(item.behavior.events)) {
