@@ -471,10 +471,7 @@ export default {
         },
 
         onClassArgNameChange(argIdx, name) {
-            const classDef = this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx];
-            const oldName = classDef.args[argIdx].name;
-            classDef.args[argIdx].name = name;
-
+            this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
         },
 

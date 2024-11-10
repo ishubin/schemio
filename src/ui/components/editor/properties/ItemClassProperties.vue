@@ -57,6 +57,20 @@ export default {
     methods: {
         onClassArgValueChange(classIdx, argName, value) {
             this.item.classes[classIdx].args[argName] = value;
+            for (let i = 0; i < this.schemeContainer.selectedItems.length; i++) {
+                const selectedItem = this.schemeContainer.selectedItems[i];
+                if (selectedItem.id !== this.item.id && Array.isArray(selectedItem.classes)) {
+                    let matchingClass = null;
+                    for (let j = 0; j < selectedItem.classes.length & !matchingClass; j++) {
+                        if (selectedItem.classes[j].id === this.item.classes[classIdx].id) {
+                            matchingClass = selectedItem.classes[j];
+                        }
+                    }
+                    if (matchingClass) {
+                        matchingClass.args[argName] = value;
+                    }
+                }
+            }
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.classes.${classIdx}.args.${argName}`);
         },
 
