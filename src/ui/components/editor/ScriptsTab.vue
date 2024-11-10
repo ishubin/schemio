@@ -21,7 +21,7 @@
                     </Tooltip>
                 </div>
                 <span class="col-1 btn btn-secondary" @click="startAddingNewFunction" title="Add new function"><i class="fa-solid fa-florin-sign"></i> New function</span>
-                <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import functions"><i class="fa-solid fa-file-import"></i></span>
+                <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import functions & classes"><i class="fa-solid fa-file-import"></i></span>
                 <div></div>
             </div>
 
@@ -154,11 +154,11 @@
             <div v-if="funcModal.errorMessage" class="msg msg-error">{{ funcModal.errorMessage }}</div>
         </Modal>
 
-        <Modal v-if="importFunctionModal.shown" title="Import functions"
+        <Modal v-if="importFunctionModal.shown" title="Import functions & classes"
             primaryButton="Import"
             :primaryButtonDisabled="importButtonDisabled"
             @close="importFunctionModal.shown = false"
-            @primary-submit="importSelectedFunctions"
+            @primary-submit="importSelectedFunctionsAndClasses"
             >
             <div>
                 <span v-if="importFunctionModal.searchDiagramSupported"
@@ -184,8 +184,21 @@
                             </li>
                         </ul>
                     </div>
-                    <div v-else class="hint hint-small">
-                        There are no functions to import. Choose a diagram from which you want to import functions.
+                    <div v-if="importFunctionModal.classes.length > 0">
+                        <div class="hint hint-small">Select classes you want to import</div>
+                        <ul>
+                            <li v-for="(classDef, classIdx) in importFunctionModal.classes">
+                                <input type="checkbox" :id="`import-class-checkbox-${classIdx}`" :checked="classDef.selected"  @input="toggleImportClassCheckbox(classIdx, arguments[0].target.checked)">
+                                <label :for="`import-class-checkbox-${funcIdx}`">
+                                    <i class="fa-solid fa-florin-sign"></i>
+                                    {{ classDef.name }}
+                                </label>
+                                <Tooltip v-if="classDef.description">{{ classDef.description }}</Tooltip>
+                            </li>
+                        </ul>
+                    </div>
+                    <div v-if="importFunctionModal.functions.length === 0 && importFunctionModal.classes.length === 0" class="hint hint-small">
+                        There are no functions or classes to import. Choose a diagram from which you want to import functions &amp; classes.
                     </div>
                 </div>
             </div>
@@ -342,6 +355,7 @@ export default {
                 shown: false,
                 searchModalShown: false,
                 functions: [],
+                classes: [],
                 totalSelected: 0,
                 errorMessage: null,
                 searchDiagramSupported: this.$store.state.apiClient && this.$store.state.apiClient.getScheme
@@ -540,11 +554,17 @@ export default {
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].description = value;
         },
 
-        importSelectedFunctions() {
+        importSelectedFunctionsAndClasses() {
             this.importFunctionModal.functions.forEach(func => {
                 if (func.selected) {
                     delete func.selected;
                     this.schemeContainer.scheme.scripts.functions.push(func);
+                }
+            });
+            this.importFunctionModal.classes.forEach(classDef => {
+                if (classDef.selected) {
+                    delete classDef.selected;
+                    this.schemeContainer.scheme.scripts.classes.push(classDef);
                 }
             });
             this.importFunctionModal.shown = false;
@@ -568,13 +588,18 @@ export default {
 
         toggleImportFunctionCheckbox(idx, selected) {
             this.importFunctionModal.functions[idx].selected = selected;
-            this.updateTotalSelectedFunctions();
+            this.updateTotalSelectedForImport();
         },
 
-        updateTotalSelectedFunctions() {
+        updateTotalSelectedForImport() {
             let count = 0;
             this.importFunctionModal.functions.forEach(func => {
                 if (func.selected) {
+                    count++;
+                }
+            });
+            this.importFunctionModal.classes.forEach(classDef => {
+                if (classDef.selected) {
                     count++;
                 }
             });
@@ -589,7 +614,7 @@ export default {
             this.importFunctionModal.searchModalShown = false;
 
             this.$store.state.apiClient.getScheme(doc.id).then(doc => {
-                this.loadFunctionsFromScheme(doc.scheme)
+                this.loadFunctionsAndClassesFromScheme(doc.scheme)
             })
             .catch(err => {
                 console.error(err);
@@ -597,8 +622,15 @@ export default {
             })
         },
 
-        loadFunctionsFromScheme(scheme) {
-            if (scheme && scheme.scripts && Array.isArray(scheme.scripts.functions)) {
+        loadFunctionsAndClassesFromScheme(scheme) {
+            this.importFunctionModal.functions = [];
+            this.importFunctionModal.classes = [];
+            this.importFunctionModal.totalSelected = 0;
+            if (!scheme || !scheme.scripts) {
+                return;
+            }
+
+            if (Array.isArray(scheme.scripts.functions)) {
                 this.importFunctionModal.functions = scheme.scripts.functions.map(funcDef => {
                     return {
                         ...funcDef,
@@ -607,10 +639,18 @@ export default {
                     };
                 });
 
-                this.importFunctionModal.totalSelected = this.importFunctionModal.functions.length;
-            } else {
-                this.importFunctionModal.functions = [];
-                this.importFunctionModal.totalSelected = 0;
+                this.importFunctionModal.totalSelected += this.importFunctionModal.functions.length;
+            }
+            if (Array.isArray(scheme.scripts.classes)) {
+                this.importFunctionModal.classes = scheme.scripts.classes.map(classDef => {
+                    return {
+                        ...classDef,
+                        id: shortid.generate(),
+                        selected: true
+                    };
+                });
+
+                this.importFunctionModal.totalSelected += this.importFunctionModal.classes.length;
             }
         },
 
