@@ -676,6 +676,20 @@ export default {
                 return !this.isStandardEvent(event.event);
             });
 
+            if (Array.isArray(item.classes)) {
+                item.classes.forEach(itemClass => {
+                    const classDef = this.schemeContainer.findClassById(itemClass.id);
+                    if (!classDef) {
+                        return;
+                    }
+                    forEach(classDef.events, event => {
+                        if (!this.isStandardEvent(event.event)) {
+                            filteredEvents.push(event);
+                        }
+                    });
+                });
+            }
+
             return uniq(map(filteredEvents, event => event.event));
         },
 
