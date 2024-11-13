@@ -34,6 +34,7 @@
                 :editorId="editorId"
                 :item="item"
                 :scheme-container="schemeContainer"
+                :onlyEvents="false"
                 @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
                 @jumped-to-item="onJumpedToItem"
                 />

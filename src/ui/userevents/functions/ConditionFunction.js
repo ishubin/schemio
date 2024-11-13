@@ -35,7 +35,7 @@ export default {
         return `${success} if ${args.expression} else ${fail}`;
     },
 
-    executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback) {
+    executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs) {
         let scriptAST = null;
         try {
             scriptAST = parseExpression(args.expression);
@@ -67,6 +67,15 @@ export default {
         };
 
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
+        scope.set('getEventName', () => eventName);
+        scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
+        if (classArgs) {
+            for (let name in classArgs) {
+                if (classArgs.hasOwnProperty(name)) {
+                    scope.set(name, classArgs[name]);
+                }
+            }
+        }
         try {
             const result = scriptAST.evalNode(scope);
 

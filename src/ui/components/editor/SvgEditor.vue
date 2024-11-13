@@ -198,7 +198,7 @@ import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
-import { isolateScriptFunctionsForComponent } from '../../scheme/Scripts.js';
+import { isolateGlobalScriptsForComponent } from '../../scheme/Scripts.js';
 import { KeyBinder } from './KeyBinder.js';
 
 const EMPTY_OBJECT = {type: 'void'};
@@ -805,9 +805,33 @@ export default {
          */
         indexUserEventsInItems(items, itemsForInit, componentRootItem) {
             traverseItems(items, item => {
+                if (Array.isArray(item.classes)) {
+                    item.classes.forEach(itemClass => {
+                        const classDef = this.schemeContainer.findClassById(itemClass.id, componentRootItem);
+                        if (!classDef) {
+                            return;
+                        }
+                        if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== item.shape) {
+                            return false;
+                        }
+
+                        const itemClassArgs = {...itemClass.args};
+
+                        classDef.events.forEach(event => {
+                            const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, itemClassArgs, (err) => {
+                                this.onCompilerError(err);
+                            });
+                            if (event.event === Events.standardEvents.init.id) {
+                                itemsForInit[item.id] = 1;
+                            }
+                            this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
+                        });
+                    });
+                }
+
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, (err) => {
+                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, {}, (err) => {
                             this.onCompilerError(err);
                         });
                         if (event.event === Events.standardEvents.init.id) {
@@ -828,7 +852,7 @@ export default {
         onComponentSchemeMounted(item, scheme) {
             if (item._childItems) {
                 const componentItemsForInit = {};
-                isolateScriptFunctionsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
+                isolateGlobalScriptsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
                 traverseItems(item._childItems, childItem => {
                     if (childItem.shape === 'key_bind') {
                         this.keyBinder.registerKeyBindItem(childItem);

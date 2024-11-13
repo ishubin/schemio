@@ -34,7 +34,7 @@ A script that runs before the start of animation. It is only invoked in animatio
 
 const scriptDescription = `A Schemio script expression. In animation mode this script is being executed on every animation frame`;
 
-function precompileItemScript(item, script, editorId) {
+function precompileItemScript(item, script) {
     const scriptAST = parseExpression(script);
     if (!scriptAST) {
         return;
@@ -50,17 +50,17 @@ function precompileItemScript(item, script, editorId) {
 }
 
 function init(item, args, schemeContainer, userEventBus) {
-    precompileItemScript(item, args.script, schemeContainer.editorId);
+    precompileItemScript(item, args.script);
     if (args.initScript) {
-        precompileItemScript(item, args.initScript, schemeContainer.editorId);
+        precompileItemScript(item, args.initScript);
     }
     if (args.endScript) {
-        precompileItemScript(item, args.endScript, schemeContainer.editorId);
+        precompileItemScript(item, args.endScript);
     }
 }
 
 
-function execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}) {
+function execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}, classArgs = {}) {
     if (!item.args || !item.args[COMPILED_SCRIPTS]) {
         resultCallback();
         return
@@ -79,6 +79,13 @@ function execute(item, args, schemeContainer, userEventBus, resultCallback, subs
     for (let name in extraScopeData) {
         if (extraScopeData.hasOwnProperty(name)) {
             scope.set(name, extraScopeData[name]);
+        }
+    }
+    if (classArgs) {
+        for (let name in classArgs) {
+            if (classArgs.hasOwnProperty(name)) {
+                scope.set(name, classArgs[name]);
+            }
         }
     }
     scope.set('getEventName', () => eventName);
@@ -177,7 +184,7 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
             init(item, funcDef.props, schemeContainer, userEventBus);
         },
 
-        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
+        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs = {}) {
             let componentScopeData = {};
             if (componentRootItem && componentRootItem.meta && componentRootItem.meta.componentScriptScopeData) {
                 componentScopeData = componentRootItem.meta.componentScriptScopeData;
@@ -196,7 +203,7 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
                 }
             });
             // console.log('Executing script function with args', args);
-            execute(item, funcDef.props, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, finalArgs);
+            execute(item, funcDef.props, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, finalArgs, classArgs);
         }
     };
 }
@@ -237,8 +244,8 @@ export const ScriptFunction = {
         init(item, args, schemeContainer, userEventBus);
     },
 
-    execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs) {
-        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs);
+    execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs = {}) {
+        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs);
     }
 };
 
@@ -364,6 +371,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         getAngle: () => item.area.r,
         getScaleX: () => item.area.sx,
         getScaleY: () => item.area.sy,
+        getShape: () => item.shape,
 
         /**
          * Converts local point to world
@@ -542,7 +550,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             traverseItems([clonedItem], cItem => {
                 if (cItem.behavior && Array.isArray(cItem.behavior.events)) {
                     cItem.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(schemeContainer, null, cItem, event.actions);
+                        const eventCallback = compileActions(schemeContainer, null, cItem, event.actions, {});
                         if (event.event === Events.standardEvents.init.id) {
                             eventCallback(userEventBus, userEventBus.revision, cItem.id, Events.standardEvents.init.id);
                         } else {

@@ -38,7 +38,7 @@ export default {
                 dstItems.forEach(dstItem => {
                     item.behavior.events.forEach(event => {
                         if (event.event !== Events.standardEvents.init.id) {
-                            const eventCallback = compileActions(schemeContainer, null, dstItem, event.actions);
+                            const eventCallback = compileActions(schemeContainer, null, dstItem, event.actions, {});
                             userEventBus.subscribeItemEvent(dstItem.id, dstItem.name, event.event, eventCallback);
                         }
                     });

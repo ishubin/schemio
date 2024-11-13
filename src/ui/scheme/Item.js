@@ -147,7 +147,7 @@ export const defaultItemDefinition = {
         //     - none        = no dragging
         //     - free        = free dragging
         //     - path        = user can drag the item but it is constrained by the path of specified items
-        //     - dragndrop = user can only drag from one place to another
+        //     - dragndrop   = user can only drag from one place to another
         dragging: 'none',
         dropTo: '',
         // element selector that contraints the dragging within the outline of specified item or group of items
@@ -160,6 +160,15 @@ export const defaultItemDefinition = {
     shapeProps: {},
     tooltipBackground: 'rgba(230,230,230,1.0)',
     tooltipColor: 'rgba(30,30,30,1.0)',
+    // classes: [ /* ids of classes */ ],
+    // classVars: { /* map of class args to values */ }
+
+    classes: [{
+        id: 'sdada',
+        args: {
+
+        }
+    }]
 };
 
 export const defaultItem = {

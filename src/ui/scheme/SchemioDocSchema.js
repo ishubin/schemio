@@ -29,7 +29,7 @@ const baseSchema = {
             }},
             functions: {
                 type: 'array', of: 'object',
-                patching: ['patch-id-array'],
+                patching: ['patch-id-array', 'replace'],
                 fields: {
                     id         : {type: 'string'},
                     name       : {type: 'string', patching: ['patch-text', 'replace'], },
@@ -50,6 +50,33 @@ const baseSchema = {
                         animationDuration: {type: 'number', patching: ['replace']},
                         transition       : {type: 'string', patching: ['replace']},
                         inBackground     : {type: 'boolean', patching: ['replace']}
+                    }}
+                }
+            },
+            classes: {
+                type: 'array', of: 'object',
+                patching: ['patch-id-array', 'replace'],
+                fields: {
+                    id         : {type: 'string'},
+                    name       : {type: 'string', patching: ['patch-text', 'replace'], },
+                    description: {type: 'string', patching: ['patch-text'] },
+                    args       : {type: 'array', of: 'object', patching: ['patch-id-array'], fields: {
+                        id         : {type: 'string'},
+                        name       : {type: 'string', patching: ['patch-text', 'replace'], },
+                        description: {type: 'string', patching: ['patch-text'] },
+                        type       : {type: 'string', patching: ['replace']},
+                        value      : {type: 'any', patching: ['replace']},
+                    }},
+                    events         : {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
+                        id   : {type: 'string'},
+                        event: {type: 'string', patching: ['replace']},
+                        actions: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
+                            id     : {type: 'string'},
+                            element: {type: 'string', patching: ['replace']},
+                            method : {type: 'string', patching: ['replace']},
+                            on     : {type: 'boolean', patching: ['replace']},
+                            args   : {type: 'conditional', contidionalParentField: 'method', conditions: [ /* dynamically built */]}
+                        }}
                     }}
                 }
             }
@@ -322,6 +349,13 @@ export function getSchemioDocSchema() {
     baseSchema.fields.items.fields.shapeProps.conditions = shapePropsConditions;
     baseSchema.fields.items.fields.effects.fields.args.conditions = buildFieldConditionsFor(getEffects());
     baseSchema.fields.items.fields.behavior.fields.events.fields.actions.fields.args.conditions = [{
+        on: null,
+        type: 'object',
+        patching: [ 'modify', 'delete' ],
+        fields: { '*': {type: 'any', patching: ['replace', 'delete']}}
+    }].concat(buildFieldConditionsFor(Functions.main));
+
+    baseSchema.fields.scripts.fields.classes.fields.events.fields.actions.fields.args.conditions = [{
         on: null,
         type: 'object',
         patching: [ 'modify', 'delete' ],

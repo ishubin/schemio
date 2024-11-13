@@ -969,6 +969,12 @@ input.textfield.field-error {
     margin-top: 10px;
     margin-bottom: 5px;
 }
+.ctrl-label-inline {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 10pt;
+    margin-right: 10px;
+}
 .ctrl-group {
     margin-bottom: 10px;
 }
@@ -5140,4 +5146,67 @@ table.function-arguments .function-argument-value > div {
 .function-import-container li {
     padding-top: 5px;
     padding-bottom: 5px;
+}
+
+
+/********* item classes ************/
+.item-class-labels {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+.item-class-labels .item-class-label {
+    display: inline-block;
+    margin-right: 10px;
+    position: relative;
+    background: var(--accent-faint);
+    color: var(--base-weak);
+    padding: 4px 10px;
+    border-radius: 3px;
+}
+[data-theme="dark"] .item-class-labels .item-class-label {
+    background: var(--accent-faint-up);
+    color: var(--faint-weak);
+}
+.item-class-labels .item-class-label .item-class-delete {
+    position: absolute;
+    display: none;
+    top: 0;
+    right: 1px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.item-class-labels .item-class-label:hover .item-class-delete {
+    display: block;
+}
+
+.item-class-args-container {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+.item-class-name-separator {
+    position: relative;
+    display: block;
+    height: 1px;
+    border-top: 1px solid var(--faint-strong-up-up);
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+[data-theme="dark"] .item-class-name-separator {
+    border-top: 1px solid var(--faint-strong);
+}
+.item-class-name-separator .item-class-name {
+    display: block;
+    position: absolute;
+    margin-inline: auto;
+    width: fit-content;
+    padding: 0 4px;
+    top: -9px;
+    left: 0;
+    right: 0;
+    height: 20px;
+    font-size: 13px;
+    background: var(--faint-weak);
+    color: var(--base-strong);
+    white-space: nowrap;
+    overflow: hidden;
 }
