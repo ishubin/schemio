@@ -442,6 +442,7 @@ export default {
 
         onClassDescriptionChange(value) {
             this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].description = value;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.description`);
         },
 
         deleteClass(idx) {

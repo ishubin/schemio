@@ -3248,6 +3248,7 @@ export default {
                 return;
             }
             this.selectedItem.shapeProps.schemeId = diagram.id;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.selectedItem.id}.shapeProps.schemeId`);
             this.$forceUpdate();
         },
 
