@@ -5,7 +5,7 @@
         <div class="item-class-labels">
             <div v-for="(itemClass, idx) in itemClasses" class="item-class-label">
                 {{ itemClass.name }}
-                <span class="item-class-delete" @click="deleteItemClass(idx)"><i class="fas fa-times"></i></span>
+                <span class="item-class-delete" @click="deleteItemClass(itemClass.id, idx)"><i class="fas fa-times"></i></span>
             </div>
         </div>
 
@@ -122,8 +122,14 @@ export default {
             return classes;
         },
 
-        deleteItemClass(idx) {
-            this.item.classes.splice(idx, 1);
+        deleteItemClass(classId, idx) {
+            this.schemeContainer.selectedItems.forEach(item => {
+                for (let i = item.classes.length - 1; i >= 0; i--) {
+                    if (item.classes[i].id === classId) {
+                        item.classes.splice(i, 1);
+                    }
+                }
+            });
             this.itemClasses.splice(idx, 1);
             this.classOptions = this.buildClassOptions();
         },
@@ -133,25 +139,28 @@ export default {
             if (!classDef) {
                 return;
             }
-            if (findIndex(this.item.classes, itemClass => itemClass.id === classDef.id) >= 0) {
-                // item already has a reference to the same class
-                return;
-            }
 
-            const args = {};
-            if (Array.isArray(classDef.args)) {
-                classDef.args.forEach(argDef => {
-                    args[argDef.name] = argDef.value;
+            this.schemeContainer.selectedItems.forEach(item => {
+                if (findIndex(item.classes, itemClass => itemClass.id === classDef.id) >= 0) {
+                    // item already has a reference to the same class
+                    return;
+                }
+
+                const args = {};
+                if (Array.isArray(classDef.args)) {
+                    classDef.args.forEach(argDef => {
+                        args[argDef.name] = argDef.value;
+                    });
+                }
+
+                item.classes.push({
+                    id: classDef.id,
+                    args
                 });
-            }
 
-            this.item.classes.push({
-                id: classDef.id,
-                args
+                this.itemClasses = this.buildItemClasses();
+                this.classOptions = this.buildClassOptions();
             });
-
-            this.itemClasses = this.buildItemClasses();
-            this.classOptions = this.buildClassOptions();
         }
     }
 }
