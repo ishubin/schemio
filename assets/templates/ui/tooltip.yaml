@@ -1,0 +1,389 @@
+name: Tooltip
+args:
+  pulse         : {type: "boolean", value: true, name: "Icon pulse animation", description: "Animate the tooltip icon"}
+  pulseInterval : {type: "number", value: 1, name: "Pulse interval", description: "", depends: {pulse: true}}
+  pulseTime     : {type: "number", value: 0.8, name: "Pulse time", description: "", depends: {pulse: true}}
+  pulseFactor   : {type: "number", value: 1.5, name: "Pulse factor", description: "", depends: {pulse: true}}
+  pulseBehavior : {type: "choice", value: 'nothing', name: "Pulse behavior", depends: {pulse: true},
+    options: ['nothing', 'Disable after popup'],
+    description: ""
+  }
+  popupWidth    : {type: "number", value: 200, name: "Popup width", hidden: true}
+  popupHeight   : {type: "number", value: 100, name: "Popup height", hidden: true}
+  popupX        : {type: "number", value: 10, name: "Popup X", hidden: true}
+  popupY        : {type: "number", value: 0, name: "Popup Y", hidden: true}
+  popupVisible  : {type: "boolean", value: true, name: "Popup visible", hidden: true}
+
+defaultArea: { x: 0, "y": 0, w: 20, h: 20, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1 }
+
+preview: /assets/images/templates/tooltip.svg
+
+import:
+  - ./src/tooltip.sch
+
+handlers:
+  area: onAreaUpdate(itemId, item, area)
+
+controls:
+  - $-if: popupVisible
+    name: hidePopup
+    type: button
+    text: Hide popup
+    x: {$-expr: "popupX + width" }
+    y: {$-expr: "popupY - 35"}
+    width: 110
+    height: 30
+    click:
+      - popupVisible = false
+
+  - $-if: "!popupVisible"
+    name: showPopup
+    type: button
+    text: Show popup
+    x: {$-expr: "width + 15" }
+    y: 0
+    width: 110
+    height: 30
+    click:
+      - popupVisible = true
+
+
+item:
+  id: root
+  name: Tooltip
+  shape: ellipse
+  cursor: pointer
+  area: { x: 0, y: 0, w: 20, h: 20, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1 }
+  args:
+    templateIgnoredProps: ['shapeProps.*', 'name', 'description']
+  shapeProps:
+    fill: {type: 'solid', color: 'rgba(110,185,247,1)'}
+    strokeSize: 0
+
+  behavior:
+    events:
+      - id: init
+        event: init
+        actions:
+          - id: hide-popup
+            method: hide
+            element: "#popup"
+            args:
+              animated: false
+          - id: init-script
+            method: script
+            element: self
+            args:
+              animated: true
+              script: "setVar('closed', true)"
+
+      - id: clicked
+        event: clicked
+        actions:
+          - id: toggle-popup
+            element: self
+            method: sendEvent
+            args:
+              event: Toggle popup
+
+      - id: show-popup
+        event: Show popup
+        actions:
+          - id: show-popup
+            method: show
+            element: "#popup"
+            args:
+              animated: true
+              animationDuration: 0.2
+              inBackground: true
+          - id: popup-script-state
+            method: script
+            element: self
+            args:
+              animated: false
+              script: "setVar('closed', false)"
+          - id: disable-pulsing
+            $-if: "pulseBehavior == 'Disable after popup'"
+            method: stopRepeater
+            element: "#pulse"
+            args:
+              name: pulse
+
+      - id: hide-popup
+        event: Hide popup
+        actions:
+          - id: hide-popup
+            method: hide
+            element: "#popup"
+            args:
+              animated: true
+              animationDuration: 0.2
+              inBackground: true
+          - id: popup-script-state
+            method: script
+            element: self
+            args:
+              animated: false
+              script: "setVar('closed', true)"
+
+      - id: toggle-popup
+        event: Toggle popup
+        actions:
+          - id: toggle-popup-script
+            method: script
+            element: self
+            args:
+              animated: false
+              script: |
+                if (getVar('closed')) {
+                    sendEvent("Show popup")
+                } else {
+                    sendEvent("Hide popup")
+                }
+
+
+  childItems:
+    - id: popup
+      name: popup
+      shape: rect
+      locked: false
+      visible: {$-expr: popupVisible}
+      area: {x: {$-expr: "popupX + width"}, y: {$-expr: popupY}, w: {$-expr: popupWidth}, h: {$-expr: popupHeight}}
+      textSlots:
+        body:
+          text: Enter your text here...
+      args:
+        templateIgnoredProps: ['shapeProps.*', 'name', 'description', 'textSlots.*']
+        tplArea: controlled
+        tplRotation: 'off'
+        tplConnector: 'off'
+      shapeProps:
+        strokeSize: 1
+        strokeColor: rgba(200,200,200,1)
+        fill: {type: 'solid', color: 'rgba(240,240,240,1)'}
+        cornerRadius: 10
+      childItems:
+        - id: close-btn
+          name: close button
+          shape: ellipse
+          area: {x: 0, y: 0, w: 20, h: 20}
+          autoLayout:
+            'on': true
+            rules:
+              top: 5
+              right: 5
+              width: 20
+              height: 20
+          shapeProps:
+            fill: {type: 'solid', color: '#43A2FB'}
+            strokeSize: 0
+          childItems:
+            - id: close-cross
+              name: cross
+              shape: path
+              area: {x: 5, y: 5, w: 10, h: 10}
+              shapeProps:
+                fill: {type: 'solid', color: 'rgba(255,255,255,1.0)'}
+                strokeSize: 0
+                paths:
+                  - id: "bINYqy-QNh"
+                    closed: true
+                    points:
+                      - t: "L"
+                        x: 24.45
+                        y: 50
+
+                      - t: "A"
+                        x: 5.29
+                        y: 30.83
+                        h: 50
+
+                      - t: "L"
+                        x: 30.83
+                        y: 5.29
+
+                      - t: "L"
+                        x: 50
+                        y: 24.452
+
+                      - t: "A"
+                        x: 69.16
+                        y: 5.29
+                        h: 50
+
+                      - t: "L"
+                        x: 94.70
+                        y: 30.83
+
+                      - t: "L"
+                        x: 75.54
+                        y: 50
+
+                      - t: "A"
+                        x: 94.70
+                        y: 69.16
+                        h: 50
+
+                      - t: "L"
+                        x: 69.16
+                        y: 94.70
+
+                      - t: "L"
+                        x: 49.99
+                        y: 75.54
+
+                      - t: "A"
+                        x: 30.83
+                        y: 94.70
+                        h: 50
+                      - t: "L"
+                        x: 5.29
+                        y: 69.16
+                    pos: "relative"
+            - id: close-btn-overlay
+              name: button overlay
+              shape: ellipse
+              area: {x: 0, y: 0, w: 20, h: 20}
+              cursor: pointer
+              shapeProps:
+                fill: {type: 'solid', color: 'rgba(0,0,0,0)'}
+                strokeSize: 0
+              behavior:
+                events:
+                  - event: clicked
+                    id: clicked
+                    actions:
+                      - id: hide-popup
+                        element: "#root"
+                        method: sendEvent
+                        args:
+                          event: Hide popup
+                  - event: mousein
+                    id: mousein
+                    actions:
+                      - id: fade-in-btn
+                        element: "#close-btn"
+                        method: set
+                        args:
+                          field: opacity
+                          value: 70
+                          animated: true
+                          animationDuration: 0.2
+                          transition: ease-in-out
+                          inBackground: true
+                  - event: mouseout
+                    id: mouseout
+                    actions:
+                      - id: fade-out-btn
+                        element: "#close-btn"
+                        method: set
+                        args:
+                          field: opacity
+                          value: 100
+                          animated: true
+                          animationDuration: 0.2
+                          transition: ease-in-out
+                          inBackground: true
+
+
+
+    - id: pulse
+      $-if: pulse
+      name: pulse
+      shape: ellipse
+      visible: false
+      opacity: 100
+      cursor: pointer
+      area: {x: 0, y: 0, w: {$-expr: width}, h: {$-expr: height}}
+      shapeProps:
+        fill: {type: 'solid', color: 'rgba(216, 222, 227, 1)'}
+        strokeSize: 0
+      behavior:
+        events:
+          - event: init
+            id: init
+            actions:
+              - element: self
+                method: script
+                id: init-script
+                args:
+                  initScript: ""
+                  script: |
+                    parent = findParent()
+                    if (parent) {
+                        setFill(parent.getFill())
+                    }
+                  endScript: ""
+                  animated: false
+              - element: self
+                id: init-send-event
+                method: sendEvent
+                args:
+                  event: Animate pulse
+              - element: self
+                id: make-visible
+                method: set
+                args:
+                  field: visible
+                  value: true
+
+          - event: clicked
+            id: clicked
+            actions:
+              - id: toggle-popup
+                element: "#root"
+                method: sendEvent
+                args:
+                  event: Toggle popup
+
+          - event: Animate pulse
+            id: animate-pulse
+            actions:
+              - element: self
+                id: scale
+                method: scale
+                args:
+                  scaleX: {$-expr: pulseFactor}
+                  scaleY: {$-expr: pulseFactor}
+                  animated: true
+                  duration: {$-expr: pulseTime}
+                  movement: ease-out
+                  inBackground: true
+              - element: self
+                id: fade
+                method: set
+                args:
+                  field: opacity
+                  value: 0
+                  animated: true
+                  animationDuration: {$-expr: pulseTime}
+                  transition: ease-in-out
+                  inBackground: false
+              - element: self
+                id: scale-back
+                method: scale
+                args:
+                  scaleX: 1
+                  scaleY: 1
+                  animated: false
+                  duration: 1
+                  movement: "ease-out"
+                  inBackground: true
+              - element: "self"
+                method: "set"
+                args:
+                  field: "opacity"
+                  value: 100
+                  animated: false
+              - element: "self"
+                id: wait
+                method: wait
+                args:
+                  time: {$-expr: pulseInterval}
+              - element: self
+                id: repeat
+                method: repeater
+                args:
+                  name: pulse
+                  forever: true
+                  count: 10

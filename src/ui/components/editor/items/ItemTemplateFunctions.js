@@ -24,7 +24,8 @@ export function createTemplateFunctions(editorId, rootItem) {
         duplicateItem: duplicateItem(rootItem),
         updateItem: updateItemFunc(editorId, rootItem),
 
-        clone: (obj) => utils.clone(obj)
+        clone: (obj) => utils.clone(obj),
+        log: (...args) => console.log(...args)
     }
 }
 

@@ -3068,8 +3068,14 @@ ul.script-options .script-option.selected {
 .item-selector .item-row .templated-item {
     color: #943e92;
 }
+[data-theme="dark"] .item-selector .item-row .templated-item {
+    color: #f16fef;
+}
 .item-selector .item-row .templated-item.templated-item-root {
     color: #3161a9;
+}
+[data-theme="dark"] .item-selector .item-row .templated-item.templated-item-root {
+    color: #83b2f9;
 }
 .item-selector .item-row .item-level-spacing {
     display: inline-block;

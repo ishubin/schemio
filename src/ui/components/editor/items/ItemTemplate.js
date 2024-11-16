@@ -293,9 +293,6 @@ export function compileItemTemplate(editorId, template, templateRef) {
  */
 export function generateItemFromTemplate(template, args, width, height, postBuild = false) {
     const item = template.buildItem(args, width, height, postBuild);
-    item.area.w = width;
-    item.area.h = height;
-
     traverseItems([item], (it, parentItem) => {
         if (!it.args) {
             it.args = {};
@@ -311,6 +308,9 @@ export function generateItemFromTemplate(template, args, width, height, postBuil
         it.args.templated = true;
         enrichItemWithDefaults(it);
     });
+
+    item.area.w = width;
+    item.area.h = height;
 
     item.args.templateRef = template.templateRef;
     item.args.templateArgs = {};
