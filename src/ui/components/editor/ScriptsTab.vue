@@ -235,6 +235,7 @@ import CustomArgsEditor from './CustomArgsEditor.vue';
 import BehaviorProperties from './properties/BehaviorProperties.vue';
 import Shape from './items/shapes/Shape';
 import Dropdown from '../Dropdown.vue';
+import { enrichItemWithDefaults } from '../../scheme/ItemFixer';
 
 
 function stringValidator(value) {
@@ -399,10 +400,9 @@ export default {
             this.classModal.isNameError = false;
             this.classModal.errorMessage = null;
             this.classModal.shape = 'all';
-            this.classModal.item = {
-                ...utils.clone(defaultItemDefinition),
-                id: classDef.id,
-            };
+            const item = {id: classDef.id, shape: 'ellipse'};
+            enrichItemWithDefaults(item);
+            this.classModal.item = item;
             this.classModal.id = classDef.id;
             this.classModal.shown = true;
         },
@@ -421,13 +421,15 @@ export default {
                 };
             });
             this.classModal.classIdx = classIdx;
-            this.classModal.item = {
-                ...utils.clone(defaultItemDefinition),
+            const item = {
                 id: classDef.id,
+                shape: classDef.shape === 'all' ? 'ellipse' : classDef.shape,
                 behavior: {
                     events: classDef.events,
                 }
             };
+            enrichItemWithDefaults(item);
+            this.classModal.item = item;
             this.classModal.shown = true;
         },
 
