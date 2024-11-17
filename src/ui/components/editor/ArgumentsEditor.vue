@@ -9,65 +9,85 @@
                     {{arg.name}}
                     <tooltip v-if="arg.description">{{arg.description}}</tooltip>
                 </td>
+                <td v-if="arg.type !== 'script' && hasScopeArgs" class="property-arg-binder">
+                    <Dropdown
+                        v-if="argumentBindStates[argName].options.length > 0"
+                        :key="`dropdown-binder-${argName}-${argumentBindStates[argName].revision}`"
+                        :inline="true"
+                        :width="30"
+                        :borderless="true"
+                        :options="argumentBindStates[argName].options"
+                        title="Bind argument"
+                        @selected="onArgumentBindSelected(argName, arguments[0])"
+                        >
+                        <i v-if="argumentBindStates[argName].isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
+                        <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
+                    </Dropdown>
+                </td>
                 <td v-if="arg.type !== 'script'" class="value" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
-                    <input v-if="arg.type === 'string' || arg.type === 'image'"
-                        class="textfield"
-                        :value="argumentValues[argName]"
-                        :disabled="!argumentControlStates[argName].shown"
-                        @input="onValueChange(argName, arguments[0].target.value)"/>
+                    <div v-if="argumentBindStates[argName].isBinded">
+                        <span class="property-arg-binder-ref" title="Class argument">{{ argumentBindStates[argName].value.ref }}</span>
+                    </div>
+                    <div v-else>
+                        <input v-if="arg.type === 'string' || arg.type === 'image'"
+                            class="textfield"
+                            :value="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @input="onValueChange(argName, arguments[0].target.value)"/>
 
-                    <number-textfield v-if="arg.type === 'number'"
-                        :value="argumentValues[argName]"
-                        :min="arg.min"
-                        :max="arg.max"
-                        :disabled="!argumentControlStates[argName].shown"
-                        @changed="onValueChange(argName, arguments[0])"/>
+                        <number-textfield v-if="arg.type === 'number'"
+                            :value="argumentValues[argName]"
+                            :min="arg.min"
+                            :max="arg.max"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @changed="onValueChange(argName, arguments[0])"/>
 
-                    <color-picker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
-                        :disabled="!argumentControlStates[argName].shown"
-                        @input="onValueChange(argName, arguments[0])"/>
+                        <color-picker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @input="onValueChange(argName, arguments[0])"/>
 
-                    <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
-                        :apiClient="apiClient"
-                        :editorId="editorId"
-                        @changed="onValueChange(argName, arguments[0])"
-                        :disabled="!argumentControlStates[argName].shown" />
+                        <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
+                            :apiClient="apiClient"
+                            :editorId="editorId"
+                            @changed="onValueChange(argName, arguments[0])"
+                            :disabled="!argumentControlStates[argName].shown" />
 
-                    <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
-                        :disabled="!argumentControlStates[argName].shown"
-                        @input="onValueChange(argName, arguments[0].target.checked)"/>
+                        <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @input="onValueChange(argName, arguments[0].target.checked)"/>
 
-                    <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
-                        :disabled="!argumentControlStates[argName].shown"
-                        @input="onValueChange(argName, arguments[0].target.value)">
-                        <option v-for="option in arg.options">{{option}}</option>
-                    </select>
+                        <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @input="onValueChange(argName, arguments[0].target.value)">
+                            <option v-for="option in arg.options">{{option}}</option>
+                        </select>
 
-                    <ElementPicker v-if="arg.type === 'element'"
-                        :editorId="editorId"
-                        :scheme-container="schemeContainer"
-                        :element="argumentValues[argName]"
-                        :disabled="!argumentControlStates[argName].shown"
-                        :use-self="false"
-                        @selected="onValueChange(argName, arguments[0])"
-                    />
-
-                    <DiagramPicker v-if="arg.type === 'scheme-ref'"
-                        :key="`args-editor-diagram-picker-${editorId}-${argumentValues[argName]}`"
-                        :diagramId="argumentValues[argName]"
-                        @diagram-selected="onDiagramPicked(argName, arguments[0])"
+                        <ElementPicker v-if="arg.type === 'element'"
+                            :editorId="editorId"
+                            :scheme-container="schemeContainer"
+                            :element="argumentValues[argName]"
+                            :disabled="!argumentControlStates[argName].shown"
+                            :use-self="false"
+                            @selected="onValueChange(argName, arguments[0])"
                         />
 
-                    <PathCapDropdown v-if="arg.type === 'path-cap'"
-                        :value="argumentValues[argName]"
-                        :is-source="false"
-                        :is-thick="false"
-                        width="100%"
-                        :height="16"
-                        :disabled="!argumentControlStates[argName].shown"
-                        @selected="onValueChange(argName, arguments[0])"/>
+                        <DiagramPicker v-if="arg.type === 'scheme-ref'"
+                            :key="`args-editor-diagram-picker-${editorId}-${argumentValues[argName]}`"
+                            :diagramId="argumentValues[argName]"
+                            @diagram-selected="onDiagramPicked(argName, arguments[0])"
+                            />
+
+                        <PathCapDropdown v-if="arg.type === 'path-cap'"
+                            :value="argumentValues[argName]"
+                            :is-source="false"
+                            :is-thick="false"
+                            width="100%"
+                            :height="16"
+                            :disabled="!argumentControlStates[argName].shown"
+                            @selected="onValueChange(argName, arguments[0])"/>
+                    </div>
                 </td>
-                <td v-else colspan="2">
+                <td v-else colspan="3">
                     <div class="label">
                         {{arg.name}}
                         <tooltip v-if="arg.description">{{arg.description}}</tooltip>
@@ -95,6 +115,7 @@ import Tooltip from '../Tooltip.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import ScriptEditor from './ScriptEditor.vue';
 import PathCapDropdown from './PathCapDropdown.vue';
+import Dropdown from '../Dropdown.vue';
 
 export default {
     props: {
@@ -102,10 +123,16 @@ export default {
         argsDefinition     : {type: Object, required: true},
         args               : {type: Object, required: true},
         schemeContainer    : {type: Object, required: true},
-        apiClient          : {type: Object, default: null}
+        apiClient          : {type: Object, default: null},
+        /* Array of field descriptors (see FieldDescriptor in typedef.js) */
+        scopeArgs          : {type: Array, default: () => []},
+        argBinds           : {type: Object, default: {}}
     },
 
-    components: {Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, AdvancedColorEditor, ScriptEditor, DiagramPicker, PathCapDropdown},
+    components: {
+        Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, Dropdown,
+        AdvancedColorEditor, ScriptEditor, DiagramPicker, PathCapDropdown
+    },
 
     beforeMount() {
         this.updateArgumentControlDependencies();
@@ -113,14 +140,31 @@ export default {
 
     data() {
         const argumentValues = {};
+        const argumentBindStates = {};
         forEach(this.argsDefinition, (arg, argName) => {
             if (this.args.hasOwnProperty(argName)) {
                 argumentValues[argName] = this.args[argName];
             } else {
                 argumentValues[argName] =  arg.value;
             }
+
+            if (this.scopeArgs && this.scopeArgs.length > 0) {
+                argumentBindStates[argName] = {
+                    revision: 0,
+                    options: this.buildArgumentBindOptions(argName),
+                    value: null,
+                    isBinded: false
+                };
+
+                if (this.argBinds && this.argBinds.hasOwnProperty(argName)) {
+                    argumentBindStates[argName].value = this.argBinds[argName];
+                    argumentBindStates[argName].isBinded = true;
+                }
+            }
         });
+
         return {
+            argumentBindStates,
             argumentValues,
             argumentControlStates: mapObjectValues(this.argsDefinition, () => {return {shown: true};}),
             scriptEnlarged: false,
@@ -128,6 +172,39 @@ export default {
     },
 
     methods: {
+        buildArgumentBindOptions(argName) {
+            const options = [];
+            if (this.argBinds && this.argBinds.hasOwnProperty(argName)) {
+                options.push({name: 'Remove binding', kind: 'unbind', style: {'font-style': 'italic'}});
+            }
+            this.scopeArgs.forEach(scopeArg => {
+                if (scopeArg.type === this.argsDefinition[argName].type) {
+                    options.push({
+                        name: scopeArg.name,
+                        kind: 'scopeArg'
+                    });
+                }
+            });
+            return options;
+        },
+        onArgumentBindSelected(argName, option) {
+            if (option.kind === 'scopeArg') {
+                this.argumentBindStates[argName].value = {ref: option.name};
+                this.argumentBindStates[argName].isBinded = true;
+                this.argBinds[argName] = {ref: option.name};
+                this.$emit(`argument-bind-added`, argName, {ref: option.name});
+            } else if (option.kind === 'unbind') {
+                this.argumentBindStates[argName].value = null;
+                this.argumentBindStates[argName].isBinded = false;
+                this.$emit(`argument-bind-removed`, argName);
+                delete this.argBinds[argName];
+            }
+
+            this.argumentBindStates[argName].options = this.buildArgumentBindOptions(argName);
+            this.argumentBindStates[argName].revision += 1;
+            this.$forceUpdate();
+        },
+
         updateArgumentControlDependencies() {
             forEach(this.argsDefinition, (argConfig, argName) => {
                 if (argConfig.depends) {
@@ -163,6 +240,12 @@ export default {
          */
         isDisabledScript(arg, argName) {
             return arg.type === 'script' && !this.argumentControlStates[argName].shown;
+        }
+    },
+
+    computed: {
+        hasScopeArgs() {
+            return this.scopeArgs && this.scopeArgs.length > 0;
         }
     }
 }

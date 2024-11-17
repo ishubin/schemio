@@ -165,6 +165,10 @@
                                 :argument-value="action.args.value"
                                 :args="action.args"
                                 @property-changed="onArgumentPropertyChangeForSet(eventIndex, actionIndex, arguments[0], arguments[1])"
+                                :scopeArgs="scopeArgs"
+                                :argBinds="action.argBinds"
+                                @argument-bind-removed="onSetArgumentBindRemoved(eventIndex, actionIndex, arguments[0])"
+                                @argument-bind-added="onSetArgumentBindAdded(eventIndex, actionIndex, arguments[0], arguments[1])"
                                 />
                         </div>
                     </div>
@@ -218,7 +222,11 @@
                     :argsDefinition="functionArgumentsEditor.functionDescription.args"
                     :args="functionArgumentsEditor.args"
                     :scheme-container="schemeContainer"
+                    :scopeArgs="scopeArgs"
+                    :argBinds="functionArgumentsEditor.argBinds"
                     @argument-changed="onFunctionArgumentsEditorChange"
+                    @argument-bind-removed="onFunctionArgumentBindRemoved"
+                    @argument-bind-added="onFunctionArgumentBindAdded"
                 />
             </div>
         </modal>
@@ -352,6 +360,8 @@ export default {
         schemeContainer: {type: Object},
         onlyEvents     : {type: Boolean, default: false },
         shadowItem     : {type: Boolean, default: false},
+        /* Array of field descriptors (see FieldDescriptor in typedef.js) */
+        scopeArgs      : {type: Array, default: () => []},
     },
 
     components: {
@@ -389,7 +399,8 @@ export default {
                 functionDescription: null,
                 eventIndex: 0,
                 actionIndex: 0,
-                args: {}
+                args: {},
+                argBinds: {}
             },
             itemTag: '',
             existingItemTags: map(this.schemeContainer.itemTags, tag => {return {text: tag}}),
@@ -1005,6 +1016,7 @@ export default {
             }
             this.functionArgumentsEditor.functionDescription = functionDescription;
             this.functionArgumentsEditor.args = action.args;
+            this.functionArgumentsEditor.argBinds = action.argBinds;
             this.functionArgumentsEditor.eventIndex = eventIndex;
             this.functionArgumentsEditor.actionIndex = actionIndex;
             if (functionDescription.editorComponent) {
@@ -1015,7 +1027,7 @@ export default {
             this.functionArgumentsEditor.shown = true;
         },
 
-        onFunctionArgumentsEditorChange(argName, value) {
+        updateActionOfFunctionArgumentEditor(propertyName, callback) {
             this.updateItem(item => {
                 const eventIndex = this.functionArgumentsEditor.eventIndex
                 const actionIndex = this.functionArgumentsEditor.actionIndex;
@@ -1023,12 +1035,62 @@ export default {
                 if (eventIndex < item.behavior.events.length) {
                     const event = item.behavior.events[eventIndex];
                     if (actionIndex < event.actions.length) {
-                        event.actions[actionIndex].args[argName] = value;
+                        callback(event.actions[actionIndex]);
                     }
                 }
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.args.${argName}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.${propertyName}`);
             });
         },
+
+        onSetArgumentBindRemoved(eventIndex, actionIndex, argName) {
+            this.updateItem(item => {
+                const action = item.behavior.events[eventIndex].actions[actionIndex];
+                if (!action.argBinds) {
+                    return;
+                }
+                delete action.argBinds[argName];
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.argBinds.${argName}`);
+            });
+        },
+
+        onSetArgumentBindAdded(eventIndex, actionIndex, argName, bindValue) {
+            this.updateItem(item => {
+                const action = item.behavior.events[eventIndex].actions[actionIndex];
+                if (!action.argBinds) {
+                    action.argBinds = {};
+                }
+                action.argBinds[argName] = bindValue;
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${item.id}.behavior.events.${eventIndex}.actions.${actionIndex}.argBinds.${argName}`);
+            });
+        },
+
+        onFunctionArgumentBindRemoved(argName) {
+            this.updateActionOfFunctionArgumentEditor(`argBinds.${argName}`, action => {
+                if (!action.argBinds) {
+                    action.argBinds = {};
+                }
+                delete action.argBinds[argName];
+            });
+        },
+
+        onFunctionArgumentBindAdded(argName, bindValue) {
+            this.updateActionOfFunctionArgumentEditor(`argBinds.${argName}`, action => {
+                if (!action.argBinds) {
+                    action.argBinds = {};
+                }
+                action.argBinds[argName] = bindValue;
+            });
+        },
+
+        onFunctionArgumentsEditorChange(argName, value) {
+            this.updateActionOfFunctionArgumentEditor(`args.${argName}`, action => {
+                if (!action.argBinds) {
+                    action.argBinds = {};
+                }
+                action.args[argName] = value;
+            });
+        },
+
         prettyMethodName(method) {
             if (Functions.main[method]) {
                 return Functions.main[method].name;

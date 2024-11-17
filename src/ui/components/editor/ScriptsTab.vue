@@ -106,12 +106,13 @@
 
 
             <BehaviorProperties
-                :key="`class-behavior-panel-${classModal.id}`"
+                :key="`class-behavior-panel-${classModal.id}-${classModal.revision}`"
                 :editorId="editorId"
                 :item="classModal.item"
                 :onlyEvents="true"
                 :schemeContainer="schemeContainer"
                 :shadowItem="true"
+                :scopeArgs="classModal.args"
                 @shadow-item-updated="onBehaviorPropertiesUpdate"
                 />
         </Modal>
@@ -338,6 +339,7 @@ export default {
             },
 
             classModal: {
+                revision: 0,
                 shown: false,
                 name: '',
                 description: '',
@@ -489,6 +491,7 @@ export default {
 
         onClassArgNameChange(argIdx, name) {
             this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
+            this.classModal.revision += 1;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
         },
 
@@ -511,6 +514,7 @@ export default {
                     itemClass.args[argDef.name] = argDef.value;
                 });
             });
+            this.classModal.revision += 1;
         },
 
         onClassArgTypeChanged(argIdx, argType, argValue) {
@@ -536,6 +540,7 @@ export default {
                     itemClass.args[classDef.args[argIdx].name] = argValue;
                 });
             });
+            this.classModal.revision += 1;
         },
 
         onClassArgDefaultValueChange(argIdx, value) {

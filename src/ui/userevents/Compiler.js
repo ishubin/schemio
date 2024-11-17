@@ -19,6 +19,24 @@ function enrichFuncArgs(args, funcDef) {
 }
 
 
+function enrichFuncArgsWithBindedArgs(args, action, classArgs) {
+    if (!action.argBinds) {
+        return args;
+    }
+
+    const newArgs = {...args};
+
+    for (let argName in action.argBinds) {
+        if (action.argBinds.hasOwnProperty(argName)) {
+            const refName = action.argBinds[argName].ref;
+            if (classArgs.hasOwnProperty(refName)) {
+                newArgs[argName] = classArgs[refName];
+            }
+        }
+    }
+    return newArgs;
+}
+
 /**
  *
  * @param {SchemeContainer} schemeContainer
@@ -43,7 +61,8 @@ export function compileActions(schemeContainer, componentRootItem, selfItem, act
                     knownFunc = findSchemeDefinedScriptFunction(schemeContainer, componentRootItem, action.method.substring(9), action.args);
                 }
                 if (knownFunc) {
-                    const args = enrichFuncArgs(action.args, knownFunc);
+                    const args = enrichFuncArgsWithBindedArgs(enrichFuncArgs(action.args, knownFunc), action, classArgs);
+
                     if (knownFunc.multiItem) {
                         // Means that this function is always expected to get array of items and in cases when it is applied
                         // to a group of items - it will only be invoked once with array of those items as a first argument

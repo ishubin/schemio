@@ -2133,6 +2133,24 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .properties-table > tbody > tr:nth-child(odd) {
     background: none;
 }
+.properties-table .property-arg-binder {
+    max-width: 44px;
+}
+.property-arg-binder-icon {
+    opacity: 0.6;
+}
+.property-arg-binder-icon.binded {
+    opacity: 1.0;
+}
+.properties-table .property-arg-binder-ref {
+    font-style: italic;
+    color: var(--accent-strong);
+}
+
+[data-theme="dark"] .properties-table .property-arg-binder-ref {
+    font-style: italic;
+    color: var(--accent-faint-up);
+}
 
 /************* Links in Item Properties ***************/
 .scheme-details {

@@ -5,24 +5,44 @@
     <div class="set-argument-editor">
         <div class="set-argument-wrapper">
             <div class="set-argument-control">
-                <input v-if="argumentType === 'string'  || argumentType === 'image'"
-                    style="width: 100px" :value="argumentValue" @input="onInputValue"/>
+                <div v-if="!isBinded">
+                    <input v-if="argumentType === 'string'  || argumentType === 'image'"
+                        style="width: 100px" :value="argumentValue" @input="onInputValue"/>
 
-                <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
+                    <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
 
-                <color-picker :editorId="editorId" v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
+                    <color-picker :editorId="editorId" v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
 
-                <advanced-color-editor :editorId="editorId" v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
+                    <advanced-color-editor :editorId="editorId" v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue"/>
 
-                <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
+                    <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
-                <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
-                    <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{option | toPrettyOptionName}}</option>
-                </select>
+                    <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
+                        <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{option | toPrettyOptionName}}</option>
+                    </select>
+                </div>
             </div>
             <div class="set-argument-options" v-if="supportsAnimation">
                 <span class="set-animated" @click="animationEditorShown = true" v-if="args.animated" title="Animated"><i class="fa-solid fa-video"></i></span>
                 <span class="set-instant" @click="animationEditorShown = true" v-else title="Instant"><i class="fa-solid fa-video-slash"></i></span>
+            </div>
+            <div>
+                <Dropdown
+                    v-if="bindOptions.length > 0"
+                    :key="`set-func-dropdown-binder-${revision}`"
+                    :inline="true"
+                    :width="30"
+                    :borderless="true"
+                    :options="bindOptions"
+                    title="Bind argument"
+                    @selected="onArgumentBindSelected(argName, arguments[0])"
+                    >
+                    <i v-if="isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
+                    <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
+                </Dropdown>
+            </div>
+            <div v-if="isBinded">
+                <span class="property-arg-binder-ref" title="Class argument">{{ bindValue.ref }}</span>
             </div>
         </div>
 
@@ -80,6 +100,9 @@ export default {
         argumentValue: {type: Object},
         argumentDescription: {type: Object},
         args: {type: Object},
+        /* Array of field descriptors (see FieldDescriptor in typedef.js) */
+        scopeArgs : {type: Array, default: () => []},
+        argBinds : {type: Object, default: {}}
     },
 
     components: {Dropdown, ColorPicker, AdvancedColorEditor, NumberTextfield, Modal },
@@ -98,12 +121,18 @@ export default {
             }
         }
 
+        const isBinded = this.argBinds && this.argBinds.hasOwnProperty('value');
+
         return {
             transitions: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'],
             isChoice,
             choiceOptions,
             argumentType: this.argumentDescription ? this.argumentDescription.type : null,
-            animationEditorShown: false
+            isBinded,
+            bindValue: isBinded ? this.argBinds.value : null,
+            bindOptions: this.buildArgumentBindOptions(isBinded),
+            animationEditorShown: false,
+            revision: 0
         };
     },
 
@@ -117,6 +146,39 @@ export default {
     },
 
     methods: {
+        onArgumentBindSelected(argName, option) {
+            if (option.kind === 'scopeArg') {
+                this.isBinded = true;
+                this.bindValue = {ref: option.name};
+                this.$emit(`argument-bind-added`, 'value', this.bindValue);
+            } else if (option.kind === 'unbind') {
+                this.isBinded = false;
+                this.bindValue = null;
+                this.$emit(`argument-bind-removed`, 'value');
+            }
+
+            this.bindOptions = this.buildArgumentBindOptions(this.isBinded);
+            this.revision += 1;
+            this.$forceUpdate();
+        },
+
+        buildArgumentBindOptions(isBinded) {
+            const argumentType = this.argumentDescription ? this.argumentDescription.type : null;
+            const options = [];
+            if (isBinded) {
+                options.push({name: 'Remove binding', kind: 'unbind', style: {'font-style': 'italic'}});
+            }
+            this.scopeArgs.forEach(scopeArg => {
+                if (scopeArg.type === argumentType) {
+                    options.push({
+                        name: scopeArg.name,
+                        kind: 'scopeArg'
+                    });
+                }
+            });
+            return options;
+        },
+
         emitValue(value) {
             this.onPropertyChange('value', value);
         },
