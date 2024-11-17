@@ -31,7 +31,6 @@
                     v-if="bindOptions.length > 0"
                     :key="`set-func-dropdown-binder-${revision}`"
                     :inline="true"
-                    :width="30"
                     :borderless="true"
                     :options="bindOptions"
                     title="Bind argument"

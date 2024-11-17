@@ -14,7 +14,6 @@
                         v-if="argumentBindStates[argName].options.length > 0"
                         :key="`dropdown-binder-${argName}-${argumentBindStates[argName].revision}`"
                         :inline="true"
-                        :width="30"
                         :borderless="true"
                         :options="argumentBindStates[argName].options"
                         title="Bind argument"

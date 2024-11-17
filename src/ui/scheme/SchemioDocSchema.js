@@ -75,6 +75,9 @@ const baseSchema = {
                             element: {type: 'string', patching: ['replace']},
                             method : {type: 'string', patching: ['replace']},
                             on     : {type: 'boolean', patching: ['replace']},
+                            argBinds: {type: 'object', patching: ['patch-map', 'replace'], fields: {
+                                '*'  : {type: 'any', patching: ['replace'] },
+                            }},
                             args   : {type: 'conditional', contidionalParentField: 'method', conditions: [ /* dynamically built */]}
                         }}
                     }}
@@ -146,6 +149,9 @@ const baseSchema = {
                             element: {type: 'string', patching: ['replace']},
                             method : {type: 'string', patching: ['replace']},
                             on     : {type: 'boolean', patching: ['replace']},
+                            argBinds: {type: 'object', patching: ['patch-map', 'replace'], fields: {
+                                '*'  : {type: 'any', patching: ['replace'] },
+                            }},
                             args   : {type: 'conditional', contidionalParentField: 'method', conditions: [ /* dynamically built */]}
                         }}
                     }}

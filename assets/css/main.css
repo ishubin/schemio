@@ -2717,8 +2717,7 @@ ul.script-options .script-option.selected {
 
 .behavior-action-container {
     position: relative;
-    padding-left: 60px;
-    margin-top: 5px;
+    padding-left: 55px;
 }
 .behavior-action-container.disabled .action-item .picked-element,
 .behavior-action-container.disabled .action-method .hover-effect,
@@ -2784,6 +2783,7 @@ ul.script-options .script-option.selected {
 }
 .behavior-action-container .set-argument-editor .set-argument-control {
     display: inherit;
+    height: 15px;
 }
 .behavior-action-container .set-argument-editor .set-argument-options > span {
     display: inline-block;

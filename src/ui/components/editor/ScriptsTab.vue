@@ -371,8 +371,16 @@ export default {
     methods: {
         onClassShapeSelected(option) {
             const idx = this.classModal.classIdx;
-            this.classModal.shape = option.shape;
             this.schemeContainer.scheme.scripts.classes[idx].shape = option.shape;
+            this.classModal.shape = option.shape;
+            const selectedShape = option.shape === 'all' ? 'rect' : option.shape;
+
+            const tempItem = {shape: selectedShape};
+            enrichItemWithDefaults(tempItem);
+            this.classModal.item.shape = selectedShape;
+            this.classModal.item.shapeProps = tempItem.shapeProps;
+
+            this.classModal.revision += 1;
         },
 
         onBehaviorPropertiesUpdate(item) {
@@ -491,6 +499,7 @@ export default {
 
         onClassArgNameChange(argIdx, name) {
             this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
+            this.classModal.args[argIdx].name = name;
             this.classModal.revision += 1;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
         },
