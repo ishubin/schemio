@@ -499,7 +499,6 @@ export default {
 
         onClassArgNameChange(argIdx, name) {
             this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
-            this.classModal.args[argIdx].name = name;
             this.classModal.revision += 1;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
         },
