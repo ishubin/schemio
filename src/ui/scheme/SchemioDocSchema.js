@@ -76,7 +76,7 @@ const baseSchema = {
                             method : {type: 'string', patching: ['replace']},
                             on     : {type: 'boolean', patching: ['replace']},
                             argBinds: {type: 'object', patching: ['patch-map', 'replace'], fields: {
-                                '*'  : {type: 'any', patching: ['replace'] },
+                                '*'  : {type: 'object', patching: ['replace'] },
                             }},
                             args   : {type: 'conditional', contidionalParentField: 'method', conditions: [ /* dynamically built */]}
                         }}
@@ -166,6 +166,12 @@ const baseSchema = {
                 autoLayout: {type: 'object', patching: ['modify', 'replace'], fields: {
                     on: {type: 'boolean', patching: ['replace']},
                     rules: {type: 'map', of: 'any', patching: ['patch-map'], fields: {
+                        '*'  : {type: 'any', patching: ['replace'] },
+                    }}
+                }},
+                classes: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
+                    id    : {type: 'string'},
+                    args  : {type: 'map', of: 'any', patching: ['patch-map', 'replace', 'delete'], fields: {
                         '*'  : {type: 'any', patching: ['replace'] },
                     }}
                 }}

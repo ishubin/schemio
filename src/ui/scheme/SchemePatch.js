@@ -1641,13 +1641,31 @@ export function generateMapPatch(origin, modified, patchSchemaEntry) {
                 op: 'delete'
             });
         } else if (oHas && mHas) {
-            const subChanges = generatePatchForObject(origin[key], modified[key], valuePatchSchema, []);
-            if (subChanges.length > 0) {
-                changes.push({
-                    id: key,
-                    op: 'modify',
-                    changes: subChanges
-                });
+            /** @type {FieldSchema} */
+            let fieldSchema = null;
+            if (patchSchemaEntry.fields && patchSchemaEntry.fields.hasOwnProperty(key)) {
+                fieldSchema = patchSchemaEntry.fields[key];
+            } else if (patchSchemaEntry.fields && patchSchemaEntry.fields.hasOwnProperty('*')) {
+                fieldSchema = patchSchemaEntry.fields['*'];
+            }
+
+            if (fieldSchema && Array.isArray(fieldSchema.patching) && fieldSchema.patching[0] === 'replace') {
+                if (!valueEquals(origin[key], modified[key])) {
+                    changes.push({
+                        id: key,
+                        op: 'replace',
+                        value: modified[key]
+                    })
+                }
+            } else {
+                const subChanges = generatePatchForObject(origin[key], modified[key], valuePatchSchema, []);
+                if (subChanges.length > 0) {
+                    changes.push({
+                        id: key,
+                        op: 'modify',
+                        changes: subChanges
+                    });
+                }
             }
         }
     }
