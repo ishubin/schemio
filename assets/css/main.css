@@ -874,7 +874,6 @@ input.textfield.field-error {
 /********************** Number Textfield **************/
 .number-textfield-container {
     position: relative;
-    display: inline-block;
     width: 100%;
     height: 26px;
     padding: 0;
@@ -1963,12 +1962,10 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 
 /******************** Color Picker *******************************/
 .color-picker {
-    display: inline-block;
     width: 100%;
     min-width: 22px;
 }
 .color-picker-toggle-button {
-    display: inline-block;
     position: relative;
     width: 100%;
     height: 100%;
@@ -2142,12 +2139,12 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .property-arg-binder-icon.binded {
     opacity: 1.0;
 }
-.properties-table .property-arg-binder-ref {
+.property-arg-binder-ref {
     font-style: italic;
     color: var(--accent-strong);
 }
 
-[data-theme="dark"] .properties-table .property-arg-binder-ref {
+[data-theme="dark"] .property-arg-binder-ref {
     font-style: italic;
     color: var(--accent-faint-up);
 }

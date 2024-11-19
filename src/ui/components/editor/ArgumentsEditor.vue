@@ -11,7 +11,7 @@
                 </td>
                 <td v-if="arg.type !== 'script' && hasScopeArgs" class="property-arg-binder">
                     <Dropdown
-                        v-if="argumentBindStates[argName].options.length > 0"
+                        v-if="argumentBindStates[argName] && argumentBindStates[argName].options.length > 0"
                         :key="`dropdown-binder-${argName}-${argumentBindStates[argName].revision}`"
                         :inline="true"
                         :borderless="true"
@@ -19,12 +19,12 @@
                         title="Bind argument"
                         @selected="onArgumentBindSelected(argName, arguments[0])"
                         >
-                        <i v-if="argumentBindStates[argName].isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
+                        <i v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
                         <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
                     </Dropdown>
                 </td>
                 <td v-if="arg.type !== 'script'" class="value" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
-                    <div v-if="argumentBindStates[argName].isBinded">
+                    <div v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded">
                         <span class="property-arg-binder-ref" title="Class argument">{{ argumentBindStates[argName].value.ref }}</span>
                     </div>
                     <div v-else>
@@ -125,7 +125,7 @@ export default {
         apiClient          : {type: Object, default: null},
         /* Array of field descriptors (see FieldDescriptor in typedef.js) */
         scopeArgs          : {type: Array, default: () => []},
-        argBinds           : {type: Object, default: {}}
+        argBinds           : {type: Object, default: () => {return {};}}
     },
 
     components: {
@@ -147,13 +147,15 @@ export default {
                 argumentValues[argName] =  arg.value;
             }
 
+            argumentBindStates[argName] = {
+                revision: 0,
+                options: [],
+                value: null,
+                isBinded: false
+            };
+
             if (this.scopeArgs && this.scopeArgs.length > 0) {
-                argumentBindStates[argName] = {
-                    revision: 0,
-                    options: this.buildArgumentBindOptions(argName),
-                    value: null,
-                    isBinded: false
-                };
+                argumentBindStates[argName].options = this.buildArgumentBindOptions(argName);
 
                 if (this.argBinds && this.argBinds.hasOwnProperty(argName)) {
                     argumentBindStates[argName].value = this.argBinds[argName];

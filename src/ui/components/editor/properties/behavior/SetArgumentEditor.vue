@@ -34,7 +34,7 @@
                     :borderless="true"
                     :options="bindOptions"
                     title="Bind argument"
-                    @selected="onArgumentBindSelected(argName, arguments[0])"
+                    @selected="onArgumentBindSelected(arguments[0])"
                     >
                     <i v-if="isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
                     <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
@@ -96,12 +96,12 @@ import { supportsAnimationForSetFunction } from '../../../../userevents/function
 export default {
     props: {
         editorId: {type: String, required: true},
-        argumentValue: {type: Object},
+        argumentValue: {required: true},
         argumentDescription: {type: Object},
         args: {type: Object},
         /* Array of field descriptors (see FieldDescriptor in typedef.js) */
         scopeArgs : {type: Array, default: () => []},
-        argBinds : {type: Object, default: {}}
+        argBinds : {type: Object, default: () => {return {};}}
     },
 
     components: {Dropdown, ColorPicker, AdvancedColorEditor, NumberTextfield, Modal },
@@ -145,7 +145,7 @@ export default {
     },
 
     methods: {
-        onArgumentBindSelected(argName, option) {
+        onArgumentBindSelected(option) {
             if (option.kind === 'scopeArg') {
                 this.isBinded = true;
                 this.bindValue = {ref: option.name};

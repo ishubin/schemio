@@ -110,11 +110,14 @@ const defaultArea = {
     sy: 1.0
 };
 
+export const supportedCursorOptions = ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait', 'text'];
+
 export const coreItemPropertyTypes = {
     opacity                    : {type: 'number', name: 'Opacity'},
     selfOpacity                : {type: 'number', name: 'Self opacity'},
     visible                    : {type: 'boolean', name: 'Visible'},
     clip                       : {type: 'boolean', name: 'Clip'},
+    cursor                     : {type: 'choice', name: 'Cursor', options: supportedCursorOptions},
     'behavior.dragging'        : {type: 'choice', name: 'Dragging', options: ['none', 'free', 'path', 'dragndrop']},
 };
 

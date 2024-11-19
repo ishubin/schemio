@@ -231,7 +231,7 @@ import LinksPanel from './LinksPanel.vue';
 import Shape from '../items/shapes/Shape.js';
 import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
-import {ItemInteractionMode} from '../../../scheme/Item.js';
+import {ItemInteractionMode, supportedCursorOptions} from '../../../scheme/Item.js';
 import {knownBlendModes} from '../../../scheme/ItemConst';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import StylesPalette from './StylesPalette.vue';
@@ -297,7 +297,7 @@ export default {
         knownShapes.sort();
         return {
             tabs: ALL_TABS,
-            knownCursors: ['default', 'pointer', 'grab', 'crosshair', 'not-allowed', 'zoom-in', 'help', 'wait', 'text'],
+            knownCursors: supportedCursorOptions,
 
             knownShapes,
             currentTab: 'description',

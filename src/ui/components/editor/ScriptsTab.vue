@@ -396,6 +396,7 @@ export default {
             const classDef = {
                 id: shortid.generate(),
                 name: 'Unnamed class...',
+                shape: 'all',
                 description: '',
                 args: [],
                 events: utils.clone(defaultItemDefinition.behavior.events)
@@ -419,6 +420,10 @@ export default {
 
         openClassEditor(classIdx) {
             const classDef = this.schemeContainer.scheme.scripts.classes[classIdx];
+            // correcting for the docs which were previously created without shape contraint
+            if (!classDef.shape) {
+                classDef.shape = 'all';
+            }
             this.classModal.name = classDef.name;
             this.classModal.isNameError = false;
             this.classModal.errorMessage = null;
@@ -499,6 +504,7 @@ export default {
 
         onClassArgNameChange(argIdx, name) {
             this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].args[argIdx].name = name;
+            this.classModal.args[argIdx].name = name;
             this.classModal.revision += 1;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.name`);
         },
@@ -506,6 +512,11 @@ export default {
         onClassArgAdded(argDef, classIdx) {
             const classDef = this.schemeContainer.scheme.scripts.classes[classIdx];
             classDef.args.push(argDef);
+            this.classModal.args.push({
+                ...argDef,
+                descriptor: {type: argDef.type}
+            });
+
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
 
             traverseItems(this.schemeContainer.scheme.items, item => {
@@ -532,6 +543,8 @@ export default {
             }
             classDef.args[argIdx].type = argType;
             classDef.args[argIdx].value = argValue;
+            this.classModal.args[argIdx].type = argType;
+            this.classModal.args[argIdx].descriptor.type = argType;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.args.${argIdx}.type`);
 
             traverseItems(this.schemeContainer.scheme.items, item => {
