@@ -41,7 +41,7 @@ local connectors = List()
 
 local nodesById = Map()
 
-func visitTree = (node, parent) => {
+func visitTree(node, parent) {
     nodesById.set(node.id, node)
 
     if (!parent) {
