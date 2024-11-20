@@ -45,6 +45,7 @@ export default {
         menuItems: [{
             group: 'General',
             name: 'Dummy',
+            ignoreRecentProps: true,
             iconUrl: '/assets/images/items/dummy.svg',
             description: `
                 Dummy item can be used in order to group mulitple items together.
@@ -58,6 +59,7 @@ export default {
         }, {
             group: 'General',
             name: 'Screen bounds',
+            ignoreRecentProps: true,
             iconUrl: '/assets/images/items/screen-bounds.svg',
             description: `
                 Specifies the bounds of the screen. Users will not be able to scroll outside of it in view mode.

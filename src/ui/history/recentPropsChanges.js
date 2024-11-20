@@ -15,7 +15,7 @@ class RecentPropsChanges {
         }
         this.itemShapeProps[shape][propPath] = JSON.stringify(value);
     }
-    
+
     applyItemProps(item) {
         const shapeProps = this.itemShapeProps[item.shape];
         if (shapeProps) {
@@ -44,7 +44,7 @@ class RecentPropsChanges {
         if (!this.itemTextProps[shape].hasOwnProperty(textSlotName)) {
             this.itemTextProps[shape][textSlotName] = {};
         }
-        
+
         this.itemTextProps[shape][textSlotName][propName] = JSON.stringify(value);
     }
 }

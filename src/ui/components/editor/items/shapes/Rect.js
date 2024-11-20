@@ -31,6 +31,7 @@ export default {
             group: 'General',
             name: 'Overlay',
             iconUrl: '/assets/images/items/overlay.svg',
+            ignoreRecentProps: true,
             description: `
                 It lets you create a clickable area on the image (or any other element of the scheme) and treat it like an object.
                 E.g. you can select it, trigger events or connect it to other items on the page.
@@ -75,6 +76,7 @@ export default {
             group: 'General',
             name: 'Button',
             iconUrl: '/assets/images/items/button.svg',
+            ignoreRecentProps: true,
             item: {
                 cursor: 'pointer',
                 opacity: 100,

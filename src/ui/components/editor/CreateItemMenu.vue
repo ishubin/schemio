@@ -225,7 +225,6 @@ import ItemSvg from './items/ItemSvg.vue';
 import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
-import { compileItemTemplate, compileTemplateFromDoc } from './items/ItemTemplate';
 import SchemeSearchModal from './SchemeSearchModal.vue';
 
 const _gifDescriptions = {
@@ -638,6 +637,8 @@ export default {
                 }
             };
             enrichItemWithDefaults(item);
+            recentPropsChanges.applyItemProps(itemClone);
+
             this.$emit(PATH_EDITED, item);
         },
 
@@ -711,14 +712,14 @@ export default {
             const [itemClone] = this.schemeContainer.cloneItems([item.item], true);
             traverseItems([itemClone], enrichItemWithDefaults);
 
+            if (!item.ignoreRecentProps && !shouldIgnoreRecentProps && itemClone.shape !== 'image' && itemClone.shape !== 'sticky_note') {
+                recentPropsChanges.applyItemProps(itemClone);
+            }
+
             dragAndDropBuilder(originalEvent)
             .withDroppableClass('scheme-container')
             .withDraggedElement(this.$refs.itemDragger)
             .onDragStart(() => {
-                if (!shouldIgnoreRecentProps && itemClone.shape !== 'sticky_note') {
-                    recentPropsChanges.applyItemProps(itemClone);
-                }
-
                 if (!template) {
                     if (item.previewArea) {
                         itemClone.area.w = item.previewArea.w;

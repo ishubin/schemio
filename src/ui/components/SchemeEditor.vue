@@ -1471,6 +1471,7 @@ export default {
             this.states.connecting.schemeContainer = this.schemeContainer;
             this.states.connecting.reset();
             const connector = this.states.connecting.initConnectingFromSourceItem(sourceItem, localPoint);
+            recentPropsChanges.applyItemProps(connector);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
             this.state = 'connecting';
             this.updateFloatingHelperPanel();

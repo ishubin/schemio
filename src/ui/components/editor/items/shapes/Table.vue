@@ -586,7 +586,7 @@ function fixItem(item) {
             sumWidth += item.shapeProps.colWidths[i] * item.area.w / 100;
         }
 
-        const w = item.area.w;
+        let w = item.area.w;
         if (myMath.tooSmall(w)) {
             w = 1;
         }
@@ -609,7 +609,7 @@ function fixItem(item) {
             sumWidth += item.shapeProps.rowWidths[i] * item.area.h / 100;
         }
 
-        const h = item.area.h;
+        let h = item.area.h;
         if (myMath.tooSmall(h)) {
             h = 1;
         }

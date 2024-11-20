@@ -447,8 +447,10 @@
 
 /**
  * @typedef {Object} ItemMenuEntry
- * @property {Item} item
  * @property {String} name
+ * @property {Item} item
+ * @property {String} group
+ * @property {Boolean|undefined} ignoreRecentProps - flag that tell item menu to not apply recent prop changes when creating this item
  * @property {Area|undefined} previewArea
  */
 
