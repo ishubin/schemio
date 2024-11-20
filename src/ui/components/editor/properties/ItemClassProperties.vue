@@ -161,6 +161,8 @@ export default {
                 this.itemClasses = this.buildItemClasses();
                 this.classOptions = this.buildClassOptions();
             });
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.classes`);
         }
     }
 }

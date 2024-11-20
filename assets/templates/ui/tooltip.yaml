@@ -340,6 +340,20 @@ item:
             id: animate-pulse
             actions:
               - element: self
+                id: reset-opacity
+                method: set
+                args:
+                  field: opacity
+                  value: 0
+                  animated: false
+              - element: self
+                id: init-scale
+                method: scale
+                args:
+                  scaleX: 0.1
+                  scaleY: 0.1
+                  animated: false
+              - element: self
                 id: scale
                 method: scale
                 args:
@@ -350,31 +364,35 @@ item:
                   movement: ease-out
                   inBackground: true
               - element: self
-                id: fade
+                id: fade-in
+                method: set
+                args:
+                  field: opacity
+                  value: 100
+                  animated: true
+                  animationDuration: {$-expr: pulseTime/2}
+                  transition: ease-in-out
+                  inBackground: false
+              - element: self
+                id: fade-out
                 method: set
                 args:
                   field: opacity
                   value: 0
                   animated: true
-                  animationDuration: {$-expr: pulseTime}
+                  animationDuration: {$-expr: pulseTime/2}
                   transition: ease-in-out
                   inBackground: false
               - element: self
                 id: scale-back
                 method: scale
                 args:
-                  scaleX: 1
-                  scaleY: 1
+                  scaleX: 0.05
+                  scaleY: 0.05
                   animated: false
                   duration: 1
                   movement: "ease-out"
                   inBackground: true
-              - element: "self"
-                method: "set"
-                args:
-                  field: "opacity"
-                  value: 100
-                  animated: false
               - element: "self"
                 id: wait
                 method: wait
