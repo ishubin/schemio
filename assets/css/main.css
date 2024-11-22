@@ -2190,13 +2190,14 @@ ul.links-editor .edit-link:hover {
 
 /******************** Tags Input **********************/
 .vue-tags-input {
-    background: none !important;
+    background: var(--base-weak) !important;
     max-width: none !important;
     width: 100% !important;
 }
 
-.vue-tags-input .input {
+.vue-tags-input input {
     border-radius: 3px;
+    background: none;
 }
 
 /******************* Create Item Menu *****************/
@@ -2402,7 +2403,7 @@ ul.links-editor .edit-link:hover {
 .rich-text-editor-container .editor-frame {
     position: relative;
     border: 1px solid var(--faint-strong);
-    background: var(--faint-weak);
+    background: var(--base-weak);
     border-radius: 3px;
 }
 .rich-text-editor-container .editor-content {
@@ -4424,9 +4425,10 @@ ul.patch-field-list {
 }
 .floating-helper-panel .item-name input[type='text'] {
     display: block;
+    outline: none;
     width: 130px;
     height: 25px;
-    padding: 2px;
+    padding: 6px 2px 2px 2px;
     margin: 0;
     font-size: 14px;
     border: 1px solid var(--faint-strong);
