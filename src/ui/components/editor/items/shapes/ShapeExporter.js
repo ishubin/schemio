@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import {map, find, indexOf} from '../../../../collections';
-import {localPointOnItem, worldPointOnItem} from '../../../../scheme/ItemMath';
+import {localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem} from '../../../../scheme/ItemMath';
 import myMath from '../../../../myMath';
 import { defaultTextSlotProps, traverseItems } from '../../../../scheme/Item';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
@@ -236,13 +236,9 @@ function convertPinItem(containerItem, item) {
  * @param {Item} item
  */
 function convertTextSlotItem(containerItem, item) {
-    const wp0 = worldPointOnItem(0, 0, item);
-    const wp1 = worldPointOnItem(item.area.w, 0, item);
-    const wp2 = worldPointOnItem(0, item.area.h, item);
-
-    const lp0 = localPointOnItem(wp0.x, wp0.y, item);
-    const lp1 = localPointOnItem(wp1.x, wp1.y, item);
-    const lp2 = localPointOnItem(wp2.x, wp2.y, item);
+    const lp0 = localPointOnItemToLocalPointOnOtherItem(0, 0, item, containerItem);
+    const lp1 = localPointOnItemToLocalPointOnOtherItem(item.area.w, 0, item, containerItem);
+    const lp2 = localPointOnItemToLocalPointOnOtherItem(0, item.area.h, item, containerItem);
 
     const wRatio = Math.abs(lp1.x - lp0.x) / containerItem.area.w;
     const hRatio = Math.abs(lp2.y - lp0.y) / containerItem.area.w;
@@ -284,7 +280,7 @@ export function convertItemToTemplatedShape(shapeContainerItem) {
     const shapeConfig = {
         shapeType: 'templated',
         pins: [],
-        textSlots: shapeContainerItem.shapeProps.useBodyTextSlot ? [defaultBodyTextSlot] : [],
+        textSlots: [],
         primitives: [],
         outlines: [],
     };
@@ -313,6 +309,10 @@ export function convertItemToTemplatedShape(shapeContainerItem) {
             shapeConfig.textSlots.push(convertTextSlotItem(shapeContainerItem, item));
         }
     });
+
+    if (shapeConfig.textSlots.length === 0 && shapeContainerItem.shapeProps.useBodyTextSlot) {
+        shapeConfig.textSlots = [defaultBodyTextSlot];
+    }
 
     return {
         shapeConfig: {
