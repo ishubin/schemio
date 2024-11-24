@@ -3,10 +3,11 @@
     "args": {
         "component": {"type": "scheme-ref", "value": "", "name": "External Document", "description": "External document to be loaded and displayed when user clicks the load button"},
         "background": {"type": "advanced-color", "value": {"type": "solid", "color": "rgba(82,139,165,1)"}, "name": "Background"},
+        "componentFill": {"type": "advanced-color", "value": {"type": "solid", "color": "rgba(250,250,250,1)"}, "name": "Component background"},
         "strokeColor": {"type": "color", "value": "rgba(14,98,115,1)", "name": "Stroke"},
         "strokeSize": {"type": "number", "value": 0, "min": 0, "name": "Stroke size"},
         "cornerRadius": {"type": "number", "value": 10, "name": "Corner radius", "min": 0},
-        "useParent": {"type": "boolean", "value": false, "name": "Use parent size",
+        "useParent": {"type": "boolean", "value": false, "name": "Use parent area",
             "description": "Uses positioning of the parent item so that the component appears on top of it"
         },
         "customSize": {"type": "boolean", "value": false, "name": "Custom size", "depends": {"useParent": false},
@@ -141,6 +142,7 @@
                 "kind": "external",
                 "schemeId": {"$-expr": "component"},
                 "showButton": false,
+                "fill": {"$-expr": "componentFill"},
                 "strokeSize": 0
             },
             "behavior": {
