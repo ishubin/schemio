@@ -637,7 +637,7 @@ export default {
                 }
             };
             enrichItemWithDefaults(item);
-            recentPropsChanges.applyItemProps(itemClone);
+            recentPropsChanges.applyItemProps(item);
 
             this.$emit(PATH_EDITED, item);
         },
