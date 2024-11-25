@@ -19,3 +19,7 @@ assets/index-static.html
 .webpack
 out/
 .exported-patcher-schema/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
