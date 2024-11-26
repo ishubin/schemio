@@ -821,6 +821,7 @@ export default {
             };
 
             const funcDef = {
+                id: shortid.generate(),
                 name: this.funcModal.name,
                 description: this.funcModal.description,
                 args: [],
