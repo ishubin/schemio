@@ -60,7 +60,7 @@ function init(item, args, schemeContainer, userEventBus) {
 }
 
 
-function execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}, classArgs = {}) {
+function execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}, classArgs = {}, classArgDefs = {}) {
     if (!item.args || !item.args[COMPILED_SCRIPTS]) {
         resultCallback();
         return
@@ -84,7 +84,14 @@ function execute(item, args, schemeContainer, userEventBus, resultCallback, subs
     if (classArgs) {
         for (let name in classArgs) {
             if (classArgs.hasOwnProperty(name)) {
-                scope.set(name, classArgs[name]);
+                let argValue = classArgs[name];
+                if (classArgDefs.hasOwnProperty(name) && classArgDefs[name].type === 'element' && typeof argValue === 'string') {
+                    const items = schemeContainer.findElementsBySelector(argValue, item).map(foundItem => {
+                        return createItemScriptWrapper(foundItem, schemeContainer, userEventBus);
+                    });
+                    argValue = new List(...items);
+                }
+                scope.set(name, argValue);
             }
         }
     }
@@ -184,7 +191,7 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
             init(item, funcDef.props, schemeContainer, userEventBus);
         },
 
-        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs = {}) {
+        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs = {}, classArgDefs = {}) {
             let componentScopeData = {};
             if (componentRootItem && componentRootItem.meta && componentRootItem.meta.componentScriptScopeData) {
                 componentScopeData = componentRootItem.meta.componentScriptScopeData;
@@ -194,7 +201,7 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
             // making sure that 'element' type arguments get converted from string to items
             // so that it makes it usable in the user script
             funcDef.args.forEach(argDef => {
-                if (argDef.type === 'element' && finalArgs.hasOwnProperty(argDef.name)) {
+                if (argDef.type === 'element' && finalArgs.hasOwnProperty(argDef.name) && typeof finalArgs[argDef.name] === 'string') {
                     const selector = finalArgs[argDef.name];
                     const items = schemeContainer.findElementsBySelector(selector, item).map(foundItem => {
                         return createItemScriptWrapper(foundItem, schemeContainer, userEventBus);
@@ -202,8 +209,7 @@ export function findSchemeDefinedScriptFunction(schemeContainer, componentRootIt
                     finalArgs[argDef.name] = new List(...items);
                 }
             });
-            // console.log('Executing script function with args', args);
-            execute(item, funcDef.props, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, finalArgs, classArgs);
+            execute(item, funcDef.props, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, finalArgs, classArgs, classArgDefs);
         }
     };
 }
@@ -244,8 +250,8 @@ export const ScriptFunction = {
         init(item, args, schemeContainer, userEventBus);
     },
 
-    execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs = {}) {
-        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs);
+    execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}, classArgs = {}, classArgDefs = {}) {
+        execute(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData, classArgs, classArgDefs);
     }
 };
 
@@ -281,7 +287,7 @@ function getItemOutlineFunction(item, schemeContainer) {
  * @param {Object} userEventBus
  * @returns {Object|null}
  */
-function createItemScriptWrapper(item, schemeContainer, userEventBus) {
+export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
     if (!item) {
         return null;
     }
@@ -550,7 +556,7 @@ function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             traverseItems([clonedItem], cItem => {
                 if (cItem.behavior && Array.isArray(cItem.behavior.events)) {
                     cItem.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(schemeContainer, null, cItem, event.actions, {});
+                        const eventCallback = compileActions(schemeContainer, userEventBus, null, cItem, event.actions);
                         if (event.event === Events.standardEvents.init.id) {
                             eventCallback(userEventBus, userEventBus.revision, cItem.id, Events.standardEvents.init.id);
                         } else {

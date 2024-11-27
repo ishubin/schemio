@@ -2,10 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { createItemBasedScope } from "./ScriptFunction";
+import { createItemBasedScope, createItemScriptWrapper } from "./ScriptFunction";
 import ConditionFunctionEditor from '../../components/editor/properties/behavior/ConditionFunctionEditor.vue';
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import { parseExpression } from "../../templater/ast";
+import { List } from "../../templater/list";
 
 
 const conditionBranchOptions = ['pass', 'skip-next', 'break-event', 'send-event'];
@@ -35,7 +36,7 @@ export default {
         return `${success} if ${args.expression} else ${fail}`;
     },
 
-    executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, classArgs) {
+    executeWithBranching(item, args, schemeContainer, userEventBus, resultCallback, subscribedItem, eventName, eventArgs, extraScopeData = {}, classArgs = {}, classArgDefs = {}) {
         let scriptAST = null;
         try {
             scriptAST = parseExpression(args.expression);
@@ -69,10 +70,24 @@ export default {
         const scope = createItemBasedScope(item, schemeContainer, userEventBus);
         scope.set('getEventName', () => eventName);
         scope.set('getEventArg', (i) => Array.isArray(eventArgs) && i < eventArgs.length ? eventArgs[i] : null);
+        if (extraScopeData) {
+            for (let name in extraScopeData) {
+                if (extraScopeData.hasOwnProperty(name)) {
+                    scope.set(name, extraScopeData[name]);
+                }
+            }
+        }
         if (classArgs) {
             for (let name in classArgs) {
                 if (classArgs.hasOwnProperty(name)) {
-                    scope.set(name, classArgs[name]);
+                    let argValue = classArgs[name];
+                    if (classArgDefs.hasOwnProperty(name) && classArgDefs[name].type === 'element' && typeof argValue === 'string') {
+                        const items = schemeContainer.findElementsBySelector(argValue, item).map(foundItem => {
+                            return createItemScriptWrapper(foundItem, schemeContainer, userEventBus);
+                        });
+                        argValue = new List(...items);
+                    }
+                    scope.set(name, argValue);
                 }
             }
         }

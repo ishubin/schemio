@@ -197,9 +197,10 @@ import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
-import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
+import { createItemScriptWrapper, createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { isolateGlobalScriptsForComponent } from '../../scheme/Scripts.js';
 import { KeyBinder } from './KeyBinder.js';
+import { List } from '../../templater/list.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -816,9 +817,18 @@ export default {
                         }
 
                         const itemClassArgs = {...itemClass.args};
+                        const classArgDefs = {};
+                        if (Array.isArray(classDef.args)) {
+                            classDef.args.forEach(argDef => {
+                                classArgDefs[argDef.name] = argDef;
+                                if (!itemClassArgs.hasOwnProperty(argDef.name)) {
+                                    itemClassArgs[argDef.name] = argDef.value;
+                                }
+                            });
+                        }
 
                         classDef.events.forEach(event => {
-                            const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, itemClassArgs, (err) => {
+                            const eventCallback = compileActions(this.schemeContainer, this.userEventBus, componentRootItem, item, event.actions, itemClassArgs, classArgDefs, (err) => {
                                 this.onCompilerError(err);
                             });
                             if (event.event === Events.standardEvents.init.id) {
@@ -829,9 +839,12 @@ export default {
                     });
                 }
 
+                const noClassArgs = {};
+                const noClassDefArgs = {};
+
                 if (item.behavior && Array.isArray(item.behavior.events)) {
                     item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, componentRootItem, item, event.actions, {}, (err) => {
+                        const eventCallback = compileActions(this.schemeContainer, this.userEventBus, componentRootItem, item, event.actions, noClassArgs, noClassDefArgs, (err) => {
                             this.onCompilerError(err);
                         });
                         if (event.event === Events.standardEvents.init.id) {
