@@ -107,7 +107,7 @@ export const COMPONENT_LOADED_EVENT = 'Component Loaded';
 export const COMPONENT_FAILED = 'Component Failed';
 export const COMPONENT_DESTROYED = 'Component Destroyed';
 
-export function generateComponentGoBackButton(componentItem, containerItem, currentScreenTransform, screenWidth, screenHeight) {
+export function generateComponentGoBackButton(componentItem, containerItem, currentScreenTransform) {
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
@@ -381,7 +381,6 @@ export default {
 
         EditorEventBus.component.loadRequested.specific.$on(this.editorId, this.item.id, this.onComponentLoadRequested);
         EditorEventBus.component.loadFailed.specific.$on(this.editorId, this.item.id, this.onComponentLoadFailed);
-        EditorEventBus.component.mounted.specific.$on(this.editorId, this.item.id, this.onComponentMounted);
     },
 
     beforeDestroy() {
@@ -393,7 +392,6 @@ export default {
 
         EditorEventBus.component.loadRequested.specific.$off(this.editorId, this.item.id, this.onComponentLoadRequested);
         EditorEventBus.component.loadFailed.specific.$off(this.editorId, this.item.id, this.onComponentLoadFailed);
-        EditorEventBus.component.mounted.specific.$off(this.editorId, this.item.id, this.onComponentMounted);
     },
 
     data() {

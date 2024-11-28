@@ -24,6 +24,8 @@ import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, compileTemplateFromDoc, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
 import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform, getItemOutlineSVGPath } from './ItemMath.js';
 import { autoLayoutGenerateEditBoxRuleGuides, generateItemAreaByAutoLayoutRules } from './AutoLayout.js';
+import Events from '../userevents/Events.js';
+import { compileActions } from '../userevents/Compiler.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -65,7 +67,7 @@ export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
  * @param {Array} items
  * @returns {Area}
  */
-function getLocalBoundingBoxOfItems(items) {
+export function getLocalBoundingBoxOfItems(items) {
     const boundsItem = findFirstItemBreadthFirst(items, item => item.shape === 'dummy' && item.shapeProps.screenBounds);
 
     const filteredItems = boundsItem ? [boundsItem] : items;
@@ -206,7 +208,7 @@ function _markTemplateRef(items, templateRef, templateRootId) {
     })
 }
 
-function createDefaultRectItem() {
+export function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
     item.shape = 'rect';
 
@@ -304,6 +306,7 @@ class SchemeContainer {
     constructor(scheme, editorId, mode, apiClient, listener) {
         Debugger.register('SchemioContainer', this);
 
+        this.id = shortid.generate();
         this.scheme = scheme;
         this.editorId = editorId;
         this.mode = mode;
@@ -441,19 +444,76 @@ class SchemeContainer {
     }
 
     /**
+     *
+     * @param {UserEventBus} userEventBus
+     * @returns {Set<String>} - ids of items that are subscribed to init event
+     */
+    indexUserEvents(userEventBus, compilerErrorCallback) {
+        return this.indexUserEventsForItems(this.scheme.items, userEventBus, compilerErrorCallback);
+    }
+
+    /**
+     * @param {Array<Item>} items 
+     * @param {UserEventBus} userEventBus
+     * @returns {Set<String>} - ids of items that are subscribed to init event
+     */
+    indexUserEventsForItems(items, userEventBus, compilerErrorCallback) {
+        const itemsForInit = new Set();
+        traverseItems(items, item => {
+            if (Array.isArray(item.classes)) {
+                item.classes.forEach(itemClass => {
+                    const classDef = this.findClassById(itemClass.id);
+                    if (!classDef) {
+                        return;
+                    }
+                    if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== item.shape) {
+                        return false;
+                    }
+
+                    const itemClassArgs = {...itemClass.args};
+                    const classArgDefs = {};
+                    if (Array.isArray(classDef.args)) {
+                        classDef.args.forEach(argDef => {
+                            classArgDefs[argDef.name] = argDef;
+                            if (!itemClassArgs.hasOwnProperty(argDef.name)) {
+                                itemClassArgs[argDef.name] = argDef.value;
+                            }
+                        });
+                    }
+
+                    classDef.events.forEach(event => {
+                        const eventCallback = compileActions(this, userEventBus, item, event.actions, itemClassArgs, classArgDefs, compilerErrorCallback);
+                        if (event.event === Events.standardEvents.init.id) {
+                            itemsForInit.add(item.id);
+                        }
+                        userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
+                    });
+                });
+            }
+
+            const noClassArgs = {};
+            const noClassDefArgs = {};
+
+            if (item.behavior && Array.isArray(item.behavior.events)) {
+                item.behavior.events.forEach(event => {
+                    const eventCallback = compileActions(this, userEventBus, item, event.actions, noClassArgs, noClassDefArgs, compilerErrorCallback);
+                    if (event.event === Events.standardEvents.init.id) {
+                        itemsForInit.add(item.id)
+                    }
+                    userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
+                });
+            }
+        });
+
+        return itemsForInit;
+    }
+
+
+    /**
      * @param {String} classId
-     * @param {Item|undefined} componentRootItem in case componentRootItem is defined it should first search in its classes in meta object
      * @returns
      */
-    findClassById(classId, componentRootItem) {
-        if (componentRootItem && Array.isArray(componentRootItem.meta.componentClasses)) {
-            for (let i = 0; i < componentRootItem.meta.componentClasses.length; i++) {
-                if (componentRootItem.meta.componentClasses[i].id === classId) {
-                    return componentRootItem.meta.componentClasses[i];
-                }
-            }
-        }
-
+    findClassById(classId) {
         if (!Array.isArray(this.scheme.scripts.classes)) {
             return null;
         }
@@ -731,14 +791,6 @@ class SchemeContainer {
 
         rectItem._childItems = childItems;
         overlayRect._childItems = [rectItem];
-
-        if (componentItem.shapeProps.kind === 'external') {
-            const backButton = generateComponentGoBackButton(componentItem, overlayRect, this.screenTransform, this.screenSettings.width, this.screenSettings.height);
-            if (backButton) {
-                overlayRect._childItems.push(backButton);
-            }
-        }
-
         componentItem._childItems = [overlayRect];
 
         const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
@@ -2590,6 +2642,15 @@ class SchemeContainer {
                 }
             });
         }
+    }
+
+    /**
+     *
+     * @param {Array<Item>} items
+     * @returns {Array<Item>}
+     */
+    cloneItemsPreservingNames(items) {
+        return this.cloneItems(items, true, false);
     }
 
     /**

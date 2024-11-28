@@ -193,6 +193,9 @@
  * @property {String|undefined} ancestorDraggableId - id of ancestor item that is draggable. This is used to allow dragging of parent items by their children
  * @property {Array<Array<Number>} transformMatrix
  * @property {Number} revision - used for registering update of the item so that some editor components could be reloaded
+ * @property {SchemeContainer|undefined} componentSchemeContainer - container of dynamically loaded component scheme
+ * @property {UserEventBus|undefined} componentUserEventBus - user event bus that is isolated to the dynamically loaded component scheme
+ * @property {Set<String>|undefined} componentItemIdsForInit - ids of component items that are subscribed to init event
  * @property {Boolean} componentRoot - true if the current item is the root of the component
  * @property {String|undefined} componentRootId - id of the component root item. Only applicable for items that are attached as part of dynamic components
  * @property {Object|undefined} componentScriptScopeData - in case the item represents components root, it will hold the script scope data that was

@@ -114,6 +114,21 @@
                     />
             </g>
 
+            <g v-if="item.meta.componentSchemeContainer && item.meta.componentUserEventBus">
+                <g v-for="componentItem in item.meta.componentSchemeContainer.worldItems" class="item-container"
+                    v-if="componentItem.visible && componentItem.shape !== 'hud'"
+                    :class="'item-cursor-' + componentItem.cursor">
+                    <ItemSvg
+                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                        :item="componentItem"
+                        :editorId="editorId"
+                        :mode="mode"
+                        :textSelectionEnabled="textSelectionEnabled"
+                        :patchIndex="patchIndex"
+                        @frame-animator="onFrameAnimatorEvent" />
+                </g>
+            </g>
+
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
                 class="svg-event-layer"
                 data-preview-ignore="true"
@@ -282,7 +297,7 @@ export default {
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
     },
-    components: {AdvancedFill},
+    components: {AdvancedFill },
 
     mounted() {
         this.switchShape(this.item.shape);

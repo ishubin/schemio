@@ -184,23 +184,24 @@ import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer  from '../../scheme/SchemeContainer.js';
+import SchemeContainer, { createDefaultRectItem, getLocalBoundingBoxOfItems }  from '../../scheme/SchemeContainer.js';
 import { calculateScreenTransformForArea, calculateZoomingAreaForItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
-import { compileActions } from '../../userevents/Compiler.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath} from './items/shapes/Component.vue';
+import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath, generateComponentGoBackButton} from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
-import { createItemScriptWrapper, createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
+import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { isolateGlobalScriptsForComponent } from '../../scheme/Scripts.js';
 import { KeyBinder } from './KeyBinder.js';
-import { List } from '../../templater/list.js';
+import UserEventBus from '../../userevents/UserEventBus.js';
+import shortid from 'shortid';
+import { loadAndMountExternalComponent } from './Component.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -272,7 +273,6 @@ export default {
 
         EditorEventBus.item.selected.any.$on(this.editorId, this.onAnyItemSelected);
 
-        EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
 
         EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
@@ -306,7 +306,7 @@ export default {
                 }
             }
 
-            forEach(this.itemsForInit, (val, itemId) => {
+            forEach(this.itemsForInit, (itemId) => {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }
@@ -327,7 +327,6 @@ export default {
 
         EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
 
-        EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
 
         EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
@@ -369,7 +368,7 @@ export default {
             lastHoveredItem: null,
 
             // ids of items that have subscribed for Init event
-            itemsForInit: {},
+            itemsForInit: new Set(),
 
             // array of markers for items that are clickable
             clickableItemMarkers: [],
@@ -431,52 +430,15 @@ export default {
             }
         },
 
+        /**
+         * @param {Item} item
+         */
         onComponentLoadRequested(item) {
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
-                return;
-            }
-            if (item._childItems && item._childItems.length > 0) {
-                item._childItems = [];
-            }
-            item.meta.componentLoadFailed = false;
-
-            this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
-            .then(schemeDetails => {
-                if (!schemeDetails || !schemeDetails.scheme) {
-                    return Promise.reject('Empty document');
-                }
-                return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
-                .catch(err => {
-                    console.error(err);
-                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
-                })
-                .then(() => {
-                    return schemeDetails;
-                });
-            })
-            .then(schemeDetails => {
-                const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, this.mode, this.$store.state.apiClient, {
-                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
-                });
-                this.schemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
-                this.schemeContainer.prepareFrameAnimationsForItems();
-                this.schemeContainer.reindexTags();
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
-
+            loadAndMountExternalComponent(this.schemeContainer, this.userEventBus, item, this.$store, this.onCompilerError)
+            .then(() => {
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {
                     this.zoomToItems([item]);
                 }
-
-                this.$nextTick(() => {
-                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item, scheme);
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
-                item.meta.componentLoadFailed = true;
-                EditorEventBus.component.loadFailed.specific.$emit(this.editorId, item.id, item);
             });
         },
 
@@ -794,91 +756,16 @@ export default {
         reindexUserEvents() {
             if (this.userEventBus) {
                 this.userEventBus.clear();
-                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit, null);
+                this.itemsForInit = this.schemeContainer.indexUserEvents(this.userEventBus, (err) => {
+                    this.onCompilerError(err);
+                });
             }
-        },
-
-        /**
-         *
-         * @param {Array} items
-         * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
-         * @param {Item|undefined} componentRootItem
-         */
-        indexUserEventsInItems(items, itemsForInit, componentRootItem) {
-            traverseItems(items, item => {
-                if (Array.isArray(item.classes)) {
-                    item.classes.forEach(itemClass => {
-                        const classDef = this.schemeContainer.findClassById(itemClass.id, componentRootItem);
-                        if (!classDef) {
-                            return;
-                        }
-                        if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== item.shape) {
-                            return false;
-                        }
-
-                        const itemClassArgs = {...itemClass.args};
-                        const classArgDefs = {};
-                        if (Array.isArray(classDef.args)) {
-                            classDef.args.forEach(argDef => {
-                                classArgDefs[argDef.name] = argDef;
-                                if (!itemClassArgs.hasOwnProperty(argDef.name)) {
-                                    itemClassArgs[argDef.name] = argDef.value;
-                                }
-                            });
-                        }
-
-                        classDef.events.forEach(event => {
-                            const eventCallback = compileActions(this.schemeContainer, this.userEventBus, componentRootItem, item, event.actions, itemClassArgs, classArgDefs, (err) => {
-                                this.onCompilerError(err);
-                            });
-                            if (event.event === Events.standardEvents.init.id) {
-                                itemsForInit[item.id] = 1;
-                            }
-                            this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
-                        });
-                    });
-                }
-
-                const noClassArgs = {};
-                const noClassDefArgs = {};
-
-                if (item.behavior && Array.isArray(item.behavior.events)) {
-                    item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, this.userEventBus, componentRootItem, item, event.actions, noClassArgs, noClassDefArgs, (err) => {
-                            this.onCompilerError(err);
-                        });
-                        if (event.event === Events.standardEvents.init.id) {
-                            itemsForInit[item.id] = 1;
-                        }
-                        this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
-                    });
-                }
-            });
         },
 
         onCompilerError(err) {
             // cannot use EditorEvent bus to pass error message to ScriptConsole component
             // due to the race condition of when components subscribe to event bus
             this.$emit('compiler-error', err);
-        },
-
-        onComponentSchemeMounted(item, scheme) {
-            if (item._childItems) {
-                const componentItemsForInit = {};
-                isolateGlobalScriptsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
-                traverseItems(item._childItems, childItem => {
-                    if (childItem.shape === 'key_bind') {
-                        this.keyBinder.registerKeyBindItem(childItem);
-                    }
-                });
-                this.indexUserEventsInItems(item._childItems, componentItemsForInit, item);
-                forEach(componentItemsForInit, (val, itemId) => {
-                    this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
-                });
-            }
-            if (item.shape === 'component' && this.userEventBus) {
-                this.userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
-            }
         },
 
         onComponentLoadFailed(item) {

@@ -41,14 +41,13 @@ function enrichFuncArgsWithBindedArgs(args, action, classArgs) {
  *
  * @param {SchemeContainer} schemeContainer
  * @param {UserEventBus} userEventBus
- * @param {SchemeItem} componentRootItem
  * @param {SchemeItem} selfItem
  * @param {Array} actions
  * @param {Object} classArgs
  * @param {Object} classArgDefs
  * @param {function(error)} errorCallback
  */
-export function compileActions(schemeContainer, userEventBus, componentRootItem, selfItem, actions, classArgs = {}, classArgDefs = {}, errorCallback = null) {
+export function compileActions(schemeContainer, userEventBus, selfItem, actions, classArgs = {}, classArgDefs = {}, errorCallback = null) {
 
     const funcs = [];
     forEach(actions, action => {
@@ -60,7 +59,7 @@ export function compileActions(schemeContainer, userEventBus, componentRootItem,
             if (elements) {
                 let knownFunc = knownFunctions.main[action.method];
                 if (!knownFunc && action.method.startsWith('function:')) {
-                    knownFunc = findSchemeDefinedScriptFunction(schemeContainer, componentRootItem, action.method.substring(9), action.args);
+                    knownFunc = findSchemeDefinedScriptFunction(schemeContainer, action.method.substring(9), action.args);
                 }
                 if (knownFunc) {
                     const args = enrichFuncArgsWithBindedArgs(enrichFuncArgs(action.args, knownFunc), action, classArgs);
