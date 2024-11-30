@@ -61,7 +61,8 @@ export function calculateScreenTransformForArea(area, width, height) {
     };
 }
 
-export function worldPointOnItem(x, y, item) {
+export function worldPointOnItem(x, y, item, transformMatrix) {
+    // if (transformMatrix)
     return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
 }
 

@@ -89,6 +89,7 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         rectItem.area.sx = scale;
         rectItem.area.sy = scale;
 
+
         rectItem.meta.componentItemIdsForInit = componentSchemeContainer.indexUserEvents(componentUserEventBus, compilerErrorCallback);
         rectItem.meta.componentSchemeContainer = componentSchemeContainer;
         rectItem.meta.componentUserEventBus = componentUserEventBus;
@@ -106,6 +107,12 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         schemeContainer.reindexSpecifiedItems(item._childItems, itemTransform, item, item.meta.ancestorIds.concat([item.id]), nonIndexable);
 
         schemeContainer.indexUserEventsForItems(item._childItems, userEventBus, compilerErrorCallback);
+
+        const shadowTransform = myMath.standardTransformWithArea(
+            myMath.multiplyMatrices(schemeContainer.shadowTransform, rectItem.meta.transformMatrix),
+            rectItem.area
+        );
+        componentSchemeContainer.setShadowTransform(shadowTransform);
 
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
     })

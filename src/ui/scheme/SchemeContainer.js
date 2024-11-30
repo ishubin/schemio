@@ -208,6 +208,10 @@ function _markTemplateRef(items, templateRef, templateRootId) {
     })
 }
 
+/**
+ *
+ * @returns {Item}
+ */
 export function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
     item.shape = 'rect';
@@ -362,6 +366,12 @@ class SchemeContainer {
 
         this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
 
+        // Shadow transform is used in external components and it represents the complete transformation of
+        // the component item root. This is needed to correctly convert child component items
+        // to the global world transform (e.g. when dragging items in view mode,
+        // or converting mouse coords to local item coords)
+        this.shadowTransform = myMath.identityMatrix();
+
         // stores all snapping rules for items (used when user drags an item)
         this.relativeSnappers = {
             horizontal: [],
@@ -378,6 +388,10 @@ class SchemeContainer {
         // this is used in order to optimize performance when user is changing templated item arguments
         this.reindexTimeoutId = null;
         this.reindexItems();
+    }
+
+    setShadowTransform(shadowTransform) {
+        this.shadowTransform = shadowTransform;
     }
 
     hasDependencyOnItem(itemId, potentialDependencyItemId) {
