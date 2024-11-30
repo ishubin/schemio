@@ -110,11 +110,16 @@
                     :editorId="editorId"
                     :patchIndex="patchIndex"
                     :mode="mode"
+                    :eventListener="eventListener"
                     @frame-animator="onFrameAnimatorEvent"
                     />
             </g>
 
-            <g v-if="item.meta.componentSchemeContainer && item.meta.componentUserEventBus">
+            <g v-if="mode === 'view' && item.meta.componentSchemeContainer && item.meta.componentUserEventBus"
+                @mousedown="onComponentMouseDown"
+                @mouseup="onComponentMouseUp"
+                @mousemove="onComponentMouseMove"
+                >
                 <g v-for="componentItem in item.meta.componentSchemeContainer.worldItems" class="item-container"
                     v-if="componentItem.visible && componentItem.shape !== 'hud'"
                     :class="'item-cursor-' + componentItem.cursor">
@@ -125,10 +130,10 @@
                         :mode="mode"
                         :textSelectionEnabled="textSelectionEnabled"
                         :patchIndex="patchIndex"
+                        :eventListener="eventListener"
                         @frame-animator="onFrameAnimatorEvent" />
                 </g>
             </g>
-
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
                 class="svg-event-layer"
                 data-preview-ignore="true"
@@ -214,6 +219,7 @@
                     :textSelectionEnabled="textSelectionEnabled"
                     :patchIndex="patchIndex"
                     :mode="mode"
+                    :eventListener="eventListener"
                     @frame-animator="onFrameAnimatorEvent"
                     />
             </g>
@@ -226,6 +232,7 @@
                     :editorId="editorId"
                     :textSelectionEnabled="textSelectionEnabled"
                     :mode="mode"
+                    :eventListener="eventListener"
                     @frame-animator="onFrameAnimatorEvent"
                     />
             </g>
@@ -296,6 +303,8 @@ export default {
         patchIndex          : {type: Object, default: null},
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
+        // used for passing intercepted events in external component items
+        eventListener       : {type: Object, required: true},
     },
     components: {AdvancedFill },
 
@@ -392,6 +401,33 @@ export default {
     },
 
     methods: {
+        onComponentMouseDown(event) {
+            if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
+                return null;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.eventListener.mouseDown(event, this.item);
+        },
+
+        onComponentMouseUp(event) {
+            if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
+                return null;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.eventListener.mouseUp(event, this.item);
+        },
+
+        onComponentMouseMove(event) {
+            if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
+                return null;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.eventListener.mouseMove(event, this.item);
+        },
+
         getHoverPathFill() {
             if (this.draggingFileOver) {
                 return 'rgba(140, 255, 140, 0.6)';

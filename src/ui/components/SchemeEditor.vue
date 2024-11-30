@@ -663,7 +663,7 @@ import FloatingHelperPanel from './editor/FloatingHelperPanel.vue';
 import StoreUtils from '../store/StoreUtils.js';
 import StrokePattern from './editor/items/StrokePattern';
 import StateCreateItem from './editor/states/StateCreateItem.js';
-import StateInteract from './editor/states/StateInteract.js';
+import { StateInteract } from './editor/states/interact/StateInteract.js';
 import StateDragItem from './editor/states/StateDragItem.js';
 import StateDraw from './editor/states/StateDraw.js';
 import StateEditPath from './editor/states/StateEditPath.js';
@@ -1187,9 +1187,19 @@ export default {
                 items: [],
                 backgroundColor: 'rgba(255,255,255,1.0)'
             },
-        }
+        };
     },
     methods: {
+        onExternalComponentMouseDown(worldX, worldY, screenX, screenY, event, componentItem) {
+            console.log('onExternalComponentMouseDown', worldX, worldY, screenX, screenY, event, componentItem);
+        },
+        onExternalComponentMouseUp(worldX, worldY, screenX, screenY, event, componentItem) {
+            console.log('onExternalComponentMouseUp', worldX, worldY, screenX, screenY, event, componentItem);
+        },
+        onExternalComponentMouseMove(worldX, worldY, screenX, screenY, event, componentItem) {
+
+        },
+
         exportAsSVG() {
             const schemeContainer = this.mode === 'view' ? this.interactiveSchemeContainer : this.schemeContainer;
             this.openExportPictureModal(schemeContainer.scheme.items, 'svg');
@@ -2863,38 +2873,76 @@ export default {
             };
         },
 
+        /**
+         * @param {*} event
+         * @param {Item} componentItem
+         */
+        identifyComponentObject(event, componentItem) {
+            const itemId = event.srcElement.getAttribute('data-item-id');
+            if (itemId) {
+                const item = componentItem.meta.componentSchemeContainer.findItemById(itemId);
+                if (item) {
+                    return {
+                        type: 'item',
+                        item
+                    };
+                }
+            }
+            return {
+                type: 'void'
+            };
+        },
+
         mouseWheel(x, y, mx, my, event) {
             if (this.active) {
                 this.states[this.state].mouseWheel(x, y, mx, my, event);
             }
         },
 
-        mouseDown(worldX, worldY, screenX, screenY, object, event) {
+        mouseDown(worldX, worldY, screenX, screenY, object, event, componentItem) {
             this.mouseDownId++;
 
-            if (this.active) {
-                this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event);
+            if (!this.active) {
+                return
+            }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.states[this.state].mouseDown(worldX, worldY, screenX, screenY, object, event, componentItem);
+        },
+
+        mouseUp(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.active) {
+                return;
+            }
+
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event, componentItem);
+        },
+
+        mouseMove(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.active) {
+                return;
+            }
+            if (!this.editBoxUseFill && !(event.ctrlKey || event.metaKey || event.shiftKey)) {
+                this.editBoxUseFill = true;
+            }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event, componentItem);
+            if (this.state === 'dragItem') {
+                this.cursorX = worldX;
+                this.cursorY = worldY;
             }
         },
-        mouseUp(worldX, worldY, screenX, screenY, object, event) {
+        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event, componentItem) {
             if (this.active) {
-                this.states[this.state].mouseUp(worldX, worldY, screenX, screenY, object, event);
-            }
-        },
-        mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            if (this.active) {
-                if (!this.editBoxUseFill && !(event.ctrlKey || event.metaKey || event.shiftKey)) {
-                    this.editBoxUseFill = true;
+                if (componentItem && !object) {
+                    object = this.identifyComponentObject(event, componentItem);
                 }
-                this.states[this.state].mouseMove(worldX, worldY, screenX, screenY, object, event);
-                if (this.state === 'dragItem') {
-                    this.cursorX = worldX;
-                    this.cursorY = worldY;
-                }
-            }
-        },
-        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            if (this.active) {
                 this.states[this.state].mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
             }
         },

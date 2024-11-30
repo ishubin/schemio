@@ -32,6 +32,7 @@
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
+                            :eventListener="eventListenerInterceptor"
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -75,6 +76,7 @@
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
+                            :eventListener="eventListenerInterceptor"
                             @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
@@ -121,6 +123,7 @@
                             :editorId="editorId"
                             :patchIndex="patchIndex"
                             :mode="mode"
+                            :eventListener="eventListenerInterceptor"
                             />
                     </g>
 
@@ -179,28 +182,24 @@ import {forEach, map } from '../../collections';
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {defaultItem, traverseItems, traverseItemsConditionally} from '../../scheme/Item';
+import {defaultItem, traverseItemsConditionally} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer, { createDefaultRectItem, getLocalBoundingBoxOfItems }  from '../../scheme/SchemeContainer.js';
+import SchemeContainer  from '../../scheme/SchemeContainer.js';
 import { calculateScreenTransformForArea, calculateZoomingAreaForItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath, generateComponentGoBackButton} from './items/shapes/Component.vue';
+import { COMPONENT_FAILED, computeButtonPath } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
-import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
-import { isolateGlobalScriptsForComponent } from '../../scheme/Scripts.js';
 import { KeyBinder } from './KeyBinder.js';
-import UserEventBus from '../../userevents/UserEventBus.js';
-import shortid from 'shortid';
 import { loadAndMountExternalComponent } from './Component.js';
 
 const EMPTY_OBJECT = {type: 'void'};
@@ -384,7 +383,19 @@ export default {
 
             compiledMainScript : null,
 
-            keyBinder: new KeyBinder(this.userEventBus, this.schemeContainer)
+            keyBinder: new KeyBinder(this.userEventBus, this.schemeContainer),
+
+            eventListenerInterceptor: {
+                mouseDown: (event, componentItem) => {
+                    this.onEventListenerInterceptorMouseEvent('mouse-down', event, componentItem);
+                },
+                mouseUp: (event, componentItem) => {
+                    this.onEventListenerInterceptorMouseEvent('mouse-up', event, componentItem);
+                },
+                mouseMove: (event, componentItem) => {
+                    this.onEventListenerInterceptorMouseEvent('mouse-move', event, componentItem);
+                }
+            }
         };
     },
     methods: {
@@ -652,6 +663,7 @@ export default {
             }
             this.mouseEvent('mouse-move', event);
         },
+
         mouseDown(event) {
             let newClickTime = performance.now();
             // implementing own double click event hanlding
@@ -672,23 +684,36 @@ export default {
                 }
                 this.mouseEvent('mouse-down', event);
             }
-
         },
+
         mouseUp(event) {
             this.mouseEvent('mouse-up', event);
         },
+
         mouseDoubleClick(event) {
             this.mouseEvent('mouse-double-click', event);
         },
 
         mouseEvent(eventName, event) {
-            if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
-                lastMousePosition.x = coords.x;
-                lastMousePosition.y = coords.y;
-                this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+            if (!this.mouseEventsEnabled) {
+                return;
             }
+            var coords = this.mouseCoordsFromEvent(event);
+            var p = this.toLocalPoint(coords.x, coords.y);
+            lastMousePosition.x = coords.x;
+            lastMousePosition.y = coords.y;
+            this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+        },
+
+        onEventListenerInterceptorMouseEvent(eventName, event, componentItem) {
+            if (!this.mouseEventsEnabled) {
+                return;
+            }
+            var coords = this.mouseCoordsFromEvent(event);
+            var p = this.toLocalPoint(coords.x, coords.y);
+            lastMousePosition.x = coords.x;
+            lastMousePosition.y = coords.y;
+            this.$emit(eventName, p.x, p.y, coords.x, coords.y, null, event, componentItem);
         },
 
         generateItemHighlight(item, showPins) {

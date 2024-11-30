@@ -1,3 +1,4 @@
+import shortid from "shortid";
 import myMath from "../../myMath";
 import SchemeContainer, { createDefaultRectItem, getLocalBoundingBoxOfItems } from "../../scheme/SchemeContainer";
 import StoreUtils from "../../store/StoreUtils";
@@ -117,4 +118,4 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         item._childItems = [];
         EditorEventBus.component.loadFailed.specific.$emit(schemeContainer.editorId, item.id, item);
     });
-},
+}

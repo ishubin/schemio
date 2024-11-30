@@ -269,21 +269,21 @@ class State {
         if (this.subState) this.subState.keyUp(key, keyOptions);
     }
 
-    mouseDoubleClick(x, y, mx, my, object, event) {
+    mouseDoubleClick(x, y, mx, my, object, event, componentItem) {
         if (this.subState) this.subState.mouseDoubleClick(x, y, mx, my, object, event);
     }
 
-    mouseDown(x, y, mx, my, object, event) {
+    mouseDown(x, y, mx, my, object, event, componentItem) {
         this.pinchToZoomId += 1;
-        if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event);
+        if (this.subState) this.subState.mouseDown(x, y, mx, my, object, event, componentItem);
     }
 
-    mouseMove(x, y, mx, my, object, event) {
-        if (this.subState) this.subState.mouseMove(x, y, mx, my, object, event);
+    mouseMove(x, y, mx, my, object, event, componentItem) {
+        if (this.subState) this.subState.mouseMove(x, y, mx, my, object, event, componentItem);
     }
 
-    mouseUp(x, y, mx, my, object, event) {
-        if (this.subState) this.subState.mouseUp(x, y, mx, my, object, event);
+    mouseUp(x, y, mx, my, object, event, componentItem) {
+        if (this.subState) this.subState.mouseUp(x, y, mx, my, object, event, componentItem);
     }
 
     mobilePinchToZoom(event) {

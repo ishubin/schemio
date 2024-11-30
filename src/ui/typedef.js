@@ -193,6 +193,7 @@
  * @property {String|undefined} ancestorDraggableId - id of ancestor item that is draggable. This is used to allow dragging of parent items by their children
  * @property {Array<Array<Number>} transformMatrix
  * @property {Number} revision - used for registering update of the item so that some editor components could be reloaded
+ * @property {String|undefined} eventLayerId
  * @property {SchemeContainer|undefined} componentSchemeContainer - container of dynamically loaded component scheme
  * @property {UserEventBus|undefined} componentUserEventBus - user event bus that is isolated to the dynamically loaded component scheme
  * @property {Set<String>|undefined} componentItemIdsForInit - ids of component items that are subscribed to init event
