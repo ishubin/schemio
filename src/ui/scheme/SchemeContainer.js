@@ -669,72 +669,6 @@ class SchemeContainer {
     }
 
 
-    /*
-        Traverses all items and makes their tags and tag selectors unique.
-        This is needed so that behavior actions defined inside components affect only items within itself
-    */
-    isolateItemTags(items) {
-        const tagConversions = new Map();
-        traverseItems(items, item => {
-            if (!Array.isArray(item.tags)) {
-                return;
-            }
-            item.tags = item.tags.map(tag => {
-                if (tagConversions.has(tag)) {
-                    return tagConversions.get(tag);
-                }
-                const convertedTag = `${tag}-${shortid.generate()}`;
-                tagConversions.set(tag, convertedTag);
-                return convertedTag;
-            });
-        });
-
-        const replaceSelector = (selector) => {
-            if (!selector) {
-                return selector;
-            }
-            const colonIndex = selector.indexOf(':');
-            if (colonIndex > 0) {
-                const expression = selector.substring(0, colonIndex).trim();
-                if (expression === 'tag') {
-                    const tag = selector.substr(colonIndex + 1).trim();
-                    if (tagConversions.has(tag)) {
-                        return `tag: ${tagConversions.get(tag)}`;
-                    }
-                }
-            }
-            return selector;
-        };
-
-        traverseItems(items, item => {
-            if (!item.behavior || !Array.isArray(item.behavior.events)) {
-                return;
-            }
-            if (item.behavior.dragPath) {
-                item.behavior.dragPath = replaceSelector(item.behavior.dragPath);
-            }
-            if (item.behavior.dropTo) {
-                item.behavior.dropTo = replaceSelector(item.behavior.dropTo);
-            }
-            item.behavior.events.forEach(event => {
-                if (!Array.isArray(event.actions)) {
-                    return;
-                }
-                event.actions.forEach(action => {
-                    action.element = replaceSelector(action.element);
-                    if (action.args && Functions.main.hasOwnProperty(action.method)) {
-                        const argDefs = Functions.main[action.method].args;
-                        forEach(argDefs, (argDef, argName) => {
-                            if (argDef.type === 'element') {
-                                action.args[argName] = replaceSelector(action.args[argName]);
-                            }
-                        });
-                    }
-                });
-            })
-        });
-    }
-
     attachItemsToComponentItem(componentItem, referenceItems) {
         if (!referenceItems) {
             return;
@@ -750,10 +684,6 @@ class SchemeContainer {
             }
             childItem.meta.componentRootId = componentItem.id;
         });
-
-        if (componentItem.shapeProps.kind === 'external') {
-            this.isolateItemTags(childItems);
-        }
 
         const bBox = getLocalBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {

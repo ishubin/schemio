@@ -16,15 +16,15 @@ export class IdleInteractState extends SubState {
         this.initialClickPoint = null;
 
         // used in order to track whether mousein or mouseout event can be produced
-        this.currentHoveredItem = null;
-        this.hoveredItemIds = new Set();
+        this.currentHovered = null;
+        this.hoveredItemEntries = new Map();
         this.userEventBus = userEventBus;
         this.schemeContainer = this.parentState.schemeContainer;
     }
 
     reset() {
         this.softReset();
-        this.hoveredItemIds = new Set();
+        this.hoveredItemEntries = new Map();
     }
 
     softReset() {
@@ -78,8 +78,11 @@ export class IdleInteractState extends SubState {
                 this.listener.onItemClicked(object.item, x, y);
                 const shape = Shape.find(object.item.shape);
                 if (shape && shape.onMouseDown) {
-                    // TODO in case of componentItem set the localPointOnItem should take components item transform into account
-                    const localPoint = localPointOnItem(x, y, object.item);
+                    let transformMatrix = null;
+                    if (componentItem && componentItem.meta.componentSchemeContainer) {
+                        transformMatrix = componentItem.meta.componentSchemeContainer.shadowTransform;
+                    }
+                    const localPoint = localPointOnItem(x, y, object.item, transformMatrix);
                     shape.onMouseDown(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
                 }
                 this.parentState.handleItemClick(object.item, mx, my, componentItem);
@@ -94,6 +97,17 @@ export class IdleInteractState extends SubState {
         }
     }
 
+    /**
+     *
+     * @param {*} x
+     * @param {*} y
+     * @param {*} mx
+     * @param {*} my
+     * @param {*} object
+     * @param {*} event
+     * @param {Item|undefined} componentItem
+     * @returns
+     */
     mouseMove(x, y, mx, my, object, event, componentItem) {
         if (event.touches && event.touches.length === 2) {
             this.mobilePinchToZoom(event);
@@ -112,69 +126,113 @@ export class IdleInteractState extends SubState {
             if (object.item) {
                 const shape = Shape.find(object.item.shape);
                 if (shape && shape.onMouseMove) {
-                    const localPoint = localPointOnItem(x, y, object.item);
+                    let transformMatrix = null;
+                    if (componentItem && componentItem.meta.componentSchemeContainer) {
+                        transformMatrix = componentItem.meta.componentSchemeContainer.shadowTransform;
+                    }
+                    const localPoint = localPointOnItem(x, y, object.item, transformMatrix);
                     shape.onMouseMove(this.editorId, object.item, object.areaId, localPoint.x, localPoint.y);
                 }
             }
-            this.handleItemHoverEvents(object);
+            this.handleItemHoverEvents(object, componentItem);
         }
     }
 
-    sendItemEventById(itemId, event) {
+    /**
+     *
+     * @param {String} itemId
+     * @param {String} event
+     * @param {Item|undefined} componentItem
+     */
+    sendItemEventById(itemId, event, componentItem) {
+        if (componentItem && componentItem.meta.componentUserEventBus) {
+            componentItem.meta.componentUserEventBus.emitItemEvent(itemId, event);
+            return;
+        }
         const item = this.schemeContainer.findItemById(itemId);
         if (item) {
-            this.emit(item, event);
+            this.emit(componentItem, item, event);
         }
     }
 
-    handleItemHoverEvents(object) {
+    /**
+     * This function tracks the triggering of mouse in/out events for item and its entire chain of ancestors.
+     * This is needed so that the mouse out event correctly propagates through all ancestor items
+     * @param {*} object
+     * @param {Item|undefined} componentItem
+     */
+    handleItemHoverEvents(object, componentItem) {
         if (object && (object.type === 'item' || object.type === 'custom-item-area') && object.item) {
-            if (!this.currentHoveredItem) {
+            if (!this.currentHovered) {
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
-                    this.hoveredItemIds = new Set(object.item.meta.ancestorIds.concat([object.item.id]));
-                    object.item.meta.ancestorIds.forEach(itemId => {
-                        this.sendItemEventById(itemId, MOUSE_IN);
+                    const item = object.item;
+                    this.hoveredItemEntries = new Map();
+
+                    item.meta.ancestorIds.forEach(itemId => {
+                        this.hoveredItemEntries.set(itemId, { itemId, componentItem });
+                    });
+                    this.hoveredItemEntries.set(item.id, { itemId: item.id, componentItem });
+
+                    item.meta.ancestorIds.forEach(itemId => {
+                        this.sendItemEventById(itemId, MOUSE_IN, componentItem);
                     });
                 } else {
-                    this.hoveredItemIds = new Set([object.item.id]);
+                    this.hoveredItemEntries = new Map();
+                    this.hoveredItemEntries.set(item.id, { itemId: item.id, componentItem });
                 }
-                this.emit(object.item, MOUSE_IN);
-                this.currentHoveredItem = object.item;
+                this.emit(componentItem, object.item, MOUSE_IN);
+                this.currentHovered = {
+                    item: object.item,
+                    componentItem
+                };
 
-            } else if (this.currentHoveredItem.id !== object.item.id) {
+            } else if (this.currentHovered.item.id !== object.item.id) {
                 let allNewIds = new Set();
                 if (object.item.meta && Array.isArray(object.item.meta.ancestorIds)) {
                     allNewIds = new Set(object.item.meta.ancestorIds);
                 }
                 allNewIds.add(object.item.id);
 
-                this.hoveredItemIds.forEach(itemId => {
+                this.hoveredItemEntries.forEach((entry, itemId) => {
                     if (!allNewIds.has(itemId)) {
-                        this.hoveredItemIds.delete(itemId);
-                        this.sendMouseOutEvent(itemId);
+                        this.hoveredItemEntries.delete(itemId);
+                        this.sendMouseOutEvent(itemId, entry.componentItem);
                     }
                 });
 
                 allNewIds.forEach(itemId => {
-                    if (!this.hoveredItemIds.has(itemId)) {
-                        this.hoveredItemIds.add(itemId);
-                        this.sendItemEventById(itemId, MOUSE_IN);
+                    if (!this.hoveredItemEntries.has(itemId)) {
+                        this.hoveredItemEntries.set(itemId, {itemId, componentItem});
+                        this.sendItemEventById(itemId, MOUSE_IN, componentItem);
                     }
                 });
-                this.currentHoveredItem = object.item;
+                this.currentHovered = {
+                    item: object.item,
+                    componentItem
+                };
             }
         } else {
-            this.hoveredItemIds.forEach(itemId => {
-                this.sendMouseOutEvent(itemId);
+            this.hoveredItemEntries.forEach((entry, itemId) => {
+                this.sendMouseOutEvent(itemId, entry.componentItem);
             });
-            this.hoveredItemIds.clear();
-            this.currentHoveredItem = null;
+            this.hoveredItemEntries.clear();
+            this.currentHovered = null;
         }
     }
 
-    sendMouseOutEvent(itemId) {
-        this.sendItemEventById(itemId, MOUSE_OUT);
-        const item = this.schemeContainer.findItemById(itemId);
+    /**
+     *
+     * @param {String} itemId
+     * @param {Item|undefined} componentItem
+     * @returns
+     */
+    sendMouseOutEvent(itemId, componentItem) {
+        this.sendItemEventById(itemId, MOUSE_OUT, componentItem);
+        let schemeContainer = this.schemeContainer;
+        if (componentItem && componentItem.meta.componentSchemeContainer) {
+            schemeContainer = componentItem.meta.componentSchemeContainer;
+        }
+        const item = schemeContainer.findItemById(itemId);
         if (!item) {
             return;
         }
@@ -185,8 +243,19 @@ export class IdleInteractState extends SubState {
         shape.onMouseOut(this.editorId, item);
     }
 
-    emit(element, eventName, ...args) {
-        this.parentState.emit(element, eventName, ...args);
+    /**
+     *
+     * @param {Item|undefined} componentItem
+     * @param {Item} item
+     * @param {String} eventName
+     * @param  {...any} args
+     */
+    emit(componentItem, item, eventName, ...args) {
+        if (componentItem && componentItem.meta.componentUserEventBus && item && item.id) {
+            componentItem.meta.componentUserEventBus.emitItemEvent(item.id, eventName, ...args);
+        } else {
+            this.parentState.emit(item, eventName, ...args);
+        }
     }
 
     handleItemClick(item, mx, my, componentItem) {
