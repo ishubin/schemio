@@ -678,13 +678,6 @@ class SchemeContainer {
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
 
-        traverseItems(childItems, childItem => {
-            if (!childItem.meta) {
-                childItem.meta = {};
-            }
-            childItem.meta.componentRootId = componentItem.id;
-        });
-
         const bBox = getLocalBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
             item.area.x -= bBox.x;
