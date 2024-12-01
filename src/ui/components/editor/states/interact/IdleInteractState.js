@@ -59,13 +59,13 @@ export class IdleInteractState extends SubState {
         this.initialClickPoint = {x: mx, y: my};
         if (!isEventMiddleClick(event) && object && object.type === 'item') {
             if (object.item.behavior.dragging !== 'none') {
-                this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y, componentItem));
+                this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y, this.userEventBus, componentItem));
                 return;
             } else if (object.item.meta.ancestorDraggableId) {
                 const schemeContainer = componentItem ? componentItem.meta.componentSchemeContainer : this.schemeContainer;
                 const ancestorItem =  schemeContainer.findItemById(object.item.meta.ancestorDraggableId);
                 if (ancestorItem) {
-                    this.migrateSubState(new DragItemState(this, this.listener, ancestorItem, x, y, componentItem));
+                    this.migrateSubState(new DragItemState(this, this.listener, ancestorItem, x, y, this.userEventBus, componentItem));
                     return;
                 }
             }
@@ -254,7 +254,7 @@ export class IdleInteractState extends SubState {
         if (componentItem && componentItem.meta.componentUserEventBus && item && item.id) {
             componentItem.meta.componentUserEventBus.emitItemEvent(item.id, eventName, ...args);
         } else {
-            this.parentState.emit(item, eventName, ...args);
+            this.userEventBus.emitItemEvent(item.id, eventName, ...args);
         }
     }
 

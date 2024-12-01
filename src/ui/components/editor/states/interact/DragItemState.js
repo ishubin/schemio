@@ -76,11 +76,13 @@ export class DragItemState extends SubState {
      * @param {Item} item
      * @param {Number} x
      * @param {Number} y
+     * @param {UserEventBus}
      * @param {Item|undefined} componentItem
      */
-    constructor(parentState, listener, item, x, y, componentItem) {
+    constructor(parentState, listener, item, x, y, userEventBus, componentItem) {
         super(parentState, 'drag-item');
         this.listener = listener;
+        this.userEventBus = userEventBus;
         this.initialClickPoint = {x, y};
         this.originalItemPosition = {x: item.area.x, y: item.area.y};
         this.item = item;
@@ -104,11 +106,11 @@ export class DragItemState extends SubState {
         this.looper.stop();
     }
 
-    emit(element, eventName, ...args) {
+    emit(item, eventName, ...args) {
         if (this.componentItem) {
             this.componentItem.meta.componentUserEventBus.emitItemEvent(this.item.id, eventName, ...args);
         } else {
-            this.parentState.emit(element, eventName, ...args);
+            this.userEventBus.emitItemEvent(item.id, eventName, ...args);
         }
     }
 
