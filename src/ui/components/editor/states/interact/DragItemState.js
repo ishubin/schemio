@@ -108,7 +108,7 @@ export class DragItemState extends SubState {
 
     emit(item, eventName, ...args) {
         if (this.componentItem) {
-            this.componentItem.meta.componentUserEventBus.emitItemEvent(this.item.id, eventName, ...args);
+            this.componentItem.meta.componentUserEventBus.emitItemEvent(item.id, eventName, ...args);
         } else {
             this.userEventBus.emitItemEvent(item.id, eventName, ...args);
         }
@@ -281,7 +281,7 @@ export class DragItemState extends SubState {
         this.looper.stop();
         this.emit(this.item, Events.standardEvents.dragEnd.id);
         if (!this.moved) {
-            this.parentState.handleItemClick(this.item, mx, my);
+            this.parentState.handleItemClick(this.item, mx, my, componentItem);
             this.migrateToPreviousSubState();
             return;
         }
