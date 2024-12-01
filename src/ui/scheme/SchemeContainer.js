@@ -1416,7 +1416,7 @@ class SchemeContainer {
      * @returns {Point}
      */
     localPointOnItem(x, y, item) {
-        return localPointOnItem(x, y, item);
+        return localPointOnItem(x, y, item, this.shadowTransform);
     }
 
     /**
@@ -1430,7 +1430,7 @@ class SchemeContainer {
         if (item.meta.parentId) {
             const parentItem = this.findItemById(item.meta.parentId);
             if (parentItem) {
-                return this.localPointOnItem(x, y, parentItem);
+                return localPointOnItem(x, y, parentItem, this.shadowTransform);
             }
         }
 
@@ -1982,7 +1982,7 @@ class SchemeContainer {
      */
     closestPointToItemOutline(item, globalPoint, {withNormal, startDistance, stopDistance, precision}) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
-        const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
+        const localPoint = localPointOnItem(globalPoint.x, globalPoint.y, item);
 
         const shadowSvgPath = this.svgOutlinePathCache.get(item);
         if (!shadowSvgPath) {

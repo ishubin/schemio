@@ -61,13 +61,38 @@ export function calculateScreenTransformForArea(area, width, height) {
     };
 }
 
-export function worldPointOnItem(x, y, item, transformMatrix) {
-    // if (transformMatrix)
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+/**
+ * 
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Item} item
+ * @param {Array|null} transformMatrix - a transform matrix that is applied before item transform. This could be used for shadow transform of component item
+ * @returns
+ */
+export function worldPointOnItem(x, y, item, transformMatrix = null) {
+    if (!transformMatrix) {
+        transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null;
+    } else if (item.meta && item.meta.transformMatrix) {
+        transformMatrix = myMath.multiplyMatrices(transformMatrix, item.meta.transformMatrix);
+    }
+    return myMath.worldPointInArea(x, y, item.area, transformMatrix);
 }
 
-export function localPointOnItem(x, y, item) {
-    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+/**
+ * 
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Item} item
+ * @param {Array|null} transformMatrix - a transform matrix that is applied before item transform. This could be used for shadow transform of component item
+ * @returns
+ */
+export function localPointOnItem(x, y, item, transformMatrix = null) {
+    if (!transformMatrix) {
+        transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null;
+    } else if (item.meta && item.meta.transformMatrix) {
+        transformMatrix = myMath.multiplyMatrices(transformMatrix, item.meta.transformMatrix);
+    }
+    return myMath.localPointInArea(x, y, item.area, transformMatrix);
 }
 
 export function localPointOnItemToLocalPointOnOtherItem(x, y, srcItem, dstItem) {
@@ -109,9 +134,10 @@ export function pointOnItemPath(item, shadowSvgPath, positionOnPath) {
 /**
  * Calculates bounding box in world transform of specified items.
  * @param {Array<Item>} items
+ * @param {Array|undefined} shadowTransform
  * @returns {Area} bounding box in world transform
  */
-export function getBoundingBoxOfItems(items) {
+export function getBoundingBoxOfItems(items, shadowTransform) {
     if (!items || items.length === 0) {
         return {x: 0, y: 0, w: 0, h: 0};
     }
@@ -120,10 +146,10 @@ export function getBoundingBoxOfItems(items) {
 
     forEach(items, item => {
         const points = [
-            worldPointOnItem(0, 0, item),
-            worldPointOnItem(item.area.w, 0, item),
-            worldPointOnItem(item.area.w, item.area.h, item),
-            worldPointOnItem(0, item.area.h, item),
+            worldPointOnItem(0, 0, item, shadowTransform),
+            worldPointOnItem(item.area.w, 0, item, shadowTransform),
+            worldPointOnItem(item.area.w, item.area.h, item, shadowTransform),
+            worldPointOnItem(0, item.area.h, item, shadowTransform),
         ];
 
         forEach(points, point => {

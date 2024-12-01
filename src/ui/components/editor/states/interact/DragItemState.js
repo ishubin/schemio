@@ -22,12 +22,14 @@ class DragItemLooper {
      * @param {SchemeContainer} globalSchemeContainer - a global scheme container, used only for dragging the screen
      *                                                  when user drags object too close to the edge of the screen
      * @param {Point} localClickPoint
+     * @param {Array|undefined} shadowTransform
      */
-    constructor(globalSchemeContainer, localClickPoint) {
+    constructor(globalSchemeContainer, localClickPoint, shadowTransform) {
         this.globalSchemeContainer = globalSchemeContainer;
         this.shouldLoop = true;
         this.pos = {x: 0, y: 0};
         this.localClickPoint = localClickPoint;
+        this.shadowTransform = shadowTransform;
     }
 
     start() {
@@ -39,7 +41,7 @@ class DragItemLooper {
      * @param {Item} item
      */
     updateItemPosition(item) {
-        this.pos = worldPointOnItem(this.localClickPoint.x, this.localClickPoint.y, item);
+        this.pos = worldPointOnItem(this.localClickPoint.x, this.localClickPoint.y, item, this.shadowTransform);
     }
 
     loop(dt) {
@@ -85,11 +87,12 @@ export class DragItemState extends SubState {
         this.moved = false;
         this.lastDropCandidate = null;
         this.componentItem = componentItem;
-        this.looper = new DragItemLooper(this.parentState.schemeContainer, localPointOnItem(x, y, item));
         if (componentItem) {
             this.schemeContainer = componentItem.meta.componentSchemeContainer;
         }
-        const worldPivot = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
+        const localPoint = localPointOnItem(x, y, item, this.schemeContainer.shadowTransform);
+        this.looper = new DragItemLooper(this.parentState.schemeContainer, localPoint, this.schemeContainer.shadowTransform);
+        const worldPivot = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item, this.schemeContainer.shadowTransform);
         this.worldPivotCorrection = {
             x: x - worldPivot.x,
             y: y - worldPivot.y,
@@ -169,14 +172,14 @@ export class DragItemState extends SubState {
                 return;
             }
 
-            const localPoint = localPointOnItem(x - this.worldPivotCorrection.x, y - this.worldPivotCorrection.y, item);
+            const localPoint = localPointOnItem(x - this.worldPivotCorrection.x, y - this.worldPivotCorrection.y, item, this.schemeContainer.shadowTransform);
             const p = myMath.closestPointOnPath(localPoint.x, localPoint.y, svgPath);
 
             if (!p) {
                 return;
             }
 
-            const wp = worldPointOnItem(p.x, p.y, item);
+            const wp = worldPointOnItem(p.x, p.y, item, this.schemeContainer.shadowTransform);
 
             const squareDistance = (wp.x - x) * (wp.x - x) + (wp.y - y) * (wp.y - y);
 
@@ -193,10 +196,15 @@ export class DragItemState extends SubState {
             return;
         }
 
+        let fullTransformMatrix = this.item.meta.transformMatrix;
+        if (this.schemeContainer.shadowTransform) {
+            fullTransformMatrix = myMath.multiplyMatrices(this.schemeContainer.shadowTransform, fullTransformMatrix);
+        }
+
         const localPoint = myMath.findTranslationMatchingWorldPoint(
             closestPoint.x, closestPoint.y,
             this.item.area.w * this.item.area.px, this.item.area.h * this.item.area.py,
-            this.item.area, this.item.meta.transformMatrix
+            this.item.area, fullTransformMatrix
         );
         this.item.area.x = localPoint.x;
         this.item.area.y = localPoint.y;
@@ -205,8 +213,8 @@ export class DragItemState extends SubState {
         if (this.item.behavior.dragPathAlign) {
             const nextPoint = closestPath.getPointAtLength(closestPathDistance + 1);
             const prevPoint = closestPath.getPointAtLength(closestPathDistance - 1);
-            const worldNextPoint = worldPointOnItem(nextPoint.x, nextPoint.y, closestPathItem);
-            const worldPrevPoint = worldPointOnItem(prevPoint.x, prevPoint.y, closestPathItem);
+            const worldNextPoint = worldPointOnItem(nextPoint.x, nextPoint.y, closestPathItem, this.schemeContainer.shadowTransform);
+            const worldPrevPoint = worldPointOnItem(prevPoint.x, prevPoint.y, closestPathItem, this.schemeContainer.shadowTransform);
             const Vx = worldNextPoint.x - worldPrevPoint.x;
             const Vy = worldNextPoint.y - worldPrevPoint.y;
             const dSquared = Vx * Vx + Vy * Vy;
@@ -258,8 +266,12 @@ export class DragItemState extends SubState {
 
     getDropPosition(dropItem) {
         // centering item inside drop item
-        const wp = worldPointOnItem(dropItem.area.w / 2, dropItem.area.h / 2, dropItem);
-        return myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w/2, this.item.area.h/2, this.item.area, this.item.meta.transformMatrix);
+        const wp = worldPointOnItem(dropItem.area.w / 2, dropItem.area.h / 2, dropItem, this.schemeContainer.shadowTransform);
+        let fullTransformMatrix = this.item.meta.transformMatrix;
+        if (this.schemeContainer.shadowTransform) {
+            fullTransformMatrix = myMath.multiplyMatrices(this.schemeContainer.shadowTransform, fullTransformMatrix);
+        }
+        return myMath.findTranslationMatchingWorldPoint(wp.x, wp.y, this.item.area.w/2, this.item.area.h/2, this.item.area, fullTransformMatrix);
 
     }
 
@@ -298,7 +310,7 @@ export class DragItemState extends SubState {
         }
         const designatedDropItems = this.schemeContainer.findElementsBySelector(this.item.behavior.dropTo, null);
 
-        const draggedItemBox = getBoundingBoxOfItems([this.item]);
+        const draggedItemBox = getBoundingBoxOfItems([this.item], this.schemeContainer.shadowTransform);
 
         let candidateDrop = null;
         const draggedSquare = draggedItemBox.w * draggedItemBox.h;
@@ -307,7 +319,7 @@ export class DragItemState extends SubState {
             if (item.id === this.item.id || (item.meta.ancestorIds && indexOf(item.meta.ancestorIds) >= 0)) {
                 return;
             }
-            const box = getBoundingBoxOfItems([item]);
+            const box = getBoundingBoxOfItems([item], this.schemeContainer.shadowTransform);
             const overlap = myMath.overlappingArea(draggedItemBox, box);
             if (overlap) {
                 const overlapSquare = overlap.w * overlap.h;
