@@ -305,7 +305,7 @@ export default {
                 }
             }
 
-            forEach(this.itemsForInit, (itemId) => {
+            this.itemsForInit.forEach((itemId) => {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }

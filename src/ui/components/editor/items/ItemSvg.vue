@@ -254,6 +254,7 @@ import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
 import StoreUtils from '../../../store/StoreUtils';
 import { hasItemDescription } from '../../../scheme/Item';
+import Events from '../../../userevents/Events.js';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -327,6 +328,13 @@ export default {
                 return;
             }
             this.hiddenTextSlotName = textEditorWrapper.getAttribute('data-slot-name');
+        }
+
+        // triggering init events only when component was fully mounted
+        if (this.item.meta.componentUserEventBus && this.item.meta.componentItemIdsForInit && this.mode === 'view') {
+            this.item.meta.componentItemIdsForInit.forEach(itemId => {
+                this.item.meta.componentUserEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+            });
         }
     },
 
