@@ -62,7 +62,7 @@ export function calculateScreenTransformForArea(area, width, height) {
 }
 
 /**
- * 
+ *
  * @param {Number} x
  * @param {Number} y
  * @param {Item} item
@@ -79,7 +79,7 @@ export function worldPointOnItem(x, y, item, transformMatrix = null) {
 }
 
 /**
- * 
+ *
  * @param {Number} x
  * @param {Number} y
  * @param {Item} item

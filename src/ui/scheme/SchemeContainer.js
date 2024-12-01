@@ -40,6 +40,9 @@ const minSpatialIndexDistance = 20;
 // user a possibility to completelly dettach the connector
 const connectorStickyThreshold = 50;
 
+
+const WORLD_AREA = { x: 0, y: 0, w: 1, h: 1, r: 0, sx: 1, sy: 1, px: 0, py: 0 };
+
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
     moved: true,
@@ -370,7 +373,7 @@ class SchemeContainer {
         // the component item root. This is needed to correctly convert child component items
         // to the global world transform (e.g. when dragging items in view mode,
         // or converting mouse coords to local item coords)
-        this.shadowTransform = myMath.identityMatrix();
+        this.shadowTransform = null;
 
         // stores all snapping rules for items (used when user drags an item)
         this.relativeSnappers = {
@@ -1434,6 +1437,9 @@ class SchemeContainer {
             }
         }
 
+        if (this.shadowTransform) {
+            return myMath.localPointInArea(x, y, WORLD_AREA, this.shadowTransform);
+        }
         return {x, y};
     }
 

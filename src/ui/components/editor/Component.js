@@ -108,8 +108,9 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
 
         schemeContainer.indexUserEventsForItems(item._childItems, userEventBus, compilerErrorCallback);
 
+        const parentShadowTransform = schemeContainer.shadowTransform ? schemeContainer.shadowTransform : myMath.identityMatrix();
         const shadowTransform = myMath.standardTransformWithArea(
-            myMath.multiplyMatrices(schemeContainer.shadowTransform, rectItem.meta.transformMatrix),
+            myMath.multiplyMatrices(parentShadowTransform, rectItem.meta.transformMatrix),
             rectItem.area
         );
         componentSchemeContainer.setShadowTransform(shadowTransform);
