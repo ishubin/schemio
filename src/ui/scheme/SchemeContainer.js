@@ -11,7 +11,6 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import {generateComponentGoBackButton} from '../components/editor/items/shapes/Component.vue';
 import { traverseItems, defaultItemDefinition, defaultItem, findFirstItemBreadthFirst} from './Item';
 import { enrichItemWithDefaults } from './ItemFixer';
 import { enrichSchemeWithDefaults } from './Scheme';

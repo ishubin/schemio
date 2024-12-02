@@ -49,6 +49,8 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, {
             onSchemeChangeCommitted: () => {}
         });
+        // linking to the same screen transform so that it is possible to zoom to items inside of component
+        componentSchemeContainer.screenTransform = schemeContainer.screenTransform;
         componentSchemeContainer.prepareFrameAnimationsForItems();
 
         const componentUserEventBus = new UserEventBus(schemeContainer.editorId);
