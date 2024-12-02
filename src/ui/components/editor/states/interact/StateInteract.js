@@ -4,6 +4,7 @@ import Events from '../../../../userevents/Events.js';
 import {hasItemDescription, ItemInteractionMode} from '../../../../scheme/Item.js';
 import { getBoundingBoxOfItems } from '../../../../scheme/ItemMath.js';
 import { IdleInteractState } from './IdleInteractState.js';
+import EditorEventBus from '../../EditorEventBus.js';
 
 const CLICKED = Events.standardEvents.clicked.id;
 
@@ -114,7 +115,7 @@ export class StateInteract extends State {
         }
         this.emit(item, CLICKED);
         if (item.links && item.links.length > 0) {
-            this.listener.onItemLinksShowRequested(item);
+            EditorEventBus.item.linksShowRequested.$emit(this.editorId, item, componentItem);
         }
         if (hasItemDescription(item)) {
             if (item.interactionMode === ItemInteractionMode.SIDE_PANEL) {

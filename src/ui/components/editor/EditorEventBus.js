@@ -127,11 +127,9 @@ const EditorEventBus = {
             },
         },
         linksShowRequested: {
-            any: {
-                $on: (editorId, callback) => $on(editorId, 'item-links-show-requested', [], callback),
-                $off: (editorId, callback) => $off(editorId, 'item-links-show-requested', [], callback),
-                $emit: (editorId, item) => $emit(editorId, 'item-links-show-requested', [], item),
-            }
+            $on: (editorId, callback) => $on(editorId, 'item-links-show-requested', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'item-links-show-requested', [], callback),
+            $emit: (editorId, item, componentItem) => $emit(editorId, 'item-links-show-requested', [], item, componentItem),
         },
         templateSelected: {
             $on: (editorId, callback) => $on(editorId, 'item-template-selected', [], callback),

@@ -45,25 +45,6 @@
                     </g>
                 </g>
 
-                <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])"
-                        :xlink:href="linksAnimated ? '#' : link.url" target="_blank"
-                        :title="link.title"
-                        >
-                        <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
-
-                        <foreignObject :x="link.x-7" :y="link.y - 6" :width="16" :height="16">
-                            <div class="item-link-icon">
-                                <i :class="link.iconClass"></i>
-                            </div>
-                        </foreignObject>
-
-                        <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
-                            <span class="item-link-title">{{link | formatLinkTitle}}</span>
-                        </foreignObject>
-                    </a>
-                </g>
-
                 <g>
                     <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
                         :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
@@ -81,6 +62,25 @@
                             @component-load-requested="onComponentLoadRequested"
                             @frame-animator="onFrameAnimatorEvent"/>
                     </g>
+                </g>
+
+                <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])"
+                        :xlink:href="linksAnimated ? '#' : link.url" target="_blank"
+                        :title="link.title"
+                        >
+                        <circle :cx="link.x" :cy="link.y" :r="12" :stroke="linkPalette[linkIndex % linkPalette.length]" :fill="linkPalette[linkIndex % linkPalette.length]"/>
+
+                        <foreignObject :x="link.x-7" :y="link.y - 6" :width="16" :height="16">
+                            <div class="item-link-icon">
+                                <i :class="link.iconClass"></i>
+                            </div>
+                        </foreignObject>
+
+                        <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
+                            <span class="item-link-title">{{link | formatLinkTitle}}</span>
+                        </foreignObject>
+                    </a>
                 </g>
 
             </g>
@@ -190,7 +190,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, itemCompleteTransform, worldPointOnItem, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
@@ -264,7 +264,7 @@ export default {
         }
 
         EditorEventBus.zoomToAreaRequested.$on(this.editorId, this.onBringToView);
-        EditorEventBus.item.linksShowRequested.any.$on(this.editorId, this.onShowItemLinks);
+        EditorEventBus.item.linksShowRequested.$on(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
@@ -319,7 +319,7 @@ export default {
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
         EditorEventBus.zoomToAreaRequested.$off(this.editorId, this.onBringToView);
-        EditorEventBus.item.linksShowRequested.any.$off(this.editorId, this.onShowItemLinks);
+        EditorEventBus.item.linksShowRequested.$off(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
@@ -864,9 +864,13 @@ export default {
             return false;
         },
 
-        onShowItemLinks(item) {
+        /**
+         * @param {Item} item
+         * @param {Item|undefined} componentItem
+         */
+        onShowItemLinks(item, componentItem) {
             if (this.mode === 'view') {
-                this.selectedItemLinks = this.generateItemLinks(item);
+                this.selectedItemLinks = this.generateItemLinks(item, componentItem);
                 this.$nextTick(() => {
                     //readjusting links width and height
                     forEach(this.selectedItemLinks, (link, index) => {
@@ -992,9 +996,18 @@ export default {
             }), 'screen', 'links-animation');
         },
 
-        generateItemLinks(item) {
+        /**
+         * @param {Item} item
+         * @param {Item|undefined} componentItem
+         */
+        generateItemLinks(item, componentItem) {
+            // const schemeContainer = componentItem && componentItem.meta.componentSchemeContainer ? componentItem.meta.componentSchemeContainer : this.schemeContainer;
+            let shadowTransform = this.schemeContainer.shadowTransform;
+            if (componentItem && componentItem.meta.componentSchemeContainer) {
+                shadowTransform = componentItem.meta.componentSchemeContainer.shadowTransform;
+            }
             if (item.links && item.links.length > 0) {
-                const worldPointCenter = this.schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+                const worldPointCenter = worldPointOnItem(item.area.w / 2, item.area.h / 2, item, shadowTransform);
                 let cx = this._x(worldPointCenter.x);
                 let cy = this._y(worldPointCenter.y);
                 let startX = cx;
@@ -1006,7 +1019,7 @@ export default {
 
                 let step = Math.max(20, Math.min(40, this.height / (item.links.length + 1)));
                 let y0 = cy - item.links.length * step / 2;
-                const worldPointRight = this.schemeContainer.worldPointOnItem(item.area.w, 0, item);
+                const worldPointRight = worldPointOnItem(item.area.w, 0, item, shadowTransform);
                 let destinationX = this._x(worldPointRight.x) + 10;
                 if (this.width - destinationX < 300) {
                     destinationX = Math.max(10, this.width - 300);

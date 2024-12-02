@@ -46,6 +46,12 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         const tempSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient);
         const clonedItems = tempSchemeContainer.cloneItemsPreservingNames(tempSchemeContainer.scheme.items);
         scheme.items = clonedItems;
+        const box = getLocalBoundingBoxOfItems(scheme.items);
+        scheme.items.forEach(item => {
+            item.area.x -= box.x;
+            item.area.y -= box.y;
+        });
+
         const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, {
             onSchemeChangeCommitted: () => {}
         });
@@ -54,11 +60,6 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         componentSchemeContainer.prepareFrameAnimationsForItems();
 
         const componentUserEventBus = new UserEventBus(schemeContainer.editorId);
-        const box = getLocalBoundingBoxOfItems(scheme.items);
-        componentSchemeContainer.scheme.items.forEach(item => {
-            item.area.x -= box.x;
-            item.area.y -= box.y;
-        });
 
         const w = Math.max(box.w, 0.00001);
         const h = Math.max(box.h, 0.00001);

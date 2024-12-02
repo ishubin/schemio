@@ -861,7 +861,6 @@ export default {
                 onVoidClicked: () => this.onInteractVoidClicked(),
                 onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
                 onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
-                onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
                 onItemChanged,
                 onItemsHighlighted,
                 onSubStateMigrated,
