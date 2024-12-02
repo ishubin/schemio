@@ -30,7 +30,9 @@
                     :editorId="editorId"
                     :mode="mode"
                     :style="{'opacity': item.selfOpacity/100.0}"
-                    @frame-animator="onFrameAnimatorEvent">
+                    @frame-animator="onFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
+                    >
                 </component>
 
 
@@ -112,6 +114,7 @@
                     :mode="mode"
                     :eventListener="eventListener"
                     @frame-animator="onFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
                     />
             </g>
 
@@ -131,6 +134,7 @@
                         :textSelectionEnabled="textSelectionEnabled"
                         :patchIndex="patchIndex"
                         :eventListener="eventListener"
+                        @component-load-requested="onComponentLoadRequested"
                         @frame-animator="onFrameAnimatorEvent" />
                 </g>
             </g>
@@ -221,6 +225,7 @@
                     :mode="mode"
                     :eventListener="eventListener"
                     @frame-animator="onFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
                     />
             </g>
 
@@ -234,6 +239,7 @@
                     :mode="mode"
                     :eventListener="eventListener"
                     @frame-animator="onFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
                     />
             </g>
         </g>
@@ -409,6 +415,15 @@ export default {
     },
 
     methods: {
+        onComponentLoadRequested(item) {
+            if (this.item.meta.componentSchemeContainer && this.item.meta.componentUserEventBus) {
+                EditorEventBus.component.loadRequested.specific.$emit(this.editorId, item.id, item, this.item.meta.componentSchemeContainer, this.item.meta.componentUserEventBus);
+            } else {
+                // pass it up the chain of items until we either hit the component item or we hit the main schemeContainer
+                this.$emit('component-load-requested', item);
+            }
+        },
+
         onComponentMouseDown(event) {
             if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
                 return null;

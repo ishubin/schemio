@@ -424,7 +424,7 @@ export default {
         },
         onLoadSchemeClick() {
             this.isLoading = true;
-            EditorEventBus.component.loadRequested.specific.$emit(this.editorId, this.item.id, this.item);
+            this.$emit('component-load-requested', this.item);
         },
         onItemChanged() {
             if (this.item._childItems && this.item._childItems.length > 0) {

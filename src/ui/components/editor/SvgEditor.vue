@@ -33,6 +33,7 @@
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :eventListener="eventListenerInterceptor"
+                            @component-load-requested="onComponentLoadRequested"
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -77,6 +78,7 @@
                             :patchIndex="patchIndex"
                             :mode="mode"
                             :eventListener="eventListenerInterceptor"
+                            @component-load-requested="onComponentLoadRequested"
                             @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
@@ -443,9 +445,15 @@ export default {
 
         /**
          * @param {Item} item
+         * @param {SchemeContainer|undefined} schemeContainer - either a component scheme container or nothing
+         * @param {UserEventBus|undefined} userEventBus - either a component user event bus or nothinh
          */
-        onComponentLoadRequested(item) {
-            loadAndMountExternalComponent(this.schemeContainer, this.userEventBus, item, this.$store, this.onCompilerError)
+        onComponentLoadRequested(item, schemeContainer, userEventBus) {
+            if (!schemeContainer || !userEventBus) {
+                schemeContainer = this.schemeContainer;
+                userEventBus = this.userEventBus;
+            }
+            loadAndMountExternalComponent(schemeContainer, userEventBus, item, this.$store, this.onCompilerError)
             .then(() => {
                 if (item.shape === 'component' && item.shapeProps.autoZoom) {
                     this.zoomToItems([item]);

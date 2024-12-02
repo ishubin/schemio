@@ -2878,7 +2878,15 @@ export default {
          * @param {Item} componentItem
          */
         identifyComponentObject(event, componentItem) {
+            const elementType = event.srcElement.getAttribute('data-type');
             const itemId = event.srcElement.getAttribute('data-item-id');
+            if (elementType === 'custom-item-area') {
+                return {
+                    type: elementType,
+                    item: componentItem.meta.componentSchemeContainer.findItemById(itemId),
+                    areaId: event.srcElement.getAttribute('data-custom-area-id'),
+                };
+            }
             if (itemId) {
                 const item = componentItem.meta.componentSchemeContainer.findItemById(itemId);
                 if (item) {
