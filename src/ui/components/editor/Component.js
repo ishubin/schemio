@@ -44,7 +44,7 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
     .then(schemeDetails => {
         const scheme = schemeDetails.scheme;
         const tempSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient);
-        const clonedItems = schemeContainer.cloneItemsPreservingNames(tempSchemeContainer.scheme.items);
+        const clonedItems = tempSchemeContainer.cloneItemsPreservingNames(tempSchemeContainer.scheme.items);
         scheme.items = clonedItems;
         const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, {
             onSchemeChangeCommitted: () => {}
@@ -54,7 +54,7 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         componentSchemeContainer.prepareFrameAnimationsForItems();
 
         const componentUserEventBus = new UserEventBus(schemeContainer.editorId);
-        const box = getLocalBoundingBoxOfItems(clonedItems);
+        const box = getLocalBoundingBoxOfItems(scheme.items);
         componentSchemeContainer.scheme.items.forEach(item => {
             item.area.x -= box.x;
             item.area.y -= box.y;

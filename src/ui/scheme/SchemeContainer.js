@@ -303,7 +303,7 @@ Providing access to scheme elements and provides modifiers for it
 class SchemeContainer {
     /**
      *
-     * @param {Scheme} scheme
+     * @param {SchemioDoc} scheme
      * @param {String} editorId
      * @param {String} mode - either 'view' or 'edit'
      * @param {*} apiClient
@@ -469,7 +469,7 @@ class SchemeContainer {
     }
 
     /**
-     * @param {Array<Item>} items 
+     * @param {Array<Item>} items
      * @param {UserEventBus} userEventBus
      * @returns {Set<String>} - ids of items that are subscribed to init event
      */
@@ -527,7 +527,7 @@ class SchemeContainer {
 
     /**
      * @param {String} classId
-     * @returns
+     * @returns {ClassDef}
      */
     findClassById(classId) {
         if (!Array.isArray(this.scheme.scripts.classes)) {
@@ -2718,12 +2718,37 @@ class SchemeContainer {
                                 action.args[argName] = rebuildElementSelector(action.args[argName]);
                             }
                         });
+                    } else if (action.method.startsWith('function:')) {
+                        const funcName = action.method.substring(9);
+                        if (this.scheme.scripts && Array.isArray(this.scheme.scripts.functions)) {
+                            const funcDef = this.scheme.scripts.functions.find(f => f.name === funcName);
+                            if (funcDef && Array.isArray(funcDef.args)) {
+                                funcDef.args.forEach(argDef => {
+                                    if (argDef.type === 'element' && action.args[argDef.name]) {
+                                        action.args[argDef.name] = rebuildElementSelector(action.args[argDef.name]);
+                                    }
+                                });
+                            }
+                        }
                     }
                 });
             });
-        });
 
+            if (Array.isArray(item.classes)) {
+                item.classes.forEach(itemClass => {
+                    const classDef = this.findClassById(itemClass.id);
+                    if (classDef && Array.isArray(classDef.args)) {
+                        classDef.args.forEach(argDef => {
+                            if (argDef.type === 'element' && itemClass.args[argDef.name]) {
+                                itemClass.args[argDef.name] = rebuildElementSelector(itemClass.args[argDef.name]);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
+
 
     /**
      * @param {Array<Item>} items

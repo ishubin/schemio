@@ -523,17 +523,35 @@
 
 /**
  * @typedef {Object} ScriptFuncDef
+ * @property {String} id
+ * @property {String} name
+ * @property {String} type
+ * @property {*} value
+ */
+
+/**
+ * @typedef {Object} ScriptFuncDef
  * @property {String} name
  * @property {String} description
- * @property {Array<Object>} args
+ * @property {Array<FunctionArgDef>} args
  * @property {ScriptFuncProps} props
+ */
+
+/**
+ * @typedef {Object} ClassDef
+ * @property {String} id
+ * @property {String} name
+ * @property {String} description
+ * @property {String} shape
+ * @property {Array<FunctionArgDef>} args
+ * @property {Array<ItemBehaviorEvent>} events
  */
 
 /**
  * @typedef {Object} DocScripts
  * @property {ScriptDef} main
  * @property {Array<ScriptFuncDef>} functions
- * @property {Array<Object>} classes
+ * @property {Array<ClassDef>} classes
  */
 
 /**
