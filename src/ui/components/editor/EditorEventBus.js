@@ -223,7 +223,7 @@ const EditorEventBus = {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-component-load-requested', [], callback),
                 $off: (editorId, callback) => $off(editorId, 'any-component-load-requested', [], callback),
-                $emit: (editorId, item) => $emit(editorId, 'any-component-load-requested', [], item),
+                $emit: (editorId, item, schemeContainer, userEventBus) => $emit(editorId, 'any-component-load-requested', [], item, schemeContainer, userEventBus),
             },
 
             specific: {

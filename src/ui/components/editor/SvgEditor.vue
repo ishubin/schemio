@@ -190,7 +190,7 @@ import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
 import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
 import Shape from './items/shapes/Shape';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
@@ -455,9 +455,11 @@ export default {
             }
             loadAndMountExternalComponent(schemeContainer, userEventBus, item, this.$store, this.onCompilerError)
             .then(() => {
-                if (item.shape === 'component' && item.shapeProps.autoZoom) {
-                    this.zoomToItems([item]);
+                if (!item.shapeProps.autoZoom) {
+                    return;
                 }
+                const area = getBoundingBoxOfItems([item], schemeContainer.shadowTransform);
+                this.bringAreaToViewAnimated(area);
             });
         },
 
@@ -472,9 +474,7 @@ export default {
                 return;
             }
             const area = calculateZoomingAreaForItems(items, this.mode);
-            if (area) {
-                this.onBringToView(area, true);
-            }
+            this.bringAreaToViewAnimated(area);
         },
 
         updateSvgSize() {
@@ -940,6 +940,10 @@ export default {
             if (this.selectedItemLinks.length > 0) {
                 this.selectedItemLinks = [];
             }
+        },
+
+        bringAreaToViewAnimated(area) {
+            this.onBringToView(area, true);
         },
 
         onBringToView(area, animated) {
