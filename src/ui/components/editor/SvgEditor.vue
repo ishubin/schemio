@@ -203,6 +203,7 @@ import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { KeyBinder } from './KeyBinder.js';
 import { loadAndMountExternalComponent } from './Component.js';
+import { collectItemsHighlightsByCondition, generateItemHighlight } from './ItemHighlight.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -724,52 +725,6 @@ export default {
             this.$emit(eventName, p.x, p.y, coords.x, coords.y, null, event, componentItem);
         },
 
-        generateItemHighlight(item, showPins) {
-            const shape = Shape.find(item.shape);
-            if (!shape) {
-                return;
-            }
-
-            const path = shape.computeOutline(item);
-            if (!path) {
-                return;
-            }
-
-            const m = itemCompleteTransform(item);
-            const scalingVector = worldScalingVectorOnItem(item);
-
-            let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
-            if (myMath.tooSmall(scalingFactor)) {
-                scalingFactor = 1;
-            }
-
-            let strokeSize = 6;
-            if (item.shape === 'path') {
-                strokeSize = item.shapeProps.strokeSize;
-            } else {
-                const shape = Shape.find(item.shape);
-                if (Shape.getShapePropDescriptor(shape, 'strokeSize')) {
-                    strokeSize = item.shapeProps.strokeSize;
-                }
-            }
-            const itemHighlight = {
-                id: item.id,
-                transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
-                path,
-                fill: 'none',
-                strokeSize,
-                stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
-                pins: [],
-                opacity: 0.5,
-                scalingFactor
-            };
-
-            if (showPins) {
-                itemHighlight.pins = shape.getPins(item);
-            }
-            return itemHighlight;
-        },
-
         highlightItems(itemIds, showPins) {
             this.worldHighlightedItems = [];
             this.highlightAnimated = false;
@@ -781,7 +736,7 @@ export default {
                     return;
                 }
 
-                const itemHighlight = this.generateItemHighlight(item, showPins);
+                const itemHighlight = generateItemHighlight(item, showPins, this.schemeContainer.scheme.style.boundaryBoxColor);
                 this.worldHighlightedItems.push(itemHighlight);
             });
         },
@@ -1240,12 +1195,21 @@ export default {
         },
 
         toggleClickableMarkers() {
-            const hasMouseEvent = (events) => {
-                if (events.length === 0) {
+            const conditionCallback = (item) => {
+                if (item.description && item.description.length > 4) {
+                    return true;
+                }
+                if (item.links && item.links.length > 0) {
+                    return true;
+                }
+                if (item.behavior.dragging && item.behavior.dragging !== 'none') {
+
+                }
+                if (item.behavior.events.length === 0) {
                     return false;
                 }
-                for (let i = 0; i < events.length; i++) {
-                    const event = events[i].event;
+                for (let i = 0; i < item.behavior.events.length; i++) {
+                    const event = item.behavior.events[i].event;
                     if (event === Events.standardEvents.mousein.id
                         || event === Events.standardEvents.clicked.id) {
                         return true;
@@ -1254,43 +1218,7 @@ export default {
                 return false;
             };
 
-            const highlights = [];
-
-            traverseItemsConditionally(this.schemeContainer.scheme.items, (item) => {
-                if (!item.visible) {
-                    return false;
-                }
-                if ((item.description && item.description.length > 4)
-                    || (item.links && item.links.length > 0)
-                    || hasMouseEvent(item.behavior.events)
-                    || (item.behavior.dragging && item.behavior.dragging !== 'none')
-                ) {
-                    const itemHighlight = this.generateItemHighlight(item, false);
-                    itemHighlight.fill = itemHighlight.stroke;
-                    highlights.push(itemHighlight);
-                } else if (item.shape === 'component' && item.shapeProps.kind === 'external' && item.shapeProps.showButton === true) {
-                    const scalingVector = worldScalingVectorOnItem(item);
-                    let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
-                    if (myMath.tooSmall(scalingFactor)) {
-                        scalingFactor = 1;
-                    }
-                    const m = itemCompleteTransform(item);
-                    highlights.push({
-                        id: item.id,
-                        transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
-                        path: computeButtonPath(item),
-                        fill: this.schemeContainer.scheme.style.boundaryBoxColor,
-                        strokeSize: Math.max(2, item.shapeProps.buttonStrokeSize + 2),
-                        stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
-                        pins: [],
-                        opacity: 0.5,
-                        scalingFactor
-                    });
-                }
-                return true;
-            });
-
-            this.worldHighlightedItems = highlights;
+            this.worldHighlightedItems = collectItemsHighlightsByCondition(this.schemeContainer, this.schemeContainer.scheme.style.boundaryBoxColor, conditionCallback);
             this.animateCurrentHighlightedItems();
         },
 
