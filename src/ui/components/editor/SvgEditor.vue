@@ -827,12 +827,21 @@ export default {
             frameAnimation.setCallbacks(frameCallbacks);
         },
 
-        onFrameAnimatorEvent(args) {
+        /**
+         * @param {Object} args
+         * @param {Item|undefined} componentItem
+         */
+        onFrameAnimatorEvent(args, componentItem) {
             if (this.mode !== 'view') {
                 return;
             }
             const itemId = args.item.id;
-            const frameAnimation = this.schemeContainer.getFrameAnimation(itemId);
+            let schemeContainer = this.schemeContainer;
+            if (componentItem && componentItem.meta.componentSchemeContainer) {
+                schemeContainer = componentItem.meta.componentSchemeContainer;
+            }
+
+            const frameAnimation = schemeContainer.getFrameAnimation(itemId);
             if (!frameAnimation) {
                 return;
             }

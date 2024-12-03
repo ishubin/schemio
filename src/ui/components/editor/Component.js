@@ -57,6 +57,7 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         });
         // linking to the same screen transform so that it is possible to zoom to items inside of component
         componentSchemeContainer.screenTransform = schemeContainer.screenTransform;
+        componentSchemeContainer.screenSettings = schemeContainer.screenSettings;
         componentSchemeContainer.prepareFrameAnimationsForItems();
 
         const componentUserEventBus = new UserEventBus(schemeContainer.editorId);

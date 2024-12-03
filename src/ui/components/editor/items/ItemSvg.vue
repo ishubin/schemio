@@ -30,7 +30,7 @@
                     :editorId="editorId"
                     :mode="mode"
                     :style="{'opacity': item.selfOpacity/100.0}"
-                    @frame-animator="onFrameAnimatorEvent"
+                    @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
                     >
                 </component>
@@ -113,7 +113,7 @@
                     :patchIndex="patchIndex"
                     :mode="mode"
                     :eventListener="eventListener"
-                    @frame-animator="onFrameAnimatorEvent"
+                    @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
                     />
             </g>
@@ -135,7 +135,7 @@
                         :patchIndex="patchIndex"
                         :eventListener="eventListener"
                         @component-load-requested="onComponentLoadRequested"
-                        @frame-animator="onFrameAnimatorEvent" />
+                        @frame-animator="onFrameAnimatorEventInsideComponent" />
                 </g>
             </g>
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
@@ -224,7 +224,7 @@
                     :patchIndex="patchIndex"
                     :mode="mode"
                     :eventListener="eventListener"
-                    @frame-animator="onFrameAnimatorEvent"
+                    @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
                     />
             </g>
@@ -238,7 +238,7 @@
                     :textSelectionEnabled="textSelectionEnabled"
                     :mode="mode"
                     :eventListener="eventListener"
-                    @frame-animator="onFrameAnimatorEvent"
+                    @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
                     />
             </g>
@@ -653,8 +653,16 @@ export default {
             this.$forceUpdate();
         },
 
-        onFrameAnimatorEvent(args) {
-            this.$emit('frame-animator', args);
+        onFrameAnimatorEventInsideComponent(args, componentItem) {
+            if (componentItem) {
+                this.$emit('frame-animator', args, componentItem);
+            } else {
+                this.$emit('frame-animator', args, this.item);
+            }
+        },
+
+        passThroughFrameAnimatorEvent(args, componentItem) {
+            this.$emit('frame-animator', args, componentItem);
         },
 
         generateTextSlots() {
