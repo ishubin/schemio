@@ -184,26 +184,25 @@ import {forEach, map } from '../../collections';
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {defaultItem, traverseItemsConditionally} from '../../scheme/Item';
+import {defaultItem} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, itemCompleteTransform, worldPointOnItem, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
-import Shape from './items/shapes/Shape';
+import SchemeContainer, { isItemInHUD }  from '../../scheme/SchemeContainer.js';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, worldPointOnItem  } from '../../scheme/ItemMath.js';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_FAILED, computeButtonPath } from './items/shapes/Component.vue';
+import { COMPONENT_FAILED, } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
 import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { KeyBinder } from './KeyBinder.js';
 import { loadAndMountExternalComponent } from './Component.js';
-import { collectItemsHighlightsByCondition, generateItemHighlight } from './ItemHighlight.js';
+import { collectItemsHighlightsByCondition, collectItemsHighlightsForClickableMarkers, generateItemHighlight } from './ItemHighlight.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -279,6 +278,7 @@ export default {
 
         EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.toggleClickableMarkers);
+        EditorEventBus.searchKeywordUpdated.$on(this.editorId, this.onSearchKeywordUpdated);
 
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
@@ -333,6 +333,7 @@ export default {
 
         EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.toggleClickableMarkers);
+        EditorEventBus.searchKeywordUpdated.$off(this.editorId, this.onSearchKeywordUpdated);
 
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
@@ -402,6 +403,48 @@ export default {
         };
     },
     methods: {
+        onSearchKeywordUpdated(keyword) {
+            keyword = keyword.trim().toLowerCase();
+            if (keyword.length > 0) {
+                const itemFilter = (item) => {
+                    if (this.mode === 'view' && isItemInHUD(item)) {
+                        //ignoring item highlight for HUD elements in view mode
+                        return false;
+                    }
+
+                    let name = item.name || '';
+                    if (name.toLowerCase().indexOf(keyword) >= 0) {
+                        return true;
+                    } else {
+                        // search in tags
+                        if (item.tags && item.tags.length > 0) {
+                            if (find(item.tags, tag => tag && tag.toLowerCase().indexOf(keyword) >= 0)) {
+                                return true;
+                            }
+                        }
+                    }
+                    if (item.textSlots) {
+                        //searching in item textSlots
+                        for (let slotName in item.textSlots) {
+                            if (item.textSlots.hasOwnProperty(slotName)) {
+                                const text = item.textSlots[slotName].text;
+                                if (text) {
+                                    if (text.toLowerCase().indexOf(keyword) >= 0) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                }
+                const color = this.schemeContainer.scheme.style.boundaryBoxColor;
+                this.worldHighlightedItems = collectItemsHighlightsByCondition(this.schemeContainer, color, 'none', itemFilter);
+            } else {
+                this.worldHighlightedItems = [];
+            }
+        },
+
         loadUserKeyBinders() {
             this.keyBinder.init();
             this.schemeContainer.getItems().forEach(item => {
@@ -736,7 +779,7 @@ export default {
                     return;
                 }
 
-                const itemHighlight = generateItemHighlight(item, showPins, this.schemeContainer.scheme.style.boundaryBoxColor);
+                const itemHighlight = generateItemHighlight(item, showPins, this.schemeContainer.scheme.style.boundaryBoxColor, 'none');
                 this.worldHighlightedItems.push(itemHighlight);
             });
         },
@@ -1218,7 +1261,8 @@ export default {
                 return false;
             };
 
-            this.worldHighlightedItems = collectItemsHighlightsByCondition(this.schemeContainer, this.schemeContainer.scheme.style.boundaryBoxColor, conditionCallback);
+            const color = this.schemeContainer.scheme.style.boundaryBoxColor;
+            this.worldHighlightedItems = collectItemsHighlightsForClickableMarkers(this.schemeContainer, color, color, conditionCallback);
             this.animateCurrentHighlightedItems();
         },
 

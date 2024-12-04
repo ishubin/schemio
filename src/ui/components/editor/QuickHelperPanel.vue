@@ -517,7 +517,7 @@ export default {
         },
 
         toggleSearchedItems() {
-            this.$emit('zoomed-to-items', this.searchHighlights);
+            console.error('Not implemented yet');
         },
 
         toggleTextSelection() {
@@ -535,54 +535,7 @@ export default {
 
     watch: {
         searchKeyword(keyword) {
-            keyword = keyword.trim().toLowerCase();
-            if (keyword.length > 0) {
-                const highlightedItemIds = [];
-                const filteredItems = [];
-                forEach(this.schemeContainer.getItems(), item => {
-                    let shouldHighlight = false;
-
-                    if (this.mode === 'view' && this.schemeContainer.isItemInHUD(item)) {
-                        //ignoring item highlight for HUD elements in view mode
-                        return;
-                    }
-
-                    var name = item.name || '';
-                    if (name.toLowerCase().indexOf(keyword) >= 0) {
-                        shouldHighlight = true;
-                    } else {
-                        // search in tags
-                        if (item.tags && item.tags.length > 0) {
-                            if (find(item.tags, tag => tag && tag.toLowerCase().indexOf(keyword) >= 0)) {
-                                shouldHighlight = true;
-                            }
-                        }
-                    }
-                    if (!shouldHighlight && item.textSlots) {
-                        //searching in item textSlots
-                        for (let slotName in item.textSlots) {
-                            if (item.textSlots.hasOwnProperty(slotName)) {
-                                const text = item.textSlots[slotName].text;
-                                if (text) {
-                                    if (text.toLowerCase().indexOf(keyword) >= 0) {
-                                        shouldHighlight = true;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (shouldHighlight) {
-                        filteredItems.push(item);
-                        highlightedItemIds.push(item.id);
-                    }
-                });
-                this.searchHighlights = filteredItems;
-                this.$emit('items-highlighted', {itemIds: highlightedItemIds, showPins: false});
-            } else {
-                this.searchHighlights = [];
-                this.$emit('items-highlighted', {itemIds: [], showPins: false});
-            }
+            EditorEventBus.searchKeywordUpdated.$emit(this.editorId, keyword);
         },
 
         state(state) {

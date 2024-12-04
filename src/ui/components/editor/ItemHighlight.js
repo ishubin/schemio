@@ -17,13 +17,30 @@ function isExternalUnloadedComponent(item) {
 
 /**
  * @param {SchemeContainer} schemeContainer
- * @param {String} boundaryBoxColor
+ * @param {String} strokeColor
+ * @param {String} fillColor
  * @param {Function(Item): Boolean} conditionCallback
  * @returns {Array}
  */
-export function collectItemsHighlightsByCondition(schemeContainer, boundaryBoxColor, conditionCallback) {
+export function collectItemsHighlightsByCondition(schemeContainer, strokeColor, fillColor, conditionCallback) {
     const highlights = [];
-    _collectItemsHighlightsByCondition(schemeContainer, boundaryBoxColor, conditionCallback, highlights);
+    _collectItemsHighlightsByCondition(schemeContainer, false, strokeColor, fillColor, conditionCallback, highlights);
+    return highlights;
+}
+
+/**
+ * When clickable markers are toggled it should also display component buttons
+ * Since component buttons are not separate items but rather a special area on a component
+ * we can't use the same logic with item filtering.
+ * @param {SchemeContainer} schemeContainer
+ * @param {String} strokeColor
+ * @param {String} fillColor
+ * @param {Function(Item): Boolean} conditionCallback
+ * @returns {Array}
+ */
+export function collectItemsHighlightsForClickableMarkers(schemeContainer, strokeColor, fillColor, conditionCallback) {
+    const highlights = [];
+    _collectItemsHighlightsByCondition(schemeContainer, true, strokeColor, fillColor, conditionCallback, highlights);
     return highlights;
 }
 
@@ -31,20 +48,21 @@ export function collectItemsHighlightsByCondition(schemeContainer, boundaryBoxCo
 /**
  *
  * @param {SchemeContainer} schemeContainer
- * @param {String} boundaryBoxColor
+ * @param {Boolean} collectComponentButtons - flag that specifies whether the component buttons should be collected
+ * @param {String} strokeColor
+ * @param {String} fillColor
  * @param {Function(Item): Boolean} conditionCallback
  * @param {Array} result
  */
-function _collectItemsHighlightsByCondition(schemeContainer, boundaryBoxColor, conditionCallback, result) {
+function _collectItemsHighlightsByCondition(schemeContainer, collectComponentButtons, strokeColor, fillColor, conditionCallback, result) {
     traverseItemsConditionally(schemeContainer.scheme.items, (item) => {
         if (!item.visible) {
             return false;
         }
         if (conditionCallback(item)) {
-            const itemHighlight = generateItemHighlight(item, false, boundaryBoxColor, schemeContainer.shadowTransform);
-            itemHighlight.fill = itemHighlight.stroke;
-            result.push(itemHighlight);
-        } else if (isExternalUnloadedComponent(item)) {
+            result.push(generateItemHighlight(item, false, strokeColor, fillColor, schemeContainer.shadowTransform));
+        }
+        if (collectComponentButtons && isExternalUnloadedComponent(item)) {
             const scalingVector = worldScalingVectorOnItem(item, schemeContainer.shadowTransform);
             let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
             if (myMath.tooSmall(scalingFactor)) {
@@ -55,22 +73,22 @@ function _collectItemsHighlightsByCondition(schemeContainer, boundaryBoxColor, c
                 id: item.id,
                 transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
                 path: computeButtonPath(item),
-                fill: schemeContainer.scheme.style.boundaryBoxColor,
+                fill: fillColor,
                 strokeSize: Math.max(2, item.shapeProps.buttonStrokeSize + 2),
-                stroke: schemeContainer.scheme.style.boundaryBoxColor,
+                stroke: strokeColor,
                 pins: [],
                 opacity: 0.5,
                 scalingFactor
             });
         }
         if (item.meta.componentSchemeContainer) {
-            _collectItemsHighlightsByCondition(item.meta.componentSchemeContainer, boundaryBoxColor, conditionCallback, result);
+            _collectItemsHighlightsByCondition(item.meta.componentSchemeContainer, collectComponentButtons, strokeColor, fillColor, conditionCallback, result);
         }
         return true;
     });
 }
 
-export function generateItemHighlight(item, showPins, boundaryBoxColor) {
+export function generateItemHighlight(item, showPins, strokeColor, fillColor, shadowTransform) {
     const shape = Shape.find(item.shape);
     if (!shape) {
         return;
@@ -81,8 +99,8 @@ export function generateItemHighlight(item, showPins, boundaryBoxColor) {
         return;
     }
 
-    const m = itemCompleteTransform(item);
-    const scalingVector = worldScalingVectorOnItem(item);
+    const m = itemCompleteTransform(item, shadowTransform);
+    const scalingVector = worldScalingVectorOnItem(item, shadowTransform);
 
     let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
     if (myMath.tooSmall(scalingFactor)) {
@@ -102,9 +120,9 @@ export function generateItemHighlight(item, showPins, boundaryBoxColor) {
         id: item.id,
         transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
         path,
-        fill: 'none',
+        fill: fillColor,
         strokeSize,
-        stroke: boundaryBoxColor,
+        stroke: strokeColor,
         pins: [],
         opacity: 0.5,
         scalingFactor

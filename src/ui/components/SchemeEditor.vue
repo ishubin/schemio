@@ -29,12 +29,10 @@
             @clicked-bring-to-back="bringSelectedItemsToBack()"
             @clicked-grab-screen="toggleGrabScreen()"
             @zoom-changed="onZoomChanged"
-            @zoomed-to-items="zoomToItems"
             @mode-changed="emitModeChangeRequested"
             @text-selection-changed="onTextSelectionForViewChanged"
             @stop-drawing-requested="stopDrawing"
             @stop-connecting-requested="stopConnecting"
-            @items-highlighted="onItemsHighlighted"
             @mobile-debugger-requested="toggleMobileDebugger"
             >
 

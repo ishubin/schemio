@@ -63,6 +63,12 @@ export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
     id: ''
 };
 
+
+export function isItemInHUD(item) {
+    return item.shape === 'hud' || item.meta.isInHUD;
+}
+
+
 /**
  * This function is only used for calculating bounds of reference items
  * so that they can be properly fit inside of an component
@@ -2135,10 +2141,6 @@ class SchemeContainer {
 
     getTopLevelItems() {
         return this.worldItems;
-    }
-
-    isItemInHUD(item) {
-        return item.shape === 'hud' || item.meta.isInHUD;
     }
 
     setActiveBoundaryBox(area) {
