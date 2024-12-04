@@ -1,6 +1,7 @@
 import shortid from "shortid";
 import UserEventBus from "../../userevents/UserEventBus";
 import { KEYBIND_KEY_DOWN_EVENT, KEYBIND_KEY_UP_EVENT } from "./items/shapes/KeyBind";
+import { traverseItems } from "../../scheme/Item";
 
 window.addEventListener('keydown', onKeyDownEvent);
 window.addEventListener('keyup', onKeyUpEvent);
@@ -46,13 +47,8 @@ function onKeyUpEvent(event) {
 }
 
 export class KeyBinder {
-    /**
-     * @param {UserEventBus} userEventBus
-     */
-    constructor(userEventBus, schemeContainer) {
+    constructor() {
         this.id = shortid.generate();
-        this.userEventBus = userEventBus;
-        this.schemeContainer = schemeContainer;
         this.loaded = false;
         this.keyBinds = {
             down: {},
@@ -64,6 +60,21 @@ export class KeyBinder {
         currentKeyBinder = this;
     }
 
+    /**
+     *
+     * @param {SchemeContainer} schemeContainer
+     * @param {UserEventBus} userEventBus
+     */
+    registerAllKeyBinders(schemeContainer, userEventBus) {
+        traverseItems(schemeContainer.scheme.items, (item) => {
+            if (item.meta.componentSchemeContainer && item.meta.componentUserEventBus) {
+                this.registerAllKeyBinders(item.meta.componentSchemeContainer, item.meta.componentUserEventBus);
+            } else if (item.shape === 'key_bind') {
+                this.registerKeyBindItem(item, schemeContainer, userEventBus);
+            }
+        });
+    }
+
     onKeyDown(event) {
         const subscribers = this.keyBinds.down[event.code];
         if (!subscribers || !Array.isArray(subscribers)) {
@@ -71,10 +82,11 @@ export class KeyBinder {
         }
 
         for (let i = subscribers.length - 1; i >= 0; i--) {
-            const item = this.schemeContainer.findItemById(subscribers[i]);
+            const {itemId, schemeContainer, userEventBus} = subscribers[i];
+            const item = schemeContainer.findItemById(itemId);
             if (item) {
                 if (item.shapeProps.active) {
-                    this.userEventBus.emitItemEvent(item.id, KEYBIND_KEY_DOWN_EVENT);
+                    userEventBus.emitItemEvent(item.id, KEYBIND_KEY_DOWN_EVENT);
                 }
             } else {
                 // removing item from subscribers as the item most probably was removed from scene
@@ -89,10 +101,11 @@ export class KeyBinder {
             return;
         }
         for (let i = subscribers.length - 1; i >= 0; i--) {
-            const item = this.schemeContainer.findItemById(subscribers[i]);
+            const {itemId, schemeContainer, userEventBus} = subscribers[i];
+            const item = schemeContainer.findItemById(itemId);
             if (item) {
                 if (item.shapeProps.active) {
-                    this.userEventBus.emitItemEvent(item.id, KEYBIND_KEY_UP_EVENT);
+                    userEventBus.emitItemEvent(item.id, KEYBIND_KEY_UP_EVENT);
                 }
             } else {
                 // removing item from subscribers as the item most probably was removed from scene
@@ -101,23 +114,26 @@ export class KeyBinder {
         }
     }
 
-    deregisterItemEvents(item) {
-        const keyCode = keyToKeyCodeMapping[item.shapeProps.key];
-        if (!keyCode) {
-            return;
+    deregisterEventsForSchemeContainer(schemeContainerId) {
+        for (let keyCode in this.keyBinds.up) {
+            if (this.keyBinds.up.hasOwnProperty(keyCode)) {
+                this._deregisterEventsForSchemeContainer(this.keyBinds.up[keyCode], schemeContainerId);
+            }
         }
-
-        this._deregisterItemEventsFrom(this.keyBinds.up[keyCode], item.id);
-        this._deregisterItemEventsFrom(this.keyBinds.down[keyCode], item.id);
+        for (let keyCode in this.keyBinds.down) {
+            if (this.keyBinds.down.hasOwnProperty(keyCode)) {
+                this._deregisterEventsForSchemeContainer(this.keyBinds.down[keyCode], schemeContainerId);
+            }
+        }
     }
 
-    _deregisterItemEventsFrom(subscribers, itemId) {
+    _deregisterEventsForSchemeContainer(subscribers, schemeContainerId) {
         if (!subscribers || !Array.isArray(subscribers)) {
             return;
         }
 
         for (let i = subscribers.length - 1; i >= 0; i--) {
-            if (subscribers[i] === itemId) {
+            if (subscribers[i].schemeContainer.id === schemeContainerId) {
                 subscribers.splice(i, 1);
             }
         }
@@ -125,8 +141,10 @@ export class KeyBinder {
 
     /**
      * @param {Item} item
+     * @param {SchemeContainer} schemeContainer
+     * @param {UserEventBus} userEventBus
      */
-    registerKeyBindItem(item) {
+    registerKeyBindItem(item, schemeContainer, userEventBus) {
         if (!item.shape === 'key_bind') {
             return;
         }
@@ -136,19 +154,26 @@ export class KeyBinder {
             return;
         }
 
-
         if (item.shapeProps.down) {
             if (!this.keyBinds.down.hasOwnProperty(keyCode)) {
                 this.keyBinds.down[keyCode] = [];
             }
-            this.keyBinds.down[keyCode].push(item.id);
+            this.keyBinds.down[keyCode].push({
+                itemId: item.id,
+                userEventBus,
+                schemeContainer
+            });
         }
 
         if (item.shapeProps.up) {
             if (!this.keyBinds.up.hasOwnProperty(keyCode)) {
                 this.keyBinds.up[keyCode] = [];
             }
-            this.keyBinds.up[keyCode].push(item.id);
+            this.keyBinds.up[keyCode].push({
+                itemId: item.id,
+                userEventBus,
+                schemeContainer
+            });
         }
     }
 

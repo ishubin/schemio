@@ -234,6 +234,12 @@ const EditorEventBus = {
             },
         },
 
+        destroyed: {
+            $on: (editorId, callback) => $on(editorId, 'component-destroyed', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'component-destroyed', [], callback),
+            $emit: (editorId, schemeContainer, userEventBus) => $emit(editorId, 'component-destroyed', [], schemeContainer, userEventBus),
+        },
+
         loadFailed: {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-component-load-failed', [], callback),

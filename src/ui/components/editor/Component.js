@@ -120,6 +120,10 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         componentSchemeContainer.setShadowTransform(shadowTransform);
 
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+        return {
+            schemeContainer: componentSchemeContainer,
+            userEventBus: componentUserEventBus,
+        };
     })
     .catch(err => {
         console.error(err);

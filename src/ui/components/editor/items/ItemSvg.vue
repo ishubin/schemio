@@ -350,6 +350,10 @@ export default {
         EditorEventBus.item.deselected.specific.$off(this.editorId, this.item.id, this.onItemDeselected);
         EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
+
+        if (this.item.meta.componentSchemeContainer) {
+            EditorEventBus.component.destroyed.$emit(this.editorId, this.item.meta.componentSchemeContainer, this.item.meta.componentUserEventBus);
+        }
     },
 
     data() {

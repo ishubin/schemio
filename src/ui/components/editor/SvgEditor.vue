@@ -283,6 +283,8 @@ export default {
 
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
+
+        EditorEventBus.component.destroyed.$on(this.editorId, this.onComponentDestroyed);
     },
 
     mounted() {
@@ -339,6 +341,7 @@ export default {
 
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
+        EditorEventBus.component.destroyed.$off(this.editorId, this.onComponentDestroyed);
 
         if (this.mode === 'view') {
             this.destroyUserKeyBinders();
@@ -389,7 +392,7 @@ export default {
 
             compiledMainScript : null,
 
-            keyBinder: new KeyBinder(this.userEventBus, this.schemeContainer),
+            keyBinder: new KeyBinder(),
 
             eventListenerInterceptor: {
                 mouseDown: (event, componentItem) => {
@@ -476,11 +479,7 @@ export default {
 
         loadUserKeyBinders() {
             this.keyBinder.init();
-            this.schemeContainer.getItems().forEach(item => {
-                if (item.shape === 'key_bind') {
-                    this.keyBinder.registerKeyBindItem(item);
-                }
-            });
+            this.keyBinder.registerAllKeyBinders(this.schemeContainer, this.userEventBus);
         },
 
         destroyUserKeyBinders() {
@@ -516,6 +515,10 @@ export default {
             }
         },
 
+        onComponentDestroyed(schemeContainer, userEventBus) {
+            this.keyBinder.deregisterEventsForSchemeContainer(schemeContainer.id);
+        },
+
         /**
          * @param {Item} item
          * @param {SchemeContainer|undefined} schemeContainer - either a component scheme container or nothing
@@ -527,12 +530,13 @@ export default {
                 userEventBus = this.userEventBus;
             }
             loadAndMountExternalComponent(schemeContainer, userEventBus, item, this.$store, this.onCompilerError)
-            .then(() => {
+            .then((component) => {
                 if (!item.shapeProps.autoZoom) {
                     return;
                 }
                 const area = getBoundingBoxOfItems([item], schemeContainer.shadowTransform);
                 this.bringAreaToViewAnimated(area);
+                this.keyBinder.registerAllKeyBinders(component.schemeContainer, component.userEventBus);
             });
         },
 
