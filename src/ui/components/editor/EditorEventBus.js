@@ -325,6 +325,12 @@ const EditorEventBus = {
         $emit: (editorId, keyword) => $emit(editorId, 'search-keyword-updated', [], keyword),
     },
 
+    searchedItemsToggled: {
+        $on: (editorId, callback) => $on(editorId, 'searched-items-toggled', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'searched-items-toggled', [], callback),
+        $emit: (editorId) => $emit(editorId, 'searched-items-toggled', []),
+    },
+
     clickableMarkers: {
         toggled: {
             $on: (editorId, callback) => $on(editorId, 'clickable-markers-toggled', [], callback),

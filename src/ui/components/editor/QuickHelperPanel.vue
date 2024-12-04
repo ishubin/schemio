@@ -517,7 +517,7 @@ export default {
         },
 
         toggleSearchedItems() {
-            console.error('Not implemented yet');
+            EditorEventBus.searchedItemsToggled.$emit(this.editorId);
         },
 
         toggleTextSelection() {

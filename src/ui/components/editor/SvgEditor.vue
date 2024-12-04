@@ -279,6 +279,7 @@ export default {
         EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.toggleClickableMarkers);
         EditorEventBus.searchKeywordUpdated.$on(this.editorId, this.onSearchKeywordUpdated);
+        EditorEventBus.searchedItemsToggled.$on(this.editorId, this.onSearchedItemsToggled);
 
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
@@ -334,6 +335,7 @@ export default {
         EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.toggleClickableMarkers);
         EditorEventBus.searchKeywordUpdated.$off(this.editorId, this.onSearchKeywordUpdated);
+        EditorEventBus.searchedItemsToggled.$off(this.editorId, this.onSearchedItemsToggled);
 
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
@@ -403,6 +405,33 @@ export default {
         };
     },
     methods: {
+        onSearchedItemsToggled() {
+            if (this.worldHighlightedItems.length > 0) {
+                const area = {
+                    ...this.worldHighlightedItems[0].globalBox
+                };
+                for (let i = 1; i < this.worldHighlightedItems.length; i++) {
+                    const b = this.worldHighlightedItems[i].globalBox;
+                    if (area.x > b.x) {
+                        area.x = b.x;
+                    }
+                    if (area.y > b.y) {
+                        area.y = b.y;
+                    }
+                    if (area.x + area.w < b.x + b.w) {
+                        area.w = b.x + b.w - area.x;
+                    }
+                    if (area.y + area.h < b.y + b.h) {
+                        area.h = b.y + b.h - area.y;
+                    }
+                }
+                this.bringAreaToViewAnimated(area);
+            } else {
+                // zooming to entire scene
+                this.zoomToItems([]);
+            }
+        },
+
         onSearchKeywordUpdated(keyword) {
             keyword = keyword.trim().toLowerCase();
             if (keyword.length > 0) {

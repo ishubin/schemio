@@ -1,6 +1,6 @@
 import myMath from "../../myMath";
 import { traverseItemsConditionally } from "../../scheme/Item";
-import { itemCompleteTransform, worldScalingVectorOnItem } from "../../scheme/ItemMath";
+import { getBoundingBoxOfItems, itemCompleteTransform, worldScalingVectorOnItem } from "../../scheme/ItemMath";
 import SchemeContainer from "../../scheme/SchemeContainer";
 import { computeButtonPath } from "./items/shapes/Component.vue";
 import Shape from "./items/shapes/Shape";
@@ -99,6 +99,8 @@ export function generateItemHighlight(item, showPins, strokeColor, fillColor, sh
         return;
     }
 
+    const box = getBoundingBoxOfItems([item], shadowTransform);
+
     const m = itemCompleteTransform(item, shadowTransform);
     const scalingVector = worldScalingVectorOnItem(item, shadowTransform);
 
@@ -125,6 +127,7 @@ export function generateItemHighlight(item, showPins, strokeColor, fillColor, sh
         stroke: strokeColor,
         pins: [],
         opacity: 0.5,
+        globalBox: box,
         scalingFactor
     };
 
