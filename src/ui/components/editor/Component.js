@@ -4,7 +4,7 @@ import SchemeContainer, { createDefaultRectItem, getLocalBoundingBoxOfItems } fr
 import StoreUtils from "../../store/StoreUtils";
 import UserEventBus from "../../userevents/UserEventBus";
 import EditorEventBus from "./EditorEventBus";
-import { generateComponentGoBackButton } from "./items/shapes/Component.vue";
+import { COMPONENT_FAILED, COMPONENT_LOADED_EVENT, generateComponentGoBackButton } from "./items/shapes/Component.vue";
 import { collectAndLoadAllMissingShapes } from "./items/shapes/ExtraShapes";
 
 const VIEW_MODE = 'view';
@@ -60,6 +60,16 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         componentSchemeContainer.screenSettings = schemeContainer.screenSettings;
         componentSchemeContainer.prepareFrameAnimationsForItems();
 
+        componentSchemeContainer.scheme.items.forEach(componentRootItem => {
+            componentRootItem.meta.getParentEnvironment = () => {
+                return {
+                    item,
+                    schemeContainer,
+                    userEventBus
+                };
+            }
+        });
+
         const componentUserEventBus = new UserEventBus(schemeContainer.editorId);
 
         const w = Math.max(box.w, 0.00001);
@@ -75,14 +85,12 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         overlayRect.area.w = item.area.w;
         overlayRect.area.h = item.area.h;
         overlayRect.selfOpacity = 0;
-        overlayRect.meta = {isComponentContainer: true};
         overlayRect.name = 'Overlay container';
 
         const rectItem = createDefaultRectItem();
         rectItem.shape = 'dummy';
         rectItem.selfOpacity = 0;
         rectItem.id = shortid.generate();
-        rectItem.meta = {isComponentContainer: true};
         rectItem.name = 'Scaled container';
         rectItem.area.x = dx;
         rectItem.area.y = dy;
@@ -120,6 +128,8 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         componentSchemeContainer.setShadowTransform(shadowTransform);
 
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+        userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
+
         return {
             schemeContainer: componentSchemeContainer,
             userEventBus: componentUserEventBus,
@@ -133,5 +143,30 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         item.meta.componentUserEventBus = null;
         item._childItems = [];
         EditorEventBus.component.loadFailed.specific.$emit(schemeContainer.editorId, item.id, item);
+        userEventBus.emitItemEvent(item.id, COMPONENT_FAILED);
     });
+}
+
+/**
+ *
+ * @param {Item} item
+ * @returns
+ */
+export function findLoadedComponentEnvironment(item) {
+    if (!Array.isArray(item._childItems) || item._childItems.length < 1) {
+        return;
+    }
+    const overlayRect = item._childItems[0];
+    if (!Array.isArray(overlayRect._childItems) || overlayRect._childItems.length < 1) {
+        return;
+    }
+    const rectItem = overlayRect._childItems[0];
+    if (!rectItem.meta.componentSchemeContainer || !rectItem.meta.componentUserEventBus) {
+        return
+    }
+
+    return {
+        schemeContainer: rectItem.meta.componentSchemeContainer,
+        userEventBus: rectItem.meta.componentUserEventBus
+    };
 }

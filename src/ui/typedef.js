@@ -185,6 +185,13 @@
  */
 
 /**
+ * @typedef {Object} ItemEnvironment
+ * @property {Item|undefined} item
+ * @property {SchemeContainer} schemeContainer
+ * @property {UserEventBus} userEventBus
+ */
+
+/**
  * Various information about the item that is needed all over the place in various editor components
  * This structure is created in SchemeContainer during items reindex
  * @typedef {Object} ItemMeta
@@ -197,6 +204,9 @@
  * @property {SchemeContainer|undefined} componentSchemeContainer - container of dynamically loaded component scheme
  * @property {UserEventBus|undefined} componentUserEventBus - user event bus that is isolated to the dynamically loaded component scheme
  * @property {Set<String>|undefined} componentItemIdsForInit - ids of component items that are subscribed to init event
+ * @property {function():ItemEnvironment|undefined} getParentEnvironment - only available in the root items of the external component.
+ *                                                                          Returns the parent evnironment for the loaded component.
+ *                                                                          Used for cross-component communication (sending event to parent)
  * @property {Boolean} componentRoot - true if the current item is the root of the component
  * @property {Boolean} componentLoadFailed - true if loading of component has failed
  * @property {Boolean} isInHUD - true if item is located in HUD
