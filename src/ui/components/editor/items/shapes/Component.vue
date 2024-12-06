@@ -111,14 +111,15 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
     if (!componentItem.shapeProps.showBackButton || componentItem.shapeProps.kind !== 'external') {
         return null;
     }
-    const btnWidth = 95;
+    const btnWidth = 55;
     const btnHeight = 30;
 
     const sx = componentItem.area.w / (20 * btnWidth);
     const sy = componentItem.area.h / (20 * btnHeight);
     const scale = Math.max(sx, sy) * componentItem.shapeProps.backButtonScale;
+    const buttonId = shortid.generate();
     return {
-        id: componentItem.id + '-go-back-btn',
+        id: buttonId,
         shape: 'rect',
         area: {
             x: 0 + componentItem.area.w - (btnWidth + componentItem.shapeProps.backButtonHPad) * scale,
@@ -126,12 +127,7 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
             w: btnWidth, h: btnHeight,
             sx: scale, sy: scale, r: 0, px: 0, py: 0
         },
-        textSlots: {
-            body: {
-                text: '<b>go back</b>',
-                color: componentItem.shapeProps.backButtonTextColor
-            }
-        },
+        textSlots: { },
         selfOpacity: 50,
         visible: true,
         cursor: 'pointer',
@@ -140,65 +136,145 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
             strokeSize: 0,
             fill: componentItem.shapeProps.backButtonFill
         },
-        behavior: {
-            events: [ {
-                id: shortid.generate(),
-                event: 'clicked',
-                actions: [ {
+        childItems: [ {
+            id: shortid.generate(),
+            name: "back button icon",
+            area: {
+                x: 12, y: 5, w: 28, h: 18, r: 0, sx: 1, sy: 1, px: 0.5, py: 0.5
+            },
+            shape: "path",
+            shapeProps: {
+                paths: [ {
                     id: shortid.generate(),
-                    element: '#' + componentItem.id,
-                    method: '_transformScreen',
-                    args: {
-                        x: currentScreenTransform.x,
-                        y: currentScreenTransform.y,
-                        scale: currentScreenTransform.scale,
-                        inBackground: true
-                    }
+                    closed: true,
+                    points: [
+                        { t: "L", x: 39.39, y: 19.05, id:  shortid.generate()},
+                        { t: "L", x: 39.39, y: 0, id:  shortid.generate()},
+                        { t: "L", x: 0, y: 28.57, id:  shortid.generate()},
+                        { t: "L", x: 39.39, y: 57.14, id:  shortid.generate()},
+                        { t: "L", x: 39.39, y: 38.1, id:  shortid.generate()},
+                        { t: "A", x: 75.76, y: 38.1, h: 50, id:  shortid.generate()},
+                        { t: "L", x: 75.76, y: 80.95, id:  shortid.generate()},
+                        { t: "L", x: 51.52, y: 80.95, id:  shortid.generate()},
+                        { t: "L", x: 51.52, y: 100, id:  shortid.generate()},
+                        { t: "A", x: 75.76, y: 100, h: -47.05, id:  shortid.generate()},
+                        { t: "L", x: 75.76, y: 19.05, id:  shortid.generate()}
+                    ],
+                    pos: "relative"
+                } ],
+                fill: {
+                    type: "solid",
+                    color: componentItem.shapeProps.backButtonTextColor
+                },
+                strokeColor:componentItem.shapeProps.backButtonTextColor,
+                strokeSize: 2,
+                strokePattern: "solid"
+            },
+            textSlots: { },
+            opacity: 100,
+            selfOpacity: 100,
+            visible: true,
+            blendMode: "normal",
+            cursor: "default",
+            clip: false,
+            mount: true,
+            effects: [ ],
+            description: "",
+            interactionMode: "tooltip",
+            autoLayout: {
+                on: false,
+                rules: { }
+            },
+            behavior: {
+                events: [ ],
+                dragging: "none",
+                dropTo: "",
+                dragPath: "",
+                dragPathAlign: false,
+                dragPathRotation: 0
+            },
+            tooltipBackground: "rgba(230,230,230,1.0)",
+            tooltipColor: "rgba(30,30,30,1.0)",
+            classes: [ ],
+        }, {
+            id: shortid.generate(),
+            name: 'back button overlay',
+            shape: 'rect',
+            area: {
+                x: 0,
+                y: 0,
+                w: btnWidth, h: btnHeight,
+                sx: 1, sy: 1, r: 0, px: 0, py: 0
+            },
+            cursor: 'pointer',
+            shapeProps: {
+                fill: {
+                    type: 'solid',
+                    color: 'rgba(255,255,255,0.0)'
+                },
+                cornerRadius: componentItem.shapeProps.backButtonCornerRadius,
+                strokeSize: 0,
+            },
+            behavior: {
+                events: [ {
+                    id: shortid.generate(),
+                    event: 'clicked',
+                    actions: [ {
+                        id: shortid.generate(),
+                        element: '#' + componentItem.id,
+                        method: '_transformScreen',
+                        args: {
+                            x: currentScreenTransform.x,
+                            y: currentScreenTransform.y,
+                            scale: currentScreenTransform.scale,
+                            inBackground: true
+                        }
+                    }, {
+                        id: shortid.generate(),
+                        element: '#' + containerItem.id,
+                        method: 'hide',
+                        args: { }
+                    }, {
+                        id: shortid.generate(),
+                        element: '#' + componentItem.id,
+                        method: 'destroyComponent',
+                        args: { }
+                    }]
                 }, {
                     id: shortid.generate(),
-                    element: '#' + containerItem.id,
-                    method: 'hide',
-                    args: { }
+                    event: 'mousein',
+                    actions: [ {
+                        id: shortid.generate(),
+                        element: `#${buttonId}`,
+                        method: 'set',
+                        args: {
+                            field: 'selfOpacity',
+                            value: 100,
+                            animated: true,
+                            animationDuration: 0.2,
+                            transition: 'ease-in-out',
+                            inBackground: false
+                        }
+                    }]
                 }, {
                     id: shortid.generate(),
-                    element: '#' + componentItem.id,
-                    method: 'destroyComponent',
-                    args: { }
+                    element: `#${buttonId}`,
+                    actions: [ {
+                        id: shortid.generate(),
+                        element: 'self',
+                        method: 'set',
+                        args: {
+                            field: 'selfOpacity',
+                            value: 50,
+                            animated: true,
+                            animationDuration: 0.2,
+                            transition: 'ease-in-out',
+                            inBackground: false
+                        }
+                    }]
                 }]
-            }, {
-                id: shortid.generate(),
-                event: 'mousein',
-                actions: [ {
-                    id: shortid.generate(),
-                    element: 'self',
-                    method: 'set',
-                    args: {
-                        field: 'selfOpacity',
-                        value: 100,
-                        animated: true,
-                        animationDuration: 0.2,
-                        transition: 'ease-in-out',
-                        inBackground: false
-                    }
-                }]
-            }, {
-                id: shortid.generate(),
-                event: 'mouseout',
-                actions: [ {
-                    id: shortid.generate(),
-                    element: 'self',
-                    method: 'set',
-                    args: {
-                        field: 'selfOpacity',
-                        value: 50,
-                        animated: true,
-                        animationDuration: 0.2,
-                        transition: 'ease-in-out',
-                        inBackground: false
-                    }
-                }]
-            }]
-        },
+            }
+        } ]
     }
 }
 
@@ -345,7 +421,7 @@ export default {
             progressColor2        : {type: 'color', value: 'rgba(140,214,219,1)', name: 'Progress bar color 2', depends: {showProgressBar: true, kind: 'external'}},
             showBackButton        : {type: 'boolean', value: true, name: 'Show back button', depends: {kind: 'external'}},
             backButtonFill        : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(102,102,102,1.0)'}, name: 'Button Fill', depends: {showBackButton: true, kind: 'external'}},
-            backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button text color', depends: {showBackButton: true, kind: 'external'}},
+            backButtonTextColor   : {type: 'color', value: 'rgba(245,245,245,1.0)', name: 'Back button icon color', depends: {showBackButton: true, kind: 'external'}},
             backButtonVPad        : {type: 'number', value: 20, name: 'Back button vertical padding', depends: {showBackButton: true, kind: 'external'}},
             backButtonHPad        : {type: 'number', value: 20, name: 'Back button horizontal padding', depends: {showBackButton: true, kind: 'external'}},
             backButtonCornerRadius: {type: 'number', value: 15, name: 'Back button corner radius', depends: {showBackButton: true, kind: 'external'}},

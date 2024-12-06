@@ -26,7 +26,6 @@ It can be used for cross-component communication`,
         if (item.meta && item.meta.parentId) {
             sendEventToParent(item, args.event, userEventBus, schemeContainer);
         }
-        // TODO retransmitting event to component holder
         if (item.meta.getParentEnvironment) {
             const env = item.meta.getParentEnvironment();
             if (env && env.item && env.userEventBus) {
