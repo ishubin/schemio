@@ -118,26 +118,6 @@
                     />
             </g>
 
-            <g v-if="mode === 'view' && item.meta.componentSchemeContainer && item.meta.componentUserEventBus"
-                @mousedown="onComponentMouseDown"
-                @mouseup="onComponentMouseUp"
-                @mousemove="onComponentMouseMove"
-                >
-                <g v-for="componentItem in item.meta.componentSchemeContainer.worldItems" class="item-container"
-                    v-if="componentItem.visible && componentItem.shape !== 'hud'"
-                    :class="'item-cursor-' + componentItem.cursor">
-                    <ItemSvg
-                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
-                        :item="componentItem"
-                        :editorId="editorId"
-                        :mode="mode"
-                        :textSelectionEnabled="textSelectionEnabled"
-                        :patchIndex="patchIndex"
-                        :eventListener="eventListener"
-                        @component-load-requested="onComponentLoadRequested"
-                        @frame-animator="onFrameAnimatorEventInsideComponent" />
-                </g>
-            </g>
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
                 class="svg-event-layer"
                 data-preview-ignore="true"
@@ -152,27 +132,6 @@
                 @dragleave="onItemDragLeave"
                 @drop="onItemDrop"
                 :fill="hoverPathFill" />
-
-            <g v-if="mode === 'edit' && !isSelected && showItemDetailMarkers && (hasDescription || hasLinks || hasFiles)" data-preview-ignore="true">
-                <foreignObject :x="detailsMarker.x" :y="detailsMarker.y" :width="detailsMarker.w" :height="detailsMarker.h" :data-item-id="item.id">
-                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-details-marker-icon" :data-item-id="item.id">
-                        <i v-if="hasFiles" class="icon fa-solid fa-paperclip" :data-item-id="item.id"></i>
-                        <i v-else-if="hasLinks" class="icon fa-solid fa-link" :data-item-id="item.id"></i>
-                        <i v-else class="icon fa-solid fa-paragraph" :data-item-id="item.id"></i>
-                    </div>
-                </foreignObject>
-                <rect
-                    :x="detailsMarker.x"
-                    :y="detailsMarker.y"
-                    :width="detailsMarker.w"
-                    :height="detailsMarker.h"
-                    data-type="item-details-marker"
-                    :data-item-id="item.id"
-                    :style="{cursor: item.cursor}"
-                    fill="rgba(0,0,0,0)"
-                    />
-            </g>
-
 
             <g v-if="mode === 'view' && !textSelectionEnabled">
                 <path v-for="customArea in customAreas"
@@ -200,8 +159,48 @@
                 stroke="rgba(255, 255, 255, 0)"
                 :fill="hoverPathFill" />
 
+            <g v-if="mode === 'view' && item.meta.componentSchemeContainer && item.meta.componentUserEventBus"
+                @mousedown="onComponentMouseDown"
+                @mouseup="onComponentMouseUp"
+                @mousemove="onComponentMouseMove"
+                >
+                <g v-for="componentItem in item.meta.componentSchemeContainer.worldItems" class="item-container"
+                    v-if="componentItem.visible && componentItem.shape !== 'hud'"
+                    :class="'item-cursor-' + componentItem.cursor">
+                    <ItemSvg
+                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                        :item="componentItem"
+                        :editorId="editorId"
+                        :mode="mode"
+                        :textSelectionEnabled="textSelectionEnabled"
+                        :patchIndex="patchIndex"
+                        :eventListener="eventListener"
+                        @component-load-requested="onComponentLoadRequested"
+                        @frame-animator="onFrameAnimatorEventInsideComponent" />
+                </g>
+            </g>
 
-            <defs v-if="item.clip || (item.shape === 'component' && item.shapeProps.kind !== 'embedded')">
+            <g v-if="mode === 'edit' && !isSelected && showItemDetailMarkers && (hasDescription || hasLinks || hasFiles)" data-preview-ignore="true">
+                <foreignObject :x="detailsMarker.x" :y="detailsMarker.y" :width="detailsMarker.w" :height="detailsMarker.h" :data-item-id="item.id">
+                    <div xmlns="http://www.w3.org/1999/xhtml" class="item-details-marker-icon" :data-item-id="item.id">
+                        <i v-if="hasFiles" class="icon fa-solid fa-paperclip" :data-item-id="item.id"></i>
+                        <i v-else-if="hasLinks" class="icon fa-solid fa-link" :data-item-id="item.id"></i>
+                        <i v-else class="icon fa-solid fa-paragraph" :data-item-id="item.id"></i>
+                    </div>
+                </foreignObject>
+                <rect
+                    :x="detailsMarker.x"
+                    :y="detailsMarker.y"
+                    :width="detailsMarker.w"
+                    :height="detailsMarker.h"
+                    data-type="item-details-marker"
+                    :data-item-id="item.id"
+                    :style="{cursor: item.cursor}"
+                    fill="rgba(0,0,0,0)"
+                    />
+            </g>
+
+            <defs v-if="item.clip">
                 <clipPath :id="`item-clip-path-${item.id}`">
                     <path v-if="itemSvgOutlinePath"
                         class="svg-event-layer"

@@ -47,10 +47,10 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         const clonedItems = tempSchemeContainer.cloneItemsPreservingNames(tempSchemeContainer.scheme.items);
         scheme.items = clonedItems;
         const box = getLocalBoundingBoxOfItems(scheme.items);
-        scheme.items.forEach(item => {
-            item.area.x -= box.x;
-            item.area.y -= box.y;
-        });
+        // scheme.items.forEach(item => {
+        //     item.area.x -= box.x;
+        //     item.area.y -= box.y;
+        // });
 
         const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, {
             onSchemeChangeCommitted: () => {}
@@ -86,26 +86,44 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         overlayRect.area.h = item.area.h;
         overlayRect.selfOpacity = 0;
         overlayRect.name = 'Overlay container';
+        // overlayRect.clip = true;
 
-        const rectItem = createDefaultRectItem();
-        rectItem.shape = 'dummy';
-        rectItem.selfOpacity = 0;
-        rectItem.id = shortid.generate();
-        rectItem.name = 'Scaled container';
-        rectItem.area.x = dx;
-        rectItem.area.y = dy;
-        rectItem.area.w = w;
-        rectItem.area.h = h;
-        rectItem.area.px = 0;
-        rectItem.area.py = 0;
-        rectItem.area.sx = scale;
-        rectItem.area.sy = scale;
+        const scaledContainer = createDefaultRectItem();
+        scaledContainer.shape = 'none';
+        scaledContainer.selfOpacity = 0;
+        scaledContainer.id = shortid.generate();
+        scaledContainer.name = 'Scaled container';
+        scaledContainer.area.x = dx;
+        scaledContainer.area.y = dy;
+        scaledContainer.area.w = w;
+        scaledContainer.area.h = h;
+        scaledContainer.area.px = 0;
+        scaledContainer.area.py = 0;
+        scaledContainer.area.sx = scale;
+        scaledContainer.area.sy = scale;
+
+        const displacementContainer = createDefaultRectItem();
+        displacementContainer.shape = 'none';
+        displacementContainer.selfOpacity = 0;
+        displacementContainer.id = shortid.generate();
+        displacementContainer.name = 'Displacement container';
+        displacementContainer.area.x = -box.x;
+        displacementContainer.area.y = -box.y;
+        displacementContainer.area.w = box.w;
+        displacementContainer.area.h = box.h;
+        displacementContainer.area.px = 0;
+        displacementContainer.area.py = 0;
+        displacementContainer.area.sx = 1;
+        displacementContainer.area.sy = 1;
 
 
-        rectItem.meta.componentItemIdsForInit = componentSchemeContainer.indexUserEvents(componentUserEventBus, compilerErrorCallback);
-        rectItem.meta.componentSchemeContainer = componentSchemeContainer;
-        rectItem.meta.componentUserEventBus = componentUserEventBus;
-        overlayRect._childItems = [rectItem];
+        scaledContainer._childItems = [displacementContainer];
+        overlayRect._childItems = [scaledContainer];
+
+
+        displacementContainer.meta.componentItemIdsForInit = componentSchemeContainer.indexUserEvents(componentUserEventBus, compilerErrorCallback);
+        displacementContainer.meta.componentSchemeContainer = componentSchemeContainer;
+        displacementContainer.meta.componentUserEventBus = componentUserEventBus;
 
         const backButton = generateComponentGoBackButton(item, overlayRect, schemeContainer.screenTransform);
         if (backButton) {
@@ -121,10 +139,11 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         schemeContainer.indexUserEventsForItems(item._childItems, userEventBus, compilerErrorCallback);
 
         const parentShadowTransform = schemeContainer.shadowTransform ? schemeContainer.shadowTransform : myMath.identityMatrix();
-        const shadowTransform = myMath.standardTransformWithArea(
-            myMath.multiplyMatrices(parentShadowTransform, rectItem.meta.transformMatrix),
-            rectItem.area
-        );
+        const shadowTransform = myMath.multiplyMatrices(myMath.standardTransformWithArea(
+            myMath.multiplyMatrices(parentShadowTransform, scaledContainer.meta.transformMatrix),
+            scaledContainer.area
+        ), myMath.translationMatrix(-box.x, -box.y));
+
         componentSchemeContainer.setShadowTransform(shadowTransform);
 
         EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
@@ -160,13 +179,18 @@ export function findLoadedComponentEnvironment(item) {
     if (!Array.isArray(overlayRect._childItems) || overlayRect._childItems.length < 1) {
         return;
     }
-    const rectItem = overlayRect._childItems[0];
-    if (!rectItem.meta.componentSchemeContainer || !rectItem.meta.componentUserEventBus) {
+    const scaledContainer = overlayRect._childItems[0];
+    if (!Array.isArray(scaledContainer._childItems) || scaledContainer._childItems.length < 1) {
+        return;
+    }
+    const displacementContainer = scaledContainer._childItems[0];
+    if (!displacementContainer.meta.componentSchemeContainer || !displacementContainer.meta.componentUserEventBus) {
         return
     }
 
+
     return {
-        schemeContainer: rectItem.meta.componentSchemeContainer,
-        userEventBus: rectItem.meta.componentUserEventBus
+        schemeContainer: displacementContainer.meta.componentSchemeContainer,
+        userEventBus: displacementContainer.meta.componentUserEventBus
     };
 }
