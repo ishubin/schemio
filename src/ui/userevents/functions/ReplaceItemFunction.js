@@ -2,8 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { worldPointOnItem } from "../../scheme/ItemMath";
+
 function calculateItemPositionToMatchAnotherItem(item, destinationItem, schemeContainer) {
-    const worldPoint = schemeContainer.worldPointOnItem(0, 0, destinationItem);
+    const worldPoint = worldPointOnItem(0, 0, destinationItem);
     return schemeContainer.relativePointForItem(worldPoint.x, worldPoint.y, item);
 }
 
