@@ -10,9 +10,12 @@ import EditorEventBus from '../../components/editor/EditorEventBus';
 /**
  * Recreating item transform because in some weird cases when some of ancestors were moved,
  * the transforms in item metas are not properly recalculated.
+ * @param {Item} item
+ * @param {SchemeContainer} schemeContainer
+ * @returns
  */
 function createItemTransform(item, schemeContainer) {
-    let transform = myMath.identityMatrix();
+    let transform = schemeContainer.shadowTransform ? schemeContainer.shadowTransform : myMath.identityMatrix();
 
     if (item.meta.ancestorIds) {
         for (let i = 0; i < item.meta.ancestorIds.length; i++) {

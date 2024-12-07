@@ -11,7 +11,6 @@ import myMath from '../myMath.js';
 import utils from '../utils.js';
 import shortid from 'shortid';
 import Shape from '../components/editor/items/shapes/Shape.js';
-import {generateComponentGoBackButton} from '../components/editor/items/shapes/Component.vue';
 import { traverseItems, defaultItemDefinition, defaultItem, findFirstItemBreadthFirst} from './Item';
 import { enrichItemWithDefaults } from './ItemFixer';
 import { enrichSchemeWithDefaults } from './Scheme';
@@ -24,6 +23,8 @@ import EditorEventBus from '../components/editor/EditorEventBus';
 import { compileItemTemplate, compileTemplateFromDoc, generateItemFromTemplate, regenerateTemplatedItem, regenerateTemplatedItemWithPostBuilder } from '../components/editor/items/ItemTemplate.js';
 import { worldAngleOfItem, worldPointOnItem, localPointOnItem, getBoundingBoxOfItems, itemCompleteTransform, getItemOutlineSVGPath } from './ItemMath.js';
 import { autoLayoutGenerateEditBoxRuleGuides, generateItemAreaByAutoLayoutRules } from './AutoLayout.js';
+import Events from '../userevents/Events.js';
+import { compileActions } from '../userevents/Compiler.js';
 
 const log = new Logger('SchemeContainer');
 
@@ -37,6 +38,9 @@ const minSpatialIndexDistance = 20;
 // and it tries to reattach it to previously attached item, there should be some threshold that gives
 // user a possibility to completelly dettach the connector
 const connectorStickyThreshold = 50;
+
+
+const WORLD_AREA = { x: 0, y: 0, w: 1, h: 1, r: 0, sx: 1, sy: 1, px: 0, py: 0 };
 
 export const DEFAULT_ITEM_MODIFICATION_CONTEXT = {
     id: '',
@@ -59,13 +63,19 @@ export const ITEM_MODIFICATION_CONTEXT_ROTATED = {
     id: ''
 };
 
+
+export function isItemInHUD(item) {
+    return item.shape === 'hud' || item.meta.isInHUD;
+}
+
+
 /**
  * This function is only used for calculating bounds of reference items
  * so that they can be properly fit inside of an component
  * @param {Array} items
  * @returns {Area}
  */
-function getLocalBoundingBoxOfItems(items) {
+export function getLocalBoundingBoxOfItems(items) {
     const boundsItem = findFirstItemBreadthFirst(items, item => item.shape === 'dummy' && item.shapeProps.screenBounds);
 
     const filteredItems = boundsItem ? [boundsItem] : items;
@@ -206,7 +216,11 @@ function _markTemplateRef(items, templateRef, templateRootId) {
     })
 }
 
-function createDefaultRectItem() {
+/**
+ *
+ * @returns {Item}
+ */
+export function createDefaultRectItem() {
     const item = utils.clone(defaultItem);
     item.shape = 'rect';
 
@@ -295,7 +309,7 @@ Providing access to scheme elements and provides modifiers for it
 class SchemeContainer {
     /**
      *
-     * @param {Scheme} scheme
+     * @param {SchemioDoc} scheme
      * @param {String} editorId
      * @param {String} mode - either 'view' or 'edit'
      * @param {*} apiClient
@@ -304,6 +318,7 @@ class SchemeContainer {
     constructor(scheme, editorId, mode, apiClient, listener) {
         Debugger.register('SchemioContainer', this);
 
+        this.id = shortid.generate();
         this.scheme = scheme;
         this.editorId = editorId;
         this.mode = mode;
@@ -359,6 +374,12 @@ class SchemeContainer {
 
         this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
 
+        // Shadow transform is used in external components and it represents the complete transformation of
+        // the component item root. This is needed to correctly convert child component items
+        // to the global world transform (e.g. when dragging items in view mode,
+        // or converting mouse coords to local item coords)
+        this.shadowTransform = null;
+
         // stores all snapping rules for items (used when user drags an item)
         this.relativeSnappers = {
             horizontal: [],
@@ -375,6 +396,10 @@ class SchemeContainer {
         // this is used in order to optimize performance when user is changing templated item arguments
         this.reindexTimeoutId = null;
         this.reindexItems();
+    }
+
+    setShadowTransform(shadowTransform) {
+        this.shadowTransform = shadowTransform;
     }
 
     hasDependencyOnItem(itemId, potentialDependencyItemId) {
@@ -441,19 +466,76 @@ class SchemeContainer {
     }
 
     /**
-     * @param {String} classId
-     * @param {Item|undefined} componentRootItem in case componentRootItem is defined it should first search in its classes in meta object
-     * @returns
+     *
+     * @param {UserEventBus} userEventBus
+     * @returns {Set<String>} - ids of items that are subscribed to init event
      */
-    findClassById(classId, componentRootItem) {
-        if (componentRootItem && Array.isArray(componentRootItem.meta.componentClasses)) {
-            for (let i = 0; i < componentRootItem.meta.componentClasses.length; i++) {
-                if (componentRootItem.meta.componentClasses[i].id === classId) {
-                    return componentRootItem.meta.componentClasses[i];
-                }
-            }
-        }
+    indexUserEvents(userEventBus, compilerErrorCallback) {
+        return this.indexUserEventsForItems(this.scheme.items, userEventBus, compilerErrorCallback);
+    }
 
+    /**
+     * @param {Array<Item>} items
+     * @param {UserEventBus} userEventBus
+     * @returns {Set<String>} - ids of items that are subscribed to init event
+     */
+    indexUserEventsForItems(items, userEventBus, compilerErrorCallback) {
+        const itemsForInit = new Set();
+        traverseItems(items, item => {
+            if (Array.isArray(item.classes)) {
+                item.classes.forEach(itemClass => {
+                    const classDef = this.findClassById(itemClass.id);
+                    if (!classDef) {
+                        return;
+                    }
+                    if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== item.shape) {
+                        return false;
+                    }
+
+                    const itemClassArgs = {...itemClass.args};
+                    const classArgDefs = {};
+                    if (Array.isArray(classDef.args)) {
+                        classDef.args.forEach(argDef => {
+                            classArgDefs[argDef.name] = argDef;
+                            if (!itemClassArgs.hasOwnProperty(argDef.name)) {
+                                itemClassArgs[argDef.name] = argDef.value;
+                            }
+                        });
+                    }
+
+                    classDef.events.forEach(event => {
+                        const eventCallback = compileActions(this, userEventBus, item, event.actions, itemClassArgs, classArgDefs, compilerErrorCallback);
+                        if (event.event === Events.standardEvents.init.id) {
+                            itemsForInit.add(item.id);
+                        }
+                        userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
+                    });
+                });
+            }
+
+            const noClassArgs = {};
+            const noClassDefArgs = {};
+
+            if (item.behavior && Array.isArray(item.behavior.events)) {
+                item.behavior.events.forEach(event => {
+                    const eventCallback = compileActions(this, userEventBus, item, event.actions, noClassArgs, noClassDefArgs, compilerErrorCallback);
+                    if (event.event === Events.standardEvents.init.id) {
+                        itemsForInit.add(item.id)
+                    }
+                    userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
+                });
+            }
+        });
+
+        return itemsForInit;
+    }
+
+
+    /**
+     * @param {String} classId
+     * @returns {ClassDef}
+     */
+    findClassById(classId) {
         if (!Array.isArray(this.scheme.scripts.classes)) {
             return null;
         }
@@ -592,72 +674,6 @@ class SchemeContainer {
     }
 
 
-    /*
-        Traverses all items and makes their tags and tag selectors unique.
-        This is needed so that behavior actions defined inside components affect only items within itself
-    */
-    isolateItemTags(items) {
-        const tagConversions = new Map();
-        traverseItems(items, item => {
-            if (!Array.isArray(item.tags)) {
-                return;
-            }
-            item.tags = item.tags.map(tag => {
-                if (tagConversions.has(tag)) {
-                    return tagConversions.get(tag);
-                }
-                const convertedTag = `${tag}-${shortid.generate()}`;
-                tagConversions.set(tag, convertedTag);
-                return convertedTag;
-            });
-        });
-
-        const replaceSelector = (selector) => {
-            if (!selector) {
-                return selector;
-            }
-            const colonIndex = selector.indexOf(':');
-            if (colonIndex > 0) {
-                const expression = selector.substring(0, colonIndex).trim();
-                if (expression === 'tag') {
-                    const tag = selector.substr(colonIndex + 1).trim();
-                    if (tagConversions.has(tag)) {
-                        return `tag: ${tagConversions.get(tag)}`;
-                    }
-                }
-            }
-            return selector;
-        };
-
-        traverseItems(items, item => {
-            if (!item.behavior || !Array.isArray(item.behavior.events)) {
-                return;
-            }
-            if (item.behavior.dragPath) {
-                item.behavior.dragPath = replaceSelector(item.behavior.dragPath);
-            }
-            if (item.behavior.dropTo) {
-                item.behavior.dropTo = replaceSelector(item.behavior.dropTo);
-            }
-            item.behavior.events.forEach(event => {
-                if (!Array.isArray(event.actions)) {
-                    return;
-                }
-                event.actions.forEach(action => {
-                    action.element = replaceSelector(action.element);
-                    if (action.args && Functions.main.hasOwnProperty(action.method)) {
-                        const argDefs = Functions.main[action.method].args;
-                        forEach(argDefs, (argDef, argName) => {
-                            if (argDef.type === 'element') {
-                                action.args[argName] = replaceSelector(action.args[argName]);
-                            }
-                        });
-                    }
-                });
-            })
-        });
-    }
-
     attachItemsToComponentItem(componentItem, referenceItems) {
         if (!referenceItems) {
             return;
@@ -666,17 +682,6 @@ class SchemeContainer {
         const shouldIndexClones = true;
 
         const childItems = this.cloneItems(referenceItems, preserveOriginalNames, shouldIndexClones);
-
-        traverseItems(childItems, childItem => {
-            if (!childItem.meta) {
-                childItem.meta = {};
-            }
-            childItem.meta.componentRootId = componentItem.id;
-        });
-
-        if (componentItem.shapeProps.kind === 'external') {
-            this.isolateItemTags(childItems);
-        }
 
         const bBox = getLocalBoundingBoxOfItems(referenceItems);
         forEach(childItems, item => {
@@ -711,14 +716,12 @@ class SchemeContainer {
         overlayRect.area.w = componentItem.area.w;
         overlayRect.area.h = componentItem.area.h;
         overlayRect.selfOpacity = 0;
-        overlayRect.meta = {isComponentContainer: true};
         overlayRect.name = 'Overlay container';
 
         const rectItem = createDefaultRectItem();
         rectItem.shape = 'dummy';
         rectItem.selfOpacity = 0;
         rectItem.id = shortid.generate();
-        rectItem.meta = {isComponentContainer: true};
         rectItem.name = 'Scaled container';
         rectItem.area.x = dx;
         rectItem.area.y = dy;
@@ -731,14 +734,6 @@ class SchemeContainer {
 
         rectItem._childItems = childItems;
         overlayRect._childItems = [rectItem];
-
-        if (componentItem.shapeProps.kind === 'external') {
-            const backButton = generateComponentGoBackButton(componentItem, overlayRect, this.screenTransform, this.screenSettings.width, this.screenSettings.height);
-            if (backButton) {
-                overlayRect._childItems.push(backButton);
-            }
-        }
-
         componentItem._childItems = [overlayRect];
 
         const itemTransform = myMath.standardTransformWithArea(componentItem.meta.transformMatrix, componentItem.area);
@@ -1350,7 +1345,7 @@ class SchemeContainer {
      * @returns {Point}
      */
     localPointOnItem(x, y, item) {
-        return localPointOnItem(x, y, item);
+        return localPointOnItem(x, y, item, this.shadowTransform);
     }
 
     /**
@@ -1364,10 +1359,13 @@ class SchemeContainer {
         if (item.meta.parentId) {
             const parentItem = this.findItemById(item.meta.parentId);
             if (parentItem) {
-                return this.localPointOnItem(x, y, parentItem);
+                return localPointOnItem(x, y, parentItem, this.shadowTransform);
             }
         }
 
+        if (this.shadowTransform) {
+            return myMath.localPointInArea(x, y, WORLD_AREA, this.shadowTransform);
+        }
         return {x, y};
     }
 
@@ -1916,7 +1914,7 @@ class SchemeContainer {
      */
     closestPointToItemOutline(item, globalPoint, {withNormal, startDistance, stopDistance, precision}) {
         // in order to include all parent items transform into closest point finding we need to first bring the global point into local transform
-        const localPoint = this.localPointOnItem(globalPoint.x, globalPoint.y, item);
+        const localPoint = localPointOnItem(globalPoint.x, globalPoint.y, item);
 
         const shadowSvgPath = this.svgOutlinePathCache.get(item);
         if (!shadowSvgPath) {
@@ -2141,10 +2139,6 @@ class SchemeContainer {
 
     getTopLevelItems() {
         return this.worldItems;
-    }
-
-    isItemInHUD(item) {
-        return item.shape === 'hud' || item.meta.isInHUD;
     }
 
     setActiveBoundaryBox(area) {
@@ -2595,6 +2589,15 @@ class SchemeContainer {
     /**
      *
      * @param {Array<Item>} items
+     * @returns {Array<Item>}
+     */
+    cloneItemsPreservingNames(items) {
+        return this.cloneItems(items, true, false);
+    }
+
+    /**
+     *
+     * @param {Array<Item>} items
      * @param {Boolean} preserveOriginalNames
      * @param {Boolean} shouldIndexClones
      * @returns {Array<Item>}
@@ -2715,12 +2718,37 @@ class SchemeContainer {
                                 action.args[argName] = rebuildElementSelector(action.args[argName]);
                             }
                         });
+                    } else if (action.method.startsWith('function:')) {
+                        const funcName = action.method.substring(9);
+                        if (this.scheme.scripts && Array.isArray(this.scheme.scripts.functions)) {
+                            const funcDef = this.scheme.scripts.functions.find(f => f.name === funcName);
+                            if (funcDef && Array.isArray(funcDef.args)) {
+                                funcDef.args.forEach(argDef => {
+                                    if (argDef.type === 'element' && action.args[argDef.name]) {
+                                        action.args[argDef.name] = rebuildElementSelector(action.args[argDef.name]);
+                                    }
+                                });
+                            }
+                        }
                     }
                 });
             });
-        });
 
+            if (Array.isArray(item.classes)) {
+                item.classes.forEach(itemClass => {
+                    const classDef = this.findClassById(itemClass.id);
+                    if (classDef && Array.isArray(classDef.args)) {
+                        classDef.args.forEach(argDef => {
+                            if (argDef.type === 'element' && itemClass.args[argDef.name]) {
+                                itemClass.args[argDef.name] = rebuildElementSelector(itemClass.args[argDef.name]);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
+
 
     /**
      * @param {Array<Item>} items

@@ -32,6 +32,8 @@
                             :mode="mode"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
+                            :eventListener="eventListenerInterceptor"
+                            @component-load-requested="onComponentLoadRequested"
                             @frame-animator="onFrameAnimatorEvent" />
                     </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
@@ -40,6 +42,25 @@
                             :data-item-id="item.id"
                             :style="{opacity: item.opacity}"
                             data-preview-ignore="true"/>
+                    </g>
+                </g>
+
+                <g>
+                    <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
+                        :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
+                        >
+                        <ItemSvg
+                            v-for="item in hud.childItems"
+                            v-if="item.visible"
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                            :item="item"
+                            :editorId="editorId"
+                            :textSelectionEnabled="textSelectionEnabled"
+                            :patchIndex="patchIndex"
+                            :mode="mode"
+                            :eventListener="eventListenerInterceptor"
+                            @component-load-requested="onComponentLoadRequested"
+                            @frame-animator="onFrameAnimatorEvent"/>
                     </g>
                 </g>
 
@@ -60,23 +81,6 @@
                             <span class="item-link-title">{{link | formatLinkTitle}}</span>
                         </foreignObject>
                     </a>
-                </g>
-
-                <g>
-                    <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
-                        :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
-                        >
-                        <ItemSvg
-                            v-for="item in hud.childItems"
-                            v-if="item.visible"
-                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
-                            :item="item"
-                            :editorId="editorId"
-                            :textSelectionEnabled="textSelectionEnabled"
-                            :patchIndex="patchIndex"
-                            :mode="mode"
-                            @frame-animator="onFrameAnimatorEvent"/>
-                    </g>
                 </g>
 
             </g>
@@ -121,6 +125,7 @@
                             :editorId="editorId"
                             :patchIndex="patchIndex"
                             :mode="mode"
+                            :eventListener="eventListenerInterceptor"
                             />
                     </g>
 
@@ -179,28 +184,25 @@ import {forEach, map } from '../../collections';
 import '../../typedef';
 
 import myMath from '../../myMath';
-import {defaultItem, traverseItems, traverseItemsConditionally} from '../../scheme/Item';
+import {defaultItem} from '../../scheme/Item';
 import {enrichItemWithDefaults} from '../../scheme/ItemFixer';
 import ItemSvg from './items/ItemSvg.vue';
 import linkTypes from './LinkTypes.js';
 import utils from '../../utils.js';
-import SchemeContainer  from '../../scheme/SchemeContainer.js';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, itemCompleteTransform, worldScalingVectorOnItem } from '../../scheme/ItemMath.js';
-import { compileActions } from '../../userevents/Compiler.js';
-import Shape from './items/shapes/Shape';
+import SchemeContainer, { isItemInHUD }  from '../../scheme/SchemeContainer.js';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, getBoundingBoxOfItems, worldPointOnItem  } from '../../scheme/ItemMath.js';
 import {playInAnimationRegistry} from '../../animations/AnimationRegistry';
 import ValueAnimation from '../../animations/ValueAnimation';
 import Events from '../../userevents/Events';
 import StoreUtils from '../../store/StoreUtils';
-import { COMPONENT_LOADED_EVENT, COMPONENT_FAILED, computeButtonPath} from './items/shapes/Component.vue';
+import { COMPONENT_FAILED, } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
-import { collectAndLoadAllMissingShapes } from './items/shapes/ExtraShapes.js';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
-import { createItemScriptWrapper, createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
-import { isolateGlobalScriptsForComponent } from '../../scheme/Scripts.js';
+import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { KeyBinder } from './KeyBinder.js';
-import { List } from '../../templater/list.js';
+import { loadAndMountExternalComponent } from './Component.js';
+import { collectItemsHighlightsByCondition, collectItemsHighlightsForClickableMarkers, generateItemHighlight } from './ItemHighlight.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -262,7 +264,7 @@ export default {
         }
 
         EditorEventBus.zoomToAreaRequested.$on(this.editorId, this.onBringToView);
-        EditorEventBus.item.linksShowRequested.any.$on(this.editorId, this.onShowItemLinks);
+        EditorEventBus.item.linksShowRequested.$on(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$on(this.editorId, this.onAnyItemClicked);
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
@@ -272,14 +274,17 @@ export default {
 
         EditorEventBus.item.selected.any.$on(this.editorId, this.onAnyItemSelected);
 
-        EditorEventBus.component.mounted.any.$on(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$on(this.editorId, this.onComponentLoadFailed);
 
         EditorEventBus.framePlayer.prepared.$on(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$on(this.editorId, this.toggleClickableMarkers);
+        EditorEventBus.searchKeywordUpdated.$on(this.editorId, this.onSearchKeywordUpdated);
+        EditorEventBus.searchedItemsToggled.$on(this.editorId, this.onSearchedItemsToggled);
 
         EditorEventBus.editorResized.$on(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
+
+        EditorEventBus.component.destroyed.$on(this.editorId, this.onComponentDestroyed);
     },
 
     mounted() {
@@ -306,7 +311,7 @@ export default {
                 }
             }
 
-            forEach(this.itemsForInit, (val, itemId) => {
+            this.itemsForInit.forEach((itemId) => {
                 this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
             });
         }
@@ -318,7 +323,7 @@ export default {
         window.removeEventListener("resize", this.updateSvgSize);
         this.mouseEventsEnabled = false;
         EditorEventBus.zoomToAreaRequested.$off(this.editorId, this.onBringToView);
-        EditorEventBus.item.linksShowRequested.any.$off(this.editorId, this.onShowItemLinks);
+        EditorEventBus.item.linksShowRequested.$off(this.editorId, this.onShowItemLinks);
 
         EditorEventBus.item.clicked.any.$off(this.editorId, this.onAnyItemClicked);
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
@@ -327,14 +332,16 @@ export default {
 
         EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
 
-        EditorEventBus.component.mounted.any.$off(this.editorId, this.onComponentSchemeMounted);
         EditorEventBus.component.loadFailed.any.$off(this.editorId, this.onComponentLoadFailed);
 
         EditorEventBus.framePlayer.prepared.$off(this.editorId, this.onFramePlayerPrepared);
         EditorEventBus.clickableMarkers.toggled.$off(this.editorId, this.toggleClickableMarkers);
+        EditorEventBus.searchKeywordUpdated.$off(this.editorId, this.onSearchKeywordUpdated);
+        EditorEventBus.searchedItemsToggled.$off(this.editorId, this.onSearchedItemsToggled);
 
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
+        EditorEventBus.component.destroyed.$off(this.editorId, this.onComponentDestroyed);
 
         if (this.mode === 'view') {
             this.destroyUserKeyBinders();
@@ -369,7 +376,7 @@ export default {
             lastHoveredItem: null,
 
             // ids of items that have subscribed for Init event
-            itemsForInit: {},
+            itemsForInit: new Set(),
 
             // array of markers for items that are clickable
             clickableItemMarkers: [],
@@ -385,17 +392,94 @@ export default {
 
             compiledMainScript : null,
 
-            keyBinder: new KeyBinder(this.userEventBus, this.schemeContainer)
+            keyBinder: new KeyBinder(),
+
+            eventListenerInterceptor: {
+                mouseDown: (event, componentItem) => {
+                    this.onEventListenerInterceptorMouseEvent('mouse-down', event, componentItem);
+                },
+                mouseUp: (event, componentItem) => {
+                    this.onEventListenerInterceptorMouseEvent('mouse-up', event, componentItem);
+                },
+                mouseMove: (event, componentItem) => {
+                    this.onEventListenerInterceptorMouseEvent('mouse-move', event, componentItem);
+                }
+            }
         };
     },
     methods: {
+        onSearchedItemsToggled() {
+            if (this.worldHighlightedItems.length > 0) {
+                const area = {
+                    ...this.worldHighlightedItems[0].globalBox
+                };
+                for (let i = 1; i < this.worldHighlightedItems.length; i++) {
+                    const b = this.worldHighlightedItems[i].globalBox;
+                    if (area.x > b.x) {
+                        area.x = b.x;
+                    }
+                    if (area.y > b.y) {
+                        area.y = b.y;
+                    }
+                    if (area.x + area.w < b.x + b.w) {
+                        area.w = b.x + b.w - area.x;
+                    }
+                    if (area.y + area.h < b.y + b.h) {
+                        area.h = b.y + b.h - area.y;
+                    }
+                }
+                this.bringAreaToViewAnimated(area);
+            } else {
+                // zooming to entire scene
+                this.zoomToItems([]);
+            }
+        },
+
+        onSearchKeywordUpdated(keyword) {
+            keyword = keyword.trim().toLowerCase();
+            if (keyword.length > 0) {
+                const itemFilter = (item) => {
+                    if (this.mode === 'view' && isItemInHUD(item)) {
+                        //ignoring item highlight for HUD elements in view mode
+                        return false;
+                    }
+
+                    let name = item.name || '';
+                    if (name.toLowerCase().indexOf(keyword) >= 0) {
+                        return true;
+                    } else {
+                        // search in tags
+                        if (item.tags && item.tags.length > 0) {
+                            if (find(item.tags, tag => tag && tag.toLowerCase().indexOf(keyword) >= 0)) {
+                                return true;
+                            }
+                        }
+                    }
+                    if (item.textSlots) {
+                        //searching in item textSlots
+                        for (let slotName in item.textSlots) {
+                            if (item.textSlots.hasOwnProperty(slotName)) {
+                                const text = item.textSlots[slotName].text;
+                                if (text) {
+                                    if (text.toLowerCase().indexOf(keyword) >= 0) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return false;
+                }
+                const color = this.schemeContainer.scheme.style.boundaryBoxColor;
+                this.worldHighlightedItems = collectItemsHighlightsByCondition(this.schemeContainer, color, 'none', itemFilter);
+            } else {
+                this.worldHighlightedItems = [];
+            }
+        },
+
         loadUserKeyBinders() {
             this.keyBinder.init();
-            this.schemeContainer.getItems().forEach(item => {
-                if (item.shape === 'key_bind') {
-                    this.keyBinder.registerKeyBindItem(item);
-                }
-            });
+            this.keyBinder.registerAllKeyBinders(this.schemeContainer, this.userEventBus);
         },
 
         destroyUserKeyBinders() {
@@ -431,52 +515,28 @@ export default {
             }
         },
 
-        onComponentLoadRequested(item) {
-            if (!this.$store.state.apiClient || !this.$store.state.apiClient.getScheme) {
-                return;
+        onComponentDestroyed(schemeContainer, userEventBus) {
+            this.keyBinder.deregisterEventsForSchemeContainer(schemeContainer.id);
+        },
+
+        /**
+         * @param {Item} item
+         * @param {SchemeContainer|undefined} schemeContainer - either a component scheme container or nothing
+         * @param {UserEventBus|undefined} userEventBus - either a component user event bus or nothinh
+         */
+        onComponentLoadRequested(item, schemeContainer, userEventBus) {
+            if (!schemeContainer || !userEventBus) {
+                schemeContainer = this.schemeContainer;
+                userEventBus = this.userEventBus;
             }
-            if (item._childItems && item._childItems.length > 0) {
-                item._childItems = [];
-            }
-            item.meta.componentLoadFailed = false;
-
-            this.$store.state.apiClient.getScheme(item.shapeProps.schemeId)
-            .then(schemeDetails => {
-                if (!schemeDetails || !schemeDetails.scheme) {
-                    return Promise.reject('Empty document');
+            loadAndMountExternalComponent(schemeContainer, userEventBus, item, this.$store, this.onCompilerError)
+            .then((component) => {
+                if (!item.shapeProps.autoZoom) {
+                    return;
                 }
-                return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, this.$store)
-                .catch(err => {
-                    console.error(err);
-                    StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load shapes');
-                })
-                .then(() => {
-                    return schemeDetails;
-                });
-            })
-            .then(schemeDetails => {
-                const scheme = schemeDetails.scheme;
-                const componentSchemeContainer = new SchemeContainer(scheme, this.editorId, this.mode, this.$store.state.apiClient, {
-                    onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
-                });
-                this.schemeContainer.attachItemsToComponentItem(item, componentSchemeContainer.scheme.items);
-                this.schemeContainer.prepareFrameAnimationsForItems();
-                this.schemeContainer.reindexTags();
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
-
-                if (item.shape === 'component' && item.shapeProps.autoZoom) {
-                    this.zoomToItems([item]);
-                }
-
-                this.$nextTick(() => {
-                    EditorEventBus.component.mounted.specific.$emit(this.editorId, item.id, item, scheme);
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to load component', 'scheme-component-load');
-                item.meta.componentLoadFailed = true;
-                EditorEventBus.component.loadFailed.specific.$emit(this.editorId, item.id, item);
+                const area = getBoundingBoxOfItems([item], schemeContainer.shadowTransform);
+                this.bringAreaToViewAnimated(area);
+                this.keyBinder.registerAllKeyBinders(component.schemeContainer, component.userEventBus);
             });
         },
 
@@ -491,9 +551,7 @@ export default {
                 return;
             }
             const area = calculateZoomingAreaForItems(items, this.mode);
-            if (area) {
-                this.onBringToView(area, true);
-            }
+            this.bringAreaToViewAnimated(area);
         },
 
         updateSvgSize() {
@@ -690,6 +748,7 @@ export default {
             }
             this.mouseEvent('mouse-move', event);
         },
+
         mouseDown(event) {
             let newClickTime = performance.now();
             // implementing own double click event hanlding
@@ -710,69 +769,36 @@ export default {
                 }
                 this.mouseEvent('mouse-down', event);
             }
-
         },
+
         mouseUp(event) {
             this.mouseEvent('mouse-up', event);
         },
+
         mouseDoubleClick(event) {
             this.mouseEvent('mouse-double-click', event);
         },
 
         mouseEvent(eventName, event) {
-            if (this.mouseEventsEnabled) {
-                var coords = this.mouseCoordsFromEvent(event);
-                var p = this.toLocalPoint(coords.x, coords.y);
-                lastMousePosition.x = coords.x;
-                lastMousePosition.y = coords.y;
-                this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+            if (!this.mouseEventsEnabled) {
+                return;
             }
+            var coords = this.mouseCoordsFromEvent(event);
+            var p = this.toLocalPoint(coords.x, coords.y);
+            lastMousePosition.x = coords.x;
+            lastMousePosition.y = coords.y;
+            this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
         },
 
-        generateItemHighlight(item, showPins) {
-            const shape = Shape.find(item.shape);
-            if (!shape) {
+        onEventListenerInterceptorMouseEvent(eventName, event, componentItem) {
+            if (!this.mouseEventsEnabled) {
                 return;
             }
-
-            const path = shape.computeOutline(item);
-            if (!path) {
-                return;
-            }
-
-            const m = itemCompleteTransform(item);
-            const scalingVector = worldScalingVectorOnItem(item);
-
-            let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
-            if (myMath.tooSmall(scalingFactor)) {
-                scalingFactor = 1;
-            }
-
-            let strokeSize = 6;
-            if (item.shape === 'path') {
-                strokeSize = item.shapeProps.strokeSize;
-            } else {
-                const shape = Shape.find(item.shape);
-                if (Shape.getShapePropDescriptor(shape, 'strokeSize')) {
-                    strokeSize = item.shapeProps.strokeSize;
-                }
-            }
-            const itemHighlight = {
-                id: item.id,
-                transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
-                path,
-                fill: 'none',
-                strokeSize,
-                stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
-                pins: [],
-                opacity: 0.5,
-                scalingFactor
-            };
-
-            if (showPins) {
-                itemHighlight.pins = shape.getPins(item);
-            }
-            return itemHighlight;
+            var coords = this.mouseCoordsFromEvent(event);
+            var p = this.toLocalPoint(coords.x, coords.y);
+            lastMousePosition.x = coords.x;
+            lastMousePosition.y = coords.y;
+            this.$emit(eventName, p.x, p.y, coords.x, coords.y, null, event, componentItem);
         },
 
         highlightItems(itemIds, showPins) {
@@ -786,7 +812,7 @@ export default {
                     return;
                 }
 
-                const itemHighlight = this.generateItemHighlight(item, showPins);
+                const itemHighlight = generateItemHighlight(item, showPins, this.schemeContainer.scheme.style.boundaryBoxColor, 'none');
                 this.worldHighlightedItems.push(itemHighlight);
             });
         },
@@ -794,91 +820,16 @@ export default {
         reindexUserEvents() {
             if (this.userEventBus) {
                 this.userEventBus.clear();
-                this.indexUserEventsInItems(this.schemeContainer.scheme.items, this.itemsForInit, null);
+                this.itemsForInit = this.schemeContainer.indexUserEvents(this.userEventBus, (err) => {
+                    this.onCompilerError(err);
+                });
             }
-        },
-
-        /**
-         *
-         * @param {Array} items
-         * @param {Object} itemsForInit - used for collecting items that have subscribed for init event
-         * @param {Item|undefined} componentRootItem
-         */
-        indexUserEventsInItems(items, itemsForInit, componentRootItem) {
-            traverseItems(items, item => {
-                if (Array.isArray(item.classes)) {
-                    item.classes.forEach(itemClass => {
-                        const classDef = this.schemeContainer.findClassById(itemClass.id, componentRootItem);
-                        if (!classDef) {
-                            return;
-                        }
-                        if (classDef.shape && classDef.shape !== 'all' && classDef.shape !== item.shape) {
-                            return false;
-                        }
-
-                        const itemClassArgs = {...itemClass.args};
-                        const classArgDefs = {};
-                        if (Array.isArray(classDef.args)) {
-                            classDef.args.forEach(argDef => {
-                                classArgDefs[argDef.name] = argDef;
-                                if (!itemClassArgs.hasOwnProperty(argDef.name)) {
-                                    itemClassArgs[argDef.name] = argDef.value;
-                                }
-                            });
-                        }
-
-                        classDef.events.forEach(event => {
-                            const eventCallback = compileActions(this.schemeContainer, this.userEventBus, componentRootItem, item, event.actions, itemClassArgs, classArgDefs, (err) => {
-                                this.onCompilerError(err);
-                            });
-                            if (event.event === Events.standardEvents.init.id) {
-                                itemsForInit[item.id] = 1;
-                            }
-                            this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
-                        });
-                    });
-                }
-
-                const noClassArgs = {};
-                const noClassDefArgs = {};
-
-                if (item.behavior && Array.isArray(item.behavior.events)) {
-                    item.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(this.schemeContainer, this.userEventBus, componentRootItem, item, event.actions, noClassArgs, noClassDefArgs, (err) => {
-                            this.onCompilerError(err);
-                        });
-                        if (event.event === Events.standardEvents.init.id) {
-                            itemsForInit[item.id] = 1;
-                        }
-                        this.userEventBus.subscribeItemEvent(item.id, item.name, event.event, eventCallback);
-                    });
-                }
-            });
         },
 
         onCompilerError(err) {
             // cannot use EditorEvent bus to pass error message to ScriptConsole component
             // due to the race condition of when components subscribe to event bus
             this.$emit('compiler-error', err);
-        },
-
-        onComponentSchemeMounted(item, scheme) {
-            if (item._childItems) {
-                const componentItemsForInit = {};
-                isolateGlobalScriptsForComponent(this.schemeContainer, scheme, item, item._childItems, this.userEventBus);
-                traverseItems(item._childItems, childItem => {
-                    if (childItem.shape === 'key_bind') {
-                        this.keyBinder.registerKeyBindItem(childItem);
-                    }
-                });
-                this.indexUserEventsInItems(item._childItems, componentItemsForInit, item);
-                forEach(componentItemsForInit, (val, itemId) => {
-                    this.userEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
-                });
-            }
-            if (item.shape === 'component' && this.userEventBus) {
-                this.userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
-            }
         },
 
         onComponentLoadFailed(item) {
@@ -907,12 +858,21 @@ export default {
             frameAnimation.setCallbacks(frameCallbacks);
         },
 
-        onFrameAnimatorEvent(args) {
+        /**
+         * @param {Object} args
+         * @param {Item|undefined} componentItem
+         */
+        onFrameAnimatorEvent(args, componentItem) {
             if (this.mode !== 'view') {
                 return;
             }
             const itemId = args.item.id;
-            const frameAnimation = this.schemeContainer.getFrameAnimation(itemId);
+            let schemeContainer = this.schemeContainer;
+            if (componentItem && componentItem.meta.componentSchemeContainer) {
+                schemeContainer = componentItem.meta.componentSchemeContainer;
+            }
+
+            const frameAnimation = schemeContainer.getFrameAnimation(itemId);
             if (!frameAnimation) {
                 return;
             }
@@ -944,9 +904,13 @@ export default {
             return false;
         },
 
-        onShowItemLinks(item) {
+        /**
+         * @param {Item} item
+         * @param {Item|undefined} componentItem
+         */
+        onShowItemLinks(item, componentItem) {
             if (this.mode === 'view') {
-                this.selectedItemLinks = this.generateItemLinks(item);
+                this.selectedItemLinks = this.generateItemLinks(item, componentItem);
                 this.$nextTick(() => {
                     //readjusting links width and height
                     forEach(this.selectedItemLinks, (link, index) => {
@@ -1022,6 +986,10 @@ export default {
             }
         },
 
+        bringAreaToViewAnimated(area) {
+            this.onBringToView(area, true);
+        },
+
         onBringToView(area, animated) {
             const dstTransform = calculateScreenTransformForArea(area, this.width, this.height);
 
@@ -1068,9 +1036,18 @@ export default {
             }), 'screen', 'links-animation');
         },
 
-        generateItemLinks(item) {
+        /**
+         * @param {Item} item
+         * @param {Item|undefined} componentItem
+         */
+        generateItemLinks(item, componentItem) {
+            // const schemeContainer = componentItem && componentItem.meta.componentSchemeContainer ? componentItem.meta.componentSchemeContainer : this.schemeContainer;
+            let shadowTransform = this.schemeContainer.shadowTransform;
+            if (componentItem && componentItem.meta.componentSchemeContainer) {
+                shadowTransform = componentItem.meta.componentSchemeContainer.shadowTransform;
+            }
             if (item.links && item.links.length > 0) {
-                const worldPointCenter = this.schemeContainer.worldPointOnItem(item.area.w / 2, item.area.h / 2, item);
+                const worldPointCenter = worldPointOnItem(item.area.w / 2, item.area.h / 2, item, shadowTransform);
                 let cx = this._x(worldPointCenter.x);
                 let cy = this._y(worldPointCenter.y);
                 let startX = cx;
@@ -1082,7 +1059,7 @@ export default {
 
                 let step = Math.max(20, Math.min(40, this.height / (item.links.length + 1)));
                 let y0 = cy - item.links.length * step / 2;
-                const worldPointRight = this.schemeContainer.worldPointOnItem(item.area.w, 0, item);
+                const worldPointRight = worldPointOnItem(item.area.w, 0, item, shadowTransform);
                 let destinationX = this._x(worldPointRight.x) + 10;
                 if (this.width - destinationX < 300) {
                     destinationX = Math.max(10, this.width - 300);
@@ -1294,12 +1271,21 @@ export default {
         },
 
         toggleClickableMarkers() {
-            const hasMouseEvent = (events) => {
-                if (events.length === 0) {
+            const conditionCallback = (item) => {
+                if (item.description && item.description.length > 4) {
+                    return true;
+                }
+                if (item.links && item.links.length > 0) {
+                    return true;
+                }
+                if (item.behavior.dragging && item.behavior.dragging !== 'none') {
+
+                }
+                if (item.behavior.events.length === 0) {
                     return false;
                 }
-                for (let i = 0; i < events.length; i++) {
-                    const event = events[i].event;
+                for (let i = 0; i < item.behavior.events.length; i++) {
+                    const event = item.behavior.events[i].event;
                     if (event === Events.standardEvents.mousein.id
                         || event === Events.standardEvents.clicked.id) {
                         return true;
@@ -1308,43 +1294,8 @@ export default {
                 return false;
             };
 
-            const highlights = [];
-
-            traverseItemsConditionally(this.schemeContainer.scheme.items, (item) => {
-                if (!item.visible) {
-                    return false;
-                }
-                if ((item.description && item.description.length > 4)
-                    || (item.links && item.links.length > 0)
-                    || hasMouseEvent(item.behavior.events)
-                    || (item.behavior.dragging && item.behavior.dragging !== 'none')
-                ) {
-                    const itemHighlight = this.generateItemHighlight(item, false);
-                    itemHighlight.fill = itemHighlight.stroke;
-                    highlights.push(itemHighlight);
-                } else if (item.shape === 'component' && item.shapeProps.kind === 'external' && item.shapeProps.showButton === true) {
-                    const scalingVector = worldScalingVectorOnItem(item);
-                    let scalingFactor = Math.max(scalingVector.x, scalingVector.y);
-                    if (myMath.tooSmall(scalingFactor)) {
-                        scalingFactor = 1;
-                    }
-                    const m = itemCompleteTransform(item);
-                    highlights.push({
-                        id: item.id,
-                        transform: `matrix(${m[0][0]},${m[1][0]},${m[0][1]},${m[1][1]},${m[0][2]},${m[1][2]})`,
-                        path: computeButtonPath(item),
-                        fill: this.schemeContainer.scheme.style.boundaryBoxColor,
-                        strokeSize: Math.max(2, item.shapeProps.buttonStrokeSize + 2),
-                        stroke: this.schemeContainer.scheme.style.boundaryBoxColor,
-                        pins: [],
-                        opacity: 0.5,
-                        scalingFactor
-                    });
-                }
-                return true;
-            });
-
-            this.worldHighlightedItems = highlights;
+            const color = this.schemeContainer.scheme.style.boundaryBoxColor;
+            this.worldHighlightedItems = collectItemsHighlightsForClickableMarkers(this.schemeContainer, color, color, conditionCallback);
             this.animateCurrentHighlightedItems();
         },
 

@@ -30,7 +30,9 @@
                     :editorId="editorId"
                     :mode="mode"
                     :style="{'opacity': item.selfOpacity/100.0}"
-                    @frame-animator="onFrameAnimatorEvent">
+                    @frame-animator="passThroughFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
+                    >
                 </component>
 
 
@@ -110,10 +112,32 @@
                     :editorId="editorId"
                     :patchIndex="patchIndex"
                     :mode="mode"
-                    @frame-animator="onFrameAnimatorEvent"
+                    :eventListener="eventListener"
+                    @frame-animator="passThroughFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
                     />
             </g>
 
+            <g v-if="mode === 'view' && item.meta.componentSchemeContainer && item.meta.componentUserEventBus"
+                @mousedown="onComponentMouseDown"
+                @mouseup="onComponentMouseUp"
+                @mousemove="onComponentMouseMove"
+                >
+                <g v-for="componentItem in item.meta.componentSchemeContainer.worldItems" class="item-container"
+                    v-if="componentItem.visible && componentItem.shape !== 'hud'"
+                    :class="'item-cursor-' + componentItem.cursor">
+                    <ItemSvg
+                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                        :item="componentItem"
+                        :editorId="editorId"
+                        :mode="mode"
+                        :textSelectionEnabled="textSelectionEnabled"
+                        :patchIndex="patchIndex"
+                        :eventListener="eventListener"
+                        @component-load-requested="onComponentLoadRequested"
+                        @frame-animator="onFrameAnimatorEventInsideComponent" />
+                </g>
+            </g>
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
                 class="svg-event-layer"
                 data-preview-ignore="true"
@@ -199,7 +223,9 @@
                     :textSelectionEnabled="textSelectionEnabled"
                     :patchIndex="patchIndex"
                     :mode="mode"
-                    @frame-animator="onFrameAnimatorEvent"
+                    :eventListener="eventListener"
+                    @frame-animator="passThroughFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
                     />
             </g>
 
@@ -211,7 +237,9 @@
                     :editorId="editorId"
                     :textSelectionEnabled="textSelectionEnabled"
                     :mode="mode"
-                    @frame-animator="onFrameAnimatorEvent"
+                    :eventListener="eventListener"
+                    @frame-animator="passThroughFrameAnimatorEvent"
+                    @component-load-requested="onComponentLoadRequested"
                     />
             </g>
         </g>
@@ -232,6 +260,7 @@ import myMath from '../../../myMath';
 import EditorEventBus from '../EditorEventBus';
 import StoreUtils from '../../../store/StoreUtils';
 import { hasItemDescription } from '../../../scheme/Item';
+import Events from '../../../userevents/Events.js';
 
 function generateFilters(item) {
     const svgFilters = [];
@@ -281,8 +310,10 @@ export default {
         patchIndex          : {type: Object, default: null},
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
+        // used for passing intercepted events in external component items
+        eventListener       : {type: Object, required: true},
     },
-    components: {AdvancedFill},
+    components: {AdvancedFill },
 
     mounted() {
         this.switchShape(this.item.shape);
@@ -304,6 +335,13 @@ export default {
             }
             this.hiddenTextSlotName = textEditorWrapper.getAttribute('data-slot-name');
         }
+
+        // triggering init events only when component was fully mounted
+        if (this.item.meta.componentUserEventBus && this.item.meta.componentItemIdsForInit && this.mode === 'view') {
+            this.item.meta.componentItemIdsForInit.forEach(itemId => {
+                this.item.meta.componentUserEventBus.emitItemEvent(itemId, Events.standardEvents.init.id);
+            });
+        }
     },
 
     beforeDestroy() {
@@ -312,6 +350,10 @@ export default {
         EditorEventBus.item.deselected.specific.$off(this.editorId, this.item.id, this.onItemDeselected);
         EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
+
+        if (this.item.meta.componentSchemeContainer) {
+            EditorEventBus.component.destroyed.$emit(this.editorId, this.item.meta.componentSchemeContainer, this.item.meta.componentUserEventBus);
+        }
     },
 
     data() {
@@ -377,6 +419,42 @@ export default {
     },
 
     methods: {
+        onComponentLoadRequested(item) {
+            if (this.item.meta.componentSchemeContainer && this.item.meta.componentUserEventBus) {
+                EditorEventBus.component.loadRequested.specific.$emit(this.editorId, item.id, item, this.item.meta.componentSchemeContainer, this.item.meta.componentUserEventBus);
+            } else {
+                // pass it up the chain of items until we either hit the component item or we hit the main schemeContainer
+                this.$emit('component-load-requested', item);
+            }
+        },
+
+        onComponentMouseDown(event) {
+            if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
+                return null;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.eventListener.mouseDown(event, this.item);
+        },
+
+        onComponentMouseUp(event) {
+            if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
+                return null;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.eventListener.mouseUp(event, this.item);
+        },
+
+        onComponentMouseMove(event) {
+            if (!this.eventListener || !this.item.meta.componentSchemeContainer || !this.item.meta.componentUserEventBus) {
+                return null;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            this.eventListener.mouseMove(event, this.item);
+        },
+
         getHoverPathFill() {
             if (this.draggingFileOver) {
                 return 'rgba(140, 255, 140, 0.6)';
@@ -579,8 +657,16 @@ export default {
             this.$forceUpdate();
         },
 
-        onFrameAnimatorEvent(args) {
-            this.$emit('frame-animator', args);
+        onFrameAnimatorEventInsideComponent(args, componentItem) {
+            if (componentItem) {
+                this.$emit('frame-animator', args, componentItem);
+            } else {
+                this.$emit('frame-animator', args, this.item);
+            }
+        },
+
+        passThroughFrameAnimatorEvent(args, componentItem) {
+            this.$emit('frame-animator', args, componentItem);
         },
 
         generateTextSlots() {

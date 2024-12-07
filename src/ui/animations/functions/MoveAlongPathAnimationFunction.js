@@ -4,6 +4,7 @@
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import Shape from "../../components/editor/items/shapes/Shape";
 import myMath from "../../myMath";
+import { localPointOnItem, worldPointOnItem } from "../../scheme/ItemMath";
 
 export default {
     name: 'Move along path',
@@ -71,11 +72,11 @@ export default {
     execute({path, item, pathItem, schemeContainer, totalLength, rotateItem, rotationOffset}, {distance}) {
         const length = distance * totalLength / 100;
         const point = path.getPointAtLength(length);
-        let worldPoint = schemeContainer.worldPointOnItem(point.x, point.y, pathItem);
+        let worldPoint = worldPointOnItem(point.x, point.y, pathItem);
 
         if (rotateItem) {
             const nextPoint = path.getPointAtLength(length + 2);
-            const worldNextPoint = schemeContainer.worldPointOnItem(nextPoint.x, nextPoint.y, pathItem);
+            const worldNextPoint = worldPointOnItem(nextPoint.x, nextPoint.y, pathItem);
             const Vx = worldNextPoint.x - worldPoint.x;
             const Vy = worldNextPoint.y - worldPoint.y;
             const dSquared = Vx * Vx + Vy * Vy;
@@ -99,7 +100,7 @@ export default {
         if (item.meta && item.meta.parentId) {
             const parentItem = schemeContainer.findItemById(item.meta.parentId);
             if (parentItem) {
-                localPoint = schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
+                localPoint = localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
             }
         }
 

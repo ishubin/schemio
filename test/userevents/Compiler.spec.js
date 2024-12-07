@@ -40,7 +40,7 @@ describe('UserEvents Compiler', () => {
             }
         };
 
-        const action = compileActions(schemeContainer, mockedUserEventBus, null, selfItem, [{
+        const action = compileActions(schemeContainer, mockedUserEventBus, selfItem, [{
             element: 'self',
             method: 'set',
             on: true,
@@ -105,7 +105,7 @@ describe('UserEvents Compiler', () => {
             }
         };
 
-        const action = compileActions(schemeContainer, mockedUserEventBus, null, selfItem, [{
+        const action = compileActions(schemeContainer, mockedUserEventBus, selfItem, [{
             element: 'tag: my-group',
             method: 'set',
             on: true,
@@ -206,7 +206,7 @@ describe('UserEvents Compiler', () => {
 
             const userEventBus = new UserEventBus();
 
-            const action1 = compileActions(schemeContainer, mockedUserEventBus, null, items[0], [{
+            const action1 = compileActions(schemeContainer, mockedUserEventBus, items[0], [{
                 element: 'self',
                 method: 'script',
                 on: true,
@@ -219,7 +219,7 @@ describe('UserEvents Compiler', () => {
                 }
             }]);
 
-            const action2 = compileActions(schemeContainer, mockedUserEventBus, null, items[1], [{
+            const action2 = compileActions(schemeContainer, mockedUserEventBus, items[1], [{
                 element: 'self',
                 method: 'script',
                 on: true,

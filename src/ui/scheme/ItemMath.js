@@ -61,12 +61,38 @@ export function calculateScreenTransformForArea(area, width, height) {
     };
 }
 
-export function worldPointOnItem(x, y, item) {
-    return myMath.worldPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+/**
+ *
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Item} item
+ * @param {Array|null} transformMatrix - a transform matrix that is applied before item transform. This could be used for shadow transform of component item
+ * @returns
+ */
+export function worldPointOnItem(x, y, item, transformMatrix = null) {
+    if (!transformMatrix) {
+        transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null;
+    } else if (item.meta && item.meta.transformMatrix) {
+        transformMatrix = myMath.multiplyMatrices(transformMatrix, item.meta.transformMatrix);
+    }
+    return myMath.worldPointInArea(x, y, item.area, transformMatrix);
 }
 
-export function localPointOnItem(x, y, item) {
-    return myMath.localPointInArea(x, y, item.area, (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null);
+/**
+ *
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Item} item
+ * @param {Array|null} transformMatrix - a transform matrix that is applied before item transform. This could be used for shadow transform of component item
+ * @returns
+ */
+export function localPointOnItem(x, y, item, transformMatrix = null) {
+    if (!transformMatrix) {
+        transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null;
+    } else if (item.meta && item.meta.transformMatrix) {
+        transformMatrix = myMath.multiplyMatrices(transformMatrix, item.meta.transformMatrix);
+    }
+    return myMath.localPointInArea(x, y, item.area, transformMatrix);
 }
 
 export function localPointOnItemToLocalPointOnOtherItem(x, y, srcItem, dstItem) {
@@ -79,9 +105,17 @@ export function worldAngleOfItem(item) {
     return myMath.fullAngleForVector(v.x, v.y) * 180 / Math.PI;
 }
 
-export function worldVectorOnItem(x, y, item) {
-    const p0 = worldPointOnItem(0, 0, item);
-    const p1 = worldPointOnItem(x, y, item);
+/**
+ *
+ * @param {Number} x
+ * @param {Number} y
+ * @param {Item} item
+ * @param {Array|undefined} transformMatrix
+ * @returns
+ */
+export function worldVectorOnItem(x, y, item, transformMatrix = null) {
+    const p0 = worldPointOnItem(0, 0, item, transformMatrix);
+    const p1 = worldPointOnItem(x, y, item, transformMatrix);
     return {
         x: p1.x - p0.x,
         y: p1.y - p0.y
@@ -108,9 +142,10 @@ export function pointOnItemPath(item, shadowSvgPath, positionOnPath) {
 /**
  * Calculates bounding box in world transform of specified items.
  * @param {Array<Item>} items
+ * @param {Array|undefined} shadowTransform
  * @returns {Area} bounding box in world transform
  */
-export function getBoundingBoxOfItems(items) {
+export function getBoundingBoxOfItems(items, shadowTransform) {
     if (!items || items.length === 0) {
         return {x: 0, y: 0, w: 0, h: 0};
     }
@@ -119,10 +154,10 @@ export function getBoundingBoxOfItems(items) {
 
     forEach(items, item => {
         const points = [
-            worldPointOnItem(0, 0, item),
-            worldPointOnItem(item.area.w, 0, item),
-            worldPointOnItem(item.area.w, item.area.h, item),
-            worldPointOnItem(0, item.area.h, item),
+            worldPointOnItem(0, 0, item, shadowTransform),
+            worldPointOnItem(item.area.w, 0, item, shadowTransform),
+            worldPointOnItem(item.area.w, item.area.h, item, shadowTransform),
+            worldPointOnItem(0, item.area.h, item, shadowTransform),
         ];
 
         forEach(points, point => {
@@ -164,11 +199,12 @@ export function getBoundingBoxOfItems(items) {
  * Calculates scaling effect of the item relative to the world
  * This is needed for proper computation of control points for scaled items
  * @param {Item} item
+ * @param {Array} transformMatrix
  * @returns {Point}
  */
-export function worldScalingVectorOnItem(item) {
-    const topLengthVector = worldVectorOnItem(1, 0, item);
-    const leftLengthVector = worldVectorOnItem(0, 1, item);
+export function worldScalingVectorOnItem(item, transformMatrix = null) {
+    const topLengthVector = worldVectorOnItem(1, 0, item, transformMatrix);
+    const leftLengthVector = worldVectorOnItem(0, 1, item, transformMatrix);
 
     return {
         x: myMath.vectorLength(topLengthVector.x, topLengthVector.y),
@@ -176,9 +212,19 @@ export function worldScalingVectorOnItem(item) {
     }
 }
 
-export function itemCompleteTransform(item) {
-    const parentTransform = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
-    return myMath.standardTransformWithArea(parentTransform, item.area);
+/**
+ *
+ * @param {Item} item
+ * @param {Array|undefined} transformMatrix
+ * @returns
+ */
+export function itemCompleteTransform(item, transformMatrix = null) {
+    if (!transformMatrix) {
+        transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : myMath.identityMatrix();
+    } else if (item.meta && item.meta.transformMatrix) {
+        transformMatrix = myMath.multiplyMatrices(transformMatrix, item.meta.transformMatrix);
+    }
+    return myMath.standardTransformWithArea(transformMatrix, item.area);
 }
 
 /**

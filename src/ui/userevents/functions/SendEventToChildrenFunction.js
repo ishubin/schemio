@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+import { findLoadedComponentEnvironment } from "../../components/editor/Component";
+
 export default {
     name: 'Send event to children',
     description: `Sends specified event to all children of an item.
@@ -22,16 +24,10 @@ Using this function you can send event into dynamic component`,
 }
 
 export function sendEventToChildren(item, event, userEventBus, eventArgs) {
-    if (item.shape === 'component') {
-        if (Array.isArray(item._childItems)) {
-            item._childItems.forEach(childItem => {
-                if (childItem.meta.isComponentContainer) {
-                    sendEventToItems(childItem.childItems, event, userEventBus, eventArgs);
-                    sendEventToItems(childItem._childItems, event, userEventBus, eventArgs);
-                }
-            });
-            sendEventToItems(item.childItems, event, userEventBus, eventArgs);
-            return;
+    if (item.shape === 'component' && item.shapeProps.kind === 'external') {
+        const env = findLoadedComponentEnvironment(item);
+        if (env && env.schemeContainer && env.userEventBus) {
+            sendEventToItems(env.schemeContainer.scheme.items, event, env.userEventBus, eventArgs);
         }
     }
     sendEventToItems(item.childItems, event, userEventBus, eventArgs);
@@ -43,15 +39,10 @@ function sendEventToItems(items, event, userEventBus, eventArgs) {
         return;
     }
     items.forEach(item => {
-        if (item.meta.isComponentContainer) {
-            sendEventToItems(item.childItems, event, userEventBus, eventArgs);
-            sendEventToItems(item._childItems, event, userEventBus, eventArgs);
-        } else {
-            let args = [];
-            if (Array.isArray(eventArgs)) {
-                args = eventArgs;
-            }
-            userEventBus.emitItemEvent(item.id, event, ...args);
+        let args = [];
+        if (Array.isArray(eventArgs)) {
+            args = eventArgs;
         }
+        userEventBus.emitItemEvent(item.id, event, ...args);
     });
 }

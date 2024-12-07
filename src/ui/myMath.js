@@ -725,7 +725,7 @@ export default {
     /**
      *
      * @param {Array} parentTransform
-     * @param {Area} area
+     * @param {ItemArea} area
      * @returns {Array} new transformation matrix
      */
     standardTransformWithArea(parentTransform, area) {

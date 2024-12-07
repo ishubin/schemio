@@ -14,9 +14,23 @@ It can be used for cross-component communication`,
         return args.event;
     },
 
+    /**
+     *
+     * @param {Item} item
+     * @param {*} args
+     * @param {*} schemeContainer
+     * @param {*} userEventBus
+     * @param {*} resultCallback
+     */
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         if (item.meta && item.meta.parentId) {
             sendEventToParent(item, args.event, userEventBus, schemeContainer);
+        }
+        if (item.meta.getParentEnvironment) {
+            const env = item.meta.getParentEnvironment();
+            if (env && env.item && env.userEventBus) {
+                env.userEventBus.emitItemEvent(env.item.id, args.event);
+            }
         }
         resultCallback();
     }
@@ -28,13 +42,4 @@ export function sendEventToParent(item, event, userEventBus, schemeContainer, ev
         args = eventArgs;
     }
     userEventBus.emitItemEvent(item.meta.parentId, event, ...args);
-
-    const parent = schemeContainer.findItemById(item.meta.parentId);
-    if (!parent) {
-        return;
-    }
-    // retransmitting event to component holder
-    if (parent.meta.isComponentContainer && parent.meta.parentId) {
-        sendEventToParent(parent, event, userEventBus, schemeContainer, eventArgs)
-    }
 }

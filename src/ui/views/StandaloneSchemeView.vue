@@ -57,7 +57,7 @@ import ItemDetails from '../components/editor/ItemDetails.vue';
 import {forEach} from '../collections';
 import store from '../store/Store';
 import UserEventBus from '../userevents/UserEventBus';
-import StateInteract from '../components/editor/states/StateInteract';
+import { StateInteract } from '../components/editor/states/interact/StateInteract';
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
@@ -109,7 +109,6 @@ export default {
             onVoidClicked: () => this.onInteractVoidClicked(),
             onItemTooltipRequested: (item, mx, my) => this.onItemTooltipTriggered(item, mx, my),
             onItemSidePanelRequested: (item) => this.onItemSidePanelTriggered(item),
-            onItemLinksShowRequested: (item) => EditorEventBus.item.linksShowRequested.any.$emit(this.editorId, item),
             onScreenTransformUpdated: (screenTransform) => this.onScreenTransformUpdated(screenTransform),
             onItemsHighlighted: (highlightedItems) => this.highlightedItems = highlightedItems,
             onSubStateMigrated: () => {},
@@ -140,7 +139,11 @@ export default {
                 item: null
             },
 
-            isStateLooping: false
+            isStateLooping: false,
+
+            eventListener: {
+                //TODO implement event listener the same way as in SchemeEditor component
+            }
         }
     },
 
@@ -156,7 +159,7 @@ export default {
             })
             .then(() => {
                 this.schemeContainer = new SchemeContainer(this.scheme, this.editorId, 'view', this.$store.state.apiClient);
-                this.stateInteract.schemeContainer = this.schemeContainer;
+                this.stateInteract.setSchemeContainer(this.schemeContainer);
                 const boundingBox = this.schemeContainer.getBoundingBoxOfItems(filterNonHUDItems(this.schemeContainer.getItems()));
                 this.schemeContainer.screenSettings.boundingBox = boundingBox;
                 this.stateInteract.reset();

@@ -127,11 +127,9 @@ const EditorEventBus = {
             },
         },
         linksShowRequested: {
-            any: {
-                $on: (editorId, callback) => $on(editorId, 'item-links-show-requested', [], callback),
-                $off: (editorId, callback) => $off(editorId, 'item-links-show-requested', [], callback),
-                $emit: (editorId, item) => $emit(editorId, 'item-links-show-requested', [], item),
-            }
+            $on: (editorId, callback) => $on(editorId, 'item-links-show-requested', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'item-links-show-requested', [], callback),
+            $emit: (editorId, item, componentItem) => $emit(editorId, 'item-links-show-requested', [], item, componentItem),
         },
         templateSelected: {
             $on: (editorId, callback) => $on(editorId, 'item-template-selected', [], callback),
@@ -223,17 +221,23 @@ const EditorEventBus = {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-component-load-requested', [], callback),
                 $off: (editorId, callback) => $off(editorId, 'any-component-load-requested', [], callback),
-                $emit: (editorId, item) => $emit(editorId, 'any-component-load-requested', [], item),
+                $emit: (editorId, item, schemeContainer, userEventBus) => $emit(editorId, 'any-component-load-requested', [], item, schemeContainer, userEventBus),
             },
 
             specific: {
                 $on: (editorId, itemId, callback) => $on(editorId, 'component-load-requested', [itemId], callback),
                 $off: (editorId, itemId, callback) => $off(editorId, 'component-load-requested', [itemId], callback),
-                $emit: (editorId, itemId, item) => {
-                    EditorEventBus.component.loadRequested.any.$emit(editorId, item);
-                    $emit(editorId, 'component-load-requested', [itemId], item);
+                $emit: (editorId, itemId, item, schemeContainer, userEventBus) => {
+                    EditorEventBus.component.loadRequested.any.$emit(editorId, item, schemeContainer, userEventBus);
+                    $emit(editorId, 'component-load-requested', [itemId], item, schemeContainer, userEventBus);
                 }
             },
+        },
+
+        destroyed: {
+            $on: (editorId, callback) => $on(editorId, 'component-destroyed', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'component-destroyed', [], callback),
+            $emit: (editorId, schemeContainer, userEventBus) => $emit(editorId, 'component-destroyed', [], schemeContainer, userEventBus),
         },
 
         loadFailed: {
@@ -249,23 +253,6 @@ const EditorEventBus = {
                 $emit: (editorId, itemId, item) => {
                     EditorEventBus.component.loadFailed.any.$emit(editorId, item);
                     $emit(editorId, 'component-load-failed', [itemId], item);
-                }
-            },
-        },
-
-        mounted: {
-            any: {
-                $on: (editorId, callback) => $on(editorId, 'any-component-mounted', [], callback),
-                $off: (editorId, callback) => $off(editorId, 'any-component-mounted', [], callback),
-                $emit: (editorId, item, scheme) => $emit(editorId, 'any-component-mounted', [], item, scheme),
-            },
-
-            specific: {
-                $on: (editorId, itemId, callback) => $on(editorId, 'component-mounted', [itemId], callback),
-                $off: (editorId, itemId, callback) => $off(editorId, 'component-mounted', [itemId], callback),
-                $emit: (editorId, itemId, item, scheme) => {
-                    EditorEventBus.component.mounted.any.$emit(editorId, item, scheme);
-                    $emit(editorId, 'component-mounted', [itemId], item, scheme);
                 }
             },
         },
@@ -336,6 +323,18 @@ const EditorEventBus = {
             $off: (editorId, callback) => $off(editorId, 'frame-player-prepared', [], callback),
             $emit: (editorId, framePlayerItem, frameCallbacks) => $emit(editorId, 'frame-player-prepared', [], framePlayerItem, frameCallbacks),
         }
+    },
+
+    searchKeywordUpdated: {
+        $on: (editorId, callback) => $on(editorId, 'search-keyword-updated', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'search-keyword-updated', [], callback),
+        $emit: (editorId, keyword) => $emit(editorId, 'search-keyword-updated', [], keyword),
+    },
+
+    searchedItemsToggled: {
+        $on: (editorId, callback) => $on(editorId, 'searched-items-toggled', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'searched-items-toggled', [], callback),
+        $emit: (editorId) => $emit(editorId, 'searched-items-toggled', []),
     },
 
     clickableMarkers: {

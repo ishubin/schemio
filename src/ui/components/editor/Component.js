@@ -1,0 +1,172 @@
+import shortid from "shortid";
+import myMath from "../../myMath";
+import SchemeContainer, { createDefaultRectItem, getLocalBoundingBoxOfItems } from "../../scheme/SchemeContainer";
+import StoreUtils from "../../store/StoreUtils";
+import UserEventBus from "../../userevents/UserEventBus";
+import EditorEventBus from "./EditorEventBus";
+import { COMPONENT_FAILED, COMPONENT_LOADED_EVENT, generateComponentGoBackButton } from "./items/shapes/Component.vue";
+import { collectAndLoadAllMissingShapes } from "./items/shapes/ExtraShapes";
+
+const VIEW_MODE = 'view';
+
+/**
+ * Loads
+ * @param {SchemeContainer} schemeContainer
+ * @param {UserEventBus} userEventBus
+ * @param {Item} item
+ * @param {Store} $store
+ * @param {Function} compilerErrorCallback
+ * @returns {Promise}
+ */
+export function loadAndMountExternalComponent(schemeContainer, userEventBus, item, $store, compilerErrorCallback) {
+    if (!$store.state.apiClient || !$store.state.apiClient.getScheme) {
+        return;
+    }
+
+    item.meta.componentSchemeContainer = null;
+    item.meta.componentUserEventBus = null;
+    item.meta.componentLoadFailed = false;
+
+    return $store.state.apiClient.getScheme(item.shapeProps.schemeId)
+    .then(schemeDetails => {
+        if (!schemeDetails || !schemeDetails.scheme) {
+            return Promise.reject('Empty document');
+        }
+        return collectAndLoadAllMissingShapes(schemeDetails.scheme.items, $store)
+        .catch(err => {
+            console.error(err);
+            StoreUtils.addErrorSystemMessage($store, 'Failed to load shapes');
+        })
+        .then(() => {
+            return schemeDetails;
+        });
+    })
+    .then(schemeDetails => {
+        const scheme = schemeDetails.scheme;
+        const tempSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient);
+        const clonedItems = tempSchemeContainer.cloneItemsPreservingNames(tempSchemeContainer.scheme.items);
+        scheme.items = clonedItems;
+        const box = getLocalBoundingBoxOfItems(scheme.items);
+        scheme.items.forEach(item => {
+            item.area.x -= box.x;
+            item.area.y -= box.y;
+        });
+
+        const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, {
+            onSchemeChangeCommitted: () => {}
+        });
+        // linking to the same screen transform so that it is possible to zoom to items inside of component
+        componentSchemeContainer.screenTransform = schemeContainer.screenTransform;
+        componentSchemeContainer.screenSettings = schemeContainer.screenSettings;
+        componentSchemeContainer.prepareFrameAnimationsForItems();
+
+        componentSchemeContainer.scheme.items.forEach(componentRootItem => {
+            componentRootItem.meta.getParentEnvironment = () => {
+                return {
+                    item,
+                    schemeContainer,
+                    userEventBus
+                };
+            }
+        });
+
+        const componentUserEventBus = new UserEventBus(schemeContainer.editorId);
+
+        const w = Math.max(box.w, 0.00001);
+        const h = Math.max(box.h, 0.00001);
+        const scale = Math.min(item.area.w / w, item.area.h / h);
+        const dx = (item.area.w - w * scale) / 2;
+        const dy = (item.area.h - h * scale) / 2;
+
+        const overlayRect = createDefaultRectItem();
+        overlayRect.id = shortid.generate();
+        overlayRect.area.x = 0;
+        overlayRect.area.y = 0;
+        overlayRect.area.w = item.area.w;
+        overlayRect.area.h = item.area.h;
+        overlayRect.selfOpacity = 0;
+        overlayRect.name = 'Overlay container';
+
+        const rectItem = createDefaultRectItem();
+        rectItem.shape = 'dummy';
+        rectItem.selfOpacity = 0;
+        rectItem.id = shortid.generate();
+        rectItem.name = 'Scaled container';
+        rectItem.area.x = dx;
+        rectItem.area.y = dy;
+        rectItem.area.w = w;
+        rectItem.area.h = h;
+        rectItem.area.px = 0;
+        rectItem.area.py = 0;
+        rectItem.area.sx = scale;
+        rectItem.area.sy = scale;
+
+
+        rectItem.meta.componentItemIdsForInit = componentSchemeContainer.indexUserEvents(componentUserEventBus, compilerErrorCallback);
+        rectItem.meta.componentSchemeContainer = componentSchemeContainer;
+        rectItem.meta.componentUserEventBus = componentUserEventBus;
+        overlayRect._childItems = [rectItem];
+
+        const backButton = generateComponentGoBackButton(item, overlayRect, schemeContainer.screenTransform);
+        if (backButton) {
+            overlayRect._childItems.push(backButton);
+        }
+
+        item._childItems = [overlayRect];
+
+        const itemTransform = myMath.standardTransformWithArea(item.meta.transformMatrix, item.area);
+        const nonIndexable = false;
+        schemeContainer.reindexSpecifiedItems(item._childItems, itemTransform, item, item.meta.ancestorIds.concat([item.id]), nonIndexable);
+
+        schemeContainer.indexUserEventsForItems(item._childItems, userEventBus, compilerErrorCallback);
+
+        const parentShadowTransform = schemeContainer.shadowTransform ? schemeContainer.shadowTransform : myMath.identityMatrix();
+        const shadowTransform = myMath.standardTransformWithArea(
+            myMath.multiplyMatrices(parentShadowTransform, rectItem.meta.transformMatrix),
+            rectItem.area
+        );
+        componentSchemeContainer.setShadowTransform(shadowTransform);
+
+        EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
+        userEventBus.emitItemEvent(item.id, COMPONENT_LOADED_EVENT);
+
+        return {
+            schemeContainer: componentSchemeContainer,
+            userEventBus: componentUserEventBus,
+        };
+    })
+    .catch(err => {
+        console.error(err);
+        StoreUtils.addErrorSystemMessage($store, 'Failed to load component', 'scheme-component-load');
+        item.meta.componentLoadFailed = true;
+        item.meta.componentSchemeContainer = null;
+        item.meta.componentUserEventBus = null;
+        item._childItems = [];
+        EditorEventBus.component.loadFailed.specific.$emit(schemeContainer.editorId, item.id, item);
+        userEventBus.emitItemEvent(item.id, COMPONENT_FAILED);
+    });
+}
+
+/**
+ *
+ * @param {Item} item
+ * @returns
+ */
+export function findLoadedComponentEnvironment(item) {
+    if (!Array.isArray(item._childItems) || item._childItems.length < 1) {
+        return;
+    }
+    const overlayRect = item._childItems[0];
+    if (!Array.isArray(overlayRect._childItems) || overlayRect._childItems.length < 1) {
+        return;
+    }
+    const rectItem = overlayRect._childItems[0];
+    if (!rectItem.meta.componentSchemeContainer || !rectItem.meta.componentUserEventBus) {
+        return
+    }
+
+    return {
+        schemeContainer: rectItem.meta.componentSchemeContainer,
+        userEventBus: rectItem.meta.componentUserEventBus
+    };
+}

@@ -16,11 +16,12 @@ export default {
 
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
         try {
+            // Cleaning up the overlay layer with the custom component background
+            // and the "go back" button
             traverseItems(item._childItems, subItem => {
                 userEventBus.clearEventsForItem(subItem.id);
             });
             item._childItems = [];
-            schemeContainer.reindexItems();
             userEventBus.emitItemEvent(item.id, COMPONENT_DESTROYED);
             EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id);
         }
