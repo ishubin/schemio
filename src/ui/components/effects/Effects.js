@@ -71,26 +71,8 @@ const effects = {
                 };
             } else {
                 return {
-                    kind: 'back',
-                    html: $('g', {}, [
-                        $('defs', {}, [
-                            $('filter', {id: filterId, x: '-500%', y: '-500%', width: '2000%', height: '2000%'}, [
-                                $('feGaussianBlur', {
-                                    in: 'SourceGraphic',
-                                    stdDeviation: effectArgs.blur
-                                })
-                            ])
-                        ]),
-
-                        $('path', {
-                            d: path,
-                            stroke: 'none',
-                            fill: effectArgs.color,
-                            transform: `translate(${effectArgs.dx} ${effectArgs.dy})`,
-                            style: `opacity: ${effectArgs.opacity / 100.0}`,
-                            filter: `url(#${filterId})`
-                        })
-                    ]).innerHTML
+                    kind: 'css-filter',
+                    value: `drop-shadow(${effectArgs.dx}px ${effectArgs.dy}px ${effectArgs.blur}px ${effectArgs.color})`
                 };
             }
         }
@@ -103,11 +85,8 @@ const effects = {
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
-                kind: 'svg-filter',
-                html: $('feGaussianBlur', {
-                    in: 'SourceGraphic',
-                    stdDeviation: effectArgs.size
-                }).outerHTML
+                kind: 'css-filter',
+                value: `blur(${effectArgs.size}px)`
             };
         }
     },
@@ -239,18 +218,90 @@ const effects = {
     'invert': {
         name: 'Invert',
         args: {
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0, max: 100}
         },
         applyEffect(item, effectIdx, effectArgs) {
-            let matrixEncoded =   '-1 0 0 0 1 '
-                                + '0 -1 0 0 1 '
-                                + '0 0 -1 0 1 '
-                                + '0 0 0  1 0';
             return {
-                kind: 'svg-filter',
-                html: $('feColorMatrix', {
-                    type: 'matrix',
-                    values: matrixEncoded
-                }).outerHTML
+                kind: 'css-filter',
+                value: `invert(${effectArgs.level/100})`
+            };
+        }
+    },
+
+    'brightness': {
+        name: 'Brightness',
+        args: {
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            return {
+                kind: 'css-filter',
+                value: `brightness(${effectArgs.level/100})`
+            };
+        }
+    },
+
+    'contrast': {
+        name: 'Contrast',
+        args: {
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            return {
+                kind: 'css-filter',
+                value: `contrast(${effectArgs.level/100})`
+            };
+        }
+    },
+
+    'hue-rotate': {
+        name: 'Hue rotate',
+        args: {
+            degree: {type: 'number', name: 'Degrees', value: 0, min: 0}
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            return {
+                kind: 'css-filter',
+                value: `hue-rotate(${effectArgs.degree}deg)`
+            };
+        }
+    },
+
+    'grayscale': {
+        name: 'Grayscale',
+        args: {
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            return {
+                kind: 'css-filter',
+                value: `grayscale(${effectArgs.level/100})`
+            };
+        }
+    },
+
+    'saturate': {
+        name: 'Saturate',
+        args: {
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            return {
+                kind: 'css-filter',
+                value: `saturate(${effectArgs.level/100})`
+            };
+        }
+    },
+
+    'sepia': {
+        name: 'Sepia',
+        args: {
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+        },
+        applyEffect(item, effectIdx, effectArgs) {
+            return {
+                kind: 'css-filter',
+                value: `sepia(${effectArgs.level/100})`
             };
         }
     },

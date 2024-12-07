@@ -15,7 +15,7 @@
         <advanced-fill v-if="effectFill" :key="`effect-fill-${item.id}-${revision}`" :fillId="`effect-fill-${item.id}`" :fill="effectFill" :area="item.area"/>
 
         <g :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}">
-            <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML"></g>
+            <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML" :style="shapeStyle"></g>
 
             <defs>
                 <filter v-for="svgFilter in svgFilters" :id="svgFilter.id" v-html="svgFilter.html" x="-50%" y="-50%" width="200%" height="200%"></filter>
@@ -29,7 +29,7 @@
                     :item="item"
                     :editorId="editorId"
                     :mode="mode"
-                    :style="{'opacity': item.selfOpacity/100.0}"
+                    :style="shapeStyle"
                     @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
                     >
@@ -37,7 +37,7 @@
 
 
                 <g v-if="!shapeComponent && item.visible && shapePrimitives && shouldBeDrawn"
-                    :style="{'opacity': item.selfOpacity/100.0}">
+                    :style="shapeStyle">
 
                     <g v-for="(primitive, primitiveIdx) in shapePrimitives">
                         <g v-if="primitive.type === 'text'">
@@ -266,6 +266,7 @@ function generateFilters(item) {
     let filterUrl = '';
     const backgroundEffects = [];
     const foregroundEffects = [];
+    let cssFilter = '';
 
     forEach(item.effects, (itemEffect, idx) => {
         const effect = findEffect(itemEffect.effect);
@@ -284,6 +285,8 @@ function generateFilters(item) {
                 backgroundEffects.push(generatedEffect.html);
             } else if (generatedEffect.kind === 'front') {
                 foregroundEffects.push(generatedEffect.html);
+            } else if (generatedEffect.kind === 'css-filter') {
+                cssFilter += generatedEffect.value + ' ';
             }
         }
     });
@@ -291,7 +294,8 @@ function generateFilters(item) {
         svgFilters,
         filterUrl,
         backgroundEffects,
-        foregroundEffects
+        foregroundEffects,
+        cssFilter
     };
 }
 
@@ -394,6 +398,7 @@ export default {
             customAreas      : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item): [],
 
             draggingFileOver: false,
+            shapeStyle: {},
 
             hoverPathFill: this.getHoverPathFill()
         };
@@ -406,18 +411,31 @@ export default {
             }
         }
 
-        const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
+        const {svgFilters, filterUrl, backgroundEffects, foregroundEffects, cssFilter} = generateFilters(this.item);
 
         data.effectFill = this.getEffectFill();
         data.svgFilters = svgFilters;
         data.filterUrl = filterUrl;
         data.backgroundEffects = backgroundEffects;
         data.foregroundEffects = foregroundEffects;
+        data.shapeStyle = this.computeShapeStyle(cssFilter);
 
         return data;
     },
 
     methods: {
+        computeShapeStyle(cssFilter) {
+            const style = {
+                opacity: this.item.selfOpacity/100
+            };
+
+            if (cssFilter) {
+                style.filter = cssFilter;
+            }
+
+            return style;
+        },
+
         onComponentLoadRequested(item) {
             if (this.item.meta.componentSchemeContainer && this.item.meta.componentUserEventBus) {
                 EditorEventBus.component.loadRequested.specific.$emit(this.editorId, item.id, item, this.item.meta.componentSchemeContainer, this.item.meta.componentUserEventBus);
@@ -646,12 +664,13 @@ export default {
             }
 
             //updating filters
-            const {svgFilters, filterUrl, backgroundEffects, foregroundEffects} = generateFilters(this.item);
+            const {svgFilters, filterUrl, backgroundEffects, foregroundEffects, cssFilter} = generateFilters(this.item);
             this.svgFilters = svgFilters;
             this.filterUrl = filterUrl;
             this.backgroundEffects = backgroundEffects;
             this.foregroundEffects = foregroundEffects;
 
+            this.shapeStyle = this.computeShapeStyle(cssFilter);
             this.revision += 1;
             this.$forceUpdate();
         },
