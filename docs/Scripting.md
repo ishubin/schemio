@@ -106,6 +106,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getSelfOpacity](#getselfopacity)
       - [matchWorld](#matchworld)
       - [mount](#mount)
+      - [mountChild](#mountchild)
       - [mountRoot](#mountroot)
       - [setAngle](#setangle)
       - [setPosX](#setposx)
@@ -1125,6 +1126,10 @@ dstX = getVar('dstX')
 
 `mount(otherItem)` mounts item to another item
 
+
+##### mountChild
+
+`mount(otherItem)` mounts otherItem to self
 
 ##### mountRoot
 

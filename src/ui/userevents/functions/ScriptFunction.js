@@ -574,6 +574,11 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
                 schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, otherItem.getId());
             }
         },
+        mountChild(childItem) {
+            if (childItem) {
+                schemeContainer.remountItemInsideOtherItemAtTheBottom(childItem.getId(), item.id);
+            }
+        },
         mountRoot: () => schemeContainer.remountItemToRoot(item.id),
 
         getOutline: () => getItemOutlineFunction(item, schemeContainer),
