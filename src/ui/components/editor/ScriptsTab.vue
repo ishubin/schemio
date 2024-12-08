@@ -33,10 +33,22 @@
                         {{ func.name }}
                     </span>
                     <div class="operations">
+                        <span class="link" @click="copyFunc(funcIdx)" title="Copy function"><i class="fa-regular fa-copy"></i></span>
                         <span class="link icon-delete" @click="deleteFunc(funcIdx)"><i class="fas fa-times"></i></span>
                     </div>
                 </li>
             </ul>
+
+            <div class="section">
+                <span v-if="schemeContainer.scheme.scripts.functions.length > 0"
+                    class="btn btn-secondary"
+                    @click="copyAllFuncs()"
+                    title="Copy all functions in this document"
+                    >
+                    Copy all
+                </span>
+                <span class="btn btn-secondary" @click="pasteFuncs()">Paste functions</span>
+            </div>
         </Panel>
 
 
@@ -48,21 +60,32 @@
                         Any item can be extended with multiple classes.
                     </Tooltip>
                 </div>
-                <span class="col-1 btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-layer-group"></i> New class</span>
+                <span class="col-1 btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-book"></i> New class</span>
                 <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import classes"><i class="fa-solid fa-file-import"></i></span>
                 <div></div>
             </div>
             <ul class="navbar-functions-list">
                 <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
                     <span class="func-name" @click="openClassEditor(classIdx)">
-                        <i class="fa-solid fa-layer-group"></i>
+                        <i class="fa-solid fa-book"></i>
                         {{ clazz.name }}
                     </span>
                     <div class="operations">
-                        <span class="link icon-delete" @click="deleteClass(classIdx)"><i class="fas fa-times"></i></span>
+                        <span class="link" @click="copyClass(classIdx)" title="Copy class"><i class="fa-regular fa-copy"></i></span>
+                        <span class="link icon-delete" @click="deleteClass(classIdx)" title="Remove class"><i class="fas fa-times"></i></span>
                     </div>
                 </li>
             </ul>
+
+            <div class="section">
+                <span v-if="schemeContainer.scheme.scripts.classes.length > 0"
+                    class="btn btn-secondary"
+                    @click="copyAllClasses()"
+                    title="Copy all classes in this document">
+                    Copy all
+                </span>
+                <span class="btn btn-secondary" @click="pasteClasses()">Paste classes</span>
+            </div>
         </Panel>
 
         <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="true">
@@ -237,6 +260,7 @@ import BehaviorProperties from './properties/BehaviorProperties.vue';
 import Shape from './items/shapes/Shape';
 import Dropdown from '../Dropdown.vue';
 import { enrichItemWithDefaults } from '../../scheme/ItemFixer';
+import { copyObjectToClipboard, getObjectFromClipboard } from '../../clipboard';
 
 
 function stringValidator(value) {
@@ -460,6 +484,32 @@ export default {
         onClassDescriptionChange(value) {
             this.schemeContainer.scheme.scripts.classes[this.classModal.classIdx].description = value;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.classes.${this.classModal.classIdx}.description`);
+        },
+
+        pasteClasses() {
+            getObjectFromClipboard('script-classes').then(scriptClasses => {
+                if (!Array.isArray(scriptClasses)) {
+                    return
+                }
+                scriptClasses.forEach(scriptClass => {
+                    scriptClass.id = shortid.generate();
+                    this.schemeContainer.scheme.scripts.classes.push(scriptClass);
+                });
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
+        },
+
+        copyAllClasses(idx) {
+            copyObjectToClipboard('script-classes', this.schemeContainer.scheme.scripts.classes).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, 'Copied all classes');
+            });
+        },
+
+        copyClass(idx) {
+            const scriptClass = this.schemeContainer.scheme.scripts.classes[idx];
+            copyObjectToClipboard('script-classes', [scriptClass]).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${scriptClass.name}" class`);
+            });
         },
 
         deleteClass(idx) {
@@ -691,6 +741,32 @@ export default {
         onScriptFunctionEditorPropChange(name, value) {
             this.funcModal.props[name] = value;
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].props[name] = value;
+        },
+
+        pasteFuncs() {
+            getObjectFromClipboard('script-functions').then(funcs => {
+                if (!Array.isArray(funcs)) {
+                    return
+                }
+                funcs.forEach(func => {
+                    func.id = shortid.generate();
+                    this.schemeContainer.scheme.scripts.functions.push(func);
+                });
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
+        },
+
+        copyAllFuncs(idx) {
+            copyObjectToClipboard('script-functions', this.schemeContainer.scheme.scripts.functions).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, 'Copied all functions');
+            });
+        },
+
+        copyFunc(idx) {
+            const func = this.schemeContainer.scheme.scripts.functions[idx];
+            copyObjectToClipboard('script-functions', [func]).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, `Copied "${func.name}" function`);
+            });
         },
 
         deleteFunc(funcIdx) {

@@ -5133,8 +5133,14 @@ ul.properties-button-list > li > .btn {
 .navbar-functions-list .operations {
     position: absolute;
     display: none;
-    right: 6px;
     top: 3px;
+    right: 0;
+    padding-left: 20px;
+    padding-right: 5px;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, var(--faint-weak) 50%);
+}
+.navbar-functions-list >li:hover .operations {
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, var(--faint-weak-down) 50%);
 }
 .navbar-functions-list > li:hover .operations {
     display: inline-block;
