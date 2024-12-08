@@ -169,7 +169,20 @@ const effects = {
 
             const args = Shape.getShapeArgs(shape);
             let fill = 'none';
-            if (args.fill && args.fill.type === 'advanced-color') {
+            if (item.shape === 'image') {
+                const crop = item.shapeProps.crop;
+                fill = computeSvgFill({
+                    type: 'image',
+                    image: item.shapeProps.image,
+                    stretch: item.shapeProps.stretch,
+                    imageBox: {
+                        x: 0,
+                        y: 0,
+                        w: 1,
+                        h: 1,
+                    }
+                }, `effect-fill-${item.id}`);
+            } else if (args.fill && args.fill.type === 'advanced-color') {
                 fill = computeSvgFill(item.shapeProps.fill, `effect-fill-${item.id}`);
             } else if (args.fill && args.fill.type === 'color') {
                 fill = item.shapeProps.fill;

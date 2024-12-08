@@ -564,7 +564,27 @@ export default {
             }
             const shapeArgs = Shape.getShapeArgs(shape);
             const hasEffects = this.item.effects && this.item.effects.length > 0;
-            return hasEffects && shapeArgs.fill.type === 'advanced-color' ? this.item.shapeProps.fill : null;
+            if (!hasEffects) {
+                return null;
+            }
+            if (this.item.shape === 'image') {
+                const crop = this.item.shapeProps.crop;
+                return {
+                    type: 'image',
+                    image: this.item.shapeProps.image,
+                    stretch: this.item.shapeProps.stretch,
+                    imageBox: {
+                        x: 0,
+                        y: 0,
+                        w: 1,
+                        h: 1,
+                    }
+                };
+            }
+            if (shapeArgs.fill.type === 'advanced-color') {
+                return this.item.shapeProps.fill;
+            }
+            return null;
         },
 
         calculateSVGItemTransform() {
