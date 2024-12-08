@@ -158,10 +158,11 @@ const baseSchema = {
                 }},
                 shapeProps     : {type: 'conditional', contidionalParentField: 'shape', conditions: [ /* dynamically built */]},
                 effects: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
-                    id    : {type: 'string'},
-                    effect: {type: 'string', patching: ['replace']},
-                    name  : {type: 'string', patching: ['patch-text', 'replace']},
-                    args  : {type: 'conditional', contidionalParentField: 'effect', conditions: [ /* dynamically built */]}
+                    id     : {type: 'string'},
+                    effect : {type: 'string', patching: ['replace']},
+                    name   : {type: 'string', patching: ['patch-text', 'replace']},
+                    cascade: {type: 'boolean', patching: ['replace']},
+                    args   : {type: 'conditional', contidionalParentField: 'effect', conditions: [ /* dynamically built */]}
                 }},
                 autoLayout: {type: 'object', patching: ['modify', 'replace'], fields: {
                     on: {type: 'boolean', patching: ['replace']},

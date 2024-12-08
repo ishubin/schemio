@@ -23,6 +23,14 @@
         <div class="ctrl-label">Name</div>
         <input class="textfield" v-model="effectName"/>
 
+        <div v-if="supportsCascade" class="section">
+            <label if="chk-effect-cascade" class="ctrl-label-inline">Cascade</label>
+            <Tooltip>
+                Enables cascading of the effect to all child items, attached to current item
+            </Tooltip>
+            <input for="chk-effect-cascade" type="checkbox" :checked="cascade" @input="onCascadeUpdate(arguments[0].target.checked)"/>
+        </div>
+
         <EffectEditor
             :key="`effect-editor-${effectId}`"
             :editorId="editorId"
@@ -40,6 +48,7 @@ import EffectEditor from './EffectEditor.vue';
 import { findEffect, getEffects } from './Effects';
 import {forEach} from '../../collections';
 import shortid from 'shortid';
+import Tooltip from '../Tooltip.vue';
 
 function getKnownEffects() {
     const effects = [];
@@ -50,7 +59,7 @@ function getKnownEffects() {
 }
 
 export default {
-    components: { Modal, EffectEditor },
+    components: { Modal, EffectEditor, Tooltip },
 
     props: {
         editorId  : { type: String, required: true},
@@ -58,6 +67,7 @@ export default {
         isAdding  : { type: Boolean, default: true },
         effectId  : { type: String, required: true },
         name      : { type: String, required: true},
+        cascade   : { type: Boolean, required: true},
         effectArgs: { type: Object, required: true },
         schemeContainer: { type: Object, required: true },
     },
@@ -68,7 +78,9 @@ export default {
         return {
             knownEffects: getKnownEffects(),
             effectName: this.name,
-            description: effect.description
+            supportsCascade: effect.supportsCascade,
+            description: effect.description,
+            cascadeValue: this.cascade
         };
     },
 
@@ -78,6 +90,7 @@ export default {
                 id: shortid.generate(),
                 effect: this.effectId,
                 name: this.effectName,
+                cascade: this.cascadeValue,
                 args: this.effectArgs
             });
         },
@@ -88,6 +101,11 @@ export default {
 
         onEffectIdChanged(newEffectId) {
             this.$emit('effect-id-changed', newEffectId);
+        },
+
+        onCascadeUpdate(cascade) {
+            this.cascadeValue = cascade;
+            this.$emit('effect-cascade-changed', cascade);
         }
     },
 

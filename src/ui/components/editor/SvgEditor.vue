@@ -114,7 +114,8 @@
                     @drop="onFileDrop"
                     />
 
-                <g data-type="scene-transform" :transform="transformSvg">
+
+                <g data-type="scene-transform" :transform="transformSvg" style="filter: url('#displacementFilter')">
                     <g v-for="item in schemeContainer.worldItems"
                         v-if="item.visible"
                         class="item-container"

@@ -259,6 +259,7 @@
  * @typedef {Object} ItemEffect
  * @property {String} id
  * @property {String} name
+ * @property {Boolean} cascade
  * @property {String} effect
  * @property {Object} args
  */

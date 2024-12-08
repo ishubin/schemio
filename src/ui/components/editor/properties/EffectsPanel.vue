@@ -34,6 +34,7 @@
             :editorId="editorId"
             :isAdding="editEffectModal.isAdding"
             :name="editEffectModal.name"
+            :cascade="editEffectModal.cascade"
             :effectId="editEffectModal.effectId"
             :effectArgs="editEffectModal.effectArgs"
             :schemeContainer="schemeContainer"
@@ -42,6 +43,7 @@
             @effect-arg-changed="onEffectArgChanged"
             @effect-name-changed="onEffectNameChanged"
             @effect-id-changed="onEffectIdChanged"
+            @effect-cascade-changed="onEffectCascadeChanged"
             />
     </div>
 </template>
@@ -64,6 +66,7 @@ export default {
             editEffectModal: {
                 effectId: 'drop-shadow',
                 name : '',
+                cascade: false,
                 isAdding: true,
                 shown: false,
                 currentEffectIndex: -1,
@@ -137,6 +140,7 @@ export default {
                     id: shortid.generate(),
                     effect: effectId,
                     name: name,
+                    cascade: false,
                     args: this.editEffectModal.effectArgs
                 });
                 this.editEffectModal.isAdding = true;
@@ -180,11 +184,27 @@ export default {
             });
         },
 
+        onEffectCascadeChanged(cascade) {
+            const effectIdx = this.editEffectModal.currentEffectIndex;
+            this.updateCurrentItem(`effects.${effectIdx}`, item => {
+                if (effectIdx >= 0 && effectIdx < item.effects.length) {
+                    item.effects[effectIdx].cascade = cascade;
+                }
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+                if (!this.editEffectModal.isAdding) {
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects.${effectIdx}.cascade`);
+                }
+            });
+        },
+
         onEffectNameChanged(name) {
             const effectIdx = this.editEffectModal.currentEffectIndex;
             this.updateCurrentItem(`effects.${effectIdx}`, item => {
                 if (effectIdx >= 0 && effectIdx < item.effects.length) {
                     item.effects[effectIdx].name = name;
+                }
+                if (!this.editEffectModal.isAdding) {
+                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects.${effectIdx}.name`);
                 }
             });
         },
@@ -206,6 +226,7 @@ export default {
             this.editEffectModal.currentEffectIndex = idx;
             this.editEffectModal.effectId = this.item.effects[idx].effect;
             this.editEffectModal.name = this.item.effects[idx].name;
+            this.editEffectModal.cascade = this.item.effects[idx].cascade;
             this.editEffectModal.isAdding = false;
             this.editEffectModal.shown = true;
             this.editEffectModal.effectArgs = this.item.effects[idx].args;

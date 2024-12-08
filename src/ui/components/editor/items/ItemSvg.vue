@@ -14,7 +14,7 @@
 
         <advanced-fill v-if="effectFill" :key="`effect-fill-${item.id}-${revision}`" :fillId="`effect-fill-${item.id}`" :fill="effectFill" :area="item.area"/>
 
-        <g :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode}">
+        <g :style="{'opacity': item.opacity/100.0, 'mix-blend-mode': item.blendMode, 'filter': cascadingFilter}">
             <g v-for="backgroundEffectHTML in backgroundEffects" v-html="backgroundEffectHTML" :style="shapeStyle"></g>
 
             <defs>
@@ -261,12 +261,16 @@ import StoreUtils from '../../../store/StoreUtils';
 import { hasItemDescription } from '../../../scheme/Item';
 import Events from '../../../userevents/Events.js';
 
+/**
+ * @property {Item} item
+ */
 function generateFilters(item) {
     const svgFilters = [];
     let filterUrl = '';
     const backgroundEffects = [];
     const foregroundEffects = [];
     let cssFilter = '';
+    let cascadingFilter = '';
 
     forEach(item.effects, (itemEffect, idx) => {
         const effect = findEffect(itemEffect.effect);
@@ -280,13 +284,21 @@ function generateFilters(item) {
                     html: generatedEffect.html
                 });
 
-                filterUrl += `url(#${filterId}) `;
+                if (itemEffect.cascade) {
+                    cascadingFilter += `url(#${filterId}) `;
+                } else {
+                    filterUrl += `url(#${filterId}) `;
+                }
             } else if (generatedEffect.kind === 'back') {
                 backgroundEffects.push(generatedEffect.html);
             } else if (generatedEffect.kind === 'front') {
                 foregroundEffects.push(generatedEffect.html);
             } else if (generatedEffect.kind === 'css-filter') {
-                cssFilter += generatedEffect.value + ' ';
+                if (itemEffect.cascade) {
+                    cascadingFilter += generatedEffect.value + ' ';
+                } else {
+                    cssFilter += generatedEffect.value + ' ';
+                }
             }
         }
     });
@@ -295,7 +307,8 @@ function generateFilters(item) {
         filterUrl,
         backgroundEffects,
         foregroundEffects,
-        cssFilter
+        cssFilter,
+        cascadingFilter
     };
 }
 
@@ -392,6 +405,7 @@ export default {
 
             svgFilters       : [],
             filterUrl        : '',
+            cascadingFilter  : '',
             backgroundEffects: [],
             foregroundEffects: [],
             svgItemTransform : this.calculateSVGItemTransform(),
@@ -411,11 +425,12 @@ export default {
             }
         }
 
-        const {svgFilters, filterUrl, backgroundEffects, foregroundEffects, cssFilter} = generateFilters(this.item);
+        const {svgFilters, filterUrl, backgroundEffects, foregroundEffects, cssFilter, cascadingFilter} = generateFilters(this.item);
 
         data.effectFill = this.getEffectFill();
         data.svgFilters = svgFilters;
         data.filterUrl = filterUrl;
+        data.cascadingFilter = cascadingFilter;
         data.backgroundEffects = backgroundEffects;
         data.foregroundEffects = foregroundEffects;
         data.shapeStyle = this.computeShapeStyle(cssFilter);
@@ -568,7 +583,6 @@ export default {
                 return null;
             }
             if (this.item.shape === 'image') {
-                const crop = this.item.shapeProps.crop;
                 return {
                     type: 'image',
                     image: this.item.shapeProps.image,
@@ -581,7 +595,7 @@ export default {
                     }
                 };
             }
-            if (shapeArgs.fill.type === 'advanced-color') {
+            if (shapeArgs.fill && shapeArgs.fill.type === 'advanced-color') {
                 return this.item.shapeProps.fill;
             }
             return null;
@@ -684,11 +698,12 @@ export default {
             }
 
             //updating filters
-            const {svgFilters, filterUrl, backgroundEffects, foregroundEffects, cssFilter} = generateFilters(this.item);
+            const {svgFilters, filterUrl, backgroundEffects, foregroundEffects, cssFilter, cascadingFilter} = generateFilters(this.item);
             this.svgFilters = svgFilters;
             this.filterUrl = filterUrl;
             this.backgroundEffects = backgroundEffects;
             this.foregroundEffects = foregroundEffects;
+            this.cascadingFilter = cascadingFilter;
 
             this.shapeStyle = this.computeShapeStyle(cssFilter);
             this.revision += 1;
