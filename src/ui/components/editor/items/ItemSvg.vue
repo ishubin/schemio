@@ -160,6 +160,9 @@
                 :fill="hoverPathFill" />
 
             <g v-if="mode === 'view' && item.meta.componentSchemeContainer && item.meta.componentUserEventBus"
+                @touchstart="onComponentMouseDown"
+                @touchend="onComponentMouseUp"
+                @touchmove="onComponentMouseMove"
                 @mousedown="onComponentMouseDown"
                 @mouseup="onComponentMouseUp"
                 @mousemove="onComponentMouseMove"
