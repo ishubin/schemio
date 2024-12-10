@@ -38,14 +38,23 @@ export default {
             this.$emit('type-selected', option);
         },
         onValueKeyPress(event) {
-            const code = event.charCode;
+            const code = event.charCode || event.keyCode;
+            if (event.key === 'ArrowRight' || event.key === 'ArrowLeft' || event.key === '.' || event.key === 'Backspace' || event.key === 'Delete') {
+                return;
+            }
+            if (event.code === 'KeyV' && (event.metaKey || event.ctrlKey)) {
+                return;
+            }
+            if (event.code === 'KeyC' && (event.metaKey || event.ctrlKey)) {
+                return;
+            }
             if (code < 45 || code > 57 || code === 47) {
                 event.preventDefault();
             }
         },
 
         onValueKeyUp(event) {
-            const value = parseInt(this.$refs.input.innerHTML);
+            const value = parseInt(this.$refs.input.innerText);
             if (!isNaN(value)) {
                 this.$emit('value-changed', value);
             }
