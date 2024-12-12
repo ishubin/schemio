@@ -11,4 +11,5 @@ if (shape == 'rect') {
 } else if (shape == 'npoly') {
     shapeProps.set('corners', corners)
     shapeProps.set('angle', angle)
+    shapeProps.set('rounding', rounding)
 }

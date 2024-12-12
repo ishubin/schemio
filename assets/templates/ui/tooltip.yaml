@@ -4,6 +4,7 @@ args:
   cornerRadius  : {type: 'number', value: 0, name: "Corner radius", depends: {shape: 'rect'}}
   corners       : {type: 'number', value: 6, name: "Corners", depends: {shape: 'npoly'}}
   angle         : {type: 'number', value: 0, name: "Angle", depends: {shape: 'npoly'}}
+  rounding      : {type: 'number', value: 0, name: "Rounding (%)", depends: {shape: 'npoly'}}
   pulse         : {type: "boolean", value: true, name: "Icon pulse animation", description: "Animate the tooltip icon"}
   pulseInterval : {type: "number", value: 1, name: "Pulse interval", description: "", depends: {pulse: true}}
   pulseTime     : {type: "number", value: 0.8, name: "Pulse time", description: "", depends: {pulse: true}}
