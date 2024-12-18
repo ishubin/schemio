@@ -115,7 +115,7 @@
                     />
 
 
-                <g data-type="scene-transform" :transform="transformSvg" style="filter: url('#displacementFilter')">
+                <g data-type="scene-transform" :transform="transformSvg">
                     <g v-for="item in schemeContainer.worldItems"
                         v-if="item.visible"
                         class="item-container"
