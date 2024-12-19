@@ -26,7 +26,6 @@ import { computeCurvePath, convertCurvePointToItemScale, convertCurvePointToRela
 import EditorEventBus from '../../EditorEventBus';
 import {Vector} from '../../../../templater/vector';
 import { localPointOnItem, worldPointOnItem } from '../../../../scheme/ItemMath';
-import ItemProperties from '../../properties/ItemProperties.vue';
 
 const log = new Logger('Path');
 

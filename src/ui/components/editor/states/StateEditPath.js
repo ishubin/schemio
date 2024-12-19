@@ -156,7 +156,7 @@ export function readjustItemAreaAndPoints(item) {
             }
         }
         if (p.t === 'A' && lp2) {
-            // the idea here is to calculate bounding points ot a circle
+            // the idea here is to calculate bounding points of a circle
             // first we calculate its radius and then its center
             // once we know radius and a center, we calculate north/west/east/south side points of the circle
             // We then draw an imaginary line that goes from points P1 and P2 and divides the space into two zones

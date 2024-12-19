@@ -863,39 +863,39 @@ export default {
         //      P0  - local point
         //
         // We can move Ap to the left if we inverse it. Lets also group all matrices
-        // on the right between At and P0 and call it just matrix A
+        // on the right after At and call it just matrix A
         //
         //      Ap-1 * Pw = At * A * P0
         //
         // where
         //      Ap-1 = is inverse of Ap matrix
-        //      A = Ac1 * Ar * As * Ac2
+        //      A = Ac1 * Ar * As * Ac2 * P0
         //
         // lets call matrix Ap-1 as B to make it easier to distinguish between the two matrices:
         //
-        //      B * Pw = At * A * P0
+        //      B * Pw = At * A
         //
         // in the equation above only At is unknown so lets expand all multiplications of all matrices
         //
-        //      | B11  B12  B13 |   | Xw |     | 1  0  Xt |   | A11  A12  A13 |   | Xo |
-        //      | B21  B22  B23 | * | Yw |  =  | 0  1  Yt | * | A21  A22  A23 | * | Yo |
-        //      | B31  B32  B33 |   | 1  |     | 0  0  1  |   | A31  A32  A33 |   |  1 |
+        //      | B11  B12  B13 |   | Xw |     | 1  0  Xt |   | A11 |
+        //      | B21  B22  B23 | * | Yw |  =  | 0  1  Yt | * | A21 |
+        //      | B31  B32  B33 |   | 1  |     | 0  0  1  |   | A31 |
         //
         // if we multiply all matrices we will find out that
         //
-        //      | B11*Xw + B12*Yw + B13 |   | Xt*(Xo*A31 + Yo*A32 + A33) + Xo*A11 + Yo*A12 + A13 |
-        //      | B21*Xw + B22*Yw + B23 | = | Yt*(Xo*A31 + Yo*A32 + A33) + Xo*A21 + Yo*A22 + A23 |
-        //      |    B31 + B32 + B33    |   |              Xo*A31 + Yo*A32 + A33                 |
+        //      | B11*Xw + B12*Yw + B13 |   | A11 + Xt * A31 |
+        //      | B21*Xw + B22*Yw + B23 | = | A21 + Yt * A31 |
+        //      | B31*Xw + B32*Yw + B33 |   |      A31       |
         //
-        // from the above equation we can take out the relevant parts
+        // from the above equation we can take only the relevant parts
         //
-        //      B11*Xw + B12*Yw + B13  =  Xt*(Xo*A31 + Yo*A32 + A33) + Xo*A11 + Yo*A12 + A13
-        //      B21*Xw + B22*Yw + B23  =  Yt*(Xo*A31 + Yo*A32 + A33) + Xo*A21 + Yo*A22 + A23
+        //      B11*Xw + B12*Yw + B13  =  Xt*A31 + A11
+        //      B21*Xw + B22*Yw + B23  =  Yt*A31 + A21
         //
         // and finally get our complete formula
         //
-        //      Xt = (B11*Xw + B12*Yw + B13 - Xo*A11 - Yo*A12 - A13) / (Xo*A31 + Yo*A32 + A33)
-        //      Yt = (B21*Xw + B22*Yw + B23 - Xo*A21 - Yo*A22 - A23) / (Xo*A31 + Yo*A32 + A33)
+        //      Xt = (B11*Xw + B12*Yw + B13 - A11) / A31
+        //      Yt = (B21*Xw + B22*Yw + B23 - A21) / A31
 
         let parentInversedTransform = this.identityMatrix();
         if (parentTransform) {
@@ -912,17 +912,13 @@ export default {
                 this.rotationMatrixInDegrees(area.r),
                 this.scaleMatrix(area.sx, area.sy),
                 this.translationMatrix(-rpx, -rpy),
+                [[x0], [y0], [1]]
             );
 
-            const d = x0 * A[2][0] + y0 * A[2][1] + A[2][2];
-
-            if (!this.tooSmall(d)) {
-                const Xc = x0 * A[0][0] + y0 * A[0][1] + A[0][2];
-                const Yc = x0 * A[1][0] + y0 * A[1][1] + A[1][2];
-
+            if (!this.tooSmall(A[2][0])) {
                 return {
-                    x: (B[0][0] * x + B[0][1] * y + B[0][2] - Xc) / d,
-                    y: (B[1][0] * x + B[1][1] * y + B[1][2] - Yc) / d
+                    x: (B[0][0] * x + B[0][1] * y + B[0][2] - A[0][0]) / A[2][0],
+                    y: (B[1][0] * x + B[1][1] * y + B[1][2] - A[1][0]) / A[2][0]
                 };
             }
         }
