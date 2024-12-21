@@ -1746,7 +1746,6 @@ export default {
                     zoom: this.zoom
                 }
             });
-            latestSchemeTransform = { ...schemeContainer.screenTransform };
         },
 
         onAnyItemClicked(item) {
