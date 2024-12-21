@@ -26,10 +26,11 @@ Features of Schemio:
 Demo: What happens when you open a website in your browser
 ----------------------------------------------------------
 
-There is a demo, built with Schemio that contains interactive diagrams that answer a popular interview question: "What happens when you open a website in your browser".
+There is a [demo](https://schem.io/projects/site-reliability-engineering-t4kEQtKNxpSvZG0b/docs/what-happens-when-you-enter-a-website-in-a-browser-USqkMRHEY7JZav9t), built with Schemio that contains interactive diagrams that answer a popular interview question: "What happens when you open a website in your browser".
 
-* Demo: https://ishubin.github.io/sre-knowledge-base/#/docs/what-happens-when.
-* Source code: https://github.com/ishubin/sre-knowledge-base
+![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/what-happens-when-demo.png?raw=true)
+
+* Demo: https://schem.io/projects/site-reliability-engineering-t4kEQtKNxpSvZG0b/docs/what-happens-when-you-enter-a-website-in-a-browser-USqkMRHEY7JZav9t
 
 
 Introduction to interactive diagrams with Schemio (Youtube video)
