@@ -785,9 +785,6 @@ function timeoutPromise(timeInMillis) {
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
 
-let latestSchemeTransform = null;
-
-
 export default {
     components: {
         SvgEditor, ItemProperties, ItemDetails, SchemeProperties,

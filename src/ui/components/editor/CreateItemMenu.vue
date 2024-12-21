@@ -316,6 +316,7 @@ export default {
     },
     methods: {
         loadProjectArt() {
+            this.filterArtPacks();
             if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {
                 this.$store.state.apiClient.getAllArt()
                 .then(artList => {
@@ -420,8 +421,11 @@ export default {
         },
 
         filterArtPacks() {
+            this.filteredArtPacks = this.getFilteredArtPacks();
+        },
 
-            this.filteredArtPacks = map(this.$store.state.itemMenu.artPacks, artPack => {
+        getFilteredArtPacks() {
+            return map(this.$store.state.itemMenu.artPacks, artPack => {
                 let packMatches = this.safeTextMatchKeyword(artPack.name);
 
                 return {
