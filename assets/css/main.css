@@ -467,10 +467,18 @@ body[data-theme="dark"] {
     color: var(--faint-weak-down-3);
     opacity: 0.6;
 }
+[data-theme="dark"]  table.frame-animator-matrix tr.track-kind-function td.frame .empty-frame-number,
+[data-theme="dark"]  table.frame-animator-matrix tr.track-kind-sections td.frame .empty-frame-number {
+    color: var(--base-strong);
+}
 
 [data-theme="dark"] table.frame-animator-matrix td.frame .active-frame {
     color: var(--faint-weak-down-3);
     opacity: 1;
+}
+[data-theme="dark"] table.frame-animator-matrix tr.track-kind-sections td.frame .active-frame,
+[data-theme="dark"] table.frame-animator-matrix tr.track-kind-function td.frame .active-frame {
+    color: var(--base-strong);
 }
 [data-theme="dark"] table.frame-animator-matrix td.current {
     background: var(--base-strong-up);

@@ -78,7 +78,7 @@
                         <tr v-for="(track, trackIdx) in framesMatrix"
                             class="track-droppable-area"
                             :data-track-index="trackIdx"
-                            :class="{'selected-track': trackIdx === selectedTrackIdx, 'track-missing': !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function', 'drop-below': trackDrag.on && !trackDrag.dropHead && trackIdx === trackDrag.dstTrackIdx}"
+                            :class="[`track-kind-${track.kind}`, trackIdx === selectedTrackIdx ? 'selected-track': '', !track.propertyDescriptor && track.kind !== 'function-header' && track.kind !== 'function' ? 'track-missing':'', trackDrag.on && !trackDrag.dropHead && trackIdx === trackDrag.dstTrackIdx ? 'drop-below':'']"
                             :style="{'background-color': track.color}"
                             >
                             <td class="frame-animator-property"
@@ -1441,7 +1441,7 @@ export default {
 
         addFunctionFrame(trackIdx, frameIdx) {
             const track = this.framesMatrix[trackIdx];
-            const funcDef = this.framePlayer.shapeProps.functions[track.id];
+            const funcDef = this.framePlayer.shapeProps.functions[track.funcId];
             if (!funcDef) {
                 return;
             }
