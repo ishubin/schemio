@@ -33,10 +33,10 @@ There is a [demo](https://schem.io/projects/site-reliability-engineering-t4kEQtK
 * Demo: https://schem.io/projects/site-reliability-engineering-t4kEQtKNxpSvZG0b/docs/what-happens-when-you-enter-a-website-in-a-browser-USqkMRHEY7JZav9t
 
 
-Introduction to interactive diagrams with Schemio (Youtube video)
+Video tutorials
 -------------------------------------------------
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/NM2RS1JhRkk/0.jpg)](http://www.youtube.com/watch?v=NM2RS1JhRkk "Introduction to interactive diagrams with Schemio")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/_2owivaVb-o/0.jpg)](http://www.youtube.com/watch?v=_2owivaVb-o "Interactive diagrams with Schemio - basic concepts")
 
 Configuration of server-based version of Schemio
 --------------------------------------------------
