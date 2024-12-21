@@ -1493,7 +1493,7 @@ export default {
             } else if (prevFrame) {
                 frame.value = prevFrame.value;
             } else if (nextFrame) {
-                frame.value = prevFrame.value;
+                frame.value = nextFrame.value;
             } else {
                 frame.value = inputDescriptor.value;
             }
