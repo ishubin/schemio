@@ -133,6 +133,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getValue](#getvalue)
       - [setValue](#setvalue)
       - [duplicate](#duplicate)
+      - [remove (Item)](#remove-item)
+      - [removeChildItemsByTag](#removechilditemsbytag)
       - [tag](#tag)
     - [Connector functions](#connector-functions)
       - [totalPoints (connector)](#totalpoints-connector)
@@ -1342,6 +1344,27 @@ Example:
 ```js
 newItem = duplicate('new_name')
 newItem.setWorldPos(100, 0)
+```
+
+##### remove (Item)
+
+`remove()` function remove the item in scope from the scene
+
+Example:
+```js
+item = @Rect
+item.remove() // this will remove the "Rect" item from the scene
+```
+
+##### removeChildItemsByTag
+
+`removeChildItemsByTag(tagName)` function searches for child items in the the scope of the current item and removes if they have `tagName` tag.
+
+Example:
+```js
+// The below code would find items that have tag "some-tag" and
+// are located inside of "BaseRect" item and it will remove them from the scene
+@BaseRect.removeChildItemsByTag('some-tag')
 ```
 
 ##### tag

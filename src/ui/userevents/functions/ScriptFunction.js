@@ -564,6 +564,11 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             userEventBus.clearEventsForItem(item.id);
         },
 
+        removeChildItemsByTag(tagName) {
+            const items = findChildItemsByTag(item, tagName);
+            schemeContainer.deleteItems(items);
+        },
+
         // remounts item to another item
         mount(otherItem) {
             if (!otherItem) {

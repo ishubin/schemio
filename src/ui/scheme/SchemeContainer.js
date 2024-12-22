@@ -1998,7 +1998,7 @@ class SchemeContainer {
     deleteItems(items) {
         forEach(items, item => {
             this._deleteItem(item);
-        })
+        });
         this.reindexItems();
     }
 
