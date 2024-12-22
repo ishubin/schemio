@@ -27,17 +27,31 @@ class QuadTreeNode {
      * @param {*} value - value that stored at this point
      */
     addPoint(x, y, value) {
+        const newNode = new QuadTreeNode(x, y, value);
         if (x >= this.point.x && y >= this.point.y) {
-            this.se = insertPoint(this.se, x, y, value);
-
+            if (this.se) {
+                this.se.addPoint(x, y, value);
+            } else {
+                this.se = newNode;
+            }
         } else if (x <= this.point.x && y >= this.point.y) {
-            this.sw = insertPoint(this.sw, x, y, value);
-
+            if (this.sw) {
+                this.sw.addPoint(x, y, value);
+            } else {
+                this.sw = newNode;
+            }
         } else if (x >= this.point.x && y <= this.point.y) {
-            this.ne = insertPoint(this.ne, x, y, value);
-
+            if (this.ne) {
+                this.ne.addPoint(x, y, value);
+            } else {
+                this.ne = newNode;
+            }
         } else {
-            this.nw = insertPoint(this.nw, x, y, value);
+            if (this.nw) {
+                this.nw.addPoint(x, y, value);
+            } else {
+                this.nw = newNode;
+            }
         }
     }
 
@@ -59,14 +73,6 @@ class QuadTreeNode {
             this.nw.forEachInRange(x1, y1, x2, y2, callback);
         }
     }
-}
-
-function insertPoint(node, x, y, value) {
-    if (!node) {
-        return new QuadTreeNode(x, y, value);
-    }
-    node.addPoint(x, y, value);
-    return node;
 }
 
 
