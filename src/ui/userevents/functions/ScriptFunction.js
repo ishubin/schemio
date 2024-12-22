@@ -19,8 +19,6 @@ import Events from "../Events";
 import Shape from "../../components/editor/items/shapes/Shape";
 import ScriptFunctionEditor from '../../components/editor/properties/behavior/ScriptFunctionEditor.vue';
 import { List } from "../../templater/list";
-import { compileActions } from "../Compiler";
-import { traverseItems } from "../../scheme/Item";
 import { forEachObject } from "../../collections";
 
 const COMPILED_SCRIPTS = Symbol('compiledScripts');
@@ -544,19 +542,7 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             }
             const parentItem = item.meta.parentId ? schemeContainer.findItemById(item.meta.parentId) : null;
             schemeContainer.addItem(clonedItem, parentItem);
-
-            traverseItems([clonedItem], cItem => {
-                if (cItem.behavior && Array.isArray(cItem.behavior.events)) {
-                    cItem.behavior.events.forEach(event => {
-                        const eventCallback = compileActions(schemeContainer, userEventBus, cItem, event.actions);
-                        if (event.event === Events.standardEvents.init.id) {
-                            eventCallback(userEventBus, userEventBus.revision, cItem.id, Events.standardEvents.init.id);
-                        } else {
-                            userEventBus.subscribeItemEvent(cItem.id, cItem.name, event.event, eventCallback);
-                        }
-                    });
-                }
-            });
+            schemeContainer.indexUserEventsForItems([clonedItem], userEventBus, () => {});
             return createItemScriptWrapper(clonedItem, schemeContainer, userEventBus);
         },
 

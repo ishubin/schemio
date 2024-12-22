@@ -22,6 +22,8 @@ Features of Schemio:
 
 ![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot-2.png?raw=true)
 
+For more insights on how the Schemio works and what you can do with it you can read the following article:
+* [Interactive diagrams for complex systems](https://medium.com/@ivan.ishubin/interactive-diagrams-for-complex-systems-b24f739d34f5)
 
 Demo: What happens when you open a website in your browser
 ----------------------------------------------------------
