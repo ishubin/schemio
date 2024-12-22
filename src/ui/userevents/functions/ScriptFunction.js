@@ -511,6 +511,18 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             return createItemScriptWrapper(findChildItemByName(item, name), schemeContainer, userEventBus);
         },
 
+        tag(tagName) {
+            if (!Array.isArray(item.tags)) {
+                item.tags = [];
+            }
+            if (item.tags.indexOf(tagName) >= 0) {
+                return;
+            }
+
+            item.tags.push(tagName);
+            schemeContainer.indexItemTags(item.id, [tagName]);
+        },
+
         findChildItemsByTag(tag) {
             const items = findChildItemsByTag(item, tag);
             return new List(...items.map(item => createItemScriptWrapper(item, schemeContainer, userEventBus)));

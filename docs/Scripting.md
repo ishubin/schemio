@@ -133,6 +133,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getValue](#getvalue)
       - [setValue](#setvalue)
       - [duplicate](#duplicate)
+      - [tag](#tag)
     - [Connector functions](#connector-functions)
       - [totalPoints (connector)](#totalpoints-connector)
       - [getPointWorldPos (connector)](#getpointworldpos-connector)
@@ -1341,6 +1342,16 @@ Example:
 ```js
 newItem = duplicate('new_name')
 newItem.setWorldPos(100, 0)
+```
+
+##### tag
+
+`tag(tagName)` function adds a specified `tagName` tag to the item
+
+Example:
+```js
+rectItem = @Rect
+rectItem.tag('new-tag')
 ```
 
 

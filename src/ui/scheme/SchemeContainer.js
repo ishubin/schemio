@@ -1296,7 +1296,7 @@ class SchemeContainer {
                 this._itemTagsToIds[tag] = [];
             }
             this._itemTagsToIds[tag].push(itemId);
-        })
+        });
     }
 
     enrichItemMeta(item, transformMatrix, parentItem, ancestorIds) {
