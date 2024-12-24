@@ -854,6 +854,24 @@ function scriptFunctions(editorId, schemeContainer, item) {
         return callback(item.shapeProps.points[pointIdx]);
     }
 
+    const withSVGPathElement = (callback) => {
+        const encodedPath = computeRawPath(item);
+        if (!item.meta.scriptCache) {
+            item.meta.scriptCache = new Map();
+        }
+        const cachedPath = item.meta.scriptCache.get('svgPath');
+        if (cachedPath && cachedPath.encodedPath === encodedPath) {
+            return callback(cachedPath.svgElement);
+        }
+        const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        shadowSvgPath.setAttribute('d', encodedPath);
+
+        item.meta.scriptCache.set('svgPath', {
+            encodedPath, svgElement: shadowSvgPath
+        });
+        return callback(shadowSvgPath);
+    };
+
     const emitItemChanged = () => {
         schemeContainer.readjustItemAndDescendants(item.id, true);
         EditorEventBus.item.changed.specific.$emit(editorId, item.id);
@@ -901,7 +919,20 @@ function scriptFunctions(editorId, schemeContainer, item) {
             }
             item.shapeProps.points.splice(pointIdx, 1);
             emitItemChanged();
-        }
+        },
+
+        getLength() {
+            return withSVGPathElement(shadowSvgPath => {
+                return shadowSvgPath.getTotalLength();
+            });
+        },
+
+        getWorldPosAtLength(length) {
+            return withSVGPathElement(shadowSvgPath => {
+                const p = shadowSvgPath.getPointAtLength(length);
+                return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
+            });
+        },
     };
 }
 

@@ -142,6 +142,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [setPointWorldPos (connector)](#setpointworldpos-connector)
       - [addWorldPoint (connector)](#addworldpoint-connector)
       - [removePoint (connector)](#removepoint-connector)
+      - [getLength (connector)](#getlength-connector)
+      - [getWorldPosAtLength (connector)](#getworldposatlength-connector)
     - [Path functions](#path-functions)
       - [totalPaths (path)](#totalpaths-path)
       - [totalPathPoints (path)](#totalpathpoints-path)
@@ -153,6 +155,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [addPath](#addpath)
       - [addPoint (path)](#addpoint-path)
       - [addBeizerPoint (path)](#addbeizerpoint-path)
+      - [getPathLength (path)](#getpathlength-path)
+      - [getPathWorldPosAtLength (path)](#getpathworldposatlength-path)
     - [Math block functions](#math-block-functions)
       - [setExpression](#setexpression)
 
@@ -1432,6 +1436,27 @@ connector.removePoint(2)
 ```
 
 
+##### getLength (connector)
+
+`getLength()` returns the total length of the SVG path produced by connector
+
+```js
+connector = findItemByName('Connector 1')
+length = connector.getLength()
+```
+
+
+##### getWorldPosAtLength (connector)
+
+`getWorldPosAtLength(length)` returns a [Vector](#vector) representing the world position on a connector path at specified length
+
+```js
+connector = findItemByName('Connector 1')
+p = connector.getWorldPosAtLength(56)
+log('x', p.x, 'y', p.y)
+```
+
+
 #### Path functions
 
 Similar to [Connector](#connector-functions) a path item allows you to manipulate its points. The main difference compared to connector is that the path item actually consists of multiple paths.
@@ -1531,6 +1556,25 @@ pathItem = findItemByName('Path 1')
 pathItem.addBeizerPoint(0, 5, 8, 2, 3, -1, -3)
 ```
 
+##### getPathLength (path)
+
+`getPathLength(pathIdx)` returns a length of a path at specified `pathIdx` index.
+
+```js
+pathItem = findItemByName('Path 1')
+length1 = pathItem.getPathLength(0)
+length2 = pathItem.getPathLength(1)
+```
+
+##### getPathWorldPosAtLength (path)
+
+`getPathWorldPosAtLength(pathIdx, length)` returns a [Vector](#vector) representing the world position on a path with `pathIdx` index at specified length.
+
+```js
+pathItem = findItemByName('Path 1')
+p = pathIrem.getPathWorldPosAtLength(0, 56)
+log('x', p.x, 'y', p.y)
+```
 
 #### Math block functions
 

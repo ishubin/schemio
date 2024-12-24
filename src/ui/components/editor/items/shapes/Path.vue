@@ -155,6 +155,29 @@ function scriptFunctions(editorId, schemeContainer, item) {
         }
     };
 
+    const withSVGPathElement = (pathIdx, callback) => {
+        return withPath(pathIdx, path => {
+            const encodedPath = computeCurvePath(item.area.w, item.area.h, path.points, path.closed);
+
+            const cacheKey = 'svgPath' + pathIdx;
+
+            if (!item.meta.scriptCache) {
+                item.meta.scriptCache = new Map();
+            }
+            const cachedPath = item.meta.scriptCache.get(cacheKey);
+            if (cachedPath && cachedPath.encodedPath === encodedPath) {
+                return callback(cachedPath.svgElement);
+            }
+            const shadowSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            shadowSvgPath.setAttribute('d', encodedPath);
+
+            item.meta.scriptCache.set(cacheKey, {
+                encodedPath, svgElement: shadowSvgPath
+            });
+            return callback(shadowSvgPath);
+        });
+    };
+
     return {
         totalPaths() {
             return item.shapeProps.paths.length;
@@ -244,6 +267,19 @@ function scriptFunctions(editorId, schemeContainer, item) {
                 path.points.push(p);
                 emitItemChanged();
                 return path.points.length - 1;
+            });
+        },
+
+        getPathLength(pathIdx) {
+            return withSVGPathElement(pathIdx, shadowSvgPath => {
+                return shadowSvgPath.getTotalLength();
+            });
+        },
+
+        getPathWorldPosAtLength(pathIdx, length) {
+            return withSVGPathElement(pathIdx, shadowSvgPath => {
+                const p = shadowSvgPath.getPointAtLength(length);
+                return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
             });
         },
     };

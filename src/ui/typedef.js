@@ -218,6 +218,7 @@
  * @property {String|undefined} templateRef - only template root items can have this flag. If it is set - it means that the item is the root of the template
  * @property {String|undefined} templateRootId - id of the item that is the root of the template that the current item was generated in.
  * @property {Number} strokeOffset - used in non solid stroke patterns for animation of flow effect
+ * @property {Map} scriptCache - cache used for item shapes in SchemioScript
  */
 
 /**
