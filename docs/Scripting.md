@@ -77,6 +77,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [ifcond](#ifcond)
     - [getEventName](#geteventname)
     - [getEventArg](#geteventarg)
+    - [parseInt](#parseint)
+    - [parseFloat](#parsefloat)
     - [Colors](#colors)
       - [Color](#color)
       - [decodeColor](#decodecolor)
@@ -955,6 +957,16 @@ The code above will return `-1` in case if `y` value is `0` and will return `1` 
 #### getEventArg
 
 `getEventArg(i)` returns the event argument value at position `i` which is the number of argument starting from 0. It only makes sense to use this function if the event was sent using [sendEvent](#sendevent) function with custom arguments.
+
+
+#### parseInt
+
+`parseInt(text)` parses an integer from `text` argument and returns it
+
+
+#### parseFloat
+
+`parseFloat(text)` parses a floating number from `text` argument and returns it
 
 
 #### Colors
