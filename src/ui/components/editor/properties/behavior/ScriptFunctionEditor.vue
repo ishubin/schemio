@@ -109,7 +109,7 @@ export default {
                 icon: 'fa-solid fa-infinity',
                 description: 'Script is executed forever until stopped from the script itself or until '
                             + 'the "Stop all animations" item function is called. '
-                            + 'The script has access to "deltaTime" variable which representa time in seconds '
+                            + 'The script has access to "deltaTime" variable which represents time in seconds '
                             + 'between frames'
             }],
 
