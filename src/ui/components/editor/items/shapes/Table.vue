@@ -29,6 +29,7 @@ import EditorEventBus from '../../EditorEventBus';
 import TablePropertiesEditor from './TablePropertiesEditor.vue';
 import utils from '../../../../utils';
 import { defaultTextSlotProps } from '../../../../scheme/Item';
+import { enrichItemTextSlotWithDefaults } from '../../../../scheme/ItemFixer';
 
 const minCells = 1;
 const maxCells = 100;
@@ -631,6 +632,50 @@ function getPins(item) {
     return pins;
 }
 
+/**
+ * @param {String} editorId
+ * @param {SchemeContainer} schemeContainer
+ * @param {Item} item
+ */
+function scriptFunctions(editorId, schemeContainer, item) {
+    const emitItemChanged = () => {
+        EditorEventBus.item.changed.specific.$emit(editorId, item.id);
+    };
+
+    return {
+        setCellText(row, col, text) {
+            if (row < 0 || row >= item.shapeProps.rows) {
+                throw new Error(`Cannot set cell text in a table. Row (${row}) is out of bounds [0,${item.shapeProps.rows}]: `);
+            }
+            if (col < 0 || col >= item.shapeProps.columns) {
+                throw new Error(`Cannot set cell text in a table. Cell (${col}) is out of bounds [0,${item.shapeProps.columns}]: `);
+            }
+            const key = `c_${row}_${col}`;
+            if (!item.textSlots[key]) {
+                item.textSlots[key] = {text: '' + text};
+                enrichItemTextSlotWithDefaults(item.textSlots[key]);
+            } else {
+                item.textSlots[key].text = '' + text;
+            }
+            emitItemChanged();
+        },
+
+        getCellText(row, col) {
+            if (row < 0 || row >= item.shapeProps.rows) {
+                throw new Error(`Cannot get cell text in a table. Row (${row}) is out of bounds [0,${item.shapeProps.rows}]: `);
+            }
+            if (col < 0 || col >= item.shapeProps.columns) {
+                throw new Error(`Cannot get cell text in a table. Cell (${col}) is out of bounds [0,${item.shapeProps.columns}]: `);
+            }
+            const key = `c_${row}_${col}`;
+            if (item.textSlots[key]) {
+                return item.textSlots[key].text;
+            }
+            return '';
+        }
+    };
+}
+
 export default {
     props: ['item'],
     components: {AdvancedFill},
@@ -880,7 +925,9 @@ export default {
                 }
                 return controls;
             }
-        }
+        },
+
+        scriptFunctions,
     },
 
     data() {

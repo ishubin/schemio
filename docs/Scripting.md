@@ -77,6 +77,8 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
     - [ifcond](#ifcond)
     - [getEventName](#geteventname)
     - [getEventArg](#geteventarg)
+    - [parseInt](#parseint)
+    - [parseFloat](#parsefloat)
     - [Colors](#colors)
       - [Color](#color)
       - [decodeColor](#decodecolor)
@@ -157,6 +159,9 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [addBeizerPoint (path)](#addbeizerpoint-path)
       - [getPathLength (path)](#getpathlength-path)
       - [getPathWorldPosAtLength (path)](#getpathworldposatlength-path)
+    - [Table functions](#table-functions)
+      - [setCellText](#setcelltext)
+      - [getCellText](#getcelltext)
     - [Math block functions](#math-block-functions)
       - [setExpression](#setexpression)
 
@@ -957,6 +962,16 @@ The code above will return `-1` in case if `y` value is `0` and will return `1` 
 `getEventArg(i)` returns the event argument value at position `i` which is the number of argument starting from 0. It only makes sense to use this function if the event was sent using [sendEvent](#sendevent) function with custom arguments.
 
 
+#### parseInt
+
+`parseInt(text)` parses an integer from `text` argument and returns it
+
+
+#### parseFloat
+
+`parseFloat(text)` parses a floating number from `text` argument and returns it
+
+
 #### Colors
 
 ##### Color
@@ -1575,6 +1590,19 @@ pathItem = findItemByName('Path 1')
 p = pathIrem.getPathWorldPosAtLength(0, 56)
 log('x', p.x, 'y', p.y)
 ```
+
+#### Table functions
+
+`table` shape has special function for interacting with its cells
+
+##### setCellText
+
+`setCellText(row, column, text)` function sets specified text to a cell at the specified row and column
+
+##### getCellText
+
+`getCellText(row, column)` function returns the text of a cell at the specified row and column
+
 
 #### Math block functions
 
