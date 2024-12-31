@@ -662,10 +662,10 @@ function scriptFunctions(editorId, schemeContainer, item) {
 
         getCellText(row, col) {
             if (row < 0 || row >= item.shapeProps.rows) {
-                throw new Error(`Cannot set cell text in a table. Row (${row}) is out of bounds [0,${item.shapeProps.rows}]: `);
+                throw new Error(`Cannot get cell text in a table. Row (${row}) is out of bounds [0,${item.shapeProps.rows}]: `);
             }
             if (col < 0 || col >= item.shapeProps.columns) {
-                throw new Error(`Cannot set cell text in a table. Cell (${col}) is out of bounds [0,${item.shapeProps.columns}]: `);
+                throw new Error(`Cannot get cell text in a table. Cell (${col}) is out of bounds [0,${item.shapeProps.columns}]: `);
             }
             const key = `c_${row}_${col}`;
             if (item.textSlots[key]) {

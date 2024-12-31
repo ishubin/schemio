@@ -159,6 +159,9 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [addBeizerPoint (path)](#addbeizerpoint-path)
       - [getPathLength (path)](#getpathlength-path)
       - [getPathWorldPosAtLength (path)](#getpathworldposatlength-path)
+    - [Table functions](#table-functions)
+      - [setCellText](#setcelltext)
+      - [getCellText](#getcelltext)
     - [Math block functions](#math-block-functions)
       - [setExpression](#setexpression)
 
@@ -1587,6 +1590,19 @@ pathItem = findItemByName('Path 1')
 p = pathIrem.getPathWorldPosAtLength(0, 56)
 log('x', p.x, 'y', p.y)
 ```
+
+#### Table functions
+
+`table` shape has special function for interacting with its cells
+
+##### setCellText
+
+`setCellText(row, column, text)` function sets specified text to a cell at the specified row and column
+
+##### getCellText
+
+`getCellText(row, column)` function returns the text of a cell at the specified row and column
+
 
 #### Math block functions
 
