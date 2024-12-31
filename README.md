@@ -1,7 +1,20 @@
 Schemio
---------------------
+===============
 
 Schemio is a web based diagramming app that allows you to build interactive diagrams. Although originally Schemio was not designed for this, but it is also possible to use it as a prototyping app.
+
+
+- [Features](#features)
+- [Demo: What happens when you open a website in your browser](#demo-what-happens-when-you-open-a-website-in-your-browser)
+- [Introduction to interactive diagrams with Schemio (Youtube video)](#introduction-to-interactive-diagrams-with-schemio-youtube-video)
+- [Configuration of server-based version of Schemio](#configuration-of-server-based-version-of-schemio)
+- [Running with Docker](#running-with-docker)
+- [Contributing (help needed)](#contributing-help-needed)
+- [License](#license)
+
+
+Features
+--------------
 
 Features of Schemio:
 
@@ -22,8 +35,6 @@ Features of Schemio:
 
 ![Scheenshot of Schemio](https://github.com/ishubin/schemio/blob/master/docs/schemio-screenshot-2.png?raw=true)
 
-For more insights on how the Schemio works and what you can do with it you can read the following article:
-* [Interactive diagrams for complex systems](https://medium.com/@ivan.ishubin/interactive-diagrams-for-complex-systems-b24f739d34f5)
 
 Demo: What happens when you open a website in your browser
 ----------------------------------------------------------
@@ -72,6 +83,19 @@ docker run -v "$(pwd):/opt/schemio" \
 
 Don't forget to pull latest changes as Schemio is frequently updated.
 
+
+Contributing (help needed)
+--------------------------
+
+If you find this project interesting and would like to contribute, your help would be greatly appreciated in many areas. To get started, please create an issue first so we can discuss the proposed changes and agree on their implementation. Below is a high-level overview of areas where you can contribute. For more details, refer to the [Help needed](/HELP-NEEDED.md) and [Contributing](/CONTRIBUTING.md) documents.
+
+- Designing new shapes for Schemio
+- Adding new icon packs
+- Contribute to the interactive knowledgebase on https://schem.io
+- Testing
+- Fix the Electron build
+- Desing new templates
+- Improve SchemioScript documentation
 
 
 License
