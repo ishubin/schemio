@@ -66,6 +66,7 @@ export default {
         showFooter           : { type: Boolean, default: true },
         closable             : { type: Boolean, default: true},
         closeName            : { type: String, default: 'Close'},
+        fixedHeight          : { type: Boolean, default: false },
         // this property is used by the parent component
         // to notify that the modal position should be readjusted on screen
         // this happens because often the modal's content is dynamically loaded
@@ -168,10 +169,14 @@ export default {
     computed: {
         modalBodyStyles() {
             const styles = {};
+            let heightKey = 'max-height';
+            if (this.fixedHeight) {
+                heightKey = 'height';
+            }
             if (this.maxHeight > 0) {
-                styles['max-height'] = `${Math.min(this.maxHeight, window.innerHeight - 120)}px`;
+                styles[heightKey] = `${Math.min(this.maxHeight, window.innerHeight - 120)}px`;
             } else {
-                styles['max-height'] = `${window.innerHeight - 120}px`;
+                styles[heightKey] = `${window.innerHeight - 120}px`;
             }
             return styles;
         }

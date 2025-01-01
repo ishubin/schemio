@@ -4924,9 +4924,12 @@ ul.patch-field-list {
 .external-shapes {
     display: flex;
     flex-direction: row;
+    height: 100%;
 }
 .external-shapes .external-shapes-list {
     flex: 1;
+    height: 100%;
+    overflow: auto;
     background: var(--base-weak);
 }
 .external-shapes .external-shapes-list li {
@@ -4944,6 +4947,24 @@ ul.patch-field-list {
     font-size: 12px;
     color: var(--faint-strong-down);
 }
+.external-shapes .external-shapes-list li .preview {
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    height: 30px;
+    width: 180px;
+    gap: 5px;
+}
+.external-shapes .external-shapes-list li .preview .preview-icon {
+    height: 30px;
+}
+.external-shapes .external-shapes-list li .preview img {
+    width: 100%;
+    height: 100%;
+}
 .external-shapes .external-shapes-list .missing-extra-shapes {
     color: var(--faint-weak-down);
     font-style: italic;
@@ -4952,15 +4973,20 @@ ul.patch-field-list {
     padding: 10px;
     height: 100%;
     flex: 1;
-    min-height: 400px;
-    height: 100%;
 	display: flex;
     flex-direction: column;
+}
+.external-shapes .external-shape-preview .external-shape-content {
+    height: 100%;
+    overflow: auto;
 }
 .external-shapes .external-shape-preview .title {
     font-size: 20px;
     font-weight: bold;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
+}
+.external-shapes .external-shape-preview .author {
+    padding-bottom: 5px;
 }
 .external-shapes .external-shape-preview .preview {
     flex: 1;
@@ -5097,6 +5123,8 @@ ul.patch-field-list {
 .col-8 { flex: 8; }
 .col-9 { flex: 9; }
 .col-10 { flex: 10; }
+.col-11 { flex: 11; }
+.col-12 { flex: 12; }
 .padded {
     padding: 4px;
 }

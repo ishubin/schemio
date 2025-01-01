@@ -1,5 +1,13 @@
 <template>
-    <modal title="Additional shapes" @close="$emit('close')" :width="900" :repositionId="repositionId">
+    <Modal title="Additional shapes"
+        :width="900"
+        :repositionId="repositionId"
+        :fixedHeight="true"
+        :primaryButton="primaryButton"
+        :primaryButtonDisabled="primaryButtonDisabled"
+        @close="$emit('close')"
+        @primary-submit="registerSelectedShapeGroup()"
+        >
         <div v-if="isLoading" class="loader">
             <div class="loader-element"></div>
         </div>
@@ -13,8 +21,13 @@
                         :class="{selected: selectedEntryIdx === entryIdx}"
                         @click="selectEntry(entry, entryIdx)">
                         {{entry.name}}
+
                         <span v-if="entry.used" class="added">added</span>
-                        <span v-else-if="selectedEntryIdx === entryIdx" class="btn btn-add btn-primary" @click="registerSelectedShapeGroup()">Add</span>
+                        <div class="preview" v-else-if="entry.previewImages">
+                            <div class="preview-icon" v-for="imageUrl in entry.previewImages.slice(0, 4)">
+                                <img :src="imageUrl" />
+                            </div>
+                        </div>
                     </li>
                 </ul>
                 <div v-else class="missing-extra-shapes">
@@ -22,21 +35,41 @@
                 </div>
             </div>
             <div class="external-shape-preview" v-if="selectedEntry">
-                <div class="title">{{selectedEntry.name}}</div>
-                <div class="description" v-if="selectedEntry.description">{{ selectedEntry.description }}</div>
-                <div class="preview" v-if="selectedEntry.preview">
-                    <img class="large" :src="selectedEntry.preview" />
+                <div class="row">
+                    <div class="col-11">
+                        <div class="title">{{selectedEntry.name}}</div>
+                    </div>
+                    <div class="col-1">
+                        <span v-if="!selectedEntry.used" class="btn btn-add btn-primary" @click="registerSelectedShapeGroup()">Add</span>
+                    </div>
                 </div>
-                <div class="preview" v-if="selectedEntry.previewImages">
-                    <div class="preview-icon" v-for="imageUrl in selectedEntry.previewImages">
-                        <img :src="imageUrl" />
+                <div class="row author" v-if="selectedEntry.link">
+                    <div>
+                        Author: <a :href="selectedEntry.link">
+                            <span v-if="selectedEntry.author">{{selectedEntry.author}}</span>
+                            <span v-else>{{selectedEntry.link}}</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="row" v-if="selectedArtPack && selectedArtPack.icons && selectedArtPack.icons.length > 0">
+                    <input v-model="searchKeyword" type="text" class="textfield" placeholder="Search..."/>
+                </div>
+                <div class="external-shape-content">
+                    <div class="description" v-if="selectedEntry.description">{{ selectedEntry.description }}</div>
+                    <div class="preview" v-if="selectedArtPack && selectedArtPack.icons && selectedArtPack.icons.length > 0">
+                        <div class="preview-icon" v-for="icon in filtereSelectedArtPackIcons">
+                            <img :src="icon.url" :title="icon.name" />
+                        </div>
+                    </div>
+                    <div class="preview" v-else-if="selectedEntry.preview">
+                        <img class="large" :src="selectedEntry.preview" />
                     </div>
                 </div>
             </div>
             <div v-else class="external-shape-preview">
             </div>
         </div>
-    </modal>
+    </Modal>
 </template>
 
 <script>
@@ -124,16 +157,25 @@ export default {
             isLoading: false,
             entries: null,
             selectedEntry: null,
+            selectedArtPack: null,
             selectedEntryIdx: -1,
             errorMessage: null,
-            repositionId: 0
+            repositionId: 0,
+            searchKeyword: '',
         };
     },
 
     methods: {
         selectEntry(entry, entryIdx) {
+            if (this.selectedEntryIdx !== entryIdx) {
+                this.selectedArtPack = null;
+                this.searchKeyword = '';
+            }
             this.selectedEntryIdx = entryIdx;
             this.selectedEntry = entry;
+            this.loadArtPack(entry).then(artPack => {
+                this.selectedArtPack = artPack;
+            });
         },
 
         registerSelectedShapeGroup() {
@@ -144,22 +186,32 @@ export default {
             }
         },
 
-        registerArtPack(artPackEntry) {
+        loadArtPack(artPackEntry) {
             this.isLoading = true;
-
             let url = artPackEntry.ref;
             if (url.startsWith('/assets') && this.$store.state.routePrefix) {
                 url = this.$store.state.routePrefix + url;
             }
-            axios.get(url)
-            .then(response => {
+            return axios.get(url).then(response => {
+                this.isLoading = false;
                 const artPack = response.data;
                 if (Array.isArray(artPack.icons)) {
                     artPack.icons.forEach(icon => {
                         icon.url = fixAssetsPath(this.$store, icon.url);
                     });
                 }
+                return artPack;
+            })
+            .catch(err => {
                 this.isLoading = false;
+                StoreUtils.addErrorSystemMessage(this.$store, 'Could not load art pack');
+                console.error(err);
+            });
+        },
+
+        registerArtPack(artPackEntry) {
+            this.loadArtPack(artPackEntry)
+            .then(artPack => {
                 StoreUtils.addArtPack(this.$store, artPackEntry.ref, artPack);
                 this.$emit('art-pack-added', artPack);
                 artPackEntry.used = true;
@@ -187,6 +239,33 @@ export default {
             .catch(err => {
                 this.isLoading = false;
                 console.error(err);
+            });
+        }
+    },
+
+    computed: {
+        primaryButton() {
+            if (!this.selectedEntry) {
+                return null;
+            }
+            return `Add "${this.selectedEntry.name}"`;
+        },
+
+        primaryButtonDisabled() {
+            if (!this.selectedEntry) {
+                return false;
+            }
+            return this.selectedEntry.used;
+        },
+
+        filtereSelectedArtPackIcons() {
+            if (!this.selectedArtPack || !Array.isArray(this.selectedArtPack.icons)) {
+                return [];
+            }
+            return this.selectedArtPack.icons.filter(icon => {
+                const name = icon.name || '';
+                const query = this.searchKeyword.trim();
+                return name.indexOf(query) >= 0;
             });
         }
     }
