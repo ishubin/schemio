@@ -56,9 +56,10 @@
                 </div>
                 <div class="external-shape-content">
                     <div class="description" v-if="selectedEntry.description">{{ selectedEntry.description }}</div>
-                    <div class="preview" v-if="selectedArtPack && selectedArtPack.icons && selectedArtPack.icons.length > 0">
-                        <div class="preview-icon" v-for="icon in filtereSelectedArtPackIcons">
+                    <div class="preview grid" v-if="selectedArtPack && selectedArtPack.icons && selectedArtPack.icons.length > 0">
+                        <div class="preview-icon" v-for="icon in filteredSelectedArtPackIcons">
                             <img :src="icon.url" :title="icon.name" />
+                            <span class="name">{{ icon.name }}</span>
                         </div>
                     </div>
                     <div class="preview" v-else-if="selectedEntry.preview">
@@ -258,14 +259,14 @@ export default {
             return this.selectedEntry.used;
         },
 
-        filtereSelectedArtPackIcons() {
+        filteredSelectedArtPackIcons() {
             if (!this.selectedArtPack || !Array.isArray(this.selectedArtPack.icons)) {
                 return [];
             }
             return this.selectedArtPack.icons.filter(icon => {
                 const name = icon.name || '';
-                const query = this.searchKeyword.trim();
-                return name.indexOf(query) >= 0;
+                const query = this.searchKeyword.trim().toLowerCase();
+                return name.toLowerCase().indexOf(query) >= 0;
             });
         }
     }
