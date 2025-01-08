@@ -15,7 +15,9 @@ module.exports = {
     },
     resolve: {
         alias: {
-            vue: 'vue/dist/vue.js'
+            vue: 'vue/dist/vue.js',
+            '@codemirror/state': path.resolve(__dirname, 'node_modules/@codemirror/state'),
+            '@codemirror': path.resolve(__dirname, 'node_modules/@codemirror/'),
         }
     },
     module: {

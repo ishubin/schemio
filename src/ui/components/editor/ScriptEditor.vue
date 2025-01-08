@@ -3,157 +3,147 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="script-editor-container">
-        <textarea class="script-editor"
-            v-model="script"
-            @input="$emit('changed', arguments[0].target.value)"
-            @keydown="onTextareaKeydown"
-            autocapitalize="off"
-            autocomplete="off"
-            autocorrect="off"
-            spellcheck="false"
-            :style="{height: `${height}px`}"
-        ></textarea>
-        <span class="text-editor-enlarge" @click="enlarged = true"><i class="fas fa-expand"></i></span>
-
-
-        <div class="textarea-enlarged-container" v-if="enlarged">
-            <div class="rich-text-editor-menubar">
-                <span class="btn btn-secondary action-close" @click="enlarged = false">Close</span>
-            </div>
-            <div class="editor-frame">
-                <textarea class="script-editor"
-                    v-model="script"
-                    @input="$emit('changed', arguments[0].target.value)"
-                    @keydown="onTextareaKeydown"
-                ></textarea>
-            </div>
+        <div ref="scriptEditor" class="codemirror-container">
         </div>
     </div>
 </template>
 
 <script>
-
-/**
- *
- * @param {HTMLTextAreaElement} textarea
- */
-function insertTabCharacter(textarea) {
-    const {value, selectionEnd} = textarea;
-
-    // Insert tab character
-    textarea.value = `${value.substring(0, selectionEnd)}\t${value.substring(selectionEnd)}`;
-
-    // Move cursor to new position
-    textarea.selectionStart = textarea.selectionEnd = selectionEnd + 1;
-}
-
-/**
- *
- * @param {HTMLTextAreaElement} textarea
- */
-function indentSelectedLines(textarea) {
-    const { value, selectionStart, selectionEnd } = textarea;
-
-    const linesBeforeCaret = value.substring(0, selectionStart).split('\n');
-    const startLine = linesBeforeCaret.length - 1;
-    const endLine = value.substring(0, selectionEnd).split('\n').length - 1;
-
-    const newValue = value.split('\n').map((line, i) => (startLine <= i && i <= endLine) ? `\t${line}` : line).join('\n');
-
-    textarea.value = newValue;
-
-    const startLineText = linesBeforeCaret[startLine];
-    textarea.selectionStart = startLineText && /\S/.test(startLineText) ? selectionStart + 1 : selectionStart;
-    textarea.selectionEnd = selectionEnd + (endLine - startLine + 1);
-};
+import {basicSetup} from "codemirror";
+import {EditorState, Compartment} from "@codemirror/state";
+import {EditorView, keymap} from "@codemirror/view";
+import {SchemioScript } from "codemirror-lang-schemioscript";
+import {defaultKeymap, indentWithTab} from "@codemirror/commands";
+import { oneDark } from '@codemirror/theme-one-dark';
+import {autocompletion} from "@codemirror/autocomplete";
+import {syntaxTree} from "@codemirror/language";
 
 
-function removeIndentation(textarea) {
-    const { value, selectionStart, selectionEnd } = textarea;
+const keywords = `
+    local for while if else func struct
+`.split(/\s+/).filter(name => name).map(name => {return {
+    label: name, type: 'keyword'
+}});
 
-    const linesBeforeCaret = value.substring(0, selectionStart).split('\n');
-    const startLine = linesBeforeCaret.length - 1;
-    const endLine = value.substring(0, selectionEnd).split('\n').length - 1;
-    const newValue = value
-        .split('\n')
-        .map((line, lineIdx) => startLine <= lineIdx  && lineIdx <= endLine && line.startsWith('\t') ? line.substring(1) : line)
-        .join('\n');
-    textarea.value = newValue;
+const functions = `
+  acos
+  asin
+  atan
+  ceil
+  cos
+  debugItem
+  duplicate
+  findChildItemByName
+  findChildItemsByTag
+  findItemById
+  findItemByName
+  findParent
+  floor
+  getAngle
+  getEventArg
+  getEventName
+  getHeight
+  getId
+  getName
+  getOpacity
+  getPos
+  getPosX
+  getPosY
+  getScaleX
+  getScaleY
+  getSelfOpacity
+  getShape
+  getTags
+  getValue
+  getVar
+  getWidth
+  getWorldPos
+  hide
+  ifcond
+  isVisible
+  List
+  localPoint
+  log
+  log10
+  log2
+  logn
+  Map
+  matchWorld
+  min
+  mount
+  mountChild
+  mountRoot
+  parseFloat
+  parseInt
+  PI
+  pow
+  remove
+  removeChildItemsByTag
+  rgba
+  rnd
+  round
+  sendEvent
+  setAngle
+  setHeight
+  setOpacity
+  setPos
+  setPosX
+  setPosY
+  setScaleX
+  setScaleY
+  setSelfOpacity
+  setText
+  setTextColor
+  setTextSize
+  setValue
+  setVar
+  setWidth
+  setWorldPos
+  show
+  sin
+  sqrt
+  tag
+  tan
+  uid
+  worldPoint
+`.split(/\s+/).filter(name => name).map(name => {return {
+    label: name, type: 'function', detail: ''
+}});
 
-    const startLineText = linesBeforeCaret[startLine];
-    textarea.selectionStart = startLineText?.startsWith('\t')
-                            ? selectionStart - 1
-                            : selectionStart;
-    textarea.selectionEnd = selectionEnd - (value.length - newValue.length);
-}
+const completions = keywords.concat(functions);
 
-/**
- * @param {String} text
- * @param {Number} idx
- * @returns {String}
- */
-function getLastLine(text, idx) {
-    let end = idx;
-    if (text.charAt(idx) === '\n') {
-        end = idx - 1;
+function myCompletions(context) {
+    const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
+    if (!nodeBefore) {
+        return null;
+    }
+    const before = context.matchBefore(/(\w+|@)/);
+    if (!before) {
+        return null;
+    }
+    if (!context.explicit && !before) return null;
+
+    if (nodeBefore.name === 'ExternalObjectReference') {
+
+    } else if (nodeBefore.name === 'VariableName') {
+        return {
+            from: before ? before.from : context.pos,
+            options: completions,
+            validFor: /^\w*$/
+        };
     }
 
-    for (let i = end; i >= 0; i--) {
-        if (text.charAt(i) === '\n') {
-            return text.substring(i+1, idx);
-        }
-    }
-    return text.substring(0, idx);
+    // ExternalObjectReference
+    // VariableName
+
+    // if (nodeBefore) {
+    //     console.log('nodeBefore', nodeBefore.name, nodeBefore);
+    // }
+    // console.log('before', before);
+
+    return null;
 }
 
-/**
- * @param {HTMLTextAreaElement} textarea
- * @param {Number} idx
- */
-function insertNewLineAt(textarea, idx) {
-    const value = textarea.value;
-    const line = getLastLine(value, idx).replaceAll('\n', '');
-    const trimmedLine = line.trim();
-    const lastChar = trimmedLine.length > 0 ? trimmedLine.charAt(trimmedLine.length - 1) : '';
-    let indentation = line.replace(/^(\s*).*$/, '$1');
-
-    const shouldIndent = lastChar === '{' || lastChar === '(';
-    if (shouldIndent) {
-        indentation += '\t';
-    }
-
-    textarea.value = value.substring(0, idx) + '\n' + indentation + value.substring(idx);
-
-    textarea.selectionStart = idx + 1 + indentation.length;
-    textarea.selectionEnd = textarea.selectionStart;
-
-}
-
-/**
- *
- * @param {HTMLTextAreaElement} textarea
- * @param {*} event
- */
-function onTextareaKeydown(textarea, event) {
-    if (event.key === 'Tab') {
-        event.preventDefault();
-        const {selectionStart, selectionEnd} = textarea;
-
-        if (event.shiftKey) {
-            removeIndentation(textarea);
-        } else if (selectionStart === selectionEnd) {
-            insertTabCharacter(textarea);
-        } else {
-            indentSelectedLines(textarea);
-        }
-    } else if (event.key === 'Enter') {
-        const {selectionStart, selectionEnd} = textarea;
-        if (selectionStart === selectionEnd) {
-            event.preventDefault();
-            insertNewLineAt(textarea, selectionStart);
-        }
-    }
-}
 
 export default {
     props: {
@@ -168,10 +158,62 @@ export default {
         };
     },
 
+    created() {
+        const editorTheme = new Compartment();
+        let themeId = document.body.getAttribute('data-theme');
+        let theme = themeId === 'dark' ? oneDark : [];
+        this.editorState = EditorState.create({
+            doc: this.script,
+            extensions: [
+                keymap.of(defaultKeymap),
+                keymap.of(indentWithTab),
+                basicSetup,
+                SchemioScript(),
+                editorTheme.of(theme),
+                EditorView.updateListener.of((v)=> {
+                    if(v.docChanged) {
+                        this.$emit('changed', this.editor.state.doc.toString())
+                    }
+                }),
+                EditorView.theme({
+                    "&": {height: "300px"},
+                    ".cm-scroller": {overflow: "auto"},
+                }),
+                autocompletion({override: [myCompletions]})
+            ]
+        });
+        this.editor = null;
+
+        this.themeObserver = new MutationObserver(() => {
+            const newThemeId = document.body.getAttribute('data-theme');
+            const theme = newThemeId === 'dark' ? oneDark : [];
+            if (this.editor) {
+                this.editor.dispatch({
+                    effects: editorTheme.reconfigure(theme)
+                });
+            }
+        });
+        this.themeObserver.observe(document.body, {
+            attributeFilter: ['data-theme'],
+            attributeOldValue: true,
+            subtree: false,
+            childList: false,
+        });
+    },
+
+    beforeDestroy() {
+        this.themeObserver.disconnect();
+    },
+
+    mounted() {
+        this.editor = new EditorView({
+            state: this.editorState,
+            parent: this.$refs.scriptEditor,
+        });
+        this.editor.setTabFocusMode(false);
+    },
+
     methods: {
-        onTextareaKeydown(event) {
-            onTextareaKeydown(event.target, event);
-        }
     },
 
     watch: {

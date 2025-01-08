@@ -44,15 +44,15 @@
             </li>
         </ul>
         <div class="tabs-body">
-            <ScriptEditor v-if="selectedTabIdx === 0"
+            <ScriptEditor key="script-tab-0" v-if="selectedTabIdx === 0"
                 :value="args.initScript"
                 @changed="emitArgChange('initScript', arguments[0])"
             />
-            <ScriptEditor v-if="selectedTabIdx === 1"
+            <ScriptEditor key="script-tab-1" v-if="selectedTabIdx === 1"
                 :value="args.script"
                 @changed="emitArgChange('script', arguments[0])"
             />
-            <ScriptEditor v-if="selectedTabIdx === 2"
+            <ScriptEditor key="script-tab-2" v-if="selectedTabIdx === 2"
                 :value="args.endScript"
                 @changed="emitArgChange('endScript', arguments[0])"
             />

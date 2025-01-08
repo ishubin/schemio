@@ -2481,19 +2481,9 @@ ul.links-editor .edit-link:hover {
 
 
 /************ Script editor ***************/
-.script-editor-container {
+/* .script-editor-container {
     position: relative;
-}
-
-.script-editor-container textarea {
-    padding: 10px;
-    border: 1px solid var(--faint-weak-down);
-    background: var(--base-weak);
-    min-width: 100px;
-    width: 100%;
-    border-radius: var(--middle-border-radius);
-    outline: none;
-}
+} */
 
 ul.script-options {
     list-style: none;
