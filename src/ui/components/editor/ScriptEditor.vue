@@ -14,10 +14,26 @@ import {EditorState, Compartment} from "@codemirror/state";
 import {EditorView, keymap} from "@codemirror/view";
 import {SchemioScript } from "codemirror-lang-schemioscript";
 import {defaultKeymap, indentWithTab} from "@codemirror/commands";
-import { oneDark } from '@codemirror/theme-one-dark';
+import {dracula, clouds} from 'thememirror';
 import {autocompletion} from "@codemirror/autocomplete";
 import {syntaxTree, indentUnit} from "@codemirror/language";
+import { linter } from "@codemirror/lint";
 
+
+function basicLinter(view) {
+    let diagnostics = [];
+    syntaxTree(view.state).cursor().iterate(node => {
+        if (node.type.isError) {
+            diagnostics.push({
+                from: node.from,
+                to: node.to,
+                severity: "error",
+                message: null
+            });
+        }
+    })
+    return diagnostics;
+}
 
 const keywords = `
     local for while if else func struct
@@ -185,7 +201,7 @@ export default {
     created() {
         const editorTheme = new Compartment();
         let themeId = document.body.getAttribute('data-theme');
-        let theme = themeId === 'dark' ? oneDark : [];
+        let theme = themeId === 'dark' ? dracula : clouds;
         this.editorState = EditorState.create({
             doc: this.script,
             extensions: [
@@ -195,6 +211,7 @@ export default {
                 keymap.of(indentWithTab),
                 basicSetup,
                 SchemioScript(),
+                linter(basicLinter),
                 editorTheme.of(theme),
                 EditorView.updateListener.of((v)=> {
                     if(v.docChanged) {
@@ -212,7 +229,7 @@ export default {
 
         this.themeObserver = new MutationObserver(() => {
             const newThemeId = document.body.getAttribute('data-theme');
-            const theme = newThemeId === 'dark' ? oneDark : [];
+            const theme = newThemeId === 'dark' ? dracula : clouds;
             if (this.editor) {
                 this.editor.dispatch({
                     effects: editorTheme.reconfigure(theme)

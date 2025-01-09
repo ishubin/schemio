@@ -175,6 +175,7 @@
                     <ScriptFunctionEditor
                         :editorId="editorId"
                         :args="funcModal.props"
+                        :schemeContainer="schemeContainer"
                         @argument-changed="onScriptFunctionEditorPropChange"/>
                 </div>
             </Panel>
