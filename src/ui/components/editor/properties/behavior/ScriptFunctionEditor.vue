@@ -46,14 +46,17 @@
         <div class="tabs-body">
             <ScriptEditor key="script-tab-0" v-if="selectedTabIdx === 0"
                 :value="args.initScript"
+                :externalReferenceProvider="externalReferenceProvider"
                 @changed="emitArgChange('initScript', arguments[0])"
             />
             <ScriptEditor key="script-tab-1" v-if="selectedTabIdx === 1"
                 :value="args.script"
+                :externalReferenceProvider="externalReferenceProvider"
                 @changed="emitArgChange('script', arguments[0])"
             />
             <ScriptEditor key="script-tab-2" v-if="selectedTabIdx === 2"
                 :value="args.endScript"
+                :externalReferenceProvider="externalReferenceProvider"
                 @changed="emitArgChange('endScript', arguments[0])"
             />
         </div>
@@ -69,6 +72,7 @@ export default {
     props: {
         editorId: {type: String},
         args    : {type: Object},
+        schemeContainer: { type: Object },
     },
 
     components: { ScriptEditor, Tooltip, NumberTextfield, Tooltip },
@@ -76,6 +80,8 @@ export default {
     data() {
         const selectedOptionIdx = this.detectScriptOptionIdx();
         return {
+            externalReferenceProvider: () => this.schemeContainer.getItemNames(),
+
             knownTransitions: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'],
             tabs: [{
                 name: 'Init',

@@ -398,6 +398,12 @@ class SchemeContainer {
         this.reindexItems();
     }
 
+    getItemNames() {
+        const names = Array.from(new Set(this._itemArray.map(item => item.name)));
+        names.sort();
+        return names;
+    }
+
     setShadowTransform(shadowTransform) {
         this.shadowTransform = shadowTransform;
     }

@@ -16,7 +16,7 @@ import {SchemioScript } from "codemirror-lang-schemioscript";
 import {defaultKeymap, indentWithTab} from "@codemirror/commands";
 import { oneDark } from '@codemirror/theme-one-dark';
 import {autocompletion} from "@codemirror/autocomplete";
-import {syntaxTree} from "@codemirror/language";
+import {syntaxTree, indentUnit} from "@codemirror/language";
 
 
 const keywords = `
@@ -112,41 +112,65 @@ const functions = `
 
 const completions = keywords.concat(functions);
 
-function myCompletions(context) {
-    const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
-    if (!nodeBefore) {
+function createCompletions(externalReferenceProvider) {
+    const externalReferenceCompletions = externalReferenceProvider().map(name => {
+        const completion = {label: name, type: 'object', detail: 'object'};
+        if (!name.match(/^[0-9a-zA-Z_]+$/)) {
+            completion.apply = `"${name}"`;
+        }
+        return completion;
+    });
+
+    const externalReferenceCompletionsWithPrefix = externalReferenceProvider().map(name => {
+        const completion = {label: '@' + name, type: 'object', detail: 'object'};
+        if (!name.match(/^[0-9a-zA-Z_]+$/)) {
+            completion.apply = `@"${name}"`;
+        }
+        return completion;
+    });
+
+    return (context) => {
+        const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
+        if (!nodeBefore) {
+            return null;
+        }
+        const before = context.matchBefore(/(\w+|@)/);
+        if (!before) {
+            return null;
+        }
+        if (!context.explicit && !before) return null;
+
+        if (nodeBefore.name === 'ExternalObjectReference') {
+            if (before && before.text === '@') {
+                return {
+                    from: before ? before.from : context.pos,
+                    options: externalReferenceCompletionsWithPrefix,
+                    validFor: /^(@\w*)?$/
+                };
+            }
+            return {
+                from: before ? before.from : context.pos,
+                options: externalReferenceCompletions,
+                validFor: /^(@\w*)?$/
+            };
+        } else if (nodeBefore.name === 'VariableName') {
+            return {
+                from: before ? before.from : context.pos,
+                options: completions,
+                validFor: /^\w*$/
+            };
+        }
+
         return null;
-    }
-    const before = context.matchBefore(/(\w+|@)/);
-    if (!before) {
-        return null;
-    }
-    if (!context.explicit && !before) return null;
-
-    if (nodeBefore.name === 'ExternalObjectReference') {
-
-    } else if (nodeBefore.name === 'VariableName') {
-        return {
-            from: before ? before.from : context.pos,
-            options: completions,
-            validFor: /^\w*$/
-        };
-    }
-
-    // ExternalObjectReference
-    // VariableName
-
-    // if (nodeBefore) {
-    //     console.log('nodeBefore', nodeBefore.name, nodeBefore);
-    // }
-    // console.log('before', before);
-
-    return null;
+    };
 }
 
 
 export default {
     props: {
+        // Function the returns the list of item names in the scene
+        // so that they could be presented in the autocompletion
+        externalReferenceProvider: {type: Function, required: true},
         value: {type: String, default: ''},
         height: {type: Number, default: 400}
     },
@@ -165,6 +189,8 @@ export default {
         this.editorState = EditorState.create({
             doc: this.script,
             extensions: [
+                EditorState.tabSize.of(4),
+                indentUnit.of('\t'),
                 keymap.of(defaultKeymap),
                 keymap.of(indentWithTab),
                 basicSetup,
@@ -179,7 +205,7 @@ export default {
                     "&": {height: "300px"},
                     ".cm-scroller": {overflow: "auto"},
                 }),
-                autocompletion({override: [myCompletions]})
+                autocompletion({override: [ createCompletions(this.externalReferenceProvider) ]})
             ]
         });
         this.editor = null;

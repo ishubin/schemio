@@ -96,6 +96,7 @@
                     <ScriptEditor v-if="arg.type === 'script'"
                         :key="`script-editor-${argName}-${editorId}`"
                         :value="argumentValues[argName]"
+                        :externalReferenceProvider="externalReferenceProvider"
                         @changed="onValueChange(argName, arguments[0])"
                     />
                 </td>
@@ -169,6 +170,8 @@ export default {
             argumentValues,
             argumentControlStates: mapObjectValues(this.argsDefinition, () => {return {shown: true};}),
             scriptEnlarged: false,
+
+            externalReferenceProvider: () => this.schemeContainer.getItemNames()
         };
     },
 
