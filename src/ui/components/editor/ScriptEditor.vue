@@ -132,8 +132,9 @@ const functions = `
 
 const completions = keywords.concat(functions);
 
-function createCompletions(externalReferenceProvider) {
-    const externalReferenceCompletions = externalReferenceProvider().map(name => {
+function createCompletions(schemeContainer) {
+    const itemNames = schemeContainer.getItemNames();
+    const externalReferenceCompletions = itemNames.map(name => {
         const completion = {label: name, type: 'object', detail: 'object'};
         if (!name.match(/^[0-9a-zA-Z_]+$/)) {
             completion.apply = `"${name}"`;
@@ -141,7 +142,7 @@ function createCompletions(externalReferenceProvider) {
         return completion;
     });
 
-    const externalReferenceCompletionsWithPrefix = externalReferenceProvider().map(name => {
+    const externalReferenceCompletionsWithPrefix = itemNames.map(name => {
         const completion = {label: '@' + name, type: 'object', detail: 'object'};
         if (!name.match(/^[0-9a-zA-Z_]+$/)) {
             completion.apply = `@"${name}"`;
@@ -188,9 +189,7 @@ function createCompletions(externalReferenceProvider) {
 
 export default {
     props: {
-        // Function the returns the list of item names in the scene
-        // so that they could be presented in the autocompletion
-        externalReferenceProvider: {type: Function, required: true},
+        schemeContainer: {type: Object, required: true},
         value: {type: String, default: ''},
         height: {type: Number, default: 400}
     },
@@ -226,7 +225,11 @@ export default {
                     "&": {height: "100%"},
                     ".cm-scroller": {overflow: "auto"},
                 }),
-                autocompletion({override: [ createCompletions(this.externalReferenceProvider) ]})
+                autocompletion({
+                    override: [
+                        createCompletions(this.schemeContainer)
+                    ]
+                })
             ]
         });
         this.editor = null;

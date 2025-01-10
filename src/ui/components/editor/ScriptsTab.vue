@@ -91,7 +91,7 @@
         <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="true">
             <ScriptEditor
                 :value="mainScript"
-                :externalReferenceProvider="externalReferenceProvider"
+                :schemeContainer="schemeContainer"
                 @changed="onMainScriptChange"
                 />
         </Modal>
@@ -333,7 +333,6 @@ export default {
     data() {
         const scheme = this.schemeContainer.scheme;
         return {
-            externalReferenceProvider: () => this.schemeContainer.getItemNames(),
             mainScriptEditorShown: false,
             mainScript: scheme.scripts.main.source,
 

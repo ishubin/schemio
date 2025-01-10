@@ -7,7 +7,7 @@
         <ScriptEditor
             :value="args.expression"
             :height="100"
-            :externalReferenceProvider="externalReferenceProvider"
+            :schemeContainer="schemeContainer"
             @changed="emitArgChange('expression', arguments[0])" />
 
         <table>
@@ -75,8 +75,6 @@ export default {
 
     data() {
         return {
-            externalReferenceProvider: () => this.schemeContainer.getItemNames(),
-
             conditionBranchOptions: [{
                 id: 'pass',
                 description: 'Proceeds to next action in the current event'
