@@ -2,9 +2,13 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="script-editor-container">
+    <div class="script-editor-container" :class="{'script-editor-enlarged': enlarged}">
         <div ref="scriptEditor" class="codemirror-container">
         </div>
+        <span class="text-editor-enlarge" @click="enlarged = !enlarged">
+            <i v-if="enlarged" class="fa-solid fa-compress"></i>
+            <i v-else class="fas fa-expand"></i>
+        </span>
     </div>
 </template>
 
@@ -36,7 +40,7 @@ function basicLinter(view) {
 }
 
 const keywords = `
-    local for while if else func struct
+    local for while if else func struct this
 `.split(/\s+/).filter(name => name).map(name => {return {
     label: name, type: 'keyword'
 }});
@@ -219,7 +223,7 @@ export default {
                     }
                 }),
                 EditorView.theme({
-                    "&": {height: "300px"},
+                    "&": {height: "100%"},
                     ".cm-scroller": {overflow: "auto"},
                 }),
                 autocompletion({override: [ createCompletions(this.externalReferenceProvider) ]})
