@@ -8,6 +8,7 @@
             :value="args.expression"
             :height="100"
             :schemeContainer="schemeContainer"
+            :previousScripts="[schemeContainer.scheme.scripts.main.source]"
             @changed="emitArgChange('expression', arguments[0])" />
 
         <table>

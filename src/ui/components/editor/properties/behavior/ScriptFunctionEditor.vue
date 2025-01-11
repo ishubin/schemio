@@ -47,16 +47,19 @@
             <ScriptEditor key="script-tab-0" v-if="selectedTabIdx === 0"
                 :value="args.initScript"
                 :schemeContainer="schemeContainer"
+                :previousScripts="[schemeContainer.scheme.scripts.main.source]"
                 @changed="emitArgChange('initScript', arguments[0])"
             />
             <ScriptEditor key="script-tab-1" v-if="selectedTabIdx === 1"
                 :value="args.script"
                 :schemeContainer="schemeContainer"
+                :previousScripts="[schemeContainer.scheme.scripts.main.source, args.initScript]"
                 @changed="emitArgChange('script', arguments[0])"
             />
             <ScriptEditor key="script-tab-2" v-if="selectedTabIdx === 2"
                 :value="args.endScript"
                 :schemeContainer="schemeContainer"
+                :previousScripts="[schemeContainer.scheme.scripts.main.source, args.initScript]"
                 @changed="emitArgChange('endScript', arguments[0])"
             />
         </div>

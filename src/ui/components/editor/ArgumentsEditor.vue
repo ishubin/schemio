@@ -97,6 +97,7 @@
                         :key="`script-editor-${argName}-${editorId}`"
                         :value="argumentValues[argName]"
                         :schemeContainer="schemeContainer"
+                        :previousScripts="[schemeContainer.scheme.scripts.main.source]"
                         @changed="onValueChange(argName, arguments[0])"
                     />
                 </td>

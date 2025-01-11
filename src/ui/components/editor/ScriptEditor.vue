@@ -22,6 +22,9 @@ import {dracula, clouds} from 'thememirror';
 import {autocompletion} from "@codemirror/autocomplete";
 import {syntaxTree, indentUnit} from "@codemirror/language";
 import { linter } from "@codemirror/lint";
+import { parseExpression } from "../../templater/ast";
+import { ASTAssign, ASTFunctionDeclaration, ASTLocalVariable, ASTMultiExpression, ASTVarRef } from "../../templater/nodes";
+import { ASTStructNode } from "../../templater/struct";
 
 
 function basicLinter(view) {
@@ -130,9 +133,52 @@ const functions = `
     label: name, type: 'function', detail: ''
 }});
 
-const completions = keywords.concat(functions);
 
-function createCompletions(schemeContainer) {
+function extractCompletionsFromScript(script) {
+    if (!script) {
+        return [];
+    }
+    const completions = [];
+    const visitNode = (node) => {
+        if (node instanceof ASTAssign) {
+            if (node.a instanceof ASTVarRef) {
+                completions.push({
+                    label: node.a.varName, type: (node.b instanceof ASTFunctionDeclaration) ? 'function' : 'variable'
+                });
+            }
+        } else if (node instanceof ASTLocalVariable) {
+            completions.push({
+                label: node.varName, type: 'variable'
+            });
+        } else if (node instanceof ASTStructNode) {
+            completions.push({
+                label: node.name, type: 'function', detail: 'struct'
+            })
+        }
+    };
+    try {
+        const ast = parseExpression(script);
+        if (ast instanceof ASTMultiExpression) {
+            ast.nodes.forEach(visitNode);
+        } else {
+            visitNode(ast);
+        }
+    } catch(err) {
+    }
+    return completions;
+}
+
+/**
+ * @param {Object} schemeContainer
+ * @param {Array<String>} previousScripts
+ */
+function createCompletions(schemeContainer, previousScripts) {
+    let completions = keywords.concat(functions);
+
+    previousScripts.forEach(script => {
+        completions = completions.concat(extractCompletionsFromScript(script));
+    });
+
     const itemNames = schemeContainer.getItemNames();
     const externalReferenceCompletions = itemNames.map(name => {
         const completion = {label: name, type: 'object', detail: 'object'};
@@ -190,6 +236,7 @@ function createCompletions(schemeContainer) {
 export default {
     props: {
         schemeContainer: {type: Object, required: true},
+        previousScripts: {type: Array, default: []},
         value: {type: String, default: ''},
         height: {type: Number, default: 400}
     },
@@ -227,7 +274,7 @@ export default {
                 }),
                 autocompletion({
                     override: [
-                        createCompletions(this.schemeContainer)
+                        createCompletions(this.schemeContainer, this.previousScripts)
                     ]
                 })
             ]
