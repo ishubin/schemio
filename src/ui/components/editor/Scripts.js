@@ -1,6 +1,7 @@
 import { parseExpression } from "../../templater/ast";
 import { ASTAssign, ASTFunctionDeclaration, ASTLocalVariable, ASTMultiExpression, ASTVarRef } from "../../templater/nodes";
 import { ASTStructNode } from "../../templater/struct";
+import {syntaxTree} from "@codemirror/language";
 
 const keywords = `
     local for while if else func struct this
