@@ -2483,7 +2483,6 @@ ul.links-editor .edit-link:hover {
 /************ Script editor ***************/
 .script-editor-container {
     position: relative;
-    height: 300px;
 }
 .script-editor-container.script-editor-enlarged {
     position: fixed;

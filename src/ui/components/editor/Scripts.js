@@ -13,9 +13,13 @@ const functions = `
   acos
   asin
   atan
+  Area
   ceil
   cos
+  Color
   debugItem
+  decodeTree
+  decodeColor
   duplicate
   findChildItemByName
   findChildItemsByTag
@@ -23,6 +27,7 @@ const functions = `
   findItemByName
   findParent
   floor
+  fromJSON
   getAngle
   getEventArg
   getEventName
@@ -45,6 +50,7 @@ const functions = `
   hide
   ifcond
   isVisible
+  isNumber
   List
   localPoint
   log
@@ -53,6 +59,8 @@ const functions = `
   logn
   Map
   matchWorld
+  matchesRegex
+  max
   min
   mount
   mountChild
@@ -65,8 +73,10 @@ const functions = `
   removeChildItemsByTag
   rgba
   rnd
+  rndInt
   round
   sendEvent
+  Set
   setAngle
   setHeight
   setOpacity
@@ -86,9 +96,13 @@ const functions = `
   show
   sin
   sqrt
+  splitString
   tag
   tan
+  TreeNode
+  toJSON
   uid
+  Vector
   worldPoint
 `.split(/\s+/).filter(name => name).map(name => {return {
     label: name, type: 'function', detail: ''

@@ -562,6 +562,7 @@ function setObjectFieldFunc(obj, name, value) {
 
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
+    max       : Math.max,
     Vector    : (x, y) => new Vector(x, y),
     List      : (...items) => new List(...items),
     TreeNode  : (...items) => new TreeNode(...items),
@@ -569,7 +570,6 @@ const reservedFunctions = new Map(Object.entries({
     Area      : (x, y, w, h) => new Area(x, y, w, h),
     Map       : (...args) => createHashMap(...args),
     Set       : (...items) => new Set(items),
-    max       : Math.max,
     pow       : Math.pow,
     sqrt      : Math.sqrt,
     cos       : Math.cos,
