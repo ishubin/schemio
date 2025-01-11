@@ -385,7 +385,7 @@
                         <ScriptsTab v-if="currentLeftTab === 'Scripts'"
                             :key="`${editorId}-${schemeContainer.scheme.id}`"
                             :editorId="editorId"
-                            :scheme-container="schemeContainer"
+                            :schemeContainer="schemeContainer"
                             />
                     </div>
                 </div>

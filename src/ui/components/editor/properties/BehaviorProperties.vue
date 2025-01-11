@@ -211,6 +211,7 @@
                 <component
                     :is="functionArgumentsEditor.functionDescription.editorComponent"
                     :editorId="editorId"
+                    :schemeContainer="schemeContainer"
                     :args="functionArgumentsEditor.args"
                     @argument-changed="onFunctionArgumentsEditorChange"
                 ></component>

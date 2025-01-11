@@ -88,12 +88,17 @@
             </div>
         </Panel>
 
-        <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="true">
-            <ScriptEditor :value="mainScript" @changed="onMainScriptChange"/>
+        <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="false">
+            <ScriptEditor
+                :value="mainScript"
+                :schemeContainer="schemeContainer"
+                :height="mainScriptEditorHeight"
+                @changed="onMainScriptChange"
+                />
         </Modal>
 
 
-        <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close">
+        <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close" :useMask="false">
             <Panel uid="class-modal-name" name="General">
                 <div class="section">
                     <div class="ctrl-label-inline">Shape support:</div>
@@ -141,7 +146,7 @@
         </Modal>
 
 
-        <Modal v-if="funcModal.shown" title="Function editor" :width="900" @close="funcModal.shown = false" closeName="Close">
+        <Modal v-if="funcModal.shown" title="Function editor" :width="900" @close="funcModal.shown = false" closeName="Close" :useMask="false">
             <Panel uid="func-modal-name" name="Name & Description">
                 <div class="ctrl-label">Name</div>
                 <input type="text" class="textfield" :class="{'field-error': funcModal.isNameError}"
@@ -171,6 +176,7 @@
                     <ScriptFunctionEditor
                         :editorId="editorId"
                         :args="funcModal.props"
+                        :schemeContainer="schemeContainer"
                         @argument-changed="onScriptFunctionEditorPropChange"/>
                 </div>
             </Panel>
@@ -741,6 +747,7 @@ export default {
         onScriptFunctionEditorPropChange(name, value) {
             this.funcModal.props[name] = value;
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].props[name] = value;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.props.${name}`);
         },
 
         pasteFuncs() {
@@ -946,6 +953,9 @@ export default {
     computed: {
         importButtonDisabled() {
             return this.importFunctionModal.totalSelected === 0;
+        },
+        mainScriptEditorHeight() {
+            return window.innerHeight - 60;
         }
     }
 }

@@ -7,6 +7,8 @@
         <ScriptEditor
             :value="args.expression"
             :height="100"
+            :schemeContainer="schemeContainer"
+            :previousScripts="[schemeContainer.scheme.scripts.main.source]"
             @changed="emitArgChange('expression', arguments[0])" />
 
         <table>
@@ -67,6 +69,7 @@ export default {
     props: {
         editorId: { type: String },
         args: { type: Object },
+        schemeContainer: { type: Object },
     },
 
     components: { ScriptEditor, Dropdown },

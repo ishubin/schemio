@@ -2484,15 +2484,17 @@ ul.links-editor .edit-link:hover {
 .script-editor-container {
     position: relative;
 }
-
-.script-editor-container textarea {
-    padding: 10px;
-    border: 1px solid var(--faint-weak-down);
-    background: var(--base-weak);
-    min-width: 100px;
+.script-editor-container.script-editor-enlarged {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    height: 100%;
     width: 100%;
-    border-radius: var(--middle-border-radius);
-    outline: none;
+}
+
+.script-editor-container .codemirror-container {
+    height: 100%;
 }
 
 ul.script-options {
