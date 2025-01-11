@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="script-editor-container" :class="{'script-editor-enlarged': enlarged}" :style="{height: `${height}px`}">
+    <div class="script-editor-container" :class="{'script-editor-enlarged': enlarged}" :style="{height: enlarged ? '100%' : `${height}px`}">
         <div ref="scriptEditor" class="codemirror-container">
         </div>
         <span class="text-editor-enlarge" @click="enlarged = !enlarged">
