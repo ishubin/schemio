@@ -466,6 +466,8 @@ import myMath from '../../myMath';
 import { itemCompleteTransform, worldPointOnItem } from '../../scheme/ItemMath';
 import { compileItemTemplate } from './items/ItemTemplate';
 import EditorEventBus from './EditorEventBus';
+import utils from '../../utils';
+import { jsonDiff } from '../../json-differ';
 
 
 /**
@@ -729,7 +731,13 @@ export default {
 
         onTemplateControlClick(idx) {
             const item = this.editBox.templateItemRoot;
+            const originArgs = utils.clone(item.args.templateArgs);
             const updatedArgs = this.templateControls[idx].click(item);
+
+            const diff = jsonDiff(originArgs, updatedArgs);
+            if (diff.changes.length > 0) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            }
 
             if (item.args && item.args.templateArgs) {
                 for (let key in item.args.templateArgs) {
