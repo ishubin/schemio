@@ -261,6 +261,10 @@ export const draculaTheme = createTheme({
 			color: '#E0E0E0',
 		},
 		{
+			tag: t.macroName,
+			color: '#F5B360',
+		},
+		{
 			tag: t.attributeName,
 			color: '#7BACCA',
 		},
