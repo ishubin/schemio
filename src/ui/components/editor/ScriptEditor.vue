@@ -18,11 +18,11 @@ import {EditorState, Compartment} from "@codemirror/state";
 import {EditorView, keymap} from "@codemirror/view";
 import {SchemioScript } from "codemirror-lang-schemioscript";
 import {defaultKeymap, indentWithTab} from "@codemirror/commands";
-import {dracula, clouds} from 'thememirror';
+import {clouds} from 'thememirror';
 import {autocompletion} from "@codemirror/autocomplete";
 import {syntaxTree, indentUnit} from "@codemirror/language";
 import { linter } from "@codemirror/lint";
-import { createCompletions } from "./Scripts";
+import { createCompletions, draculaTheme } from "./Scripts";
 
 
 function basicLinter(view) {
@@ -60,7 +60,7 @@ export default {
     created() {
         const editorTheme = new Compartment();
         let themeId = document.body.getAttribute('data-theme');
-        let theme = themeId === 'dark' ? dracula : clouds;
+        let theme = themeId === 'dark' ? draculaTheme : clouds;
         this.editorState = EditorState.create({
             doc: this.script,
             extensions: [
@@ -92,7 +92,7 @@ export default {
 
         this.themeObserver = new MutationObserver(() => {
             const newThemeId = document.body.getAttribute('data-theme');
-            const theme = newThemeId === 'dark' ? dracula : clouds;
+            const theme = newThemeId === 'dark' ? draculaTheme : clouds;
             if (this.editor) {
                 this.editor.dispatch({
                     effects: editorTheme.reconfigure(theme)

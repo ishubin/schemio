@@ -1,7 +1,9 @@
+import { createTheme } from "thememirror";
 import { parseExpression } from "../../templater/ast";
 import { ASTAssign, ASTFunctionDeclaration, ASTLocalVariable, ASTMultiExpression, ASTVarRef } from "../../templater/nodes";
 import { ASTStructNode } from "../../templater/struct";
 import {syntaxTree} from "@codemirror/language";
+import {tags as t} from '@lezer/highlight';
 
 const keywords = `
     local for while if else func struct this
@@ -206,3 +208,61 @@ export function createCompletions(schemeContainer, previousScripts) {
         return null;
     };
 }
+
+
+export const draculaTheme = createTheme({
+	variant: 'dark',
+	settings: {
+		background: '#202230',
+		foreground: '#D5E1E2',
+		caret: '#FFFFFF45',
+		selection: '#42AAA9',
+		gutterBackground: '#282A36',
+		gutterForeground: '#E0E0E090',
+		lineHighlight: '#FFFFFF0F',
+	},
+	styles: [
+		{
+			tag: t.comment,
+			color: '#6272A4',
+		},
+		{
+			tag: [t.string, t.special(t.brace), t.regexp],
+			color: '#F1FA8C',
+		},
+		{
+			tag: [
+				t.className,
+				t.definition(t.propertyName),
+				t.function(t.variableName),
+				t.function(t.definition(t.variableName)),
+				t.definition(t.typeName),
+			],
+			color: '#A3EBFF',
+		},
+		{
+			tag: [t.number, t.bool, t.null],
+			color: '#62E9BD',
+		},
+		{
+			tag: [t.keyword, t.operator],
+			color: '#FF79C6',
+		},
+		{
+			tag: [t.definitionKeyword, t.modifier],
+			color: '#F8FBB1',
+		},
+		{
+			tag: [t.angleBracket, t.tagName, t.typeName, t.propertyName],
+			color: '#60A4F1',
+		},
+		{
+			tag: t.derefOperator,
+			color: '#E0E0E0',
+		},
+		{
+			tag: t.attributeName,
+			color: '#7BACCA',
+		},
+	],
+});
