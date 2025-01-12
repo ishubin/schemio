@@ -125,6 +125,9 @@ export default {
             return 0;
         },
         onItemChanged() {
+            if (this.item.shape !== 'link') {
+                return;
+            }
             this.linkStyle = this.createLinkStyle();
         },
         onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {

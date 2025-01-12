@@ -356,6 +356,9 @@ export default {
     methods: {
         onItemChange() {
             log.info('onItemChange', this.item.id, this.item.name, this.item);
+            if (this.item.shape !== 'path') {
+                return;
+            }
 
             this.shapePath = computePath(this.item);
             this.$forceUpdate();

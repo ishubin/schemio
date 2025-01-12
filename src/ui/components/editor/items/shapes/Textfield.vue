@@ -192,6 +192,9 @@ export default {
             this.hideTextSlot = null;
         },
         onItemChanged() {
+            if (this.item.shape !== 'textfield') {
+                return;
+            }
             this.placeholderTextStyle = this.createPlaceholderTextStyle();
             this.$forceUpdate();
         },

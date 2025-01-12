@@ -215,6 +215,9 @@ export default {
 
     methods: {
         onItemChanged() {
+            if (this.item.shape !== 'uml_lifeline') {
+                return;
+            }
             this.$forceUpdate();
         }
     },

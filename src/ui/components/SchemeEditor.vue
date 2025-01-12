@@ -2225,6 +2225,9 @@ export default {
                 });
                 itemIds += item.id;
             });
+
+            this.schemeContainer.reindexItems();
+            this.schemeContainer.updateEditBox();
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.shape`);
         },
 

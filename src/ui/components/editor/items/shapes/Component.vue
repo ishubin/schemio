@@ -503,6 +503,9 @@ export default {
             this.$emit('component-load-requested', this.item);
         },
         onItemChanged() {
+            if (this.item.shape !== 'shape') {
+                return;
+            }
             if (this.item._childItems && this.item._childItems.length > 0) {
                 this.buttonShown = false;
                 this.bodyTextShown = false;
