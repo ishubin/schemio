@@ -103,6 +103,7 @@ export default {
                 }
             }
             this.$emit('template-rebuild-requested', this.item.id, this.template, this.item.args.templateArgs);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.updateTemplateArgs();
         },
 
