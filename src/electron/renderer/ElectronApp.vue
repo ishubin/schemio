@@ -128,7 +128,7 @@
 import shortid from 'shortid';
 import { enrichSchemeWithDefaults } from '../../ui/scheme/Scheme';
 import { Keys, simulateKeyPress } from '../../ui/events';
-import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
+import SchemioEditorApp from '../../ui/components/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
