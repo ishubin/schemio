@@ -9,7 +9,7 @@ import { List } from '../../src/ui/templater/list';
 describe('templater ast parser', () => {
     it('should parse various expressions', () => {
         [
-            ['2-5 + qwe', '((2 - 5) + qwe)'],
+            ['2-5 + qwe', '(2 - (5 + qwe))'],
             ['2 * 8 + 1 - 4 *4 ', '(((2 * 8) + 1) - (4 * 4))'],
             ['1 + (x - 4) * 3', '(1 + ((x - 4) * 3))'],
             ['x < 5', '(x < 5)'],
@@ -17,7 +17,11 @@ describe('templater ast parser', () => {
             ['x + 1 < 5 - y || x > 10', '(((x + 1) < (5 - y)) || (x > 10))'],
             ['x + 1 < 5 - y && x > 10', '(((x + 1) < (5 - y)) && (x > 10))'],
             ['x + "qwe" == \'hi qwe\'', '((x + "qwe") == "hi qwe")'],
-            ['x = (a = 1; b = 2; a + b); x*10', '((x = ((a = 1); (b = 2); (a + b))); (x * 10))']
+            ['x = (a = 1; b = 2; a + b); x*10', '((x = ((a = 1); (b = 2); (a + b))); (x * 10))'],
+            ['x = a & b | c', '(x = ((a & b) | c))'],
+            ['x = a | b & c', '(x = (a | (b & c)))'],
+            ['x = a | ~b & c', '(x = (a | ((~b) & c)))'],
+            ['x = a | b << 2 ', '(x = (a | (b << 2)))'],
         ].forEach(([input, expected]) => {
             const real = parseExpression(input).print();
             expect(real).toBe(expected);
@@ -48,6 +52,33 @@ describe('templater ast parser', () => {
             ['x = 3; x -= 1; x', {}, 2],
             ['x = 4; x *= 3; x', {}, 12],
             ['x = 12; x /= 3; x', {}, 4],
+        ].forEach(([input, data, expected]) => {
+            const ast = parseExpression(input);
+            const result = ast.evalNode(new Scope(data));
+            expect(result).toBe(expected);
+        });
+    });
+
+    it('should evaluate bitwise operations', () => {
+        const a = 2675, b = 9428, c = 3480;
+        [
+            ['a & b', {a, b}, a & b],
+            ['a | b', {a, b}, a | b],
+            ['~a', {a, b}, ~a],
+            ['~b', {a, b}, ~b],
+            ['~a & ~b', {a, b}, ~a & ~b],
+            ['~a | ~b', {a, b}, ~a | ~b],
+            ['a & b | c', {a, b, c}, a & b | c],
+            ['a | b & c', {a, b, c}, a | b & c],
+            ['a << 2', {a, b, c}, a << 2],
+            ['a << 3', {a, b, c}, a << 3],
+            ['a << 5', {a, b, c}, a << 5],
+            ['a >> 2', {a, b, c}, a >> 2],
+            ['a >> 3', {a, b, c}, a >> 3],
+            ['a >> 6', {a, b, c}, a >> 6],
+            ['a << 3 & b >> 2', {a, b, c}, a << 3 & b >> 2],
+            ['a << 3 | b >> 2', {a, b, c}, a << 3 | b >> 2],
+            ['a << 1 + 3', {a, b, c}, a << 1 + 3],
         ].forEach(([input, data, expected]) => {
             const ast = parseExpression(input);
             const result = ast.evalNode(new Scope(data));

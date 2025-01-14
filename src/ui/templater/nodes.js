@@ -169,7 +169,22 @@ export class ASTNot extends ASTNode {
         return !v;
     }
     print() {
-        return `(!${this.v.print()})`;
+        return `(!${this.node.print()})`;
+    }
+}
+
+export class ASTBitwiseNot extends ASTNode {
+    constructor(node) {
+        super('bitwiseNot');
+        this.node = node;
+    }
+    evalNode(scope) {
+        const v = this.node.evalNode(scope);
+        return ~v;
+    }
+
+    print() {
+        return `(~${this.node.print()})`;
     }
 }
 
@@ -357,6 +372,26 @@ export class ASTBoolOr extends ASTOperator {
 export class ASTBoolAnd extends ASTOperator {
     constructor(a, b) { super('boolAnd', '&&', a, b); }
     evalNode(scope) { return this.a.evalNode(scope) && this.b.evalNode(scope); }
+}
+
+export class ASTBitwiseAnd extends ASTOperator {
+    constructor(a, b) { super('bitwiseAnd', '&', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) & this.b.evalNode(scope); }
+}
+
+export class ASTBitwiseOr extends ASTOperator {
+    constructor(a, b) { super('bitwiseOr', '|', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) | this.b.evalNode(scope); }
+}
+
+export class ASTBitShiftLeft extends ASTOperator {
+    constructor(a, b) { super('bitShiftLeft', '<<', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) << this.b.evalNode(scope); }
+}
+
+export class ASTBitShiftRight extends ASTOperator {
+    constructor(a, b) { super('bitShiftRight', '>>', a, b); }
+    evalNode(scope) { return this.a.evalNode(scope) >> this.b.evalNode(scope); }
 }
 
 export class ASTAssign extends ASTOperator {

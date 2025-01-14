@@ -1,28 +1,39 @@
 import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
-import { ASTAdd, ASTAssign, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTPow, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
+import { ASTAdd, ASTAssign, ASTBitShiftLeft, ASTBitShiftRight, ASTBitwiseAnd, ASTBitwiseNot, ASTBitwiseOr, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTPow, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
 import { ASTStructNode } from "./struct";
 import { normalizeTokens } from "./normalization";
 
 
-const operatorPrecedences = new Map(Object.entries({
-    '^': 6,
-    '*': 5,
-    '/': 5,
-    '%': 5,
-    '+': 4,
-    '-': 4,
-    '<': 3,
-    '>': 3,
-    '<=': 3,
-    '>=': 3,
-    '!=': 2,
-    '==': 2,
-    '&&': 1,
-    '||': 0,
-    '=': -1,
-}));
+const operatorPrecedences = [
+    '^',
+    '*',
+    '/',
+    '%',
+    '+',
+    '-',
+    '<<',
+    '>>',
+    '&',
+    '|',
+    '<',
+    '>',
+    '<=',
+    '>=',
+    '!=',
+    '==',
+    '&&',
+    '||',
+    '++',
+    '--',
+    '-=',
+    '+=',
+    '=',
+].reverse().reduce((m, o, idx) => {
+    m.set(o, idx);
+    return m;
+}, new Map());
 
 function operatorPrecedence(operator) {
     if (operatorPrecedences.has(operator)) {
@@ -46,6 +57,10 @@ const operatorClasses = new Map(Object.entries({
     '!=': ASTNotEqual,
     '&&': ASTBoolAnd,
     '||': ASTBoolOr,
+    '&': ASTBitwiseAnd,
+    '|': ASTBitwiseOr,
+    '<<': ASTBitShiftLeft,
+    '>>': ASTBitShiftRight,
     '=': ASTAssign,
     '+=': ASTIncrementWith,
     '-=': ASTDecrementWith,
@@ -169,7 +184,7 @@ class ASTParser extends TokenScanner {
 
             if (token.v === '++' || token.v === '--') {
                 if (!(a instanceof ASTVarRef)) {
-                    throw new Error(`Unexpected ${token.v} operator`);
+                    throw new Error(`Unexpected ${token.v} operator after ${a.type}`);
                 }
 
                 a = new ASTIncrement(a, false, token.v === '++' ? 1: -1);
@@ -332,6 +347,12 @@ class ASTParser extends TokenScanner {
             return this.parseTermGroup(extVarRef);
         } else if (token.t === TokenTypes.STRING) {
             return this.parseTermGroup(new ASTString(token.v));
+        } else if (token.t === TokenTypes.OPERATOR && token.v === '~') {
+            const nextTerm = this.parseTerm();
+            if (!nextTerm) {
+                throw new Error('Expected term token after "~"');
+            }
+            return new ASTBitwiseNot(nextTerm);
         } else if (token.t === TokenTypes.OPERATOR && token.v === '-') {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {

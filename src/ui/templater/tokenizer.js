@@ -74,6 +74,9 @@ const singleCharTokens = new Map(Object.entries({
     '>': {t: TokenTypes.OPERATOR, v: '>'},
     '=': {t: TokenTypes.OPERATOR, v: '='},
     '^': {t: TokenTypes.OPERATOR, v: '^'},
+    '&': {t: TokenTypes.OPERATOR, v: '&'},
+    '|': {t: TokenTypes.OPERATOR, v: '|'},
+    '~': {t: TokenTypes.OPERATOR, v: '~'},
     ';': {t: TokenTypes.DELIMITER, v: ';'},
     ':': {t: TokenTypes.COLON, v: ':'},
     '!': {t: TokenTypes.NOT, v: '!'},
@@ -97,6 +100,8 @@ const doubleCharTokens = new Map(Object.entries({
     '=>': {t: TokenTypes.OPERATOR, v: '=>'},
     '++': {t: TokenTypes.OPERATOR, v: '++'},
     '--': {t: TokenTypes.OPERATOR, v: '--'},
+    '>>': {t: TokenTypes.OPERATOR, v: '>>'},
+    '<<': {t: TokenTypes.OPERATOR, v: '<<'},
 }));
 
 
