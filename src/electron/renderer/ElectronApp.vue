@@ -208,7 +208,7 @@ export default {
         window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
-        window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
+        window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
         window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$on('project-selected', this.onProjectSelected);
 
