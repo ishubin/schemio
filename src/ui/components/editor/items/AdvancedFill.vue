@@ -16,10 +16,10 @@
 
         <defs v-if="fill.type === 'gradient' && fill.gradient">
             <linearGradient v-if="fill.gradient.type === 'linear'" :id="fillId" :x1="`${direction.x1}%`" :y1="`${direction.y1}%`" :x2="`${direction.x2}%`" :y2="`${direction.y2}%`" >
-                <stop v-for="color in fill.gradient.colors"  :style="{'stop-color': color.c}" :offset="`${color.p}%`"/>
+                <stop v-for="color in fill.gradient.colors" :key="color.id" :style="{'stop-color': color.c}" :offset="`${color.p}%`"/>
             </linearGradient>
             <radialGradient v-if="fill.gradient.type === 'radial'" :id="fillId" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
-                <stop v-for="color in fill.gradient.colors"  :style="{'stop-color': color.c}" :offset="`${color.p}%`"/>
+                <stop v-for="color in fill.gradient.colors" :key="color.id" :style="{'stop-color': color.c}" :offset="`${color.p}%`"/>
             </radialGradient>
         </defs>
     </g>
