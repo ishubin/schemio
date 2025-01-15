@@ -128,7 +128,7 @@
 import shortid from 'shortid';
 import { enrichSchemeWithDefaults } from '../../ui/scheme/Scheme';
 import { Keys, simulateKeyPress } from '../../ui/events';
-import SchemioEditorApp from '../../ui/SchemioEditorApp.vue';
+import SchemioEditorApp from '../../ui/components/SchemioEditorApp.vue';
 import Navigator from './Navigator.vue';
 import History from '../../ui/history/History';
 import FileTabPanel from './FileTabPanel.vue';
@@ -208,7 +208,7 @@ export default {
         window.electronAPI.$on('file:exportStatic:stopped', this.onStaticExporterStopped);
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
-        window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
+        window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
         window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$on('project-selected', this.onProjectSelected);
 
