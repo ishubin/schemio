@@ -7,7 +7,6 @@ If you find this project interesting and want to contribute but don't know where
 - [Adding new icon packs](#adding-new-icon-packs)
 - [Contribute to the interactive knowledgebase on https://schem.io](#contribute-to-the-interactive-knowledgebase-on-httpsschemio)
 - [Testing](#testing)
-- [Fixing the Electron build](#fixing-the-electron-build)
 - [Designing new templates](#designing-new-templates)
 - [Improve SchemioScript documentation](#improve-schemioscript-documentation)
 
@@ -58,10 +57,6 @@ Testing
 -----------
 Schemio is a very complex application. There are numerous ways of deploying it, e.g.: a docker container, a library, a standalone player, Google Drive as a backend, desktop version powered by Electron etc. You can imagine that maintaining and extending such a massive project is quite demanding. That is why we need your help with testing it and reporting any issues you find.
 
-
-Fixing the Electron build
---------------------------
-At some point there was an option of installing Schemio as a desktop app. Unfortunately the building of Electron package is broken. Check this [issue](https://github.com/ishubin/schemio/issues/719) and, if you know how to help, we welcome your PRs or add your suggestions in the issue comments.
 
 Designing new templates
 -----------------------
