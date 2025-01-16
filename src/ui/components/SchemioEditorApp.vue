@@ -32,7 +32,7 @@
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @history-committed="$emit('patched-history-committed', arguments[0], arguments[1])"
+            @history-committed="onPatchedHistoryCommitted"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"
@@ -71,7 +71,7 @@
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="$emit('scheme-save-requested', arguments[0])"
-            @history-committed="$emit('history-committed', arguments[0], arguments[1])"
+            @history-committed="onHistoryCommitted"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', arguments[0])"
@@ -170,6 +170,24 @@ export default{
         starterTemplates : {type: Array, default: () => []},
     },
 
+    emits: [
+        'custom-tab-event',
+        'patch-applied',
+        'mode-change-requested',
+        'scheme-save-requested',
+        'history-committed',
+        'undo-history-requested',
+        'redo-history-requested',
+        'editor-state-changed',
+        'delete-diagram-requested',
+        'context-menu-requested',
+        'patch-origin-toggled',
+        'patch-modified-toggled',
+        'patch-modified-generated',
+        'new-diagram-requested-for-item',
+        'patched-history-committed',
+    ],
+
     beforeMount() {
         if (this.schemePatch) {
             this.generatePatchData(this.schemePatch);
@@ -207,6 +225,13 @@ export default{
     },
 
     methods: {
+        onPatchedHistoryCommitted(scheme, affinityId) {
+            this.$emit('patched-history-committed', scheme, affinityId);
+        },
+        onHistoryCommitted(scheme, affinityId) {
+            this.$emit('history-committed', scheme, affinityId);
+        },
+
         onNewSchemeSubmitted(scheme, callback, errorCallback) {
             this.$emit('new-scheme-submitted', scheme, callback, errorCallback);
         },

@@ -247,7 +247,7 @@
 import {forEach, map, mapObjectValues, filter, find, indexOf, uniq} from '../../../collections';
 
 import shortid from 'shortid';
-import VueTagsInput from '@johmun/vue-tags-input';
+import VueTagsInput from '@sipec/vue3-tags-input';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';

@@ -153,7 +153,6 @@
 </template>
 
 <script>
-import { EditorMenuBar } from 'tiptap';
 import {getAllFonts} from '../../../scheme/Fonts';
 import {map} from '../../../collections';
 import Shape from '../../editor/items/shapes/Shape';
@@ -165,7 +164,7 @@ import EditorEventBus from '../EditorEventBus';
 
 export default {
     props: ['item', 'editorId', 'slotName'],
-    components: {EditorMenuBar, Dropdown, NumberTextfield, ColorPicker},
+    components: {Dropdown, NumberTextfield, ColorPicker},
 
     beforeMount() {
         EditorEventBus.inPlaceTextEditor.created.$on(this.editorId, this.onTextEditorCreated);

@@ -6,7 +6,7 @@
         <ul v-if="pages.length > 1" class="pagination">
             <li>
                 <span v-if="currentPage > 1">
-                    <router-link v-if="useRouter" :to="{path: urlForPage(currentPage - 1)}"><i class="fas fa-chevron-circle-left"></i></router-link>
+                    <router-link v-if="useRouter" :to="urlForPage(pageUrlPrefix, currentPage - 1)"><i class="fas fa-chevron-circle-left"></i></router-link>
                     <a v-else @click="onNonRoutablePageClicked($event, currentPage - 1)" href="#"><i class="fas fa-chevron-circle-left"></i></a>
                 </span>
                 <span v-else><i class="fas fa-chevron-circle-left"></i></span>
@@ -14,7 +14,7 @@
 
             <li v-for="page in pages">
                 <span v-if="page.active">
-                    <router-link v-if="useRouter" :to="{path: urlForPage(page.page)}">{{page.page}}</router-link>
+                    <router-link v-if="useRouter" :to="page.url">{{page.page}}</router-link>
                     <a v-else @click="onNonRoutablePageClicked($event, page.page)" :class="{'current': currentPage === page.page}" href="#">{{page.page}}</a>
                 </span>
                 <span v-else>{{page.page}}</span>
@@ -22,7 +22,7 @@
 
             <li>
                 <span v-if="currentPage < totalPages">
-                    <router-link v-if="useRouter" :to="{path: urlForPage(currentPage + 1)}"><i class="fas fa-chevron-circle-right"></i></router-link>
+                    <router-link v-if="useRouter" :to="urlForPage(pageUrlPrefix, currentPage + 1)"><i class="fas fa-chevron-circle-right"></i></router-link>
                     <a v-else @click="onNonRoutablePageClicked($event, currentPage + 1)" href="#"><i class="fas fa-chevron-circle-right"></i></a>
                 </span>
                 <span v-else><i class="fas fa-chevron-circle-right"></i></span>
@@ -53,15 +53,15 @@ export default {
         }
 
         return {
-            pages: this.buildPages(this.currentPage, this.totalPages),
+            pages: this.buildPages(pageUrlPrefix, this.currentPage, this.totalPages),
             pageUrlPrefix
         };
     },
 
     methods: {
-        urlForPage(page) {
-            if (this.urlPrefix) {
-                return this.pageUrlPrefix + page;
+        urlForPage(pageUrlPrefix, page) {
+            if (pageUrlPrefix) {
+                return pageUrlPrefix + page;
             } else {
                 return '#';
             }
@@ -74,7 +74,7 @@ export default {
             return false;
         },
 
-        buildPages(currentPage, totalPages) {
+        buildPages(pageUrlPrefix, currentPage, totalPages) {
             currentPage = Math.min(currentPage, totalPages);
             let pages = [];
             let maxSideRange = 2;
@@ -95,6 +95,7 @@ export default {
             if (start > 1) {
                 pages.push({
                     page: '1',
+                    url: this.urlForPage(pageUrlPrefix, 1),
                     active: true
                 });
             }
@@ -108,6 +109,7 @@ export default {
             for (let page = start; page <= end; page++) {
                 pages.push({
                     page: page,
+                    url: this.urlForPage(pageUrlPrefix, page),
                     active: page !== currentPage
                 });
             }

@@ -31,7 +31,7 @@
 import {map} from '../../../collections';
 import RichTextEditor from '../../RichTextEditor.vue';
 import Panel from '../Panel.vue';
-import VueTagsInput from '@johmun/vue-tags-input';
+import VueTagsInput from '@sipec/vue3-tags-input';
 import EditorEventBus from '../EditorEventBus';
 import Shape from '../items/shapes/Shape';
 

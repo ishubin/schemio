@@ -1,9 +1,12 @@
-import Vue from 'vue';
+// const Emitter = require('tiny-emitter');
+
+import Emitter from 'tiny-emitter';
+
 import {Logger} from '../../logger';
 
 const log = new Logger('EditorEventBus');
 
-const bus = new Vue({});
+const bus = new Emitter();
 
 function generateEvent(editorId, eventName, args) {
     let fullEvent = editorId + '/' + eventName;
@@ -17,13 +20,13 @@ function $on(editorId, eventName, args, callback) {
     if (!editorId) {
         throw new Error('editorId should be specified, got: ', editorId);
     }
-    bus.$on(generateEvent(editorId, eventName, args), callback);
+    bus.on(generateEvent(editorId, eventName, args), callback);
 }
 function $off(editorId, eventName, args, callback) {
     if (!editorId) {
         throw new Error('editorId should be specified, got: ', editorId);
     }
-    bus.$off(generateEvent(editorId, eventName, args), callback);
+    bus.off(generateEvent(editorId, eventName, args), callback);
 }
 function $emit(editorId, eventName, eventArgs, ...emitArgs) {
     if (!editorId) {
@@ -31,7 +34,7 @@ function $emit(editorId, eventName, eventArgs, ...emitArgs) {
     }
     const fullEventName = generateEvent(editorId, eventName, eventArgs);
     log.infoEvent(fullEventName, emitArgs);
-    bus.$emit(fullEventName, ...emitArgs);
+    bus.emit(fullEventName, ...emitArgs);
 }
 
 const EditorEventBus = {

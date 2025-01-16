@@ -505,22 +505,25 @@
                                 />
                         </div>
                         <div>
-                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
-                                :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
-                                :editorId="editorId"
-                                :item="itemTextSlot.item"
-                                :slot-name="itemTextSlot.slotName"
-                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
-                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                            <template v-for="itemTextSlot in itemTextSlotsAvailable">
+                                <TextSlotProperties  v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
+                                    :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
+                                    :editorId="editorId"
+                                    :item="itemTextSlot.item"
+                                    :slot-name="itemTextSlot.slotName"
+                                    @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
+                                    @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                                    />
+                            </template>
+                            <template v-for="tab in extraTabs">
+                                <component
+                                    v-if="currentTab === `extra:${tab.name}`"
+                                    :key="`tab-${currentTab}`"
+                                    :is="tab.component"
+                                    :mode="mode"
+                                    @tab-event="$emit('custom-tab-event', $event)"
                                 />
-                            <component
-                                v-for="tab in extraTabs"
-                                v-if="currentTab === `extra:${tab.name}`"
-                                :key="`tab-${currentTab}`"
-                                :is="tab.component"
-                                :mode="mode"
-                                @tab-event="$emit('custom-tab-event', $event)"
-                            />
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -836,6 +839,21 @@ export default {
         // Array of starter templates ({name, iconUrl, docUrl}) that should be displayed when user starts creating a new doc
         starterTemplates : {type: Array, default: () => []},
     },
+
+    emits: [
+        'custom-tab-event',
+        'items-selected',
+        'items-deselected',
+        'new-scheme-submitted',
+        'mode-change-requested',
+        'history-committed',
+        'undo-history-requested',
+        'redo-history-requested',
+        'editor-state-changed',
+        'delete-diagram-requested',
+        'context-menu-requested',
+        'new-diagram-requested-for-item',
+    ],
 
     created() {
         this.animationRegistry = createAnimationRegistry(this.editorId);
@@ -1184,16 +1202,6 @@ export default {
         };
     },
     methods: {
-        onExternalComponentMouseDown(worldX, worldY, screenX, screenY, event, componentItem) {
-            console.log('onExternalComponentMouseDown', worldX, worldY, screenX, screenY, event, componentItem);
-        },
-        onExternalComponentMouseUp(worldX, worldY, screenX, screenY, event, componentItem) {
-            console.log('onExternalComponentMouseUp', worldX, worldY, screenX, screenY, event, componentItem);
-        },
-        onExternalComponentMouseMove(worldX, worldY, screenX, screenY, event, componentItem) {
-
-        },
-
         exportAsSVG() {
             const schemeContainer = this.mode === 'view' ? this.interactiveSchemeContainer : this.schemeContainer;
             this.openExportPictureModal(schemeContainer.scheme.items, 'svg');

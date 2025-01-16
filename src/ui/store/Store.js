@@ -1,21 +1,17 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import Vue from 'vue';
-import Vuex from 'vuex';
+import {createStore} from 'vuex';
 import {forEach} from '../collections';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
 
-Vue.use(Vuex);
-
 const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
-
-const store = new Vuex.Store({
+const store = createStore({
     state: {
         //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages then we cannot use '/' as root path
         rootPath: '/',
