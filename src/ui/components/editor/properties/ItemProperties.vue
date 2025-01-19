@@ -25,7 +25,7 @@
             :editorId="editorId"
             :item="item"
             :schemeContainer="schemeContainer"
-            @tags-changed="emitItemFieldChange('tags', arguments[0])"/>
+            @tags-changed="emitItemFieldChange('tags', $event)"/>
         <LinksPanel v-if="currentTab === 'description'" :editorId="editorId" :key="`links-panel-${item.id}`" :item="item"/>
 
         <div v-if="currentTab === 'behavior'">
@@ -35,7 +35,7 @@
                 :item="item"
                 :scheme-container="schemeContainer"
                 :onlyEvents="false"
-                @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
+                @item-field-changed="emitItemFieldChange($event.name, $event.value)"
                 @jumped-to-item="onJumpedToItem"
                 />
         </div>
@@ -70,19 +70,19 @@
                         <tr>
                             <td class="label" width="50%">Opacity</td>
                             <td class="value" width="50%">
-                                <number-textfield :value="item.opacity" @changed="emitItemFieldChange('opacity', arguments[0])" :min="0" :max="100"/>
+                                <number-textfield :value="item.opacity" @changed="emitItemFieldChange('opacity', $event)" :min="0" :max="100"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Self Opacity</td>
                             <td class="value" width="50%">
-                                <number-textfield :value="item.selfOpacity" @changed="emitItemFieldChange('selfOpacity', arguments[0])" :min="0" :max="100"/>
+                                <number-textfield :value="item.selfOpacity" @changed="emitItemFieldChange('selfOpacity', $event)" :min="0" :max="100"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Cursor</td>
                             <td class="value" width="50%">
-                                <select :value="item.cursor" @input="emitItemFieldChange('cursor', arguments[0].target.value)">
+                                <select :value="item.cursor" @input="emitItemFieldChange('cursor', $event.target.value)">
                                     <option v-for="cursor in knownCursors">{{cursor}}</option>
                                 </select>
                             </td>
@@ -105,26 +105,28 @@
                 </div>
                 <table v-else class="properties-table">
                     <tbody>
-                        <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && !isArgumentHidden(arg)">
-                            <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
-                                {{arg.name}}
-                                <tooltip v-if="arg.description" :disabled="!shapePropsControlStates[argName].shown">{{arg.description}}</tooltip>
-                            </td>
-                            <td class="value" width="50%">
-                                <PropertyInput
-                                    :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.thick}`"
-                                    :editorId="editorId"
-                                    :descriptor="arg"
-                                    :value="item.shapeProps[argName]"
-                                    :shapeProps="item.shapeProps"
-                                    :disabled="!shapePropsControlStates[argName].shown"
-                                    :schemeContainer="schemeContainer"
-                                    :leftOriented="argName === 'sourceCap'"
-                                    :itemId="item.id"
-                                    @input="onShapePropChange(argName, arg.type, arguments[0])"
-                                />
-                            </td>
-                        </tr>
+                        <template v-for="(arg, argName) in shapeComponent.args">
+                            <tr v-if="shapePropsControlStates[argName] && !isArgumentHidden(arg)">
+                                <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
+                                    {{arg.name}}
+                                    <tooltip v-if="arg.description" :disabled="!shapePropsControlStates[argName].shown">{{arg.description}}</tooltip>
+                                </td>
+                                <td class="value" width="50%">
+                                    <PropertyInput
+                                        :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.thick}`"
+                                        :editorId="editorId"
+                                        :descriptor="arg"
+                                        :value="item.shapeProps[argName]"
+                                        :shapeProps="item.shapeProps"
+                                        :disabled="!shapePropsControlStates[argName].shown"
+                                        :schemeContainer="schemeContainer"
+                                        :leftOriented="argName === 'sourceCap'"
+                                        :itemId="item.id"
+                                        @input="onShapePropChange(argName, arg.type, $event)"
+                                    />
+                                </td>
+                            </tr>
+                        </template>
                     </tbody>
                 </table>
             </panel>
@@ -145,7 +147,7 @@
                         <tr>
                             <td class="label" width="50%">Blend mode</td>
                             <td class="value" width="50%">
-                                <select :value="item.blendMode" @input="emitItemFieldChange('blendMode', arguments[0].target.value)">
+                                <select :value="item.blendMode" @input="emitItemFieldChange('blendMode', $event.target.value)">
                                     <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
                                 </select>
                             </td>
@@ -153,7 +155,7 @@
                         <tr>
                             <td class="label" width="50%">Visible</td>
                             <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="emitItemFieldChange('visible', arguments[0].target.checked)"/>
+                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="emitItemFieldChange('visible', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
@@ -162,7 +164,7 @@
                                 <tooltip>Only renders parts of the child items that are located inside the visible shape of the parent item</tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.clip" @input="emitItemFieldChange('clip', arguments[0].target.checked)"/>
+                                <input class="checkbox" type="checkbox" :checked="item.clip" @input="emitItemFieldChange('clip', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
@@ -174,13 +176,13 @@
                                 </tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.mount" @input="emitItemFieldChange('mount', arguments[0].target.checked)"/>
+                                <input class="checkbox" type="checkbox" :checked="item.mount" @input="emitItemFieldChange('mount', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Shape</td>
                             <td class="value" width="50%">
-                                <select :value="item.shape" @input="$emit('shape-changed', arguments[0].target.value)">
+                                <select :value="item.shape" @input="$emit('shape-changed', $event.target.value)">
                                     <option v-for="shape in knownShapes">{{shape}}</option>
                                 </select>
                             </td>
@@ -194,7 +196,7 @@
                                 </tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <select :value="item.interactionMode" @input="emitItemFieldChange('interactionMode', arguments[0].target.value)">
+                                <select :value="item.interactionMode" @input="emitItemFieldChange('interactionMode', $event.target.value)">
                                     <option v-for="interactionMode in knownInteractionModes"
                                         :value="interactionMode"
                                         :key="interactionMode">{{interactionMode}}</option>
@@ -204,13 +206,13 @@
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Background</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', $event)"></color-picker>
                             </td>
                         </tr>
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Color</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', $event)"></color-picker>
                             </td>
                         </tr>
                     </tbody>
@@ -325,7 +327,7 @@ export default {
         },
 
         emitItemFieldChange(name, value) {
-            this.$emit('item-field-changed', name, value);
+            this.$emit('item-field-changed', {name, value});
         },
 
         onItemMutated() {

@@ -28,7 +28,7 @@
                     </p>
                 </div>
                 <div v-if="color.type === 'solid'">
-                    <RawColorPicker :value="solidColor" @color-changed="updateSolidColor"/>
+                    <RawColorPicker :color="solidColor" @color-changed="updateSolidColor"/>
                 </div>
 
                 <div v-if="color.type === 'image'">
@@ -60,7 +60,7 @@
                             <div class="gradient-slider-knob"
                                 :style="{'background': slider.c}"
                                 :class="{'selected': sliderIdx === gradient.selectedSliderIdx}"
-                                @mousedown="onGradientSliderKnobClick(sliderIdx, arguments[0])"
+                                @mousedown="onGradientSliderKnobClick(sliderIdx, $event)"
                                 @dblclick="onGradientSliderKnobDblClick(sliderIdx)"
                                 ></div>
                         </div>
@@ -76,14 +76,14 @@
                         </div>
                         <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
                             <div class="ctrl-label">Direction</div>
-                            <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
+                            <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = $event; emitChange()"/>
                         </div>
                         <div class="ctrl-group">
                             <span class="btn btn-secondary" @click="invertGradient">Invert</span>
                         </div>
                     </div>
                     <div class="gradient-color-picker">
-                        <RawColorPicker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradientSelectedColor" @color-changed="onGradientColorChanged"/>
+                        <RawColorPicker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :color="gradientSelectedColor" @color-changed="onGradientColorChanged"/>
                     </div>
                 </div>
             </div>
@@ -229,7 +229,8 @@ export default {
         },
 
         emitChange() {
-            this.$emit('changed', utils.clone(this.color));
+            const value = utils.clone(this.color);
+            this.$emit('changed', value);
         },
 
         updateSolidColor(color) {

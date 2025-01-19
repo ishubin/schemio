@@ -14,8 +14,8 @@
                 <span class="label">{{currentComponent}} to red</span>
                 <div>
                     <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="red" class="slider" @input="onSliderChange('red', arguments[0].target.value)"/>
-                        <input type="text" :value="redText" class="slider-text" @input="onSliderTextChange('red', arguments[0].target.value)"/>
+                        <input type="range" min="-200" max="200" v-model="red" class="slider" @input="onSliderChange('red', $event.target.value)"/>
+                        <input type="text" :value="redText" class="slider-text" @input="onSliderTextChange('red', $event.target.value)"/>
                     </div>
                 </div>
             </div>
@@ -24,8 +24,8 @@
                 <span class="label">{{currentComponent}} to green</span>
                 <div>
                     <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="green" class="slider" @input="onSliderChange('green', arguments[0].target.value)"/>
-                        <input type="text" :value="greenText" class="slider-text" @input="onSliderTextChange('green', arguments[0].target.value)"/>
+                        <input type="range" min="-200" max="200" v-model="green" class="slider" @input="onSliderChange('green', $event.target.value)"/>
+                        <input type="text" :value="greenText" class="slider-text" @input="onSliderTextChange('green', $event.target.value)"/>
                     </div>
                 </div>
             </div>
@@ -34,8 +34,8 @@
                 <span class="label">{{currentComponent}} to blue</span>
                 <div>
                     <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="blue" class="slider" @input="onSliderChange('blue', arguments[0].target.value)"/>
-                        <input type="text" :value="blueText" class="slider-text" @input="onSliderTextChange('blue', arguments[0].target.value)"/>
+                        <input type="range" min="-200" max="200" v-model="blue" class="slider" @input="onSliderChange('blue', $event.target.value)"/>
+                        <input type="text" :value="blueText" class="slider-text" @input="onSliderTextChange('blue', $event.target.value)"/>
                     </div>
                 </div>
             </div>
@@ -44,8 +44,8 @@
                 <span class="label">{{currentComponent}} to alpha</span>
                 <div>
                     <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="alpha" class="slider" @input="onSliderChange('alpha', arguments[0].target.value)"/>
-                        <input type="text" :value="alphaText" class="slider-text" @input="onSliderTextChange('alpha', arguments[0].target.value)"/>
+                        <input type="range" min="-200" max="200" v-model="alpha" class="slider" @input="onSliderChange('alpha', $event.target.value)"/>
+                        <input type="text" :value="alphaText" class="slider-text" @input="onSliderTextChange('alpha', $event.target.value)"/>
                     </div>
                 </div>
             </div>

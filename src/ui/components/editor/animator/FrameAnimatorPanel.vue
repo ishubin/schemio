@@ -204,7 +204,7 @@
                                 :useSelf="false"
                                 :allowTags="false"
                                 :allowNone="false"
-                                @selected="onAddTrackModalElementSelected(arguments[0])"
+                                @selected="onAddTrackModalElementSelected($event)"
                             />
                         </td>
                     </tr>

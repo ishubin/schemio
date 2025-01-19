@@ -109,7 +109,7 @@
             <div class="quick-helper-panel-section" v-if="(mode === 'edit' && selectedItemsCount > 0 && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li v-if="supportsFill">
-                        <advanced-color-editor
+                        <AdvancedColorEditor
                             :editorId="editorId"
                             :value="fillColor"
                             width="18px"
@@ -133,7 +133,7 @@
                             :key="`text-style-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
                             :editorId="editorId"
                             :item="firstSelectedItem"
-                            @property-changed="onTextStylePropertyChange"
+                            @property-changed="$emit('text-style-prop-change', $event)"
                             />
                     </li>
                     <li v-if="shouldShowPathCaps">
@@ -387,10 +387,6 @@ export default {
             else if (name === 'destinationCap') {
                 this.pathDestinationCap = value;
             }
-        },
-
-        onTextStylePropertyChange(name, value) {
-            this.$emit('text-style-prop-change', name, value);
         },
 
         onItemSurroundCreated(item, boundingBox, padding) {

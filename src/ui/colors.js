@@ -133,7 +133,7 @@ export function rgb2hsl(r, g, b) {
     }
 
     return {
-        h, s, l
+        h: Math.floor(h), s: Math.floor(s*100)/100, l: Math.floor(l*100)/100
     };
 }
 

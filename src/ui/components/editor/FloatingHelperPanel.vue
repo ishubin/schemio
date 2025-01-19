@@ -17,21 +17,21 @@
                         </span>
                     </li>
                     <li v-if="supportsFill && item.shape !== 'connector'">
-                        <advanced-color-editor
+                        <AdvancedColorEditor
                             :editorId="editorId"
                             :value="fillColor"
                             width="18px"
                             height="18px"
-                            @changed="updateShapeProp('fill', arguments[0])"
+                            @changed="updateShapeProp('fill', $event)"
                             title="Fill"/>
                     </li>
                     <li v-if="supportsStroke">
                         <StrokeControl
                             :editorId="editorId"
                             :item="item"
-                            @color-changed="updateShapeProp('strokeColor', arguments[0])"
-                            @size-changed="updateShapeProp('strokeSize', arguments[0])"
-                            @pattern-changed="updateShapeProp('strokePattern', arguments[0])"
+                            @color-changed="updateShapeProp('strokeColor', $event)"
+                            @size-changed="updateShapeProp('strokeSize', $event)"
+                            @pattern-changed="updateShapeProp('strokePattern', $event)"
                             @collapsed="onStrokeControlCollapsed"
                             @expanded="onStrokeControlExpanded"
                             title="Stroke"
@@ -63,7 +63,7 @@
                     ></vue-tags-input>
 
                 <h5>Description</h5>
-                <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+                <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = $event; commitSchemeChange('description')" ></rich-text-editor>
 
                 <LinksPanel :key="`floating-links-panel-${updateKey}`" :editorId="editorId" :item="item"/>
             </modal>

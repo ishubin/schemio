@@ -16,7 +16,7 @@
                             :descriptor="arg"
                             :value="effectArgs[argName]"
                             :schemeContainer="schemeContainer"
-                            @input="onPropChange(argName, arguments[0])"
+                            @input="onPropChange(argName, $event)"
                             />
                     </td>
                 </tr>

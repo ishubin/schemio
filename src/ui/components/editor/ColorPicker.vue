@@ -14,7 +14,7 @@
         </div>
 
         <div ref="tooltip" class="color-picker-tooltip" v-if="tooltip.shown" :style="{left: tooltip.x+'px', top: tooltip.y+'px'}">
-            <RawColorPicker :value="color" @color-changed="onColorChange"/>
+            <RawColorPicker :color="color" @color-changed="onColorChange"/>
         </div>
     </div>
 </template>

@@ -38,7 +38,7 @@
             @patch-origin-toggled="onPatchOriginToggled"
             @patch-modified-toggled="onPatchModifiedToggled"
             @patch-modified-generated="onPatchModifiedGenerated"
-            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
+            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
             @patched-history-committed="onPatchedHistoryCommitted"
         />
 
@@ -220,10 +220,10 @@ export default {
             this.customContextMenu.show = false;
         },
 
-        onContextMenuRequested(x, y, menuOptions) {
+        onContextMenuRequested({ mouseX, mouseY, menuOptions }) {
             this.customContextMenu.id = shortid.generate();
-            this.customContextMenu.mouseX = x;
-            this.customContextMenu.mouseY = y;
+            this.customContextMenu.mouseX = mouseX;
+            this.customContextMenu.mouseY = mouseY;
             this.customContextMenu.menuOptions = menuOptions;
             this.customContextMenu.show = true;
         },
@@ -276,16 +276,16 @@ export default {
             this.historyRedoable = this.histories[this.currentHistory].redoable();
         },
 
-        onHistoryCommitted(scheme, affinityId) {
+        onHistoryCommitted({ scheme, affinityId }) {
             this.histories.origin.commit(scheme, affinityId);
             this.modified = true;
             this.updateHistoryState();
         },
 
-        onPatchedHistoryCommitted(scheme, affinityId) {
+        onPatchedHistoryCommitted({ scheme, affinityId }) {
             this.histories.modified.commit(scheme, affinityId);
             this.modified = true;
-            this.$emit('patched-history-committed', scheme, affinityId)
+            this.$emit('patched-history-committed', { scheme, affinityId })
             this.updateHistoryState();
         },
 

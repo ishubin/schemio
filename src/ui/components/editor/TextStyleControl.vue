@@ -8,14 +8,14 @@
             >A</div>
         <div class="text-style-control-dropdown" v-if="toggled">
             <div class="text-style-control-color-container">
-                <RawColorPicker :value="vuePickerColor" @color-changed="updateColor"/>
+                <RawColorPicker :color="vuePickerColor" @color-changed="updateColor"/>
             </div>
             <div class="text-style-control-other-controls">
                 <div>
-                    <dropdown :options="allFonts" :value="font" @selected="onFontChange(arguments[0].name)"/>
+                    <dropdown :options="allFonts" :value="font" @selected="onFontChange($event.name)"/>
                 </div>
                 <div>
-                    <NumberTextfield name="Font Size" :value="fontSize" @changed="onFontSizeChange(arguments[0])" :min="0"/>
+                    <NumberTextfield name="Font Size" :value="fontSize" @changed="onFontSizeChange($event)" :min="0"/>
                 </div>
                 <div>
                     <ul class="button-group">
@@ -198,7 +198,7 @@ export default {
         },
 
         emitPropertyChange(name, value) {
-            this.$emit('property-changed', name, value);
+            this.$emit('property-changed', { name, value });
         },
 
         onBodyClick(event) {

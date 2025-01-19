@@ -13,7 +13,7 @@
 
         <div class="section">
             <div class="ctrl-label">Effect</div>
-            <select :value="effectId" @input="onEffectIdChanged(arguments[0].target.value)">
+            <select :value="effectId" @input="onEffectIdChanged($event.target.value)">
                 <option v-for="knownEffect in knownEffects" :value="knownEffect.id">{{knownEffect.name}}</option>
             </select>
         </div>
@@ -28,7 +28,7 @@
             <Tooltip>
                 Enables cascading of the effect to all child items, attached to current item
             </Tooltip>
-            <input for="chk-effect-cascade" type="checkbox" :checked="cascade" @input="onCascadeUpdate(arguments[0].target.checked)"/>
+            <input for="chk-effect-cascade" type="checkbox" :checked="cascade" @input="onCascadeUpdate($event.target.checked)"/>
         </div>
 
         <EffectEditor

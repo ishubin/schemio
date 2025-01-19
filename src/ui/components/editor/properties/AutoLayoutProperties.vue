@@ -17,7 +17,7 @@
                                     <span class="guide"></span>
                                     <GuideLabel :key="topGuide.id" :guide="topGuide"
                                         :guideOptions="sideVerticalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'top', 'relTop')"
+                                        @value-changed="onGuideValueChange($event, 'top', 'relTop')"
                                         @type-selected="onTopTypeChange"
                                         />
                                 </div>
@@ -30,7 +30,7 @@
                                     <span class="guide"></span>
                                     <GuideLabel :key="leftGuide.id" :guide="leftGuide"
                                         :guideOptions="sideHorizontalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'left', 'relLeft')"
+                                        @value-changed="onGuideValueChange($event, 'left', 'relLeft')"
                                         @type-selected="onLeftTypeChange"
                                         />
                                 </div>
@@ -40,14 +40,14 @@
                                     <div class="box">
                                         <GuideLabel class="label-width" :key="widthGuide.id" :guide="widthGuide"
                                             :guideOptions="sizeGuideOptions"
-                                            @value-changed="onGuideValueChange(arguments[0], 'width', 'relWidth')"
+                                            @value-changed="onGuideValueChange($event, 'width', 'relWidth')"
                                             @type-selected="onWidthTypeChange"
                                             >
                                             <i class="label-width-arrow fa-solid fa-angle-right"></i>
                                         </GuideLabel>
                                         <GuideLabel class="label-height" :key="heightGuide.id" :guide="heightGuide"
                                             :guideOptions="sizeGuideOptions"
-                                            @value-changed="onGuideValueChange(arguments[0], 'height', 'relHeight')"
+                                            @value-changed="onGuideValueChange($event, 'height', 'relHeight')"
                                             @type-selected="onHeightTypeChange"
                                             >
                                             <i class="label-height-arrow fa-solid fa-angle-down"></i>
@@ -60,7 +60,7 @@
                                     <span class="guide"></span>
                                     <GuideLabel :key="rightGuide.id" :guide="rightGuide"
                                         :guideOptions="sideHorizontalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'right', 'relRight')"
+                                        @value-changed="onGuideValueChange($event, 'right', 'relRight')"
                                         @type-selected="onRightTypeChange"
                                         />
                                 </div>
@@ -73,7 +73,7 @@
                                     <span class="guide"></span>
                                     <GuideLabel :key="bottomGuide.id" :guide="bottomGuide"
                                         :guideOptions="sideVerticalGuideOptions"
-                                        @value-changed="onGuideValueChange(arguments[0], 'bottom', 'relBottom')"
+                                        @value-changed="onGuideValueChange($event, 'bottom', 'relBottom')"
                                         @type-selected="onBottomTypeChange"
                                         />
                                 </div>

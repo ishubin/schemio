@@ -3,32 +3,32 @@
         <div class="row">
             <div class="col-1 padded">
                 <NumberTextfield :value="item.shapeProps.columns" :min="1" :max="100" name="Columns"
-                    @changed="$emit('shape-prop-changed', 'columns', 'number', arguments[0])"/>
+                    @changed="$emit('shape-prop-changed', 'columns', 'number', $event)"/>
             </div>
             <div class="col-1 padded">
                 <NumberTextfield :value="item.shapeProps.rows" :min="1" :max="100" name="Rows"
-                    @changed="$emit('shape-prop-changed', 'rows', 'number', arguments[0])"/>
+                    @changed="$emit('shape-prop-changed', 'rows', 'number', $event)"/>
             </div>
         </div>
         <div class="row">
             <div class="col-1 padded" title="Fill">
-                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.fill" :disabled="false" @changed="$emit('shape-prop-changed', 'fill', 'advanced-color', arguments[0])" />
+                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.fill" :disabled="false" @changed="$emit('shape-prop-changed', 'fill', 'advanced-color', $event)" />
             </div>
             <div class="col-1 padded" title="Secondary fill">
-                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.rowSecondaryFill" :disabled="!item.shapeProps.oddEvenFill" @changed="$emit('shape-prop-changed', 'rowSecondaryFill', 'advanced-color', arguments[0])" />
+                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.rowSecondaryFill" :disabled="!item.shapeProps.oddEvenFill" @changed="$emit('shape-prop-changed', 'rowSecondaryFill', 'advanced-color', $event)" />
             </div>
             <div class="col-1 padded" title="Header fill">
-                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.headerFill" :disabled="item.shapeProps.header === 'none'" @changed="$emit('shape-prop-changed', 'headerFill', 'advanced-color', arguments[0])" />
+                <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.headerFill" :disabled="item.shapeProps.header === 'none'" @changed="$emit('shape-prop-changed', 'headerFill', 'advanced-color', $event)" />
             </div>
             <div class="col-1 padded" title="Stroke color">
-                <ColorPicker :editorId="editorId" :color="item.shapeProps.stroke" :disabled="item.shapeProps.style === 'flat'" @input="$emit('shape-prop-changed', 'stroke', 'color', arguments[0])"/>
+                <ColorPicker :editorId="editorId" :color="item.shapeProps.stroke" :disabled="item.shapeProps.style === 'flat'" @input="$emit('shape-prop-changed', 'stroke', 'color', $event)"/>
             </div>
         </div>
         <div class="row">
             <div class="col-1 padded">
                 <NumberTextfield :value="item.shapeProps.strokeSize" :min="1" :max="100" name="Stroke size"
                     :disabled="item.shapeProps.style === 'flat'"
-                    @changed="$emit('shape-prop-changed', 'strokeSize', 'number', arguments[0])"/>
+                    @changed="$emit('shape-prop-changed', 'strokeSize', 'number', $event)"/>
             </div>
         </div>
 

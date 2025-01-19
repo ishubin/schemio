@@ -8,11 +8,11 @@
             ></div>
         <div class="stroke-control-dropdown" v-if="toggled">
             <div class="stroke-control-color-container">
-                <RawColorPicker v-if="supportsStrokeColor" :value="vuePickerColor" @color-changed="updateColor"/>
+                <RawColorPicker v-if="supportsStrokeColor" :color="vuePickerColor" @color-changed="updateColor"/>
             </div>
             <div class="stroke-control-other-controls">
                 <div>
-                    <NumberTextfield v-if="supportsStrokeSize" name="Size" :value="strokeSize" @changed="onStrokeSizeChange(arguments[0])" :min="0"/>
+                    <NumberTextfield v-if="supportsStrokeSize" name="Size" :value="strokeSize" @changed="onStrokeSizeChange($event)" :min="0"/>
                 </div>
                 <div class="stroke-control-patterns" v-if="supportsStrokePattern">
                     <div v-for="knownPattern in strokePatterns"

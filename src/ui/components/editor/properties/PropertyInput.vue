@@ -3,23 +3,23 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <input v-if="descriptor.type === 'string'" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
+        <input v-if="descriptor.type === 'string'" class="textfield" :value="value" :disabled="disabled" @input="emitValue($event.target.value)"/>
 
-        <input v-if="descriptor.type === 'image'" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
+        <input v-if="descriptor.type === 'image'" class="textfield" :value="value" :disabled="disabled" @input="emitValue($event.target.value)"/>
 
-        <NumberTextfield v-if="descriptor.type === 'number'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" :min="minValue" :max="maxValue"/>
+        <NumberTextfield v-if="descriptor.type === 'number'" :value="value" :disabled="disabled" @changed="emitValue($event)" :min="minValue" :max="maxValue"/>
 
-        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue(arguments[0])"/>
+        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue($event)"/>
 
-        <AdvancedColorEditor :editorId="editorId" v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" />
+        <AdvancedColorEditor :editorId="editorId" v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue($event)" />
 
-        <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue(arguments[0].srcElement.checked)"/>
+        <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue($event.srcElement.checked)"/>
 
-        <select v-if="descriptor.type === 'choice'" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)">
+        <select v-if="descriptor.type === 'choice'" :value="value" :disabled="disabled" @input="emitValue($event.target.value)">
             <option v-for="argOption in descriptor.options">{{argOption}}</option>
         </select>
 
-        <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :editorId="editorId" :value="value" :disabled="disabled" @selected="emitValue( arguments[0])"/>
+        <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :editorId="editorId" :value="value" :disabled="disabled" @selected="emitValue( $event)"/>
 
         <PathCapDropdown v-if="descriptor.type === 'path-cap'"
             :value="value"
@@ -28,7 +28,7 @@
             width="16px"
             :height="16"
             :disabled="disabled"
-            @selected="emitValue(arguments[0])"/>
+            @selected="emitValue($event)"/>
 
         <ElementPicker v-if="descriptor.type === 'element'"
             :editorId="editorId"
@@ -38,7 +38,7 @@
             :scheme-container="schemeContainer"
             :disabled="disabled"
             :excluded-item-ids="[itemId]"
-            @selected="emitValue(arguments[0])"
+            @selected="emitValue($event)"
             />
 
         <DiagramPicker v-if="descriptor.type === 'scheme-ref'"
@@ -48,7 +48,7 @@
             @diagram-selected="onDiagramPicked"
             />
 
-        <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue(arguments[0])"/>
+        <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue($event)"/>
     </div>
 
 </template>

@@ -362,7 +362,7 @@ export default {
             });
         },
 
-        onNewDiagramRequestedForItem(item, isExternalComponent) {
+        onNewDiagramRequestedForItem({ item, isExternalComponent }) {
             this.newSchemePopup.name = item.name;
             this.newSchemePopup.description = item.description;
             if (isExternalComponent && item.shape === 'component') {

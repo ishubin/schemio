@@ -47,25 +47,25 @@
                     <tr>
                         <td class="label" width="50%">Color</td>
                         <td class="value" width="50%">
-                            <color-picker :editorId="editorId" :color="textSlot.color" @input="emitTextSlotPropertyChange('color', arguments[0])"></color-picker>
+                            <color-picker :editorId="editorId" :color="textSlot.color" @input="emitTextSlotPropertyChange('color', $event)"></color-picker>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Bold</td>
                         <td class="value" width="50%">
-                            <input type="checkbox" :checked="textSlot.bold" @input="emitTextSlotPropertyChange('bold', arguments[0].target.checked)"/>
+                            <input type="checkbox" :checked="textSlot.bold" @input="emitTextSlotPropertyChange('bold', $event.target.checked)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Font</td>
                         <td class="value" width="50%">
-                            <dropdown :options="allFonts" :value="textSlot.font" @selected="emitTextSlotPropertyChange('font', arguments[0].name)"/>
+                            <dropdown :options="allFonts" :value="textSlot.font" @selected="emitTextSlotPropertyChange('font', $event.name)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Font Size</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.fontSize" @changed="emitTextSlotPropertyChange('fontSize', arguments[0])" :min="0"/>
+                            <number-textfield :value="textSlot.fontSize" @changed="emitTextSlotPropertyChange('fontSize', $event)" :min="0"/>
                         </td>
                     </tr>
                     <tr>
@@ -99,31 +99,31 @@
                     <tr>
                         <td class="label" width="50%">Padding Left</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingLeft" @changed="emitTextSlotPropertyChange('paddingLeft', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingLeft" @changed="emitTextSlotPropertyChange('paddingLeft', $event)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Right</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingRight" @changed="emitTextSlotPropertyChange('paddingRight', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingRight" @changed="emitTextSlotPropertyChange('paddingRight', $event)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Top</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingTop" @changed="emitTextSlotPropertyChange('paddingTop', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingTop" @changed="emitTextSlotPropertyChange('paddingTop', $event)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Bottom</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingBottom" @changed="emitTextSlotPropertyChange('paddingBottom', arguments[0])"/>
+                            <number-textfield :value="textSlot.paddingBottom" @changed="emitTextSlotPropertyChange('paddingBottom', $event)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">White Space</td>
                         <td class="value" width="50%">
-                            <select :value="textSlot.whiteSpace" @input="emitTextSlotPropertyChange('whiteSpace', arguments[0].target.value)">
+                            <select :value="textSlot.whiteSpace" @input="emitTextSlotPropertyChange('whiteSpace', $event.target.value)">
                                 <option :value="option.value" v-for="option in supportedWhiteSpaceOptions">{{option.name}}</option>
                             </select>
                         </td>
@@ -131,13 +131,13 @@
                     <tr>
                         <td class="label" width="50%">Letter spacing</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.letterSpacing" @changed="emitTextSlotPropertyChange('letterSpacing', arguments[0])"/>
+                            <number-textfield :value="textSlot.letterSpacing" @changed="emitTextSlotPropertyChange('letterSpacing', $event)"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Line height</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.lineHeight" @changed="emitTextSlotPropertyChange('lineHeight', arguments[0])"/>
+                            <number-textfield :value="textSlot.lineHeight" @changed="emitTextSlotPropertyChange('lineHeight', $event)"/>
                         </td>
                     </tr>
                     <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot && !textSlotTabsDisabled">
@@ -217,8 +217,8 @@ export default {
             this.$emit('moved-to-slot', anotherSlotName);
         },
 
-        emitTextSlotPropertyChange(propertyPath, value) {
-            this.$emit('property-changed', propertyPath, value);
+        emitTextSlotPropertyChange(name, value) {
+            this.$emit('property-changed', { name, value });
         }
     }
 }

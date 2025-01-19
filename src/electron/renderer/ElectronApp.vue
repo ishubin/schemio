@@ -62,13 +62,13 @@
                             :userStylesEnabled="true"
                             @items-selected="onItemsSelected(file)"
                             @items-deselected="onItemsDeselected(file)"
-                            @scheme-save-requested="saveFile(file, arguments[0])"
-                            @mode-change-requested="onModeChangeRequested(file, arguments[0])"
-                            @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
+                            @scheme-save-requested="saveFile(file, $event)"
+                            @mode-change-requested="onModeChangeRequested(file, $event)"
+                            @history-committed="onHistoryCommitted(file, $event.scheme, $event.affinityId)"
                             @undo-history-requested="undoHistory(file)"
                             @redo-history-requested="redoHistory(file)"
-                            @context-menu-requested="onContextMenuRequested(files, arguments[2])"
-                            @new-diagram-requested-for-item="onNewDiagramRequestedForItem(file, arguments[0], arguments[1])"
+                            @context-menu-requested="onContextMenuRequested(files, $event.menuOptions)"
+                            @new-diagram-requested-for-item="onNewDiagramRequestedForItem(file, $event.item, $event.isExternalComponent)"
                         />
                     </div>
                 </div>

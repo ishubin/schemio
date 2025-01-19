@@ -25,7 +25,7 @@
                         Font size
                     </td>
                     <td class="value" width="50%">
-                        <NumberTextfield :value="fontSize" @changed="onFontSizeUpdate(arguments[0])" :min="1"/>
+                        <NumberTextfield :value="fontSize" @changed="onFontSizeUpdate($event)" :min="1"/>
                     </td>
                 </tr>
                 <tr>

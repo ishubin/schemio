@@ -18,23 +18,23 @@
             <tbody>
                 <tr>
                     <td>
-                        <number-textfield :value="x" name="x" @changed="updateAreaProperty('x', arguments[0])"/>
+                        <number-textfield :value="x" name="x" @changed="updateAreaProperty('x', $event)"/>
                     </td>
                     <td>
-                        <number-textfield :value="w" name="w" @changed="updateAreaProperty('w', arguments[0])"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <number-textfield :value="y" name="y" @changed="updateAreaProperty('y', arguments[0])"/>
-                    </td>
-                    <td>
-                        <number-textfield :value="h" name="h" @changed="updateAreaProperty('h', arguments[0])"/>
+                        <number-textfield :value="w" name="w" @changed="updateAreaProperty('w', $event)"/>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <number-textfield :value="r" icon="fas fa-sync-alt" @changed="updateAreaProperty('r', arguments[0])"/>
+                        <number-textfield :value="y" name="y" @changed="updateAreaProperty('y', $event)"/>
+                    </td>
+                    <td>
+                        <number-textfield :value="h" name="h" @changed="updateAreaProperty('h', $event)"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <number-textfield :value="r" icon="fas fa-sync-alt" @changed="updateAreaProperty('r', $event)"/>
                     </td>
                     <td>
                     </td>
@@ -45,7 +45,7 @@
             <tbody>
                 <tr>
                     <td>
-                        <number-textfield :value="sx" :name="scaleNameX" @changed="updateScaleX(arguments[0])"/>
+                        <number-textfield :value="sx" :name="scaleNameX" @changed="updateScaleX($event)"/>
                     </td>
                     <td>
                         <span class="toggle-button" :class="{toggled: scaleLocked}" @click="scaleLocked = !scaleLocked">
@@ -53,7 +53,7 @@
                         </span>
                     </td>
                     <td>
-                        <number-textfield :value="sy" name="Scale Y" :disabled="scaleLocked"  @changed="updateScaleY(arguments[0])"/>
+                        <number-textfield :value="sy" name="Scale Y" :disabled="scaleLocked"  @changed="updateScaleY($event)"/>
                     </td>
                 </tr>
             </tbody>

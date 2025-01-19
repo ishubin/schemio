@@ -501,7 +501,7 @@
                                 :item="inPlaceTextEditor.item"
                                 :slot-name="inPlaceTextEditor.slotName"
                                 @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, $event);"
-                                @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
+                                @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, $event.name, $event.value)"
                                 />
                         </div>
                         <div>
@@ -512,7 +512,7 @@
                                     :item="itemTextSlot.item"
                                     :slot-name="itemTextSlot.slotName"
                                     @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
-                                    @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                                    @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
                                     />
                             </template>
                             <template v-for="tab in extraTabs">
@@ -1717,7 +1717,7 @@ export default {
         },
 
         startCreatingChildSchemeForItem(item, isExternalComponent) {
-            this.$emit('new-diagram-requested-for-item', item, isExternalComponent);
+            this.$emit('new-diagram-requested-for-item', { item, isExternalComponent });
         },
 
         onUpdateOffset(x, y) {
@@ -1961,7 +1961,10 @@ export default {
         },
 
         commitHistory(affinityId) {
-            this.$emit('history-committed', this.schemeContainer.scheme, affinityId);
+            this.$emit('history-committed', {
+                scheme: this.schemeContainer.scheme,
+                affinityId
+            });
         },
 
         historyEditAllowed() {
@@ -2203,7 +2206,7 @@ export default {
             }
         },
 
-        onItemFieldChanged(name, value) {
+        onItemFieldChanged({name, value}) {
             //TODO move it to another script (to simplify this script)
             let itemIds = '';
             forEach(this.schemeContainer.selectedItems, item => {
@@ -2629,7 +2632,7 @@ export default {
 
             contextMenuOptions = contextMenuOptions.concat(this.generateCustomContextMenuOptions(this.schemeContainer.editBox.items));
 
-            this.$emit('context-menu-requested', mouseX, mouseY, contextMenuOptions);
+            this.$emit('context-menu-requested', { mouseX, mouseY, menuOptions: contextMenuOptions });
         },
 
         generateCustomContextMenuOptions(selectedItems) {
@@ -2676,7 +2679,11 @@ export default {
 
         onContextMenuRequested(mouseX, mouseY, menuOptions) {
             const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
-            this.$emit('context-menu-requested', mouseX + svgRect.left + 5, mouseY + svgRect.top + 5, menuOptions);
+            this.$emit('context-menu-requested', {
+                mouseX: mouseX + svgRect.left + 5,
+                mouseY: mouseY + svgRect.top + 5,
+                menuOptions
+            });
         },
 
         addItemBehaviorEvent(item, eventName) {

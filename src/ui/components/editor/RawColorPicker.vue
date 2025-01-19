@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="rcp-text-controls">
-                <input type="text" class="rcp-input" v-model="colorText" @input="onTextInput"/>
+                <input type="text" class="rcp-input" :value="colorText" @input="onTextInput"/>
             </div>
         </div>
     </div>
@@ -41,7 +41,7 @@ import myMath from '../../myMath';
 
 export default {
     props: {
-        value: {type: String, required: true}
+        color: {type: String, required: true}
     },
 
     emits: [
@@ -49,13 +49,11 @@ export default {
     ],
 
     mounted() {
-        console.log('rawcolorpicker.mounted');
         this.updateKnobs();
     },
 
     data() {
-        console.log('rawcolorpicker.data', this.value);
-        const color = parseColor(this.value);
+        const color = parseColor(this.color);
         const hsl = rgb2hsl(color.r, color.g, color.b);
         return {
             color,
@@ -75,7 +73,6 @@ export default {
 
     methods: {
         onTextInput(event) {
-            console.log('rawcolorpicker.onTextInput', event.target.value);
             const color = parseColor(event.target.value);
             const hsl = rgb2hsl(color.r, color.g, color.b);
             this.hue = hsl.h;
@@ -92,15 +89,15 @@ export default {
             if (knobName === 'canvas') {
                 this.knobX = rootRect.width * x - 4;
                 this.knobY = rootRect.height * y - 4;
-                this.saturation = x;
+                this.saturation = Math.floor(x*100) / 100;
                 const h = (1 - x) + 0.5 * x;
-                this.lightness = h * (1 - y);
+                this.lightness = Math.floor(h * (1 - y) * 100) / 100;
             } else if (knobName === 'hue') {
                 this.hueKnobPos = rootRect.width * x - 2;
-                this.hue = 360 * x;
+                this.hue = Math.floor(360 * x);
             } else if (knobName === 'alpha') {
                 this.alphaKnobPos = rootRect.width * x - 2;
-                this.alpha = x;
+                this.alpha = Math.floor(x*100)/100;
             }
             this.changeColor();
         },
@@ -176,18 +173,5 @@ export default {
             document.addEventListener(mouseUpEventName, onMouseUp);
         },
     },
-
-    watch: {
-        value(value) {
-            console.log('rawcolorpicker.watch.value', value);
-            const color = parseColor(value);
-            const hsl = rgb2hsl(color.r, color.g, color.b);
-            this.hue = hsl.h;
-            this.saturation = hsl.s;
-            this.lightness = hsl.l;
-            this.alpha = color.a;
-            this.updateKnobs();
-        }
-    }
 }
 </script>

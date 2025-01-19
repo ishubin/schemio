@@ -199,7 +199,7 @@ export default {
                 this.argumentBindStates[argName].value = {ref: option.name};
                 this.argumentBindStates[argName].isBinded = true;
                 this.argBinds[argName] = {ref: option.name};
-                this.$emit(`argument-bind-added`, argName, {ref: option.name});
+                this.$emit(`argument-bind-added`, { argName, bindValue: {ref: option.name} });
             } else if (option.kind === 'unbind') {
                 this.argumentBindStates[argName].value = null;
                 this.argumentBindStates[argName].isBinded = false;
