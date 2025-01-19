@@ -8,7 +8,7 @@
             >A</div>
         <div class="text-style-control-dropdown" v-if="toggled">
             <div class="text-style-control-color-container">
-                <color-picker v-model="vuePickerColor" @input="updateColor"/>
+                <RawColorPicker :value="vuePickerColor" @color-changed="updateColor"/>
             </div>
             <div class="text-style-control-other-controls">
                 <div>
@@ -47,12 +47,13 @@
 
 <script>
 import Shape from './items/shapes/Shape';
-import VueColor from 'vue-color';
+import RawColorPicker from './RawColorPicker.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import Dropdown from '../Dropdown.vue';
 import { getAllFonts, getDefaultFont } from '../../scheme/Fonts';
 import {map} from '../../collections';
 import EditorEventBus from './EditorEventBus';
+
 
 export default {
     props: {
@@ -60,7 +61,7 @@ export default {
         item: {type: Object, required: true},
     },
 
-    components: {'color-picker': VueColor.Chrome, NumberTextfield, Dropdown},
+    components: {RawColorPicker, NumberTextfield, Dropdown},
 
     beforeMount() {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChange);
@@ -83,7 +84,7 @@ export default {
             halign           : props.halign,
             valign           : props.valign,
             supportsTextSlots: props.supportsTextSlots,
-            vuePickerColor   : {hex: props.textColor},
+            vuePickerColor   : props.textColor,
             allFonts         : map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
 
             halignOptions: [{
@@ -162,7 +163,7 @@ export default {
             this.halign = props.halign;
             this.valign = props.valign;
             this.supportsTextSlots = props.supportsTextSlots;
-            this.vuePickerColor.hex = this.textColor;
+            this.vuePickerColor = this.textColor;
         },
 
         onItemChange(propertyPath) {
@@ -172,7 +173,7 @@ export default {
         },
 
         updateColor(color) {
-            this.textColor = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.textColor = color;
             this.emitPropertyChange('color', this.textColor);
         },
 

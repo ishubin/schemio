@@ -15,7 +15,7 @@
                             Logger
                         </th>
                         <th>
-                            <input type="checkbox" :checked="allLoggersEnabled" @input="toggleAllLoggers(arguments[0].target.checked)"/>
+                            <input type="checkbox" :checked="allLoggersEnabled" @input="toggleAllLoggers($event.target.checked)"/>
                         </th>
                     </tr>
                 </thead>
@@ -23,7 +23,7 @@
                     <tr v-for="logger in loggers">
                         <td>{{logger.name}}</td>
                         <td>
-                            <input type="checkbox" :checked="logger.enabled" @input="toggleLogger(logger.name, arguments[0].target.checked)"/>
+                            <input type="checkbox" :checked="logger.enabled" @input="toggleLogger(logger.name, $event.target.checked)"/>
                         </td>
                     </tr>
                 </tbody>

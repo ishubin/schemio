@@ -14,14 +14,14 @@
         </div>
 
         <div ref="tooltip" class="color-picker-tooltip" v-if="tooltip.shown" :style="{left: tooltip.x+'px', top: tooltip.y+'px'}">
-            <color-picker v-model="vuePickerColor" @input="updateColor"/>
+            <RawColorPicker :value="color" @color-changed="onColorChange"/>
         </div>
     </div>
 </template>
 
 <script>
 import shortid from 'shortid';
-import VueColor from 'vue-color';
+import RawColorPicker from './RawColorPicker.vue';
 import EditorEventBus from './EditorEventBus';
 
 export default {
@@ -35,27 +35,28 @@ export default {
         hint    : {type: String, default: ''}
     },
 
-    components: {'color-picker': VueColor.Chrome},
+    emits: [
+        'input'
+    ],
+
+    components: { RawColorPicker },
     beforeMount() {
-        document.body.addEventListener('click', this.onGlobalClick);
+        document.body.addEventListener('mousedown', this.onGlobalClick);
     },
     beforeDestroy() {
-        document.body.removeEventListener('click', this.onGlobalClick);
+        document.body.removeEventListener('mousedown', this.onGlobalClick);
         EditorEventBus.colorControlToggled.$emit(this.editorId, false);
     },
     data() {
         return {
             uid: shortid.generate(),
-            pickerColor: this.color,
-            vuePickerColor: {hex: this.color},
             showColorPicker: false,
+            pickerColor: this.color,
             tooltip: {
                 shown: false,
                 x: 0,
                 y: 0
             },
-            oldColor: null,
-            oldAlpha: 1
         }
     },
     methods: {
@@ -70,18 +71,12 @@ export default {
                 return;
             }
 
-            this.oldColor = this.color;
-            this.vuePickerColor = {hex: this.color};
             this.tooltip.shown = true;
 
             EditorEventBus.colorControlToggled.$emit(this.editorId, true);
             this.$nextTick(() => {
                 this.readjustTooltipPosition();
             });
-        },
-        updateColor(color) {
-            this.pickerColor = color.hex;
-            this.$emit('input', `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`);
         },
         readjustTooltipPosition() {
             const domTooltip = this.$refs.tooltip;
@@ -130,12 +125,10 @@ export default {
                 this.tooltip.shown = false;
             }
         },
-    },
-    watch: {
-        color(newColor) {
-            this.pickerColor = newColor;
-            this.vuePickerColor.hex = newColor;
-            this.$forceUpdate();
+
+        onColorChange(color) {
+            this.pickerColor = color;
+            this.$emit('input', color);
         }
     },
     computed: {

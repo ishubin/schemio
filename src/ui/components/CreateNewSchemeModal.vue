@@ -13,7 +13,7 @@
             />
 
         <h5>Description</h5>
-        <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
+        <rich-text-editor :value="schemeDescription" @changed="onRichTextEditorChange" ></rich-text-editor>
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
 
@@ -52,6 +52,9 @@ export default {
     },
 
     methods: {
+        onRichTextEditorChange(text) {
+            this.schemeDescription = text;
+        },
         submitNewScheme() {
             const name = this.schemeName.trim();
             if (name) {

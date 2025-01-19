@@ -7,7 +7,7 @@ const MAX_PATH_DIVISIONS = 20;
 const MIN_PATH_DIVISIONS = 8;
 const PATH_DIVISION_LENGTH = 40;
 
-const EPSILON = 0.00001;
+const EPSILON = 0.0000001;
 
 function tooSmall(value) {
     return Math.abs(value) < EPSILON;

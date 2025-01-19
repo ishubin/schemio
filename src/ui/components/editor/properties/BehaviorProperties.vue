@@ -19,7 +19,7 @@
                                 :options="draggingOptions"
                                 @selected="onItemDraggingChange"
                             >
-                                {{ item.behavior.dragging | toPrettyDraggingOptionName }}
+                                {{ toPrettyDraggingOptionName(item.behavior.dragging) }}
                             </dropdown>
                         </td>
                     </tr>
@@ -92,7 +92,7 @@
                         :borderless="true"
                         >
                         <span class="icon-event"><i class="fas fa-bell"></i></span>
-                        <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
+                        <span v-if="isStandardEvent(event.event)">{{toPrettyEventName(event.event)}}</span>
                         <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
                     </dropdown>
                 </div>
@@ -144,17 +144,17 @@
                                     :inline="true"
                                     :borderless="true"
                                     >
-                                    <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                    <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{toPrettyPropertyName(action.args.field, action.element, item, schemeContainer)}}</span>
                                     <span class="behavior-function" v-else-if="action.method === 'sendEvent'"><i class="icon fas fa-play"></i> {{action.args.event}} </span>
-                                    <span class="behavior-function" v-else-if="action.method.startsWith('function:')">{{action.method | functionToPrettyName }} </span>
-                                    <span class="behavior-function" v-else>{{action.method | toPrettyMethod(action.element) }} </span>
+                                    <span class="behavior-function" v-else-if="action.method.startsWith('function:')">{{functionToPrettyName(action.method) }} </span>
+                                    <span class="behavior-function" v-else>{{toPrettyMethod(action.method, action.element) }} </span>
                                 </dropdown>
                             </div>
                             <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
                                 class="action-method-arguments-expand"
                                 @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
                                 title="Edit function arguments"
-                                >{{action | toPrettyActionArgs(schemeContainer) }}</span>
+                                >{{toPrettyActionArgs(action, schemeContainer) }}</span>
 
                             <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
@@ -1288,10 +1288,8 @@ export default {
                 this.$forceUpdate();
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             });
-        }
-    },
+        },
 
-    filters: {
         toPrettyEventName(event) {
             if (Events.standardEvents[event]) {
                 return Events.standardEvents[event].name;

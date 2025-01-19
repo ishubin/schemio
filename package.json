@@ -74,7 +74,6 @@
     "tiny-emitter": "^2.1.0",
     "utf-8-validate": "^5.0.10",
     "vue": "^3.5.13",
-    "vue-color": "2.8.1",
     "vue-loader": "^17.4.2",
     "vue-router": "^4.5.0",
     "vuex": "^4.1.0",

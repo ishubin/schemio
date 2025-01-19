@@ -118,7 +118,7 @@
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
                     >
-                    <g slot="scene-transform">
+                    <template v-slot:scene-transform>
                         <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && state !== 'imageBox' && !inPlaceTextEditor.shown"
                             :key="`edit-box-${editorRevision}-${schemeContainer.editBox.id}`"
                             :useFill="state !== 'pickElement' && editBoxUseFill"
@@ -171,7 +171,7 @@
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                                 :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
                         </g>
-                    </g>
+                    </template>
 
                     <div slot="overlay">
                         <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
@@ -500,7 +500,7 @@
                                 :editorId="editorId"
                                 :item="inPlaceTextEditor.item"
                                 :slot-name="inPlaceTextEditor.slotName"
-                                @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0]);"
+                                @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, $event);"
                                 @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
                                 />
                         </div>
@@ -511,7 +511,7 @@
                                     :editorId="editorId"
                                     :item="itemTextSlot.item"
                                     :slot-name="itemTextSlot.slotName"
-                                    @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
+                                    @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
                                     @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
                                     />
                             </template>
