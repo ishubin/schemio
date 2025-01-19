@@ -46,6 +46,8 @@ export default {
     props: {
         schemeContainer: {type: Object, required: true},
         previousScripts: {type: Array, default: []},
+        /* Array of field descriptors (see FieldDescriptor in typedef.js) */
+        scopeArgs: {type: Array, default: () => []},
         value: {type: String, default: ''},
         height: {type: Number, default: 400}
     },
@@ -83,7 +85,7 @@ export default {
                 }),
                 autocompletion({
                     override: [
-                        createCompletions(this.schemeContainer, this.previousScripts)
+                        createCompletions(this.schemeContainer, this.previousScripts, this.scopeArgs)
                     ]
                 })
             ]

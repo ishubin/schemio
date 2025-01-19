@@ -95,6 +95,10 @@ const functions = `
   setVar
   setWidth
   setWorldPos
+  setFill
+  setStrokeColor
+  setStrokeSize
+  setStrokePattern
   show
   sin
   sqrt
@@ -148,9 +152,14 @@ function extractCompletionsFromScript(script) {
 /**
  * @param {SchemeContainer} schemeContainer
  * @param {Array<String>} previousScripts
+ * @param {Array<FieldDescriptor>} scopeArgs
  */
-export function createCompletions(schemeContainer, previousScripts) {
+export function createCompletions(schemeContainer, previousScripts, scopeArgs) {
     let completions = keywords.concat(functions);
+
+    completions = completions.concat(scopeArgs.map(scopeArg => {
+        return {label: scopeArg.name, type: 'variable'};
+    }));
 
     previousScripts.forEach(script => {
         completions = completions.concat(extractCompletionsFromScript(script));

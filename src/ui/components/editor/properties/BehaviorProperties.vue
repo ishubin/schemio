@@ -213,6 +213,7 @@
                     :editorId="editorId"
                     :schemeContainer="schemeContainer"
                     :args="functionArgumentsEditor.args"
+                    :scopeArgs="scopeArgs"
                     @argument-changed="onFunctionArgumentsEditorChange"
                 ></component>
             </div>

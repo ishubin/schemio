@@ -124,8 +124,8 @@
                     :editorId="editorId"
                     :args="classModal.args"
                     :schemeContainer="schemeContainer"
-                    @arg-added="onClassArgAdded(arguments[0], classModal.classIdx)"
-                    @arg-deleted="deleteClassArgument(arguments[0])"
+                    @arg-added="onClassArgAdded($event, classModal.classIdx)"
+                    @arg-deleted="deleteClassArgument($event)"
                     @arg-name-changed="onClassArgNameChange"
                     @arg-type-changed="onClassArgTypeChanged"
                     @arg-value-changed="onClassArgDefaultValueChange"
@@ -163,8 +163,8 @@
                     :editorId="editorId"
                     :args="funcModal.args"
                     :schemeContainer="schemeContainer"
-                    @arg-added="onFuncArgAdded(arguments[0], funcModal.funcIdx)"
-                    @arg-deleted="deleteFuncArgument(arguments[0])"
+                    @arg-added="onFuncArgAdded($event, funcModal.funcIdx)"
+                    @arg-deleted="deleteFuncArgument($event)"
                     @arg-name-changed="onFunctionArgNameChange"
                     @arg-type-changed="onFuncArgTypeChanged"
                     @arg-value-changed="onFuncArgDefaultValueChange"
@@ -174,9 +174,11 @@
             <Panel uid="func-modal-script" name="Script">
                 <div>
                     <ScriptFunctionEditor
+                        :key="`global-function-script-editor-${funcModal.scriptEditorUpdateKey}`"
                         :editorId="editorId"
                         :args="funcModal.props"
                         :schemeContainer="schemeContainer"
+                        :scopeArgs="funcModal.args"
                         @argument-changed="onScriptFunctionEditorPropChange"/>
                 </div>
             </Panel>
@@ -205,7 +207,7 @@
                         <div class="hint hint-small">Select the function you want to import</div>
                         <ul>
                             <li v-for="(func, funcIdx) in importFunctionModal.functions">
-                                <input type="checkbox" :id="`import-func-checkbox-${funcIdx}`" :checked="func.selected"  @input="toggleImportFunctionCheckbox(funcIdx, arguments[0].target.checked)">
+                                <input type="checkbox" :id="`import-func-checkbox-${funcIdx}`" :checked="func.selected"  @input="toggleImportFunctionCheckbox(funcIdx, $event.target.checked)">
                                 <label :for="`import-func-checkbox-${funcIdx}`">
                                     <i class="fa-solid fa-florin-sign"></i>
                                     {{ func.name }}
@@ -218,7 +220,7 @@
                         <div class="hint hint-small">Select classes you want to import</div>
                         <ul>
                             <li v-for="(classDef, classIdx) in importFunctionModal.classes">
-                                <input type="checkbox" :id="`import-class-checkbox-${classIdx}`" :checked="classDef.selected"  @input="toggleImportClassCheckbox(classIdx, arguments[0].target.checked)">
+                                <input type="checkbox" :id="`import-class-checkbox-${classIdx}`" :checked="classDef.selected"  @input="toggleImportClassCheckbox(classIdx, $event.target.checked)">
                                 <label :for="`import-class-checkbox-${funcIdx}`">
                                     <i class="fa-solid fa-florin-sign"></i>
                                     {{ classDef.name }}
@@ -267,6 +269,7 @@ import Shape from './items/shapes/Shape';
 import Dropdown from '../Dropdown.vue';
 import { enrichItemWithDefaults } from '../../scheme/ItemFixer';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../clipboard';
+import { createDelayer } from '../../delayer';
 
 
 function stringValidator(value) {
@@ -331,6 +334,10 @@ export default {
         SchemeSearchModal, CustomArgsEditor, BehaviorProperties, Dropdown
     },
 
+    beforeDestroy() {
+        this.funcModal.updateDelayer.destroy();
+    },
+
     data() {
         const scheme = this.schemeContainer.scheme;
         return {
@@ -355,6 +362,10 @@ export default {
                 args: [],
                 errorMessage: null,
                 funcIdx: -1,
+                scriptEditorUpdateKey: 0,
+                updateDelayer: createDelayer(100, () => {
+                    this.funcModal.scriptEditorUpdateKey += 1;
+                }),
 
                 props: {
                     initScript          :  '',
@@ -800,6 +811,7 @@ export default {
         deleteFuncArgument(argIdx) {
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args.splice(argIdx, 1);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}`);
+            this.funcModal.updateDelayer.trigger();
         },
 
         /**
@@ -852,17 +864,20 @@ export default {
         onFunctionArgNameChange(argIdx, name) {
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].name = name;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.name`);
+            this.funcModal.updateDelayer.trigger();
         },
 
         onFuncArgAdded(argDef, funcIdx) {
             this.schemeContainer.scheme.scripts.functions[funcIdx].args.push(argDef);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            this.funcModal.updateDelayer.trigger();
         },
 
         onFuncArgTypeChanged(argIdx, argType, argValue) {
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].type = argType;
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].args[argIdx].value = argValue;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.type`);
+            this.funcModal.updateDelayer.trigger();
         },
 
         onFuncArgDefaultValueChange(argIdx, value) {
@@ -892,6 +907,7 @@ export default {
             this.funcModal.script = '';
             this.funcModal.shown = true;
             this.funcModal.funcIdx = this.schemeContainer.scheme.scripts.functions.length;
+            this.funcModal.scriptEditorUpdateKey += 1;
             this.funcModal.props = {
                 initScript          :  '',
                 script              :  '',

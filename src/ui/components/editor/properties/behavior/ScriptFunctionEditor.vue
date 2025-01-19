@@ -48,18 +48,21 @@
                 :value="args.initScript"
                 :schemeContainer="schemeContainer"
                 :previousScripts="[schemeContainer.scheme.scripts.main.source]"
+                :scopeArgs="scopeArgs"
                 @changed="emitArgChange('initScript', arguments[0])"
             />
             <ScriptEditor key="script-tab-1" v-if="selectedTabIdx === 1"
                 :value="args.script"
                 :schemeContainer="schemeContainer"
                 :previousScripts="[schemeContainer.scheme.scripts.main.source, args.initScript]"
+                :scopeArgs="scopeArgs"
                 @changed="emitArgChange('script', arguments[0])"
             />
             <ScriptEditor key="script-tab-2" v-if="selectedTabIdx === 2"
                 :value="args.endScript"
                 :schemeContainer="schemeContainer"
                 :previousScripts="[schemeContainer.scheme.scripts.main.source, args.initScript]"
+                :scopeArgs="scopeArgs"
                 @changed="emitArgChange('endScript', arguments[0])"
             />
         </div>
@@ -73,9 +76,11 @@ import NumberTextfield from '../../../NumberTextfield.vue';
 
 export default {
     props: {
-        editorId: {type: String},
-        args    : {type: Object},
+        editorId       : {type: String},
+        args           : {type: Object},
         schemeContainer: { type: Object },
+        /* Array of field descriptors (see FieldDescriptor in typedef.js) */
+        scopeArgs      : {type: Array, default: () => []},
     },
 
     components: { ScriptEditor, Tooltip, NumberTextfield, Tooltip },
