@@ -41,6 +41,9 @@ function parseHexColor(text) {
         if (text.length >= 6) {
             b = parseInt(text.substring(4, 6), 16);
         }
+        if (text.length >= 8) {
+            a = parseInt(text.substring(6, 8), 16) / 255;
+        }
     }
 
     return {r,g,b,a};

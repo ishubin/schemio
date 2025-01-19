@@ -2097,7 +2097,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     color: var(--base-strong);
     padding: 5px 10px 5px 10px;
     background: var(--base-weak);
-    font-size: 14px;
+    font-size: 13px;
     border: 1px solid var(--faint-strong);
     border-radius: var(--control-border-radius);
 }

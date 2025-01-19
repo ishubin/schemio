@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="rcp-text-controls">
-                <input type="text" class="rcp-input" :value="encodedColor"/>
+                <input type="text" class="rcp-input" v-model="colorText" @input="onTextInput"/>
             </div>
         </div>
     </div>
@@ -49,15 +49,18 @@ export default {
     ],
 
     mounted() {
+        console.log('rawcolorpicker.mounted');
         this.updateKnobs();
     },
 
     data() {
+        console.log('rawcolorpicker.data', this.value);
         const color = parseColor(this.value);
         const hsl = rgb2hsl(color.r, color.g, color.b);
         return {
             color,
             encodedColor: encodeColor(color),
+            colorText: encodeColor(color),
             knobColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
             hue: hsl.h,
             saturation: hsl.s,
@@ -71,6 +74,20 @@ export default {
     },
 
     methods: {
+        onTextInput(event) {
+            console.log('rawcolorpicker.onTextInput', event.target.value);
+            const color = parseColor(event.target.value);
+            const hsl = rgb2hsl(color.r, color.g, color.b);
+            this.hue = hsl.h;
+            this.saturation = hsl.s;
+            this.lightness = hsl.l;
+            this.alpha = color.a;
+            this.encodedColor = encodeColor(color);
+            this.knobColor = `rgb(${color.r}, ${color.g}, ${color.b})`,
+            this.$emit('color-changed', this.encodedColor);
+            this.updateKnobs();
+        },
+
         setKnobPosition(knobName, rootRect, x, y) {
             if (knobName === 'canvas') {
                 this.knobX = rootRect.width * x - 4;
@@ -92,6 +109,7 @@ export default {
             const color = hsl2rgb(this.hue, this.saturation, this.lightness, this.alpha);
             color.a = this.alpha;
             this.encodedColor = encodeColor(color);
+            this.colorText = encodeColor(color);
             this.knobColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
             this.$emit('color-changed', this.encodedColor);
         },
@@ -157,6 +175,19 @@ export default {
             document.addEventListener(mouseMoveEventName, onMouseMove);
             document.addEventListener(mouseUpEventName, onMouseUp);
         },
+    },
+
+    watch: {
+        value(value) {
+            console.log('rawcolorpicker.watch.value', value);
+            const color = parseColor(value);
+            const hsl = rgb2hsl(color.r, color.g, color.b);
+            this.hue = hsl.h;
+            this.saturation = hsl.s;
+            this.lightness = hsl.l;
+            this.alpha = color.a;
+            this.updateKnobs();
+        }
     }
 }
 </script>
