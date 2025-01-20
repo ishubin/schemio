@@ -42,17 +42,12 @@ export function processJSONTemplate(obj, data) {
 /**
  * This function is used when user clicks on template controls.
  * It executes init and control expressions and returns the updated template argument values
- * @param {Array<String>} expressions - an array of strings which represent template expressions
+ * @param {String} expression - a template expression in SchemioScript
  * @param {Object} data - an object with initial arguments
  * @returns {function(Object|undefined): Object} - a function that takes extra data object as an argument, that should be added to the scope and, when invoked, will execute the expressions and will return the updated data with arguments
  */
-export function compileTemplateExpressions(expressions, data) {
-    if (!Array.isArray(expressions)) {
-        expressions = [expressions];
-    }
-
-    const fullScript = expressions.join('\n');
-    const expressionNode = parseExpression(fullScript);
+export function compileTemplateExpressions(expression, data = {}) {
+    const expressionNode = parseExpression(expression);
 
     return (extraData) => {
         const scope = new Scope({...data, ...(extraData || {})});

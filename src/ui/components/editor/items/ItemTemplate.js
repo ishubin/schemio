@@ -47,8 +47,9 @@ function enrichPanelItem(item) {
  * @param {Item} templateRootItem
  * @param {Object} data
  * @param {Array<String>} selectedItemIds
+ * @param {Map<String, Function>} cachedCompiledExpressions
  */
-function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, data, selectedItemIds) {
+function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, data, selectedItemIds, cachedCompiledExpressions) {
     // cloning selected items to make sure that the script cannot mutate items
     const extraData = {
         selectedItemIds: new List(...selectedItemIds),
@@ -73,9 +74,14 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
             }
             let click = null;
             if (panel.click) {
-                const clickCallback = compileTemplateExpressions(initBlock.concat([panel.click]), {
-                    context: new TemplateContext(ContextPhases.EVENT, 'panel-click', panel.id)
-                });
+                const clickExpression = initBlock.concat([panel.click]).join('\n');
+
+                let clickCallback = cachedCompiledExpressions.get(clickExpression);
+                if (!clickCallback) {
+                    clickCallback = compileTemplateExpressions(clickExpression);
+                    cachedCompiledExpressions.set(clickExpression, clickCallback);
+                }
+
                 click = (panelItem) => {
                     // panel click callback is supposed to return the object that contains the top-level scope fields
                     // This can be used in order to update template args in the template root item
@@ -90,7 +96,8 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
                         width: templateRootItem.area.w,
                         height: templateRootItem.area.h,
                         ...extraData,
-                        panelItem
+                        panelItem,
+                        context: new TemplateContext(ContextPhases.EVENT, 'panel-click', panel.id)
                     };
                     return clickCallback(clickData);
                 };
@@ -166,6 +173,19 @@ export function compileItemTemplate(editorId, template, templateRef) {
     forEachObject(template.args, (arg, argName) => {
         defaultArgs[argName] = arg;
     });
+
+    const cachedCompiledExpressions = new Map();
+
+    const buildTemplateExpression = (expressionScript) => {
+        let cachedExpression = cachedCompiledExpressions.get(expressionScript);
+        if (cachedExpression) {
+            return cachedExpression;
+        }
+
+        const compiledExpression = compileTemplateExpressions(expressionScript);
+        cachedCompiledExpressions.set(expressionScript, compiledExpression);
+        return compiledExpression;
+    };
 
     return {
         name       : template.name,
@@ -246,32 +266,39 @@ export function compileItemTemplate(editorId, template, templateRef) {
         },
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => {
-            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds);
+            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds, cachedCompiledExpressions);
         },
 
-        buildControls: (args, width, height) => compiledControlBuilder({
-                ...args, width, height,
-                context: new TemplateContext(ContextPhases.EVENT, 'control', '')
-            }).controls.map(control => {
-            const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
-            const clickExecutor = compileTemplateExpressions(controlExpressions, {
-                ...args, width, height,
-                context: new TemplateContext(ContextPhases.EVENT, 'control', control.id)
-            });
-            return {
-                ...control,
+        buildControls: (args, width, height) => {
+            return compiledControlBuilder({
+                    ...args, width, height,
+                    context: new TemplateContext(ContextPhases.EVENT, 'control', '')
+                }).controls.map(control => {
 
-                /**
-                 * @param {Item} item
-                 * @returns {Object} updated data object which can be used to update the template args.
-                 *                  Keep in mind that this object contains not only template args,
-                 *                  but everything that was declared in the global scope of the template script
-                 */
-                click: (item) => {
-                    return clickExecutor({control, ...createTemplateFunctions(editorId, item)});
+                const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
+                const fullScript = controlExpressions.join('\n');
+
+                const clickExecutor = buildTemplateExpression(fullScript);
+                return {
+                    ...control,
+
+                    /**
+                     * @param {Item} item
+                     * @returns {Object} updated data object which can be used to update the template args.
+                     *                  Keep in mind that this object contains not only template args,
+                     *                  but everything that was declared in the global scope of the template script
+                     */
+                    click: (item) => {
+                        return clickExecutor({
+                            control,
+                            ...createTemplateFunctions(editorId, item),
+                            ...args, width, height,
+                            context: new TemplateContext(ContextPhases.EVENT, 'control', control.id)
+                        });
+                    }
                 }
-            }
-        }),
+            });
+        },
 
         getDefaultArgs() {
             const args = {};
