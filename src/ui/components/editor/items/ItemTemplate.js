@@ -255,11 +255,13 @@ export function compileItemTemplate(editorId, template, templateRef) {
         buildItem : (args, width, height, postBuild) => {
             if (postBuild) {
                 return itemPostBuilder({
+                    ...createTemplateFunctions(editorId, null),
                     ...args, width, height,
                     context: new TemplateContext(ContextPhases.POST_BUILD, null, '')
                 }).item;
             }
             return itemBuilder({
+                ...createTemplateFunctions(editorId, null),
                 ...args, width, height,
                 context: new TemplateContext(ContextPhases.BUILD, null, '')
             }).item;
@@ -271,6 +273,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
 
         buildControls: (args, width, height) => {
             return compiledControlBuilder({
+                    ...createTemplateFunctions(editorId, null),
                     ...args, width, height,
                     context: new TemplateContext(ContextPhases.EVENT, 'control', '')
                 }).controls.map(control => {

@@ -694,8 +694,12 @@ export class ASTFunctionInvocation extends ASTNode {
     evalNode(scope) {
         const args = this.args.map(arg => arg.evalNode(scope));
         const func = this.functionProvider.evalNode(scope);
-        if (!func) {
-            throw new Error('Cannot resolve function');
+        if (!func || typeof func !== 'function') {
+            if (this.functionProvider instanceof ASTVarRef) {
+                throw new Error('Cannot resolve function: ', this.functionProvider.varName);
+            } else {
+                throw new Error('Cannot resolve function');
+            }
         }
         return func(...args);
     }
