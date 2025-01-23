@@ -1,4 +1,4 @@
-gapRatio = 0.25
+gapRatio = 0.40
 nodeWidth = 20
 
 struct Node {
@@ -12,6 +12,13 @@ struct Node {
     level: 0
     srcNodes: List()
     dstNodes: List()
+    width: 0
+    height: 0
+    position: 0
+    offset: 0
+    unitSize: 1
+    reservedIn: 0
+    reservedOut: 0
 }
 
 func encodeNodes(nodes) {
@@ -112,7 +119,7 @@ func updateLevels(node, maxVisitCount) {
 struct Level {
     idx: 0
     nodes: List()
-
+    nodesMap: Map()
     totalValue: 0
     height: 0
 }
@@ -159,7 +166,7 @@ func buildLevels(allNodes, allConnections) {
         if (level) {
             level.nodes.add(node)
         } else {
-            levels.set(node.level, Level(node.level, List(node)))
+            levels.set(node.level, Level(node.level, List(node), nodesMap))
         }
         if (maxLevel < node.level) {
             maxLevel = node.level
@@ -200,21 +207,27 @@ func buildNodeItems(levels) {
     local nodeItems = List()
 
     if (maxLevelValue > 0 && maxNodesPerLevel > 0) {
-        local unitSize = maxLevelValue / (height * (1 - gapRatio))
+        local unitSize = height * (1 - gapRatio) / maxLevelValue
         local singleGap = height * gapRatio / maxNodesPerLevel
 
         levels.forEach(level => {
-            local levelPosition = level.idx * width / levels.size
+            local levelPosition = level.idx * max(1, width - nodeWidth) / (levels.size - 1)
             local levelSize = level.totalValue * unitSize + singleGap * (level.nodes.size - 1)
             local levelOffset = height / 2 - levelSize / 2
 
             local currentY = levelOffset
             level.nodes.forEach(node => {
+                node.unitSize = unitSize
+                node.height = unitSize * node.value
+                node.width = nodeWidth
+                node.position = levelPosition
+                node.offset = currentY
+
                 local nodeItem = Item(node.id, node.name, 'rect')
-                nodeItem.w = nodeWidth
-                nodeItem.h = unitSize * node.value
-                nodeItem.x = levelPosition
-                nodeItem.y = currentY
+                nodeItem.w = node.width
+                nodeItem.h = node.height
+                nodeItem.x = node.position
+                nodeItem.y = node.offset
                 nodeItems.add(nodeItem)
 
                 currentY += nodeItem.h + singleGap
@@ -224,22 +237,110 @@ func buildNodeItems(levels) {
     nodeItems
 }
 
+func buildConnectorItems(levels, allConnections) {
+    local connectorItems = List()
+    local connectionsBySource = Map()
+    allConnections.forEach(c => {
+        if (c.srcId != c.dstId) {
+            local cs = connectionsBySource.get(c.srcId)
+            if (cs) {
+                cs.add(c)
+            } else {
+                connectionsBySource.set(c.srcId, List(c))
+            }
+        }
+    })
 
+    levels.forEach(level => {
+        level.nodes.forEach(node => {
+            local connections = connectionsBySource.get(node.id)
+            if (connections) {
+                connections.forEach(c => {
+                    local dstNode = level.nodesMap.get(c.dstId)
+                    if (dstNode) {
+                        connectorItems.add(buildSingleConnectorItem(c, node, dstNode))
+                    }
+                })
+            }
+        })
+    })
+
+    connectorItems
+}
+
+struct PathPoint {
+    t: 'B'
+    x: 0
+    y: 0
+    x1: 0
+    y1: 0
+    x2: 0
+    y2: 0
+}
+
+func buildSingleConnectorItem(connector, srcNode, dstNode) {
+    local item = Item(connector.id, 'Connection', 'path')
+    local connectorSize = srcNode.unitSize * connector.value
+    local xs = srcNode.position + srcNode.width
+    local ys1 = srcNode.offset + srcNode.reservedOut
+    local ys2 = ys1 + connectorSize
+    srcNode.reservedOut += connectorSize
+
+    local xd = dstNode.position
+    local yd1 = dstNode.offset + dstNode.reservedIn
+    local yd2 = yd1 + connectorSize
+    dstNode.reservedIn += connectorSize
+
+    local minX = min(xs, xd)
+    local maxX = max(xs, xd)
+    local minY = min(ys1, ys2, yd1, yd2)
+    local maxY = max(ys1, ys2, yd1, yd2)
+
+    local dx = max(0.001, maxX - minX)
+    local dy = max(0.001, maxY - minY)
+
+    // local rawPoints = List(
+    //     Vector(xs, ys1),
+    //     Vector(xd, yd1),
+    //     Vector(xd, yd2),
+    //     Vector(xs, ys2),
+    // )
+
+    // local points = rawPoints.map(p => {
+    //     PathPoint('L', 100 * (p.x - minX) / dx, 100 * (p.y - minY) / dy)
+    // })
+
+    local points = List(
+        PathPoint('B', xs, ys1, 0, (ys2 - ys1) / 3, (xd - xs) / 3, 0),
+        PathPoint('B', xd, yd1, (xs - xd) / 3, 0, 0, (yd2 - yd1) / 3),
+        PathPoint('B', xd, yd2, 0, (yd1 - yd2) / 3, (xs - xd) / 3, 0),
+        PathPoint('B', xs, ys2, (xd - xs) / 3, 0, 0, (ys1 - ys2) / 3),
+    ).map(p => {
+        PathPoint('B',
+            100 * (p.x - minX) / dx, 100 * (p.y - minY) / dy,
+            100 * p.x1 / dx, 100 * p.y1 / dy,
+            100 * p.x2 / dx, 100 * p.y2 / dy
+        )
+    })
+
+    item.x = minX
+    item.y = minY
+    item.w = dx
+    item.h = dy
+
+    item.shapeProps.set('paths', List(Map(
+        'id', 'p-' + connector.id,
+        'closed', true,
+        'pos', 'relative',
+        'points', points
+    )))
+    item
+}
 
 allNodes = decodeNodes(nodes)
 allConnections = decodeConnections(connections)
 
-log('allNodes', allNodes)
-log('allConnections', allConnections)
 local levels = buildLevels(allNodes, allConnections)
 
-log('allLevels', levels)
-
 nodeItems = buildNodeItems(levels)
-
-log('node items', nodeItems)
-
-
-// levels.forEach(level => {
-//     level.nodes
-// })
+connectorItems = buildConnectorItems(levels, allConnections)
