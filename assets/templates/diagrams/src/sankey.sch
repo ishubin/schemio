@@ -299,17 +299,6 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     local dx = max(0.001, maxX - minX)
     local dy = max(0.001, maxY - minY)
 
-    // local rawPoints = List(
-    //     Vector(xs, ys1),
-    //     Vector(xd, yd1),
-    //     Vector(xd, yd2),
-    //     Vector(xs, ys2),
-    // )
-
-    // local points = rawPoints.map(p => {
-    //     PathPoint('L', 100 * (p.x - minX) / dx, 100 * (p.y - minY) / dy)
-    // })
-
     local points = List(
         PathPoint('B', xs, ys1, 0, (ys2 - ys1) / 3, (xd - xs) / 3, 0),
         PathPoint('B', xd, yd1, (xs - xd) / 3, 0, 0, (yd2 - yd1) / 3),
