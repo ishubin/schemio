@@ -101,6 +101,60 @@ func decodeConnections(text) {
     })
 }
 
+
+func parseConnection(line) {
+    local s1 = line.indexOf('[')
+    local s2 = line.indexOf(']')
+
+    if (s1 > 0 && s2 > s1) {
+        local nodeName1 = line.substring(0, s1).trim()
+        local nodeName2 = line.substring(s2+1).trim()
+        local valueText = line.substring(s1+1, s2)
+
+        if (nodeName1 != '' && nodeName2 != '') {
+            local value = parseFloat(valueText)
+            local id = nodeName1 + '[]' + nodeName2
+            Connection(id, nodeName1, nodeName2, value)
+        } else {
+            null
+        }
+    } else {
+        null
+    }
+}
+
+func parseConnections(text) {
+    local connections = List()
+    splitString(text, '\n').forEach(line => {
+        line = line.trim()
+        if (line != '' && !line.startsWith('//')) {
+            local c = parseConnection(line)
+            if (c) {
+                connections.add(c)
+            }
+        }
+    })
+    connections
+}
+
+func extractNodesFromConnections(connections) {
+    local nodeIds = Set()
+
+    connections.forEach(c => {
+        nodeIds.add(c.srcId)
+        nodeIds.add(c.dstId)
+    })
+
+    local list = List()
+
+    nodeIds.forEach(id => {
+        list.add(Node(id, id))
+    })
+    list
+}
+
+
+
 // Performs a recursive tree iteration and updates the levels in nodes
 // maxVisitCount is used in order to prevent from infinite loop in case there is a cyclic dependency
 func updateLevels(node, maxVisitCount) {
@@ -326,8 +380,8 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item
 }
 
-allNodes = decodeNodes(nodes)
-allConnections = decodeConnections(connections)
+allConnections = parseConnections(diagramCode)
+allNodes = extractNodesFromConnections(allConnections)
 
 local levels = buildLevels(allNodes, allConnections)
 

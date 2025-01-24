@@ -2141,6 +2141,13 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .properties-table .property-arg-binder {
     max-width: 44px;
 }
+.properties-table textarea.property-textarea {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 4px;
+    border-radius: 3px;
+    width: 100%;
+}
 .property-arg-binder-icon {
     opacity: 0.6;
 }

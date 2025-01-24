@@ -59,6 +59,7 @@ import {forEach, forEachObject} from '../../../collections';
 import EditorEventBus from '../EditorEventBus';
 import ItemSvg from '../items/ItemSvg.vue';
 import Panel from '../Panel.vue';
+import { createDelayer } from '../../../delayer';
 
 export default {
     props: {
@@ -76,6 +77,7 @@ export default {
     },
 
     beforeDestroy() {
+        this.updateDelayer.destroy();
         EditorEventBus.item.templateArgsUpdated.specific.$off(this.editorId, this.item.id, this.updateTemplateArgs);
     },
 
@@ -87,6 +89,10 @@ export default {
             templateNotFound: false,
             template: null,
             editorPanels: [],
+            lastChangedArgName: null,
+            updateDelayer: createDelayer(200, () => {
+                this.$emit('updated', this.item.id, this.template, this.args, this.lastChangedArgName);
+            }),
             args: this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {}
         }
     },
@@ -161,8 +167,8 @@ export default {
                 });
             }
             this.args[name] = value;
-            this.$emit('updated', this.item.id, this.template, this.args, name);
-
+            this.lastChangedArgName = name;
+            this.updateDelayer.trigger();
             this.updateEditorPanels();
             this.$forceUpdate();
         },

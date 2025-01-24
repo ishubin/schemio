@@ -4,104 +4,128 @@
 <template>
     <div>
         <table class="properties-table">
-            <tr v-for="(arg, argName) in argsDefinition" v-if="argumentControlStates[argName] && !isDisabledScript(arg, argName) && !arg.hidden">
-                <td v-if="arg.type !== 'script'" class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
-                    {{arg.name}}
-                    <tooltip v-if="arg.description">{{arg.description}}</tooltip>
-                </td>
-                <td v-if="arg.type !== 'script' && hasScopeArgs" class="property-arg-binder">
-                    <Dropdown
-                        v-if="argumentBindStates[argName] && argumentBindStates[argName].options.length > 0"
-                        :key="`dropdown-binder-${argName}-${argumentBindStates[argName].revision}`"
-                        :inline="true"
-                        :borderless="true"
-                        :options="argumentBindStates[argName].options"
-                        title="Bind argument"
-                        @selected="onArgumentBindSelected(argName, arguments[0])"
-                        >
-                        <i v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
-                        <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
-                    </Dropdown>
-                </td>
-                <td v-if="arg.type !== 'script'" class="value" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
-                    <div v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded">
-                        <span class="property-arg-binder-ref" title="Class argument">{{ argumentBindStates[argName].value.ref }}</span>
-                    </div>
-                    <div v-else>
-                        <input v-if="arg.type === 'string' || arg.type === 'image'"
-                            class="textfield"
-                            :value="argumentValues[argName]"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @input="onValueChange(argName, arguments[0].target.value)"/>
+            <tbody>
+                <template v-for="(arg, argName) in argsDefinition">
+                    <tr v-if="argumentControlStates[argName] && !isDisabledScript(arg, argName) && !arg.hidden">
+                        <template v-if="isRegularArg(arg)">
+                            <td class="label" :class="{disabled: !argumentControlStates[argName].shown}" width="50%">
+                                {{arg.name}}
+                                <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                            </td>
+                            <td v-if="hasScopeArgs" class="property-arg-binder">
+                                <Dropdown
+                                    v-if="argumentBindStates[argName] && argumentBindStates[argName].options.length > 0"
+                                    :key="`dropdown-binder-${argName}-${argumentBindStates[argName].revision}`"
+                                    :inline="true"
+                                    :borderless="true"
+                                    :options="argumentBindStates[argName].options"
+                                    title="Bind argument"
+                                    @selected="onArgumentBindSelected(argName, arguments[0])"
+                                    >
+                                    <i v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
+                                    <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
+                                </Dropdown>
+                            </td>
+                            <td class="value"
+                                :class="{disabled: !argumentControlStates[argName].shown}"
+                                width="50%"
+                                :colspan="hasScopeArgs ? 1 : 2"
+                                >
+                                <div v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded">
+                                    <span class="property-arg-binder-ref" title="Class argument">{{ argumentBindStates[argName].value.ref }}</span>
+                                </div>
+                                <div v-else>
+                                    <input v-if="arg.type === 'string' || arg.type === 'image'"
+                                        class="textfield"
+                                        :value="argumentValues[argName]"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @input="onValueChange(argName, arguments[0].target.value)"/>
 
-                        <number-textfield v-if="arg.type === 'number'"
-                            :value="argumentValues[argName]"
-                            :min="arg.min"
-                            :max="arg.max"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @changed="onValueChange(argName, arguments[0])"/>
+                                    <NumberTextfield v-if="arg.type === 'number'"
+                                        :value="argumentValues[argName]"
+                                        :min="arg.min"
+                                        :max="arg.max"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @changed="onValueChange(argName, arguments[0])"/>
 
-                        <color-picker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @input="onValueChange(argName, arguments[0])"/>
+                                    <ColorPicker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @input="onValueChange(argName, arguments[0])"/>
 
-                        <advanced-color-editor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
-                            :apiClient="apiClient"
-                            :editorId="editorId"
-                            @changed="onValueChange(argName, arguments[0])"
-                            :disabled="!argumentControlStates[argName].shown" />
+                                    <AdvancedColorEditor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
+                                        :apiClient="apiClient"
+                                        :editorId="editorId"
+                                        @changed="onValueChange(argName, arguments[0])"
+                                        :disabled="!argumentControlStates[argName].shown" />
 
-                        <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @input="onValueChange(argName, arguments[0].target.checked)"/>
+                                    <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @input="onValueChange(argName, arguments[0].target.checked)"/>
 
-                        <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @input="onValueChange(argName, arguments[0].target.value)">
-                            <option v-for="option in arg.options">{{option}}</option>
-                        </select>
+                                    <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @input="onValueChange(argName, arguments[0].target.value)">
+                                        <option v-for="option in arg.options">{{option}}</option>
+                                    </select>
 
-                        <ElementPicker v-if="arg.type === 'element'"
-                            :editorId="editorId"
-                            :scheme-container="schemeContainer"
-                            :element="argumentValues[argName]"
-                            :disabled="!argumentControlStates[argName].shown"
-                            :use-self="false"
-                            @selected="onValueChange(argName, arguments[0])"
-                        />
+                                    <ElementPicker v-if="arg.type === 'element'"
+                                        :editorId="editorId"
+                                        :scheme-container="schemeContainer"
+                                        :element="argumentValues[argName]"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        :use-self="false"
+                                        @selected="onValueChange(argName, arguments[0])"
+                                    />
 
-                        <DiagramPicker v-if="arg.type === 'scheme-ref'"
-                            :key="`args-editor-diagram-picker-${editorId}-${argumentValues[argName]}`"
-                            :diagramId="argumentValues[argName]"
-                            @diagram-selected="onDiagramPicked(argName, arguments[0])"
-                            />
+                                    <DiagramPicker v-if="arg.type === 'scheme-ref'"
+                                        :key="`args-editor-diagram-picker-${editorId}-${argumentValues[argName]}`"
+                                        :diagramId="argumentValues[argName]"
+                                        @diagram-selected="onDiagramPicked(argName, arguments[0])"
+                                        />
 
-                        <PathCapDropdown v-if="arg.type === 'path-cap'"
-                            :value="argumentValues[argName]"
-                            :is-source="false"
-                            :is-thick="false"
-                            width="100%"
-                            :height="16"
-                            :disabled="!argumentControlStates[argName].shown"
-                            @selected="onValueChange(argName, arguments[0])"/>
-                    </div>
-                </td>
-                <td v-else colspan="3">
-                    <div class="label">
-                        {{arg.name}}
-                        <tooltip v-if="arg.description">{{arg.description}}</tooltip>
-                        <a class="link" target="_blank" href="https://github.com/ishubin/schemio/blob/master/docs/Scripting.md">(documentation)</a>
-                    </div>
+                                    <PathCapDropdown v-if="arg.type === 'path-cap'"
+                                        :value="argumentValues[argName]"
+                                        :is-source="false"
+                                        :is-thick="false"
+                                        width="100%"
+                                        :height="16"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @selected="onValueChange(argName, arguments[0])"/>
+                                </div>
+                            </td>
+                        </template>
+                        <template v-else-if="arg.type === 'script'">
+                            <td colspan="3">
+                                <div class="label">
+                                    {{arg.name}}
+                                    <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                                    <a class="link" target="_blank" href="https://github.com/ishubin/schemio/blob/master/docs/Scripting.md">(documentation)</a>
+                                </div>
 
-                    <ScriptEditor v-if="arg.type === 'script'"
-                        :key="`script-editor-${argName}-${editorId}`"
-                        :value="argumentValues[argName]"
-                        :schemeContainer="schemeContainer"
-                        :previousScripts="[schemeContainer.scheme.scripts.main.source]"
-                        @changed="onValueChange(argName, arguments[0])"
-                    />
-                </td>
-            </tr>
+                                <ScriptEditor v-if="arg.type === 'script'"
+                                    :key="`script-editor-${argName}-${editorId}`"
+                                    :value="argumentValues[argName]"
+                                    :schemeContainer="schemeContainer"
+                                    :previousScripts="[schemeContainer.scheme.scripts.main.source]"
+                                    @changed="onValueChange(argName, arguments[0])"
+                                />
+                            </td>
+                        </template>
+                        <template v-else-if="arg.type === 'string' && arg.textarea">
+                            <td colspan="3">
+                                <div class="label">
+                                    {{arg.name}}
+                                    <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                                </div>
+
+                                <textarea class="property-textarea" :value="argumentValues[argName]" :rows="arg.rows || 10"
+                                    @input="onValueChange(argName, arguments[0].target.value)"
+                                    ></textarea>
+                            </td>
+                        </template>
+                    </tr>
+                </template>
+            </tbody>
         </table>
     </div>
 </template>
@@ -175,6 +199,15 @@ export default {
     },
 
     methods: {
+        isRegularArg(arg) {
+            if (arg.type === 'script') {
+                return false;
+            } else if (arg.type === 'string' && arg.textarea) {
+                return false;
+            }
+            return true;
+        },
+
         buildArgumentBindOptions(argName) {
             const options = [];
             if (this.argBinds && this.argBinds.hasOwnProperty(argName)) {

@@ -3,6 +3,7 @@ description: ""
 args:
     nodes: {type: "string", value: "a1_1;x=0;y=0;|a1_2|a2", name: "Nodes encoded", hidden: true}
     connections: {type: "string", value: "a1_1-a2;s=a1_1;d=a2;v=100|a1_2-a2;s=a1_2;d=a2;v=30", name: "Connections encoded", hidden: true}
+    diagramCode: {type: "string", value: "Wages [2000] Budget\n //Comment\n\nOther [120] Budget\nInvalid line\n", name: "Diagram", textarea: true, rows: 15}
 
 preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
