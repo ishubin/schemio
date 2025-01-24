@@ -595,6 +595,31 @@ function setObjectFieldFunc(obj, name, value) {
     obj[name] = value
 }
 
+const stringFunctions = {
+    hashCode(str) {
+        let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+        for(let i = 0, ch; i < str.length; i++) {
+            ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1  = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2  = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+        return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+    },
+
+    split(str, separator) {
+        return new List(...str.split(separator));
+    },
+
+    matchesRegex(text, pattern) {
+        return new RegExp(pattern).test(text);
+    }
+};
+
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     max       : Math.max,
@@ -634,8 +659,9 @@ const reservedFunctions = new Map(Object.entries({
         }
         return falseValue;
     },
-    matchesRegex  : (text, pattern) => new RegExp(pattern).test(text),
-    splitString   : (str, separator) => new List(...str.split(separator)),
+    matchesRegex  : stringFunctions.matchesRegex,
+    splitString   : stringFunctions.split,
+    Strings       : stringFunctions,
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
     fromJSON      : (obj) => convertJSONToScriptObject(obj),
     forEach       : forEach,

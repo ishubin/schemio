@@ -1,12 +1,20 @@
 gapRatio = 0.40
 nodeWidth = 20
 
+
+colorThemes = Map(
+    'default', List('#F16161', '#F1A261', '#F1EB61', '#71EB57', '#57EBB1', '#57C2EB', '#576BEB', '#A557EB', '#EB57C8', '#EB578E'),
+    'light', List('#FD9999', '#FDCA99', '#F9FD99', '#C2FD99', '#99FDA6', '#99FDE2', '#99EAFD', '#99BEFD', '#AE99FD', '#FD99F6'),
+    'dark', List('#921515', '#924E15', '#899215', '#4E9215', '#15922B', '#15926B', '#157F92', '#153F92', '#491592', '#921575')
+)
+
 struct Node {
     id: uid()
     name: 'Unnamed'
     value: 0
     inValue: 0
     outValue: 0
+    color: '#FD9999'
     x: 0
     y: 0
     level: 0
@@ -247,6 +255,11 @@ func buildLevels(allNodes, allConnections) {
 
 
 func buildNodeItems(levels) {
+    local colorPalette = colorThemes.get(colorTheme)
+    if (!colorPalette) {
+        colorPalette = colorThemes.get('default')
+    }
+
     local maxLevelValue = 0
     local maxNodesPerLevel = 0
     levels.forEach(level => {
@@ -276,12 +289,17 @@ func buildNodeItems(levels) {
                 node.width = nodeWidth
                 node.position = levelPosition
                 node.offset = currentY
+                local hashCode = Strings.hashCode(node.name)
+                node.color = colorPalette.get(abs(hashCode) % colorPalette.size)
+
 
                 local nodeItem = Item(node.id, node.name, 'rect')
                 nodeItem.w = node.width
                 nodeItem.h = node.height
                 nodeItem.x = node.position
                 nodeItem.y = node.offset
+                nodeItem.shapeProps.set('strokeSize', 0)
+                nodeItem.shapeProps.set('fill', Fill.solid(node.color))
                 nodeItems.add(nodeItem)
 
                 currentY += nodeItem.h + singleGap
@@ -371,6 +389,11 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item.w = dx
     item.h = dy
 
+    item.shapeProps.set('fill', Map(
+        'type', 'solid',
+        'color', 'rgba(200, 160, 180, 1)'
+    ))
+    item.shapeProps.set('strokeSize', 0)
     item.shapeProps.set('paths', List(Map(
         'id', 'p-' + connector.id,
         'closed', true,
