@@ -395,7 +395,15 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item.w = dx
     item.h = dy
 
-    item.shapeProps.set('fill', Fill.linearGradient(90, 0, srcNode.color, 100, dstNode.color))
+    if (connectorColorType == 'gradient') {
+        item.shapeProps.set('fill', Fill.linearGradient(90, 0, srcNode.color, 100, dstNode.color))
+    } else if (connectorColorType == 'source') {
+        item.shapeProps.set('fill', Fill.solid(srcNode.color))
+    } else if (connectorColorType == 'destination') {
+        item.shapeProps.set('fill', Fill.solid(dstNode.color))
+    } else {
+        item.shapeProps.set('fill', Fill.solid(connectorColor))
+    }
     item.shapeProps.set('strokeSize', 0)
     item.shapeProps.set('paths', List(Map(
         'id', 'p-' + connector.id,
@@ -406,15 +414,16 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item
 }
 
-func buildLabel(id, text, font, fontSize, halign) {
+func buildLabel(id, text, font, fontSize, halign, valign) {
     local item = Item(id, text, 'none')
     item.args.set('templateForceText', true)
     item.textSlots.set('body', Map(
         'text', text,
         'font', font,
+        'color', labelColor,
         'fontSize', fontSize,
         'halign', halign,
-        'valign', 'middle',
+        'valign', valign,
         'paddingLeft', 0,
         'paddingRight', 0,
         'paddingTop', 0,
@@ -427,13 +436,15 @@ func buildLabel(id, text, font, fontSize, halign) {
 func buildNodeLabels(nodes) {
     local labelItems = List()
     nodes.forEach(node => {
+        local textSize = calculateTextSize(node.name, font, labelFontSize)
+        local valueTextSize = calculateTextSize('' + node.value, font, valueFontSize)
+        local totalHeight = (textSize.h + valueTextSize.h)*1.8 + 8
         local isLeft = node.dstNodes.size == 0
         local halign = 'left'
         if (!isLeft) {
             halign = 'right'
         }
-        local item = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign)
-        local textSize = calculateTextSize(node.name, font, labelFontSize)
+        local item = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'bottom')
         item.w = textSize.w + 4
         item.h = textSize.h * 1.8 + 4
         if (isLeft) {
@@ -441,12 +452,11 @@ func buildNodeLabels(nodes) {
         } else {
             item.x = node.position + node.width + labelPadding
         }
-        item.y = node.offset + node.height / 2  - item.h / 2
+        item.y = node.offset + node.height / 2  - totalHeight / 2
 
         labelItems.add(item)
 
-        local valueTextSize = calculateTextSize('' + node.value, font, valueFontSize)
-        local valueLabel = buildLabel('lv-' + node.id, '' + node.value, font, valueFontSize, halign)
+        local valueLabel = buildLabel('lv-' + node.id, '' + node.value, font, valueFontSize, halign, 'top')
         valueLabel.w = valueTextSize.w + 4
         valueLabel.h = valueTextSize.h * 1.8 + 4
         if (isLeft) {

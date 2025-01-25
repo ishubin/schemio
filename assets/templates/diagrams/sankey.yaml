@@ -6,7 +6,10 @@ args:
     diagramCode: {type: "string", value: "Wages [2000] Budget\nOther [120] Budget\nBudget [1000] Housing\nBudget [450] Taxes\n", name: "Diagram", textarea: true, rows: 15}
     font: {type: font, value: Arial, name: Font}
     colorTheme: {type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
+    connectorColorType: {type: choice, value: gradient, options: ['gradient', 'source', 'destination', 'custom'], name: 'Connection color type'}
+    connectorColor: {type: color, value: '#aaaaaa', name: 'Connection color', depends: {connectorColorType: 'custom'}}
     fontSize: {type: number, value: 14, name: "Font size", min: 1}
+    labelColor: {type: color, value: '#222222', name: 'Label color'}
     magnify: {type: number, value: 0, name: "Magnify value", min: -50, max: 50}
 
 preview: "/assets/templates/previews/mind-map.svg"
