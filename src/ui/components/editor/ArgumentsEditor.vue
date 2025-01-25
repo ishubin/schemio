@@ -20,7 +20,7 @@
                                     :borderless="true"
                                     :options="argumentBindStates[argName].options"
                                     title="Bind argument"
-                                    @selected="onArgumentBindSelected(argName, arguments[0])"
+                                    @selected="onArgumentBindSelected(argName, $event)"
                                     >
                                     <i v-if="argumentBindStates[argName] && argumentBindStates[argName].isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
                                     <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
@@ -39,32 +39,37 @@
                                         class="textfield"
                                         :value="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @input="onValueChange(argName, arguments[0].target.value)"/>
+                                        @input="onValueChange(argName, $event.target.value)"/>
+
+                                    <dropdown v-if="arg.type === 'font'"
+                                        :options="allFonts"
+                                        :value="argumentValues[argName]"
+                                        @selected="onValueChange(argName, $event.name)"/>
 
                                     <NumberTextfield v-if="arg.type === 'number'"
                                         :value="argumentValues[argName]"
                                         :min="arg.min"
                                         :max="arg.max"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @changed="onValueChange(argName, arguments[0])"/>
+                                        @changed="onValueChange(argName, $event)"/>
 
                                     <ColorPicker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @input="onValueChange(argName, arguments[0])"/>
+                                        @input="onValueChange(argName, $event)"/>
 
                                     <AdvancedColorEditor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
                                         :apiClient="apiClient"
                                         :editorId="editorId"
-                                        @changed="onValueChange(argName, arguments[0])"
+                                        @changed="onValueChange(argName, $event)"
                                         :disabled="!argumentControlStates[argName].shown" />
 
                                     <input v-if="arg.type === 'boolean'" type="checkbox" :checked="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @input="onValueChange(argName, arguments[0].target.checked)"/>
+                                        @input="onValueChange(argName, $event.target.checked)"/>
 
                                     <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @input="onValueChange(argName, arguments[0].target.value)">
+                                        @input="onValueChange(argName, $event.target.value)">
                                         <option v-for="option in arg.options">{{option}}</option>
                                     </select>
 
@@ -74,13 +79,13 @@
                                         :element="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
                                         :use-self="false"
-                                        @selected="onValueChange(argName, arguments[0])"
+                                        @selected="onValueChange(argName, $event)"
                                     />
 
                                     <DiagramPicker v-if="arg.type === 'scheme-ref'"
                                         :key="`args-editor-diagram-picker-${editorId}-${argumentValues[argName]}`"
                                         :diagramId="argumentValues[argName]"
-                                        @diagram-selected="onDiagramPicked(argName, arguments[0])"
+                                        @diagram-selected="onDiagramPicked(argName, $event)"
                                         />
 
                                     <PathCapDropdown v-if="arg.type === 'path-cap'"
@@ -90,7 +95,7 @@
                                         width="100%"
                                         :height="16"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @selected="onValueChange(argName, arguments[0])"/>
+                                        @selected="onValueChange(argName, $event)"/>
                                 </div>
                             </td>
                         </template>
@@ -107,7 +112,7 @@
                                     :value="argumentValues[argName]"
                                     :schemeContainer="schemeContainer"
                                     :previousScripts="[schemeContainer.scheme.scripts.main.source]"
-                                    @changed="onValueChange(argName, arguments[0])"
+                                    @changed="onValueChange(argName, $event)"
                                 />
                             </td>
                         </template>
@@ -119,7 +124,7 @@
                                 </div>
 
                                 <textarea class="property-textarea" :value="argumentValues[argName]" :rows="arg.rows || 10"
-                                    @input="onValueChange(argName, arguments[0].target.value)"
+                                    @input="onValueChange(argName, $event.target.value)"
                                     ></textarea>
                             </td>
                         </template>
@@ -130,7 +135,7 @@
     </div>
 </template>
 <script>
-import {forEach, mapObjectValues} from '../../collections';
+import {forEach, map, mapObjectValues} from '../../collections';
 import ColorPicker from './ColorPicker.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import Modal from '../Modal.vue';
@@ -141,6 +146,7 @@ import NumberTextfield from '../NumberTextfield.vue';
 import ScriptEditor from './ScriptEditor.vue';
 import PathCapDropdown from './PathCapDropdown.vue';
 import Dropdown from '../Dropdown.vue';
+import { getAllFonts } from '../../scheme/Fonts';
 
 export default {
     props: {
@@ -191,6 +197,7 @@ export default {
         });
 
         return {
+            allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
             argumentBindStates,
             argumentValues,
             argumentControlStates: mapObjectValues(this.argsDefinition, () => {return {shown: true};}),

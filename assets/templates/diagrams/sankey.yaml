@@ -3,8 +3,11 @@ description: ""
 args:
     nodes: {type: "string", value: "a1_1;x=0;y=0;|a1_2|a2", name: "Nodes encoded", hidden: true}
     connections: {type: "string", value: "a1_1-a2;s=a1_1;d=a2;v=100|a1_2-a2;s=a1_2;d=a2;v=30", name: "Connections encoded", hidden: true}
+    diagramCode: {type: "string", value: "Wages [2000] Budget\nOther [120] Budget\nBudget [1000] Housing\nBudget [450] Taxes\n", name: "Diagram", textarea: true, rows: 15}
+    font: {type: font, value: Arial, name: Font}
     colorTheme: {type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
-    diagramCode: {type: "string", value: "Wages [2000] Budget\n //Comment\n\nOther [120] Budget\nInvalid line\n", name: "Diagram", textarea: true, rows: 15}
+    fontSize: {type: number, value: 14, name: "Font size", min: 1}
+    magnify: {type: number, value: 0, name: "Magnify value", min: -50, max: 50}
 
 preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
@@ -30,6 +33,20 @@ item:
         w: {$-expr: "width"}
         h: {$-expr: "height"}
     childItems:
+      - $-foreach: {source: "connectorItems", it: "it"}
+        id: {$-expr: "it.id"}
+        name: {$-expr: "it.name"}
+        shape: {$-expr: "it.shape"}
+        shapeProps: {$-expr: "toJSON(it.shapeProps)"}
+        args: {$-expr: "it.getArgs()"}
+        locked: {$-expr: "it.locked"}
+        textSlots: {$-expr: "toJSON(it.textSlots)"}
+        area:
+            x: {$-expr: "it.x"}
+            y: {$-expr: "it.y"}
+            w: {$-expr: "it.w"}
+            h: {$-expr: "it.h"}
+
       - $-foreach: {source: "nodeItems", it: "it"}
         id: {$-expr: "it.id"}
         name: {$-expr: "it.name"}
@@ -44,7 +61,7 @@ item:
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
 
-      - $-foreach: {source: "connectorItems", it: "it"}
+      - $-foreach: {source: "nodeLabels", it: "it"}
         id: {$-expr: "it.id"}
         name: {$-expr: "it.name"}
         shape: {$-expr: "it.shape"}
@@ -57,3 +74,5 @@ item:
             y: {$-expr: "it.y"}
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
+
+

@@ -24,9 +24,18 @@ export function createTemplateFunctions(editorId, rootItem) {
         duplicateItem: duplicateItem(rootItem),
         updateItem: updateItemFunc(editorId, rootItem),
 
+        calculateTextSize,
         clone: (obj) => utils.clone(obj),
         log: (...args) => console.log(...args)
     }
+}
+
+function calculateTextSize(text, font, fontSize) {
+    const canvas = calculateTextSize.canvas || (calculateTextSize.canvas = document.createElement("canvas"));
+    const context = canvas.getContext("2d");
+    context.font = `${fontSize}px ${font}`;
+    const metrics = context.measureText(text);
+    return {w: metrics.width, h: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent};
 }
 
 /**

@@ -443,6 +443,9 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             if (shouldCopyField && !parentItem) {
                 shouldCopyField = key !== 'name' && key !== 'description' && key !== 'tags' && key !== 'area' && key !== 'autoLayout';
             }
+            if (key === 'textSlots' && item.args.templateForceText) {
+                shouldCopyField = true;
+            }
             if (shouldCopyField) {
                 if (key === 'shapeProps' && regeneratedItem.shapeProps) {
                     if (!srcItem.shapeProps) {

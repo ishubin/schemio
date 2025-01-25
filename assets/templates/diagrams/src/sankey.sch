@@ -1,5 +1,9 @@
 gapRatio = 0.40
 nodeWidth = 20
+labelPadding = 5
+
+labelFontSize = max(1, round(fontSize * (100 - magnify) / 100))
+valueFontSize = max(1, round(fontSize * (100 + magnify) / 100))
 
 
 colorThemes = Map(
@@ -293,12 +297,14 @@ func buildNodeItems(levels) {
                 node.color = colorPalette.get(abs(hashCode) % colorPalette.size)
 
 
-                local nodeItem = Item(node.id, node.name, 'rect')
+                local nodeItem = Item('n-' + node.id, node.name, 'rect')
                 nodeItem.w = node.width
                 nodeItem.h = node.height
                 nodeItem.x = node.position
                 nodeItem.y = node.offset
-                nodeItem.shapeProps.set('strokeSize', 0)
+                nodeItem.shapeProps.set('strokeSize', 1)
+                nodeItem.shapeProps.set('strokeColor', '#ffffff')
+                nodeItem.shapeProps.set('cornerRadius', 2)
                 nodeItem.shapeProps.set('fill', Fill.solid(node.color))
                 nodeItems.add(nodeItem)
 
@@ -389,10 +395,7 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item.w = dx
     item.h = dy
 
-    item.shapeProps.set('fill', Map(
-        'type', 'solid',
-        'color', 'rgba(200, 160, 180, 1)'
-    ))
+    item.shapeProps.set('fill', Fill.linearGradient(90, 0, srcNode.color, 100, dstNode.color))
     item.shapeProps.set('strokeSize', 0)
     item.shapeProps.set('paths', List(Map(
         'id', 'p-' + connector.id,
@@ -403,6 +406,42 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item
 }
 
+func buildNodeLabels(nodes) {
+    local labelItems = List()
+    nodes.forEach(node => {
+        local item = Item('ln-' + node.id, node.name, 'none')
+        local textSize = calculateTextSize(node.name, font, fontSize)
+        item.w = textSize.w + 4
+        item.h = textSize.h + 4
+        local halign = 'left'
+        if (node.dstNodes.size > 0) {
+            item.x = node.position + node.width + labelPadding
+        } else {
+            item.x = node.position - item.w - labelPadding
+            halign = 'right'
+        }
+
+        item.y = node.offset + node.height / 2  - item.h / 2
+
+        item.args.set('templateForceText', true)
+        item.textSlots.set('body', Map(
+            'text', node.name,
+            'font', font,
+            'fontSize', fontSize,
+            'halign', halign,
+            'valign', 'middle',
+            'paddingLeft', 0,
+            'paddingRight', 0,
+            'paddingTop', 0,
+            'paddingBottom', 0,
+            'whiteSpace', 'nowrap'
+        ))
+        labelItems.add(item)
+    })
+    labelItems
+}
+
+
 allConnections = parseConnections(diagramCode)
 allNodes = extractNodesFromConnections(allConnections)
 
@@ -410,3 +449,4 @@ local levels = buildLevels(allNodes, allConnections)
 
 nodeItems = buildNodeItems(levels)
 connectorItems = buildConnectorItems(levels, allConnections)
+nodeLabels = buildNodeLabels(allNodes)

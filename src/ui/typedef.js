@@ -229,6 +229,7 @@
  * @property {String|undefined} templateOriginalRef - used only when item is copied so that it marks the template which the item was originally generated with
  * @property {String|undefined} templatedId - id that was created from the template. It is used to track the items after they were generated from template
  * @property {Object|undefined} templateArgs - args that were used for generating the templated item
+ * @property {Boolean|undefined} templateForceText - flag forces templed item to update its textSlots
  * @property {Array<String>|undefined} templateIgnoredProps - array of shapeProps field names that should be ignored when template is regenerated
  *                                                            this gives users possibility of editing individual template items
  * @property {String|undefined} tplArea - 'controlled' or 'fixed'. If specified as 'controlled' then it tells Schemio
