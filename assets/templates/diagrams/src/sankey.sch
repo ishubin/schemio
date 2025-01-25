@@ -406,37 +406,57 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item
 }
 
+func buildLabel(id, text, font, fontSize, halign) {
+    local item = Item(id, text, 'none')
+    item.args.set('templateForceText', true)
+    item.textSlots.set('body', Map(
+        'text', text,
+        'font', font,
+        'fontSize', fontSize,
+        'halign', halign,
+        'valign', 'middle',
+        'paddingLeft', 0,
+        'paddingRight', 0,
+        'paddingTop', 0,
+        'paddingBottom', 0,
+        'whiteSpace', 'nowrap'
+    ))
+    item
+}
+
 func buildNodeLabels(nodes) {
     local labelItems = List()
     nodes.forEach(node => {
-        local item = Item('ln-' + node.id, node.name, 'none')
-        local textSize = calculateTextSize(node.name, font, fontSize)
-        item.w = textSize.w + 4
-        item.h = textSize.h + 4
+        local isLeft = node.dstNodes.size == 0
         local halign = 'left'
-        if (node.dstNodes.size > 0) {
-            item.x = node.position + node.width + labelPadding
-        } else {
-            item.x = node.position - item.w - labelPadding
+        if (!isLeft) {
             halign = 'right'
         }
-
+        local item = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign)
+        local textSize = calculateTextSize(node.name, font, labelFontSize)
+        item.w = textSize.w + 4
+        item.h = textSize.h * 1.8 + 4
+        if (isLeft) {
+            item.x = node.position - item.w - labelPadding
+        } else {
+            item.x = node.position + node.width + labelPadding
+        }
         item.y = node.offset + node.height / 2  - item.h / 2
 
-        item.args.set('templateForceText', true)
-        item.textSlots.set('body', Map(
-            'text', node.name,
-            'font', font,
-            'fontSize', fontSize,
-            'halign', halign,
-            'valign', 'middle',
-            'paddingLeft', 0,
-            'paddingRight', 0,
-            'paddingTop', 0,
-            'paddingBottom', 0,
-            'whiteSpace', 'nowrap'
-        ))
         labelItems.add(item)
+
+        local valueTextSize = calculateTextSize('' + node.value, font, valueFontSize)
+        local valueLabel = buildLabel('lv-' + node.id, '' + node.value, font, valueFontSize, halign)
+        valueLabel.w = valueTextSize.w + 4
+        valueLabel.h = valueTextSize.h * 1.8 + 4
+        if (isLeft) {
+            valueLabel.x = node.position - valueLabel.w - labelPadding
+        } else {
+            valueLabel.x = node.position + node.width + labelPadding
+        }
+        valueLabel.y = item.y + item.h
+
+        labelItems.add(valueLabel)
     })
     labelItems
 }

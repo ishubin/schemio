@@ -35,7 +35,10 @@ function calculateTextSize(text, font, fontSize) {
     const context = canvas.getContext("2d");
     context.font = `${fontSize}px ${font}`;
     const metrics = context.measureText(text);
-    return {w: metrics.width, h: metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent};
+    return {
+        w: metrics.width,
+        h: Math.abs(metrics.actualBoundingBoxAscent) + Math.abs(metrics.actualBoundingBoxDescent)
+    };
 }
 
 /**
