@@ -22,6 +22,7 @@ struct Node {
     x: 0
     y: 0
     level: 0
+    sortOrder: 0 // Position inside of its level
     srcNodes: List()
     dstNodes: List()
     width: 0
@@ -85,6 +86,8 @@ struct Connection {
     srcId: ''
     dstId: ''
     value: 0
+    srcNode: null
+    dstNode: null
 }
 
 func encodeConnections(connections) {
@@ -136,11 +139,25 @@ func parseConnection(line) {
 }
 
 func parseConnections(text) {
+    local nodesById = Map()
+
+    getOrCreateNode = (id) => {
+        local node = nodesById.get(id)
+        if (!node) {
+            node = Node(id, id)
+            nodesById.set(id, node)
+        }
+        node
+    }
+
     local connections = List()
     splitString(text, '\n').forEach(line => {
         line = line.trim()
         if (line != '' && !line.startsWith('//')) {
             local c = parseConnection(line)
+
+            c.srcNode = getOrCreateNode(c.srcId)
+            c.dstNode = getOrCreateNode(c.dstId)
             if (c) {
                 connections.add(c)
             }
@@ -151,17 +168,19 @@ func parseConnections(text) {
 
 func extractNodesFromConnections(connections) {
     local nodeIds = Set()
-
-    connections.forEach(c => {
-        nodeIds.add(c.srcId)
-        nodeIds.add(c.dstId)
-    })
-
     local list = List()
 
-    nodeIds.forEach(id => {
-        list.add(Node(id, id))
+    connections.forEach(c => {
+        if (!nodeIds.has(c.srcNode.id)) {
+            nodeIds.add(c.srcNode.id)
+            list.add(c.srcNode)
+        }
+        if (!nodeIds.has(c.dstNode.id)) {
+            nodeIds.add(c.dstNode.id)
+            list.add(c.dstNode)
+        }
     })
+
     list
 }
 
@@ -246,6 +265,9 @@ func buildLevels(allNodes, allConnections) {
             level.nodes.sort((a, b) => {
                 b.value - a.value
             })
+            level.nodes.forEach((n, idx) => {
+                n.sortOrder = idx
+            })
             allLevels.add(level)
             level.totalValue = 0
             level.nodes.forEach(node => {
@@ -315,7 +337,9 @@ func buildNodeItems(levels) {
     nodeItems
 }
 
-func buildConnectorItems(levels, allConnections) {
+func buildConnectorItems(levels, allConnections, allNodes) {
+    local k2 = max(allConnections.size, allNodes.size)
+    local k1 = k2 ^ 2
     local connectorItems = List()
     local connectionsBySource = Map()
     allConnections.forEach(c => {
@@ -333,6 +357,9 @@ func buildConnectorItems(levels, allConnections) {
         level.nodes.forEach(node => {
             local connections = connectionsBySource.get(node.id)
             if (connections) {
+                connections.sort((a, b) => {
+                    a.dstNode.level * k1 + a.dstNode.sortOrder * k2 - (b.dstNode.level * k1 + b.dstNode.sortOrder * k2)
+                })
                 connections.forEach(c => {
                     local dstNode = level.nodesMap.get(c.dstId)
                     if (dstNode) {
@@ -478,5 +505,5 @@ allNodes = extractNodesFromConnections(allConnections)
 local levels = buildLevels(allNodes, allConnections)
 
 nodeItems = buildNodeItems(levels)
-connectorItems = buildConnectorItems(levels, allConnections)
+connectorItems = buildConnectorItems(levels, allConnections, allNodes)
 nodeLabels = buildNodeLabels(allNodes)
