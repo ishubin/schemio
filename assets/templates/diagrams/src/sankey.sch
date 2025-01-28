@@ -1,10 +1,11 @@
-gapRatio = 0.40
+gapRatio = 0.4
 nodeWidth = 20
 labelPadding = 5
 
 labelFontSize = max(1, round(fontSize * (100 - magnify) / 100))
 valueFontSize = max(1, round(fontSize * (100 + magnify) / 100))
 
+local nodesById = Map()
 
 colorThemes = Map(
     'default', List('#F16161', '#F1A261', '#F1EB61', '#71EB57', '#57EBB1', '#57C2EB', '#576BEB', '#A557EB', '#EB57C8', '#EB578E'),
@@ -37,19 +38,19 @@ struct Node {
 func encodeNodes(nodes) {
     local result = ''
 
-    nodes.forEach((n, i) => {
-        if (i > 0) {
+    nodes.forEach(n => {
+        if (result != '') {
             result += '|'
         }
-        result += `${n.id};v=${n.value};x=${n.x};y=${n.y}`
+        result += `${n.id};x=${n.x};y=${n.y}`
     })
     result
 }
 
-func decodeListOfObjects(text, constructorCallback, paramSetterCallback) {
-    local nodes = List()
+func decodeNodesData(text) {
+    local nodesById = Map()
     splitString(text, '|').forEach(singleNodeText => {
-        local node = constructorCallback()
+        local node = Node()
         local parts = splitString(singleNodeText, ';')
         for (local i = 0; i < parts.size; i++) {
             if (i == 0) {
@@ -59,25 +60,17 @@ func decodeListOfObjects(text, constructorCallback, paramSetterCallback) {
                 if (varValue.size == 2) {
                     local name = varValue.get(0)
                     local value = varValue.get(1)
-                    paramSetterCallback(node, name, value)
+                    if (name == 'x') {
+                        node.x = value
+                    } else if (name == 'y') {
+                        node.y = value
+                    }
                 }
             }
         }
-        nodes.add(node)
+        nodesById.set(node.id, node)
     })
-    nodes
-}
-
-func decodeNodes(text) {
-    decodeListOfObjects(text, () => {
-        Node()
-    }, (node, name, value) => {
-        if (name == 'x') {
-            node.x = value
-        } else if (name == 'y') {
-            node.y = value
-        }
-    })
+    nodesById
 }
 
 
@@ -88,32 +81,6 @@ struct Connection {
     value: 0
     srcNode: null
     dstNode: null
-}
-
-func encodeConnections(connections) {
-    local result = ''
-
-    connections.forEach((c, i) => {
-        if (i > 0) {
-            result += '|'
-        }
-        result += `${c.id};s=${c.srcId};d=${c.dstId};v=${c.value}`
-    })
-    result
-}
-
-func decodeConnections(text) {
-    decodeListOfObjects(text, () => {
-        Connection()
-    }, (node, name, value) => {
-        if (name == 'v') {
-            node.value = value
-        } else if (name == 's') {
-            node.srcId = value
-        } else if (name == 'd') {
-            node.dstId = value
-        }
-    })
 }
 
 
@@ -138,14 +105,17 @@ func parseConnection(line) {
     }
 }
 
-func parseConnections(text) {
-    local nodesById = Map()
-
+func parseConnections(text, nodesData) {
     getOrCreateNode = (id) => {
         local node = nodesById.get(id)
         if (!node) {
             node = Node(id, id)
             nodesById.set(id, node)
+        }
+        local nData = nodesData.get(id)
+        if (nData) {
+            node.x = nData.x
+            node.y = nData.y
         }
         node
     }
@@ -155,11 +125,12 @@ func parseConnections(text) {
         line = line.trim()
         if (line != '' && !line.startsWith('//')) {
             local c = parseConnection(line)
-
-            c.srcNode = getOrCreateNode(c.srcId)
-            c.dstNode = getOrCreateNode(c.dstId)
             if (c) {
-                connections.add(c)
+                c.srcNode = getOrCreateNode(c.srcId)
+                c.dstNode = getOrCreateNode(c.dstId)
+                if (c) {
+                    connections.add(c)
+                }
             }
         }
     })
@@ -196,7 +167,6 @@ func updateLevels(node, maxVisitCount) {
                 dstNode.level = newLevel
                 updateLevels(dstNode, maxVisitCount - 1)
             }
-            dstNode.level = node.level + 1
         })
     }
 }
@@ -322,12 +292,16 @@ func buildNodeItems(levels) {
                 local nodeItem = Item('n-' + node.id, node.name, 'rect')
                 nodeItem.w = node.width
                 nodeItem.h = node.height
-                nodeItem.x = node.position
-                nodeItem.y = node.offset
+                nodeItem.x = node.position + node.x * width
+                nodeItem.y = node.offset + node.y * height
                 nodeItem.shapeProps.set('strokeSize', 1)
                 nodeItem.shapeProps.set('strokeColor', '#ffffff')
                 nodeItem.shapeProps.set('cornerRadius', 2)
                 nodeItem.shapeProps.set('fill', Fill.solid(node.color))
+                nodeItem.args.set('tplArea', 'controlled')
+                nodeItem.args.set('tplConnector', 'off')
+                nodeItem.args.set('tplRotation', 'off')
+                nodeItem.locked = false
                 nodeItems.add(nodeItem)
 
                 currentY += nodeItem.h + singleGap
@@ -353,6 +327,8 @@ func buildConnectorItems(levels, allConnections, allNodes) {
         }
     })
 
+    local cs = List()
+
     levels.forEach(level => {
         level.nodes.forEach(node => {
             local connections = connectionsBySource.get(node.id)
@@ -363,11 +339,19 @@ func buildConnectorItems(levels, allConnections, allNodes) {
                 connections.forEach(c => {
                     local dstNode = level.nodesMap.get(c.dstId)
                     if (dstNode) {
-                        connectorItems.add(buildSingleConnectorItem(c, node, dstNode))
+                        cs.add(c)
                     }
                 })
             }
         })
+    })
+
+    cs.sort((a, b) => {
+        a.srcNode.offset - b.srcNode.offset
+    })
+
+    cs.forEach(c => {
+        connectorItems.add(buildSingleConnectorItem(c, c.srcNode, c.dstNode))
     })
 
     connectorItems
@@ -386,13 +370,14 @@ struct PathPoint {
 func buildSingleConnectorItem(connector, srcNode, dstNode) {
     local item = Item(connector.id, 'Connection', 'path')
     local connectorSize = srcNode.unitSize * connector.value
-    local xs = srcNode.position + srcNode.width
-    local ys1 = srcNode.offset + srcNode.reservedOut
+
+    local xs = srcNode.position + srcNode.x * width + srcNode.width
+    local ys1 = srcNode.offset + srcNode.y * height + srcNode.reservedOut
     local ys2 = ys1 + connectorSize
     srcNode.reservedOut += connectorSize
 
-    local xd = dstNode.position
-    local yd1 = dstNode.offset + dstNode.reservedIn
+    local xd = dstNode.position + dstNode.x * width
+    local yd1 = dstNode.offset + dstNode.y * height + dstNode.reservedIn
     local yd2 = yd1 + connectorSize
     dstNode.reservedIn += connectorSize
 
@@ -474,12 +459,14 @@ func buildNodeLabels(nodes) {
         local item = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'bottom')
         item.w = textSize.w + 4
         item.h = textSize.h * 1.8 + 4
+
         if (isLeft) {
             item.x = node.position - item.w - labelPadding
         } else {
             item.x = node.position + node.width + labelPadding
         }
-        item.y = node.offset + node.height / 2  - totalHeight / 2
+        item.x += node.x * width
+        item.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
 
         labelItems.add(item)
 
@@ -491,6 +478,7 @@ func buildNodeLabels(nodes) {
         } else {
             valueLabel.x = node.position + node.width + labelPadding
         }
+        valueLabel.x += node.x * width
         valueLabel.y = item.y + item.h
 
         labelItems.add(valueLabel)
@@ -499,7 +487,21 @@ func buildNodeLabels(nodes) {
 }
 
 
-allConnections = parseConnections(diagramCode)
+func onAreaUpdate(itemId, item, area) {
+    local node = null
+    if (itemId.startsWith('n-')) {
+        node = nodesById.get(itemId.substring(2))
+    }
+    if (node) {
+        node.x = (area.x - node.position) / max(1, width)
+        node.y = (area.y - node.offset) / max(1, height)
+
+        nodesData = encodeNodes(nodesById)
+    }
+}
+
+local nodesDataById = decodeNodesData(nodesData)
+allConnections = parseConnections(diagramCode, nodesDataById)
 allNodes = extractNodesFromConnections(allConnections)
 
 local levels = buildLevels(allNodes, allConnections)
