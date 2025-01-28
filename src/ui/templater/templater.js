@@ -1,4 +1,5 @@
 import { ASTNode, parseExpression } from "./ast";
+import { SchemioScriptError } from "./error";
 import { List } from "./list";
 import { Scope } from './scope';
 import { parseStringExpression } from "./strings";
@@ -192,7 +193,11 @@ function compileExpression(expr) {
             return ast.evalNode(scope);
         } catch(ex) {
             console.error('Failed to evaluate expression:\n' + expr);
-            console.error(ex);
+            if (ex instanceof SchemioScriptError) {
+                ex.print();
+            } else {
+                console.error(ex);
+            }
         }
     };
 }
@@ -356,7 +361,7 @@ function compileRecursiveBuilder(item, $recurse, customDefinitions) {
         }
         const data = {};
         data[iteratorName] = sourceObject;
-        const iteratorScope = scope.newScope(data);
+        const iteratorScope = scope.newScope('buildObject', data);
 
         const processedObj = itemProcessor(iteratorScope);
         const children = childrenFetcher.evalNode(iteratorScope);

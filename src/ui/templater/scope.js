@@ -5,8 +5,9 @@ export class Scope {
      * @param {Scope|null} parent
      * @param {function(string): any} externalObjectProvider
      */
-    constructor(data, parent, externalObjectProvider) {
+    constructor(data, parent, externalObjectProvider, stackName = '< unknown >') {
         this.data = data || {};
+        this.stackName = stackName;
         this.parent = parent;
         this.externalObjectProvider = externalObjectProvider;
     }
@@ -54,8 +55,8 @@ export class Scope {
         this.data[varName] = value;
     }
 
-    newScope(data = {}) {
-        return new Scope(data, this, this.externalObjectProvider);
+    newScope(stackName = '< unknown >', data = {}) {
+        return new Scope(data, this, this.externalObjectProvider, stackName);
     }
 
     getData() {

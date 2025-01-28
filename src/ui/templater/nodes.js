@@ -11,6 +11,7 @@ import { parseColor } from "../colors";
 import { Color } from "./color";
 import { Area } from "./area";
 import { Fill } from "./fill";
+import { SchemioScriptError } from "./error";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -205,8 +206,8 @@ export class ASTWhileStatement extends ASTNode {
      */
     evalNode(scope) {
         let lastResult = null;
-        while (this.whileExpression.evalNode(scope.newScope())) {
-            lastResult = this.whileBlock.evalNode(scope.newScope());
+        while (this.whileExpression.evalNode(scope.newScope('while expression'))) {
+            lastResult = this.whileBlock.evalNode(scope.newScope('while block'));
         }
         return lastResult;
     }
@@ -235,7 +236,7 @@ export class ASTForLoop extends ASTNode {
      * @param {Scope} scope
      */
     evalNode(scope) {
-        scope = scope.newScope();
+        scope = scope.newScope('for loop');
         this.init.evalNode(scope);
 
         while(this.condition.evalNode(scope)) {
@@ -258,14 +259,14 @@ export class ASTIFStatement extends ASTNode {
     }
 
     evalNode(scope) {
-        const result = this.conditionExpression.evalNode(scope.newScope());
+        const result = this.conditionExpression.evalNode(scope.newScope('if statement'));
         if (result) {
             if (!this.trueBlock) {
                 return null;
             }
-            return this.trueBlock.evalNode(scope.newScope());
+            return this.trueBlock.evalNode(scope.newScope('if block'));
         } else if (this.falseBlock) {
-            return this.falseBlock.evalNode(scope.newScope());
+            return this.falseBlock.evalNode(scope.newScope('else block'));
         }
         return null;
     }
@@ -680,10 +681,11 @@ export class ASTFunctionDeclaration extends ASTNode {
      * @param {Array<String>} argNames
      * @param {ASTNode} body
      */
-    constructor(argNames, body) {
+    constructor(argNames, body, funcName) {
         super('function');
         this.argNames = argNames;
         this.body = body;
+        this.funcName = funcName;
     }
     print() {
         return `(${this.argNames.join(',')}) => {(${this.body.print()})}`;
@@ -694,11 +696,19 @@ export class ASTFunctionDeclaration extends ASTNode {
      */
     evalNode(scope) {
         return (...args) => {
-            const funcScope = scope.newScope();
+            const funcScope = scope.newScope('func ' + this.funcName);
             for (let i = 0; i < args.length && i < this.argNames.length; i++) {
                 funcScope.setLocal(this.argNames[i], args[i]);
             }
-            return this.body.evalNode(funcScope);
+            try {
+                return this.body.evalNode(funcScope);
+            } catch (err) {
+                if (err instanceof SchemioScriptError) {
+                    throw err;
+                } else {
+                    throw new SchemioScriptError(err.message, funcScope, err);
+                }
+            }
         };
     }
 }

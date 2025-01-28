@@ -34,7 +34,7 @@ export class ASTStructNode extends ASTNode {
     evalNode(scope) {
         const initFunc = (...args) => {
             const structObj = {};
-            const structScope = scope.newScope({'this': structObj});
+            const structScope = scope.newScope('struct ' + this.name, {'this': structObj});
 
             this.fieldDefinitions.forEach((fieldDef, idx) => {
                 if (idx < args.length) {

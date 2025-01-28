@@ -442,7 +442,7 @@ class ASTParser extends TokenScanner {
             throw new Error(`Expected function body declaration for "${funcNameToken.v}" function, got: "${funcBodyToken.text}"`);
         }
 
-        const functionAST = parseFunctionDeclarationUsing(funcArgsToken, funcBodyToken);
+        const functionAST = parseFunctionDeclarationUsing(funcArgsToken, funcBodyToken, funcNameToken.v);
         return new ASTAssign(new ASTVarRef(funcNameToken.v), functionAST);
     }
 
@@ -545,7 +545,7 @@ class ASTParser extends TokenScanner {
  * @param {ScriptToken} argsToken
  * @param {ScriptToken} bodyToken
  */
-function parseFunctionDeclarationUsing(argsToken, bodyToken) {
+function parseFunctionDeclarationUsing(argsToken, bodyToken, funcName = '< anonymous >') {
     if (!argsToken) {
         throw new Error('Cannot parse function declaration. Missing arguments definition');
     }
@@ -579,7 +579,7 @@ function parseFunctionDeclarationUsing(argsToken, bodyToken) {
 
     const funcBody = parseAST(bodyToken.groupTokens);
 
-    return new ASTFunctionDeclaration(argNames, funcBody);
+    return new ASTFunctionDeclaration(argNames, funcBody, funcName);
 }
 
 /**
