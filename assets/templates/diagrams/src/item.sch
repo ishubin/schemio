@@ -12,6 +12,7 @@ struct Item {
     args: Map()
     locked: true
     textSlots: Map()
+    description: ""
 
 
     traverse(callback) {
@@ -39,6 +40,7 @@ struct Item {
             'id', this.id,
             'childItems', childItems,
             'name', this.name,
+            'description', this.description,
             'shape', this.shape,
             'area', Map('x', this.x, 'y', this.y, 'w', this.w, 'h', this.h, 'r', 0, 'sx', 1, 'sy', 1, 'px', 0.5, 'py', 0.5),
             'shapeProps', this.shapeProps,

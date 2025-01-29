@@ -81,6 +81,7 @@ struct Connection {
     value: 0
     srcNode: null
     dstNode: null
+    item: null
 }
 
 
@@ -334,7 +335,7 @@ func buildConnectorItems(levels, allConnections, allNodes) {
             local connections = connectionsBySource.get(node.id)
             if (connections) {
                 connections.sort((a, b) => {
-                    a.dstNode.level * k1 + a.dstNode.sortOrder * k2 - (b.dstNode.level * k1 + b.dstNode.sortOrder * k2)
+                    a.dstNode.offset + a.dstNode.y * height - (b.dstNode.offset + b.dstNode.y * height)
                 })
                 connections.forEach(c => {
                     local dstNode = level.nodesMap.get(c.dstId)
@@ -347,7 +348,7 @@ func buildConnectorItems(levels, allConnections, allNodes) {
     })
 
     cs.sort((a, b) => {
-        a.srcNode.offset - b.srcNode.offset
+        a.srcNode.offset + a.srcNode.y * height - (b.srcNode.offset + b.srcNode.y * height)
     })
 
     cs.forEach(c => {
@@ -368,7 +369,7 @@ struct PathPoint {
 }
 
 func buildSingleConnectorItem(connector, srcNode, dstNode) {
-    local item = Item(connector.id, 'Connection', 'path')
+    local item = Item(connector.id, `${srcNode.id} -> ${dstNode.id}`, 'path')
     local connectorSize = srcNode.unitSize * connector.value
 
     local xs = srcNode.position + srcNode.x * width + srcNode.width
@@ -417,12 +418,15 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
         item.shapeProps.set('fill', Fill.solid(connectorColor))
     }
     item.shapeProps.set('strokeSize', 0)
+    item.shapeProps.set('strokeColor', '#000000')
     item.shapeProps.set('paths', List(Map(
         'id', 'p-' + connector.id,
         'closed', true,
         'pos', 'relative',
         'points', points
     )))
+
+    connector.item = item
     item
 }
 
@@ -445,11 +449,50 @@ func buildLabel(id, text, font, fontSize, halign, valign) {
     item
 }
 
+// "1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"
+
+/*
+
+en-US 100,000.2
+de-DE 100.000,2
+fi-FI 100 000,2
+*/
+
+local valueFormaters = Map(
+    '1000000.00', (value) => {
+        numberToLocaleString(value, 'en-US').replaceAll(',', '')
+    },
+    '1000000,00', (value) => {
+        numberToLocaleString(value, 'de-DE').replaceAll('.', '')
+    },
+    '1,000,000.00', (value) => {
+        numberToLocaleString(value, 'en-US')
+    },
+    '1.000.000,00', (value) => {
+        numberToLocaleString(value, 'de-DE')
+    },
+    '1 000 000.00', (value) => {
+        numberToLocaleString(value, 'fi-FI').replaceAll(',', '.')
+    },
+    '1 000 000,00', (value) => {
+        numberToLocaleString(value, 'fi-FI')
+    },
+)
+
+func formatValue(value) {
+    local valueText = value
+    if (valueFormaters.has(numberFormat)) {
+        valueText = valueFormaters.get(numberFormat)(value)
+    }
+    valuePrefix + valueText + valueSuffix
+}
+
 func buildNodeLabels(nodes) {
     local labelItems = List()
     nodes.forEach(node => {
         local textSize = calculateTextSize(node.name, font, labelFontSize)
-        local valueTextSize = calculateTextSize('' + node.value, font, valueFontSize)
+        local valueText = formatValue(node.value)
+        local valueTextSize = calculateTextSize(valueText, font, valueFontSize)
         local totalHeight = (textSize.h + valueTextSize.h)*1.8 + 8
         local isLeft = node.dstNodes.size == 0
         local halign = 'left'
@@ -470,7 +513,7 @@ func buildNodeLabels(nodes) {
 
         labelItems.add(item)
 
-        local valueLabel = buildLabel('lv-' + node.id, '' + node.value, font, valueFontSize, halign, 'top')
+        local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'top')
         valueLabel.w = valueTextSize.w + 4
         valueLabel.h = valueTextSize.h * 1.8 + 4
         if (isLeft) {
@@ -484,6 +527,23 @@ func buildNodeLabels(nodes) {
         labelItems.add(valueLabel)
     })
     labelItems
+}
+
+
+func buildConnectorLabels(connectors) {
+    local labels = List()
+    connectors.forEach(c => {
+        local valueText = formatValue(c.value)
+        local valueTextSize = calculateTextSize(valueText, font, fontSize)
+        local valueLabel = buildLabel('cl-' + c.id, valueText, font, fontSize, 'center', 'middle')
+        valueLabel.w = valueTextSize.w + 4
+        valueLabel.h = valueTextSize.h * 1.8 + 4
+        valueLabel.x = c.item.x + c.item.w/2 - valueLabel.w/2
+        valueLabel.y = c.item.y + c.item.h/2 - valueLabel.h/2
+        labels.add(valueLabel)
+    })
+
+    labels
 }
 
 
@@ -508,4 +568,5 @@ local levels = buildLevels(allNodes, allConnections)
 
 nodeItems = buildNodeItems(levels)
 connectorItems = buildConnectorItems(levels, allConnections, allNodes)
+connectorLabels = buildConnectorLabels(allConnections)
 nodeLabels = buildNodeLabels(allNodes)

@@ -5,12 +5,15 @@ args:
     diagramCode: {type: "string", value: "Wages [2000] Budget\nOther [120] Budget\nBudget [1000] Housing\nBudget [450] Taxes\n", name: "Diagram", textarea: true, rows: 15}
     font: {type: font, value: Arial, name: Font}
     colorTheme: {type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
-    connectorColorType: {type: choice, value: gradient, options: ['gradient', 'source', 'destination', 'custom'], name: 'Connection color type'}
+    connectorColorType: {type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
     connectorColor: {type: color, value: '#aaaaaa', name: 'Connection color', depends: {connectorColorType: 'custom'}}
     fontSize: {type: number, value: 14, name: "Font size", min: 1}
     labelColor: {type: color, value: '#222222', name: 'Label color'}
     magnify: {type: number, value: 0, name: "Magnify value", min: -50, max: 50}
     connectorOpacity: {type: number, value: 60, name: "Connector opacity", min: 0, max: 100}
+    valuePrefix: {type: string, value: "", name: "Value prefix"}
+    valueSuffix: {type: string, value: "", name: "Value suffix"}
+    numberFormat: {type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
 
 preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
@@ -54,6 +57,48 @@ item:
             y: {$-expr: "it.y"}
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
+        behavior:
+            events:
+              - id: mousein
+                event: mousein
+                actions:
+                  - id: a1
+                    element: self
+                    method: set
+                    args:
+                        field: shapeProps.strokeSize
+                        value: 1
+                        animated: true
+                        animationDuration: 0.2
+                        transition: ease-in-out
+                        inBackground: true
+                  - id: a2
+                    element: {$-str: "#cl-${it.id}"}
+                    method: show
+                    args:
+                        animated: true
+                        animationDuration: 0.2
+
+              - id: mouseout
+                event: mouseout
+                actions:
+                  - id: a1
+                    element: self
+                    method: set
+                    args:
+                        field: shapeProps.strokeSize
+                        value: 0
+                        animated: true
+                        animationDuration: 0.2
+                        transition: ease-in-out
+                        inBackground: true
+                  - id: a2
+                    element: {$-str: "#cl-${it.id}"}
+                    method: hide
+                    args:
+                        animated: true
+                        animationDuration: 0.2
+
 
       - $-foreach: {source: "nodeItems", it: "it"}
         id: {$-expr: "it.id"}
@@ -69,12 +114,7 @@ item:
             y: {$-expr: "it.y"}
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
-        # behavior:
-        #     events:
-        #       - id: click
-        #         event: clicked
-        #         actions:
-        #           - id: a1
+
 
 
       - $-foreach: {source: "nodeLabels", it: "it"}
@@ -91,5 +131,18 @@ item:
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
 
-
-
+      - $-foreach: {source: "connectorLabels", it: "it"}
+        id: {$-expr: "it.id"}
+        name: {$-expr: "it.name"}
+        shape: {$-expr: "it.shape"}
+        shapeProps: {$-expr: "toJSON(it.shapeProps)"}
+        args: {$-expr: "it.getArgs()"}
+        locked: {$-expr: "it.locked"}
+        textSlots: {$-expr: "toJSON(it.textSlots)"}
+        visible: false
+        opacity: 0
+        area:
+            x: {$-expr: "it.x"}
+            y: {$-expr: "it.y"}
+            w: {$-expr: "it.w"}
+            h: {$-expr: "it.h"}

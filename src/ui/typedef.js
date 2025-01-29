@@ -236,6 +236,7 @@
  *                                        that this item can be moved and its movement will be controlled by the template
  * @property {String} tplConnector - 'on' or 'off'. If specified as 'off' - it tells that for this item it should not render connector starter in the edit box
  * @property {String} tplRotation - 'on' or 'off'. Tells whether rotation of this item is supported
+ * @property {String} tplForceDescription - if set to true, then template will set the description of the item
  */
 
 

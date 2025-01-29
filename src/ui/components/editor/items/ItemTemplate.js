@@ -446,6 +446,9 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
             if (key === 'textSlots' && item.args.templateForceText) {
                 shouldCopyField = true;
             }
+            if (key === 'description' && item.args.tplForceDescription) {
+                shouldCopyField = true;
+            }
             if (shouldCopyField) {
                 if (key === 'shapeProps' && regeneratedItem.shapeProps) {
                     if (!srcItem.shapeProps) {

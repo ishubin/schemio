@@ -672,6 +672,8 @@ const reservedFunctions = new Map(Object.entries({
     Color         : (r,g,b,a) => new Color(r,g,b,a),
     decodeColor   : (text) => {const c = parseColor(text); return new Color(c.r, c.g, c.b, c.a)},
 
+    numberToLocaleString: (value, locale) => parseFloat(value).toLocaleString(locale, {}),
+
     Fill          : Fill
 }));
 
