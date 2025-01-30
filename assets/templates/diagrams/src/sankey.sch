@@ -270,7 +270,6 @@ func buildLevels(allNodes, allConnections) {
 
 func buildNodeItems(levels) {
     local colorPalette = colorThemes.get(colorTheme)
-    log('Selected color palette', colorTheme, colorPalette)
     if (!colorPalette) {
         colorPalette = colorThemes.get('default')
     }
@@ -409,11 +408,13 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     local dx = max(0.001, maxX - minX)
     local dy = max(0.001, maxY - minY)
 
+    local t = curviness / 100
+
     local points = List(
-        PathPoint('B', xs, ys1, 0, (ys2 - ys1) / 3, (xd - xs) / 3, 0),
-        PathPoint('B', xd, yd1, (xs - xd) / 3, 0, 0, (yd2 - yd1) / 3),
-        PathPoint('B', xd, yd2, 0, (yd1 - yd2) / 3, (xs - xd) / 3, 0),
-        PathPoint('B', xs, ys2, (xd - xs) / 3, 0, 0, (ys1 - ys2) / 3),
+        PathPoint('B', xs, ys1, 0, t * (ys2 - ys1) / 2, t * (xd - xs) / 2, 0),
+        PathPoint('B', xd, yd1, t * (xs - xd) / 2, 0, 0, t * (yd2 - yd1) / 2),
+        PathPoint('B', xd, yd2, 0, t * (yd1 - yd2) / 2, t * (xs - xd) / 2, 0),
+        PathPoint('B', xs, ys2, t * (xd - xs) / 2, 0, 0, t * (ys1 - ys2) / 2),
     ).map(p => {
         PathPoint('B',
             100 * (p.x - minX) / dx, 100 * (p.y - minY) / dy,

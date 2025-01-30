@@ -1,5 +1,9 @@
 name: Sankey diagram
-description: ""
+description: |
+  This template converts your diagram code below into an interactive Sankey diagram.
+  To define a connection in your diagram between the two nodes "A" and "B" type it like this "A [150] B".
+  Every connection should be defined in a separate line.
+
 args:
     nodesData: {type: "string", value: "a1_1;x=0;y=0;|a1_2|a2", name: "Nodes encoded", hidden: true}
     diagramCode: {
@@ -20,6 +24,7 @@ args:
     nodeStrokeSize: {group: "Nodes", type: number, value: 1, name: "Stroke size", min: 0}
     nodeStrokeColor: {group: "Nodes", type: color, value: 'rgba(255,255,255,1)', name: "Stroke color"}
 
+    curviness: {group: "Connections", type: number, value: 80, name: "Curviness (%)", min: 0, max: 100}
     conOpacity: {group: "Connections", type: number, value: 60, name: "Connector opacity", min: 0, max: 100}
     conLabel: {group: "Connections", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
     conLabelColor: {group: "Connections", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: 'Connection label color'}
