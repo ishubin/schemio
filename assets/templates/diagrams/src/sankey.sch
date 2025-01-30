@@ -1,5 +1,4 @@
-gapRatio = 0.4
-nodeWidth = 20
+gapRatio = nodeSpacing / 100
 labelPadding = 5
 
 labelFontSize = max(1, round(fontSize * (100 - magnify) / 100))
@@ -81,7 +80,6 @@ struct Connection {
     value: 0
     srcNode: null
     dstNode: null
-    item: null
 }
 
 
@@ -180,6 +178,23 @@ struct Level {
     height: 0
 }
 
+func readjustStarterNodeLevels(nodesMap) {
+    // readjusting node levels for starter nodes
+    nodesMap.forEach(node => {
+        if (node.srcNodes.size == 0 && node.dstNodes.size > 0) {
+            local minDstLevel = node.dstNodes.get(0).level
+            node.dstNodes.forEach(dstNode => {
+                if (minDstLevel > dstNode.level) {
+                    minDstLevel = dstNode.level
+                }
+            })
+            if (minDstLevel - node.level > 1) {
+                node.level = minDstLevel - 1
+            }
+        }
+    })
+}
+
 func buildLevels(allNodes, allConnections) {
     local nodesMap = Map()
     allNodes.forEach(node => {
@@ -213,6 +228,8 @@ func buildLevels(allNodes, allConnections) {
             updateLevels(node, nodesMap.size)
         }
     })
+
+    readjustStarterNodeLevels(nodesMap)
 
     local levels = Map()
     local maxLevel = 0
@@ -253,6 +270,7 @@ func buildLevels(allNodes, allConnections) {
 
 func buildNodeItems(levels) {
     local colorPalette = colorThemes.get(colorTheme)
+    log('Selected color palette', colorTheme, colorPalette)
     if (!colorPalette) {
         colorPalette = colorThemes.get('default')
     }
@@ -295,9 +313,9 @@ func buildNodeItems(levels) {
                 nodeItem.h = node.height
                 nodeItem.x = node.position + node.x * width
                 nodeItem.y = node.offset + node.y * height
-                nodeItem.shapeProps.set('strokeSize', 1)
-                nodeItem.shapeProps.set('strokeColor', '#ffffff')
-                nodeItem.shapeProps.set('cornerRadius', 2)
+                nodeItem.shapeProps.set('strokeSize', nodeStrokeSize)
+                nodeItem.shapeProps.set('strokeColor', nodeStrokeColor)
+                nodeItem.shapeProps.set('cornerRadius', nodeCornerRadius)
                 nodeItem.shapeProps.set('fill', Fill.solid(node.color))
                 nodeItem.args.set('tplArea', 'controlled')
                 nodeItem.args.set('tplConnector', 'off')
@@ -358,6 +376,7 @@ func buildConnectorItems(levels, allConnections, allNodes) {
     connectorItems
 }
 
+
 struct PathPoint {
     t: 'B'
     x: 0
@@ -408,17 +427,17 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     item.w = dx
     item.h = dy
 
-    if (connectorColorType == 'gradient') {
+    if (conColorType == 'gradient') {
         item.shapeProps.set('fill', Fill.linearGradient(90, 0, srcNode.color, 100, dstNode.color))
-    } else if (connectorColorType == 'source') {
+    } else if (conColorType == 'source') {
         item.shapeProps.set('fill', Fill.solid(srcNode.color))
-    } else if (connectorColorType == 'destination') {
+    } else if (conColorType == 'destination') {
         item.shapeProps.set('fill', Fill.solid(dstNode.color))
     } else {
-        item.shapeProps.set('fill', Fill.solid(connectorColor))
+        item.shapeProps.set('fill', conColor)
     }
     item.shapeProps.set('strokeSize', 0)
-    item.shapeProps.set('strokeColor', '#000000')
+    item.shapeProps.set('strokeColor', conHoverStroke)
     item.shapeProps.set('paths', List(Map(
         'id', 'p-' + connector.id,
         'closed', true,
@@ -426,8 +445,26 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
         'points', points
     )))
 
-    connector.item = item
+    if (conLabel) {
+        item.childItems.add(buildConnectorLabel(connector, item.w, item.h))
+    }
     item
+}
+
+func buildConnectorLabel(c, connectorWidth, connectorHeight) {
+    local valueText = formatValue(c.value)
+    local valueTextSize = calculateTextSize(valueText, font, fontSize)
+    local valueLabel = buildLabel('cl-' + c.id, valueText, font, fontSize, 'center', 'middle')
+    valueLabel.w = valueTextSize.w + 4 + 10
+    valueLabel.h = valueTextSize.h * 1.8 + 14
+    valueLabel.x = connectorWidth/2 - valueLabel.w/2
+    valueLabel.y = connectorHeight/2 - valueLabel.h/2
+    valueLabel.name = 'connector-label-' + c.id
+    valueLabel.shapeProps.set('fill', conLabelColor)
+    valueLabel.shapeProps.set('strokeColor', conLabelStroke)
+    valueLabel.shapeProps.set('strokeSize', conLabelStrokeSize)
+    valueLabel.shapeProps.set('cornerRadius', 5)
+    valueLabel
 }
 
 func buildLabel(id, text, font, fontSize, halign, valign) {
@@ -530,21 +567,6 @@ func buildNodeLabels(nodes) {
 }
 
 
-func buildConnectorLabels(connectors) {
-    local labels = List()
-    connectors.forEach(c => {
-        local valueText = formatValue(c.value)
-        local valueTextSize = calculateTextSize(valueText, font, fontSize)
-        local valueLabel = buildLabel('cl-' + c.id, valueText, font, fontSize, 'center', 'middle')
-        valueLabel.w = valueTextSize.w + 4
-        valueLabel.h = valueTextSize.h * 1.8 + 4
-        valueLabel.x = c.item.x + c.item.w/2 - valueLabel.w/2
-        valueLabel.y = c.item.y + c.item.h/2 - valueLabel.h/2
-        labels.add(valueLabel)
-    })
-
-    labels
-}
 
 
 func onAreaUpdate(itemId, item, area) {
@@ -568,5 +590,4 @@ local levels = buildLevels(allNodes, allConnections)
 
 nodeItems = buildNodeItems(levels)
 connectorItems = buildConnectorItems(levels, allConnections, allNodes)
-connectorLabels = buildConnectorLabels(allConnections)
 nodeLabels = buildNodeLabels(allNodes)

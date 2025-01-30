@@ -147,6 +147,7 @@ import ScriptEditor from './ScriptEditor.vue';
 import PathCapDropdown from './PathCapDropdown.vue';
 import Dropdown from '../Dropdown.vue';
 import { getAllFonts } from '../../scheme/Fonts';
+import Panel from './Panel.vue';
 
 export default {
     props: {
@@ -162,7 +163,8 @@ export default {
 
     components: {
         Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, Dropdown,
-        AdvancedColorEditor, ScriptEditor, DiagramPicker, PathCapDropdown
+        AdvancedColorEditor, ScriptEditor, DiagramPicker, PathCapDropdown,
+        Panel
     },
 
     beforeMount() {

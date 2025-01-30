@@ -9,14 +9,33 @@
             <h4>{{ template.name }}</h4>
             <p class="hint hint-small" v-if="template.description">{{ template.description }}</p>
 
-            <ArgumentsEditor v-if="template.args"
+            <!-- <ArgumentsEditor v-if="template.args"
                 :key="`item-${item.id}-template-args-${reloadKey}`"
                 :editorId="editorId"
                 :schemeContainer="schemeContainer"
                 :argsDefinition="template.args"
                 :args="args"
                 @argument-changed="onArgChanged"
+            /> -->
+            <ArgumentsEditor v-if="ungroupedArgs"
+                :key="`item-${item.id}-template-ungrouped-args-${reloadKey}`"
+                :editorId="editorId"
+                :schemeContainer="schemeContainer"
+                :argsDefinition="ungroupedArgs"
+                :args="args"
+                @argument-changed="onArgChanged"
             />
+
+            <Panel :key="`template-arg-group-${group.name}`" v-for="group in argGroups" :name="group.name" :uid="`template-arg-group-${group.name}`">
+                <ArgumentsEditor
+                    :key="`item-${item.id}-template-group-${group.name}-${reloadKey}`"
+                    :editorId="editorId"
+                    :schemeContainer="schemeContainer"
+                    :argsDefinition="group.args"
+                    :args="args"
+                    @argument-changed="onArgChanged"
+                />
+            </Panel>
 
             <Panel :key="`editor-panel-${panel.id}`" v-for="panel in editorPanels" :name="panel.name" :uid="panel.id">
                 <ul v-if="panel.type === 'item-menu'" class="template-editor-panel-items-container">
@@ -83,6 +102,9 @@ export default {
 
     data() {
         return {
+            ungroupedArgs: {},
+            argGroups: [],
+
             isLoading: false,
             reloadKey: 0,
             errorMessage: null,
@@ -127,11 +149,34 @@ export default {
                 this.isLoading = false;
                 this.template = compiledTemplate
                 if (compiledTemplate.argsDef) {
+                    const ungroupedArgs = {};
+                    const groupedArgs = new Map();
+
                     forEach(compiledTemplate.argsDef, (arg, argName) => {
                         if (!this.args.hasOwnProperty(argName)) {
                             this.args[argName] = arg.value;
                         }
+                        if (arg.group) {
+                            if (groupedArgs.has(arg.group)) {
+                                groupedArgs.get(arg.group)[argName] = arg;
+                            } else {
+                                const obj = {};
+                                obj[argName] = arg;
+                                groupedArgs.set(arg.group, obj);
+                            }
+                        } else {
+                            ungroupedArgs[argName] = arg;
+                        }
                     });
+                    this.ungroupedArgs = ungroupedArgs;
+                    const argGroups = [];
+                    groupedArgs.forEach((args, groupName) => {
+                        argGroups.push({
+                            name: groupName,
+                            args
+                        });
+                    });
+                    this.argGroups = argGroups;
                 }
                 this.updateEditorPanels();
             }).catch(err => {

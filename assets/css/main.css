@@ -2001,6 +2001,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     box-shadow: none !important;
     margin: auto;
 }
+.vc-chrome-saturation-wrap, .vc-chrome-sliders {
+    user-select: none;
+}
 .color-picker .color-picker-tooltip {
     position: fixed;
     z-index: 1000;

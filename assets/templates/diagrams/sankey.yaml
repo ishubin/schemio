@@ -2,18 +2,40 @@ name: Sankey diagram
 description: ""
 args:
     nodesData: {type: "string", value: "a1_1;x=0;y=0;|a1_2|a2", name: "Nodes encoded", hidden: true}
-    diagramCode: {type: "string", value: "Wages [2000] Budget\nOther [120] Budget\nBudget [1000] Housing\nBudget [450] Taxes\n", name: "Diagram", textarea: true, rows: 15}
-    font: {type: font, value: Arial, name: Font}
-    colorTheme: {type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
-    connectorColorType: {type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
-    connectorColor: {type: color, value: '#aaaaaa', name: 'Connection color', depends: {connectorColorType: 'custom'}}
-    fontSize: {type: number, value: 14, name: "Font size", min: 1}
-    labelColor: {type: color, value: '#222222', name: 'Label color'}
-    magnify: {type: number, value: 0, name: "Magnify value", min: -50, max: 50}
-    connectorOpacity: {type: number, value: 60, name: "Connector opacity", min: 0, max: 100}
-    valuePrefix: {type: string, value: "", name: "Value prefix"}
-    valueSuffix: {type: string, value: "", name: "Value suffix"}
-    numberFormat: {type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
+    diagramCode: {
+      type: "string",
+      value: "Wages [2000] Budget\nOther [120] Budget\nBudget [1000] Housing\nBudget [450] Taxes\n",
+      name: "Diagram",
+      textarea: true,
+      rows: 15
+    }
+    colorTheme: {group: "Theme & Colors", type: "choice", value: "light", options: ["default", "light", "dark"], name: "Color theme"}
+    conColorType: {group: "Theme & Colors", type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
+    conColor: {group: "Theme & Colors", type: advanced-color, value: {type: solid, color: '#aaaaaa'}, name: 'Connection color', depends: {conColorType: 'custom'}}
+    labelColor: {group: "Theme & Colors", type: color, value: '#222222', name: 'Label color'}
+
+    nodeWidth: {group: "Nodes", type: number, value: 20, name: "Node width", min: 1}
+    nodeSpacing: {group: "Nodes", type: number, value: 40, name: "Nodes empty space (%)", min: 0, max: 90}
+    nodeCornerRadius: {group: "Nodes", type: number, value: 5, name: "Corner radius", min: 0}
+    nodeStrokeSize: {group: "Nodes", type: number, value: 1, name: "Stroke size", min: 0}
+    nodeStrokeColor: {group: "Nodes", type: color, value: 'rgba(255,255,255,1)', name: "Stroke color"}
+
+    conOpacity: {group: "Connections", type: number, value: 60, name: "Connector opacity", min: 0, max: 100}
+    conLabel: {group: "Connections", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
+    conLabelColor: {group: "Connections", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: 'Connection label color'}
+    conLabelStroke: {group: "Connections", type: color, value: 'rgba(120,120,120,0.6)', name: 'Connection label stroke'}
+    conLabelStrokeSize: {group: "Connections", type: number, value: 1, name: 'Connection label stroke size'}
+    conHoverStroke: {group: "Connections", type: color, value: 'rgba(30,30,30,1)', name: 'Connection hover stroke'}
+    conHoverStrokeSize: {group: "Connections", type: number, value: 1, name: 'Connection hover stroke size'}
+
+    font: {group: "Labels & Text", type: font, value: Arial, name: Font}
+    fontSize: {group: "Labels & Text", type: number, value: 14, name: "Font size", min: 1}
+    magnify: {group: "Labels & Text", type: number, value: 0, name: "Magnify value", min: -50, max: 50}
+
+    valuePrefix: {group: "Number formatting", type: string, value: "", name: "Value prefix"}
+    valueSuffix: {group: "Number formatting", type: string, value: "", name: "Value suffix"}
+    numberFormat: {group: "Number formatting", type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
+
 
 preview: "/assets/templates/previews/mind-map.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
@@ -51,12 +73,40 @@ item:
         args: {$-expr: "it.getArgs()"}
         locked: {$-expr: "it.locked"}
         textSlots: {$-expr: "toJSON(it.textSlots)"}
-        opacity: {$-expr: connectorOpacity}
+        selfOpacity: {$-expr: conOpacity}
         area:
             x: {$-expr: "it.x"}
             y: {$-expr: "it.y"}
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
+        childItems:
+          - $-foreach: {source: "it.childItems", it: "label"}
+            id: {$-expr: "label.id"}
+            name: {$-expr: "label.name"}
+            shape: 'rect'
+            tags:
+                - connector-label
+            shapeProps: {$-expr: "toJSON(label.shapeProps)"}
+            args: {$-expr: "label.getArgs()"}
+            locked: {$-expr: "label.locked"}
+            textSlots: {$-expr: "toJSON(label.textSlots)"}
+            visible: true
+            opacity: 100
+            area:
+                x: {$-expr: "label.x"}
+                y: {$-expr: "label.y"}
+                w: {$-expr: "label.w"}
+                h: {$-expr: "label.h"}
+            behavior:
+                events:
+                  - id: init
+                    event: init
+                    actions:
+                      - id: a1
+                        element: self
+                        method: hide
+                        args:
+                          animated: false
         behavior:
             events:
               - id: mousein
@@ -67,7 +117,7 @@ item:
                     method: set
                     args:
                         field: shapeProps.strokeSize
-                        value: 1
+                        value: {$-expr: conHoverStrokeSize}
                         animated: true
                         animationDuration: 0.2
                         transition: ease-in-out
@@ -125,22 +175,6 @@ item:
         args: {$-expr: "it.getArgs()"}
         locked: {$-expr: "it.locked"}
         textSlots: {$-expr: "toJSON(it.textSlots)"}
-        area:
-            x: {$-expr: "it.x"}
-            y: {$-expr: "it.y"}
-            w: {$-expr: "it.w"}
-            h: {$-expr: "it.h"}
-
-      - $-foreach: {source: "connectorLabels", it: "it"}
-        id: {$-expr: "it.id"}
-        name: {$-expr: "it.name"}
-        shape: {$-expr: "it.shape"}
-        shapeProps: {$-expr: "toJSON(it.shapeProps)"}
-        args: {$-expr: "it.getArgs()"}
-        locked: {$-expr: "it.locked"}
-        textSlots: {$-expr: "toJSON(it.textSlots)"}
-        visible: false
-        opacity: 0
         area:
             x: {$-expr: "it.x"}
             y: {$-expr: "it.y"}
