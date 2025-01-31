@@ -9,8 +9,9 @@ import { List } from '../../src/ui/templater/list';
 describe('templater ast parser', () => {
     it('should parse various expressions', () => {
         [
-            ['2-5 + qwe', '(2 - (5 + qwe))'],
-            ['2 * 8 + 1 - 4 *4 ', '(((2 * 8) + 1) - (4 * 4))'],
+            ['2 - 5 - k + x * w', '(((2 - 5) - k) + (x * w))'],
+            ['2-5 + qwe', '((2 - 5) + qwe)'],
+            ['2 * 8 + 1 - 4 *4 ', '((2 * 8) + (1 - (4 * 4)))'],
             ['1 + (x - 4) * 3', '(1 + ((x - 4) * 3))'],
             ['x < 5', '(x < 5)'],
             ['x + 1 < 5 - y', '((x + 1) < (5 - y))'],
