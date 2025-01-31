@@ -36,6 +36,10 @@ args:
     font: {group: "Labels & Text", type: font, value: Arial, name: Font}
     fontSize: {group: "Labels & Text", type: number, value: 14, name: "Font size", min: 1}
     magnify: {group: "Labels & Text", type: number, value: 0, name: "Magnify value", min: -50, max: 50}
+    showLabelFill: {group: "Labels & Text", type: boolean, value: true, name: 'Show label fill'}
+    labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: "Background", depends: {labelBackground: true}}
+    labelStroke: {group: "Labels & Text", type: color, value: 'rgba(120,120,120,0.6)', name: 'Label stroke'}
+    labelStrokeSize: {group: "Labels & Text", type: number, value: 1, name: 'Label stroke size'}
 
     valuePrefix: {group: "Number formatting", type: string, value: "", name: "Value prefix"}
     valueSuffix: {group: "Number formatting", type: string, value: "", name: "Value suffix"}
@@ -171,7 +175,6 @@ item:
             h: {$-expr: "it.h"}
 
 
-
       - $-foreach: {source: "nodeLabels", it: "it"}
         id: {$-expr: "it.id"}
         name: {$-expr: "it.name"}
@@ -185,3 +188,17 @@ item:
             y: {$-expr: "it.y"}
             w: {$-expr: "it.w"}
             h: {$-expr: "it.h"}
+        childItems:
+          - $-foreach: {source: "it.childItems", it: "child"}
+            id: {$-expr: "child.id"}
+            name: {$-expr: "child.name"}
+            shape: {$-expr: "child.shape"}
+            shapeProps: {$-expr: "toJSON(child.shapeProps)"}
+            args: {$-expr: "child.getArgs()"}
+            locked: {$-expr: "child.locked"}
+            textSlots: {$-expr: "toJSON(child.textSlots)"}
+            area:
+                x: {$-expr: "child.x"}
+                y: {$-expr: "child.y"}
+                w: {$-expr: "child.w"}
+                h: {$-expr: "child.h"}

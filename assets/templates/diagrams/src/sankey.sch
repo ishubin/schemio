@@ -487,15 +487,6 @@ func buildLabel(id, text, font, fontSize, halign, valign) {
     item
 }
 
-// "1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"
-
-/*
-
-en-US 100,000.2
-de-DE 100.000,2
-fi-FI 100 000,2
-*/
-
 local valueFormaters = Map(
     '1000000.00', (value) => {
         numberToLocaleString(value, 'en-US').replaceAll(',', '')
@@ -537,32 +528,46 @@ func buildNodeLabels(nodes) {
         if (!isLeft) {
             halign = 'right'
         }
-        local item = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'bottom')
-        item.w = textSize.w + 4
-        item.h = textSize.h * 1.8 + 4
-
-        if (isLeft) {
-            item.x = node.position - item.w - labelPadding
-        } else {
-            item.x = node.position + node.width + labelPadding
-        }
-        item.x += node.x * width
-        item.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
-
-        labelItems.add(item)
+        local label = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'bottom')
+        label.w = textSize.w + 4
+        label.h = textSize.h * 1.8 + 4
 
         local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'top')
         valueLabel.w = valueTextSize.w + 4
         valueLabel.h = valueTextSize.h * 1.8 + 4
-        if (isLeft) {
-            valueLabel.x = node.position - valueLabel.w - labelPadding
-        } else {
-            valueLabel.x = node.position + node.width + labelPadding
-        }
-        valueLabel.x += node.x * width
-        valueLabel.y = item.y + item.h
 
-        labelItems.add(valueLabel)
+        if (showLabelFill) {
+            local rect = Item('lc-'+node.id, 'Label ' + node.id, 'rect')
+            rect.w = max(label.w, valueLabel.w)
+            rect.h = label.h + valueLabel.h
+            if (isLeft) {
+                rect.x = node.position + node.x * width - rect.w - labelPadding
+            } else {
+                rect.x = node.position + node.width + labelPadding + node.x * width
+            }
+            rect.shapeProps.set('fill', labelFill)
+            rect.shapeProps.set('strokeColor', labelStroke)
+            rect.shapeProps.set('strokeSize', labelStrokeSize)
+            rect.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
+            valueLabel.y = label.y + label.h
+            rect.childItems.add(label)
+            rect.childItems.add(valueLabel)
+            labelItems.add(rect)
+        } else {
+            if (isLeft) {
+                label.x = node.position - label.w - labelPadding
+                valueLabel.x = node.position - valueLabel.w - labelPadding
+            } else {
+                label.x = node.position + node.width + labelPadding
+                valueLabel.x = node.position + node.width + labelPadding
+            }
+            label.x += node.x * width
+            label.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
+            valueLabel.x += node.x * width
+            valueLabel.y = label.y + label.h
+            labelItems.add(label)
+            labelItems.add(valueLabel)
+        }
     })
     labelItems
 }
