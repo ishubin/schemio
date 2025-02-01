@@ -1,6 +1,4 @@
 gapRatio = nodeSpacing / 100
-labelPadding = 5
-
 labelFontSize = max(1, round(fontSize * (100 - magnify) / 100))
 valueFontSize = max(1, round(fontSize * (100 + magnify) / 100))
 
@@ -456,15 +454,21 @@ func buildConnectorLabel(c, connectorWidth, connectorHeight) {
     local valueText = formatValue(c.value)
     local valueTextSize = calculateTextSize(valueText, font, fontSize)
     local valueLabel = buildLabel('cl-' + c.id, valueText, font, fontSize, 'center', 'middle')
-    valueLabel.w = valueTextSize.w + 4 + 10
-    valueLabel.h = valueTextSize.h * 1.8 + 14
-    valueLabel.x = connectorWidth/2 - valueLabel.w/2
-    valueLabel.y = connectorHeight/2 - valueLabel.h/2
+    valueLabel.w = valueTextSize.w + 4 + 2 * labelPadding
+    valueLabel.h = valueTextSize.h * 1.8 + 2 * labelPadding
+    valueLabel.x = connectorWidth/2 - valueLabel.w/2 - labelPadding
+    valueLabel.y = connectorHeight/2 - valueLabel.h/2 - labelPadding
     valueLabel.name = 'connector-label-' + c.id
-    valueLabel.shapeProps.set('fill', conLabelColor)
-    valueLabel.shapeProps.set('strokeColor', conLabelStroke)
-    valueLabel.shapeProps.set('strokeSize', conLabelStrokeSize)
-    valueLabel.shapeProps.set('cornerRadius', 5)
+    valueLabel.shapeProps.set('strokeColor', labelStroke)
+    if (showLabelFill) {
+        valueLabel.shapeProps.set('fill', labelFill)
+        valueLabel.shapeProps.set('strokeColor', labelStroke)
+        valueLabel.shapeProps.set('strokeSize', labelStrokeSize)
+    } else {
+        valueLabel.shapeProps.set('fill', Fill.none())
+        valueLabel.shapeProps.set('strokeSize', 0)
+        valueLabel.shapeProps.set('cornerRadius', 0)
+    }
     valueLabel
 }
 
@@ -528,18 +532,18 @@ func buildNodeLabels(nodes) {
         if (!isLeft) {
             halign = 'right'
         }
-        local label = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'bottom')
+        local label = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'middle')
         label.w = textSize.w + 4
-        label.h = textSize.h * 1.8 + 4
+        label.h = textSize.h * 1.8
 
-        local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'top')
+        local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'middle')
         valueLabel.w = valueTextSize.w + 4
-        valueLabel.h = valueTextSize.h * 1.8 + 4
+        valueLabel.h = valueTextSize.h * 1.8
 
         if (showLabelFill) {
             local rect = Item('lc-'+node.id, 'Label ' + node.id, 'rect')
-            rect.w = max(label.w, valueLabel.w)
-            rect.h = label.h + valueLabel.h
+            rect.w = max(label.w, valueLabel.w) + 2 * labelPadding
+            rect.h = label.h + valueLabel.h + 2 * labelPadding
             if (isLeft) {
                 rect.x = node.position + node.x * width - rect.w - labelPadding
             } else {
@@ -548,7 +552,11 @@ func buildNodeLabels(nodes) {
             rect.shapeProps.set('fill', labelFill)
             rect.shapeProps.set('strokeColor', labelStroke)
             rect.shapeProps.set('strokeSize', labelStrokeSize)
+            rect.shapeProps.set('cornerRadius', labelCornerRadius)
             rect.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
+            label.x = labelPadding
+            label.y = labelPadding
+            valueLabel.x = labelPadding
             valueLabel.y = label.y + label.h
             rect.childItems.add(label)
             rect.childItems.add(valueLabel)

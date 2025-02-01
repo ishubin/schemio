@@ -13,7 +13,7 @@ args:
       textarea: true,
       rows: 15
     }
-    colorTheme: {group: "Theme & Colors", type: "choice", value: "light", options: ["default", "light", "dark"], name: "Color theme"}
+    colorTheme: {group: "Theme & Colors", type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
     conColorType: {group: "Theme & Colors", type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
     conColor: {group: "Theme & Colors", type: advanced-color, value: {type: solid, color: '#aaaaaa'}, name: 'Connection color', depends: {conColorType: 'custom'}}
     labelColor: {group: "Theme & Colors", type: color, value: '#222222', name: 'Label color'}
@@ -26,20 +26,19 @@ args:
 
     curviness: {group: "Connections", type: number, value: 80, name: "Curviness (%)", min: 0, max: 100}
     conOpacity: {group: "Connections", type: number, value: 60, name: "Connector opacity", min: 0, max: 100}
-    conLabel: {group: "Connections", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
-    conLabelColor: {group: "Connections", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: 'Connection label color'}
-    conLabelStroke: {group: "Connections", type: color, value: 'rgba(120,120,120,0.6)', name: 'Connection label stroke'}
-    conLabelStrokeSize: {group: "Connections", type: number, value: 1, name: 'Connection label stroke size'}
     conHoverStroke: {group: "Connections", type: color, value: 'rgba(30,30,30,1)', name: 'Connection hover stroke'}
     conHoverStrokeSize: {group: "Connections", type: number, value: 1, name: 'Connection hover stroke size'}
 
     font: {group: "Labels & Text", type: font, value: Arial, name: Font}
     fontSize: {group: "Labels & Text", type: number, value: 14, name: "Font size", min: 1}
     magnify: {group: "Labels & Text", type: number, value: 0, name: "Magnify value", min: -50, max: 50}
+    conLabel: {group: "Labels & Text", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
     showLabelFill: {group: "Labels & Text", type: boolean, value: true, name: 'Show label fill'}
-    labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: "Background", depends: {labelBackground: true}}
-    labelStroke: {group: "Labels & Text", type: color, value: 'rgba(120,120,120,0.6)', name: 'Label stroke'}
-    labelStrokeSize: {group: "Labels & Text", type: number, value: 1, name: 'Label stroke size'}
+    labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: "Background", depends: {showLabelFill: true}}
+    labelStroke: {group: "Labels & Text", type: color, value: 'rgba(120,120,120,0.6)', name: 'Label stroke', depends: {showLabelFill: true}}
+    labelStrokeSize: {group: "Labels & Text", type: number, value: 1, name: 'Label stroke size', depends: {showLabelFill: true}}
+    labelCornerRadius: {group: "Labels & Text", type: number, value: 4, name: 'Label corner radius', depends: {showLabelFill: true}}
+    labelPadding: {group: "Labels & Text", type: number, value: 5, name: 'Label padding', depends: {showLabelFill: true}}
 
     valuePrefix: {group: "Number formatting", type: string, value: "", name: "Value prefix"}
     valueSuffix: {group: "Number formatting", type: string, value: "", name: "Value suffix"}
