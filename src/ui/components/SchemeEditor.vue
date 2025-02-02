@@ -1632,14 +1632,28 @@ export default {
         },
 
         closeItemTextEditor() {
-            if (this.inPlaceTextEditor.item) {
-                EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                EditorEventBus.item.changed.specific.$emit(this.editorId, this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                this.schemeContainer.reindexItems();
-            }
             this.inPlaceTextEditor.shown = false;
             this.inPlaceTextEditor.markupDisabled = false;
+
+            const item = this.inPlaceTextEditor.item;
+            const slotName = this.inPlaceTextEditor.slotName;
+            if (item) {
+                EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, item, slotName);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.textSlots.${slotName}.text`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${slotName}.text`);
+
+                if (item.args && item.meta.templateRootId) {
+                    const rootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
+                    if (rootItem && rootItem.meta.templateRef) {
+                        this.schemeContainer.getTemplate(rootItem.meta.templateRef)
+                        .then(template => {
+                            const templateArgs = template.onTextUpdate(rootItem, item.args.templatedId, item, item.textSlots[slotName].text);
+                            this.rebuildTemplate(rootItem.id, template, templateArgs);
+                        });
+                        return;
+                    }
+                }
+            }
         },
 
         updateInPlaceTextEditorStyle() {

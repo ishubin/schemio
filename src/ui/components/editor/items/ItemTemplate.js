@@ -252,6 +252,10 @@ export function compileItemTemplate(editorId, template, templateRef) {
             return this.triggerTemplateEvent(rootItem, 'paste', {itemId, items});
         },
 
+        onTextUpdate(rootItem, itemId, item, text) {
+            return this.triggerTemplateEvent(rootItem, 'text', {itemId, item, text});
+        },
+
         buildItem : (args, width, height, postBuild) => {
             if (postBuild) {
                 return itemPostBuilder({

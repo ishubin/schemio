@@ -13,7 +13,12 @@ args:
       textarea: true,
       rows: 15
     }
-    colorTheme: {group: "Theme & Colors", type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
+    colorTheme: {group: "Theme & Colors", type: "choice", value: "default",
+      options: [
+        "default", "light", "dark", "air-force-blue", "gray"
+      ],
+      name: "Color theme"
+    }
     conColorType: {group: "Theme & Colors", type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
     conColor: {group: "Theme & Colors", type: advanced-color, value: {type: solid, color: '#aaaaaa'}, name: 'Connection color', depends: {conColorType: 'custom'}}
     labelColor: {group: "Theme & Colors", type: color, value: '#222222', name: 'Text color'}
@@ -57,6 +62,7 @@ import:
 
 handlers:
     area: onAreaUpdate(itemId, item, area)
+    text: onTextUpdate(itemId, item, text)
 
 controls:
 -   $-foreach: {source: "allConnections", it: "c"}

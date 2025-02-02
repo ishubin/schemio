@@ -7,7 +7,9 @@ local nodesById = Map()
 colorThemes = Map(
     'default', List('#F16161', '#F1A261', '#F1EB61', '#71EB57', '#57EBB1', '#57C2EB', '#576BEB', '#A557EB', '#EB57C8', '#EB578E'),
     'light', List('#FD9999', '#FDCA99', '#F9FD99', '#C2FD99', '#99FDA6', '#99FDE2', '#99EAFD', '#99BEFD', '#AE99FD', '#FD99F6'),
-    'dark', List('#921515', '#924E15', '#899215', '#4E9215', '#15922B', '#15926B', '#157F92', '#153F92', '#491592', '#921575')
+    'dark', List('#921515', '#924E15', '#899215', '#4E9215', '#15922B', '#15926B', '#157F92', '#153F92', '#491592', '#921575'),
+    'air-force-blue', List('#5d8aa8'),
+    'gray', List('#6B6B64'),
 )
 
 struct Node {
@@ -623,20 +625,62 @@ func onAreaUpdate(itemId, item, area) {
 
 
 func onConnectionValueInput(connectionId, value) {
+    allConnections.forEach(c => {
+        if (c.id == connectionId) {
+            c.value = value
+        }
+    })
+    diagramCode = encodeDiagram()
+}
+
+
+func encodeDiagram() {
     local code = ''
     codeLines.forEach((line, idx) => {
         if (idx > 0) {
             code += '\n'
         }
         if (line.connection) {
-            local cVal = if (line.connection.id == connectionId) { value } else { line.connection.value }
-            code += line.connection.srcId + ' [' + cVal + '] ' + line.connection.dstId
+            code += line.connection.srcId + ' [' + line.connection.value + '] ' + line.connection.dstId
         } else {
             code += line.text
         }
     })
 
-    diagramCode = code
+    code
+}
+
+
+func onTextUpdate(itemId, item, text) {
+    text = stripHTML(text).trim()
+    if (itemId.startsWith('ln-')) {
+        local oldNodeId = itemId.substring(3)
+        local newNodeId = text
+
+        local foundClashingId = false
+
+        for (local i = 0; i < allConnections.size && !foundClashingId; i++) {
+            local c = allConnections.get(i)
+            if (c.srcId == newNodeId && c.dstId == newNodeId) {
+                foundClashingId = true
+            }
+        }
+
+        if (!foundClashingId) {
+            allConnections.forEach(c => {
+                if (c.srcId == oldNodeId) {
+                    c.srcId = newNodeId
+                    c.srcNode.id = newNodeId
+                }
+                if (c.dstId == oldNodeId) {
+                    c.dstId = newNodeId
+                    c.dstNode.id = newNodeId
+                }
+            })
+        }
+
+        diagramCode = encodeDiagram()
+    }
 }
 
 

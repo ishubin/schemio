@@ -12,6 +12,7 @@ import { Color } from "./color";
 import { Area } from "./area";
 import { Fill } from "./fill";
 import { SchemioScriptError } from "./error";
+import { stripAllHtml } from "../../htmlSanitize";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -673,6 +674,8 @@ const reservedFunctions = new Map(Object.entries({
     decodeColor   : (text) => {const c = parseColor(text); return new Color(c.r, c.g, c.b, c.a)},
 
     numberToLocaleString: (value, locale) => parseFloat(value).toLocaleString(locale, {}),
+
+    stripHTML : (html) => stripAllHtml(html),
 
     Fill          : Fill
 }));
