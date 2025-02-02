@@ -394,7 +394,7 @@ struct PathPoint {
 }
 
 func buildSingleConnectorItem(connector, srcNode, dstNode) {
-    local item = Item(connector.id, `${srcNode.id} -> ${dstNode.id}`, 'path')
+    local item = Item('c-' + connector.id, `${srcNode.id} -> ${dstNode.id}`, 'path')
     local connectorSize = srcNode.unitSize * connector.value
 
     local xs = srcNode.position + srcNode.x * width + srcNode.width
@@ -679,6 +679,32 @@ func onTextUpdate(itemId, item, text) {
             })
         }
 
+        diagramCode = encodeDiagram()
+    }
+}
+
+
+func onDeleteItem(itemId, item) {
+    local nodeId = null
+    local connectionId = null
+
+    if (itemId.startsWith('n-')) {
+        nodeId = itemId.substring(2)
+    } else if (itemId.startsWith('c-')) {
+        connectionId = itemId.substring(2)
+    }
+
+    if (connectionId || nodeId) {
+        for (local i = codeLines.size - 1; i >= 0; i--) {
+            local line = codeLines.get(i)
+            if (line.connection) {
+                if (connectionId && line.connection.id == connectionId) {
+                    codeLines.remove(i)
+                } else if (nodeId && (line.connection.srcId == nodeId || line.connection.dstId == nodeId)) {
+                    codeLines.remove(i)
+                }
+            }
+        }
         diagramCode = encodeDiagram()
     }
 }

@@ -63,6 +63,7 @@ import:
 handlers:
     area: onAreaUpdate(itemId, item, area)
     text: onTextUpdate(itemId, item, text)
+    delete: onDeleteItem(itemId, item)
 
 controls:
 -   $-foreach: {source: "allConnections", it: "c"}
