@@ -42,7 +42,7 @@ args:
     labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: '#FCE6AC82'}, name: "Background", depends: {showLabelFill: true}}
     labelStroke: {group: "Labels & Text", type: color, value: '#97654299', name: 'Label stroke', depends: {showLabelFill: true}}
     labelStrokeSize: {group: "Labels & Text", type: number, value: 1, name: 'Label stroke size', depends: {showLabelFill: true}}
-    labelCornerRadius: {group: "Labels & Text", type: number, value: 4, name: 'Label corner radius', depends: {showLabelFill: true}}
+    labelCornerRadius: {group: "Labels & Text", type: number, value: 4, name: 'Label corner radius', min: 0, depends: {showLabelFill: true}}
     labelPadding: {group: "Labels & Text", type: number, value: 5, name: 'Label padding', depends: {showLabelFill: true}}
 
     showNodeValues: {group: "Values", type: boolean, value: true, name: "Show node values"}
@@ -51,7 +51,7 @@ args:
     numberFormat: {group: "Values", type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
 
 
-preview: "/assets/templates/previews/mind-map.svg"
+preview: "/assets/templates/previews/sankey.svg"
 defaultArea: {x: 0, y: 0, w: 200, h: 60}
 
 import:

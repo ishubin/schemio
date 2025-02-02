@@ -474,6 +474,7 @@ func buildConnectorLabel(c, connectorWidth, connectorHeight) {
         valueLabel.shapeProps.set('fill', labelFill)
         valueLabel.shapeProps.set('strokeColor', labelStroke)
         valueLabel.shapeProps.set('strokeSize', labelStrokeSize)
+        valueLabel.shapeProps.set('cornerRadius', labelCornerRadius)
     } else {
         valueLabel.shapeProps.set('fill', Fill.none())
         valueLabel.shapeProps.set('strokeSize', 0)
@@ -539,7 +540,7 @@ func buildNodeLabels(nodes) {
         local nodeText = ''
         lines.forEach(line => {
             local textSize = calculateTextSize(line, font, labelFontSize)
-            textWidth += textSize.w
+            textWidth = max(textWidth, textSize.w)
             textHeight += textSize.h
             nodeText += `<p>${line}</p>`
         })
@@ -664,7 +665,7 @@ func encodeDiagram() {
 
 
 func onTextUpdate(itemId, item, text) {
-    text = stripHTML(text).trim()
+    text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
     if (itemId.startsWith('ln-')) {
         local oldNodeId = itemId.substring(3)
         local newNodeId = text
