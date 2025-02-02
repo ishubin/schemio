@@ -751,6 +751,11 @@ export default {
         },
 
         mouseDown(event) {
+            // ignoring textfield control for templates so that it does not deselect the item
+            if (event.target.closest('.item-control-point-textfield')) {
+                return;
+            }
+
             let newClickTime = performance.now();
             // implementing own double click event hanlding
             // as for some reason the native dblclick event is not reliable

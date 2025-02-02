@@ -278,28 +278,54 @@ export function compileItemTemplate(editorId, template, templateRef) {
                     context: new TemplateContext(ContextPhases.EVENT, 'control', '')
                 }).controls.map(control => {
 
-                const controlExpressions = [].concat(initBlock).concat(toExpressionBlock(control.click));
-                const fullScript = controlExpressions.join('\n');
+                let inputHandler = 'click';
+                if (control.type === 'textfield') {
+                    inputHandler = 'input';
+                }
 
-                const clickExecutor = buildTemplateExpression(fullScript);
-                return {
-                    ...control,
+                const fullScript = [].concat(initBlock).concat(toExpressionBlock(control[inputHandler])).join('\n');
+                const eventExecutor = buildTemplateExpression(fullScript);
 
+                let eventCallback = null;
+                if (control.type === 'textfield') {
                     /**
-                     * @param {Item} item
+                     * @param {Item} item - the root template item
+                     * @param {String} value - the text from the input textfield, which was changed by user
                      * @returns {Object} updated data object which can be used to update the template args.
                      *                  Keep in mind that this object contains not only template args,
                      *                  but everything that was declared in the global scope of the template script
                      */
-                    click: (item) => {
-                        return clickExecutor({
-                            control,
+                    eventCallback = (item, value) => {
+                        return eventExecutor({
                             ...createTemplateFunctions(editorId, item),
                             ...args, width, height,
-                            context: new TemplateContext(ContextPhases.EVENT, 'control', control.id)
+                            context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
+                            control,
+                            value,
                         });
-                    }
+                    };
+                } else {
+                    /**
+                     * @param {Item} item - the root template item
+                     * @returns {Object} updated data object which can be used to update the template args.
+                     *                  Keep in mind that this object contains not only template args,
+                     *                  but everything that was declared in the global scope of the template script
+                     */
+                    eventCallback = (item) => {
+                        return eventExecutor({
+                            ...createTemplateFunctions(editorId, item),
+                            ...args, width, height,
+                            context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
+                            control,
+                        });
+                    };
                 }
+
+                const enrichedControl = {
+                    ...control,
+                };
+                enrichedControl[inputHandler] = eventCallback;
+                return enrichedControl;
             });
         },
 

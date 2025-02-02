@@ -6,14 +6,21 @@ export function createDelayer(timeoutInMillis, callback) {
     let timerId = null;
 
     return {
+        lastUpdatedTime: -1,
+
         trigger() {
-            if (timerId) {
-                clearTimeout(timerId);
-            }
-            timerId = setTimeout(() => {
-                timerId = null;
+            if (this.lastUpdatedTime < 0 || (performance.now() - this.lastUpdatedTime) > timeoutInMillis) {
+                this.lastUpdatedTime = performance.now();
                 callback();
-            }, timeoutInMillis);
+            } else {
+                if (!timerId) {
+                    timerId = setTimeout(() => {
+                        timerId = null;
+                        this.lastUpdatedTime = performance.now();
+                        callback();
+                    }, timeoutInMillis);
+                }
+            }
         },
 
         destroy() {

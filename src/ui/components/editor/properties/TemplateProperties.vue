@@ -112,7 +112,7 @@ export default {
             template: null,
             editorPanels: [],
             lastChangedArgName: null,
-            updateDelayer: createDelayer(100, () => {
+            updateDelayer: createDelayer(250, () => {
                 this.$emit('updated', this.item.id, this.template, this.args, this.lastChangedArgName);
             }),
             args: this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {}

@@ -148,7 +148,7 @@
                 </g>
 
                 <g v-for="(control,idx) in templateControls">
-                    <g v-if="control.type === 'button'" >
+                    <template v-if="control.type === 'button'" >
                         <rect
                             class="item-control-point"
                             :x="control.x - control.xc * control.width/safeZoom"
@@ -177,7 +177,32 @@
                             data-type="edit-box-template-control"
                             @click="onTemplateControlClick(idx)"
                             />
-                    </g>
+                    </template>
+                    <template v-else-if="control.type === 'textfield'">
+                        <rect
+                            class="item-control-point"
+                            :x="control.x - control.xc * control.width/safeZoom"
+                            :y="control.y - control.yc * control.height/safeZoom"
+                            :width="control.width/safeZoom"
+                            :height="control.height/safeZoom"
+                            :fill="controlPointsColor"
+                            :rx="2/safeZoom"
+                            />
+                        <foreignObject :x="control.x - control.xc * control.width/safeZoom" :y="control.y - control.yc * control.height/safeZoom"  :width="control.width/safeZoom" :height="control.height/safeZoom">
+                            <div xmlns="http://www.w3.org/1999/xhtml"
+                                style="color: white; display: table-cell; white-space: nowrap; text-align: center; vertical-align: middle"
+                                :style="{width: `${Math.round(control.width/safeZoom)}px`, height: `${Math.round(control.height/safeZoom)}px`}"
+                                >
+                                <input class="item-control-point-textfield"
+                                    type="text"
+                                    :value="control.text"
+                                    :style="{'font-size': `${14/safeZoom}px`, 'padding-left': `${7/safeZoom}px`}"
+                                    @blur="submitTemplateControlText(idx, $event.target.value)"
+                                    @keydown.enter="submitTemplateControlText(idx, $event.target.value)"
+                                    />
+                            </div>
+                        </foreignObject>
+                    </template>
                 </g>
             </g>
         </g>
@@ -726,6 +751,29 @@ export default {
                 control.x = lp.x;
                 control.y = lp.y;
             });
+            this.$forceUpdate();
+        },
+
+
+        submitTemplateControlText(idx, text) {
+            const item = this.editBox.templateItemRoot;
+            const originArgs = utils.clone(item.args.templateArgs);
+            const updatedArgs = this.templateControls[idx].input(item, text);
+
+            const diff = jsonDiff(originArgs, updatedArgs);
+            if (diff.changes.length > 0) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            }
+
+            if (item.args && item.args.templateArgs) {
+                for (let key in item.args.templateArgs) {
+                    if (updatedArgs.hasOwnProperty(key)) {
+                        item.args.templateArgs[key] = updatedArgs[key];
+                    }
+                }
+            }
+            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
+            this.$emit('template-properties-updated-requested');
         },
 
         onTemplateControlClick(idx) {
@@ -746,6 +794,7 @@ export default {
                 }
             }
             this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
+            this.$emit('template-properties-updated-requested');
         },
 
         onColorControlToggled(expanded) {
@@ -828,14 +877,7 @@ export default {
         },
 
         shouldShowControlPoints() {
-            if (this.editBox.items.length === 1) {
-                const item = this.editBox.items[0];
-                if (item.shape === 'path') {
-                    return false;
-                }
-                return true;
-            }
-            return false;
+            return this.editBox.items.length === 1;
         },
 
         selectedConnectorPath() {

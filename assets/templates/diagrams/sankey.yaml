@@ -16,7 +16,7 @@ args:
     colorTheme: {group: "Theme & Colors", type: "choice", value: "default", options: ["default", "light", "dark"], name: "Color theme"}
     conColorType: {group: "Theme & Colors", type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
     conColor: {group: "Theme & Colors", type: advanced-color, value: {type: solid, color: '#aaaaaa'}, name: 'Connection color', depends: {conColorType: 'custom'}}
-    labelColor: {group: "Theme & Colors", type: color, value: '#222222', name: 'Label color'}
+    labelColor: {group: "Theme & Colors", type: color, value: '#222222', name: 'Text color'}
 
     nodeWidth: {group: "Nodes", type: number, value: 20, name: "Node width", min: 1}
     nodeSpacing: {group: "Nodes", type: number, value: 40, name: "Nodes empty space (%)", min: 0, max: 90}
@@ -34,8 +34,8 @@ args:
     magnify: {group: "Labels & Text", type: number, value: 0, name: "Magnify value", min: -50, max: 50}
     conLabel: {group: "Labels & Text", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
     showLabelFill: {group: "Labels & Text", type: boolean, value: true, name: 'Show label fill'}
-    labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: 'rgba(255, 255, 255, 0.3)'}, name: "Background", depends: {showLabelFill: true}}
-    labelStroke: {group: "Labels & Text", type: color, value: 'rgba(120,120,120,0.6)', name: 'Label stroke', depends: {showLabelFill: true}}
+    labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: '#FCE6AC82'}, name: "Background", depends: {showLabelFill: true}}
+    labelStroke: {group: "Labels & Text", type: color, value: '#97654299', name: 'Label stroke', depends: {showLabelFill: true}}
     labelStrokeSize: {group: "Labels & Text", type: number, value: 1, name: 'Label stroke size', depends: {showLabelFill: true}}
     labelCornerRadius: {group: "Labels & Text", type: number, value: 4, name: 'Label corner radius', depends: {showLabelFill: true}}
     labelPadding: {group: "Labels & Text", type: number, value: 5, name: 'Label padding', depends: {showLabelFill: true}}
@@ -56,6 +56,23 @@ import:
 
 handlers:
     area: onAreaUpdate(itemId, item, area)
+
+controls:
+-   $-foreach: {source: "allConnections", it: "c"}
+    data:
+      connectionId: {$-expr: "c.id"}
+    selectedItemId: {$-expr: "c.id"}
+    name: insertSlide
+    type: textfield
+    text: {$-str: "${c.value}"}
+    placement: BL
+    x: { $-expr: "c.item.x" }
+    y: { $-expr: "c.item.y" }
+    width: 180
+    height: 30
+    input:
+      - onConnectionValueInput(control.data.connectionId, value)
+
 
 item:
     id: root

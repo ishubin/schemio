@@ -132,6 +132,7 @@
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
                             @custom-control-clicked="onEditBoxCustomControlClicked"
                             @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
+                            @template-properties-updated-requested="onEditBoxTemplatePropertiesUpdateRequested"
                             />
 
                         <EditBox  v-if="state === 'cropImage' && cropImage.editBox"
@@ -2300,6 +2301,10 @@ export default {
             this.schemeContainer.reindexItems();
 
             this.schemeContainer.updateEditBox();
+        },
+
+        onEditBoxTemplatePropertiesUpdateRequested() {
+            this.templatePropertiesKey += 1;
         },
 
         onTemplatePropertiesUpdated(originItemId, template, templateArgs, changedArgName) {

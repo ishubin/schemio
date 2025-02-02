@@ -78,6 +78,12 @@ struct Connection {
     value: 0
     srcNode: null
     dstNode: null
+    item: null
+}
+
+struct CodeLine {
+    text: ''
+    connection: null
 }
 
 
@@ -103,7 +109,7 @@ func parseConnection(line) {
 }
 
 func parseConnections(text, nodesData) {
-    getOrCreateNode = (id) => {
+    local getOrCreateNode = (id) => {
         local node = nodesById.get(id)
         if (!node) {
             node = Node(id, id)
@@ -117,21 +123,22 @@ func parseConnections(text, nodesData) {
         node
     }
 
-    local connections = List()
-    splitString(text, '\n').forEach(line => {
-        line = line.trim()
+    local lines = List()
+    splitString(text, '\n').forEach(rawLine => {
+        local line = rawLine.trim()
+        local c = null
         if (line != '' && !line.startsWith('//')) {
-            local c = parseConnection(line)
-            if (c) {
-                c.srcNode = getOrCreateNode(c.srcId)
-                c.dstNode = getOrCreateNode(c.dstId)
-                if (c) {
-                    connections.add(c)
-                }
-            }
+            c = parseConnection(line)
+        }
+        if (c) {
+            c.srcNode = getOrCreateNode(c.srcId)
+            c.dstNode = getOrCreateNode(c.dstId)
+            lines.add(CodeLine(rawLine, c))
+        } else {
+            lines.add(CodeLine(rawLine, null))
         }
     })
-    connections
+    lines
 }
 
 func extractNodesFromConnections(connections) {
@@ -447,6 +454,7 @@ func buildSingleConnectorItem(connector, srcNode, dstNode) {
     if (conLabel) {
         item.childItems.add(buildConnectorLabel(connector, item.w, item.h))
     }
+    connector.item = item
     item
 }
 
@@ -582,7 +590,6 @@ func buildNodeLabels(nodes) {
 
 
 
-
 func onAreaUpdate(itemId, item, area) {
     local node = null
     if (itemId.startsWith('n-')) {
@@ -596,8 +603,29 @@ func onAreaUpdate(itemId, item, area) {
     }
 }
 
+
+func onConnectionValueInput(connectionId, value) {
+    local code = ''
+    codeLines.forEach((line, idx) => {
+        if (idx > 0) {
+            code += '\n'
+        }
+        if (line.connection) {
+            local cVal = if (line.connection.id == connectionId) { value } else { line.connection.value }
+            code += line.connection.srcId + ' [' + cVal + '] ' + line.connection.dstId
+        } else {
+            code += line.text
+        }
+    })
+
+    diagramCode = code
+}
+
+
 local nodesDataById = decodeNodesData(nodesData)
-allConnections = parseConnections(diagramCode, nodesDataById)
+
+codeLines = parseConnections(diagramCode, nodesDataById)
+allConnections = codeLines.filter(cl => { cl.connection != null }).map(cl => { cl.connection })
 allNodes = extractNodesFromConnections(allConnections)
 
 local levels = buildLevels(allNodes, allConnections)

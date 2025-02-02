@@ -1289,6 +1289,14 @@ ul.pagination li a.current {
 .svg-editor-plot .item-control-point:hover {
     opacity: 0.7;
 }
+.svg-editor-plot .item-control-point-textfield {
+    display: block;
+    width: 100%;
+    background: none !important;
+    border: none;
+    height: 100%;
+    color: white !important;
+}
 .svg-editor-plot rect.boundary-box {
     stroke-width: 1;
     fill: rgba(255, 255, 255, 0.01);
