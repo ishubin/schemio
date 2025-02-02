@@ -533,22 +533,34 @@ func formatValue(value) {
 func buildNodeLabels(nodes) {
     local labelItems = List()
     nodes.forEach(node => {
-        local textSize = calculateTextSize(node.name, font, labelFontSize)
+        local lines = splitString(node.name, '\\n')
+        local textWidth = 0
+        local textHeight = 0
+        local nodeText = ''
+        lines.forEach(line => {
+            local textSize = calculateTextSize(line, font, labelFontSize)
+            textWidth += textSize.w
+            textHeight += textSize.h
+            nodeText += `<p>${line}</p>`
+        })
+
+
         local valueText = formatValue(node.value)
         local valueTextSize = calculateTextSize(valueText, font, valueFontSize)
-        local totalHeight = if (showNodeValues) { (textSize.h + valueTextSize.h)*1.8 + 8 } else { textSize.h*1.8 + 8 }
+        local totalHeight = if (showNodeValues) { (textHeight + valueTextSize.h)*1.8 + 8 } else { textHeight*1.8 + 8 }
         local isLeft = node.dstNodes.size == 0
-        local halign = 'left'
+        local halign = 'right'
         if (!isLeft) {
-            halign = 'right'
+            halign = 'left'
         }
-        local label = buildLabel('ln-' + node.id, node.name, font, labelFontSize, halign, 'middle')
-        label.w = textSize.w + 4
-        label.h = textSize.h * 1.8
+
+        local label = buildLabel('ln-' + node.id, nodeText, font, labelFontSize, halign, 'middle')
+        label.w = textWidth + 4
+        label.h = textHeight * 1.8
 
         local valueLabel = null
         if (showNodeValues) {
-            local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'middle')
+            valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'middle')
             valueLabel.w = valueTextSize.w + 4
             valueLabel.h = valueTextSize.h * 1.8
         }
