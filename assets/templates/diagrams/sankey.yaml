@@ -40,9 +40,10 @@ args:
     labelCornerRadius: {group: "Labels & Text", type: number, value: 4, name: 'Label corner radius', depends: {showLabelFill: true}}
     labelPadding: {group: "Labels & Text", type: number, value: 5, name: 'Label padding', depends: {showLabelFill: true}}
 
-    valuePrefix: {group: "Number formatting", type: string, value: "", name: "Value prefix"}
-    valueSuffix: {group: "Number formatting", type: string, value: "", name: "Value suffix"}
-    numberFormat: {group: "Number formatting", type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
+    showNodeValues: {group: "Values", type: boolean, value: true, name: "Show node values"}
+    valuePrefix: {group: "Values", type: string, value: "", name: "Value prefix"}
+    valueSuffix: {group: "Values", type: string, value: "", name: "Value suffix"}
+    numberFormat: {group: "Values", type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
 
 
 preview: "/assets/templates/previews/mind-map.svg"
@@ -65,9 +66,9 @@ controls:
     name: insertSlide
     type: textfield
     text: {$-str: "${c.value}"}
-    placement: BL
+    placement: { $-expr: "if (c.srcNode.offset > c.dstNode.offset) { 'TL' } else { 'BL' }" }
     x: { $-expr: "c.item.x" }
-    y: { $-expr: "c.item.y" }
+    y: { $-expr: "if (c.srcNode.offset > c.dstNode.offset) { c.item.y + c.item.h } else { c.item.y }" }
     width: 180
     height: 30
     input:

@@ -2298,8 +2298,6 @@ export default {
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
             this.rebuildTemplate(originItemId, template, templateArgs);
-            this.schemeContainer.reindexItems();
-
             this.schemeContainer.updateEditBox();
         },
 

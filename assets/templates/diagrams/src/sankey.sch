@@ -534,7 +534,7 @@ func buildNodeLabels(nodes) {
         local textSize = calculateTextSize(node.name, font, labelFontSize)
         local valueText = formatValue(node.value)
         local valueTextSize = calculateTextSize(valueText, font, valueFontSize)
-        local totalHeight = (textSize.h + valueTextSize.h)*1.8 + 8
+        local totalHeight = if (showNodeValues) { (textSize.h + valueTextSize.h)*1.8 + 8 } else { textSize.h*1.8 + 8 }
         local isLeft = node.dstNodes.size == 0
         local halign = 'left'
         if (!isLeft) {
@@ -544,14 +544,22 @@ func buildNodeLabels(nodes) {
         label.w = textSize.w + 4
         label.h = textSize.h * 1.8
 
-        local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'middle')
-        valueLabel.w = valueTextSize.w + 4
-        valueLabel.h = valueTextSize.h * 1.8
+        local valueLabel = null
+        if (showNodeValues) {
+            local valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'middle')
+            valueLabel.w = valueTextSize.w + 4
+            valueLabel.h = valueTextSize.h * 1.8
+        }
 
         if (showLabelFill) {
             local rect = Item('lc-'+node.id, 'Label ' + node.id, 'rect')
-            rect.w = max(label.w, valueLabel.w) + 2 * labelPadding
-            rect.h = label.h + valueLabel.h + 2 * labelPadding
+            if (valueLabel) {
+                rect.w = max(label.w, valueLabel.w) + 2 * labelPadding
+                rect.h = label.h + valueLabel.h + 2 * labelPadding
+            } else {
+                rect.w = label.w + 2 * labelPadding
+                rect.h = label.h + 2 * labelPadding
+            }
             if (isLeft) {
                 rect.x = node.position + node.x * width - rect.w - labelPadding
             } else {
@@ -564,25 +572,35 @@ func buildNodeLabels(nodes) {
             rect.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
             label.x = labelPadding
             label.y = labelPadding
-            valueLabel.x = labelPadding
-            valueLabel.y = label.y + label.h
             rect.childItems.add(label)
-            rect.childItems.add(valueLabel)
+
+            if (valueLabel) {
+                valueLabel.x = labelPadding
+                valueLabel.y = label.y + label.h
+                rect.childItems.add(valueLabel)
+            }
             labelItems.add(rect)
         } else {
             if (isLeft) {
                 label.x = node.position - label.w - labelPadding
-                valueLabel.x = node.position - valueLabel.w - labelPadding
+                if (valueLabel) {
+                    valueLabel.x = node.position - valueLabel.w - labelPadding
+                }
             } else {
                 label.x = node.position + node.width + labelPadding
-                valueLabel.x = node.position + node.width + labelPadding
+                if (valueLabel) {
+                    valueLabel.x = node.position + node.width + labelPadding
+                }
             }
             label.x += node.x * width
             label.y = node.offset + node.y * height + node.height / 2  - totalHeight / 2
-            valueLabel.x += node.x * width
-            valueLabel.y = label.y + label.h
             labelItems.add(label)
-            labelItems.add(valueLabel)
+
+            if (valueLabel) {
+                valueLabel.x += node.x * width
+                valueLabel.y = label.y + label.h
+                labelItems.add(valueLabel)
+            }
         }
     })
     labelItems
