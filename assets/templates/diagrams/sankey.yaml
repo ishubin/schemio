@@ -77,7 +77,7 @@ controls:
 item:
     id: root
     name: Sankey diagram
-    shape: rect
+    shape: dummy
     shapeProps:
         fill:
             type: none
