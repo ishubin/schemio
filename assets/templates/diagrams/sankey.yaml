@@ -98,7 +98,7 @@ item:
         h: {$-expr: "height"}
     childItems:
       - $-foreach: {source: "connectorItems", it: "it"}
-        id: {$-expr: "it.id"}
+        id: {$-str: "c-${it.id}"}
         tags: ['sankey-connector']
         name: {$-expr: "it.name"}
         shape: {$-expr: "it.shape"}

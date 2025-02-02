@@ -394,7 +394,7 @@ struct PathPoint {
 }
 
 func buildSingleConnectorItem(connector, srcNode, dstNode) {
-    local item = Item('c-' + connector.id, `${srcNode.id} -> ${dstNode.id}`, 'path')
+    local item = Item(connector.id, `${srcNode.id} -> ${dstNode.id}`, 'path')
     local connectorSize = srcNode.unitSize * connector.value
 
     local xs = srcNode.position + srcNode.x * width + srcNode.width
