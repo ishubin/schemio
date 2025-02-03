@@ -332,7 +332,7 @@ func buildNodeItems(levels) {
                 nodeItem.shapeProps.set('strokeColor', nodeStrokeColor)
                 nodeItem.shapeProps.set('cornerRadius', nodeCornerRadius)
                 nodeItem.shapeProps.set('fill', Fill.solid(node.color))
-                nodeItem.args.set('tplArea', 'controlled')
+                nodeItem.args.set('tplArea', 'movable')
                 nodeItem.args.set('tplConnector', 'off')
                 nodeItem.args.set('tplRotation', 'off')
                 nodeItem.locked = false

@@ -232,8 +232,9 @@
  * @property {Boolean|undefined} templateForceText - flag forces templed item to update its textSlots
  * @property {Array<String>|undefined} templateIgnoredProps - array of shapeProps field names that should be ignored when template is regenerated
  *                                                            this gives users possibility of editing individual template items
- * @property {String|undefined} tplArea - 'controlled' or 'fixed'. If specified as 'controlled' then it tells Schemio
- *                                        that this item can be moved and its movement will be controlled by the template
+ * @property {String|undefined} tplArea - 'controlled', 'movable' or 'fixed'. If specified as 'controlled' then it tells Schemio
+ *                                        that this item can be moved or resized and its movement will be controlled by the template.
+ *                                        If set to 'movable' it will allow to move it, but it will not show the resizing draggers in edit box.
  * @property {String} tplConnector - 'on' or 'off'. If specified as 'off' - it tells that for this item it should not render connector starter in the edit box
  * @property {String} tplRotation - 'on' or 'off'. Tells whether rotation of this item is supported
  * @property {String} tplForceDescription - if set to true, then template will set the description of the item

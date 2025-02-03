@@ -208,7 +208,7 @@
         </g>
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
-            <ellipse v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && editBox.rotationEnabled" class="boundary-box-dragger"
+            <ellipse v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && !isAMovableTemplatedItem && editBox.rotationEnabled" class="boundary-box-dragger"
                 data-type="edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
@@ -217,7 +217,7 @@
                 :ry="controlPointSize/safeZoom"
             />
 
-            <transition name="edit-box-controls" v-if="!isAutoLayoutEnabled && !isLocked && editBox.connectorStarterEnabled && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+            <transition name="edit-box-controls" v-if="!isAutoLayoutEnabled && !isLocked && !isAMovableTemplatedItem && editBox.connectorStarterEnabled && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
                 <g>
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
@@ -245,7 +245,7 @@
                 </g>
             </transition>
 
-            <g v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked">
+            <g v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && !isAMovableTemplatedItem">
                 <rect class="boundary-box-dragger"
                     data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,left"
@@ -902,6 +902,14 @@ export default {
                 allAutoLayout = allAutoLayout & (item.autoLayout && item.autoLayout.on);
             });
             return allAutoLayout;
+        },
+
+        isAMovableTemplatedItem() {
+            if (this.editBox.items.length === 1) {
+                const item = this.editBox.items[0];
+                return item.meta && item.meta.templated && item.args && item.args.tplArea == 'movable';
+            }
+            return false;
         },
 
         isLocked() {
