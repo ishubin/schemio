@@ -1,10 +1,10 @@
-gapRatio = nodeSpacing / 100
-labelFontSize = max(1, round(fontSize * (100 - magnify) / 100))
-valueFontSize = max(1, round(fontSize * (100 + magnify) / 100))
+local gapRatio = nodeSpacing / 100
+local labelFontSize = max(1, round(fontSize * (100 - magnify) / 100))
+local valueFontSize = max(1, round(fontSize * (100 + magnify) / 100))
 
 local nodesById = Map()
 
-colorThemes = Map(
+local colorThemes = Map(
     'default', List('#F16161', '#F1A261', '#F1EB61', '#71EB57', '#57EBB1', '#57C2EB', '#576BEB', '#A557EB', '#EB57C8', '#EB578E'),
     'light', List('#FD9999', '#FDCA99', '#F9FD99', '#C2FD99', '#99FDA6', '#99FDE2', '#99EAFD', '#99BEFD', '#AE99FD', '#FD99F6'),
     'dark', List('#921515', '#924E15', '#899215', '#4E9215', '#15922B', '#15926B', '#157F92', '#153F92', '#491592', '#921575'),
@@ -33,6 +33,40 @@ struct Node {
     reservedIn: 0
     reservedOut: 0
 }
+
+struct Connection {
+    id: uid()
+    srcId: ''
+    dstId: ''
+    value: 0
+    srcNode: null
+    dstNode: null
+    item: null
+}
+
+struct CodeLine {
+    text: ''
+    connection: null
+}
+
+struct Level {
+    idx: 0
+    nodes: List()
+    nodesMap: Map()
+    totalValue: 0
+    height: 0
+}
+
+struct PathPoint {
+    t: 'B'
+    x: 0
+    y: 0
+    x1: 0
+    y1: 0
+    x2: 0
+    y2: 0
+}
+
 
 func encodeNodes(nodes) {
     local result = ''
@@ -70,22 +104,6 @@ func decodeNodesData(text) {
         nodesById.set(node.id, node)
     })
     nodesById
-}
-
-
-struct Connection {
-    id: uid()
-    srcId: ''
-    dstId: ''
-    value: 0
-    srcNode: null
-    dstNode: null
-    item: null
-}
-
-struct CodeLine {
-    text: ''
-    connection: null
 }
 
 
@@ -162,7 +180,6 @@ func extractNodesFromConnections(connections) {
 }
 
 
-
 // Performs a recursive tree iteration and updates the levels in nodes
 // maxVisitCount is used in order to prevent from infinite loop in case there is a cyclic dependency
 func updateLevels(node, maxVisitCount) {
@@ -175,14 +192,6 @@ func updateLevels(node, maxVisitCount) {
             }
         })
     }
-}
-
-struct Level {
-    idx: 0
-    nodes: List()
-    nodesMap: Map()
-    totalValue: 0
-    height: 0
 }
 
 func readjustStarterNodeLevels(nodesMap) {
@@ -382,16 +391,6 @@ func buildConnectorItems(levels, allConnections, allNodes) {
     connectorItems
 }
 
-
-struct PathPoint {
-    t: 'B'
-    x: 0
-    y: 0
-    x1: 0
-    y1: 0
-    x2: 0
-    y2: 0
-}
 
 func buildSingleConnectorItem(connector, srcNode, dstNode) {
     local item = Item(connector.id, `${srcNode.id} -> ${dstNode.id}`, 'path')
@@ -723,14 +722,71 @@ func onDeleteItem(itemId, item) {
 }
 
 
+func generateNodeControls(nodes) {
+    local controls = List()
+    nodes.forEach(node => {
+        if (node.srcNodes.size > 0 && node.dstNodes.size == 0) {
+            controls.add(Control(
+                "+",
+                Map(
+                    'nodeId', node.id
+                ),
+                "addDstNodeForNode(control.data.nodeId)",
+                node.position + node.x * width + node.width + 20,
+                node.offset + node.y * height + node.height / 2 - 10,
+                20, 20,
+                '+',
+                'TL',
+                'n-' + node.id,
+                'button'
+            ))
+        }
+    })
+    controls
+}
+
+
+func addDstNodeForNode(nodeId) {
+    local allNodeIds = Set()
+    local selectedNode = null
+
+    allNodes.forEach(node => {
+        allNodeIds.add(node.id)
+        if (node.id == nodeId) {
+            selectedNode = node
+        }
+    })
+    if (selectedNode) {
+        local idx = 2
+        local foundUniqueId = false
+        local newId = null
+        while(!foundUniqueId && idx < 1000) {
+            newId = selectedNode.id + ' ' + idx
+            if (!allNodeIds.has(newId)) {
+                foundUniqueId = true
+            }
+        }
+        if (foundUniqueId) {
+            codeLines.add(CodeLine(`${selectedNode.id} [${selectedNode.value}] ${newId}`, null))
+            diagramCode = encodeDiagram()
+            if (selectedNode.level == levels.size - 1) {
+                width += max(1, width - nodeWidth) / max(1, (levels.size - 1))
+            }
+        }
+    }
+}
+
+
 local nodesDataById = decodeNodesData(nodesData)
 
-codeLines = parseConnections(diagramCode, nodesDataById)
-allConnections = codeLines.filter(cl => { cl.connection != null }).map(cl => { cl.connection })
-allNodes = extractNodesFromConnections(allConnections)
+local codeLines = parseConnections(diagramCode, nodesDataById)
+local allConnections = codeLines.filter(cl => { cl.connection != null }).map(cl => { cl.connection })
+local allNodes = extractNodesFromConnections(allConnections)
 
 local levels = buildLevels(allNodes, allConnections)
 
-nodeItems = buildNodeItems(levels)
-connectorItems = buildConnectorItems(levels, allConnections, allNodes)
-nodeLabels = buildNodeLabels(allNodes)
+local nodeItems = buildNodeItems(levels)
+local connectorItems = buildConnectorItems(levels, allConnections, allNodes)
+local nodeLabels = buildNodeLabels(allNodes)
+
+local nodeControls = generateNodeControls(allNodes)

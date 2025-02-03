@@ -81,6 +81,9 @@ controls:
     input:
       - onConnectionValueInput(control.data.connectionId, value)
 
+-   $-foreach: {source: "nodeControls", it: "control"}
+    $-extend: {$-expr: "toJSON(control)"}
+
 
 item:
     id: root

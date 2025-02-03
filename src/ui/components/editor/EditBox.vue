@@ -780,6 +780,8 @@ export default {
             const item = this.editBox.templateItemRoot;
             const originArgs = utils.clone(item.args.templateArgs);
             const updatedArgs = this.templateControls[idx].click(item);
+            item.area.w = updatedArgs.width;
+            item.area.h = updatedArgs.height;
 
             const diff = jsonDiff(originArgs, updatedArgs);
             if (diff.changes.length > 0) {
