@@ -70,7 +70,7 @@ controls:
     data:
       connectionId: {$-expr: "c.id"}
     selectedItemId: {$-expr: "c.id"}
-    name: insertSlide
+    name: connectionValue
     type: textfield
     text: {$-str: "${c.value}"}
     placement: { $-expr: "if (c.srcNode.offset > c.dstNode.offset) { 'TL' } else { 'BL' }" }
@@ -106,7 +106,7 @@ item:
         name: {$-expr: "it.name"}
         shape: {$-expr: "it.shape"}
         shapeProps: {$-expr: "toJSON(it.shapeProps)"}
-        args: {$-expr: "it.getArgs()"}
+        args: {$-expr: "toJSON(it.getArgs())"}
         locked: {$-expr: "it.locked"}
         textSlots: {$-expr: "toJSON(it.textSlots)"}
         selfOpacity: {$-expr: conOpacity}
@@ -123,7 +123,7 @@ item:
             tags:
                 - connector-label
             shapeProps: {$-expr: "toJSON(label.shapeProps)"}
-            args: {$-expr: "label.getArgs()"}
+            args: {$-expr: "toJSON(label.getArgs())"}
             locked: {$-expr: "label.locked"}
             textSlots: {$-expr: "toJSON(label.textSlots)"}
             visible: true
@@ -192,7 +192,7 @@ item:
         name: {$-expr: "it.name"}
         shape: {$-expr: "it.shape"}
         shapeProps: {$-expr: "toJSON(it.shapeProps)"}
-        args: {$-expr: "it.getArgs()"}
+        args: {$-expr: "toJSON(it.getArgs())"}
         locked: {$-expr: "it.locked"}
         textSlots: {$-expr: "toJSON(it.textSlots)"}
         area:
@@ -207,7 +207,7 @@ item:
         name: {$-expr: "it.name"}
         shape: {$-expr: "it.shape"}
         shapeProps: {$-expr: "toJSON(it.shapeProps)"}
-        args: {$-expr: "it.getArgs()"}
+        args: {$-expr: "toJSON(it.getArgs())"}
         locked: {$-expr: "it.locked"}
         textSlots: {$-expr: "toJSON(it.textSlots)"}
         area:
@@ -221,7 +221,7 @@ item:
             name: {$-expr: "child.name"}
             shape: {$-expr: "child.shape"}
             shapeProps: {$-expr: "toJSON(child.shapeProps)"}
-            args: {$-expr: "child.getArgs()"}
+            args: {$-expr: "toJSON(child.getArgs())"}
             locked: {$-expr: "child.locked"}
             textSlots: {$-expr: "toJSON(child.textSlots)"}
             area:

@@ -469,6 +469,7 @@ func buildConnectorLabel(c, connectorWidth, connectorHeight) {
     valueLabel.y = connectorHeight/2 - valueLabel.h/2 - labelPadding
     valueLabel.name = 'connector-label-' + c.id
     valueLabel.shapeProps.set('strokeColor', labelStroke)
+    valueLabel.args.set('tplText', Map('body', '' + c.value))
     if (showLabelFill) {
         valueLabel.shapeProps.set('fill', labelFill)
         valueLabel.shapeProps.set('strokeColor', labelStroke)
@@ -664,8 +665,8 @@ func encodeDiagram() {
 
 
 func onTextUpdate(itemId, item, text) {
-    text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
     if (itemId.startsWith('ln-')) {
+        text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
         local oldNodeId = itemId.substring(3)
         local newNodeId = text
 
@@ -692,6 +693,15 @@ func onTextUpdate(itemId, item, text) {
         }
 
         diagramCode = encodeDiagram()
+    } else if (itemId.startsWith('cl-')) {
+        text = stripHTML(text).replaceAll('\n', '').trim()
+        local value = parseFloat(text)
+        local connectionId = itemId.substring(3)
+        local line = codeLines.find(line => { line.connection && line.connection.id == connectionId})
+        if (line) {
+            line.connection.value = value
+            diagramCode = encodeDiagram()
+        }
     }
 }
 
@@ -706,6 +716,15 @@ func onDeleteItem(itemId, item) {
         connectionId = itemId.substring(2)
     }
 
+    if (nodeId) {
+        local node = allNodes.find(node => {node.id == nodeId})
+        if (node && node.level == levels.size - 1) {
+            if (levels.size > 2 && levels.get(node.level).nodes.size == 1) {
+                width -= max(1, width - nodeWidth) / max(1, (levels.size - 1))
+            }
+        }
+    }
+
     if (connectionId || nodeId) {
         for (local i = codeLines.size - 1; i >= 0; i--) {
             local line = codeLines.get(i)
@@ -717,7 +736,9 @@ func onDeleteItem(itemId, item) {
                 }
             }
         }
-        diagramCode = encodeDiagram()
+        if (codeLines.filter(line => {line.connection}).size > 0) {
+            diagramCode = encodeDiagram()
+        }
     }
 }
 

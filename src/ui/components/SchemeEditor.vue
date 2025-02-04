@@ -1577,7 +1577,11 @@ export default {
 
             this.inPlaceTextEditor.slotName = slotName;
             this.inPlaceTextEditor.item = item;
-            this.inPlaceTextEditor.text = itemTextSlot.text;
+            if (item.meta.templated && item.args && item.args.tplText && item.args.tplText[slotName]) {
+                this.inPlaceTextEditor.text = item.args.tplText[slotName];
+            } else {
+                this.inPlaceTextEditor.text = itemTextSlot.text;
+            }
             this.inPlaceTextEditor.markupDisabled = markupDisabled;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
@@ -1649,6 +1653,8 @@ export default {
                         .then(template => {
                             const templateArgs = template.onTextUpdate(rootItem, item.args.templatedId, item, item.textSlots[slotName].text);
                             this.rebuildTemplate(rootItem.id, template, templateArgs);
+                            this.schemeContainer.updateEditBox();
+                            this.templatePropertiesKey += 1;
                         });
                         return;
                     }
