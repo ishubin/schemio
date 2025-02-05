@@ -3335,16 +3335,12 @@ export default {
             this.schemeContainer.updateEditBox();
         },
 
-        mouseCoordsFromEvent(event) {
-            const p = mouseCoordsFromEvent(event);
-            if (!p) {
-                return this.mouseCoordsFromPageCoords(0, 0);
-            }
-            return this.mouseCoordsFromPageCoords(p.x, p.y);
-        },
-
         onEditBoxChoiceControlClicked({options, editBoxId, event, callback}) {
-            const p = this.mouseCoordsFromEvent(event);
+            let p = mouseCoordsFromEvent(event);
+            if (!p) {
+                p = {x: 0, y: 0};
+            }
+
             this.$emit('context-menu-requested', p.x, p.y, options.map(option => {
                 return {
                     name: option,
