@@ -4,7 +4,7 @@
 <template>
     <g data-preview-ignore="true" :style="{opacity: mainOpacity}">
         <path v-if="!isItemConnector && isThin" :transform="svgEditBoxTransform"
-            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            :d="editBoxPath"
             data-type="edit-box"
             class="edit-box-outline"
             :stroke-width="5/safeZoom"
@@ -12,7 +12,7 @@
             stroke="rgba(255,255,255,0.0)" />
 
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
-            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            :d="editBoxPath"
             data-type="edit-box"
             :class="{'edit-box-outline': isThin}"
             :stroke-width="1/safeZoom"
@@ -21,7 +21,7 @@
             style="opacity: 0.8;"/>
 
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
-            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            :d="editBoxPath"
             data-type="edit-box"
             :stroke-width="1/safeZoom"
             :fill="editBoxFill"
@@ -503,6 +503,30 @@ function isItemConnector(editBox) {
         || (editBox.items.length === 0 && editBox.connectorPoints.length === 1);
 }
 
+function computeEditBoxPath(editBox) {
+    if (editBox.items.length === 1 && editBox.connectorPoints.length === 0 && editBox.items[0].shape !== 'connector') {
+        const shape = Shape.find(editBox.items[0].shape);
+
+        const item = {
+            ...editBox.items[0],
+            area: {
+                x: 0,
+                y: 0,
+                r: 0,
+                w: editBox.area.w,
+                h: editBox.area.h,
+                sx: 1,
+                sy: 1,
+                px: 0.5,
+                py: 0.5
+            }
+        };
+
+        return shape.computeOutline(item);
+    }
+    return `M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`;
+}
+
 function createCustomControlAxis(place) {
     if (place === 'right' || place === 'bottom') {
         return {
@@ -860,6 +884,10 @@ export default {
     },
 
     computed: {
+        editBoxPath() {
+            return computeEditBoxPath(this.editBox);
+        },
+
         guideLabelSymbolSize() {
             return 9;
         },
