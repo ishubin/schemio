@@ -566,6 +566,12 @@ func buildNodeLabels(nodes) {
             valueLabel.h = valueTextSize.h * 1.8
         }
 
+        if (node.srcNodes.size + node.dstNodes.size == 1) {
+            valueLabel.args.set('tplText', Map('body', '' + node.value))
+        } else {
+            valueLabel.args.set('tplText', Map('body', '<p>Cannot edit value</p><p>Too many connections</p>'))
+        }
+
         if (showLabelFill) {
             local rect = Item('lc-'+node.id, 'Label ' + node.id, 'rect')
             if (valueLabel) {
@@ -704,6 +710,20 @@ func onTextUpdate(itemId, item, text) {
         local line = codeLines.find(line => { line.connection && line.connection.id == connectionId})
         if (line) {
             line.connection.value = value
+            diagramCode = encodeDiagram()
+        }
+    } else if (itemId.startsWith('lv-')) {
+        local nodeId = itemId.substring(3)
+        local changes = 0
+        text = stripHTML(text).replaceAll('\n', '').trim()
+        codeLines.forEach(line => {
+            if (line.connection && (line.connection.srcId == nodeId || line.connection.dstId == nodeId)) {
+                changes += 1
+                line.connection.value = parseFloat(text)
+            }
+        })
+
+        if (changes == 1) {
             diagramCode = encodeDiagram()
         }
     }
