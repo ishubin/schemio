@@ -3,22 +3,26 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="context-menu" oncontextmenu="return false;" :style="{'max-height': `${maxHeight}px`}">
-        <ul ref="rootContextMenu" :style="{'top': `${y}px`, 'left': `${x}px`}">
-            <li v-for="(option, optionIndex) in options" @click="onOptionSelected(option)">
+        <ul ref="rootContextMenu" :style="{'top': `${y}px`, 'left': `${x}px`, 'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
+            <li v-for="(option, optionIndex) in options"
+                @click="onOptionSelected(option)"
+                @mouseover="onOptionMouseOver(option, $event)"
+                class="context-menu-option"
+                >
                 <span class="context-menu-suboptions-icon">
                     <i v-if="option.subOptions" class="fas fa-caret-right"/>
                 </span>
 
                 <i v-if="option.iconClass" :class="option.iconClass"/>
                 <span class="context-menu-option-name">{{option.name}}</span>
+            </li>
+        </ul>
 
-
-                <ul v-if="option.subOptions" :style="subOptionsStyle(optionIndex, option.subOptions)">
-                    <li v-for="subOption in option.subOptions" @click="onOptionSelected(subOption)">
-                        <i v-if="subOption.iconClass" :class="subOption.iconClass"/>
-                        <span class="context-menu-option-name">{{subOption.name}}</span>
-                    </li>
-                </ul>
+        <ul v-if="subOptionMenu.shown" ref="subOptionMenu"
+            :style="{'top': `${subOptionMenu.y}px`, 'left': `${subOptionMenu.x}px`, 'max-height': `${maxHeight}px`, 'overflow': 'auto'}">
+            <li v-for="subOption in subOptionMenu.options" @click="onOptionSelected(subOption)">
+                <i v-if="subOption.iconClass" :class="subOption.iconClass"/>
+                <span class="context-menu-option-name">{{subOption.name}}</span>
             </li>
         </ul>
     </div>
@@ -65,11 +69,44 @@ export default {
             menuWidth: 100,
             menuHeight: 100,
             maxHeight: window.innerHeight - 30,
-            mountTime: new Date().getTime()
+            mountTime: new Date().getTime(),
+
+            subOptionMenu: {
+                shown: false,
+                x: 0,
+                y: 0,
+                options: []
+            }
         }
     },
 
     methods: {
+        onOptionMouseOver(option, event) {
+            if (option.subOptions) {
+                const li = event.target.closest('li.context-menu-option');
+                if (!li) {
+                    return;
+                }
+                const liRect = li.getBoundingClientRect();
+                this.subOptionMenu.x = liRect.right;
+                this.subOptionMenu.y = liRect.top;
+                this.subOptionMenu.options = option.subOptions;
+                this.subOptionMenu.shown = true;
+                this.$nextTick(() => {
+                    if (!this.$refs.subOptionMenu) {
+                        return;
+                    }
+                    const rect = this.$refs.subOptionMenu.getBoundingClientRect();
+                    if (rect.bottom > window.innerHeight) {
+                        this.subOptionMenu.y = window.innerHeight - rect.height;
+                    }
+                    if (rect.right > window.innerWidth) {
+                        this.subOptionMenu.x = window.innerWidth - rect.width;
+                    }
+                });
+            }
+        },
+
         onDocumentClick(event) {
             if (!utils.domHasParentNode(event.target, domElement => domElement.classList.contains('context-menu'))) {
                 if (new Date().getTime() - this.mountTime > 500) {

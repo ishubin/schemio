@@ -11,4 +11,5 @@ struct Control {
     selectedItemId: ""
     type: 'button'
     options: List()
+    optionsProvider: null
 }

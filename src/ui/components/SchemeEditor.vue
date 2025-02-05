@@ -130,6 +130,7 @@
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @choice-control-clicked="onEditBoxChoiceControlClicked"
                             @custom-control-clicked="onEditBoxCustomControlClicked"
                             @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
                             @template-properties-updated-requested="onEditBoxTemplatePropertiesUpdateRequested"
@@ -618,7 +619,7 @@ import shortid from 'shortid';
 import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
-import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
+import { Keys, registerKeyPressHandler, deregisterKeyPressHandler, mouseCoordsFromEvent } from '../events';
 import DrawingControlsPanel from './DrawingControlsPanel.vue';
 
 import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
@@ -3332,6 +3333,26 @@ export default {
             this.schemeContainer.reindexSpecifiedItems([item]);
             this.schemeContainer.reindexItems();
             this.schemeContainer.updateEditBox();
+        },
+
+        mouseCoordsFromEvent(event) {
+            const p = mouseCoordsFromEvent(event);
+            if (!p) {
+                return this.mouseCoordsFromPageCoords(0, 0);
+            }
+            return this.mouseCoordsFromPageCoords(p.x, p.y);
+        },
+
+        onEditBoxChoiceControlClicked({options, editBoxId, event, callback}) {
+            const p = this.mouseCoordsFromEvent(event);
+            this.$emit('context-menu-requested', p.x, p.y, options.map(option => {
+                return {
+                    name: option,
+                    clicked: () => {
+                        callback(option);
+                    }
+                }
+            }));
         },
 
         onWindowResize() {

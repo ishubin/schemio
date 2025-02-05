@@ -5,7 +5,7 @@ import shortid from "shortid";
 import { forEachObject } from "../../../collections";
 import { traverseItems, traverseItemsConditionally } from "../../../scheme/Item";
 import { enrichItemWithDefaults } from "../../../scheme/ItemFixer";
-import { compileJSONTemplate, compileTemplateCall, compileTemplateExpressions } from "../../../templater/templater";
+import { compileJSONTemplate, compileTemplateCall, compileTemplateCallbackExpression, compileTemplateExpressions } from "../../../templater/templater";
 import { createTemplateFunctions } from "./ItemTemplateFunctions";
 import { List } from "../../../templater/list";
 import { parseExpression } from "../../../templater/ast";
@@ -308,6 +308,23 @@ export function compileItemTemplate(editorId, template, templateRef) {
                             value,
                         });
                     };
+                } else if (control.type === 'choice') {
+                    /**
+                     * @param {Item} item - the root template item
+                     * @param {String} value - the text from the input textfield, which was changed by user
+                     * @returns {Object} updated data object which can be used to update the template args.
+                     *                  Keep in mind that this object contains not only template args,
+                     *                  but everything that was declared in the global scope of the template script
+                     */
+                    eventCallback = (item, option) => {
+                        return eventExecutor({
+                            ...createTemplateFunctions(editorId, item),
+                            ...args, width, height,
+                            context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
+                            control,
+                            option,
+                        });
+                    };
                 } else {
                     /**
                      * @param {Item} item - the root template item
@@ -329,6 +346,23 @@ export function compileItemTemplate(editorId, template, templateRef) {
                     ...control,
                 };
                 enrichedControl[inputHandler] = eventCallback;
+
+                if (control.type === 'choice' && control.optionsProvider) {
+                    const providerFullScript = [].concat(initBlock).concat(toExpressionBlock(control.optionsProvider)).join('\n');
+                    const providerExecutor = compileTemplateCallbackExpression(providerFullScript);
+                    enrichedControl.optionsProvider = (item) => {
+                        const options = providerExecutor({
+                            ...createTemplateFunctions(editorId, item),
+                            ...args, width, height,
+                            context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
+                            control,
+                        });
+                        if (options instanceof List) {
+                            return options.items;
+                        }
+                        return [];
+                    }
+                }
                 return enrichedControl;
             });
         },

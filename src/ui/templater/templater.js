@@ -57,6 +57,21 @@ export function compileTemplateExpressions(expression, data = {}) {
     };
 }
 
+/**
+ * This function is used when user clicks on choice template control
+ * @param {String} expression - a template expression in SchemioScript
+ * @param {Object} data - an object with initial arguments
+ * @returns {function(Object|undefined): Object} - a function that takes extra data object as an argument, that should be added to the scope and, when invoked, will execute the expressions and will return the updated data with arguments
+ */
+export function compileTemplateCallbackExpression(expression, data = {}) {
+    const expressionNode = parseExpression(expression);
+
+    return (extraData) => {
+        const scope = new Scope({...data, ...(extraData || {})});
+        return expressionNode.evalNode(scope);
+    };
+}
+
 
 /**
  * This function is used for processing of template editor panels.

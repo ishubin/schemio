@@ -148,7 +148,7 @@
                 </g>
 
                 <g v-for="(control,idx) in templateControls">
-                    <template v-if="control.type === 'button'" >
+                    <template v-if="control.type === 'button' || control.type === 'choice'">
                         <rect
                             class="item-control-point"
                             :x="control.x - control.xc * control.width/safeZoom"
@@ -175,7 +175,7 @@
                             fill="rgba(0,0,0,0)"
                             :rx="10/safeZoom"
                             data-type="edit-box-template-control"
-                            @click="onTemplateControlClick(idx)"
+                            @click="onTemplateControlClick(idx, $event)"
                             />
                     </template>
                     <template v-else-if="control.type === 'textfield'">
@@ -588,7 +588,7 @@ export default {
             customControls: [],
             templateControls: [],
             colorControlToggled: false,
-            draggingFileOver: false
+            draggingFileOver: false,
         };
     },
 
@@ -776,10 +776,50 @@ export default {
             this.$emit('template-properties-updated-requested');
         },
 
-        onTemplateControlClick(idx) {
+        expandTemplateControlChoiceOptions(control, event) {
+            const item = this.editBox.templateItemRoot;
+            let options = control.options;
+            if (control.optionsProvider) {
+                options = control.optionsProvider(item);
+            }
+            this.$emit('choice-control-clicked', {
+                options: options,
+                editBoxId: this.editBox.id,
+                event,
+
+                callback: (selectedOption) => {
+                    const originArgs = utils.clone(item.args.templateArgs);
+                    const updatedArgs = control.click(item, selectedOption);
+                    item.area.w = updatedArgs.width;
+                    item.area.h = updatedArgs.height;
+
+                    const diff = jsonDiff(originArgs, updatedArgs);
+                    if (diff.changes.length > 0) {
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                    }
+
+                    if (item.args && item.args.templateArgs) {
+                        for (let key in item.args.templateArgs) {
+                            if (updatedArgs.hasOwnProperty(key)) {
+                                item.args.templateArgs[key] = updatedArgs[key];
+                            }
+                        }
+                    }
+                    this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
+                    this.$emit('template-properties-updated-requested');
+                },
+            });
+        },
+
+        onTemplateControlClick(idx, event) {
+            const control = this.templateControls[idx];
+            if (control.type === 'choice') {
+                this.expandTemplateControlChoiceOptions(control, event);
+                return;
+            }
             const item = this.editBox.templateItemRoot;
             const originArgs = utils.clone(item.args.templateArgs);
-            const updatedArgs = this.templateControls[idx].click(item);
+            const updatedArgs = control.click(item);
             item.area.w = updatedArgs.width;
             item.area.h = updatedArgs.height;
 

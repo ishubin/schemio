@@ -632,6 +632,10 @@ func onAreaUpdate(itemId, item, area) {
         node.x = (area.x - node.position) / max(1, width)
         node.y = (area.y - node.offset) / max(1, height)
 
+        if (abs(node.x*width) < 7) {
+            node.x = 0
+        }
+
         nodesData = encodeNodes(nodesById)
     }
 }
@@ -743,10 +747,38 @@ func onDeleteItem(itemId, item) {
 }
 
 
+func provideOptionsForDstNode(nodeId) {
+    local options = List('-- Create new node --')
+
+    local node = allNodes.find(n => {n.id == nodeId})
+    if (node) {
+        allNodes.forEach(anotherNode => {
+            if (anotherNode.level > node.level) {
+                options.add(anotherNode.id)
+            }
+        })
+    }
+    options
+}
+
+func provideOptionsForSrcNode(nodeId) {
+    local options = List('-- Create new node --')
+
+    local node = allNodes.find(n => {n.id == nodeId})
+    if (node) {
+        allNodes.forEach(anotherNode => {
+            if (anotherNode.level < node.level) {
+                options.add(anotherNode.id)
+            }
+        })
+    }
+    options
+}
+
 func generateNodeControls(nodes) {
     local controls = List()
     nodes.forEach(node => {
-        if (node.srcNodes.size > 0 && node.dstNodes.size == 0) {
+        if (node.level == levels.size - 1) {
             controls.add(Control(
                 "+",
                 Map(
@@ -761,13 +793,94 @@ func generateNodeControls(nodes) {
                 'n-' + node.id,
                 'button'
             ))
+        } else {
+            local control = Control(
+                "+",
+                Map(
+                    'nodeId', node.id
+                ),
+                "addDstConnection(control.data.nodeId, option)",
+                node.position + node.x * width + node.width + 20,
+                node.offset + node.y * height + node.height / 2 - 10,
+                20, 20,
+                '+',
+                'TL',
+                'n-' + node.id,
+                'choice'
+            )
+
+            control.optionsProvider = `provideOptionsForDstNode(control.data.nodeId)`
+            controls.add(control)
+        }
+
+        if (node.level > 0) {
+            local control = Control(
+                "+",
+                Map(
+                    'nodeId', node.id
+                ),
+                "addSrcConnection(control.data.nodeId, option)",
+                node.position + node.x * width - 20,
+                node.offset + node.y * height + node.height / 2 - 10,
+                20, 20,
+                '+',
+                'TR',
+                'n-' + node.id,
+                'choice'
+            )
+
+            control.optionsProvider = `provideOptionsForSrcNode(control.data.nodeId)`
+            controls.add(control)
         }
     })
     controls
 }
 
+func addDstConnection(nodeId, option) {
+    if (option == '-- Create new node --') {
+        addDstNodeForNode(nodeId)
+    } else {
+        local srcNode = allNodes.find(node => {node.id == nodeId})
+        local dstNode = allNodes.find(node => {node.id == option})
+        if (srcNode && dstNode) {
+            local value = srcNode.value
+            if (srcNode.value - srcNode.outValue > 0) {
+                value = srcNode.value - srcNode.outValue
+            }
+            codeLines.add(CodeLine(`${srcNode.id} [${value}] ${dstNode.id}`, null))
+            diagramCode = encodeDiagram()
+        }
+    }
+}
+
+func addSrcConnection(nodeId, option) {
+    if (option == '-- Create new node --') {
+        addSrcNodeForNode(nodeId)
+    } else {
+        local srcNode = allNodes.find(node => {node.id == option})
+        local dstNode = allNodes.find(node => {node.id == nodeId})
+        if (srcNode && dstNode) {
+            local value = srcNode.value
+            if (srcNode.value - srcNode.outValue > 0) {
+                value = srcNode.value - srcNode.outValue
+            }
+            codeLines.add(CodeLine(`${srcNode.id} [${value}] ${dstNode.id}`, null))
+            diagramCode = encodeDiagram()
+        }
+    }
+}
+
+
 
 func addDstNodeForNode(nodeId) {
+    addNewNodeForNode(nodeId, true)
+}
+
+func addSrcNodeForNode(nodeId) {
+    addNewNodeForNode(nodeId, false)
+}
+
+func addNewNodeForNode(nodeId, isDst) {
     local allNodeIds = Set()
     local selectedNode = null
 
@@ -786,9 +899,14 @@ func addDstNodeForNode(nodeId) {
             if (!allNodeIds.has(newId)) {
                 foundUniqueId = true
             }
+            idx += 1
         }
         if (foundUniqueId) {
-            codeLines.add(CodeLine(`${selectedNode.id} [${selectedNode.value}] ${newId}`, null))
+            if (isDst) {
+                codeLines.add(CodeLine(`${selectedNode.id} [${selectedNode.value}] ${newId}`, null))
+            } else {
+                codeLines.add(CodeLine(`${newId} [${selectedNode.value}] ${selectedNode.id}`, null))
+            }
             diagramCode = encodeDiagram()
             if (selectedNode.level == levels.size - 1) {
                 width += max(1, width - nodeWidth) / max(1, (levels.size - 1))
