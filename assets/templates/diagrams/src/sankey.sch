@@ -549,7 +549,13 @@ func buildNodeLabels(nodes) {
         local valueText = formatValue(node.value)
         local valueTextSize = calculateTextSize(valueText, font, valueFontSize)
         local totalHeight = if (showNodeValues) { (textHeight + valueTextSize.h)*1.8 + 8 } else { textHeight*1.8 + 8 }
-        local isLeft = node.dstNodes.size == 0
+        local isLeft = true
+        if (labelPlacement == 'outside') {
+            isLeft = ((node.level + 1) / max(1, levels.size) <= 0.5)
+        } else {
+            isLeft = (node.dstNodes.size == 0)
+        }
+
         local halign = 'right'
         if (!isLeft) {
             halign = 'left'

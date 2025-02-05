@@ -37,6 +37,7 @@ args:
     font: {group: "Labels & Text", type: font, value: Arial, name: Font}
     fontSize: {group: "Labels & Text", type: number, value: 14, name: "Font size", min: 1}
     magnify: {group: "Labels & Text", type: number, value: 0, name: "Magnify value", min: -50, max: 50}
+    labelPlacement: {group: "Labels & Text", type: choice, value: inside, options: ['inside', 'outside'], name: 'Label placement'}
     conLabel: {group: "Labels & Text", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
     showLabelFill: {group: "Labels & Text", type: boolean, value: true, name: 'Show label fill'}
     labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: '#FCE6AC82'}, name: "Background", depends: {showLabelFill: true}}
