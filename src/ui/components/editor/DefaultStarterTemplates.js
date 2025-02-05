@@ -2,6 +2,10 @@ export const defaultStarterTemplates = [{
     name: 'Empty canvas',
     docUrl: null,
 }, {
+    name: 'Sankey diagram',
+    iconUrl: '/assets/starters/sankey-diagram.svg',
+    docUrl: '/assets/starters/sankey-diagram.json',
+}, {
     name: 'Mind map',
     iconUrl: '/assets/templates/previews/mind-map.svg',
     docUrl: '/assets/starters/mind-map.json',
@@ -10,7 +14,7 @@ export const defaultStarterTemplates = [{
     iconUrl: '/assets/starters/mind-map-progress.svg',
     docUrl: '/assets/starters/mind-map-progress.json',
 }, {
-    name: 'Hierarchy Chart',
+    name: 'Hierarchy chart',
     iconUrl: '/assets/starters/hierarchy-chart.svg',
     docUrl: '/assets/starters/hierarchy-chart.json',
 }, {
