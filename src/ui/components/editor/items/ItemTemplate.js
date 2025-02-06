@@ -199,9 +199,9 @@ export function compileItemTemplate(editorId, template, templateRef) {
 
         hasHandler: (handlerName) => templateHandlers.hasOwnProperty(handlerName),
 
-        triggerTemplateEvent(rootItem, eventName, eventData) {
+        triggerTemplateEvent(rootItem, eventName, eventData, callback) {
             if (!templateHandlers.hasOwnProperty(eventName)) {
-                return null;
+                return;
             }
             const fullData = {
                 ...defaultArgs,
@@ -233,31 +233,33 @@ export function compileItemTemplate(editorId, template, templateRef) {
                 templateArgs.height = updatedScopeData.height;
             }
             rootItem.args.templateArgs = templateArgs;
-            return updatedScopeData;
+            if (callback) {
+                callback(updatedScopeData);
+            }
         },
 
-        onDeleteItem(rootItem, itemId, item) {
-            return this.triggerTemplateEvent(rootItem, 'delete', {itemId, item});
+        onDeleteItem(rootItem, itemId, item, callback) {
+            this.triggerTemplateEvent(rootItem, 'delete', {itemId, item}, callback);
         },
 
-        onAreaUpdate(rootItem, itemId, item, area) {
-            return this.triggerTemplateEvent(rootItem, 'area', {itemId, item, area});
+        onAreaUpdate(rootItem, itemId, item, area, callback) {
+            this.triggerTemplateEvent(rootItem, 'area', {itemId, item, area}, callback);
         },
 
         onCopyItem(rootItem, itemId, item) {
-            return this.triggerTemplateEvent(rootItem, 'copy', {itemId, item});
+            this.triggerTemplateEvent(rootItem, 'copy', {itemId, item});
         },
 
-        onPasteItemInto(rootItem, itemId, items) {
-            return this.triggerTemplateEvent(rootItem, 'paste', {itemId, items});
+        onPasteItemInto(rootItem, itemId, items, callback) {
+            this.triggerTemplateEvent(rootItem, 'paste', {itemId, items}, callback);
         },
 
-        onTextUpdate(rootItem, itemId, item, text) {
-            return this.triggerTemplateEvent(rootItem, 'text', {itemId, item, text});
+        onTextUpdate(rootItem, itemId, item, text, callback) {
+            this.triggerTemplateEvent(rootItem, 'text', {itemId, item, text}, callback);
         },
 
-        onShapePropsUpdate(rootItem, itemId, item, name, value) {
-            return this.triggerTemplateEvent(rootItem, 'shapeProps', {itemId, item, name, value});
+        onShapePropsUpdate(rootItem, itemId, item, name, value, callback) {
+            this.triggerTemplateEvent(rootItem, 'shapeProps', {itemId, item, name, value}, callback);
         },
 
         buildItem : (args, width, height, postBuild) => {

@@ -1653,10 +1653,11 @@ export default {
                     if (rootItem && rootItem.meta.templateRef) {
                         this.schemeContainer.getTemplate(rootItem.meta.templateRef)
                         .then(template => {
-                            const templateArgs = template.onTextUpdate(rootItem, item.args.templatedId, item, item.textSlots[slotName].text);
-                            this.rebuildTemplate(rootItem.id, template, templateArgs);
-                            this.schemeContainer.updateEditBox();
-                            this.templatePropertiesKey += 1;
+                            template.onTextUpdate(rootItem, item.args.templatedId, item, item.textSlots[slotName].text, templateArgs => {
+                                this.rebuildTemplate(rootItem.id, template, templateArgs);
+                                this.schemeContainer.updateEditBox();
+                                this.templatePropertiesKey += 1;
+                            });
                         });
                         return;
                     }
@@ -2179,8 +2180,9 @@ export default {
 
             this.schemeContainer.getTemplate(rootItem.meta.templateRef)
             .then(template => {
-                const templateArgs = template.onShapePropsUpdate(rootItem, item.args.templatedId, item, name, value);
-                this.schemeContainer.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
+                template.onShapePropsUpdate(rootItem, item.args.templatedId, item, name, value, templateArgs => {
+                    this.schemeContainer.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
+                });
             });
         },
 
@@ -2351,6 +2353,7 @@ export default {
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
             this.rebuildTemplate(originItemId, template, templateArgs);
+            this.schemeContainer.updateEditBox();
         },
 
         onEditBoxTemplatePropertiesUpdateRequested() {

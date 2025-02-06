@@ -2053,8 +2053,9 @@ class SchemeContainer {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
                         this.getTemplate(rootItem.args.templateRef).then(template => {
-                            template.onDeleteItem(rootItem, item.args.templatedId, item);
-                            this.regenerateTemplatedItem(rootItem, template, rootItem.args.templateArgs, rootItem.area.w, rootItem.area.h);
+                            template.onDeleteItem(rootItem, item.args.templatedId, item, templateArgs => {
+                                this.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
+                            });
                         });
                     }
                 } else {
@@ -2768,10 +2769,11 @@ class SchemeContainer {
                 promise = this.getTemplate(rootItem.args.templateRef)
                 .then(template => {
                     if (template.hasHandler('paste')) {
-                        const updatedScopeData = template.onPasteItemInto(rootItem, dstItem.args.templatedId, items)
-                        this.regenerateTemplatedItemWithExistingScopeData(rootItem, template, updatedScopeData, rootItem.area.w, rootItem.area.h);
-                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-                        EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, rootItem.id);
+                        template.onPasteItemInto(rootItem, dstItem.args.templatedId, items, updatedScopeData => {
+                            this.regenerateTemplatedItemWithExistingScopeData(rootItem, template, updatedScopeData, rootItem.area.w, rootItem.area.h);
+                            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                            EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, rootItem.id);
+                        });
                         return true;
                     }
                     return false;
@@ -3054,13 +3056,14 @@ class SchemeContainer {
                         }
                         this.getTemplate(templateRootItem.args.templateRef)
                         .then(template => {
-                            template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea);
+                            template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea, templateArgs => {
+                                this.regenerateTemplatedItem(templateRootItem, template, templateArgs, templateRootItem.area.w, templateRootItem.area.h);
+                            });
                             item.area.x = modifiedArea.x;
                             item.area.y = modifiedArea.y;
                             item.area.w = modifiedArea.w;
                             item.area.h = modifiedArea.h;
 
-                            this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
                             EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, templateRootItem.id);
                         });
                     }
