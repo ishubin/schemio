@@ -199,7 +199,7 @@ export default {
             this.schemeContainer.updateItem(this.item.id, `shapeProps.${name}`, item => {
                 item.shapeProps[name] = value;
             });
-            this.$emit('item-updated', this.item);
+            this.$emit('item-shape-prop-updated', this.item, name, value);
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, `shapeProps.${name}`);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.shapeProps.${name}`);
         },

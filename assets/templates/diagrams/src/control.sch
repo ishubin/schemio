@@ -10,4 +10,6 @@ struct Control {
     placement: "TL"
     selectedItemId: ""
     type: 'button'
+    options: List()
+    optionsProvider: null
 }

@@ -24,6 +24,8 @@ import { generateMapPatch, generateSchemePatch } from './scheme/SchemePatch';
 import { processJSONTemplate } from './templater/templater.js';
 import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
 
+const sanitizeHtml = require('sanitize-html');
+
 Vue.use(VueRouter);
 applyVueFilters(Vue);
 
@@ -43,6 +45,7 @@ window.schemioDebug = {
     testAST,
     processJSONTemplate,
     generateMapPatch,
+    sanitizeHtml,
     testEvalAST : (expr, data) => testAST(expr).evalNode(new Scope(data))
 };
 

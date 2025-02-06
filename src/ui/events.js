@@ -115,5 +115,18 @@ export function simulateKeyPress(key, isControlPressed) {
     }
 }
 
+export function mouseCoordsFromEvent(event) {
+    if (event.touches) {
+        if (event.touches.length > 0) {
+            return {x: event.touches[0].pageX, y: event.touches[0].pageY};
+        } else if (event.changedTouches.length > 0) {
+            return {x: event.changedTouches[0].pageX, y: event.changedTouches[0].pageY};
+        }
+    } else {
+        return {x: event.pageX, y: event.pageY};
+    }
+    return null;
+}
+
 document.addEventListener('keydown', (event) => handleKeyPress(event, true));
 document.addEventListener('keyup', (event) => handleKeyPress(event, false));

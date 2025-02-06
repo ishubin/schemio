@@ -1289,6 +1289,14 @@ ul.pagination li a.current {
 .svg-editor-plot .item-control-point:hover {
     opacity: 0.7;
 }
+.svg-editor-plot .item-control-point-textfield {
+    display: block;
+    width: 100%;
+    background: none !important;
+    border: none;
+    height: 100%;
+    color: white !important;
+}
 .svg-editor-plot rect.boundary-box {
     stroke-width: 1;
     fill: rgba(255, 255, 255, 0.01);
@@ -2001,6 +2009,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     box-shadow: none !important;
     margin: auto;
 }
+.vc-chrome-saturation-wrap, .vc-chrome-sliders {
+    user-select: none;
+}
 .color-picker .color-picker-tooltip {
     position: fixed;
     z-index: 1000;
@@ -2140,6 +2151,13 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .properties-table .property-arg-binder {
     max-width: 44px;
+}
+.properties-table textarea.property-textarea {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 4px;
+    border-radius: 3px;
+    width: 100%;
 }
 .property-arg-binder-icon {
     opacity: 0.6;
@@ -2948,10 +2966,9 @@ ul.script-options .script-option.selected {
     top: 0;
     left: 0;
     z-index: 998;
-    /* overflow: auto; */
 }
 .context-menu ul {
-    position: absolute;
+    position: fixed;
     margin: 0;
     padding: 0;
     list-style: none;

@@ -11,6 +11,8 @@ import { parseColor } from "../colors";
 import { Color } from "./color";
 import { Area } from "./area";
 import { Fill } from "./fill";
+import { SchemioScriptError } from "./error";
+import { stripAllHtml } from "../../htmlSanitize";
 
 const FUNC_INVOKE = 'funcInvoke';
 const VAR_REF = 'var-ref';
@@ -205,8 +207,8 @@ export class ASTWhileStatement extends ASTNode {
      */
     evalNode(scope) {
         let lastResult = null;
-        while (this.whileExpression.evalNode(scope.newScope())) {
-            lastResult = this.whileBlock.evalNode(scope.newScope());
+        while (this.whileExpression.evalNode(scope.newScope('while expression'))) {
+            lastResult = this.whileBlock.evalNode(scope.newScope('while block'));
         }
         return lastResult;
     }
@@ -235,7 +237,7 @@ export class ASTForLoop extends ASTNode {
      * @param {Scope} scope
      */
     evalNode(scope) {
-        scope = scope.newScope();
+        scope = scope.newScope('for loop');
         this.init.evalNode(scope);
 
         while(this.condition.evalNode(scope)) {
@@ -258,14 +260,14 @@ export class ASTIFStatement extends ASTNode {
     }
 
     evalNode(scope) {
-        const result = this.conditionExpression.evalNode(scope.newScope());
+        const result = this.conditionExpression.evalNode(scope.newScope('if statement'));
         if (result) {
             if (!this.trueBlock) {
                 return null;
             }
-            return this.trueBlock.evalNode(scope.newScope());
+            return this.trueBlock.evalNode(scope.newScope('if block'));
         } else if (this.falseBlock) {
-            return this.falseBlock.evalNode(scope.newScope());
+            return this.falseBlock.evalNode(scope.newScope('else block'));
         }
         return null;
     }
@@ -595,6 +597,31 @@ function setObjectFieldFunc(obj, name, value) {
     obj[name] = value
 }
 
+const stringFunctions = {
+    hashCode(str) {
+        let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+        for(let i = 0, ch; i < str.length; i++) {
+            ch = str.charCodeAt(i);
+            h1 = Math.imul(h1 ^ ch, 2654435761);
+            h2 = Math.imul(h2 ^ ch, 1597334677);
+        }
+        h1  = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+        h2  = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+
+        return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+    },
+
+    split(str, separator) {
+        return new List(...str.split(separator));
+    },
+
+    matchesRegex(text, pattern) {
+        return new RegExp(pattern).test(text);
+    }
+};
+
 const reservedFunctions = new Map(Object.entries({
     min       : Math.min,
     max       : Math.max,
@@ -634,8 +661,9 @@ const reservedFunctions = new Map(Object.entries({
         }
         return falseValue;
     },
-    matchesRegex  : (text, pattern) => new RegExp(pattern).test(text),
-    splitString   : (str, separator) => new List(...str.split(separator)),
+    matchesRegex  : stringFunctions.matchesRegex,
+    splitString   : stringFunctions.split,
+    Strings       : stringFunctions,
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
     fromJSON      : (obj) => convertJSONToScriptObject(obj),
     forEach       : forEach,
@@ -644,6 +672,10 @@ const reservedFunctions = new Map(Object.entries({
 
     Color         : (r,g,b,a) => new Color(r,g,b,a),
     decodeColor   : (text) => {const c = parseColor(text); return new Color(c.r, c.g, c.b, c.a)},
+
+    numberToLocaleString: (value, locale) => parseFloat(value).toLocaleString(locale, {}),
+
+    stripHTML : (html) => stripAllHtml(html),
 
     Fill          : Fill
 }));
@@ -654,10 +686,11 @@ export class ASTFunctionDeclaration extends ASTNode {
      * @param {Array<String>} argNames
      * @param {ASTNode} body
      */
-    constructor(argNames, body) {
+    constructor(argNames, body, funcName) {
         super('function');
         this.argNames = argNames;
         this.body = body;
+        this.funcName = funcName;
     }
     print() {
         return `(${this.argNames.join(',')}) => {(${this.body.print()})}`;
@@ -668,11 +701,19 @@ export class ASTFunctionDeclaration extends ASTNode {
      */
     evalNode(scope) {
         return (...args) => {
-            const funcScope = scope.newScope();
+            const funcScope = scope.newScope('func ' + this.funcName);
             for (let i = 0; i < args.length && i < this.argNames.length; i++) {
                 funcScope.setLocal(this.argNames[i], args[i]);
             }
-            return this.body.evalNode(funcScope);
+            try {
+                return this.body.evalNode(funcScope);
+            } catch (err) {
+                if (err instanceof SchemioScriptError) {
+                    throw err;
+                } else {
+                    throw new SchemioScriptError(err.message, funcScope, err);
+                }
+            }
         };
     }
 }
@@ -694,8 +735,12 @@ export class ASTFunctionInvocation extends ASTNode {
     evalNode(scope) {
         const args = this.args.map(arg => arg.evalNode(scope));
         const func = this.functionProvider.evalNode(scope);
-        if (!func) {
-            throw new Error('Cannot resolve function');
+        if (!func || typeof func !== 'function') {
+            if (this.functionProvider instanceof ASTVarRef) {
+                throw new Error('Cannot resolve function: ', this.functionProvider.varName);
+            } else {
+                throw new Error('Cannot resolve function');
+            }
         }
         return func(...args);
     }

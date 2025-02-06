@@ -4,7 +4,7 @@
 <template>
     <g data-preview-ignore="true" :style="{opacity: mainOpacity}">
         <path v-if="!isItemConnector && isThin" :transform="svgEditBoxTransform"
-            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            :d="editBoxPath"
             data-type="edit-box"
             class="edit-box-outline"
             :stroke-width="5/safeZoom"
@@ -12,7 +12,7 @@
             stroke="rgba(255,255,255,0.0)" />
 
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
-            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            :d="editBoxPath"
             data-type="edit-box"
             :class="{'edit-box-outline': isThin}"
             :stroke-width="1/safeZoom"
@@ -21,7 +21,7 @@
             style="opacity: 0.8;"/>
 
         <path v-if="!isItemConnector" :transform="svgEditBoxTransform"
-            :d="`M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`"
+            :d="editBoxPath"
             data-type="edit-box"
             :stroke-width="1/safeZoom"
             :fill="editBoxFill"
@@ -148,7 +148,7 @@
                 </g>
 
                 <g v-for="(control,idx) in templateControls">
-                    <g v-if="control.type === 'button'" >
+                    <template v-if="control.type === 'button' || control.type === 'choice'">
                         <rect
                             class="item-control-point"
                             :x="control.x - control.xc * control.width/safeZoom"
@@ -175,15 +175,40 @@
                             fill="rgba(0,0,0,0)"
                             :rx="10/safeZoom"
                             data-type="edit-box-template-control"
-                            @click="onTemplateControlClick(idx)"
+                            @click="onTemplateControlClick(idx, $event)"
                             />
-                    </g>
+                    </template>
+                    <template v-else-if="control.type === 'textfield'">
+                        <rect
+                            class="item-control-point"
+                            :x="control.x - control.xc * control.width/safeZoom"
+                            :y="control.y - control.yc * control.height/safeZoom"
+                            :width="control.width/safeZoom"
+                            :height="control.height/safeZoom"
+                            :fill="controlPointsColor"
+                            :rx="2/safeZoom"
+                            />
+                        <foreignObject :x="control.x - control.xc * control.width/safeZoom" :y="control.y - control.yc * control.height/safeZoom"  :width="control.width/safeZoom" :height="control.height/safeZoom">
+                            <div xmlns="http://www.w3.org/1999/xhtml"
+                                style="color: white; display: table-cell; white-space: nowrap; text-align: center; vertical-align: middle"
+                                :style="{width: `${Math.round(control.width/safeZoom)}px`, height: `${Math.round(control.height/safeZoom)}px`}"
+                                >
+                                <input class="item-control-point-textfield"
+                                    type="text"
+                                    :value="control.text"
+                                    :style="{'font-size': `${14/safeZoom}px`, 'padding-left': `${7/safeZoom}px`}"
+                                    @blur="submitTemplateControlText(idx, $event.target.value)"
+                                    @keydown.enter="submitTemplateControlText(idx, $event.target.value)"
+                                    />
+                            </div>
+                        </foreignObject>
+                    </template>
                 </g>
             </g>
         </g>
 
         <g v-if="!isItemConnector" :transform="svgEditBoxTransform">
-            <ellipse v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && editBox.rotationEnabled" class="boundary-box-dragger"
+            <ellipse v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && !isAMovableTemplatedItem && editBox.rotationEnabled" class="boundary-box-dragger"
                 data-type="edit-box-rotational-dragger"
                 :fill="boundaryBoxColor"
                 :cx="editBox.area.w / 2"
@@ -192,7 +217,7 @@
                 :ry="controlPointSize/safeZoom"
             />
 
-            <transition name="edit-box-controls" v-if="!isAutoLayoutEnabled && !isLocked && editBox.connectorStarterEnabled && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
+            <transition name="edit-box-controls" v-if="!isAutoLayoutEnabled && !isLocked && !isAMovableTemplatedItem && editBox.connectorStarterEnabled && editBox.items.length === 1 && kind === 'regular' && connectionStarterDisplayed">
                 <g>
                     <path class="boundary-box-connector-starter"
                         :transform="`translate(${editBox.area.w/2 + 3/safeZoom}  ${editBox.area.h + 30/safeZoom}) scale(${1/safeZoom}) rotate(90)`"
@@ -220,7 +245,7 @@
                 </g>
             </transition>
 
-            <g v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked">
+            <g v-if="kind === 'regular' && !isAutoLayoutEnabled && !isLocked && !isAMovableTemplatedItem">
                 <rect class="boundary-box-dragger"
                     data-type="edit-box-resize-dragger"
                     data-dragger-edges="top,left"
@@ -478,6 +503,30 @@ function isItemConnector(editBox) {
         || (editBox.items.length === 0 && editBox.connectorPoints.length === 1);
 }
 
+function computeEditBoxPath(editBox) {
+    if (editBox.items.length === 1 && editBox.connectorPoints.length === 0 && editBox.items[0].shape !== 'connector') {
+        const shape = Shape.find(editBox.items[0].shape);
+
+        const item = {
+            ...editBox.items[0],
+            area: {
+                x: 0,
+                y: 0,
+                r: 0,
+                w: editBox.area.w,
+                h: editBox.area.h,
+                sx: 1,
+                sy: 1,
+                px: 0.5,
+                py: 0.5
+            }
+        };
+
+        return shape.computeOutline(item);
+    }
+    return `M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`;
+}
+
 function createCustomControlAxis(place) {
     if (place === 'right' || place === 'bottom') {
         return {
@@ -563,7 +612,7 @@ export default {
             customControls: [],
             templateControls: [],
             colorControlToggled: false,
-            draggingFileOver: false
+            draggingFileOver: false,
         };
     },
 
@@ -726,12 +775,14 @@ export default {
                 control.x = lp.x;
                 control.y = lp.y;
             });
+            this.$forceUpdate();
         },
 
-        onTemplateControlClick(idx) {
+
+        submitTemplateControlText(idx, text) {
             const item = this.editBox.templateItemRoot;
             const originArgs = utils.clone(item.args.templateArgs);
-            const updatedArgs = this.templateControls[idx].click(item);
+            const updatedArgs = this.templateControls[idx].input(item, text);
 
             const diff = jsonDiff(originArgs, updatedArgs);
             if (diff.changes.length > 0) {
@@ -746,6 +797,70 @@ export default {
                 }
             }
             this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
+            this.$emit('template-properties-updated-requested');
+        },
+
+        expandTemplateControlChoiceOptions(control, event) {
+            const item = this.editBox.templateItemRoot;
+            let options = control.options;
+            if (control.optionsProvider) {
+                options = control.optionsProvider(item);
+            }
+            this.$emit('choice-control-clicked', {
+                options: options,
+                editBoxId: this.editBox.id,
+                event,
+
+                callback: (selectedOption) => {
+                    const originArgs = utils.clone(item.args.templateArgs);
+                    const updatedArgs = control.click(item, selectedOption);
+                    item.area.w = updatedArgs.width;
+                    item.area.h = updatedArgs.height;
+
+                    const diff = jsonDiff(originArgs, updatedArgs);
+                    if (diff.changes.length > 0) {
+                        EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+                    }
+
+                    if (item.args && item.args.templateArgs) {
+                        for (let key in item.args.templateArgs) {
+                            if (updatedArgs.hasOwnProperty(key)) {
+                                item.args.templateArgs[key] = updatedArgs[key];
+                            }
+                        }
+                    }
+                    this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
+                    this.$emit('template-properties-updated-requested');
+                },
+            });
+        },
+
+        onTemplateControlClick(idx, event) {
+            const control = this.templateControls[idx];
+            if (control.type === 'choice') {
+                this.expandTemplateControlChoiceOptions(control, event);
+                return;
+            }
+            const item = this.editBox.templateItemRoot;
+            const originArgs = utils.clone(item.args.templateArgs);
+            const updatedArgs = control.click(item);
+            item.area.w = updatedArgs.width;
+            item.area.h = updatedArgs.height;
+
+            const diff = jsonDiff(originArgs, updatedArgs);
+            if (diff.changes.length > 0) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            }
+
+            if (item.args && item.args.templateArgs) {
+                for (let key in item.args.templateArgs) {
+                    if (updatedArgs.hasOwnProperty(key)) {
+                        item.args.templateArgs[key] = updatedArgs[key];
+                    }
+                }
+            }
+            this.$emit('template-rebuild-requested', this.editBox.templateItemRoot.id, this.template, item.args.templateArgs);
+            this.$emit('template-properties-updated-requested');
         },
 
         onColorControlToggled(expanded) {
@@ -769,6 +884,10 @@ export default {
     },
 
     computed: {
+        editBoxPath() {
+            return computeEditBoxPath(this.editBox);
+        },
+
         guideLabelSymbolSize() {
             return 9;
         },
@@ -828,14 +947,7 @@ export default {
         },
 
         shouldShowControlPoints() {
-            if (this.editBox.items.length === 1) {
-                const item = this.editBox.items[0];
-                if (item.shape === 'path') {
-                    return false;
-                }
-                return true;
-            }
-            return false;
+            return this.editBox.items.length === 1;
         },
 
         selectedConnectorPath() {
@@ -858,6 +970,14 @@ export default {
                 allAutoLayout = allAutoLayout & (item.autoLayout && item.autoLayout.on);
             });
             return allAutoLayout;
+        },
+
+        isAMovableTemplatedItem() {
+            if (this.editBox.items.length === 1) {
+                const item = this.editBox.items[0];
+                return item.meta && item.meta.templated && item.args && item.args.tplArea == 'movable';
+            }
+            return false;
         },
 
         isLocked() {

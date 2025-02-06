@@ -1,4 +1,5 @@
 import { ASTNode, parseExpression } from "./ast";
+import { SchemioScriptError } from "./error";
 import { List } from "./list";
 import { Scope } from './scope';
 import { parseStringExpression } from "./strings";
@@ -53,6 +54,21 @@ export function compileTemplateExpressions(expression, data = {}) {
         const scope = new Scope({...data, ...(extraData || {})});
         expressionNode.evalNode(scope);
         return scope.getData();
+    };
+}
+
+/**
+ * This function is used when user clicks on choice template control
+ * @param {String} expression - a template expression in SchemioScript
+ * @param {Object} data - an object with initial arguments
+ * @returns {function(Object|undefined): Object} - a function that takes extra data object as an argument, that should be added to the scope and, when invoked, will execute the expressions and will return the updated data with arguments
+ */
+export function compileTemplateCallbackExpression(expression, data = {}) {
+    const expressionNode = parseExpression(expression);
+
+    return (extraData) => {
+        const scope = new Scope({...data, ...(extraData || {})});
+        return expressionNode.evalNode(scope);
     };
 }
 
@@ -192,7 +208,11 @@ function compileExpression(expr) {
             return ast.evalNode(scope);
         } catch(ex) {
             console.error('Failed to evaluate expression:\n' + expr);
-            console.error(ex);
+            if (ex instanceof SchemioScriptError) {
+                ex.print();
+            } else {
+                console.error(ex);
+            }
         }
     };
 }
@@ -356,7 +376,7 @@ function compileRecursiveBuilder(item, $recurse, customDefinitions) {
         }
         const data = {};
         data[iteratorName] = sourceObject;
-        const iteratorScope = scope.newScope(data);
+        const iteratorScope = scope.newScope('buildObject', data);
 
         const processedObj = itemProcessor(iteratorScope);
         const children = childrenFetcher.evalNode(iteratorScope);

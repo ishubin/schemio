@@ -3,24 +3,30 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 export function createDelayer(timeoutInMillis, callback) {
+    let timerId = null;
+
     return {
-        timerId: null,
-        timeoutInMillis,
+        lastUpdatedTime: -1,
 
         trigger() {
-            if (this.timerId) {
-                clearTimeout(this.timerId);
-            }
-            this.timerId = setTimeout(() => {
-                this.timerId = null;
+            if (this.lastUpdatedTime < 0 || (performance.now() - this.lastUpdatedTime) > timeoutInMillis) {
+                this.lastUpdatedTime = performance.now();
                 callback();
-            }, this.timeoutInMillis);
+            } else {
+                if (!timerId) {
+                    timerId = setTimeout(() => {
+                        timerId = null;
+                        this.lastUpdatedTime = performance.now();
+                        callback();
+                    }, timeoutInMillis);
+                }
+            }
         },
 
         destroy() {
-            if (this.timerId) {
-                clearTimeout(this.timerId);
-                this.timerId = null;
+            if (timerId) {
+                clearTimeout(timerId);
+                timerId = null;
             }
         }
     };

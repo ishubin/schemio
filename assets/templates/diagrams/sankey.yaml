@@ -1,0 +1,233 @@
+name: Sankey diagram
+description: |
+  This template converts your diagram code below into an interactive Sankey diagram.
+  To define a connection in your diagram between the two nodes "A" and "B" type it like this "A [150] B".
+  Every connection should be defined in a separate line.
+
+args:
+    nodesData: {type: "string", value: "a1_1;x=0;y=0;|a1_2|a2", name: "Nodes encoded", hidden: true}
+    diagramCode: {
+      type: "string",
+      value: "Wages [2000] Budget\nOther [120] Budget\nBudget [1000] Housing\nBudget [450] Taxes\n",
+      name: "Diagram",
+      textarea: true,
+      rows: 15
+    }
+    colorTheme: {group: "Theme & Colors", type: "choice", value: "default",
+      options: [
+        "default", "light", "dark", "air-force-blue", "gray", "custom"
+      ],
+      name: "Color theme"
+    }
+    conColorType: {group: "Theme & Colors", type: choice, value: source, options: ['source', 'destination', 'gradient', 'custom'], name: 'Connection color type'}
+    conColor: {group: "Theme & Colors", type: advanced-color, value: {type: solid, color: '#aaaaaa'}, name: 'Connection color', depends: {conColorType: 'custom'}}
+    labelColor: {group: "Theme & Colors", type: color, value: '#222222', name: 'Text color'}
+
+    nodeWidth: {group: "Nodes", type: number, value: 20, name: "Node width", min: 1}
+    nodeSpacing: {group: "Nodes", type: number, value: 40, name: "Nodes empty space (%)", min: 0, max: 90}
+    nodeCornerRadius: {group: "Nodes", type: number, value: 5, name: "Corner radius", min: 0}
+    nodeStrokeSize: {group: "Nodes", type: number, value: 1, name: "Stroke size", min: 0}
+    nodeStrokeColor: {group: "Nodes", type: color, value: 'rgba(255,255,255,1)', name: "Stroke color"}
+
+    curviness: {group: "Connections", type: number, value: 80, name: "Curviness (%)", min: 0, max: 100}
+    conOpacity: {group: "Connections", type: number, value: 60, name: "Connector opacity", min: 0, max: 100}
+    conHoverStroke: {group: "Connections", type: color, value: 'rgba(30,30,30,1)', name: 'Connection hover stroke'}
+    conHoverStrokeSize: {group: "Connections", type: number, value: 1, name: 'Connection hover stroke size'}
+
+    font: {group: "Labels & Text", type: font, value: Arial, name: Font}
+    fontSize: {group: "Labels & Text", type: number, value: 14, name: "Font size", min: 1}
+    magnify: {group: "Labels & Text", type: number, value: 0, name: "Magnify value", min: -50, max: 50}
+    labelPlacement: {group: "Labels & Text", type: choice, value: inside, options: ['inside', 'outside'], name: 'Label placement'}
+    conLabel: {group: "Labels & Text", type: boolean, value: true, name: 'Connection labels enabled', description: 'Displays the value of the connection'}
+    showLabelFill: {group: "Labels & Text", type: boolean, value: true, name: 'Show label fill'}
+    labelFill: {group: "Labels & Text", type: advanced-color, value: {type: solid, color: '#FCE6AC82'}, name: "Background", depends: {showLabelFill: true}}
+    labelStroke: {group: "Labels & Text", type: color, value: '#97654299', name: 'Label stroke', depends: {showLabelFill: true}}
+    labelStrokeSize: {group: "Labels & Text", type: number, value: 1, name: 'Label stroke size', depends: {showLabelFill: true}}
+    labelCornerRadius: {group: "Labels & Text", type: number, value: 4, name: 'Label corner radius', min: 0, depends: {showLabelFill: true}}
+    labelPadding: {group: "Labels & Text", type: number, value: 5, name: 'Label padding', depends: {showLabelFill: true}}
+
+    showNodeValues: {group: "Values", type: boolean, value: true, name: "Show node values"}
+    valuePrefix: {group: "Values", type: string, value: "", name: "Value prefix"}
+    valueSuffix: {group: "Values", type: string, value: "", name: "Value suffix"}
+    numberFormat: {group: "Values", type: choice, value: "1000000.00", options: ["1000000.00", "1000000,00", "1,000,000.00", "1.000.000,00", "1 000 000.00",  "1 000 000,00"], name: "Number format"}
+
+
+preview: "/assets/templates/previews/sankey.svg"
+defaultArea: {x: 0, y: 0, w: 200, h: 60}
+
+import:
+    - ./src/item.sch
+    - ./src/control.sch
+    - ./src/sankey.sch
+
+
+handlers:
+    area: onAreaUpdate(itemId, item, area)
+    text: onTextUpdate(itemId, item, text)
+    delete: onDeleteItem(itemId, item)
+    shapeProps: onShapePropsUpdate(itemId, item, name, value)
+
+controls:
+-   $-foreach: {source: "allConnections", it: "c"}
+    data:
+      connectionId: {$-expr: "c.id"}
+    selectedItemId: {$-expr: "c.id"}
+    name: connectionValue
+    type: textfield
+    text: {$-str: "${c.value}"}
+    placement: { $-expr: "if (c.srcNode.offset > c.dstNode.offset) { 'TL' } else { 'BL' }" }
+    x: { $-expr: "c.item.x" }
+    y: { $-expr: "if (c.srcNode.offset > c.dstNode.offset) { c.item.y + c.item.h } else { c.item.y }" }
+    width: 180
+    height: 30
+    input:
+      - onConnectionValueInput(control.data.connectionId, value)
+
+-   $-foreach: {source: "nodeControls", it: "control"}
+    $-extend: {$-expr: "toJSON(control)"}
+
+
+item:
+    id: root
+    name: Sankey diagram
+    shape: dummy
+    shapeProps:
+        fill:
+            type: none
+        strokeColor: rgba(200,200,200,1)
+    locked: false
+    area:
+        x: 0
+        y: 0
+        w: {$-expr: "width"}
+        h: {$-expr: "height"}
+    childItems:
+      - $-foreach: {source: "connectorItems", it: "it"}
+        id: {$-str: "c-${it.id}"}
+        tags: ['sankey-connector']
+        name: {$-expr: "it.name"}
+        shape: {$-expr: "it.shape"}
+        shapeProps: {$-expr: "toJSON(it.shapeProps)"}
+        args: {$-expr: "toJSON(it.getArgs())"}
+        locked: {$-expr: "it.locked"}
+        textSlots: {$-expr: "toJSON(it.textSlots)"}
+        selfOpacity: {$-expr: conOpacity}
+        area:
+            x: {$-expr: "it.x"}
+            y: {$-expr: "it.y"}
+            w: {$-expr: "it.w"}
+            h: {$-expr: "it.h"}
+        childItems:
+          - $-foreach: {source: "it.childItems", it: "label"}
+            id: {$-expr: "label.id"}
+            name: {$-expr: "label.name"}
+            shape: 'rect'
+            tags:
+                - connector-label
+            shapeProps: {$-expr: "toJSON(label.shapeProps)"}
+            args: {$-expr: "toJSON(label.getArgs())"}
+            locked: {$-expr: "label.locked"}
+            textSlots: {$-expr: "toJSON(label.textSlots)"}
+            visible: true
+            opacity: 100
+            area:
+                x: {$-expr: "label.x"}
+                y: {$-expr: "label.y"}
+                w: {$-expr: "label.w"}
+                h: {$-expr: "label.h"}
+            behavior:
+                events:
+                  - id: init
+                    event: init
+                    actions:
+                      - id: a1
+                        element: self
+                        method: hide
+                        args:
+                          animated: false
+        behavior:
+            events:
+              - id: mousein
+                event: mousein
+                actions:
+                  - id: a1
+                    element: self
+                    method: set
+                    args:
+                        field: shapeProps.strokeSize
+                        value: {$-expr: conHoverStrokeSize}
+                        animated: true
+                        animationDuration: 0.2
+                        transition: ease-in-out
+                        inBackground: true
+                  - id: a2
+                    element: {$-str: "#cl-${it.id}"}
+                    method: show
+                    args:
+                        animated: true
+                        animationDuration: 0.2
+
+              - id: mouseout
+                event: mouseout
+                actions:
+                  - id: a1
+                    element: self
+                    method: set
+                    args:
+                        field: shapeProps.strokeSize
+                        value: 0
+                        animated: true
+                        animationDuration: 0.2
+                        transition: ease-in-out
+                        inBackground: true
+                  - id: a2
+                    element: {$-str: "#cl-${it.id}"}
+                    method: hide
+                    args:
+                        animated: true
+                        animationDuration: 0.2
+
+
+      - $-foreach: {source: "nodeItems", it: "it"}
+        id: {$-expr: "it.id"}
+        tags: ['sankey-node']
+        name: {$-expr: "it.name"}
+        shape: {$-expr: "it.shape"}
+        shapeProps: {$-expr: "toJSON(it.shapeProps)"}
+        args: {$-expr: "toJSON(it.getArgs())"}
+        locked: {$-expr: "it.locked"}
+        textSlots: {$-expr: "toJSON(it.textSlots)"}
+        area:
+            x: {$-expr: "it.x"}
+            y: {$-expr: "it.y"}
+            w: {$-expr: "it.w"}
+            h: {$-expr: "it.h"}
+
+
+      - $-foreach: {source: "nodeLabels", it: "it"}
+        id: {$-expr: "it.id"}
+        name: {$-expr: "it.name"}
+        shape: {$-expr: "it.shape"}
+        shapeProps: {$-expr: "toJSON(it.shapeProps)"}
+        args: {$-expr: "toJSON(it.getArgs())"}
+        locked: {$-expr: "it.locked"}
+        textSlots: {$-expr: "toJSON(it.textSlots)"}
+        area:
+            x: {$-expr: "it.x"}
+            y: {$-expr: "it.y"}
+            w: {$-expr: "it.w"}
+            h: {$-expr: "it.h"}
+        childItems:
+          - $-foreach: {source: "it.childItems", it: "child"}
+            id: {$-expr: "child.id"}
+            name: {$-expr: "child.name"}
+            shape: {$-expr: "child.shape"}
+            shapeProps: {$-expr: "toJSON(child.shapeProps)"}
+            args: {$-expr: "toJSON(child.getArgs())"}
+            locked: {$-expr: "child.locked"}
+            textSlots: {$-expr: "toJSON(child.textSlots)"}
+            area:
+                x: {$-expr: "child.x"}
+                y: {$-expr: "child.y"}
+                w: {$-expr: "child.w"}
+                h: {$-expr: "child.h"}

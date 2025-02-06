@@ -86,6 +86,10 @@ export class List {
         return this.items.findIndex(predicate);
     }
 
+    find(predicate) {
+        return this.items.find(predicate);
+    }
+
     /**
      * @param {List|Array} otherList
      */

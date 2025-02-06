@@ -204,6 +204,7 @@ import { createMainScriptScope } from '../../userevents/functions/ScriptFunction
 import { KeyBinder } from './KeyBinder.js';
 import { loadAndMountExternalComponent } from './Component.js';
 import { collectItemsHighlightsByCondition, collectItemsHighlightsForClickableMarkers, generateItemHighlight } from './ItemHighlight.js';
+import { mouseCoordsFromEvent } from '../../events.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -572,16 +573,11 @@ export default {
         },
 
         mouseCoordsFromEvent(event) {
-            if (event.touches) {
-                if (event.touches.length > 0) {
-                    return this.mouseCoordsFromPageCoords(event.touches[0].pageX, event.touches[0].pageY);
-                } else if (event.changedTouches.length > 0) {
-                    return this.mouseCoordsFromPageCoords(event.changedTouches[0].pageX, event.changedTouches[0].pageY);
-                }
-            } else {
-                return this.mouseCoordsFromPageCoords(event.pageX, event.pageY);
+            const p = mouseCoordsFromEvent(event);
+            if (!p) {
+                return null;
             }
-            return null;
+            return this.mouseCoordsFromPageCoords(p.x, p.y);
         },
 
         mouseCoordsFromPageCoords(pageX, pageY) {
@@ -751,6 +747,11 @@ export default {
         },
 
         mouseDown(event) {
+            // ignoring textfield control for templates so that it does not deselect the item
+            if (event.target.closest('.item-control-point-textfield')) {
+                return;
+            }
+
             let newClickTime = performance.now();
             // implementing own double click event hanlding
             // as for some reason the native dblclick event is not reliable

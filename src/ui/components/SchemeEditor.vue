@@ -130,8 +130,10 @@
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            @choice-control-clicked="onEditBoxChoiceControlClicked"
                             @custom-control-clicked="onEditBoxCustomControlClicked"
                             @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
+                            @template-properties-updated-requested="onEditBoxTemplatePropertiesUpdateRequested"
                             />
 
                         <EditBox  v-if="state === 'cropImage' && cropImage.editBox"
@@ -184,6 +186,7 @@
                             :item="floatingHelperPanel.item"
                             :schemeContainer="schemeContainer"
                             @item-updated="onItemUpdatedInFloatingHelperPanel"
+                            @item-shape-prop-updated="onItemShapePropdUpdatedInFloatingHelperPanel"
                             @edit-path-requested="onEditPathRequested"
                             @image-crop-requested="startCroppingImage"
                             @close="floatingHelperPanel.shown = false"
@@ -617,7 +620,7 @@ import shortid from 'shortid';
 import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
-import { Keys, registerKeyPressHandler, deregisterKeyPressHandler } from '../events';
+import { Keys, registerKeyPressHandler, deregisterKeyPressHandler, mouseCoordsFromEvent } from '../events';
 import DrawingControlsPanel from './DrawingControlsPanel.vue';
 
 import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
@@ -1576,7 +1579,11 @@ export default {
 
             this.inPlaceTextEditor.slotName = slotName;
             this.inPlaceTextEditor.item = item;
-            this.inPlaceTextEditor.text = itemTextSlot.text;
+            if (item.meta.templated && item.args && item.args.tplText && item.args.tplText[slotName]) {
+                this.inPlaceTextEditor.text = item.args.tplText[slotName];
+            } else {
+                this.inPlaceTextEditor.text = itemTextSlot.text;
+            }
             this.inPlaceTextEditor.markupDisabled = markupDisabled;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
@@ -1631,14 +1638,30 @@ export default {
         },
 
         closeItemTextEditor() {
-            if (this.inPlaceTextEditor.item) {
-                EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, this.inPlaceTextEditor.item, this.inPlaceTextEditor.slotName);
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.inPlaceTextEditor.item.id}.textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                EditorEventBus.item.changed.specific.$emit(this.editorId, this.inPlaceTextEditor.item.id, `textSlots.${this.inPlaceTextEditor.slotName}.text`);
-                this.schemeContainer.reindexItems();
-            }
             this.inPlaceTextEditor.shown = false;
             this.inPlaceTextEditor.markupDisabled = false;
+
+            const item = this.inPlaceTextEditor.item;
+            const slotName = this.inPlaceTextEditor.slotName;
+            if (item) {
+                EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, item, slotName);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.textSlots.${slotName}.text`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${slotName}.text`);
+
+                if (item.args && item.meta.templateRootId) {
+                    const rootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
+                    if (rootItem && rootItem.meta.templateRef) {
+                        this.schemeContainer.getTemplate(rootItem.meta.templateRef)
+                        .then(template => {
+                            const templateArgs = template.onTextUpdate(rootItem, item.args.templatedId, item, item.textSlots[slotName].text);
+                            this.rebuildTemplate(rootItem.id, template, templateArgs);
+                            this.schemeContainer.updateEditBox();
+                            this.templatePropertiesKey += 1;
+                        });
+                        return;
+                    }
+                }
+            }
         },
 
         updateInPlaceTextEditorStyle() {
@@ -2142,6 +2165,26 @@ export default {
             EditorEventBus.textSlot.moved.$emit(this.editorId, item, slotName, anotherSlotName);
         },
 
+
+        /**
+         * @param {Item} item
+         * @param {String} name
+         * @param {Object} value
+         */
+        triggerShapePropsUpdateTemplateHandler(item, name, value) {
+            const rootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
+            if (!rootItem || !rootItem.meta.templateRef) {
+                return;
+            }
+
+            this.schemeContainer.getTemplate(rootItem.meta.templateRef)
+            .then(template => {
+                const templateArgs = template.onShapePropsUpdate(rootItem, item.args.templatedId, item, name, value);
+                this.schemeContainer.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
+            });
+        },
+
+
         // triggered from ItemProperties or QuickHelperPanel components
         onItemShapePropChanged(name, type, value) {
             //TODO move it to another script (to simplify this script)
@@ -2159,6 +2202,10 @@ export default {
                             item.shapeProps[name] = utils.clone(value);
                             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `shapeProps.${name}`);
                         });
+
+                        if (item.meta && item.meta.templated) {
+                            this.triggerShapePropsUpdateTemplateHandler(item, name, value);
+                        }
 
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
@@ -2273,6 +2320,13 @@ export default {
 
         },
 
+        onItemShapePropdUpdatedInFloatingHelperPanel(item, name, value) {
+            this.schemeContainer.updateItemClones(item);
+            if (item.meta && item.meta.templated) {
+                this.triggerShapePropsUpdateTemplateHandler(item, name, value);
+            }
+        },
+
         onItemUpdatedInFloatingHelperPanel(item) {
             this.schemeContainer.updateItemClones(item);
         },
@@ -2297,9 +2351,10 @@ export default {
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
             this.rebuildTemplate(originItemId, template, templateArgs);
-            this.schemeContainer.reindexItems();
+        },
 
-            this.schemeContainer.updateEditBox();
+        onEditBoxTemplatePropertiesUpdateRequested() {
+            this.templatePropertiesKey += 1;
         },
 
         onTemplatePropertiesUpdated(originItemId, template, templateArgs, changedArgName) {
@@ -3309,6 +3364,22 @@ export default {
             this.schemeContainer.reindexSpecifiedItems([item]);
             this.schemeContainer.reindexItems();
             this.schemeContainer.updateEditBox();
+        },
+
+        onEditBoxChoiceControlClicked({options, editBoxId, event, callback}) {
+            let p = mouseCoordsFromEvent(event);
+            if (!p) {
+                p = {x: 0, y: 0};
+            }
+
+            this.$emit('context-menu-requested', p.x, p.y, options.map(option => {
+                return {
+                    name: option,
+                    clicked: () => {
+                        callback(option);
+                    }
+                }
+            }));
         },
 
         onWindowResize() {

@@ -3047,7 +3047,7 @@ class SchemeContainer {
                 }
 
                 if (item.meta && item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id && item.args && item.args.templatedId) {
-                    if (item.args && item.args.tplArea ===  'controlled') {
+                    if (item.args && (item.args.tplArea ===  'controlled' || item.args.tplArea ===  'movable')) {
                         const templateRootItem = this.findItemById(item.meta.templateRootId);
                         if (!templateRootItem || !templateRootItem.args || !templateRootItem.args.templateRef) {
                             return;
@@ -3060,9 +3060,7 @@ class SchemeContainer {
                             item.area.w = modifiedArea.w;
                             item.area.h = modifiedArea.h;
 
-                            if (!isSoft) {
-                                this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
-                            }
+                            this.regenerateTemplatedItem(templateRootItem, template, templateRootItem.args.templateArgs, templateRootItem.area.w, templateRootItem.area.h);
                             EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, templateRootItem.id);
                         });
                     }
