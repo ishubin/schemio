@@ -15,7 +15,7 @@ args:
     }
     colorTheme: {group: "Theme & Colors", type: "choice", value: "default",
       options: [
-        "default", "light", "dark", "air-force-blue", "gray"
+        "default", "light", "dark", "air-force-blue", "gray", "custom"
       ],
       name: "Color theme"
     }
@@ -65,6 +65,7 @@ handlers:
     area: onAreaUpdate(itemId, item, area)
     text: onTextUpdate(itemId, item, text)
     delete: onDeleteItem(itemId, item)
+    shapeProps: onShapePropsUpdate(itemId, item, name, value)
 
 controls:
 -   $-foreach: {source: "allConnections", it: "c"}

@@ -256,6 +256,10 @@ export function compileItemTemplate(editorId, template, templateRef) {
             return this.triggerTemplateEvent(rootItem, 'text', {itemId, item, text});
         },
 
+        onShapePropsUpdate(rootItem, itemId, item, name, value) {
+            return this.triggerTemplateEvent(rootItem, 'shapeProps', {itemId, item, name, value});
+        },
+
         buildItem : (args, width, height, postBuild) => {
             if (postBuild) {
                 return itemPostBuilder({

@@ -186,6 +186,7 @@
                             :item="floatingHelperPanel.item"
                             :schemeContainer="schemeContainer"
                             @item-updated="onItemUpdatedInFloatingHelperPanel"
+                            @item-shape-prop-updated="onItemShapePropdUpdatedInFloatingHelperPanel"
                             @edit-path-requested="onEditPathRequested"
                             @image-crop-requested="startCroppingImage"
                             @close="floatingHelperPanel.shown = false"
@@ -2164,6 +2165,26 @@ export default {
             EditorEventBus.textSlot.moved.$emit(this.editorId, item, slotName, anotherSlotName);
         },
 
+
+        /**
+         * @param {Item} item
+         * @param {String} name
+         * @param {Object} value
+         */
+        triggerShapePropsUpdateTemplateHandler(item, name, value) {
+            const rootItem = this.schemeContainer.findItemById(item.meta.templateRootId);
+            if (!rootItem || !rootItem.meta.templateRef) {
+                return;
+            }
+
+            this.schemeContainer.getTemplate(rootItem.meta.templateRef)
+            .then(template => {
+                const templateArgs = template.onShapePropsUpdate(rootItem, item.args.templatedId, item, name, value);
+                this.schemeContainer.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
+            });
+        },
+
+
         // triggered from ItemProperties or QuickHelperPanel components
         onItemShapePropChanged(name, type, value) {
             //TODO move it to another script (to simplify this script)
@@ -2181,6 +2202,10 @@ export default {
                             item.shapeProps[name] = utils.clone(value);
                             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `shapeProps.${name}`);
                         });
+
+                        if (item.meta && item.meta.templated) {
+                            this.triggerShapePropsUpdateTemplateHandler(item, name, value);
+                        }
 
                         itemIds += item.id;
                         recentPropsChanges.registerItemShapeProp(item.shape, name, value);
@@ -2295,6 +2320,13 @@ export default {
 
         },
 
+        onItemShapePropdUpdatedInFloatingHelperPanel(item, name, value) {
+            this.schemeContainer.updateItemClones(item);
+            if (item.meta && item.meta.templated) {
+                this.triggerShapePropsUpdateTemplateHandler(item, name, value);
+            }
+        },
+
         onItemUpdatedInFloatingHelperPanel(item) {
             this.schemeContainer.updateItemClones(item);
         },
@@ -2319,7 +2351,6 @@ export default {
         onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
             this.rebuildTemplate(originItemId, template, templateArgs);
-            this.schemeContainer.updateEditBox();
         },
 
         onEditBoxTemplatePropertiesUpdateRequested() {

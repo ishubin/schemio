@@ -75,7 +75,7 @@ func encodeNodes(nodes) {
         if (result != '') {
             result += '|'
         }
-        result += `${n.id};x=${n.x};y=${n.y}`
+        result += `${n.id};x=${n.x};y=${n.y};c=${n.color}`
     })
     result
 }
@@ -97,6 +97,8 @@ func decodeNodesData(text) {
                         node.x = value
                     } else if (name == 'y') {
                         node.y = value
+                    } else if (name == 'c') {
+                        node.color = value
                     }
                 }
             }
@@ -139,6 +141,9 @@ func parseConnections(text, nodesData) {
         if (nData) {
             node.x = nData.x
             node.y = nData.y
+            if (nData.color) {
+                node.color = nData.color
+            }
         }
         node
     }
@@ -320,8 +325,9 @@ func buildNodeItems(levels) {
                 node.position = levelPosition
                 node.offset = currentY
                 local hashCode = Strings.hashCode(node.name)
-                node.color = colorPalette.get(abs(hashCode) % colorPalette.size)
-
+                if (colorTheme != 'custom') {
+                    node.color = colorPalette.get(abs(hashCode) % colorPalette.size)
+                }
 
                 local nodeItem = Item('n-' + node.id, node.name, 'rect')
                 nodeItem.w = node.width
@@ -331,7 +337,9 @@ func buildNodeItems(levels) {
                 nodeItem.shapeProps.set('strokeSize', nodeStrokeSize)
                 nodeItem.shapeProps.set('strokeColor', nodeStrokeColor)
                 nodeItem.shapeProps.set('cornerRadius', nodeCornerRadius)
+
                 nodeItem.shapeProps.set('fill', Fill.solid(node.color))
+
                 nodeItem.args.set('tplArea', 'movable')
                 nodeItem.args.set('tplConnector', 'off')
                 nodeItem.args.set('tplRotation', 'off')
@@ -937,6 +945,17 @@ func addNewNodeForNode(nodeId, isDst) {
             if (selectedNode.level == levels.size - 1) {
                 width += max(1, width - nodeWidth) / max(1, (levels.size - 1))
             }
+        }
+    }
+}
+
+func onShapePropsUpdate(itemId, item, name, value) {
+    if (itemId.startsWith('n-') && name == 'fill' && value.type == 'solid') {
+        local nodeId = itemId.substring(2)
+        local node = allNodes.find(n => { n.id == nodeId })
+        if (node) {
+            node.color = value.color
+            nodesData = encodeNodes(nodesById)
         }
     }
 }
