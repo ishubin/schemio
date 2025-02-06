@@ -1,4 +1,4 @@
-import { ReservedTerms, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
+import { ReservedTerms, SchemioScriptParseError, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
 import { ASTAdd, ASTAssign, ASTBitShiftLeft, ASTBitShiftRight, ASTBitwiseAnd, ASTBitwiseNot, ASTBitwiseOr, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTPow, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
@@ -149,6 +149,27 @@ class ASTParser extends TokenScanner {
     }
 
     /**
+     *
+     * @param {import("./scanner").ScriptToken} token
+     * @returns
+     */
+    processedTextToToken(token) {
+        if (!token) {
+            return this.processedText();
+        }
+        return this.originalText.substring(0, token.idx) + token.text;
+    }
+
+    processedText() {
+        if (this.tokens.length === 0) {
+            return '';
+        }
+
+        const lastToken = this.tokens[Math.min(this.idx, this.tokens.length - 1)];
+        return this.originalText.substring(0, lastToken.idx) + lastToken.v;
+    }
+
+    /**
      * @returns {ASTNode}
      */
     parseSingleExpression() {
@@ -179,12 +200,12 @@ class ASTParser extends TokenScanner {
             this.skipToken();
 
             if (token.t !== TokenTypes.OPERATOR) {
-                throw new Error(`Expected operator but got unexpected token (at ${token.idx}, line ${token.line}): (${token.t}) "${token.text}"`);
+                throw new SchemioScriptParseError(`Expected operator but got unexpected token (at ${token.idx}, line ${token.line}): (${token.t}) "${token.text}"`,  this.processedTextToToken(token));
             }
 
             if (token.v === '++' || token.v === '--') {
                 if (!(a instanceof ASTVarRef)) {
-                    throw new Error(`Unexpected ${token.v} operator after ${a.type}`);
+                    throw new SchemioScriptParseError(`Unexpected ${token.v} operator after ${a.type}`, this.processedTextToToken(token));
                 }
 
                 a = new ASTIncrement(a, false, token.v === '++' ? 1: -1);
@@ -194,7 +215,7 @@ class ASTParser extends TokenScanner {
 
                 const b = this.parseTerm();
                 if (b === null) {
-                    throw new Error(`Missing right term after the "${token.v}" operator at ${token.idx}, line ${token.line}`);
+                    throw new SchemioScriptParseError(`Missing right term after the "${token.v}" operator at ${token.idx}, line ${token.line}`, this.processedTextToToken(token));
                 }
 
                 const nextToken = this.peekToken();
@@ -224,7 +245,7 @@ class ASTParser extends TokenScanner {
     parseExternalObjectReference() {
         let nextToken = this.scanToken();
         if (!nextToken) {
-            throw new Error('Missing the name after "@" symbol');
+            throw new SchemioScriptParseError('Missing the name after "@" symbol', this.processedText());
         }
         if (nextToken.t === TokenTypes.TERM) {
             return new ASTExternalObjectLookup(new ASTValue(nextToken.v));
@@ -235,7 +256,7 @@ class ASTParser extends TokenScanner {
         } else if (nextToken.t === TokenTypes.NUMBER) {
             return new ASTExternalObjectLookup(new ASTValue('' + nextToken.v))
         } else {
-            throw new Error('Unsupported token after "@"');
+            throw new SchemioScriptParseError('Unsupported token after "@"', this.processedTextToToken(nextToken));
         }
     }
 
@@ -256,10 +277,10 @@ class ASTParser extends TokenScanner {
                 this.skipToken();
                 nextToken = this.peekToken();
                 if (!nextToken) {
-                    throw new Error(`Missing field name definition after '.'`);
+                    throw new SchemioScriptParseError(`Missing field name definition after '.'`, this.processedTextToToken(nextToken));
                 }
                 if (nextToken.t !== TokenTypes.TERM) {
-                    throw new Error(`Expected field name after '.', but got: ${nextToken.text}`);
+                    throw new SchemioScriptParseError(`Expected field name after '.', but got: ${nextToken.text}`, this.processedTextToToken(nextToken));
                 }
                 const termToken = nextToken;
                 this.skipToken();
@@ -300,12 +321,12 @@ class ASTParser extends TokenScanner {
                 if (nextToken && nextToken.t === TokenTypes.OPERATOR && nextToken.v === '=>') {
                     this.skipToken();
                     this.skipNewlines();
-                    return parseFunctionDeclarationUsing(token, this.scanToken());
+                    return parseFunctionDeclarationUsing(token, this.scanToken(), this.originalText);
                 }
                 const expression = parseAST(token.groupTokens);
                 return this.parseTermGroup(expression);
             } else {
-                throw new Error(`Unexpected token group "${token.v}"`);
+                throw new SchemioScriptParseError(`Unexpected token group "${token.v}"`, this.processedTextToToken(token));
             }
         } else if (token.t === TokenTypes.NUMBER) {
             return new ASTValue(token.v);
@@ -339,7 +360,7 @@ class ASTParser extends TokenScanner {
                     groupCode: TokenTypes.START_BRACKET,
                     groupTokens: [token]
                 };
-                return parseFunctionDeclarationUsing(argWrapper, this.scanToken());
+                return parseFunctionDeclarationUsing(argWrapper, this.scanToken(), this.originalText);
             }
             return this.parseTermGroup(new ASTVarRef(token.v));
         } else if (token.t === TokenTypes.AT_SYMBOL) {
@@ -350,52 +371,58 @@ class ASTParser extends TokenScanner {
         } else if (token.t === TokenTypes.OPERATOR && token.v === '~') {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {
-                throw new Error('Expected term token after "~"');
+                throw new SchemioScriptParseError('Expected term token after "~"', this.processedText());
             }
             return new ASTBitwiseNot(nextTerm);
         } else if (token.t === TokenTypes.OPERATOR && token.v === '-') {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {
-                throw new Error('Expected term token after "-"');
+                throw new SchemioScriptParseError('Expected term token after "-"', this.processedText());
             }
             return new ASTNegate(nextTerm);
         } else if (token.t === TokenTypes.OPERATOR && (token.v === '++' || token.v === '--')) {
             const nextToken = this.scanToken();
             if (!nextToken) {
-                throw new Error(`Missing term after ${token.v} operator`);
+                throw new SchemioScriptParseError(`Missing term after ${token.v} operator`, this.processedText());
             }
             if (nextToken.t !== TokenTypes.TERM || isReserved(nextToken.v)) {
-                throw new Error(`Unexpected token after ${token.v} operator: ${nextToken.text}`);
+                throw new SchemioScriptParseError(`Unexpected token after ${token.v} operator: ${nextToken.text}`, this.processedTextToToken(nextToken));
             }
             return new ASTIncrement(new ASTVarRef(nextToken.v), true, token.v === '++' ? 1 : -1);
         } else if (token.t === TokenTypes.NOT) {
             const nextTerm = this.parseTerm();
             if (!nextTerm) {
-                throw new Error('Expected term token after "!"');
+                throw new SchemioScriptParseError('Expected term token after "!"', this.processedText());
             }
             return new ASTNot(nextTerm);
         } else if (token.t === TokenTypes.STRING_TEMPLATE) {
             return new ASTStringTemplate(parseStringExpression(token.v));
         }
-        throw new Error(`Unexpected token: ${token.t} "${token.text}"`);
+        throw new SchemioScriptParseError(`Unexpected token: ${token.t} "${token.text}"`, this.processedTextToToken(token));
     }
 
     parseWhileExpression() {
         this.skipNewlines();
         let token = this.scanToken();
-        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_BRACKET) {
-            throw new Error(`Expected "(" symbol after while (at ${token.idx}, line ${token.line})`);
+        if (!token) {
+            throw new SchemioScriptParseError(`Expected "(" symbol after "while"`, this.processedText());
+        }
+        if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_BRACKET) {
+            throw new SchemioScriptParseError(`Expected "(" symbol after "while" (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
         const whileExpression = parseAST(token.groupTokens);
         if (!whileExpression) {
-            throw new Error(`Missing condition expression for while statement (at ${token.idx}, line ${token.line})`);
+            throw new SchemioScriptParseError(`Missing condition expression for while statement (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
         this.skipNewlines();
         token = this.scanToken();
-        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
-            throw new Error(`Missing "{" symbol after "while" expression (at ${token.idx}, line ${token.line})`);
+        if (!token) {
+            throw new SchemioScriptParseError(`Missing "{" symbol after "while" expression`, this.processedText());
+        }
+        if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
+            throw new SchemioScriptParseError(`Missing "{" symbol after "while" expression (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
         const whileBlock = parseAST(token.groupTokens);
@@ -405,14 +432,14 @@ class ASTParser extends TokenScanner {
     parseLocalVarDeclaration() {
         const node = this.parseSingleExpression();
         if (!node) {
-            throw new Error('Expected variable declaration after "local"');
+            throw new SchemioScriptParseError('Expected variable declaration after "local"', this.processedText());
         }
         if (node instanceof ASTVarRef) {
             return new ASTLocalVariable(node.varName, null);
         } else if (node instanceof ASTAssign && node.a instanceof ASTVarRef) {
             return new ASTLocalVariable(node.a.varName, node);
         } else {
-            throw new Error('Invalid local variable declaration');
+            throw new SchemioScriptParseError('Invalid local variable declaration', this.processedText());
         }
     }
 
@@ -420,51 +447,60 @@ class ASTParser extends TokenScanner {
         this.skipNewlines();
         const funcNameToken = this.scanToken();
         if (!funcNameToken) {
-            throw new Error(`Missing function name after "func"`);
+            throw new SchemioScriptParseError(`Missing function name after "func"`, this.processedText());
         }
         if (funcNameToken.t !== TokenTypes.TERM) {
-            throw new Error(`Unexpected token after "func": "${funcNameToken.text}"`)
+            throw new SchemioScriptParseError(`Unexpected token after "func": "${funcNameToken.text}"`, this.processedTextToToken(funcNameToken));
         }
         this.skipNewlines();
         const funcArgsToken = this.scanToken();
         if (!funcArgsToken) {
-            throw new Error(`Missing function args declaration for "${funcNameToken.v}" function`);
+            throw new SchemioScriptParseError(`Missing function args declaration for "${funcNameToken.v}" function`, this.processedText());
         }
         if (!(funcArgsToken.t === TokenTypes.TOKEN_GROUP && funcArgsToken.groupCode === TokenTypes.START_BRACKET)) {
-            throw new Error(`Expected function args declaration for "${funcNameToken.v}" function, got: "${funcArgsToken.text}"`);
+            throw new SchemioScriptParseError(`Expected function args declaration for "${funcNameToken.v}" function, got: "${funcArgsToken.text}"`, this.processedTextToToken(funcArgsToken));
         }
         this.skipNewlines();
         const funcBodyToken = this.scanToken();
         if (!funcBodyToken) {
-            throw new Error(`Missing function body declaration for "${funcNameToken.v}" function`);
+            throw new SchemioScriptParseError(`Missing function body declaration for "${funcNameToken.v}" function`, this.processedText());
         }
         if (!(funcBodyToken.t === TokenTypes.TOKEN_GROUP && funcBodyToken.groupCode === TokenTypes.START_CURLY)) {
-            throw new Error(`Expected function body declaration for "${funcNameToken.v}" function, got: "${funcBodyToken.text}"`);
+            throw new SchemioScriptParseError(`Expected function body declaration for "${funcNameToken.v}" function, got: "${funcBodyToken.text}"`, this.processedTextToToken(funcBodyToken));
         }
 
-        const functionAST = parseFunctionDeclarationUsing(funcArgsToken, funcBodyToken, funcNameToken.v);
+        const functionAST = parseFunctionDeclarationUsing(funcArgsToken, funcBodyToken, this.originalText, funcNameToken.v);
         return new ASTAssign(new ASTVarRef(funcNameToken.v), functionAST);
     }
 
     parseStruct() {
         this.skipNewlines();
         const structNameToken = this.scanToken();
-        if (!structNameToken || structNameToken.t !== TokenTypes.TERM) {
-            throw new Error(`Missing struct name after "struct" (at ${structNameToken.idx}, line ${structNameToken.line})`);
+        if (!structNameToken) {
+            throw new SchemioScriptParseError(`Missing struct name after "struct"`, this.processedText());
+        }
+        if (structNameToken.t !== TokenTypes.TERM) {
+            throw new SchemioScriptParseError(`Invalid token after "struct" (at ${structNameToken.idx}, line ${structNameToken.line})`, this.processedTextToToken(structNameToken));
         }
         this.skipNewlines();
         const structGroupToken = this.scanToken();
-        if (!structGroupToken || structGroupToken.t !== TokenTypes.TOKEN_GROUP || structGroupToken.groupCode !== TokenTypes.START_CURLY) {
-            throw new Error(`Missing "{" symbol for struct (at ${structGroupToken.idx}, line ${structGroupToken.line})`);
+        if (!structGroupToken) {
+            throw new SchemioScriptParseError(`Missing "{" symbol for struct`, this.processedText());
         }
-        return parseStruct(structNameToken.v, structGroupToken.groupTokens);
+        if (structGroupToken.t !== TokenTypes.TOKEN_GROUP || structGroupToken.groupCode !== TokenTypes.START_CURLY) {
+            throw new SchemioScriptParseError(`Missing "{" symbol for struct (at ${structGroupToken.idx}, line ${structGroupToken.line})`, this.processedTextToToken(structGroupToken));
+        }
+        return parseStruct(structNameToken.v, structGroupToken.groupTokens, this.originalText);
     }
 
     parseForLoop() {
         this.skipNewlines();
         let nextToken = this.scanToken();
-        if (!nextToken || nextToken.t !== TokenTypes.TOKEN_GROUP || nextToken.groupCode !== TokenTypes.START_BRACKET) {
-            throw new Error(`Expected "(" symbol after for (at ${nextToken.idx}, line ${nextToken.line})`);
+        if (!nextToken) {
+            throw new SchemioScriptParseError(`Expected "(" symbol after for`, this.processedText());
+        }
+        if (nextToken.t !== TokenTypes.TOKEN_GROUP || nextToken.groupCode !== TokenTypes.START_BRACKET) {
+            throw new SchemioScriptParseError(`Expected "(" symbol after for (at ${nextToken.idx}, line ${nextToken.line})`, this.processedTextToToken(nextToken));
         }
 
         const forLoopTokenGroups = [[]];
@@ -478,13 +514,16 @@ class ASTParser extends TokenScanner {
         });
 
         if (forLoopTokenGroups.length !== 3) {
-            throw new Error(`Invalid for loop declaration. Expected exactly two ";" (at ${nextToken.idx}, line ${nextToken.line})`);
+            throw new SchemioScriptParseError(`Invalid for loop declaration. Expected exactly two ";" (at ${nextToken.idx}, line ${nextToken.line})`, this.processedTextToToken(nextToken));
         }
 
         this.skipNewlines();
         nextToken = this.scanToken();
-        if (!nextToken || nextToken.t !== TokenTypes.TOKEN_GROUP || nextToken.groupCode !== TokenTypes.START_CURLY) {
-            throw new Error(`Missing "{" symbol after "for" expression (at ${nextToken.idx}, line ${nextToken.line})`);
+        if (!nextToken) {
+            throw new SchemioScriptParseError(`Missing "{" symbol after "for" expression`, this.processedText());
+        }
+        if (nextToken.t !== TokenTypes.TOKEN_GROUP || nextToken.groupCode !== TokenTypes.START_CURLY) {
+            throw new SchemioScriptParseError(`Missing "{" symbol after "for" expression (at ${nextToken.idx}, line ${nextToken.line})`, this.processedTextToToken(nextToken));
         }
 
         const forLoopBlock = parseAST(nextToken.groupTokens);
@@ -500,8 +539,11 @@ class ASTParser extends TokenScanner {
         this.skipNewlines();
         let token = this.scanToken();
 
-        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_BRACKET) {
-            throw new Error(`Missing "(" symbol after "if" (at ${token.idx}, line ${token.line})`);
+        if (!token) {
+            throw new SchemioScriptParseError(`Missing "(" symbol after "if"`, this.processedText());
+        }
+        if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_BRACKET) {
+            throw new SchemioScriptParseError(`Missing "(" symbol after "if" (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
         const ifExpression = parseAST(token.groupTokens);
@@ -509,8 +551,11 @@ class ASTParser extends TokenScanner {
         this.skipNewlines();
 
         token = this.scanToken();
-        if (!token || token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
-            throw new Error(`Missing "{" for if statement`);
+        if (!token) {
+            throw new SchemioScriptParseError(`Missing "{" for if statement`, this.processedText());
+        }
+        if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
+            throw new SchemioScriptParseError(`Missing "{" for if statement`, this.processedTextToToken(token));
         }
 
         const trueBlock = parseAST(token.groupTokens);
@@ -525,14 +570,14 @@ class ASTParser extends TokenScanner {
 
             token = this.scanToken();
             if (!token) {
-                throw new Error('Missing expression after "else"');
+                throw new SchemioScriptParseError('Missing expression after "else"', this.processedText());
             }
 
             if (token.t === TokenTypes.RESERVED && token.v === ReservedTerms.IF) {
                 falseBlock = this.parseIfExpression();
             } else {
                 if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
-                    throw new Error('Expected "{" after "else"');
+                    throw new SchemioScriptParseError('Expected "{" after "else"', this.processedTextToToken(token));
                 }
                 falseBlock = parseAST(token.groupTokens);
             }
@@ -544,19 +589,21 @@ class ASTParser extends TokenScanner {
 /**
  * @param {ScriptToken} argsToken
  * @param {ScriptToken} bodyToken
+ * @param {string} originalText
+ * @param {string} funcName
  */
-function parseFunctionDeclarationUsing(argsToken, bodyToken, funcName = '< anonymous >') {
+function parseFunctionDeclarationUsing(argsToken, bodyToken, originalText, funcName = '< anonymous >') {
     if (!argsToken) {
         throw new Error('Cannot parse function declaration. Missing arguments definition');
     }
     if (!bodyToken) {
-        throw new Error('Cannot parse function declaration. Missing "{"');
+        throw new SchemioScriptParseError('Cannot parse function declaration. Missing "{"', originalText.substring(0, argsToken.idx));
     }
     if (argsToken.t !== TokenTypes.TOKEN_GROUP || argsToken.groupCode !== TokenTypes.START_BRACKET ) {
-        throw new Error('Cannot parse function arguments definition. Expected "(", got: ', argsToken.v);
+        throw new SchemioScriptParseError(`Cannot parse function arguments definition. Expected "(", got: "${argsToken.text}"`, originalText.substring(0, argsToken.idx));
     }
     if (bodyToken.t !== TokenTypes.TOKEN_GROUP || bodyToken.groupCode !== TokenTypes.START_CURLY ) {
-        throw new Error('Cannot parse function definition. Expected "{", got: ', argsToken.v);
+        throw new SchemioScriptParseError(`Cannot parse function definition. Expected "{", got: "${bodyToken.text}"`, originalText.substring(0, bodyToken.idx));
     }
 
     const argNames = [];
@@ -564,7 +611,7 @@ function parseFunctionDeclarationUsing(argsToken, bodyToken, funcName = '< anony
     argsToken.groupTokens.forEach(token => {
         if (token.t === TokenTypes.TERM) {
             if (expectComma) {
-                throw new Error('Cannot parse function arguments. Expected ",", got: ', token.v);
+                throw new SchemioScriptParseError(`Cannot parse function arguments. Expected ",", got: "${token.text}"'`, originalText.substring(0, token.idx) + token.text);
             }
             argNames.push(token.v);
             expectComma = true;
@@ -572,12 +619,12 @@ function parseFunctionDeclarationUsing(argsToken, bodyToken, funcName = '< anony
             if (expectComma && token.t === TokenTypes.COMMA) {
                 expectComma = false;
             } else {
-                throw new Error('Cannot parse function arguments. Unexpected token: ', token.v);
+                throw new SchemioScriptParseError(`Cannot parse function arguments. Unexpected token "${token.text}"'`, originalText.substring(0, token.idx) + token.text);
             }
         }
     });
 
-    const funcBody = parseAST(bodyToken.groupTokens);
+    const funcBody = parseAST(bodyToken.groupTokens, originalText);
 
     return new ASTFunctionDeclaration(argNames, funcBody, funcName);
 }
@@ -585,9 +632,10 @@ function parseFunctionDeclarationUsing(argsToken, bodyToken, funcName = '< anony
 /**
  * @param {String} name
  * @param {Array<*>} tokens
+ * @param {String} originalText
  * @returns {ASTNode}
  */
-function parseStruct(name, tokens) {
+function parseStruct(name, tokens, originalText) {
     const fieldDefinitions = [];
     const functionDefinitions = [];
 
@@ -600,7 +648,7 @@ function parseStruct(name, tokens) {
             break;
         }
         if (fieldNameToken.t !== TokenTypes.TERM) {
-            throw new Error(`Cannot parse struct "${name}". Expected struct field name definition, got: ${fieldNameToken.t} "${fieldNameToken.text}"`);
+            throw new SchemioScriptParseError(`Cannot parse struct "${name}". Expected struct field name definition, got: ${fieldNameToken.t} "${fieldNameToken.text}"`, originalText.substring(0, fieldNameToken.idx) + fieldNameToken.text);
         }
 
         let nextToken = scanner.peekToken();
@@ -609,9 +657,10 @@ function parseStruct(name, tokens) {
             break;
         } else if (nextToken.t === TokenTypes.COLON) {
             scanner.skipNewlines();
+            const pnt = nextToken;
             nextToken = scanner.scanToken();
             if (!nextToken) {
-                throw new Error(`Missing value definition for struct field "${fieldNameToken.v}"`)
+                throw new SchemioScriptParseError(`Missing value definition for struct field "${fieldNameToken.v}"`, originalText.substring(0, pnt.idx) + pnt.text)
             }
             const peekedToken = scanner.peekToken();
             if (nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET
@@ -621,11 +670,14 @@ function parseStruct(name, tokens) {
                 const argsToken = nextToken;
 
                 const functionBlockToken = scanner.scanToken();
-                if (!functionBlockToken || functionBlockToken.t !== TokenTypes.TOKEN_GROUP || functionBlockToken.groupCode !== TokenTypes.START_CURLY) {
-                    throw new Error(`Expected function definition for struct field "${fieldNameToken.v}", get: ${functionBlockToken.t} ${functionBlockToken.v}`);
+                if (!functionBlockToken) {
+                    throw new SchemioScriptParseError(`Expected function definition for struct field "${fieldNameToken.v}"`, originalText.substring(0, peekedToken.idx) + peekedToken.text);
+                }
+                if (functionBlockToken.t !== TokenTypes.TOKEN_GROUP || functionBlockToken.groupCode !== TokenTypes.START_CURLY) {
+                    throw new SchemioScriptParseError(`Expected function definition for struct field "${fieldNameToken.v}", got: ${functionBlockToken.t} ${functionBlockToken.v}`, originalText.substring(0, functionBlockToken.idx) + functionBlockToken.text);
                 }
 
-                const astFunc = parseFunctionDeclarationUsing(argsToken, functionBlockToken);
+                const astFunc = parseFunctionDeclarationUsing(argsToken, functionBlockToken, originalText);
                 fieldDefinitions.push({name: fieldNameToken.v, value: astFunc});
             } else {
                 const fieldTokens = scanner.scanUntilNewLine();
@@ -635,23 +687,25 @@ function parseStruct(name, tokens) {
         } else if (nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET) {
             scanner.skipToken();
             scanner.skipNewlines();
-            const peekedToken = scanner.peekToken();
-            if (!peekedToken) {
-                throw new Error(`Missing function body for "${fieldNameToken.v}" struct function`);
-            }
             const funcToken = scanner.scanToken();
+            if (!funcToken) {
+                throw new SchemioScriptParseError(`Missing function body for "${fieldNameToken.v}" struct function`, originalText.substring(0, nextToken.idx) + nextToken.text);
+            }
             if (funcToken.t !== TokenTypes.TOKEN_GROUP || funcToken.groupCode !== TokenTypes.START_CURLY) {
-                throw new Error(`Unexpected token for function body of "${fieldNameToken.v}" struct function: ${funcToken.t} ${funcToken.text}`);
+                throw new SchemioScriptParseError(`Unexpected token for function body of "${fieldNameToken.v}" struct function: ${funcToken.t} ${funcToken.text}`, originalText.substring(0, funcToken.idx) + funcToken.text);
             }
             const argsToken = nextToken;
-            const astFunc = parseFunctionDeclarationUsing(argsToken, funcToken);
+            if (!argsToken) {
+                throw new SchemioScriptParseError(`Missing function arguments declaration`, originalText.substring(0, funcToken.idx) + funcToken.text);
+            }
+            const astFunc = parseFunctionDeclarationUsing(argsToken, funcToken, originalText);
             functionDefinitions.push({name: fieldNameToken.v, body: astFunc});
         } else {
             fieldDefinitions.push({name: fieldNameToken.v, value: new ASTValue(null)});
             if (nextToken.t === TokenTypes.COMMA) {
                 scanner.skipToken();
             } else {
-                throw new Error(`Unxpected token after "${fieldNameToken.v}" struct field definition: ${nextToken.t} ${nextToken.text}`)
+                throw new SchemioScriptParseError(`Unxpected token after "${fieldNameToken.v}" struct field definition: ${nextToken.t} "${nextToken.text}"`, originalText.substring(0, nextToken.idx) + nextToken.text)
             }
         }
     }
@@ -675,13 +729,8 @@ export function parseAST(tokens, originalText) {
  * @returns {ASTNode}
  */
 export function parseExpression(expression) {
-    try {
-        const tokens = normalizeTokens(tokenizeExpression(expression));
-        return parseAST(tokens, expression);
-    }
-    catch(err) {
-        throw new Error(`Error parsing script:\n${expression}\n\nError: ${err.message}`);
-    }
+    const tokens = normalizeTokens(tokenizeExpression(expression));
+    return parseAST(tokens, expression);
 }
 
 

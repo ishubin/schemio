@@ -118,10 +118,10 @@ export class SchemioScriptParseError extends Error{
     /**
      *
      * @param {String} message
-     * @param {Scanner} scanner
+     * @param {String} script
      */
-    constructor(message, scanner) {
-        super('Failed to parse script \n' + scanner.text.substring(0, scanner.idx+1) + '\n\n' + message);
+    constructor(message, script) {
+        super(`Failed to parse script:\n${script}\n\n${message}`);
     }
 }
 
@@ -131,6 +131,10 @@ class Scanner {
         this.idx = 0;
         this.text = text;
         this.currentLine = 0;
+    }
+
+    processedText() {
+        return this.text.substring(0, this.idx + 1);
     }
 
     scanToken() {
@@ -176,7 +180,7 @@ class Scanner {
                 this.idx++;
                 return {...singleCharTokens.get(c), text: c, idx: this.idx - 1, line: this.currentLine};
             }
-            throw new SchemioScriptParseError('Invalid symbol: ' + c, this);
+            throw new SchemioScriptParseError('Invalid symbol: ' + c, this.processedText());
         }
     }
 
@@ -307,11 +311,11 @@ class Scanner {
                     if (stringEscapeSymbols.has(n)) {
                         str += stringEscapeSymbols.get(n);
                     } else {
-                        throw new SchemioScriptParseError(`Unknown escape symbol: ${n}`, this);
+                        throw new SchemioScriptParseError(`Unknown escape symbol: ${n}`, this.processedText());
                     }
                     this.idx++
                 } else {
-                    throw new SchemioScriptParseError('Invalid use of escape symbol in string', this);
+                    throw new SchemioScriptParseError('Invalid use of escape symbol in string', this.processedText());
                 }
             } else {
                 str += c;
@@ -319,7 +323,7 @@ class Scanner {
             this.idx++;
         }
 
-        throw new SchemioScriptParseError('Unterminated string: ' + str, this);
+        throw new SchemioScriptParseError('Unterminated string: ' + str, this.processedText());
     }
 }
 
@@ -356,7 +360,7 @@ export function tokenizeExpression(text) {
             });
         } else if (token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY) {
             if (tokensStack[0].stackExitCode !== token.t) {
-                throw new SchemioScriptParseError(`Invalid token "${token.text}"`, scanner);
+                throw new SchemioScriptParseError(`Invalid token "${token.text}"`, scanner.processedText());
             }
             const groupStack = tokensStack.shift();
             tokensStack[0].tokens.push({
@@ -372,7 +376,7 @@ export function tokenizeExpression(text) {
     }
 
     if (tokensStack.length !== 1) {
-        throw new SchemioScriptParseError('Unclosed expression', scanner);
+        throw new SchemioScriptParseError('Unclosed expression', scanner.processedText());
     }
     return tokensStack[0].tokens;
 }
