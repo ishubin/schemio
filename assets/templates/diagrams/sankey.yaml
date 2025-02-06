@@ -53,7 +53,7 @@ args:
 
 
 preview: "/assets/templates/previews/sankey.svg"
-defaultArea: {x: 0, y: 0, w: 200, h: 60}
+defaultArea: {x: 0, y: 0, w: 800, h: 400}
 
 import:
     - ./src/item.sch
