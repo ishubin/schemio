@@ -113,6 +113,19 @@ const stringEscapeSymbols = new Map(Object.entries({
     '\'': '\''
 }));
 
+
+export class SchemioScriptParseError extends Error{
+    /**
+     *
+     * @param {String} message
+     * @param {Scanner} scanner
+     */
+    constructor(message, scanner) {
+        super('Failed to parse script \n' + scanner.text.substring(0, scanner.idx+1) + '\n\n' + message);
+    }
+}
+
+
 class Scanner {
     constructor(text) {
         this.idx = 0;
@@ -163,7 +176,7 @@ class Scanner {
                 this.idx++;
                 return {...singleCharTokens.get(c), text: c, idx: this.idx - 1, line: this.currentLine};
             }
-            throw new Error('Invalid symbol: ' + c);
+            throw new SchemioScriptParseError('Invalid symbol: ' + c, this);
         }
     }
 
@@ -294,11 +307,11 @@ class Scanner {
                     if (stringEscapeSymbols.has(n)) {
                         str += stringEscapeSymbols.get(n);
                     } else {
-                        throw new Error(`Unknown escape symbol: ${n}`);
+                        throw new SchemioScriptParseError(`Unknown escape symbol: ${n}`, this);
                     }
                     this.idx++
                 } else {
-                    throw new Error('Invalid use of escape symbol in string');
+                    throw new SchemioScriptParseError('Invalid use of escape symbol in string', this);
                 }
             } else {
                 str += c;
@@ -306,7 +319,7 @@ class Scanner {
             this.idx++;
         }
 
-        throw new Error('Unterminated string: ' + str);
+        throw new SchemioScriptParseError('Unterminated string: ' + str, this);
     }
 }
 
@@ -343,7 +356,7 @@ export function tokenizeExpression(text) {
             });
         } else if (token.t === TokenTypes.END_BRACKET || token.t === TokenTypes.END_CURLY) {
             if (tokensStack[0].stackExitCode !== token.t) {
-                throw new Error(`Invalid token "${token.text}"`);
+                throw new SchemioScriptParseError(`Invalid token "${token.text}"`, scanner);
             }
             const groupStack = tokensStack.shift();
             tokensStack[0].tokens.push({
@@ -359,7 +372,7 @@ export function tokenizeExpression(text) {
     }
 
     if (tokensStack.length !== 1) {
-        throw new Error('Unclosed expression');
+        throw new SchemioScriptParseError('Unclosed expression', scanner);
     }
     return tokensStack[0].tokens;
 }
