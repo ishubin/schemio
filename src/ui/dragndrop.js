@@ -1,4 +1,4 @@
-function getPageCoordsFromEvent(event) {
+export function getPageCoordsFromEvent(event) {
     if (event.changedTouches && event.changedTouches.length > 0) {
         return {
             pageX: event.changedTouches[0].pageX,

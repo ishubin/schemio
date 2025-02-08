@@ -2096,6 +2096,30 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     width: 38%;
     padding: 0 5px 0 5px;
 }
+.gradient-controls .gradient-rotation-knob {
+    user-select: none;
+    width: 75px;
+    height: 75px;
+}
+.gradient-controls .gradient-rotation-knob circle,
+.gradient-controls .gradient-rotation-knob line {
+    stroke: var(--base-strong);
+    stroke-width: 1px;
+    cursor: pointer;
+}
+.gradient-controls .gradient-rotation-knob circle.center {
+    stroke-width: 1px;
+    fill: var(--base-strong);
+    stroke: none
+}
+.gradient-controls .gradient-rotation-knob circle.full {
+    fill: var(--base-strong);
+}
+.gradient-controls .gradient-rotation-knob-container {
+    padding-left: 20px;
+    padding-top: 10px;
+}
+
 .gradient-color-picker {
     float: left;
     width: 60%;

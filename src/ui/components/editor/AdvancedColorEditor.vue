@@ -28,7 +28,7 @@
                     </p>
                 </div>
                 <div v-if="color.type === 'solid'">
-                    <color-picker v-model="modal.pickerColor" @input="updateSolidColor" :palette="[]" :pressets="[]"/>
+                    <ColorPicker v-model="modal.pickerColor" @input="updateSolidColor" :palette="[]" :pressets="[]"/>
                 </div>
 
                 <div v-if="color.type === 'image'">
@@ -76,14 +76,27 @@
                         </div>
                         <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
                             <div class="ctrl-label">Direction</div>
-                            <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
+                            <NumberTextfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
+
+                            <div class="gradient-rotation-knob-container">
+                                <div class="gradient-rotation-knob" @mousedown="onGradientRotationKnobMouseDown">
+                                    <svg ref="gradientRotationKnob" viewBox="0 0 24 24" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                                        <g :transform="`translate(12 12) rotate(${color.gradient.direction})`">
+                                            <circle class="hollow" cx="0" cy="0" r="9" fill="rgba(0,0,0,0)"/>
+                                            <circle class="full" cx="0" cy="-9" r="2" stroke="none"/>
+                                            <circle class="center" cx="0" cy="0" r="0.5" stroke="none"/>
+                                            <line x1="0" y1="0" x2="0" y2="-9"/>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                         <div class="ctrl-group">
                             <span class="btn btn-secondary" @click="invertGradient">Invert</span>
                         </div>
                     </div>
                     <div class="gradient-color-picker">
-                        <color-picker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"/>
+                        <ColorPicker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"/>
                     </div>
                 </div>
             </div>
@@ -100,6 +113,7 @@ import {parseColor, encodeColor} from '../../colors';
 import utils from '../../utils';
 import StoreUtils from '../../store/StoreUtils';
 import myMath from '../../myMath';
+import { getPageCoordsFromEvent } from '../../dragndrop';
 
 
 /**
@@ -133,7 +147,7 @@ export default {
         disabled : {type: Boolean, default : false},
     },
 
-    components: {'color-picker': VueColor.Chrome, Modal, NumberTextfield},
+    components: {'ColorPicker': VueColor.Chrome, Modal, NumberTextfield},
 
     beforeMount() {
         this.updateCurrentColor(this.value);
@@ -186,6 +200,41 @@ export default {
     },
 
     methods: {
+        onGradientRotationKnobMouseDown(originalEvent) {
+            let mouseMoveEventName = originalEvent.touches ? 'touchmove' : 'mousemove';
+            let mouseUpEventName = originalEvent.touches ? 'touchend' : 'mouseup';
+
+            const onMouseMove = (event) => {
+                if (event.buttons === 0) {
+                    reset(event);
+                    return;
+                }
+                const rect = this.$refs.gradientRotationKnob.getBoundingClientRect();
+                const coords = getPageCoordsFromEvent(event);
+                const x = coords.pageX - rect.left - rect.width/2;
+                const y = coords.pageY - rect.top - rect.height/2;
+                if (Math.abs(x) + Math.abs(y) < 1) {
+                    return;
+                }
+
+                this.color.gradient.direction = Math.round(myMath.fullAngleForVector(x, y) * 180 / Math.PI) + 90;
+                this.emitChange();
+            };
+            const onMouseUp = (event) => {
+                reset();
+                onMouseMove(event);
+            };
+
+            const reset = () => {
+                document.removeEventListener(mouseMoveEventName, onMouseMove);
+                document.removeEventListener(mouseUpEventName, onMouseUp);
+            };
+            document.addEventListener(mouseMoveEventName, onMouseMove);
+            document.addEventListener(mouseUpEventName, onMouseUp);
+
+            onMouseMove(originalEvent);
+        },
+
         showModal() {
             if (this.disabled) {
                 return;
