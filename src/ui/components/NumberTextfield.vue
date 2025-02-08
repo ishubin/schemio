@@ -6,7 +6,7 @@
         <div v-if="name" class="label" ref="label" @click="onLabelClicked">{{name}}</div>
         <div v-if="!name && icon" class="label" ref="icon"><i :class="icon"></i></div>
         <div class="wrapper">
-            <input ref="textfield" type="text" v-model="text" @blur="submitEvent" @keydown.enter="submitEvent" :disabled="disabled"/>
+            <input ref="textfield" type="text" v-model="text" @keydown.enter="submitEvent" :disabled="disabled"/>
 
             <div class="step-controls">
                 <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
@@ -16,6 +16,7 @@
     </div>
 </template>
 <script>
+import { createDelayer } from '../delayer';
 import myMath from '../myMath';
 
 function numberToText(value) {
@@ -54,6 +55,9 @@ export default {
         return {
             text: numberToText(this.value),
             number: this.value,
+            updateDelayer: createDelayer(100, () => {
+                this.submitEvent();
+            }),
 
             autoIncrementDelayTimeoutId: -1,
             autoIncrementDirection: 1,
@@ -94,6 +98,10 @@ export default {
             } else {
                 return this.textToInt(text);
             }
+        },
+
+        delayEvent() {
+            this.updateDelayer.delay();
         },
 
         submitEvent() {
@@ -182,6 +190,10 @@ export default {
     },
 
     watch: {
+        text() {
+            this.updateDelayer.delay();
+        },
+
         value(newValue) {
             this.text = numberToText(newValue);
         }

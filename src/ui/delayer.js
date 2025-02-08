@@ -23,6 +23,17 @@ export function createDelayer(timeoutInMillis, callback) {
             }
         },
 
+        delay() {
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+            timerId = setTimeout(() => {
+                timerId = null;
+                this.lastUpdatedTime = performance.now();
+                callback();
+            }, timeoutInMillis);
+        },
+
         destroy() {
             if (timerId) {
                 clearTimeout(timerId);
