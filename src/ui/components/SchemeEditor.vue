@@ -603,7 +603,7 @@
             :schemeContainer="schemeContainer"
             @close="exportAnimationModalShown = false"
             @export-requested="onAnimationExportRequested"/>
-        
+
         <ExportPictureModal v-if="exportPictureModal.shown"
             :items="exportPictureModal.items"
             :kind="exportPictureModal.kind"
@@ -967,6 +967,7 @@ export default {
         EditorEventBus.editBox.fillDisabled.$on(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
+        EditorEventBus.exportSchemeAsPicture.$on(this.editorId, this.onExportSchemeAsPictureRequested);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -987,6 +988,7 @@ export default {
         EditorEventBus.editBox.fillDisabled.$off(this.editorId, this.onEditBoxFillDisabled);
         EditorEventBus.editBox.fillEnabled.$off(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
+        EditorEventBus.exportSchemeAsPicture.$off(this.editorId, this.onExportSchemeAsPictureRequested);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1195,6 +1197,14 @@ export default {
         },
         onExternalComponentMouseMove(worldX, worldY, screenX, screenY, event, componentItem) {
 
+        },
+
+        onExportSchemeAsPictureRequested(kind) {
+            if (kind === 'png') {
+                this.exportAsPNG();
+            } else {
+                this.exportAsSVG();
+            }
         },
 
         exportAsSVG() {
@@ -1797,7 +1807,7 @@ export default {
         },
 
         onKeyPressed(key, keyOptions, event) {
-            if (event.target && event.target.classList.contains('script-editor')) {
+            if (event && event.target && event.target.classList.contains('script-editor')) {
                 return;
             }
             if (this.mode === 'edit') {

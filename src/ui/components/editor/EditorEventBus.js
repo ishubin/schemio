@@ -361,6 +361,12 @@ const EditorEventBus = {
         $on: (editorId, callback) => $on(editorId, 'script-log', [], callback),
         $off: (editorId, callback) => $off(editorId, 'script-log', [], callback),
         $emit: (editorId, level, message) => $emit(editorId, 'script-log', [], level, message),
+    },
+
+    exportSchemeAsPicture: {
+        $on: (editorId, callback) => $on(editorId, 'export-scheme-as-picture', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'export-scheme-as-picture', [], callback),
+        $emit: (editorId, kind) => $emit(editorId, 'export-scheme-as-picture', [], kind),
     }
 };
 

@@ -94,7 +94,7 @@
 
             <g :transform="svgEditBoxTransform" v-if="editBox.connectorPoints.length > 0">
                 <circle v-for="connectorPoint in editBox.connectorPoints"
-                    :key="`item-control-point-${connectorPoint.itemId}-${connectorPoint.id}`"
+                    :key="`item-control-point-${connectorPoint.itemId}-${connectorPoint.pointIdx}`"
                     class="item-control-point"
                     :data-control-point-item-id="connectorPoint.itemId"
                     :data-control-point-id="connectorPoint.pointIdx"

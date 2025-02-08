@@ -209,6 +209,8 @@ export default {
         window.electronAPI.$on('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$on('file:openProject', this.onMenuFileOpenProject);
         window.electronAPI.$on('file:exportAsJSON', this.onFileExportAsJSON);
+        window.electronAPI.$on('file:exportAsPNG', this.onFileExportAsPNG);
+        window.electronAPI.$on('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$on('project-selected', this.onProjectSelected);
 
@@ -241,6 +243,8 @@ export default {
         window.electronAPI.$off('menu:contextMenuOptionSelected', this.onContextMenuOptionSelected);
         window.electronAPI.$off('file:openProject', this.onMenuFileOpenProject);
         window.electronAPI.$off('file:exportAsJSON', this.onFileExportAsJSON);
+        window.electronAPI.$off('file:exportAsPNG', this.onFileExportAsPNG);
+        window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$off('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$off('project-selected', this.onProjectSelected);
     },
@@ -677,6 +681,20 @@ export default {
                 const file = this.files[this.currentOpenFileIdx];
                 file.document = this.importSchemeModal.diagram;
                 file.schemeReloadKey = shortid.generate();
+            }
+        },
+
+        onFileExportAsPNG() {
+            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
+                const file = this.files[this.currentOpenFileIdx];
+                EditorEventBus.exportSchemeAsPicture.$emit(file.editorId, 'png');
+            }
+        },
+
+        onFileExportAsSVG() {
+            if (this.currentOpenFileIdx >= 0 && this.currentOpenFileIdx < this.files.length) {
+                const file = this.files[this.currentOpenFileIdx];
+                EditorEventBus.exportSchemeAsPicture.$emit(file.editorId, 'svg');
             }
         },
 

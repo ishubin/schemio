@@ -169,7 +169,11 @@
                     <h4>{{previewItem.item.name}}</h4>
 
                     <svg v-if="previewItem.item.item" :width="previewWidth + 'px'" :height="previewHeight + 'px'">
-                        <ItemSvg :editorId="editorId" :item="previewItem.item.item" mode="edit"/>
+                        <ItemSvg
+                            :editorId="editorId"
+                            :item="previewItem.item.item"
+                            :eventListener="eventListenerInterceptor"
+                            mode="edit"/>
                     </svg>
                 </div>
                 <div v-if="previewItem.artIcon">
@@ -200,7 +204,12 @@
                 :width="`${itemCreationDragged.item.area.x + itemCreationDragged.item.area.w + 50}px`"
                 :height="`${itemCreationDragged.item.area.y + itemCreationDragged.item.area.h + 50}px`"
                 >
-                <ItemSvg :editorId="editorId" :item="itemCreationDragged.item" mode="edit"/>
+                <ItemSvg
+                    :editorId="editorId"
+                    :item="itemCreationDragged.item"
+                    :eventListener="eventListenerInterceptor"
+                    mode="edit"
+                    />
             </svg>
         </div>
 
@@ -312,7 +321,16 @@ export default {
             templates: [],
             templatesLoading: false,
 
-            externalTemplateModalShown: false
+            externalTemplateModalShown: false,
+
+            eventListenerInterceptor: {
+                mouseDown: (event, componentItem) => {
+                },
+                mouseUp: (event, componentItem) => {
+                },
+                mouseMove: (event, componentItem) => {
+                }
+            }
         }
     },
     methods: {
