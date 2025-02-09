@@ -82,7 +82,7 @@ jobs:
         with:
           tag_name: v${{ inputs.schemio_version }}
           fail_on_unmatched_files: true
-          files: out/make/zip/darwin/x64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
+          files: out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
 
 
 
