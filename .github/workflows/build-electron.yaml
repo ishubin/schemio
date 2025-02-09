@@ -25,7 +25,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: schemio-electron-mac-zip
-          path: out/make/zip/darwin/x64/schemio-darwin-x64-*.zip
+          path: out/make/zip/darwin/x64/schemio-darwin-arm64-*.zip
       - run: find out | grep -v .webpack/renderer/assets
 
 
