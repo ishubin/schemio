@@ -2372,6 +2372,7 @@ export default {
 
         onTemplatePropertiesUpdated(originItemId, template, templateArgs, changedArgName) {
             this.rebuildTemplate(originItemId, template, templateArgs);
+            this.schemeContainer.updateEditBox();
             // delaying full reindex to optimize performance, when user changes color in color picker we don't need to reindex all items right away
             this.schemeContainer.delayFullReindex();
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${originItemId}.args.templateArgs.${changedArgName}`);

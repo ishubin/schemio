@@ -559,7 +559,11 @@ func buildNodeLabels(nodes) {
         local totalHeight = if (showNodeValues) { (textHeight + valueTextSize.h)*1.8 + 8 } else { textHeight*1.8 + 8 }
         local isLeft = true
         if (labelPlacement == 'outside') {
-            isLeft = ((node.level + 1) / max(1, levels.size) <= 0.5)
+            if (node.srcNodes.size == 0) {
+                isLeft = true
+            } else {
+                isLeft = ((node.level + 1) / max(1, levels.size) <= 0.5)
+            }
         } else {
             isLeft = (node.dstNodes.size == 0)
         }
