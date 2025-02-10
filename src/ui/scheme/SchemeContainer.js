@@ -1387,11 +1387,12 @@ class SchemeContainer {
     findClosestPointToItems(x, y, d, excludedId, onlyVisibleItems) {
         let closestPin = null;
         this.pinSpatialIndex.forEachInRange(x - d, y - d, x + d, y + d, ({itemId, pinId, worldPinPoint}, point) => {
-            if (itemId !== excludedId) {
-                const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
-                if (!closestPin || closestPin.distance > distance) {
-                    closestPin = { itemId, pinId, point: worldPinPoint, distance };
-                }
+            if (itemId === excludedId) {
+                return;
+            }
+            const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
+            if (!closestPin || closestPin.distance > distance) {
+                closestPin = { itemId, pinId, point: worldPinPoint, distance };
             }
         });
 
@@ -1419,6 +1420,9 @@ class SchemeContainer {
 
 
         this.spatialIndex.forEachInRange(x - searchDistance, y - searchDistance, x + searchDistance, y + searchDistance, ({itemId, pathDistance}, point) => {
+            if (excludedId === itemId) {
+                return;
+            }
             // if there are multiple points in the same item we want to select the closest ones
             // this way we late can get better precision when search for closest point on path, since we can pass the initial search range (startDistance, stopDistance)
             const squaredDistanceToPoint = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
@@ -1665,7 +1669,7 @@ class SchemeContainer {
                 return null;
             }
 
-            if (context.resized || context.controlPoint || attachmentItem.shape === 'connector' || attachmentItem.shape === 'path') {
+            if (context.itemId !== item.id && (context.resized || context.controlPoint || attachmentItem.shape === 'connector' || attachmentItem.shape === 'path')) {
                 const originalPointKey = `${item.id}-points-${pointIdx}`;
                 let originalPoint = currentPoint;
                 if (this.editBox) {

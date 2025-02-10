@@ -28,7 +28,8 @@ const ITEM_MODIFICATION_CONTEXT_MOVED = {
     moved: true,
     rotated: false,
     resized: false,
-    id: ''
+    id: '',
+    itemId: null
 };
 
 const ITEM_MODIFICATION_CONTEXT_CONTROL_POINT = {
@@ -36,7 +37,8 @@ const ITEM_MODIFICATION_CONTEXT_CONTROL_POINT = {
     rotated: false,
     resized: false,
     controlPoint: true,
-    id: ''
+    id: '',
+    itemId: null
 };
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = ITEM_MODIFICATION_CONTEXT_MOVED;
 
@@ -174,7 +176,11 @@ class DragControlPointState extends SubState {
 
     mouseUp(x, y, mx, my, object, event) {
         this.item.meta.revision += 1;
-        this.schemeContainer.updateEditBoxItems(this.schemeContainer.editBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_CONTROL_POINT, this.getUpdatePrecision());
+        const context = {
+            ...ITEM_MODIFICATION_CONTEXT_CONTROL_POINT,
+            itemId: this.item.id,
+        };
+        this.schemeContainer.updateEditBoxItems(this.schemeContainer.editBox, IS_NOT_SOFT, context, this.getUpdatePrecision());
         this.schemeContainer.reindexItems();
         this.schemeContainer.updateEditBox();
         StoreUtils.setItemControlPoints(this.store, this.item);
@@ -394,7 +400,8 @@ class DragControlPointState extends SubState {
 
 
         this.listener.onItemChanged(this.item.id);
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, {...ITEM_MODIFICATION_CONTEXT_DEFAULT, controlPoint: true}, this.getUpdatePrecision());
+        const context = {...ITEM_MODIFICATION_CONTEXT_DEFAULT, controlPoint: true, itemId: this.item.id};
+        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, context, this.getUpdatePrecision());
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
@@ -437,7 +444,11 @@ class DragPivotEditBoxState extends EditBoxState {
         if (this.editBox.items.length === 1) {
             this.editBox.items[0].area.px = this.editBox.pivotPoint.x;
             this.editBox.items[0].area.py = this.editBox.pivotPoint.y;
-            this.schemeContainer.updateEditBoxItems(this.editBox, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_MOVED, this.getUpdatePrecision());
+            const context = {
+                ...ITEM_MODIFICATION_CONTEXT_MOVED,
+                itemId: this.editBox.items[0].id,
+            };
+            this.schemeContainer.updateEditBoxItems(this.editBox, IS_NOT_SOFT, context, this.getUpdatePrecision());
         }
 
         super.mouseUp(x, y, mx, my, object, event);

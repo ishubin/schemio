@@ -62,6 +62,7 @@
  * @property {Boolean} rotated - specifies whether item was rotated
  * @property {Boolean} resized - specifies whether item was resized
  * @property {Boolean} controlPoint - specifies whether items control point was moved
+ * @property {String|undefined} itemId - the id of the item that is being modified
  */
 
 /**
