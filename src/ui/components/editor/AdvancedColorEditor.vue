@@ -76,7 +76,7 @@
                         </div>
                         <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
                             <div class="ctrl-label">Direction</div>
-                            <NumberTextfield :value="color.gradient.direction" @changed="color.gradient.direction = arguments[0]; emitChange()"/>
+                            <NumberTextfield :value="color.gradient.direction" @changed="updateRotation"/>
 
                             <div class="gradient-rotation-knob-container">
                                 <div class="gradient-rotation-knob" @mousedown="onGradientRotationKnobMouseDown">
@@ -200,6 +200,11 @@ export default {
     },
 
     methods: {
+        updateRotation(rotation) {
+            this.color.gradient.direction = rotation;
+            this.$forceUpdate();
+            this.emitChange();
+        },
         onGradientRotationKnobMouseDown(originalEvent) {
             let mouseMoveEventName = originalEvent.touches ? 'touchmove' : 'mousemove';
             let mouseUpEventName = originalEvent.touches ? 'touchend' : 'mouseup';
@@ -218,6 +223,7 @@ export default {
                 }
 
                 this.color.gradient.direction = Math.round(myMath.fullAngleForVector(x, y) * 180 / Math.PI) + 90;
+                this.$forceUpdate();
                 this.emitChange();
             };
             const onMouseUp = (event) => {
