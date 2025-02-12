@@ -572,17 +572,22 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
         // remounts item to another item
         mount(otherItem) {
             if (!otherItem) {
-                schemeContainer.remountItemToRoot(item.id)
+                schemeContainer.remountItemToRoot(item.id);
             } else {
                 schemeContainer.remountItemInsideOtherItemAtTheBottom(item.id, otherItem.getId());
             }
+            schemeContainer.reindexItems();
         },
         mountChild(childItem) {
             if (childItem) {
                 schemeContainer.remountItemInsideOtherItemAtTheBottom(childItem.getId(), item.id);
+                schemeContainer.reindexItems();
             }
         },
-        mountRoot: () => schemeContainer.remountItemToRoot(item.id),
+        mountRoot: () => {
+            schemeContainer.remountItemToRoot(item.id);
+            schemeContainer.reindexItems();
+        },
 
         getOutline: () => getItemOutlineFunction(item, schemeContainer),
 

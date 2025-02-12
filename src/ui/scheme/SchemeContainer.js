@@ -794,11 +794,16 @@ class SchemeContainer {
     }
 
     reindexChildItems(mainItem) {
-        const itemTransform = myMath.standardTransformWithArea(mainItem.meta.transformMatrix, mainItem.area);
+        this.reindexSpecifiedItemsWithParent(mainItem.childItem, mainItem);
+    }
 
-        if (mainItem.childItems) {
-            this.reindexSpecifiedItems(mainItem.childItems, itemTransform, mainItem, mainItem.meta.ancestorIds.concat([mainItem.id]));
-        }
+    /**
+     * @param {Array<Item>} items
+     * @param {Item} parentItem
+     */
+    reindexSpecifiedItemsWithParent(items, parentItem) {
+        const itemTransform = myMath.standardTransformWithArea(parentItem.meta.transformMatrix, parentItem.area);
+        this.reindexSpecifiedItems(parentItem.childItems, itemTransform, parentItem, parentItem.meta.ancestorIds.concat([parentItem.id]));
     }
 
     reindexSpecifiedItems(items, transformMatrix, parentItem, ancestorIds, isIndexable) {
@@ -1836,6 +1841,11 @@ class SchemeContainer {
             }
             newItemsArray = otherItem.childItems;
             newParentId = otherItem.id;
+            item.meta.parentId = otherItem.id;
+            item.meta.ancestorIds = otherItem.meta.ancestorIds.concat([otherItem.id]);
+        } else {
+            item.meta.ancestorIds = [];
+            item.meta.parentId = null;
         }
 
         let positionCorrection = 0;
@@ -1862,9 +1872,6 @@ class SchemeContainer {
         if (newParentId) {
             EditorEventBus.item.changed.specific.$emit(this.editorId, newParentId);
         }
-
-        this.reindexItems();
-        this.updateEditBox();
     }
 
     remountItemAfterOtherItem(itemId, otherItemId) {

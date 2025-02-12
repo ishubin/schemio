@@ -109,6 +109,7 @@ export default class StateCreateItem extends State {
             }
         }
         this.schemeContainer.reindexItems();
+        this.schemeContainer.updateEditBox();
         this.schemeContainer.selectItem(this.item);
         this.listener.onItemChanged(this.item.id);
         this.listener.onSchemeChangeCommitted();

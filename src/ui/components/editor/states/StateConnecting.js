@@ -100,7 +100,7 @@ export default class StateConnecting extends State {
 
         const worldPoint = this.schemeContainer.worldPointOnItem(localPoint.x, localPoint.y, sourceItem);
 
-        let curveItem = {
+        let connectorItem = {
             shape: 'connector',
             name: `${sourceItem.name} -> `,
             area: {x: 0, y: 0, w: 200, h: 200, r: 0},
@@ -108,29 +108,30 @@ export default class StateConnecting extends State {
                 destinationCap: 'triangle'
             }
         };
-        enrichItemWithDefaults(curveItem);
-        curveItem = this.schemeContainer.addItem(curveItem);
-        curveItem.shapeProps.sourceItem = `#${sourceItem.id}`;
+        enrichItemWithDefaults(connectorItem);
+        connectorItem = this.schemeContainer.addItem(connectorItem);
+        connectorItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
         let parentItem = null;
         if (sourceItem.meta.parentId) {
             parentItem = this.schemeContainer.findItemById(sourceItem.meta.parentId);
             if (parentItem) {
-                this.schemeContainer.remountItemInsideOtherItemAtTheBottom(curveItem.id, parentItem.id);
-                curveItem.area.x = 0;
-                curveItem.area.y = 0;
-                curveItem.area.w = parentItem.area.w;
-                curveItem.area.h = parentItem.area.h;
+                this.schemeContainer.remountItemInsideOtherItemAtTheBottom(connectorItem.id, parentItem.id);
+                this.schemeContainer.reindexSpecifiedItemsWithParent([connectorItem], parentItem);
+                connectorItem.area.x = 0;
+                connectorItem.area.y = 0;
+                connectorItem.area.w = parentItem.area.w;
+                connectorItem.area.h = parentItem.area.h;
             }
         }
 
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
         if (closestPoint.pinId) {
-            curveItem.shapeProps.sourcePin = closestPoint.pinId;
-            curveItem.shapeProps.sourceItemPosition = 0;
+            connectorItem.shapeProps.sourcePin = closestPoint.pinId;
+            connectorItem.shapeProps.sourceItemPosition = 0;
         } else {
-            curveItem.shapeProps.sourcePin = '';
-            curveItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
+            connectorItem.shapeProps.sourcePin = '';
+            connectorItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
         }
 
 
@@ -143,18 +144,18 @@ export default class StateConnecting extends State {
             secondPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
         }
 
-        curveItem.shapeProps.points = [{
+        connectorItem.shapeProps.points = [{
             t: 'L', x: this.round(firstPoint.x), y: this.round(firstPoint.y)
         }, {
             t: 'L', x: this.round(secondPoint.x), y: this.round(secondPoint.y)
         }];
 
         if (typeof closestPoint.nx != 'undefined') {
-            curveItem.shapeProps.points[0].nx = myMath.roundPrecise(closestPoint.nx, 4);
-            curveItem.shapeProps.points[0].ny = myMath.roundPrecise(closestPoint.ny, 4);
+            connectorItem.shapeProps.points[0].nx = myMath.roundPrecise(closestPoint.nx, 4);
+            connectorItem.shapeProps.points[0].ny = myMath.roundPrecise(closestPoint.ny, 4);
         }
 
-        this.item = curveItem;
+        this.item = connectorItem;
 
         StoreUtils.setCurrentConnector(this.store, this.item);
         this.parentItem = parentItem;
@@ -592,17 +593,13 @@ export default class StateConnecting extends State {
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
-        let shouldReindex = true;
         if (this.store.state.autoRemount) {
             const parentItem = this.schemeContainer.findItemSuitableForParent(this.item);
             if (parentItem) {
                 this.schemeContainer.remountItemInsideOtherItemAtTheBottom(this.item.id, parentItem.id);
-                shouldReindex = false;
             }
         }
-        if (shouldReindex) {
-            this.schemeContainer.reindexItems();
-        }
+        this.schemeContainer.reindexItems();
         this.listener.onItemChanged(this.item.id, 'area');
         this.listener.onSchemeChangeCommitted();
         this.schemeContainer.selectItem(this.item);

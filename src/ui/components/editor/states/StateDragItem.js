@@ -749,6 +749,8 @@ class DragEditBoxState extends EditBoxState {
                 }
             }
         });
+        this.schemeContainer.reindexItems();
+        this.schemeContainer.updateEditBox();
     }
 }
 

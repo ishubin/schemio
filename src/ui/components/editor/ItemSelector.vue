@@ -409,6 +409,8 @@ export default {
                             handler(item);
                         }
                     });
+                    this.schemeContainer.reindexItems();
+                    this.schemeContainer.updateEditBox();
                 }
                 this.dragging.items = [];
                 this.dragging.destinationId = null;

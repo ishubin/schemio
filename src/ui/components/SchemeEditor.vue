@@ -2770,7 +2770,6 @@ export default {
          * It also remounts the selected item to the new rect
          */
         surroundSelectedItems() {
-            //TODO move it to another script (to simplify this script)
             const box = this.schemeContainer.editBox;
             if (box !== null && box.items.length > 0) {
                 const padding = this.$store.state.itemSurround.padding;
@@ -2828,6 +2827,8 @@ export default {
                         remountedItemIds[item.id] = 1;
                     }
                 });
+                this.schemeContainer.reindexItems();
+                this.schemeContainer.updateEditBox();
                 this.schemeContainer.selectItem(rect);
                 EditorEventBus.itemSurround.created.$emit(this.editorId, rect, box.area, padding);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
@@ -2924,6 +2925,7 @@ export default {
 
             this.schemeContainer.selectItem(item);
             this.schemeContainer.readjustItem(item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT);
+            this.schemeContainer.reindexItems();
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
 
             if (template && item.args && item.args.templateRef) {
