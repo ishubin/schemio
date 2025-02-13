@@ -1,3 +1,5 @@
+import { parseColor } from "../../colors";
+import myMath from "../../myMath";
 import { svgElement } from "./SvgBuilder";
 
 const $ = svgElement;
@@ -15,6 +17,7 @@ export default {
     },
 
     applyEffect(item, effectIdx, effectArgs) {
+        const opacity = myMath.clamp(effectArgs.opacity, 0, 100) / 100.0;
         if (effectArgs.inside) {
             return {
                 kind: 'svg-filter',
@@ -24,7 +27,7 @@ export default {
                     ]),
                     $('feGaussianBlur', {stdDeviation: effectArgs.blur}),
                     $('feOffset', {dx: effectArgs.dx, dy: effectArgs.dy, result: 'offsetblur'}),
-                    $('feFlood', {'flood-color': effectArgs.color, result: 'color', 'flood-opacity': effectArgs.opacity / 100.0}),
+                    $('feFlood', {'flood-color': effectArgs.color, result: 'color', 'flood-opacity': opacity}),
                     $('feComposite', {in2: 'offsetblur', operator: 'in'}),
                     $('feComposite', {in2: 'SourceAlpha', operator: 'in'}),
                     $('feMerge', {}, [
@@ -34,9 +37,11 @@ export default {
                 ]).innerHTML
             };
         } else {
+            let { r, g, b, a } = parseColor(effectArgs.color);
+            a = a * opacity;
             return {
                 kind: 'css-filter',
-                value: `drop-shadow(${effectArgs.dx}px ${effectArgs.dy}px ${effectArgs.blur}px ${effectArgs.color})`
+                value: `drop-shadow(${effectArgs.dx}px ${effectArgs.dy}px ${effectArgs.blur}px rgba(${r},${g},${b},${a}))`
             };
         }
     }
