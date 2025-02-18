@@ -613,9 +613,9 @@ class State {
     getUpdatePrecision() {
         const scale = this.schemeContainer.screenTransform.scale;
         if (scale < 0.5) {
-            return 0;
+            return 1;
         }
-        return Math.max(0, Math.round(Math.log10(this.schemeContainer.screenTransform.scale * 100) - 1));
+        return Math.max(1, Math.round(Math.log10(this.schemeContainer.screenTransform.scale * 100) - 1));
     }
 
     round(value) {

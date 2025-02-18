@@ -36,7 +36,7 @@ import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
 import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
-import { localPointOnItem, worldPointOnItem } from '../../../../scheme/ItemMath';
+import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../../scheme/ItemMath';
 import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 import { Vector } from '../../../../templater/vector';
 
@@ -758,7 +758,10 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     log.info('readjustItem', item.id, item.name, {item, isSoft, context}, precision);
 
     if (!isSoft) {
-        readjustItemArea(item, precision);
+        const parentItem = item.meta.parentId ?  schemeContainer.findItemById(item.meta.parentId) : null;
+        if (shouldAreaByAdjusted(item, parentItem)) {
+            readjustItemArea(item, parentItem, precision);
+        }
     }
 
     if (item.shapeProps.sourceItem && item.shapeProps.points.length > 1) {
@@ -772,7 +775,41 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     return true;
 }
 
-function readjustItemArea(item, precision) {
+function shouldAreaByAdjusted(item, parentItem) {
+    if (item.shapeProps.points.length === 0) {
+        return false;
+    }
+
+    const points = item.shapeProps.points;
+    let minX = points[0].x;
+    let minY = points[0].y;
+    let maxX = points[0].x;
+    let maxY = points[0].y;
+    forEach(points, point => {
+        if (minX > point.x) {
+            minX = point.x;
+        }
+        if (minY > point.y) {
+            minY = point.y;
+        }
+        if (maxX < point.x) {
+            maxX = point.x;
+        }
+        if (maxY < point.y) {
+            maxY = point.y;
+        }
+    });
+
+    const dx = maxX - minX;
+    const dy = maxY - minY;
+
+    if (minX < -1 || minY < -1 || Math.abs(dx - item.area.w) > 1 || Math.abs(dy - item.area.h) > 1) {
+        return true;
+    }
+    return false;
+}
+
+function readjustItemArea(item, parentItem, precision) {
     log.info('readjustItemArea', item.id, item.name, {item}, precision);
     if (item.shapeProps.points.length < 1) {
         return;
@@ -781,7 +818,8 @@ function readjustItemArea(item, precision) {
     const worldPoints = [];
 
     forEach(item.shapeProps.points, point => {
-        worldPoints.push(worldPointOnItem(point.x, point.y, item));
+        const wp = parentItem ? localPointOnItemToLocalPointOnOtherItem(point.x, point.y, item, parentItem) : worldPointOnItem(point.x, point.y, item);
+        worldPoints.push(wp);
     });
 
     let minX = worldPoints[0].x,
@@ -808,12 +846,10 @@ function readjustItemArea(item, precision) {
     item.shapeProps.points = newPoints;
 
     item.area.r = 0;
-    item.area.w = Math.max(0, maxX - minX);
-    item.area.h = Math.max(0, maxY - minY);
-
-    const position = myMath.findTranslationMatchingWorldPoint(minX, minY, 0, 0, item.area, item.meta.transformMatrix);
-    item.area.x = position.x;
-    item.area.y = position.y;
+    item.area.w = Math.max(1, maxX - minX);
+    item.area.h = Math.max(1, maxY - minY);
+    item.area.x = minX;
+    item.area.y = minY;
 }
 
 function getSnappers(item) {
