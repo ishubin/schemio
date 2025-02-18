@@ -373,6 +373,7 @@ class SchemeContainer {
         this.mainScopeData = null;
 
         this.svgOutlinePathCache = new ItemCache(getItemOutlineSVGPath);
+        this.itemIndexPointCache = new ItemCache((item) => this.getItemOutlinePoints(item));
 
         // Shadow transform is used in external components and it represents the complete transformation of
         // the component item root. This is needed to correctly convert child component items
@@ -846,6 +847,10 @@ class SchemeContainer {
                 item.meta.isInHUD = true;
             }
 
+            if (!item.meta.revision) {
+                item.meta.revision = 1;
+            }
+
             if (item.behavior.dragging !== 'none') {
                 item.cursor = 'grab';
                 item.meta.ancestorDraggableId = null;
@@ -1207,11 +1212,17 @@ class SchemeContainer {
         });
     }
 
-    indexItemOutlinePoints(item) {
+    /**
+     * @param {Item} item
+     * @returns {Array<ItemIndexPoint>} points on the items outline that will be used for indexing
+     */
+    getItemOutlinePoints(item) {
         const svgPath = this.getSvgOutlineOfItem(item);
         if (!svgPath) {
-            return;
+            return [];
         }
+
+        const result = [];
 
         const totalLength = svgPath.getTotalLength();
         const totalPoints = Math.max(1, Math.ceil(totalLength / minSpatialIndexDistance));
@@ -1236,12 +1247,12 @@ class SchemeContainer {
                 const a = segments[i][0];
                 const b = segments[i][1];
 
-                let pathDistance = -1;
+                let distanceOnPath = -1;
 
                 let diff = b - a;
                 if (diff >= 2) {
                     const mid = Math.floor((a + b) / 2);
-                    pathDistance = mid * minSpatialIndexDistance;
+                    distanceOnPath = mid * minSpatialIndexDistance;
                     if (mid > a) {
                         newSegments.push([a, mid - 1]);
                     }
@@ -1250,19 +1261,19 @@ class SchemeContainer {
                     }
 
                 } else if (diff >= 1) {
-                    pathDistance = b * minSpatialIndexDistance;
+                    distanceOnPath = b * minSpatialIndexDistance;
                     newSegments.push([a, a]);
 
                 } else if (diff >= 0) {
-                    pathDistance = a * minSpatialIndexDistance;
+                    distanceOnPath = a * minSpatialIndexDistance;
                 }
 
-                if (pathDistance >= 0) {
-                    const point = svgPath.getPointAtLength(pathDistance);
-                    const worldPoint = worldPointOnItem(point.x, point.y, item);
-                    this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
-                        itemId: item.id,
-                        pathDistance
+                if (distanceOnPath >= 0) {
+                    const p = svgPath.getPointAtLength(distanceOnPath);
+                    // const worldPoint = worldPointOnItem(point.x, point.y, item);
+                    result.push({
+                        x: p.x, y: p.y,
+                        distanceOnPath: distanceOnPath
                     });
                 }
             }
@@ -1273,17 +1284,29 @@ class SchemeContainer {
         // The following code is a lot simpler to understand, but it creates a less efficient index
         // because it indexes points linearly
         /*
-        let pathDistance = 0;
-        while (pathDistance < totalLength) {
-            const point = svgPath.getPointAtLength(pathDistance);
-            const worldPoint = worldPointOnItem(point.x, point.y, item);
-            this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
-                itemId: item.id,
-                pathDistance
+        let distanceOnPath = 0;
+        while (distanceOnPath < totalLength) {
+            const p = svgPath.getPointAtLength(distanceOnPath);
+            result.push({
+                x: p.x, y: p.y,
+                distanceOnPath: distanceOnPath
             });
-            pathDistance += minSpatialIndexDistance;
+
+            distanceOnPath += minSpatialIndexDistance;
         }
         */
+        return result;
+    }
+
+    indexItemOutlinePoints(item) {
+        const points = this.itemIndexPointCache.get(item);
+        points.forEach(p => {
+            const worldPoint = worldPointOnItem(p.x, p.y, item);
+            this.spatialIndex.addPoint(worldPoint.x, worldPoint.y, {
+                itemId: item.id,
+                distanceOnPath: p.distanceOnPath
+            });
+        });
     }
 
     buildDependencyItemMapFromElementSelectors(dependencyItemMap, dependencyElementSelectorMap) {
@@ -1424,7 +1447,7 @@ class SchemeContainer {
         const searchDistance = Math.max(d, minSpatialIndexDistance*2);
 
 
-        this.spatialIndex.forEachInRange(x - searchDistance, y - searchDistance, x + searchDistance, y + searchDistance, ({itemId, pathDistance}, point) => {
+        this.spatialIndex.forEachInRange(x - searchDistance, y - searchDistance, x + searchDistance, y + searchDistance, ({itemId, distanceOnPath}, point) => {
             if (excludedId === itemId) {
                 return;
             }
@@ -1432,11 +1455,11 @@ class SchemeContainer {
             // this way we late can get better precision when search for closest point on path, since we can pass the initial search range (startDistance, stopDistance)
             const squaredDistanceToPoint = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
             if (!items.has(itemId)) {
-                items.set(itemId, {pathDistance, squaredDistanceToPoint});
+                items.set(itemId, {distanceOnPath, squaredDistanceToPoint});
             } else {
                 const pathLocation = items.get(itemId);
                 if (pathLocation.squaredDistanceToPoint > squaredDistanceToPoint) {
-                    items.set(itemId, {pathDistance, squaredDistanceToPoint});
+                    items.set(itemId, {distanceOnPath, squaredDistanceToPoint});
                 }
             }
         });
@@ -1457,8 +1480,8 @@ class SchemeContainer {
             }
 
             const closestPoint = this.closestPointToItemOutline(item, globalPoint, {
-                startDistance: Math.max(0, pathLocation.pathDistance - searchDistance),
-                stopDistance: pathLocation.pathDistance + searchDistance,
+                startDistance: Math.max(0, pathLocation.distanceOnPath - searchDistance),
+                stopDistance: pathLocation.distanceOnPath + searchDistance,
                 precision: Math.min(d / 2, 0.5),
                 withNormal: true,
             });
