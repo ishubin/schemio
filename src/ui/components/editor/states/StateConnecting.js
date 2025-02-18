@@ -117,11 +117,11 @@ export default class StateConnecting extends State {
             parentItem = this.schemeContainer.findItemById(sourceItem.meta.parentId);
             if (parentItem) {
                 this.schemeContainer.remountItemInsideOtherItemAtTheBottom(connectorItem.id, parentItem.id);
-                this.schemeContainer.reindexSpecifiedItemsWithParent([connectorItem], parentItem);
                 connectorItem.area.x = 0;
                 connectorItem.area.y = 0;
                 connectorItem.area.w = parentItem.area.w;
                 connectorItem.area.h = parentItem.area.h;
+                this.schemeContainer.reindexItems();
             }
         }
 
