@@ -86,9 +86,19 @@ export default class StateCreateItem extends State {
             this.updateItemArea(x + newOffset.dx, y + newOffset.dy, event);
             this.submitItemAndFinishCreating();
         } else {
-            this.cancel();
+            this.reset();
+            this.listener.onCancel(this.name);
         }
         StoreUtils.clearItemSnappers(this.store);
+    }
+
+    cancel() {
+        if (this.addedToScheme) {
+            this.submitItemAndFinishCreating();
+            return;
+        }
+        this.reset();
+        this.listener.onCancel(this.name);
     }
 
     submitItemAndFinishCreating() {
@@ -116,7 +126,8 @@ export default class StateCreateItem extends State {
         if (this.template) {
             EditorEventBus.item.templateSelected.$emit(this.editorId, this.item, this.template.templateRef);
         }
-        this.cancel();
+        this.reset();
+        this.listener.onCancel(this.name);
     }
 
 
