@@ -150,6 +150,7 @@ export default {
         editorId: {type: String, required: true},
         schemeContainer: {type: Object},
         minHeight: {type: Number},
+        revision: {type: String},
     },
 
     mounted() {
@@ -158,11 +159,13 @@ export default {
         EditorEventBus.item.deselected.any.$on(this.editorId, this.onAnyItemDeselected);
         this.scrollToSelection();
     },
+
     beforeDestroy() {
         document.body.removeEventListener('mouseup', this.onMouseUp);
         EditorEventBus.item.selected.any.$off(this.editorId, this.onAnyItemSelected);
         EditorEventBus.item.deselected.any.$off(this.editorId, this.onAnyItemDeselected);
     },
+
     data() {
         const height = parseInt(settingsStorage.get('height', 0));
         return {
@@ -357,10 +360,6 @@ export default {
                 this.dragging.destinationId = overItem.id;
                 this.dragging.dropInside = xDiff > 35;
 
-                // if (!dropAbove && !this.dragging.dropInside) {
-
-                // }
-
 
                 if (xDiff < 0 && overItem.meta.ancestorIds.length > 0) {
                     const ancestorsBack =  myMath.clamp(Math.ceil(Math.abs(xDiff / 25)), 1, overItem.meta.ancestorIds.length);
@@ -517,6 +516,13 @@ export default {
     },
 
     watch: {
+        revision() {
+            this.filteredItems = this.filterItemsByKeyword(this.searchKeyword);
+            this.$nextTick(() => {
+                this.scrollToSelection();
+            });
+        },
+
         nameEdit: {
             deep: true,
             handler() {

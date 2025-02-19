@@ -464,7 +464,7 @@
                                         :editorId="editorId"
                                         :scheme-container="schemeContainer"
                                         :min-height="200"
-                                        :key="`${schemeRevision}-${schemeContainer.revision}`"
+                                        :revision="`${schemeRevision}-${schemeContainer.revision}`"
                                         @item-right-clicked="onItemRightClick"/>
                                 </panel>
 
