@@ -518,6 +518,12 @@ export default {
     watch: {
         revision() {
             this.filteredItems = this.filterItemsByKeyword(this.searchKeyword);
+            this.dragging.readyToDrop = false;
+            this.dragging.destinationId = null;
+            this.dragging.dropInside = false;
+            this.dragging.previewItemName = 'Drop here';
+            this.dragging.previewIconUrl = null;
+            this.dragging.startedDragging = false;
             this.$nextTick(() => {
                 this.scrollToSelection();
             });
