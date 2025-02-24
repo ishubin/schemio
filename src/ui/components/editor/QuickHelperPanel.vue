@@ -203,7 +203,7 @@
             <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <number-textfield :value="itemSurround.padding" name="Padding" @changed="onItemSurroundPaddingChanged"/>
+                        <NumberTextfield :value="itemSurround.padding" name="Padding" @changed="onItemSurroundPaddingChanged"/>
                     </li>
                 </ul>
             </div>
@@ -441,10 +441,13 @@ export default {
 
             forEach(item.childItems, childItem => {
                 const originalWorldPoint = this.itemSurround.childItemOriginalPositions[childItem.id];
-
                 const localPoint = this.schemeContainer.localPointOnItem(originalWorldPoint.x, originalWorldPoint.y, item);
                 childItem.area.x = localPoint.x;
                 childItem.area.y = localPoint.y;
+            });
+
+            this.schemeContainer.updateChildTransforms(item);
+            forEach(item.childItems, childItem => {
                 EditorEventBus.item.changed.specific.$emit(this.editorId, childItem.id, 'area');
             });
         },
