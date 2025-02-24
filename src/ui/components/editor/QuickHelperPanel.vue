@@ -109,7 +109,7 @@
             <div class="quick-helper-panel-section" v-if="(mode === 'edit' && selectedItemsCount > 0 && shouldShowBaseControls)">
                 <ul class="button-group">
                     <li v-if="supportsFill">
-                        <advanced-color-editor
+                        <AdvancedColorEditor
                             :editorId="editorId"
                             :value="fillColor"
                             width="18px"

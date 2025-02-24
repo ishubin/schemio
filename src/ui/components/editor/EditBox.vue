@@ -864,11 +864,11 @@ export default {
         },
 
         onColorControlToggled(expanded) {
-            // using a timeout to prevent any race conditions when this even is being triggered by multiple color pickers
+            // using a timeout to prevent any race conditions when this event is being triggered by multiple color pickers
             // This can happen when user clicks from one toggled color picker to another and it first handles the expand event from new color picker
             // and after it collapse event from old color picker
             setTimeout(() => {
-                const totalDisplayedPickers = ['.stroke-control-color-container', '.color-picker-tooltip']
+                const totalDisplayedPickers = ['.stroke-control-color-container', '.color-picker-tooltip', '.advanced-color-editor-modal']
                     .map(selector => document.querySelectorAll(selector).length)
                     .reduce((partialSum, a) => partialSum + a, 0);
                 this.colorControlToggled = totalDisplayedPickers > 0;

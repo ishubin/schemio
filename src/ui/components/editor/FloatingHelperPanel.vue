@@ -17,7 +17,7 @@
                         </span>
                     </li>
                     <li v-if="supportsFill && item.shape !== 'connector'">
-                        <advanced-color-editor
+                        <AdvancedColorEditor
                             :editorId="editorId"
                             :value="fillColor"
                             width="18px"
@@ -32,8 +32,8 @@
                             @color-changed="updateShapeProp('strokeColor', arguments[0])"
                             @size-changed="updateShapeProp('strokeSize', arguments[0])"
                             @pattern-changed="updateShapeProp('strokePattern', arguments[0])"
-                            @collapsed="onStrokeControlCollapsed"
-                            @expanded="onStrokeControlExpanded"
+                            @collapsed="onColorControlCollapsed"
+                            @expanded="onColorControlExpanded"
                             title="Stroke"
                             />
                     </li>
@@ -156,11 +156,11 @@ export default {
             this.updateKey += 1;
         },
 
-        onStrokeControlCollapsed() {
+        onColorControlCollapsed() {
             EditorEventBus.colorControlToggled.$emit(this.editorId, false);
         },
 
-        onStrokeControlExpanded() {
+        onColorControlExpanded() {
             EditorEventBus.colorControlToggled.$emit(this.editorId, true);
         },
 

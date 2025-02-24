@@ -9,7 +9,7 @@
         <div v-if="color.type === 'image'" class="image-container" @click="showModal()"><img :src="color.image"/></div>
         <div v-if="color.type === 'gradient'" class="gradient-container" @click="showModal()" :style="{'background': gradientPreview}"></div>
 
-        <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
+        <Modal class="advanced-color-editor-modal" title="Color" v-if="modal.shown" @close="closeModal" :width="400" :use-mask="false">
             <ul class="tabs">
                 <li v-for="colorType in colorTypes">
                     <span class="tab"
@@ -100,7 +100,7 @@
                     </div>
                 </div>
             </div>
-        </modal>
+        </Modal>
     </div>
 </template>
 
@@ -114,6 +114,7 @@ import utils from '../../utils';
 import StoreUtils from '../../store/StoreUtils';
 import myMath from '../../myMath';
 import { getPageCoordsFromEvent } from '../../dragndrop';
+import EditorEventBus from './EditorEventBus';
 
 
 /**
@@ -159,6 +160,7 @@ export default {
     beforeDestroy() {
         document.body.removeEventListener('mousemove', this.onMouseMove);
         document.body.addEventListener('mouseup', this.onMouseUp);
+        EditorEventBus.colorControlToggled.$emit(this.editorId, false);
     },
 
     data() {
@@ -200,6 +202,10 @@ export default {
     },
 
     methods: {
+        closeModal() {
+            this.modal.shown = false;
+            EditorEventBus.colorControlToggled.$emit(this.editorId, false);
+        },
         updateRotation(rotation) {
             this.color.gradient.direction = rotation;
             this.$forceUpdate();
@@ -247,6 +253,7 @@ export default {
             }
 
             this.modal.shown = true;
+            EditorEventBus.colorControlToggled.$emit(this.editorId, true);
         },
 
         updateCurrentColor(color) {
