@@ -401,10 +401,10 @@ export default {
 
             fill                  : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
             strokeColor           : {type: 'color', value: '#466AAA', name: 'Stroke color'},
-            strokeSize            : {type: 'number', value: 2, name: 'Stroke size'},
+            strokeSize            : {type: 'number', value: 2, name: 'Stroke size', min: 0, softMax: 100},
             strokePattern         : {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
 
-            cornerRadius          : {type: 'number', value: 0, name: 'Corner radius', min: 0},
+            cornerRadius          : {type: 'number', value: 0, name: 'Corner radius', min: 0, softMax: 100},
             placement             : {type: 'choice', value: 'centered', options: ['centered', 'stretch'], name: 'Placement'},
             autoZoom              : {type: 'boolean', value: true, name: 'Auto zoom', description: 'Zoom into component when it is loaded', depends: {kind: 'external'}},
             showButton            : {type: 'boolean', value: true, name: 'Show button', description: 'Displays a button which user can click to load component in view mode', depends: {kind: 'external'}},
@@ -412,7 +412,7 @@ export default {
             buttonStrokeColor     : {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Button stroke color', depends: {showButton: true, kind: 'external'}},
             buttonHoverFill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(14,195,255,0.45)'}, name: 'Hovered button Fill', depends: {showButton: true, kind: 'external'}},
             buttonHoverStrokeColor: {type: 'color', value: 'rgba(24,127,191,0.9)', name: 'Hovered button stroke color', depends: {showButton: true, kind: 'external'}},
-            buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true, kind: 'external'}},
+            buttonStrokeSize      : {type: 'number', value: 2, name: 'Button stroke size', depends: {showButton: true, kind: 'external'}, min: 0, softMax: 100},
             buttonCornerRadius    : {type: 'number', value: 0, name: 'Button Corner radius', min: 0, depends: {showButton: true, kind: 'external'}},
             buttonWidth           : {type: 'number', value: 180, name: 'Button width', depends: {showButton: true, kind: 'external'}},
             buttonHeight          : {type: 'number', value: 40, name: 'Button height', depends: {showButton: true, kind: 'external'}},

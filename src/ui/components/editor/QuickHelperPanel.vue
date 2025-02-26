@@ -203,7 +203,7 @@
             <div v-if="mode === 'edit' && itemSurround.shown" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <NumberTextfield :value="itemSurround.padding" name="Padding" @changed="onItemSurroundPaddingChanged"/>
+                        <NumberTextfield class="quick-helper-number-textfield" :value="itemSurround.padding" name="Padding" @changed="onItemSurroundPaddingChanged"/>
                     </li>
                 </ul>
             </div>

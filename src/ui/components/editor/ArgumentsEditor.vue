@@ -50,6 +50,9 @@
                                         :value="argumentValues[argName]"
                                         :min="arg.min"
                                         :max="arg.max"
+                                        :softMax="arg.softMax"
+                                        :slider="arg.min !== null && (arg.max !== null || arg.softMax !== null)"
+                                        :step="arg.step ? arg.step : 1"
                                         :disabled="!argumentControlStates[argName].shown"
                                         @changed="onValueChange(argName, $event)"/>
 

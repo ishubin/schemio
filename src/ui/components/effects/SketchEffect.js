@@ -6,8 +6,8 @@ export default {
     name: 'Sketch',
     supportsCascade: true,
     args: {
-        wave   : {type: 'number', value: 18, name: 'Wave', min: 0},
-        scale  : {type: 'number', value: 120, name: 'Scale'},
+        wave   : {type: 'number', value: 18, name: 'Wave', min: 0, softMax: 100},
+        scale  : {type: 'number', value: 120, name: 'Scale', min: 0, softMax: 500},
     },
 
     applyEffect(item, effectIdx, effectArgs) {

@@ -12,7 +12,7 @@
             </div>
             <div class="stroke-control-other-controls">
                 <div>
-                    <NumberTextfield v-if="supportsStrokeSize" name="Size" :value="strokeSize" @changed="onStrokeSizeChange(arguments[0])" :min="0"/>
+                    <NumberTextfield v-if="supportsStrokeSize" :value="strokeSize" @changed="onStrokeSizeChange(arguments[0])" :min="0" :softMax="100" :slider="true"/>
                 </div>
                 <div class="stroke-control-patterns" v-if="supportsStrokePattern">
                     <div v-for="knownPattern in strokePatterns"

@@ -45,6 +45,11 @@ function computeNPolyWithRoundingCorners(segmentPoints, rounding) {
 
         const d1_2 = myMath.distanceBetweenPoints(p1.x, p1.y, p2.x, p2.y);
         const d2_3 = myMath.distanceBetweenPoints(p2.x, p2.y, p3.x, p3.y);
+
+        // this fallback is needed to avoid errors when user starts drawing npoly shape and the width or height are 0
+        if (myMath.tooSmall(d1_2) || myMath.tooSmall(d2_3)) {
+            return computeNPolyWithSharpCorners(segmentPoints);
+        };
         const n1x = (p1.x - p2.x) / d1_2;
         const n1y = (p1.y - p2.y) / d1_2;
         const n2x = (p3.x - p2.x) / d2_3;
@@ -138,8 +143,8 @@ export default {
         },
 
         args: {
-            corners: {type: 'number', value: 6, name: 'Corners'},
-            angle  : {type: 'number', value: 0, name: 'Angle'},
+            corners: {type: 'number', value: 6, name: 'Corners', min: 3, softMax: 20},
+            angle  : {type: 'number', value: 0, name: 'Angle', min: -360, max: 360},
             rounding: {type: 'number', value: 0, name: 'Rounding (%)', min: 0, max: 100},
         },
 

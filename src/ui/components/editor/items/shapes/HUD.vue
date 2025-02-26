@@ -63,7 +63,7 @@ export default {
 
         args: {
             strokeColor       : {name: 'Stroke', type: 'color', value: '#32D143'},
-            strokeSize        : {name: 'Stroke Size', type: 'number', value: 2},
+            strokeSize        : {name: 'Stroke Size', type: 'number', value: 2, min: 0, softMax: 100},
             strokePattern     : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
             horizontalPosition: {type: 'choice', value: 'left', options: ['left', 'right', 'center'], name: 'Horizontal Position'},
             verticalPosition  : {type: 'choice', value: 'top', options: ['top', 'bottom', 'center'], name: 'Vertical Position'},

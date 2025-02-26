@@ -83,7 +83,7 @@ const defaultEditorProps = {
 const standardShapeProps = {
     fill         : {name: 'Fill', type: 'advanced-color'},
     strokeColor  : {name: 'Stroke', type: 'color'},
-    strokeSize   : {name: 'Stroke Size', type: 'number'},
+    strokeSize   : {name: 'Stroke Size', type: 'number', min: 0, softMax: 100},
     strokePattern: {name: 'Stroke Pattern', type: 'stroke-pattern'}
 };
 

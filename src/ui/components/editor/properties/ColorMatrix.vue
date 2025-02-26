@@ -13,40 +13,28 @@
             <div class="color-component-field">
                 <span class="label">{{currentComponent}} to red</span>
                 <div>
-                    <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="red" class="slider" @input="onSliderChange('red', arguments[0].target.value)"/>
-                        <input type="text" :value="redText" class="slider-text" @input="onSliderTextChange('red', arguments[0].target.value)"/>
-                    </div>
+                    <NumberTextfield :min="-200" :max="200" :slider="true" :value="red" @changed="onRedChange"/>
                 </div>
             </div>
 
             <div class="color-component-field">
                 <span class="label">{{currentComponent}} to green</span>
                 <div>
-                    <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="green" class="slider" @input="onSliderChange('green', arguments[0].target.value)"/>
-                        <input type="text" :value="greenText" class="slider-text" @input="onSliderTextChange('green', arguments[0].target.value)"/>
-                    </div>
+                    <NumberTextfield :min="-200" :max="200" :slider="true" :value="green" @changed="onGreenChange"/>
                 </div>
             </div>
 
             <div class="color-component-field">
                 <span class="label">{{currentComponent}} to blue</span>
                 <div>
-                    <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="blue" class="slider" @input="onSliderChange('blue', arguments[0].target.value)"/>
-                        <input type="text" :value="blueText" class="slider-text" @input="onSliderTextChange('blue', arguments[0].target.value)"/>
-                    </div>
+                    <NumberTextfield :min="-200" :max="200" :slider="true" :value="blue" @changed="onBlueChange"/>
                 </div>
             </div>
 
             <div class="color-component-field">
                 <span class="label">{{currentComponent}} to alpha</span>
                 <div>
-                    <div class="slider-container">
-                        <input type="range" min="-200" max="200" v-model="alpha" class="slider" @input="onSliderChange('alpha', arguments[0].target.value)"/>
-                        <input type="text" :value="alphaText" class="slider-text" @input="onSliderTextChange('alpha', arguments[0].target.value)"/>
-                    </div>
+                    <NumberTextfield :min="-200" :max="200" :slider="true" :value="alpha" @changed="onAlphaChange"/>
                 </div>
             </div>
         </div>
@@ -54,8 +42,8 @@
 </template>
 
 <script>
-import myMath from '../../../myMath';
 import utils from '../../../utils';
+import NumberTextfield from '../../NumberTextfield.vue';
 
 const componentToIndex = {
     red: 0,
@@ -67,7 +55,7 @@ const componentToIndex = {
 export default {
     props: ['matrix'],
 
-    components: {},
+    components: {NumberTextfield},
 
     data() {
         return {
@@ -78,11 +66,6 @@ export default {
             green: this.matrix[0][1] * 100,
             blue: this.matrix[0][2] * 100,
             alpha: this.matrix[0][3] * 100,
-
-            redText: this.matrix[0][0],
-            greenText: this.matrix[0][1],
-            blueText: this.matrix[0][2],
-            alphaText: this.matrix[0][3],
         };
     },
 
@@ -94,52 +77,27 @@ export default {
             this.blue = this.matrix[i][2] * 100;
             this.alpha = this.matrix[i][3] * 100;
 
-            this.redText = this.red / 100;
-            this.greenText = this.green / 100;
-            this.blueText = this.blue / 100;
-            this.alphaText = this.alpha / 100;
             this.$forceUpdate();
         },
 
+        onRedChange(value) {
+            this.red = value;
+        },
+        onGreenChange(value) {
+            this.green = value;
+        },
+        onBlueChange(value) {
+            this.blue = value;
+        },
+        onAlphaChange(value) {
+            this.alpha = value;
+        },
         onValueChange(id, value) {
             const i = componentToIndex[this.currentComponent];
             const matrix = utils.clone(this.matrix);
             matrix[i][id] = value / 100;
             this.$emit('changed', matrix);
         },
-
-        onSliderTextChange(colorComponent, text) {
-            let number = parseFloat(text);
-            if (isNaN(number)) {
-                number = 0;
-            }
-            const value = myMath.clamp(number, -2, 2);
-            if (colorComponent === 'red') {
-                this.red = value * 100;
-                this.redText = text;
-            } else if (colorComponent === 'green') {
-                this.green = value * 100;
-                this.greenText = text;
-            } else if (colorComponent === 'blue') {
-                this.blue = value * 100;
-                this.blueText = text;
-            } else if (colorComponent === 'alpha') {
-                this.alpha = value * 100;
-                this.alphaText = text;
-            }
-        },
-
-        onSliderChange(colorComponent, value) {
-            if (colorComponent === 'red') {
-                this.redText = value / 100;
-            } else if (colorComponent === 'green') {
-                this.greenText = value / 100;
-            } else if (colorComponent === 'blue') {
-                this.blueText = value / 100;
-            } else if (colorComponent === 'alpha') {
-                this.alphaText = value / 100;
-            }
-        }
     },
 
     watch: {

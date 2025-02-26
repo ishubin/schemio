@@ -50,12 +50,12 @@ export default {
         },
 
         args: {
-            gridCols   : {type: 'number', value: 10, min: 1, name: 'Columns'},
-            gridRows   : {type: 'number', value: 10, min: 1, name: 'Rows'},
+            gridCols   : {type: 'number', value: 10, min: 1, name: 'Columns', softMax: 100},
+            gridRows   : {type: 'number', value: 10, min: 1, name: 'Rows', softMax: 100},
             fill       : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255, 255, 255, 1.0)'}, name: 'Fill'},
             edges      : {type: 'boolean', value: true, name: 'Edges'},
             strokeColor: {type: 'color', value: 'rgba(230, 230, 230, 1.0)', name: 'Stroke'},
-            strokeSize : {type: 'number', value: 1, name: 'Stroke size'},
+            strokeSize : {type: 'number', value: 1, name: 'Stroke size', min: 0, softMax: 100},
         }
     },
 

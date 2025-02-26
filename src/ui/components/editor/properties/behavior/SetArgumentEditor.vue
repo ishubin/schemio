@@ -9,7 +9,7 @@
                     <input v-if="argumentType === 'string'  || argumentType === 'image'"
                         style="width: 100px" :value="argumentValue" @input="onInputValue"/>
 
-                    <number-textfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
+                    <NumberTextfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
 
                     <color-picker :editorId="editorId" v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
 
@@ -58,7 +58,7 @@
                         <tr>
                             <td class="label" width="50%">Duration</td>
                             <td class="value" width="50%">
-                                <number-textfield :disabled="!args.animated" :min="0" :value="args.animationDuration" @changed="onPropertyChange('animationDuration', arguments[0])"/>
+                                <NumberTextfield :disabled="!args.animated" :min="0" :value="args.animationDuration" @changed="onPropertyChange('animationDuration', arguments[0])"/>
                             </td>
                         </tr>
                         <tr>

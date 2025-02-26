@@ -802,8 +802,8 @@ export default {
             rows: {type: 'number', value: 3, name: 'Rows', min: minCells, max: maxCells, onUpdate: onRowsNumberUpdate },
             fill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(245, 245, 245, 1.0)'}, name: 'Fill'},
             stroke: {type: 'color', value: 'rgba(145, 178, 196, 1.0)', name: 'Stroke', depends: {tableStyle: 'simple'}},
-            strokeSize: {type: 'number', value: 1, name: 'Stroke size', depends: {tableStyle: 'simple'}},
-            cellPadding: {type: 'number', value: 2, name: 'Cell padding', depends: {tableStyle: 'flat'}},
+            strokeSize: {type: 'number', value: 1, name: 'Stroke size', min: 0, softMax: 100, depends: {tableStyle: 'simple'}},
+            cellPadding: {type: 'number', value: 2, name: 'Cell padding', min: 0, softMax: 100, depends: {tableStyle: 'flat'}},
 
             header: {type: 'choice', value: 'columns', options: ['none', 'columns', 'columns-single', 'rows', 'rows-single', 'both'], name: 'Header fill override'},
             headerFill: {type: 'advanced-color', value: {type: 'solid', color: 'rgba(168, 193, 219, 1.0)'}, name: 'Header fill'},

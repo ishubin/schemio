@@ -7,7 +7,16 @@
 
         <input v-if="descriptor.type === 'image'" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
 
-        <NumberTextfield v-if="descriptor.type === 'number'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" :min="minValue" :max="maxValue"/>
+        <NumberTextfield v-if="descriptor.type === 'number'"
+            :value="value"
+            :disabled="disabled"
+            :min="minValue"
+            :max="maxValue"
+            :softMax="softMaxValue"
+            :slider="minValue !== null && (maxValue !== null || softMaxValue !== null)"
+            :step="stepValue"
+            @changed="emitValue(arguments[0])"
+            />
 
         <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue(arguments[0])"/>
 
@@ -91,6 +100,13 @@ export default {
     },
 
     computed: {
+        stepValue() {
+            if (this.descriptor.hasOwnProperty('step')) {
+                return this.descriptor.step;
+            }
+            return 1;
+        },
+
         minValue() {
             if (this.descriptor.hasOwnProperty('min')) {
                 return this.descriptor.min;
@@ -101,6 +117,13 @@ export default {
         maxValue() {
             if (this.descriptor.hasOwnProperty('max')) {
                 return this.descriptor.max;
+            }
+            return null;
+        },
+
+        softMaxValue() {
+            if (this.descriptor.hasOwnProperty('softMax')) {
+                return this.descriptor.softMax;
             }
             return null;
         },

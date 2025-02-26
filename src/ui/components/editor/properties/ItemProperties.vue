@@ -70,13 +70,13 @@
                         <tr>
                             <td class="label" width="50%">Opacity</td>
                             <td class="value" width="50%">
-                                <NumberTextfield :value="item.opacity" @changed="emitItemFieldChange('opacity', arguments[0])" :min="0" :max="100"/>
+                                <NumberTextfield :value="item.opacity" @changed="emitItemFieldChange('opacity', arguments[0])" :min="0" :max="100" :slider="true"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Self Opacity</td>
                             <td class="value" width="50%">
-                                <NumberTextfield :value="item.selfOpacity" @changed="emitItemFieldChange('selfOpacity', arguments[0])" :min="0" :max="100"/>
+                                <NumberTextfield :value="item.selfOpacity" @changed="emitItemFieldChange('selfOpacity', arguments[0])" :min="0" :max="100" :slider="true"/>
                             </td>
                         </tr>
                         <tr>

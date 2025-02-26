@@ -21,7 +21,7 @@ const effects = {
         name: 'Blur',
         supportsCascade: true,
         args: {
-            size: {type: 'number', value: 5, name: 'Size'},
+            size: {type: 'number', value: 5, name: 'Size', min: 0, softMax: 100},
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
@@ -52,7 +52,7 @@ const effects = {
         name: 'Brightness',
         supportsCascade: true,
         args: {
-            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0, softMax: 500}
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
@@ -66,7 +66,7 @@ const effects = {
         name: 'Contrast',
         supportsCascade: true,
         args: {
-            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0, softMax: 500}
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
@@ -80,7 +80,7 @@ const effects = {
         name: 'Hue rotate',
         supportsCascade: true,
         args: {
-            degree: {type: 'number', name: 'Degrees', value: 0, min: 0}
+            degree: {type: 'number', name: 'Degrees', value: 0, min: 0, softMax: 360}
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
@@ -94,7 +94,7 @@ const effects = {
         name: 'Grayscale',
         supportsCascade: true,
         args: {
-            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0, softMax: 100}
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
@@ -108,7 +108,7 @@ const effects = {
         name: 'Saturate',
         supportsCascade: true,
         args: {
-            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0, softMax: 500}
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {
@@ -122,7 +122,7 @@ const effects = {
         supportsCascade: true,
         name: 'Sepia',
         args: {
-            level: {type: 'number', name: 'Level (%)', value: 100, min: 0}
+            level: {type: 'number', name: 'Level (%)', value: 100, min: 0, softMax: 500}
         },
         applyEffect(item, effectIdx, effectArgs) {
             return {

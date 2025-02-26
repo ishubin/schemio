@@ -65,7 +65,7 @@
                     <tr>
                         <td class="label" width="50%">Font Size</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.fontSize" @changed="emitTextSlotPropertyChange('fontSize', arguments[0])" :min="0"/>
+                            <NumberTextfield :value="textSlot.fontSize" @changed="emitTextSlotPropertyChange('fontSize', arguments[0])" :min="0" :softMax="100" :slider="true"/>
                         </td>
                     </tr>
                     <tr>
@@ -99,25 +99,25 @@
                     <tr>
                         <td class="label" width="50%">Padding Left</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingLeft" @changed="emitTextSlotPropertyChange('paddingLeft', arguments[0])"/>
+                            <NumberTextfield :value="textSlot.paddingLeft" @changed="emitTextSlotPropertyChange('paddingLeft', arguments[0])" :min="0" :softMax="100" :slider="true"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Right</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingRight" @changed="emitTextSlotPropertyChange('paddingRight', arguments[0])"/>
+                            <NumberTextfield :value="textSlot.paddingRight" @changed="emitTextSlotPropertyChange('paddingRight', arguments[0])" :min="0" :softMax="100" :slider="true"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Top</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingTop" @changed="emitTextSlotPropertyChange('paddingTop', arguments[0])"/>
+                            <NumberTextfield :value="textSlot.paddingTop" @changed="emitTextSlotPropertyChange('paddingTop', arguments[0])" :min="0" :softMax="100" :slider="true"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Padding Bottom</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.paddingBottom" @changed="emitTextSlotPropertyChange('paddingBottom', arguments[0])"/>
+                            <NumberTextfield :value="textSlot.paddingBottom" @changed="emitTextSlotPropertyChange('paddingBottom', arguments[0])" :min="0" :softMax="100" :slider="true"/>
                         </td>
                     </tr>
                     <tr>
@@ -131,13 +131,13 @@
                     <tr>
                         <td class="label" width="50%">Letter spacing</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.letterSpacing" @changed="emitTextSlotPropertyChange('letterSpacing', arguments[0])"/>
+                            <NumberTextfield :value="textSlot.letterSpacing" @changed="emitTextSlotPropertyChange('letterSpacing', arguments[0])" :min="0" :softMax="100" :slider="true"/>
                         </td>
                     </tr>
                     <tr>
                         <td class="label" width="50%">Line height</td>
                         <td class="value" width="50%">
-                            <number-textfield :value="textSlot.lineHeight" @changed="emitTextSlotPropertyChange('lineHeight', arguments[0])"/>
+                            <NumberTextfield :value="textSlot.lineHeight" :step="0.1" @changed="emitTextSlotPropertyChange('lineHeight', arguments[0])" :min="0" :softMax="10" :slider="true"/>
                         </td>
                     </tr>
                     <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot && !textSlotTabsDisabled">

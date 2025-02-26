@@ -2,15 +2,19 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="number-textfield-container" :class="{disabled: disabled}">
+    <div class="number-textfield-container" :class="{disabled: disabled, 'slider-textfield': isSlider}">
         <div v-if="name" class="label" ref="label" @click="onLabelClicked">{{name}}</div>
         <div v-if="!name && icon" class="label" ref="icon"><i :class="icon"></i></div>
         <div class="wrapper">
-            <input ref="textfield" type="text" v-model="text" @keydown="delaySubmit" @keydown.enter="submitEvent" :disabled="disabled"/>
+            <input v-if="isSlider" class="slider" type="range" v-model="sliderValue" @input="onSliderInput" :min="min" :max="sliderMax" :disabled="disabled" :step="step"/>
 
-            <div class="step-controls">
-                <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
-                <span class="step step-down" @click="onStepClicked(-1)" @mousedown="onMouseDownDecrement"><i class="fas fa-caret-down"></i></span>
+            <div class="input-wrapper">
+                <input ref="textfield" type="text" v-model="text" @keydown="delaySubmit" @keydown.enter="submitEvent" :disabled="disabled"/>
+
+                <div class="step-controls">
+                    <span class="step step-up" @click="onStepClicked(1)" @mousedown="onMouseDownIncrement"><i class="fas fa-caret-up"></i></span>
+                    <span class="step step-down" @click="onStepClicked(-1)" @mousedown="onMouseDownDecrement"><i class="fas fa-caret-down"></i></span>
+                </div>
             </div>
         </div>
     </div>
@@ -39,9 +43,12 @@ export default {
         format               : {type: String, default: 'float'},
         name                 : {type: String, default: null},
         icon                 : {type: String, default: null},
+        slider               : {type: Boolean, default: false},
         min                  : {type: Number, default: null},
         max                  : {type: Number, default: null},
+        softMax              : {type: Number, default: null},
         disabled             : {type: Boolean, default: false},
+        step                 : {type: Number, default: 1},
         incrementSpeed       : {type: Number, default: 1},
         incrementMaxSpeed    : {type: Number, default: 50},
         incrementAcceleration: {type: Number, default: 0.15}
@@ -54,10 +61,12 @@ export default {
     data() {
         return {
             text: numberToText(this.value),
-            number: this.value,
+            number: parseFloat(this.value),
             updateDelayer: createDelayer(100, () => {
                 this.submitEvent();
             }),
+
+            sliderValue: parseFloat(this.value),
 
             autoIncrementDelayTimeoutId: -1,
             autoIncrementDirection: 1,
@@ -71,6 +80,16 @@ export default {
     },
 
     methods: {
+        onSliderInput(event) {
+            this.number = this.enforceLimits(this.textToNumber(event.target.value));
+            this.emitChange();
+            this.text = '' + this.number;
+        },
+
+        emitChange() {
+            this.$emit('changed', this.number);
+        },
+
         onLabelClicked() {
             this.$refs.textfield.focus();
         },
@@ -106,20 +125,24 @@ export default {
 
         submitEvent() {
             this.number = this.enforceLimits(this.textToNumber(this.text));
-            this.$emit('changed', this.number);
+            this.sliderValue = this.number;
+            this.emitChange();
         },
 
-        onStepClicked(factor) {
+        onStepClicked(direction) {
             if (this.disabled) {
                 return;
             }
 
             let value = this.textToNumber(this.text);
-            value = value + factor;
+            const step = Math.max(0.00001, this.step);
+            value = value + step * direction;
+            const preciseDigits = Math.max(0, Math.ceil(Math.log10(1/step)))
+            value = parseFloat(value.toFixed(preciseDigits));
 
             this.number = this.enforceLimits(value);
-
-            this.$emit('changed', this.number);
+            this.sliderValue = this.number;
+            this.emitChange();
             this.text = '' + this.number;
         },
 
@@ -177,10 +200,17 @@ export default {
             this.autoIncrementSpeed = this.incrementSpeed;
             this.number = this.textToNumber(this.text);
 
+            const step = Math.max(0.00001, this.step);
+
             this.autoIncrementIntervalId = setInterval(() => {
-                this.number = this.enforceLimits(this.number + this.autoIncrementDirection * Math.floor(this.autoIncrementSpeed));
+                let value = this.enforceLimits(this.number + step * this.autoIncrementDirection * Math.floor(this.autoIncrementSpeed));
+                const preciseDigits = Math.max(0, Math.ceil(Math.log10(1/step)))
+                value = parseFloat(value.toFixed(preciseDigits));
+                this.number = value;
+
                 this.text = '' + this.number;
-                this.$emit('changed', this.number);
+                this.sliderValue = this.number;
+                this.emitChange();
 
                 if (this.autoIncrementSpeed < this.autoIncrementMaxSpeed) {
                     this.autoIncrementSpeed += this.autoIncrementAcceleration;
@@ -189,10 +219,25 @@ export default {
         }
     },
 
+    computed: {
+        isSlider() {
+            return this.slider&& this.min !== null && (this.max !== null || this.softMax !== null);
+        },
+
+        sliderMax() {
+            if (this.max !== null) {
+                return this.max;
+            } else {
+                return this.softMax;
+            }
+        }
+    },
+
     watch: {
         value(newValue) {
             this.text = numberToText(newValue);
-        }
+            this.sliderValue = newValue;
+        },
     }
 }
 </script>

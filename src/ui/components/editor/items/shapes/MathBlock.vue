@@ -51,7 +51,7 @@ export default {
         .then(html => {
             this.expressionHTML = html;
             itemCache.set(this.item.id, html);
-        });
+        })
     },
 
     data() {
@@ -102,7 +102,7 @@ export default {
         args: {
             expression : {type: 'string', value: '', name: 'Expression'},
             color: {type: 'color', value: 'rgba(0,0,0,1.0)', name: 'Color'},
-            fontSize: {type: 'number', value: 15, name: 'Font size', min: 1},
+            fontSize: {type: 'number', value: 15, name: 'Font size', min: 1, softMax: 100},
             halign: {type: 'choice', value: 'center', options: ['left', 'center', 'right'], name: 'Horizontal Align'},
             valign: {type: 'choice', value: 'middle', options: ['top', 'middle', 'bottom'], name: 'Vertical Align'},
         },

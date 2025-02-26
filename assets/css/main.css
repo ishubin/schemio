@@ -886,16 +886,27 @@ input.textfield.field-error {
     height: 26px;
     padding: 0;
     overflow: hidden;
-    background: var(--base-weak);
-    border: 1px solid var(--faint-strong);
-    border-radius: var(--control-border-radius);
 }
 .number-textfield-container .wrapper {
     display: flex;
     flex-direction: row;
     height: 100%;
+    align-items: center;
 }
-.number-textfield-container input {
+.number-textfield-container .input-wrapper {
+    display: flex;
+    flex: 1;
+    height: 100%;
+    background: var(--base-weak);
+    border: 1px solid var(--faint-strong);
+    border-radius: var(--control-border-radius);
+}
+
+.number-textfield-container.slider-textfield .input-wrapper {
+    min-width: 50px;
+    max-width: 100px;
+}
+.number-textfield-container input[type="text"] {
     flex: 1;
     margin: 0;
     display: block;
@@ -966,6 +977,9 @@ input.textfield.field-error {
 .number-textfield-container .step-controls .step i {
     margin: 0 2px 2px 2px;
     padding: 0;
+}
+.number-textfield-container input[type="range"] {
+    flex: 4;
 }
 
 /********************** Control Labels & Groups ******************/
@@ -1180,14 +1194,14 @@ ul.pagination li a.current {
     opacity: 0.7;
 }
 
-.quick-helper-panel .number-textfield-container {
+.quick-helper-panel .number-textfield-container.quick-helper-number-textfield {
     height: 24px;
     max-width: 120px;
 }
-.quick-helper-panel .number-textfield-container .label {
+.quick-helper-panel .number-textfield-container.quick-helper-number-textfield .label {
     font-size: 12px;
 }
-.quick-helper-panel .number-textfield-container .text {
+.quick-helper-panel .number-textfield-container.quick-helper-number-textfield .text {
     font-size: 13px;
 }
 
@@ -3751,6 +3765,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     padding-left: 5px;
     flex-direction: column;
     height: 100%;
+    gap: 5px;
 }
 .stroke-control .stroke-control-dropdown .stroke-control-other-controls .stroke-control-patterns {
     flex: 1;
@@ -4523,10 +4538,6 @@ ul.patch-field-list {
 
 /************** Range slider ********************/
 
-.slider-container {
-    display: flex;
-    align-items: center;
-}
 .slider {
     -webkit-appearance: none;
     appearance: none;
@@ -4546,7 +4557,7 @@ ul.patch-field-list {
     height: 15px;
     background: var(--faint-weak-down);
     border: 1px solid var(--faint-strong);
-    border-radius: 2px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
@@ -4555,12 +4566,8 @@ ul.patch-field-list {
     height: 15px;
     background: var(--faint-weak-down);
     border: 1px solid var(--faint-strong);
-    border-radius: 2px;
+    border-radius: 10px;
     cursor: pointer;
-}
-
-.slider-container .slider-text {
-    width: 60px;
 }
 
 

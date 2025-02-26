@@ -12,9 +12,9 @@ export default {
     description: 'Changes width of an item',
 
     args: {
-        width           : {name: 'Width',             type: 'number', value: 50},
+        width           : {name: 'Width',             type: 'number', value: 50, min: 0, softMax: 100},
         animated        : {name: 'Animated',          type: 'boolean',value: false},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 1.0, depends: {animated: true}},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 1.0, depends: {animated: true}, min: 0, softMax: 10, step: 0.1},
         animationType   : {name: 'Animation Type',    type: 'choice', value: 'linear', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions', depends: {animated: true}}
     },

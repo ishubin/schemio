@@ -99,9 +99,9 @@ export default {
     description: 'Moves item in a chaotic manner around its original location',
 
     args: {
-        radius          : {name: 'Moving Radius',     type: 'number', value: 20, description: 'Radius within which it will perform random movements'},
-        speed           : {name: 'Moving Speed',      type: 'number', value: 1.0, description: 'Speed of each random movements'},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0},
+        radius          : {name: 'Moving Radius',     type: 'number', value: 20, description: 'Radius within which it will perform random movements', min: 0, softMax: 100},
+        speed           : {name: 'Moving Speed',      type: 'number', value: 1.0, description: 'Speed of each random movements', min: 0, softMax: 100},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, min: 0, softMax: 10, step: 0.1},
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },
 

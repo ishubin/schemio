@@ -144,11 +144,11 @@ export default {
     args: {
         fade            : {name: 'Fade in/out',       type: 'boolean', value: true },
         color           : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)', depends: {fade: false}},
-        speed           : {name: 'Speed',             type: 'number', value: 50},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {infinite: false}},
+        speed           : {name: 'Speed',             type: 'number', value: 50, min: 0, softMax: 100},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {infinite: false}, min:0, softMax: 10, step: 0.1},
         infinite        : {name: 'Infinite animation',type: 'boolean', value: false, description: 'Plays animation indefinitely'},
-        minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5},
-        maxOpacity      : {name: 'Max Opacity (%)',   type: 'number', value: 80},
+        minOpacity      : {name: 'Min Opacity (%)',   type: 'number', value: 5, min: 0, max: 100},
+        maxOpacity      : {name: 'Max Opacity (%)',   type: 'number', value: 80, min: 0, max: 100},
         inBackground    : {name: 'In Background',     type: 'boolean', value: false, description: 'Play animation in background without blocking invocation of other acctions'}
     },
 

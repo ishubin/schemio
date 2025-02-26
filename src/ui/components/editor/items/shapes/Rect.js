@@ -164,7 +164,7 @@ export default {
         },
 
         args: {
-            cornerRadius: {type: 'number', value: 0, name: 'Corner radius', min: 0},
+            cornerRadius: {type: 'number', value: 0, name: 'Corner radius', min: 0, softMax: 100},
         }
     }
 };

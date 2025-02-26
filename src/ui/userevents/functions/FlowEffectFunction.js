@@ -46,8 +46,8 @@ export default {
     description: 'Animates displacement of a stroke and simulates a flow animation',
 
     args: {
-        speed         : {name: 'Speed',             type: 'number', value: 30, description: 'Use negative value if you want the animation to be performed backwards'},
-        duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {infinite: false}},
+        speed         : {name: 'Speed',             type: 'number', value: 30, description: 'Use negative value if you want the animation to be performed backwards', min: 0, softMax: 100},
+        duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {infinite: false}, min:0, softMax: 10, step: 0.1},
         infinite      : {name: 'Infinite animation',type: 'boolean', value: false, description: 'Plays animation indefinitely'},
         inBackground  : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions'}
     },

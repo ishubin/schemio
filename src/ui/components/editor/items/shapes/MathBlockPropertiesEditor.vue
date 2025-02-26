@@ -14,7 +14,7 @@
             <tbody>
                 <tr>
                     <td class="label" width="50%">
-                        Font size
+                        Color
                     </td>
                     <td class="value" width="50%">
                         <ColorPicker :editorId="editorId" :color="item.shapeProps.color" @input="onColorUpdate"/>
@@ -25,7 +25,7 @@
                         Font size
                     </td>
                     <td class="value" width="50%">
-                        <NumberTextfield :value="fontSize" @changed="onFontSizeUpdate(arguments[0])" :min="1"/>
+                        <NumberTextfield :value="fontSize" @changed="onFontSizeUpdate" :min="1" :softMax="100" :slider="true"/>
                     </td>
                 </tr>
                 <tr>

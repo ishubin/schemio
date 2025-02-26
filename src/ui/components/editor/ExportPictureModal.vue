@@ -13,18 +13,18 @@
             <div class="col-1">
                 <div v-if="simplePadding" class="row padded centered gap">
                     <i @click="simplePadding=false" class="fa-solid fa-border-none" style="cursor:pointer" title="Advanced padding"></i>
-                    <number-textfield :value="padding" name="Padding" @changed="padding = arguments[0]" style="max-width: 150px;"/>
+                    <NumberTextfield :value="padding" name="Padding" @changed="padding = arguments[0]" style="max-width: 150px;"/>
                 </div>
                 <div v-else class="row centered gap">
                     <i @click="simplePadding=true" class="fa-solid fa-border-all" style="cursor:pointer" title="Simple padding"></i>
                     <div class="col-1">
                         <div class="row padded centered gap">
-                            <number-textfield :value="paddingLeft" name="Left" @changed="paddingLeft = arguments[0]"/>
-                            <number-textfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
+                            <NumberTextfield :value="paddingLeft" name="Left" @changed="paddingLeft = arguments[0]"/>
+                            <NumberTextfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
                         </div>
                         <div class="row padded centered gap">
-                            <number-textfield :value="paddingRight" name="Right" @changed="paddingRight = arguments[0]"/>
-                            <number-textfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = arguments[0]"/>
+                            <NumberTextfield :value="paddingRight" name="Right" @changed="paddingRight = arguments[0]"/>
+                            <NumberTextfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = arguments[0]"/>
                         </div>
                     </div>
                 </div>
@@ -32,7 +32,7 @@
             <div class="col-1">
                 <div class="row padded centered gap">
                     <div class="col-1">
-                        <number-textfield :value="rasterWidth" name="Width" @changed="onWidthChange"/>
+                        <NumberTextfield :value="rasterWidth" name="Width" @changed="onWidthChange"/>
                     </div>
                     <div>
                         <span class="toggle-button small" :class="{toggled: sizeLocked}" @click="toggleSizeLock">
@@ -40,7 +40,7 @@
                         </span>
                     </div>
                     <div class="col-1">
-                        <number-textfield :value="rasterHeight" name="Height" @changed="onHeightChange"/>
+                        <NumberTextfield :value="rasterHeight" name="Height" @changed="onHeightChange"/>
                     </div>
                 </div>
                 <div class="row padded centered gap">

@@ -140,10 +140,10 @@ export default {
             options: ['center', 'pivot', 'top-left', 'top-right', 'bottom-left', 'bottom-right']
         },
         animated        : {name: 'Animated',          type: 'boolean',value: false},
-        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animated: true}},
+        duration        : {name: 'Duration (sec)',    type: 'number', value: 2.0, depends: {animated: true}, min: 0, softMax: 10, step: 0.1},
         movement        : {name: 'Movement',          type: 'choice', value: 'ease-in-out', options: ['linear', 'smooth', 'ease-in', 'ease-out', 'ease-in-out', 'bounce'], depends: {animated: true}},
         rotate          : {name: 'Rotate',            type: 'boolean',value: false, description: 'Align rotation of items'},
-        rotationOffset  : {name: 'Rotation Offset',   type: 'number', value: 0.0, depends: {rotate: true}, description: 'Rotation angle offset'},
+        rotationOffset  : {name: 'Rotation Offset',   type: 'number', value: 0.0, depends: {rotate: true}, description: 'Rotation angle offset', min: -360, max: 360},
         alignWidth      : {name: 'Align Width',       type: 'boolean',value: false, description: 'Adjust items width so that it fits to the width of its destination item'},
         alignHeight     : {name: 'Align Height',      type: 'boolean',value: false, description: 'Adjust items height so that it fits to the height of its destination item'},
         inBackground    : {name: 'In Background',     type: 'boolean',value: false, description: 'Play animation in background without blocking invocation of other actions', depends: {animated: true}}

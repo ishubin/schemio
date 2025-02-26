@@ -160,8 +160,8 @@ export default {
             description: 'Allows to override the stroke of the item and use custom color and stroke size'
         },
         color         : {name: 'Color',             type: 'color',  value: 'rgba(255,0,0,1.0)', depends: {customStroke: true}},
-        strokeSize    : {name: 'Stroke size',       type: 'number',  value: 2, depends: {customStroke: true}},
-        duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0},
+        strokeSize    : {name: 'Stroke size',       type: 'number',  value: 2, depends: {customStroke: true}, min:0, softMax: 100},
+        duration      : {name: 'Duration (sec)',    type: 'number', value: 2.0, min:0, softMax: 10, step: 0.1},
         twoWay        : {name: 'Two way',           type: 'boolean', value: false},
         revealItem    : {name: 'Reveal item',       type: 'boolean', value: true,
             description: 'If item was hidden it will slowly reveal it while drawing its outline. Only works if the item was hidden before calling this function'

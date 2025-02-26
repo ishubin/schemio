@@ -30,7 +30,7 @@ export default {
         includeStandardArgs: true,
         args: {
             spikes: {type: "number", value: 8, min: 3, max: 100, name: "Spikes"},
-            spikeHeight: {type: "number", value: 0.5, min: 0, max: 1, name: "Spike height"}
+            spikeHeight: {type: "number", value: 0.5, min: 0, max: 1, step: 0.01, name: "Spike height"}
         },
         primitives: [{
             type: "path",

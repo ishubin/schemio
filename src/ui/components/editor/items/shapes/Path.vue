@@ -331,7 +331,7 @@ export default {
         args: {
             fill              : {type: 'advanced-color',value: {type: 'none'}, name: 'Fill'},
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-            strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
+            strokeSize        : {type: 'number',        value: 2, name: 'Stroke size', min: 0, softMax: 100},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             paths             : {type: 'path-array',   value: [], name: 'Paths', hidden: true},
         },

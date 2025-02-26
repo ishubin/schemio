@@ -206,9 +206,9 @@ export default {
             lang        : {type: 'choice', value: 'JavaScript', options: allLanguages, name: 'Language', onUpdate: onLangUpdate},
             fill        : {type: 'advanced-color', value: {type: 'solid', color: darkBackground}, name: 'Fill'},
             strokeColor : {type: 'color', value: 'rgba(80, 80, 80, 1.0)', name: 'Stroke color'},
-            strokeSize  : {type: 'number', value: 1, name: 'Stroke size'},
-            cornerRadius: {type: 'number', value: 4, name: 'Corner radius', min: 0},
-            headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0},
+            strokeSize  : {type: 'number', value: 1, name: 'Stroke size', min: 0, softMax: 100},
+            cornerRadius: {type: 'number', value: 4, name: 'Corner radius', min: 0, softMax: 100},
+            headerHeight: {type: 'number', value: 30, name: 'Header hight', min: 0, softMax: 100},
         },
 
         /**

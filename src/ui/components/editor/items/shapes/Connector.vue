@@ -1148,16 +1148,16 @@ export default {
 
         args: {
             strokeColor       : {type: 'color',         value: 'rgba(30,30,30,1.0)', name: 'Stroke color'},
-            strokeSize        : {type: 'number',        value: 2, name: 'Stroke size'},
+            strokeSize        : {type: 'number',        value: 2, name: 'Stroke size', min: 0, softMax: 100},
             strokePattern     : {type: 'stroke-pattern',value: 'solid', name: 'Stroke pattern'},
             points            : {type: 'path-points',   value: [], name: 'Path points', hidden: true},
             sourceCap         : {type: 'path-cap',      value: 'empty', name: 'Source Cap'},
-            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size'},
+            sourceCapSize     : {type: 'number',        value: 20, name: 'Source Cap Size', min: 0, softMax: 100},
             destinationCap    : {type: 'path-cap',      value: 'empty', name: 'Destination Cap'},
-            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size'},
+            destinationCapSize: {type: 'number',        value: 20, name: 'Destination Cap Size', min: 0, softMax: 100},
 
             smoothing         : {type: 'choice',        value: 'smooth', options: ['linear', 'smooth', 'step', 'step-cut', 'step-smooth'], name: 'Smoothing Type'},
-            stepSize          : {type: 'number',        value: 10, name: 'Step size', depends: {smoothing: ['step-cut', 'step-smooth']}},
+            stepSize          : {type: 'number',        value: 10, name: 'Step size', depends: {smoothing: ['step-cut', 'step-smooth']}, min: 0, softMax: 100},
 
             thick     : {type: 'boolean',       value: false, name: 'Thick'},
             fill      : {type: 'advanced-color',value: {type: 'solid', color: 'rgba(255,255,255,1.0)'}, name: 'Fill', depends: {thick: true}},
