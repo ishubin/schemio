@@ -39,12 +39,12 @@
             <div class="quick-helper-panel-section">
                 <ul v-if="(mode === 'edit' && state === 'editPath')" class="button-group">
                     <li v-if="curveEditing.selectedPoints.length > 0">
-                        <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
+                        <span class="toggle-button img-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'L'}" title="Simple" @click="convertCurvePointToSimple()">
                             <img width="16px" :src="`${assetsPath}/images/helper-panel/path-point-simple.svg`"/>
                         </span>
                     </li>
                     <li v-if="curveEditing.selectedPoints.length > 0">
-                        <span class="toggle-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
+                        <span class="toggle-button img-button" :class="{'dimmed': curveEditing.selectedPoints[0].t != 'B'}" title="Simple" @click="convertCurvePointToBezier()">
                             <img width="20px" :src="`${assetsPath}/images/helper-panel/path-point-bezier.svg`"/>
                         </span>
                     </li>

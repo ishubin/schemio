@@ -161,7 +161,7 @@
             <div class="quick-helper-panel-section" v-if="mode === 'edit' && shouldShowConnectorControls">
                 <ul class="button-group">
                     <li v-for="connectorType in connectorTypes">
-                        <span class="toggle-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
+                        <span class="toggle-button img-button" :class="{'dimmed': currentConnectorSmoothing != connectorType}" :title="connectorType" @click="setConnectorSmoothing(connectorType)">
                             <img :src="`${assetsPath}/images/helper-panel/connector-${connectorType}.svg`"/>
                         </span>
                     </li>

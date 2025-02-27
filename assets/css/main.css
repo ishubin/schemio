@@ -228,6 +228,10 @@ body[data-theme="dark"] {
     background: var(--faint-weak-down);
     color: var(--base-strong);
 }
+[data-theme="dark"] .dropdown-container svg {
+    filter: invert(0.9);
+
+}
 
 
 [data-theme="dark"] .tooltip .tooltip-text {
@@ -510,6 +514,10 @@ body[data-theme="dark"] {
 }
 [data-theme="dark"] .vue-tags-input .autocomplete .selected-item {
     background: var(--accent-strong);
+}
+
+[data-theme="dark"] .toggle-button.img-button {
+    filter: invert(0.9);
 }
 /*********** END OF DARK MODE *************/
 
@@ -920,8 +928,7 @@ input.textfield.field-error {
     outline: none;
 }
 .number-textfield-container.disabled {
-    border: 1px solid var(--faint-strong-up);
-    opacity: 0.7;
+    opacity: 0.5;
 }
 .number-textfield-container.disabled .step-controls {
     opacity: 0.5;
@@ -3778,10 +3785,16 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     overflow: hidden;
     height: 30px;
 }
+[data-theme="dark"] .stroke-control .stroke-control-dropdown .stroke-control-other-controls .stroke-control-patterns .stroke-control-pattern-option {
+    background: var(--faint-weak-down);
+}
 .stroke-control .stroke-control-dropdown .stroke-control-other-controls .stroke-control-patterns .stroke-control-pattern-option:hover ,
 .stroke-control .stroke-control-dropdown .stroke-control-other-controls .stroke-control-patterns .stroke-control-pattern-option.selected {
     background: var(--accent-strong);
     color: var(--base-weak);
+}
+[data-theme="dark"] .stroke-control-pattern-option svg path {
+    stroke: #eeeeee;
 }
 
 /***************************** Text Style Control ***********************************/
@@ -3834,6 +3847,11 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 }
 .schemio-icon-valign-bottom {
     background: url('/assets/images/icons/valign-bottom.svg') no-repeat;
+}
+[data-theme="dark"] .schemio-icon-valign-top,
+[data-theme="dark"] .schemio-icon-valign-middle,
+[data-theme="dark"] .schemio-icon-valign-bottom {
+    filter: invert(0.9);
 }
 
 
