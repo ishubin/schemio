@@ -5,7 +5,7 @@
 <template lang="html">
     <div>
         <div class="section">
-            <span class="btn btn-secondary" @click="$emit('stop-drawing-requested')">Stop Drawing</span>
+            <span class="btn btn-secondary" @click="$emit('stop-drawing-requested')">Stop drawing</span>
         </div>
 
         <div class="section">
@@ -16,19 +16,19 @@
                 <tr v-if="isBrush">
                     <td class="label" width="50%">Size</td>
                     <td class="value" width="50%">
-                        <NumberTextfield :value="brushSize" @changed="onBrushSizeChanged" :min="1" :max="1000"/>
+                        <NumberTextfield :value="brushSize" @changed="onBrushSizeChanged" :min="1" :softMax="100" :slider="true"/>
                     </td>
                 </tr>
                 <tr v-else>
                     <td class="label" width="50%">Size</td>
                     <td class="value" width="50%">
-                        <NumberTextfield :value="pencilSize" @changed="onPencilSizeChanged" :min="1" :max="1000"/>
+                        <NumberTextfield :value="pencilSize" @changed="onPencilSizeChanged" :min="1" :softMax="100" :slider="true"/>
                     </td>
                 </tr>
                 <tr>
                     <td class="label" width="50%">Smoothing</td>
                     <td class="value" width="50%">
-                        <NumberTextfield :value="drawEpsilon" @changed="onDrawEpsilonChanged" :min="0" :max="1000"/>
+                        <NumberTextfield :value="drawEpsilon" @changed="onDrawEpsilonChanged" :min="0" :softMax="20" :slider="true"/>
                     </td>
                 </tr>
             </tbody>
