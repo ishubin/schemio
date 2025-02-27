@@ -13,7 +13,7 @@ export function convertTemplateShape(shapeConfig) {
     const standardArgs = shapeConfig.includeStandardArgs ? {
         fill         : {type: 'advanced-color', value: {type: 'solid', color: 'rgba(255,255,255,1)'}, name: 'Fill'},
         strokeColor  : {type: 'color', value: '#111111', name: 'Stroke color'},
-        strokeSize   : {type: 'number', value: 2, name: 'Stroke Size'},
+        strokeSize   : {type: 'number', value: 2, name: 'Stroke Size', min: 0, softMax: 100},
         strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
     } : {};
 

@@ -193,14 +193,14 @@ export default {
         },
 
         args: {
-            size         : {name: 'Size', type: 'number', value: 40, min: 0},
+            size         : {name: 'Size', type: 'number', value: 40, min: 0, softMax: 200},
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
             lifelineType : {name: 'Type', type: 'choice', value: 'rect', options: ['rect', 'entity', 'border', 'control', 'actor']},
             strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(0, 0, 0, 1)'},
             rectStroke   : {name: 'Rect stroke', type: 'boolean', value: true, depends: {lifelineType: 'rect'}},
             strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
-            strokeSize   : {name: 'Stroke Size', type: 'number', value: 2},
-            cornerRadius : {name: 'Stroke Size', type: 'number', value: 1, depends: {type: 'rect'}, min: 0},
+            strokeSize   : {name: 'Stroke Size', type: 'number', value: 2, min: 0, softMax: 100},
+            cornerRadius : {name: 'Stroke Size', type: 'number', value: 1, depends: {type: 'rect'}, min: 0, softMax: 100},
         },
     },
 

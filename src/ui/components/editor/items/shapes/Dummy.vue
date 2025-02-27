@@ -88,7 +88,7 @@ export default {
 
         args: {
             strokeColor    : {name: 'Stroke', type: 'color', value: 'rgba(50, 175, 209, 1)'},
-            strokeSize     : {name: 'Stroke Size', type: 'number', value: 2},
+            strokeSize     : {name: 'Stroke Size', type: 'number', value: 2, min: 0, softMax: 100},
             strokePattern  : {type: 'stroke-pattern',value: 'dashed', name: 'Stroke pattern'},
             showName       : {type: 'boolean', value: true, name: 'Display Name'},
             screenBounds   : {type: 'boolean', value: false, name: 'Screen bounds',

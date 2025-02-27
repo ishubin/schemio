@@ -54,7 +54,7 @@ export default {
         args: {
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
             strokeColor  : {name: 'Stroke', type: 'color', value: 'rgba(0, 0, 0, 1)'},
-            strokeSize   : {name: 'Stroke Size', type: 'number', value: 1},
+            strokeSize   : {name: 'Stroke Size', type: 'number', value: 1, min: 0, softMax: 100},
         },
     },
 
