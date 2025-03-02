@@ -3093,10 +3093,6 @@ class SchemeContainer {
                             template.onAreaUpdate(templateRootItem, item.args.templatedId, item, modifiedArea, templateArgs => {
                                 this.regenerateTemplatedItem(templateRootItem, template, templateArgs, templateRootItem.area.w, templateRootItem.area.h);
                             });
-                            item.area.x = modifiedArea.x;
-                            item.area.y = modifiedArea.y;
-                            item.area.w = modifiedArea.w;
-                            item.area.h = modifiedArea.h;
 
                             EditorEventBus.item.templateArgsUpdated.specific.$emit(this.editorId, templateRootItem.id);
                         });
