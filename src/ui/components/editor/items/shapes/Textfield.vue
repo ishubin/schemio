@@ -31,7 +31,7 @@
         </foreignObject>
 
         <foreignObject
-            v-if="hideTextSlot !== 'placeholder' && (!item.args || !item.args.value)"
+            v-if="shouldShowPlaceholder"
             @click="onPlaceholderClick"
             :x="item.shapeProps.cornerRadius"
             :y="0"
@@ -133,21 +133,17 @@ export default {
 
     beforeMount() {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
-        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
 
     beforeDestroy() {
-        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
 
     data() {
         return {
-            hideTextSlot: null,
             placeholderTextStyle: this.createPlaceholderTextStyle(),
             inputStyle: this.createInputStyle(),
+            isFocused: false,
         };
     },
 
@@ -172,7 +168,7 @@ export default {
             if (this.mode !== 'view') {
                 return;
             }
-            this.hideTextSlot = 'placeholder';
+            this.isFocused = true;
             document.getElementById(`textfield-item-${this.item.id}`).focus();
         },
 
@@ -181,16 +177,10 @@ export default {
                 return;
             }
             if (!event.target.value) {
-                this.hideTextSlot = null;
+                this.isFocused = false;
             }
         },
 
-        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            this.hideTextSlot = slotName;
-        },
-        onItemTextSlotEditCanceled(item, slotName) {
-            this.hideTextSlot = null;
-        },
         onItemChanged() {
             if (this.item.shape !== 'textfield') {
                 return;
@@ -219,6 +209,16 @@ export default {
     },
 
     computed: {
+        shouldShowPlaceholder() {
+            if (this.mode === 'edit' && this.item.meta.activeTextSlot === 'placeholder') {
+                return false;
+            }
+            if (this.isFocused) {
+                return false;
+            }
+            return !this.item.args || !this.item.args.value;
+        },
+
         shapePath() {
             return computePath(this.item);
         },

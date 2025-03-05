@@ -114,7 +114,7 @@
 <script>
 import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
 import {
-    Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem, 
+    Blockquote, CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem,
     TodoItem, TodoList, Bold, Code, Italic, Link, Strike, Underline, History,
 } from 'tiptap-extensions';
 import Modal from './Modal.vue';

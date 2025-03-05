@@ -81,7 +81,7 @@
                 </g>
 
                 <g v-if="shouldBeDrawn">
-                    <g v-for="slot in textSlots" v-if="slot.name !== hiddenTextSlotName" :style="{'opacity': item.selfOpacity/100.0}">
+                    <g v-for="slot in textSlots" v-if="slot.name !== item.meta.activeTextSlot" :style="{'opacity': item.selfOpacity/100.0}">
                         <foreignObject
                             ref="textSlots"
                             :data-text-slot-name="slot.name"
@@ -339,20 +339,11 @@ export default {
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.item.selected.specific.$on(this.editorId, this.item.id, this.onItemSelected);
         EditorEventBus.item.deselected.specific.$on(this.editorId, this.item.id, this.onItemDeselected);
-        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         const shape = Shape.find(this.item.shape);
         if (shape && shape.shapeEvents.mounted) {
             shape.shapeEvents.mounted(this.$store, this.item, this.$refs.textSlots, this.editorId);
-        }
-
-        if (this.mode === 'edit') {
-            const textEditorWrapper = document.getElementById(`in-place-text-edit-wrapper-${this.editorId}-${this.item.id}`);
-            if (!textEditorWrapper) {
-                return;
-            }
-            this.hiddenTextSlotName = textEditorWrapper.getAttribute('data-slot-name');
         }
 
         // triggering init events only when component was fully mounted
@@ -367,7 +358,6 @@ export default {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.item.selected.specific.$off(this.editorId, this.item.id, this.onItemSelected);
         EditorEventBus.item.deselected.specific.$off(this.editorId, this.item.id, this.onItemDeselected);
-        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         if (this.item.meta.componentSchemeContainer) {
@@ -394,10 +384,6 @@ export default {
             // on each item changed event revision is incremented
             revision : 0,
             textSlots: [],
-
-            // name of text slot that should not be drawn
-            // this is used when in-place text slot edit is triggered
-            hiddenTextSlotName: null,
 
             supportsStrokeSize: shape ? hasStrokeSizeProp(shape): false,
 
@@ -751,15 +737,7 @@ export default {
             return filteredSlots;
         },
 
-        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            this.hiddenTextSlotName = slotName;
-        },
-
         onItemTextSlotEditCanceled(item, slotName) {
-            if (this.hiddenTextSlotName === slotName) {
-                this.hiddenTextSlotName = null;
-            }
-
             this.$nextTick(() => {
                 const shape = Shape.find(this.item.shape);
                 if (shape && shape.onTextSlotTextUpdate) {

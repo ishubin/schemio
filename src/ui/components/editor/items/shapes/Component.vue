@@ -14,7 +14,7 @@
             :stroke-dashoffset="item.meta.strokeOffset"
             :fill="svgFill"></path>
 
-        <foreignObject v-if="item.shapeProps.kind !== 'embedded' && hideTextSlot !== 'body' && bodyTextShown" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
+        <foreignObject v-if="item.shapeProps.kind !== 'embedded' && isBodySlotShown && bodyTextShown" :x="0" :y="0" :width="item.area.w" :height="bodyTextSlotHeight" >
             <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
         </foreignObject>
 
@@ -32,7 +32,7 @@
                 :d="buttonPath"
                 />
 
-            <foreignObject v-if="hideTextSlot !== 'button'" :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
+            <foreignObject v-if="isButtonSlotShown" :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
                 <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="textStyle" v-html="sanitizedButtonText"></div>
             </foreignObject>
         </g>
@@ -279,7 +279,7 @@ export function generateComponentGoBackButton(componentItem, containerItem, curr
 }
 
 export default {
-    props: ['item', 'editorId'],
+    props: ['item', 'editorId', 'mode'],
     components: {AdvancedFill},
 
     shapeConfig: {
@@ -452,9 +452,6 @@ export default {
         EditorEventBus.item.custom.$on('mouse-move', this.editorId, this.item.id, this.onMouseMove);
         EditorEventBus.item.custom.$on('mouse-down', this.editorId, this.item.id, this.onMouseDown);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
-        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
-
         EditorEventBus.component.loadRequested.specific.$on(this.editorId, this.item.id, this.onComponentLoadRequested);
         EditorEventBus.component.loadFailed.specific.$on(this.editorId, this.item.id, this.onComponentLoadFailed);
     },
@@ -463,8 +460,6 @@ export default {
         EditorEventBus.item.custom.$off('mouse-move', this.editorId, this.item.id, this.onMouseMove);
         EditorEventBus.item.custom.$off('mouse-down', this.editorId, this.item.id, this.onMouseDown);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
-        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
 
         EditorEventBus.component.loadRequested.specific.$off(this.editorId, this.item.id, this.onComponentLoadRequested);
         EditorEventBus.component.loadFailed.specific.$off(this.editorId, this.item.id, this.onComponentLoadFailed);
@@ -477,7 +472,6 @@ export default {
             buttonShown: this.item.shapeProps.kind === 'external' && this.item.shapeProps.showButton && !externalItemsMounted,
             bodyTextShown: !externalItemsMounted,
             isLoading: false,
-            hideTextSlot: null,
             textStyle: this.createTextStyle(),
             bodyTextStyle: this.createBodyTextStyle()
         };
@@ -539,12 +533,6 @@ export default {
             }
             return style;
         },
-        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            this.hideTextSlot = slotName;
-        },
-        onItemTextSlotEditCanceled(item, slotName) {
-            this.hideTextSlot = null;
-        },
         onButtonMouseOver() {
             this.buttonHovered = true;
             this.$forceUpdate();
@@ -570,6 +558,14 @@ export default {
     },
 
     computed: {
+        isBodySlotShown() {
+            return this.mode !== 'edit' || this.item.meta.activeTextSlot !== 'body';
+        },
+
+        isButtonSlotShown() {
+            return this.mode !== 'edit' || this.item.meta.activeTextSlot !== 'button';
+        },
+
         buttonPath() {
             return computeButtonPath(this.item);
         },

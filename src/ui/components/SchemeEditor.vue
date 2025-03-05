@@ -911,6 +911,9 @@ export default {
                 onEditPathRequested: (item) => this.onEditPathRequested(item),
                 onItemDeselected: (item) => EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id),
                 onItemTextSlotEditTriggered: (item, slotName, area, markupDisabled, creatingNewItem) => {
+                    // StoreUtils.setInPlaceTextEditItem(this.$store, item.id, slotName);
+                    item.meta.activeTextSlot = slotName;
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'meta');
                     EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
                 },
                 onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
@@ -1653,7 +1656,9 @@ export default {
 
             const item = this.inPlaceTextEditor.item;
             const slotName = this.inPlaceTextEditor.slotName;
+            // StoreUtils.clearInPlaceTextEditItem(this.$store);
             if (item) {
+                item.meta.activeTextSlot = null;
                 EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, item, slotName);
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.textSlots.${slotName}.text`);
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${slotName}.text`);

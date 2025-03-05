@@ -197,6 +197,7 @@
  * This structure is created in SchemeContainer during items reindex
  * @typedef {Object} ItemMeta
  * @property {String|undefined} parentId
+ * @property {String} activeTextSlot - the name of a text slot that is accurently used for in place text edit
  * @property {Array<String>} ancestorIds
  * @property {String|undefined} ancestorDraggableId - id of ancestor item that is draggable. This is used to allow dragging of parent items by their children
  * @property {Array<Array<Number>} transformMatrix

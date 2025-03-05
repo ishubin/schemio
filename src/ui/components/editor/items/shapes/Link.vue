@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <g>
-        <a class="item-link" v-if="!hideTextSlot" :xlink:href="item.shapeProps.url" :target="target">
+        <a class="item-link" v-if="shouldShowLinkText" :xlink:href="item.shapeProps.url" :target="target">
             <foreignObject v-if="item.shapeProps.showIcon" x="0" y="0" :width="textOffset" :height="item.area.h"
                 :style="iconStyle">
                 <div xmlns="http://www.w3.org/1999/xhtml">
@@ -25,7 +25,7 @@ import {generateTextStyle} from '../../text/ItemText';
 import EditorEventBus from '../../EditorEventBus.js';
 
 export default {
-    props: ['item', 'editorId'],
+    props: ['item', 'editorId', 'mode'],
 
     shapeConfig: {
         shapeType: 'vue',
@@ -88,20 +88,15 @@ export default {
     beforeMount() {
         EditorEventBus.item.custom.$on('mouse-down', this.editorId, this.item.id, this.onLinkClick);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
-        EditorEventBus.textSlot.triggered.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
-        EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
     beforeDestroy() {
         EditorEventBus.item.custom.$off('mouse-down', this.editorId, this.item.id, this.onLinkClick);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
-        EditorEventBus.textSlot.triggered.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditTriggered);
-        EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
     },
 
     data() {
         return {
             linkStyle: this.createLinkStyle(),
-            hideTextSlot: false
         };
     },
 
@@ -130,15 +125,13 @@ export default {
             }
             this.linkStyle = this.createLinkStyle();
         },
-        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled) {
-            this.hideTextSlot = true;
-        },
-        onItemTextSlotEditCanceled(item, slotName) {
-            this.hideTextSlot = false;
-        }
     },
 
     computed: {
+        shouldShowLinkText() {
+            return this.mode !== 'edit' || this.item.meta.activeTextSlot !== 'link';
+        },
+
         target() {
             if (this.item.shapeProps.otherTab) {
                 return '_blank';
