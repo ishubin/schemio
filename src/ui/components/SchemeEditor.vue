@@ -911,7 +911,6 @@ export default {
                 onEditPathRequested: (item) => this.onEditPathRequested(item),
                 onItemDeselected: (item) => EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id),
                 onItemTextSlotEditTriggered: (item, slotName, area, markupDisabled, creatingNewItem) => {
-                    // StoreUtils.setInPlaceTextEditItem(this.$store, item.id, slotName);
                     item.meta.activeTextSlot = slotName;
                     EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'meta');
                     EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
@@ -1693,6 +1692,10 @@ export default {
         },
 
         emitModeChangeRequested(mode) {
+            if (this.inPlaceTextEditor.shown) {
+                this.closeItemTextEditor();
+            }
+
             this.$emit('mode-change-requested', mode);
         },
 
