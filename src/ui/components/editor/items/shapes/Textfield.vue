@@ -16,13 +16,17 @@
             :y="0"
             :width="Math.max(0, item.area.w - 2 * item.shapeProps.cornerRadius)"
             :height="item.area.h">
-            <textarea v-if="item.shapeProps.multiline" :id="`textfield-item-${item.id}`"
+            <textarea v-if="item.shapeProps.multiline"
+                :id="`textfield-item-${item.id}`"
+                class="item-shape-textfield"
                 :style="inputStyle"
                 @blur="onBlur"
                 :value="itemInputValue"
                 @input="onTextfieldInput"
                 />
-            <input v-else :id="`textfield-item-${item.id}`" :type="item.shapeProps.type"
+            <input v-else :id="`textfield-item-${item.id}`"
+                class="item-shape-textfield"
+                :type="item.shapeProps.type"
                 :style="inputStyle"
                 @blur="onBlur"
                 :value="itemInputValue"
@@ -158,7 +162,7 @@ export default {
             style.display = 'block';
             style.width = '100%';
             style.height = '100%';
-            style.color = this.item.shapeProps.color;
+            style.color = this.item.shapeProps.textColor;
             style.border = 'none';
             style.background = 'none';
             style.outline = 'none';

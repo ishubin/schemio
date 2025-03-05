@@ -5359,3 +5359,9 @@ blockquote p {
     margin: 0 30px;
     padding: 0;
 }
+
+
+svg input.item-shape-textfield,
+svg textarea.item-shape-textfield {
+    color: unset;
+}
