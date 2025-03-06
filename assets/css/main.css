@@ -1092,11 +1092,12 @@ ul.pagination li a.current {
 .quick-helper-panel-wrapper {
     background: var(--faint-weak);
     border-bottom: 1px solid var(--faint-strong);
-    display: table;
+    display: block;
     width: 100%;
     height: 37px;
     top: 47px;
     z-index: 21;
+    overflow: auto;
 }
 .quick-helper-panel {
     display: flex;
@@ -1113,7 +1114,6 @@ ul.pagination li a.current {
     margin-left: 5px;
     padding-left: 5px;
     height: 28px;
-    overflow: hidden;
 }
 .quick-helper-panel-section:before {
     position: absolute;
@@ -1145,6 +1145,10 @@ ul.pagination li a.current {
     padding: 3px 8px;
     font-size: 13px;
     height: 24px;
+}
+
+.quick-helper-panel ul.button-group > li {
+    white-space: nowrap;
 }
 
 .quick-helper-panel .msg {
@@ -1747,7 +1751,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     padding: 3px 5px 3px 5px;
     font-size: 14px;
 }
-
 .toggle-group {
     display: inline-block;
     padding: 0;
