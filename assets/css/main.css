@@ -1852,31 +1852,64 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     background: var(--faint-weak-up);
     top: 0;
     bottom: 0;
-    cursor: pointer;
-    border-top: 1px solid var(--faint-strong);
-    border-bottom: 1px solid var(--faint-strong);
+    cursor: col-resize;
     color: var(--base-strong-up);
-    height: 40px;
-    width: 16px;
+    height: 100%;
+    width: 5px;
     user-select: none;
 }
 .scheme-editor-component .side-panel-right .side-panel-expander {
     border-left: 1px solid var(--faint-strong);
-    left: -16px;
-    border-radius:  3px 0 0 3px;
+    left: -5px;
 }
 .scheme-editor-component .side-panel-left .side-panel-expander {
     border-right: 1px solid var(--faint-strong);
-    right: -16px;
-    border-radius: 0 3px 3px 0;
+    right: -5px;
 }
 .scheme-editor-component .side-panel .side-panel-expander:hover {
-    color: var(--faint-strong-down);
+    /* color: var(--faint-strong-down); */
+    background: var(--faint-weak-down);
 }
-.scheme-editor-component .side-panel .side-panel-expander i {
+.scheme-editor-component .side-panel .side-panel-btn-expander {
+    display: inline-block;
+    position: absolute;
+    margin: auto;
+    background: var(--faint-weak-up);
+    top: 0;
+    bottom: 0;
+    cursor: col-resize;
+    border-top: 1px solid var(--faint-strong);
+    border-bottom: 1px solid var(--faint-strong);
+    color: var(--base-strong-up);
+    height: 40px;
+    width: 12px;
+    user-select: none;
+}
+.scheme-editor-component .side-panel.expanded .side-panel-btn-expander {
+    display: none;
+}
+@media (max-width: 900px) {
+    .scheme-editor-component .side-panel.expanded .side-panel-btn-expander {
+        display: inline-block;
+    }
+}
+.scheme-editor-component .side-panel-right .side-panel-btn-expander {
+    border-left: 1px solid var(--faint-strong);
+    left: -16px;
+    border-radius:  3px 0 0 3px;
+    cursor: pointer;
+}
+.scheme-editor-component .side-panel-left .side-panel-btn-expander {
+    border-right: 1px solid var(--faint-strong);
+    right: -16px;
+    border-radius: 0 3px 3px 0;
+    cursor: pointer;
+}
+.scheme-editor-component .side-panel .side-panel-btn-expander i {
     margin-top: 10px;
-    margin-left: 3px;
+    margin-left: 0;
 }
+
 
 /**************** Bottom Panel ***********************/
 .scheme-editor-component .bottom-panel {
@@ -3083,6 +3116,7 @@ ul.script-options .script-option.selected {
     max-width: 500px;
     max-height: 350px;
     overflow: auto;
+    z-index: 30;
 }
 .connector-destination-proposal .item-container:hover {
     background: var(--faint-strong-up);
@@ -3276,7 +3310,7 @@ ul.script-options .script-option.selected {
 }
 
 .item-selector .item-selector-resize-dragger {
-    cursor: pointer;
+    cursor: row-resize;
     height: 7px;
     background: var(--faint-weak-down);
     border-bottom: 1px solid var(--faint-weak);

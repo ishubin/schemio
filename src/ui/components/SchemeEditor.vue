@@ -353,7 +353,12 @@
                 </div>
             </div>
 
-            <div class="side-panel side-panel-left" ref="sidePanelLeft" v-if="mode === 'edit' && schemeContainer" :style="{width: `${sidePanelLeftWidth}px`}">
+            <div class="side-panel side-panel-left"
+                :class="{collapsed: sidePanelLeftWidth < 2, expanded: sidePanelLeftWidth >= 2}"
+                ref="sidePanelLeft"
+                v-if="mode === 'edit' && schemeContainer"
+                :style="{width: `${sidePanelLeftWidth}px`}"
+                >
                 <ul v-if="sidePanelLeftWidth > 0" class="tabs">
                     <li v-for="tab in leftTabs">
                         <span class="tab" :class="{active: tab.name === currentLeftTab}" @click="currentLeftTab = tab.name">
@@ -365,9 +370,11 @@
                 <div class="tabs-body">
                 </div>
 
+                <span class="side-panel-btn-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
+                    <i v-if="sidePanelLeftWidth < 2" class="fas fa-angle-right"></i>
+                    <i v-else class="fas fa-angle-left"></i>
+                </span>
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
-                    <i v-if="sidePanelLeftWidth > 0" class="fas fa-angle-left"></i>
-                    <i v-else class="fas fa-angle-right"></i>
                 </span>
                 <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
                     <div class="wrapper">
@@ -394,10 +401,17 @@
                 </div>
             </div>
 
-            <div class="side-panel side-panel-right" ref="sidePanelRight" v-if="schemeContainer" :style="{width: `${sidePanelRightWidth}px`}">
+            <div class="side-panel side-panel-right"
+                ref="sidePanelRight"
+                v-if="schemeContainer"
+                :style="{width: `${sidePanelRightWidth}px`}"
+                :class="{collapsed: sidePanelRightWidth < 2, expanded: sidePanelRightWidth >= 2}"
+                >
+                <span class="side-panel-btn-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
+                    <i v-if="sidePanelRightWidth < 2" class="fas fa-angle-left"></i>
+                    <i v-else class="fas fa-angle-right"></i>
+                </span>
                 <span class="side-panel-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
-                    <i v-if="sidePanelRightWidth > 0" class="fas fa-angle-right"></i>
-                    <i v-else class="fas fa-angle-left"></i>
                 </span>
                 <ul v-if="inPlaceTextEditor.shown" class="tabs text-nonselectable">
                     <li><span class="tab active">Text</span></li>
@@ -1077,9 +1091,9 @@ export default {
             // this is used when the side panel for item is being requested
             sidePanelItemForViewMode: null,
             sidePanelRightWidth: 400,
-            sidePanelRightWidthLastUsed: 400,
+            sidePanelRightDefaultWidth: 400,
             sidePanelLeftWidth: 220,
-            sidePanelLeftWidthLastUsed: 220,
+            sidePanelLeftDefaultWidth: 220,
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
@@ -2483,7 +2497,7 @@ export default {
             this.animationRegistry.stopAllAnimations();
             this.switchStateDragItem();
             if (this.sidePanelRightWidth === 0) {
-                this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
+                this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
             }
         },
 
@@ -3143,24 +3157,21 @@ export default {
         },
 
         showSidePanelRight() {
-            this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
+            this.sidePanelRightWidth = Math.min(this.sidePanelRightDefaultWidth, Math.floor(window.innerWidth/2 - 20));
         },
 
         onRightSidePanelExpanderMouseDown(originalEvent) {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
                 onValue: value => {
                     this.sidePanelRightWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                    if (this.sidePanelRightWidth > 0) {
-                        this.sidePanelRightWidthLastUsed = this.sidePanelRightWidth;
-                    }
                 },
-                onToggle: () => {
+                onClick: event => {
                     if (this.sidePanelRightWidth > 0) {
                         this.sidePanelRightWidth = 0;
                     } else {
-                        this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
+                        this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
                     }
-                },
+                }
             });
         },
 
@@ -3168,17 +3179,14 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
                 onValue: value => {
                     this.sidePanelLeftWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                    if (this.sidePanelLeftWidth > 0) {
-                        this.sidePanelLeftWidthLastUsed = this.sidePanelLeftWidth;
-                    }
                 },
-                onToggle: () => {
+                onClick: event => {
                     if (this.sidePanelLeftWidth > 0) {
                         this.sidePanelLeftWidth = 0;
                     } else {
-                        this.sidePanelLeftWidth = myMath.clamp(this.sidePanelLeftWidthLastUsed, 0, Math.floor(window.innerWidth/2 - 20));
+                        this.sidePanelLeftWidth = myMath.clamp(this.sidePanelLeftDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
                     }
-                },
+                }
             });
         },
 
@@ -3197,8 +3205,8 @@ export default {
                     callbacks.onValue(newWidth);
                 }
             })
-            .onSimpleClick(() => {
-                callbacks.onToggle();
+            .onSimpleClick(event => {
+                callbacks.onClick(event);
             })
             .build();
         },
@@ -3539,8 +3547,6 @@ export default {
         },
 
         closeStarterProposalModal() {
-            this.sidePanelRightWidth = this.sidePanelRightWidthLastUsed;
-            this.sidePanelLeftWidth = this.sidePanelLeftWidthLastUsed;
             this.starterProposalModalShown = false;
         },
 
