@@ -8,7 +8,7 @@
         :data-slot-name="slotName"
         :style="cssStyle2"
         >
-        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="!markupDisabled" :style="editorMenuStyle">
+        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="!markupDisabled && !isSimpleText" :style="editorMenuStyle">
             <editor-menu-bar :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
                 <div class="rich-text-editor-menubar">
                     <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
@@ -100,6 +100,9 @@ export default {
     },
 
     mounted() {
+        if (!this.$refs.floatingMenu) {
+            return;
+        }
         const rect = this.$refs.wrapper.getBoundingClientRect();
         const svgElement = document.getElementById(`svg-plot-${this.editorId}`);
         const svgRect = svgElement.getBoundingClientRect();
@@ -264,6 +267,10 @@ export default {
     },
 
     computed: {
+        isSimpleText() {
+            return this.item.args && this.item.args.simpleText;
+        },
+
         cssStyle2() {
             return {
                 left: `${this.area.x + 1/this.zoom}px`,

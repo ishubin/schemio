@@ -478,6 +478,7 @@ func buildConnectorLabel(c, connectorWidth, connectorHeight) {
     valueLabel.name = 'connector-label-' + c.id
     valueLabel.shapeProps.set('strokeColor', labelStroke)
     valueLabel.args.set('tplText', Map('body', '' + c.value))
+    valueLabel.args.set('simpleText', true)
     if (showLabelFill) {
         valueLabel.shapeProps.set('fill', labelFill)
         valueLabel.shapeProps.set('strokeColor', labelStroke)
@@ -576,18 +577,20 @@ func buildNodeLabels(nodes) {
         local label = buildLabel('ln-' + node.id, nodeText, font, labelFontSize, halign, 'middle')
         label.w = textWidth + 4
         label.h = textHeight * 1.8
+        label.args.set('simpleText', true);
 
         local valueLabel = null
         if (showNodeValues) {
             valueLabel = buildLabel('lv-' + node.id, valueText, font, valueFontSize, halign, 'middle')
             valueLabel.w = valueTextSize.w + 4
             valueLabel.h = valueTextSize.h * 1.8
-        }
+            valueLabel.args.set('simpleText', true)
 
-        if (node.srcNodes.size + node.dstNodes.size == 1) {
-            valueLabel.args.set('tplText', Map('body', '' + node.value))
-        } else {
-            valueLabel.args.set('tplText', Map('body', '<p>Cannot edit value</p><p>Too many connections</p>'))
+            if (node.srcNodes.size + node.dstNodes.size == 1) {
+                valueLabel.args.set('tplText', Map('body', '' + node.value))
+            } else {
+                valueLabel.args.set('tplText', Map('body', '<p>Cannot edit value</p><p>Too many connections</p>'))
+            }
         }
 
         if (showLabelFill) {

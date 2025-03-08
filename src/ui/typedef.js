@@ -239,8 +239,9 @@
  *                                        If set to 'movable' it will allow to move it, but it will not show the resizing draggers in edit box.
  * @property {String} tplConnector - 'on' or 'off'. If specified as 'off' - it tells that for this item it should not render connector starter in the edit box
  * @property {String} tplRotation - 'on' or 'off'. Tells whether rotation of this item is supported
- * @property {String} tplForceDescription - if set to true, then template will set the description of the item
+ * @property {String} tplForceDescription - if set to true, then template will provide the description of the item
  * @property {String} tplText - a map of text slot names to text which should be displayed when it triggers in place text editor
+ * @property {Boolean} simpleText - if set to true - it disables the floating menu in in-place text editor
  */
 
 
