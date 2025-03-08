@@ -1493,7 +1493,6 @@ textarea.in-place-text-editor {
     background: var(--faint-weak);
     border-radius: 4px;
     z-index: 100;
-    top: -30px;
 }
 
 .in-place-edit-editor-wrapper .in-place-text-editor-menu .rich-text-editor-menubar {

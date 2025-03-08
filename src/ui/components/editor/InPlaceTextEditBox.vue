@@ -3,11 +3,12 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="in-place-edit-editor-wrapper"
+        ref="wrapper"
         :id="`in-place-text-edit-wrapper-${editorId}-${item.id}`"
         :data-slot-name="slotName"
         :style="cssStyle2"
         >
-        <div class="in-place-text-editor-menu" v-if="!markupDisabled">
+        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="!markupDisabled" :style="editorMenuStyle">
             <editor-menu-bar :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
                 <div class="rich-text-editor-menubar">
                     <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
@@ -98,10 +99,57 @@ export default {
         EditorEventBus.textSlot.moved.$off(this.editorId, this.closeEditBox);
     },
 
+    mounted() {
+        const rect = this.$refs.wrapper.getBoundingClientRect();
+        const svgElement = document.getElementById(`svg-plot-${this.editorId}`);
+        const svgRect = svgElement.getBoundingClientRect();
+        const menuRect = this.$refs.floatingMenu.getBoundingClientRect();
+
+        // visible area of the svg
+        let x1 = svgRect.left,
+            y1 = svgRect.top,
+            x2 = svgRect.right,
+            y2 = svgRect.bottom;
+
+        // correcting the visible area by subtracting the space that was taken by the left side panel
+        const sideLeftPanel = document.querySelector('.side-panel.side-panel-left');
+        if (sideLeftPanel) {
+            const sideLeftPanelRect = sideLeftPanel.getBoundingClientRect();
+            x1 = Math.max(x1, sideLeftPanelRect.right);
+        }
+
+        // correcting the visible area by subtracting the space that was taken by the right side panel
+        const sideRightPanel = document.querySelector('.side-panel.side-panel-right');
+        if (sideRightPanel) {
+            const sideRightPanelRect = sideRightPanel.getBoundingClientRect();
+            x2 = Math.min(x2, sideRightPanelRect.left);
+        }
+
+        const topSpace = rect.top - y1;
+        const bottomSpace = y2 - rect.bottom;
+        const style = {};
+        if (topSpace > menuRect.height) {
+            style.top = `${-menuRect.height}px`;
+        } else if (bottomSpace > menuRect.height) {
+            style.bottom = `-${menuRect.height}px`;
+        } else {
+            style.top = `${-topSpace}px`;
+        }
+
+        if (menuRect.right > x2) {
+            style.left = `${-(menuRect.right - x2)}px`;
+        }
+        if (menuRect.left < x1) {
+            style.left = `${x1 - menuRect.left}px`;
+        }
+        this.editorMenuStyle = style;
+    },
+
     data() {
         return {
             editor: null,
-            editorCssStyle: this.generateStyle(this.cssStyle)
+            editorCssStyle: this.generateStyle(this.cssStyle),
+            editorMenuStyle: {top: '-30px'},
         };
     },
 
