@@ -29,6 +29,7 @@ let _shapes = [
 
     require('./basic/Triangle.js').default,
     require('./basic/Diamond.js').default,
+    require('./Trapezoid.js').default,
     require('./templated/star.js').default,
 
     require('./PieSegment.js').default,

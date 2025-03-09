@@ -28,7 +28,7 @@ function calculateMinSegmentLength(segmentPoints) {
  * @param {Array<Point>} segmentPoints
  * @param {Number} rounding
  */
-function computeNPolyWithRoundingCorners(segmentPoints, rounding) {
+export function computeNPolyWithRoundingCorners(segmentPoints, rounding) {
     const minSegmentLength = calculateMinSegmentLength(segmentPoints);
 
     let path = '';
@@ -96,7 +96,7 @@ function computeNPolyWithRoundingCorners(segmentPoints, rounding) {
  *
  * @param {Array<Point>} segmentPoints
  */
-function computeNPolyWithSharpCorners(segmentPoints) {
+export function computeNPolyWithSharpCorners(segmentPoints) {
     let path = `M ${segmentPoints[0].x} ${segmentPoints[0].y} `;
     for (let i = 1; i < segmentPoints.length; i++) {
         path += ` L ${segmentPoints[i].x} ${segmentPoints[i].y} `;
