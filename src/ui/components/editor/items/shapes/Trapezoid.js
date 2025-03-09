@@ -37,8 +37,22 @@ export default {
         }],
 
         getPins(item) {
-            // return getStandardRectPins(item);
-            return [];
+            const topLength = item.area.w * item.shapeProps.topRatio / 100.0;
+            const topOffset = (item.area.w - topLength) * item.shapeProps.offset / 100.0;
+            return {
+                t: {
+                    x: topOffset + topLength / 2, y: 0
+                },
+                b: {
+                    x: item.area.w / 2, y: item.area.h
+                },
+                l: {
+                    x: topOffset / 2, y: item.area.h / 2
+                },
+                r: {
+                    x: (item.area.w + topOffset + topLength) / 2, y: item.area.h / 2
+                }
+            };
         },
 
 
