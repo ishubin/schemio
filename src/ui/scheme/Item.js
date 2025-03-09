@@ -152,6 +152,8 @@ export const defaultItemDefinition = {
         //     - path        = user can drag the item but it is constrained by the path of specified items
         //     - dragndrop   = user can only drag from one place to another
         dragging: 'none',
+        // element selector that specifies which object should be dragged (e.g. you can drag a modal by its title)
+        dragTarget: 'self',
         dropTo: '',
         // element selector that contraints the dragging within the outline of specified item or group of items
         dragPath: '',
@@ -196,6 +198,7 @@ export const defaultItem = {
         //     - path        = user can drag the item but it is constrained by the path of specified items
         //     - drag-n-drop = user can only drag from one place to another
         dragging: 'none',
+        dragTarget: 'self',
         dropTo: '',
         // element selector that contraints the dragging within the outline of specified item or group of items
         dragPath: '',

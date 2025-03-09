@@ -199,7 +199,6 @@
  * @property {String|undefined} parentId
  * @property {String} activeTextSlot - the name of a text slot that is accurently used for in place text edit
  * @property {Array<String>} ancestorIds
- * @property {String|undefined} ancestorDraggableId - id of ancestor item that is draggable. This is used to allow dragging of parent items by their children
  * @property {Array<Array<Number>} transformMatrix
  * @property {Number} revision - used for registering update of the item so that some editor components could be reloaded
  * @property {String|undefined} eventLayerId

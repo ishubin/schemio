@@ -81,20 +81,22 @@ export class DragItemState extends SubState {
      */
     constructor(parentState, listener, item, x, y, userEventBus, componentItem) {
         super(parentState, 'drag-item');
-        this.listener = listener;
-        this.userEventBus = userEventBus;
-        this.initialClickPoint = {x, y};
-        this.originalItemPosition = {x: item.area.x, y: item.area.y};
-        this.item = item;
-        this.moved = false;
-        this.lastDropCandidate = null;
-        this.componentItem = componentItem;
         if (componentItem) {
             this.schemeContainer = componentItem.meta.componentSchemeContainer;
         }
-        const localPoint = localPointOnItem(x, y, item, this.schemeContainer.shadowTransform);
+        const dragTarget = this.schemeContainer.findFirstElementBySelector(item.behavior.dragTarget, item) || item;
+        this.item = dragTarget;
+        this.listener = listener;
+        this.userEventBus = userEventBus;
+        this.initialClickPoint = {x, y};
+        this.originalItemPosition = {x: dragTarget.area.x, y: dragTarget.area.y};
+        this.moved = false;
+        this.lastDropCandidate = null;
+        this.componentItem = componentItem;
+        this.behavior = item.behavior;
+        const localPoint = localPointOnItem(x, y, dragTarget, this.schemeContainer.shadowTransform);
         this.looper = new DragItemLooper(this.parentState.schemeContainer, localPoint, this.schemeContainer.shadowTransform);
-        const worldPivot = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item, this.schemeContainer.shadowTransform);
+        const worldPivot = worldPointOnItem(dragTarget.area.px * dragTarget.area.w, dragTarget.area.py * dragTarget.area.h, dragTarget, this.schemeContainer.shadowTransform);
         this.worldPivotCorrection = {
             x: x - worldPivot.x,
             y: y - worldPivot.y,
@@ -132,9 +134,9 @@ export class DragItemState extends SubState {
         const nx = this.originalItemPosition.x + p1.x - p0.x;
         const ny = this.originalItemPosition.y + p1.y - p0.y;
 
-        if (this.item.behavior.dragging === DragType.dragndrop.id) {
+        if (this.behavior.dragging === DragType.dragndrop.id) {
             this.handleDroppableMouseMove(nx, ny);
-        } else if (this.item.behavior.dragging === DragType.path.id && this.item.behavior.dragPath) {
+        } else if (this.behavior.dragging === DragType.path.id && this.behavior.dragPath) {
             this.handlePathMouseMove(x, y);
         } else {
             this.item.area.x = nx;
@@ -148,7 +150,7 @@ export class DragItemState extends SubState {
     }
 
     handlePathMouseMove(x, y) {
-        const pathItems = this.schemeContainer.findElementsBySelector(this.item.behavior.dragPath);
+        const pathItems = this.schemeContainer.findElementsBySelector(this.behavior.dragPath);
         if (pathItems.length === 0) {
             return;
         }
@@ -212,7 +214,7 @@ export class DragItemState extends SubState {
         this.item.area.y = localPoint.y;
 
 
-        if (this.item.behavior.dragPathAlign) {
+        if (this.behavior.dragPathAlign) {
             const nextPoint = closestPath.getPointAtLength(closestPathDistance + 1);
             const prevPoint = closestPath.getPointAtLength(closestPathDistance - 1);
             const worldNextPoint = worldPointOnItem(nextPoint.x, nextPoint.y, closestPathItem, this.schemeContainer.shadowTransform);
@@ -229,8 +231,8 @@ export class DragItemState extends SubState {
 
                 this.item.area.r = angle;
 
-                if (isFinite(this.item.behavior.dragPathRotation)) {
-                    this.item.area.r += this.item.behavior.dragPathRotation;
+                if (isFinite(this.behavior.dragPathRotation)) {
+                    this.item.area.r += this.behavior.dragPathRotation;
                 };
             }
         }
@@ -285,7 +287,7 @@ export class DragItemState extends SubState {
             this.migrateToPreviousSubState();
             return;
         }
-        if (this.item.behavior.dragging === DragType.dragndrop.id) {
+        if (this.behavior.dragging === DragType.dragndrop.id) {
             const dropItem = this.lastDropCandidate;
             if (dropItem) {
                 const p = this.getDropPosition(dropItem);
@@ -307,10 +309,10 @@ export class DragItemState extends SubState {
     }
 
     findDesignatedDropItem() {
-        if (this.item.behavior.dropTo === 'self') {
+        if (this.behavior.dropTo === 'self') {
             return null;
         }
-        const designatedDropItems = this.schemeContainer.findElementsBySelector(this.item.behavior.dropTo, null);
+        const designatedDropItems = this.schemeContainer.findElementsBySelector(this.behavior.dropTo, null);
 
         const draggedItemBox = getBoundingBoxOfItems([this.item], this.schemeContainer.shadowTransform);
 
@@ -323,9 +325,10 @@ export class DragItemState extends SubState {
             }
             const box = getBoundingBoxOfItems([item], this.schemeContainer.shadowTransform);
             const overlap = myMath.overlappingArea(draggedItemBox, box);
+            const itemSquare = item.area.w * item.area.h;
             if (overlap) {
                 const overlapSquare = overlap.w * overlap.h;
-                if (overlapSquare > draggedSquare / 2) {
+                if (overlapSquare > draggedSquare / 2 || overlapSquare > itemSquare / 2) {
                     candidateDrop = item;
                 }
             }

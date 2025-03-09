@@ -137,6 +137,7 @@ const baseSchema = {
                 textSlots: {type: 'map', of: 'object', patching: ['patch-map'], fields: { /* built dynamically */ }},
                 behavior: {type: 'object', patching: ['modify'], fields: {
                     dragging        : {type: 'string', patching: ['replace']},
+                    dragTarget      : {type: 'string', patching: ['replace']},
                     dropTo          : {type: 'string', patching: ['replace']},
                     dragPath        : {type: 'string', patching: ['replace']},
                     dragPathAlign   : {type: 'boolean', patching: ['replace']},

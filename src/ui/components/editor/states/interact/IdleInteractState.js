@@ -61,13 +61,6 @@ export class IdleInteractState extends SubState {
             if (object.item.behavior.dragging !== 'none') {
                 this.migrateSubState(new DragItemState(this, this.listener, object.item, x, y, this.userEventBus, componentItem));
                 return;
-            } else if (object.item.meta.ancestorDraggableId) {
-                const schemeContainer = componentItem ? componentItem.meta.componentSchemeContainer : this.schemeContainer;
-                const ancestorItem =  schemeContainer.findItemById(object.item.meta.ancestorDraggableId);
-                if (ancestorItem) {
-                    this.migrateSubState(new DragItemState(this, this.listener, ancestorItem, x, y, this.userEventBus, componentItem));
-                    return;
-                }
             }
         }
     }

@@ -23,6 +23,21 @@
                             </dropdown>
                         </td>
                     </tr>
+                    <tr v-if="item.behavior.dragging !== 'none'">
+                        <td class="label" width="50%">Drag object</td>
+                        <td class="value" width="50%">
+                            <ElementPicker
+                                :editorId="editorId"
+                                :element="item.behavior.dragTarget"
+                                :scheme-container="schemeContainer"
+                                :useSelf="true"
+                                :allowNone="false"
+                                :inline="true"
+                                :borderless="false"
+                                @selected="onItemDragTargetSelected"
+                                />
+                        </td>
+                    </tr>
                     <tr v-if="item.behavior.dragging === 'dragndrop'">
                         <td class="label" width="50%">Drop to</td>
                         <td class="value" width="50%">
@@ -1254,6 +1269,14 @@ export default {
         onItemDraggingChange(option) {
             this.updateItem(item => {
                 item.behavior.dragging = option.id;
+                this.$forceUpdate();
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            });
+        },
+
+        onItemDragTargetSelected(element) {
+            this.updateItem(item => {
+                item.behavior.dragTarget = element;
                 this.$forceUpdate();
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             });
