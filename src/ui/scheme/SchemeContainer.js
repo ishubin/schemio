@@ -353,6 +353,10 @@ class SchemeContainer {
         this.worldItemAreas = new Map(); // used for storing rough item bounding areas in world transform (used for finding suitable parent)
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. path item can be attached to other items)
 
+        // stores references to connector items. This is needed to optimize the performance of searching
+        // for connections between items in SchemioScript
+        this.connectors = [];
+
         this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the component from the reference item
         this.itemCloneReferenceIds = new Map(); // stores ids of reference items that were used for cloned items
 
@@ -568,6 +572,7 @@ class SchemeContainer {
         log.info('reindexItems()', this);
         log.time('reindexItems');
 
+        this.connectors = [];
         this.itemMap = {};
         this.itemsByName = new Map();
         this._itemArray = [];
@@ -870,7 +875,9 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
-            if (item.shape === 'connector' && item.shapeProps.autoAttach) {
+            if (item.shape === 'connector') {
+                this.connectors.push(item);
+
                 if (item.shapeProps.sourceItem) {
                     registerDependant(item.shapeProps.sourceItem, item.id);
                 }
@@ -2163,6 +2170,13 @@ class SchemeContainer {
      */
     getItems() {
         return this._itemArray;
+    }
+
+    /**
+     * @returns {Array<Item>}
+     */
+    getConnectors() {
+        return this.connectors;
     }
 
     getTopLevelItems() {
