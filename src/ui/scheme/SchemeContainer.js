@@ -3597,10 +3597,11 @@ class SchemeContainer {
     /**
      * Searches for item that is able to fit item inside it and that has the min area out of all specified items
      * @param {Item} item  - item that it needs to fit into another parent item (should be in world transform)
+     * @param {Number} overlapRatio - the minimum ratio of the area that is inside of potential parent to the items full area
      * @param {function(Item): Boolean} itemPredicate - callback function which should return true for specified item if it should be considered
      * @returns {Item}
      */
-    findItemSuitableForParent(item, itemPredicate) {
+    findItemSuitableForParent(item, overlapRatio = 0.5, itemPredicate) {
         const area = this.calculateItemWorldArea(item);
         const items = this.getItems();
 
@@ -3618,7 +3619,7 @@ class SchemeContainer {
 
                     const A = area.w * area.h;
                     if (overlap && !myMath.tooSmall(A)) {
-                        if ((overlap.w * overlap.h) / A >= 0.5)  {
+                        if ((overlap.w * overlap.h) / A >= overlapRatio)  {
                             return candidateItem;
                         }
                     }

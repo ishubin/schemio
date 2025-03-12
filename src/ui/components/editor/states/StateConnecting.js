@@ -33,7 +33,6 @@ export default class StateConnecting extends State {
     constructor(editorId, store, listener) {
         super(editorId, store, 'connecting', listener);
         this.item = null;
-        this.parentItem = null;
         this.addedToScheme = false;
         this.originalClickPoint = {x: 0, y: 0, mx: 0, my: 0};
         this.candidatePointSubmited = false;
@@ -52,7 +51,6 @@ export default class StateConnecting extends State {
     reset() {
         this.listener.onItemsHighlighted({itemIds: [], showPins: false})
         this.item = null;
-        this.parentItem = null;
         this.addedToScheme = false;
         this.softReset();
     }
@@ -112,19 +110,6 @@ export default class StateConnecting extends State {
         connectorItem = this.schemeContainer.addItem(connectorItem);
         connectorItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
-        let parentItem = null;
-        if (sourceItem.meta.parentId) {
-            parentItem = this.schemeContainer.findItemById(sourceItem.meta.parentId);
-            if (parentItem) {
-                this.schemeContainer.remountItemInsideOtherItemAtTheBottom(connectorItem.id, parentItem.id);
-                connectorItem.area.x = 0;
-                connectorItem.area.y = 0;
-                connectorItem.area.w = parentItem.area.w;
-                connectorItem.area.h = parentItem.area.h;
-                this.schemeContainer.reindexItems();
-            }
-        }
-
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
         if (closestPoint.pinId) {
             connectorItem.shapeProps.sourcePin = closestPoint.pinId;
@@ -134,20 +119,10 @@ export default class StateConnecting extends State {
             connectorItem.shapeProps.sourceItemPosition = closestPoint.distanceOnPath;
         }
 
-
-        let firstPoint = closestPoint;
-        let secondPoint = worldPoint;
-
-        // if item was remounted to some other item - we should recalculate its point from world to transform of its parent
-        if (parentItem) {
-            firstPoint = this.schemeContainer.localPointOnItem(closestPoint.x, closestPoint.y, parentItem);
-            secondPoint = this.schemeContainer.localPointOnItem(worldPoint.x, worldPoint.y, parentItem);
-        }
-
         connectorItem.shapeProps.points = [{
-            t: 'L', x: this.round(firstPoint.x), y: this.round(firstPoint.y)
+            t: 'L', x: this.round(closestPoint.x), y: this.round(closestPoint.y)
         }, {
-            t: 'L', x: this.round(secondPoint.x), y: this.round(secondPoint.y)
+            t: 'L', x: this.round(worldPoint.x), y: this.round(worldPoint.y)
         }];
 
         if (typeof closestPoint.nx != 'undefined') {
@@ -158,7 +133,6 @@ export default class StateConnecting extends State {
         this.item = connectorItem;
 
         StoreUtils.setCurrentConnector(this.store, this.item);
-        this.parentItem = parentItem;
         this.addedToScheme = true;
         this.creatingNewPoints = true;
 
@@ -308,13 +282,7 @@ export default class StateConnecting extends State {
             if (isEventRightClick(event)) {
                 this.proposeNewDestinationItemForConnector(this.item, mx, my);
             } else {
-                let realX = x, realY = y;
-                if (this.parentItem) {
-                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                    realX = relativePoint.x;
-                    realY = relativePoint.y;
-                }
-                const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, realX, realY);
+                const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, x, y);
 
                 // checking if the curve was attached to another item
                 if (this.item.shapeProps.destinationItem) {
@@ -370,13 +338,7 @@ export default class StateConnecting extends State {
             const point = this.item.shapeProps.points[pointIndex];
 
             // drag last point
-            let realX = x, realY = y;
-            if (this.parentItem) {
-                const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                realX = relativePoint.x;
-                realY = relativePoint.y;
-            }
-            const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, realX, realY);
+            const snappedLocalCurvePoint = this.snapCurvePoint(pointIndex, x, y);
 
             point.x = this.round(snappedLocalCurvePoint.x);
             point.y = this.round(snappedLocalCurvePoint.y);
@@ -395,13 +357,7 @@ export default class StateConnecting extends State {
             if (this.candidatePointSubmited) {
                 this.candidatePointSubmited = false;
 
-                let realX = x, realY = y;
-                if (this.parentItem) {
-                    const relativePoint = this.schemeContainer.localPointOnItem(x, y, this.parentItem);
-                    realX = relativePoint.x;
-                    realY = relativePoint.y;
-                }
-                const snappedLocalCurvePoint = this.snapCurvePoint(-1, realX, realY);
+                const snappedLocalCurvePoint = this.snapCurvePoint(-1, x, y);
 
                 this.item.shapeProps.points.push({
                     id: shortid.generate(),
@@ -594,7 +550,7 @@ export default class StateConnecting extends State {
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
         if (this.store.state.autoRemount) {
-            const parentItem = this.schemeContainer.findItemSuitableForParent(this.item);
+            const parentItem = this.schemeContainer.findItemSuitableForParent(this.item, 0.98);
             if (parentItem) {
                 this.schemeContainer.remountItemInsideOtherItemAtTheBottom(this.item.id, parentItem.id);
             }

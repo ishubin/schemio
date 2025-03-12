@@ -666,7 +666,7 @@ class DragEditBoxState extends EditBoxState {
 
             if (!areAllItemsTemplated) {
                 const fakeItem = {meta: {}, area: this.editBox.area};
-                this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => {
+                this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, 0.5, item => {
                     if (this.editBox.itemIds.has(item.id)) {
                         return false;
                     }
