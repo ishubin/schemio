@@ -1412,6 +1412,10 @@ class SchemeContainer {
             if (itemId === excludedId) {
                 return;
             }
+            const item = this.findItemById(itemId);
+            if (item && item.weld) {
+                return;
+            }
             const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
             if (!closestPin || closestPin.distance > distance) {
                 closestPin = { itemId, pinId, point: worldPinPoint, distance };
@@ -1465,7 +1469,7 @@ class SchemeContainer {
 
         items.forEach((pathLocation, itemId) => {
             const item = this.findItemById(itemId);
-            if (item.id === excludedId) {
+            if (item.id === excludedId || item.weld) {
                 return;
             }
 
@@ -2503,6 +2507,22 @@ class SchemeContainer {
             }
         }
         return [];
+    }
+
+    /**
+     * @param {Item} item
+     * @returns {Item|null}
+     */
+    findNonWeldedAncestor(item) {
+        const parent = this.findItemById(item.meta.parentId);
+        if (parent) {
+            if (!parent.weld) {
+                return parent;
+            } else {
+                return this.findNonWeldedAncestor(parent);
+            }
+        }
+        return null;
     }
 
     copySelectedItems() {
@@ -3620,6 +3640,12 @@ class SchemeContainer {
                     const A = area.w * area.h;
                     if (overlap && !myMath.tooSmall(A)) {
                         if ((overlap.w * overlap.h) / A >= overlapRatio)  {
+                            if (candidateItem.weld) {
+                                const parent = this.findNonWeldedAncestor(candidateItem);
+                                if (parent) {
+                                    return parent;
+                                }
+                            }
                             return candidateItem;
                         }
                     }

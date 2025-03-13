@@ -898,6 +898,13 @@ class IdleState extends SubState {
         if (!clickedItem) {
             return;
         }
+
+        if (clickedItem.weld) {
+            const parent = this.schemeContainer.findNonWeldedAncestor(clickedItem);
+            if (parent) {
+                clickedItem = parent;
+            }
+        }
         const isMultiSelect = isMultiSelectKey(event);
         this.schemeContainer.selectItem(clickedItem, isMultiSelect);
         if (!isMultiSelect) {

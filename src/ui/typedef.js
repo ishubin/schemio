@@ -296,6 +296,7 @@
  * @property {Object} textSlots
  * @property {ItemAutoLayout} autoLayout
  * @property {Boolean} clip
+ * @property {Boolean} weld
  * @property {Boolean} mount - specifies whether the item can be used for auto mounting other items to it (e.g. when creating or dragging)
  * @property {ItemBehavior} behavior
  * @property {Array<Item>} childItems

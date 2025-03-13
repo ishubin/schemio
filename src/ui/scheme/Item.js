@@ -132,7 +132,14 @@ export const defaultItemDefinition = {
     cursor: 'default',
     shape: 'none',
     clip: false,
-    mount: true, // specifies that other items could be mounted to this item
+    // If set to true, then the item will not be selectable and the connectors would not attach to it.
+    // If clicked in the scene, it's parent will be selected instead
+    // All events in view mode would be sent to its parent instead.
+    // If it's parent has also "weld" set to true, then it will retransmit the event up to it's parent,
+    // until the first non-welded item is reached
+    weld: false,
+    // specifies that other items could be mounted to this item
+    mount: true,
     effects: [],
     textSlots: {
         '*': defaultTextSlotProps

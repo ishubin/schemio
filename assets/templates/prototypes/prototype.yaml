@@ -177,6 +177,8 @@ item:
         - $-if: "frame == 'phone'"
           id: {$-str: "black-layer-${idx}"}
           name: Black layer
+          mount: false
+          weld: true
           area:
             x: 4
             y: 4
@@ -214,6 +216,8 @@ item:
                 y: 12
                 w: {$-expr: cameraOverlayWidth}
                 h: {$-expr: cameraOverlayHeight}
+              mount: false
+              weld: true
               shape: rect
               shapeProps:
                 cornerRadius: {$-expr: cameraOverlayHeight}
@@ -225,6 +229,8 @@ item:
               childItems:
                 - id: {$-str: "camera-lense-${idx}"}
                   name: Camera Lense
+                  mount: false
+                  weld: true
                   area:
                     x: {$-expr: "cameraOverlayWidth - cameraLenseSize - cameraLensePadding"}
                     y: {$-expr: "cameraLensePadding"}
