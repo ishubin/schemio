@@ -18,3 +18,19 @@ func onDeleteItem(itemId, item) {
         deletePage(pageIdx)
     }
 }
+
+
+cameraOverlayWidth = min(width / 2, 70)
+cameraOverlayHeight = 20
+cameraLenseSize = cameraOverlayHeight / 2
+cameraLensePadding = (cameraOverlayHeight - cameraLenseSize) / 2
+
+
+frameFill = background
+frameStrokeColor = strokeColor
+frameStrokeSize = strokeSize
+if (frame == 'phone') {
+    frameFill = Fill.solid('rgba(95,95,95,1)')
+    frameStrokeColor = 'rgba(95,95,95,1)'
+    frameStrokeSize = 0
+}

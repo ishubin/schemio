@@ -1,8 +1,9 @@
 name: Prototype
 args: {
+  frame             : {type: "choice", value: "phone", options: ["simple", "phone"], name: "Frame"},
   numPages          : {type: "number", value: 3, min: 1, name: "Numbers of pages"},
   maxCols           : {type: "number", value: 10, min: 1, name: "Max per row"},
-  cornerRadius      : {type: "number", value: 20, min: 0, name: "Corner radius"},
+  cornerRadius      : {type: "number", value: 36, min: 0, name: "Corner radius"},
   pageMargin        : {type: "number", value: 60, min: 0, name: "Page margin"},
   background        : {type: "advanced-color", value: { type: "solid", color: "rgba(240, 240, 240, 1)" }, name: "Background"},
   strokeColor       : {type: "color", value: "rgba(212,212,212,1.0)", name: "Stroke color"},
@@ -13,6 +14,7 @@ args: {
 }
 
 import:
+  - ../diagrams/src/item.sch
   - ./src/prototype.sch
 
 handlers:
@@ -82,6 +84,10 @@ item:
     strokeColor: {$-expr: strokeColor}
     strokeSize: {$-expr: strokeSize}
     strokePattern: solid
+  opacity: 100
+  selfOpacity: 100
+  visible: true
+  clip: false
   behavior:
     events:
       - id: init
@@ -140,11 +146,12 @@ item:
 
   childItems:
     - $-for: {start: 1, until: {$-expr: "numPages + 1"}, it: idx}
-      id: {$-str: "page-${idx}"}
+      id: {$-expr: "if (frame == 'phone') { `phone-frame-${idx}` } else { `page-${idx}` }"}
       name: {$-str: "Page ${idx}"}
       args:
         templateIgnoredProps:
           - name
+      clip: true
       shape: rect
       tags:
         - $-str: page-${idx}
@@ -161,10 +168,81 @@ item:
         sy: 1
       shapeProps:
         cornerRadius: {$-expr: cornerRadius}
-        fill: {$-expr: background}
-        strokeColor: {$-expr: strokeColor}
-        strokeSize: {$-expr: strokeSize}
+        fill: {$-expr: frameFill}
+        strokeColor: {$-expr: frameStrokeColor}
+        strokeSize: {$-expr: frameStrokeSize}
         strokePattern: solid
+
+      childItems:
+        - $-if: "frame == 'phone'"
+          id: {$-str: "black-layer-${idx}"}
+          name: Black layer
+          area:
+            x: 4
+            y: 4
+            w: {$-expr: "max(1, width - 8)"}
+            h: {$-expr: "max(1, height - 8)"}
+          shape: rect
+          shapeProps:
+            cornerRadius: {$-expr: "max(0, cornerRadius - 4)"}
+            fill:
+              type: "solid"
+              color: "rgba(20, 20, 20, 1)"
+            strokeColor: "rgba(20,20,20,1.0)"
+            strokeSize: 0
+            strokePattern: solid
+          childItems:
+            - id: {$-str: "page-${idx}"}
+              name: {$-str: "Page container ${idx}"}
+              clip: true
+              area:
+                x: 6
+                y: 6
+                w: {$-expr: "max(1, width - 20)"}
+                h: {$-expr: "max(1, height - 20)"}
+              shape: rect
+              shapeProps:
+                cornerRadius: {$-expr: "max(0, cornerRadius - 6)"}
+                fill: {$-expr: background}
+                strokeColor: "rgba(240,240,240,1.0)"
+                strokeSize: 0
+                strokePattern: solid
+            - id: {$-str: "page-camera-overlay-${idx}"}
+              name: "Page camera overlay"
+              area:
+                x: {$-expr: "(width - 8)/2 - cameraOverlayWidth/2"}
+                y: 12
+                w: {$-expr: cameraOverlayWidth}
+                h: {$-expr: cameraOverlayHeight}
+              shape: rect
+              shapeProps:
+                cornerRadius: {$-expr: cameraOverlayHeight}
+                fill:
+                  color: "rgba(20, 20, 20, 1)"
+                  type: "solid"
+                strokeColor:  "rgba(20, 20, 20, 1)"
+                strokeSize: 0
+              childItems:
+                - id: {$-str: "camera-lense-${idx}"}
+                  name: Camera Lense
+                  area:
+                    x: {$-expr: "cameraOverlayWidth - cameraLenseSize - cameraLensePadding"}
+                    y: {$-expr: "cameraLensePadding"}
+                    w: {$-expr: cameraLenseSize}
+                    h: {$-expr: cameraLenseSize}
+                  shape: ellipse
+                  shapeProps:
+                    cornerRadius: {$-expr: cameraOverlayHeight}
+                    fill:
+                      color: "rgba(60, 60, 60, 1)"
+                      type: "solid"
+                    strokeColor:  "rgba(60, 60, 60, 1)"
+                    strokeSize: 0
+
+
+
+
+
       behavior:
         events:
           - id: init
@@ -279,7 +357,3 @@ item:
       textSlots:
         body:
           text: {$-str: "Page ${idx}"}
-  opacity: 100
-  selfOpacity: 100
-  visible: true
-  clip: false
