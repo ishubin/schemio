@@ -2410,12 +2410,16 @@ class SchemeContainer {
      * @param {Array} itemArray
      */
     bringSelectedItemsToFront(itemArray) {
+        const parentItemIds = new Set();
         if (!itemArray) {
             itemArray = this.scheme.items;
         }
         let i = 0;
         let topItems = [];
         while (i < itemArray.length) {
+            if (itemArray[i].meta && itemArray[i].meta.parentId) {
+                parentItemIds.add(itemArray[i].meta.parentId);
+            }
             if (itemArray[i].childItems) {
                 this.bringSelectedItemsToFront(itemArray[i].childItems);
             }
@@ -2430,6 +2434,10 @@ class SchemeContainer {
 
         forEach(topItems, item => {
             itemArray.push(item);
+        });
+
+        parentItemIds.forEach(itemId => {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, itemId);
         });
     }
 
@@ -2913,6 +2921,9 @@ class SchemeContainer {
             item.locked = false;
             this.scheme.items.push(item);
             this.itemMap[item.id] = item;
+            // disabling any auto-layout rules since the item is added as the root of the scene
+            item.autoLayout.on = false;
+            item.autoLayout.rules = {};
         });
 
         this.fixPastedConnectors(copiedItems, copiedIds);

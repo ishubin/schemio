@@ -134,6 +134,15 @@ export default {
     },
 
     components: { ElementPicker, NumberTextfield, GuideLabel },
+
+    beforeMount() {
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+    },
+
+    beforeDestroy() {
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+    },
+
     data() {
         const parentItem = this.item.meta && this.item.meta.parentId ? this.schemeContainer.findItemById(this.item.meta.parentId) : null;
 
@@ -200,6 +209,11 @@ export default {
         };
     },
     methods: {
+        onItemChanged() {
+            const parentItem = this.item.meta && this.item.meta.parentId ? this.schemeContainer.findItemById(this.item.meta.parentId) : null;
+            this.autoLayoutAllowed = parentItem ? true : false;
+        },
+
         updateItem() {
             this.schemeContainer.readjustItemAndDescendants(this.item.id);
             this.schemeContainer.updateEditBox();

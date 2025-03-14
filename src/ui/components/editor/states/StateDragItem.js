@@ -748,6 +748,7 @@ class DragEditBoxState extends EditBoxState {
                     }
                 }
             }
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
         this.schemeContainer.reindexItems();
         this.schemeContainer.updateEditBox();

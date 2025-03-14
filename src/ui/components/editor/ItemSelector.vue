@@ -384,16 +384,19 @@ export default {
                     if (this.dragging.dropAbove) {
                         handler = (item) => {
                             this.schemeContainer.remountItemBeforeOtherItem(item.id, this.dragging.destinationId);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         };
                     } else if (this.dragging.dropInside) {
                         handler = (item) => {
                             this.schemeContainer.remountItemInsideOtherItem(item.id, this.dragging.destinationId, 0);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         };
                     } else {
                         handler = (item) => {
                             this.schemeContainer.remountItemAfterOtherItem(item.id, this.dragging.destinationId);
+                            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
                             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
                         };
                     }
