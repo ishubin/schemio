@@ -9,14 +9,6 @@
             <h4>{{ template.name }}</h4>
             <p class="hint hint-small" v-if="template.description">{{ template.description }}</p>
 
-            <!-- <ArgumentsEditor v-if="template.args"
-                :key="`item-${item.id}-template-args-${reloadKey}`"
-                :editorId="editorId"
-                :schemeContainer="schemeContainer"
-                :argsDefinition="template.args"
-                :args="args"
-                @argument-changed="onArgChanged"
-            /> -->
             <ArgumentsEditor v-if="ungroupedArgs"
                 :key="`item-${item.id}-template-ungrouped-args-${reloadKey}`"
                 :editorId="editorId"
@@ -41,6 +33,7 @@
                 <ul v-if="panel.type === 'item-menu'" class="template-editor-panel-items-container">
                     <li v-for="item in panel.items" @click="onEditorPanelItemClicked(panel, item)"
                         :style="{width: `${panel.slotSize.width}px`, height: `${panel.slotSize.height}px`, }"
+                        :class="{toggled: item.toggled}"
                         :title="item.name"
                         >
                         <svg :width="`${panel.slotSize.width}px`" :height="`${panel.slotSize.height}px`">
@@ -133,6 +126,7 @@ export default {
             this.$emit('template-rebuild-requested', this.item.id, this.template, this.item.args.templateArgs);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             this.updateTemplateArgs();
+            this.updateEditorPanels();
         },
 
         updateTemplateArgs() {

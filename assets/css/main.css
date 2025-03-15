@@ -4972,6 +4972,10 @@ ul.properties-button-list > li > .btn {
     background: var(--base-weak);
 }
 
+.template-properties  ul.template-editor-panel-items-container > li.toggled {
+    border: 1px solid var(--faint-weak-down);
+    background: var(--faint-weak-down);
+}
 
 .starter-proposal-modal-wrapper {
     position: absolute;

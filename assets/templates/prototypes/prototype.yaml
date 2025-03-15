@@ -1,6 +1,6 @@
 name: Prototype
 args: {
-  frame             : {type: "choice", value: "phone", options: ["simple", "phone", "desktop"], name: "Frame"},
+  frame             : {type: "choice", value: "phone", options: ["simple", "phone", "desktop"], name: "Frame", hidden: true},
   numPages          : {type: "number", value: 3, min: 1, name: "Numbers of pages"},
   maxCols           : {type: "number", value: 10, min: 1, name: "Max per row"},
   cornerRadius      : {type: "number", value: 40, min: 0, name: "Corner radius"},
@@ -8,9 +8,6 @@ args: {
   background        : {type: "advanced-color", value: { type: "solid", color: "rgba(240, 240, 240, 1)" }, name: "Background"},
   strokeColor       : {type: "color", value: "rgba(212,212,212,1.0)", name: "Stroke color"},
   strokeSize        : {type: "number", value: 1, min: 0, name: "Stroke size"},
-  transition        : {type: "choice", value: "simple", options: ["simple", "slide"], name: "Page transition"},
-  transitionDuration: {type: "number", value: 0.5, min: 0, name: "Transition duration"},
-  transitionType    : {type: "choice", value: "ease-out", options: ["linear", "smooth", "ease-in", "ease-out", "ease-in-out", "bounce"], name: "Transition type"}
 }
 
 import:
@@ -62,6 +59,48 @@ controls:
     height: 30
     click:
       - duplicatePage(control.data.pageIndex)
+
+editor:
+    panels:
+      - id: frame
+        type: item-menu
+        click: 'selectFrame(panelItem)'
+        name: Frame
+        slotSize:
+            width: 100
+            height: 100
+        items:
+          - id: 'simple'
+            toggled: {$-expr: "frame == 'simple'"}
+            name: Simple
+            shape: 'rect'
+            area: {x: 10, w: 72, h: 90}
+            shapeProps:
+              cornerRadius: 5
+              fill: { type: solid, color: 'rgba(255,255,255,1)'}
+              strokeSize: 1
+              strokeColor: 'rgba(155,155,155,1)'
+
+          - id: 'phone'
+            toggled: {$-expr: "frame == 'phone'"}
+            name: Phone
+            shape: 'image'
+            area: {x: 0, y: 5, w: 90, h: 80}
+            shapeProps:
+              image: /assets/templates/prototypes/phone.svg
+              fill: { type: none }
+              strokeSize: 0
+
+          - id: 'desktop'
+            toggled: {$-expr: "frame == 'desktop'"}
+            name: Desktop
+            shape: 'image'
+            area: {x: 0, y: 5, w: 90, h: 90}
+            shapeProps:
+              image: /assets/templates/prototypes/desktop.svg
+              fill: { type: none }
+              strokeSize: 0
+
 
 item:
   id: root
@@ -242,6 +281,8 @@ item:
             - id: {$-str: "page-container-${idx}"}
               name: {$-str: "Page container ${idx}"}
               clip: true
+              weld: true
+              mount: true
               area:
                 x: 6
                 y: 6
@@ -294,6 +335,8 @@ item:
           id: {$-str: "page-container-${idx}"}
           name: {$-str: "Page container ${idx}"}
           clip: true
+          weld: true
+          mount: true
           area:
             x: 1
             y: 30
@@ -304,8 +347,8 @@ item:
             cornerRadius: 0
             varCorners: true
             r2: 0
-            r3: 10
-            r4: 10
+            r3: {$-expr: frameCornerRadius}
+            r4: {$-expr: frameCornerRadius}
             fill: {$-expr: background}
             strokeColor: "rgba(240,240,240,1.0)"
             strokeSize: 0
@@ -345,43 +388,7 @@ item:
                   fail: pass
                   success: break-event
 
-              - $-if: transition == 'slide'
-                id: "root-slide-script"
-                element: '#root'
-                method: script
-                args:
-                  initScript:
-                    $-str: |
-                      currentPage = getVar('currentPage')
-                      nextPage = ${idx}
-                      currentPageItem = findChildItemsByTag('page-' + currentPage).get(0)
-                      nextPageItem = findChildItemsByTag('page-' + ${idx}).get(0)
-                      setVar('currentPage', nextPage)
-                      currentDstX = -getWidth()
-                      currentSrcX = 0
-                      nextSrcX = getWidth()
-                      nextDstX = 0
-                      if (nextPage < currentPage) {
-                          currentDstX = getWidth()
-                          nextSrcX = -getWidth()
-                      }
-                      if (currentPageItem && nextPageItem) {
-                          nextPageItem.setPosX(nextSrcX)
-                          nextPageItem.show()
-                      }
-                  script:
-                    $-str: |
-                      if (currentPageItem && nextPageItem) {
-                          nextPageItem.setPosX(nextSrcX * (1 - t) + nextDstX * t)
-                          currentPageItem.setPosX(currentSrcX * (1 - t) + currentDstX * t)
-                      }
-                  animated: true
-                  animationType: animation
-                  animationDuration: {$-expr: transitionDuration}
-                  transition: {$-expr: transitionType}
-
-              - $-else: ""
-                id: root-simple-script
+              - id: root-simple-script
                 element: '#root'
                 method: script
                 args:

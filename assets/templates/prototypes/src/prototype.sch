@@ -19,6 +19,18 @@ func onDeleteItem(itemId, item) {
     }
 }
 
+func selectFrame(panelItem) {
+    if (panelItem.id == 'simple') {
+        frame = 'simple'
+    } else if (panelItem.id == 'phone') {
+        frame = 'phone'
+        cornerRadius = 40
+    } else if (panelItem.id == 'desktop') {
+        cornerRadius = 10
+        frame = 'desktop'
+    }
+}
+
 
 cameraOverlayWidth = min(width / 2, 80)
 cameraOverlayHeight = 24
@@ -52,7 +64,7 @@ if (frame == 'phone') {
 desktopButtons = List()
 
 if (frame == 'desktop') {
-    frameCornerRadius = 10
+    frameCornerRadius = max(0, min(cornerRadius, 15))
     isSimpleFrame = false
     frameFill = Fill.solid('rgba(95,95,95,1)')
     frameStrokeColor = 'rgba(95,95,95,1)'

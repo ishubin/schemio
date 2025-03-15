@@ -3651,12 +3651,6 @@ class SchemeContainer {
                     const A = area.w * area.h;
                     if (overlap && !myMath.tooSmall(A)) {
                         if ((overlap.w * overlap.h) / A >= overlapRatio)  {
-                            if (candidateItem.weld) {
-                                const parent = this.findNonWeldedAncestor(candidateItem);
-                                if (parent) {
-                                    return parent;
-                                }
-                            }
                             return candidateItem;
                         }
                     }
