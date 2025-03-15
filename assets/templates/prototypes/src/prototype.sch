@@ -25,12 +25,18 @@ func selectFrame(panelItem) {
     } else if (panelItem.id == 'phone') {
         frame = 'phone'
         cornerRadius = 40
+        width = 430
+        height = 932
     } else if (panelItem.id == 'phone-landscape') {
         frame = 'phone-landscape'
         cornerRadius = 40
+        width = 932
+        height = 430
     } else if (panelItem.id == 'desktop') {
         cornerRadius = 10
         frame = 'desktop'
+        width = 900
+        height = 600
     }
 }
 

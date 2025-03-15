@@ -115,6 +115,8 @@ export default {
     methods: {
         onEditorPanelItemClicked(panel, panelItem) {
             const templateData = panel.click(panelItem);
+            this.item.area.w = templateData.width;
+            this.item.area.h = templateData.height;
 
             if (this.template.args) {
                 for (let key in this.template.args) {
