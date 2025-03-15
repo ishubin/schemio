@@ -2,7 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import myMath from '../../../../myMath';
-import {createRoundRectPath, getStandardRectPins} from './ShapeDefaults'
+import {getStandardRectPins} from './ShapeDefaults'
+
+
+export function createRoundRectPath(w, h, r1, r2, r3, r4) {
+    r1 = Math.min(r1, w/2, h/2);
+    r2 = Math.min(r2, w/2, h/2);
+    r3 = Math.min(r3, w/2, h/2);
+    r4 = Math.min(r4, w/2, h/2);
+
+    return `M ${w-r3} ${h}  L ${r4} ${h} a ${r4} ${r4} 0 0 1 ${-r4} ${-r4}  L 0 ${r1}  a ${r1} ${r1} 0 0 1 ${r1} ${-r1}   L ${w-r2} 0   a ${r2} ${r2} 0 0 1 ${r2} ${r2}  L ${w} ${h-r3}   a ${r3} ${r3} 0 0 1 ${-r3} ${r3} Z`;
+}
 
 export default {
     shapeConfig: {
@@ -142,29 +152,71 @@ export default {
         },
 
         computePath(item) {
-            return createRoundRectPath(item.area.w, item.area.h, item.shapeProps.cornerRadius);
+            let r2 = item.shapeProps.cornerRadius;
+            let r3 = item.shapeProps.cornerRadius;
+            let r4 = item.shapeProps.cornerRadius;
+            if (item.shapeProps.varCorners) {
+                r2 = item.shapeProps.r2;
+                r3 = item.shapeProps.r3;
+                r4 = item.shapeProps.r4;
+            }
+
+            return createRoundRectPath(item.area.w, item.area.h, item.shapeProps.cornerRadius, r2, r3, r4);
         },
 
         editorProps: {},
 
         controlPoints: {
             make(item) {
-                return {
-                    cornerRadius: {
-                        x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
-                        y: 0
+                if (item.shapeProps.varCorners) {
+                    return {
+                        r1: {
+                            x: Math.max(0, Math.min(item.shapeProps.cornerRadius, item.area.w/2)),
+                            y: 0
+                        },
+                        r2: {
+                            x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.r2, item.area.w/2)),
+                            y: 0
+                        },
+                        r3: {
+                            x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.r3, item.area.w/2)),
+                            y: item.area.h
+                        },
+                        r4: {
+                            x: Math.max(0, Math.min(item.shapeProps.r4, item.area.w/2)),
+                            y: item.area.h
+                        }
+                    };
+                } else {
+                    return {
+                        cornerRadius: {
+                            x: Math.min(item.area.w, Math.max(item.area.w - item.shapeProps.cornerRadius, item.area.w/2)),
+                            y: 0
+                        }
                     }
                 }
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
                 if (controlPointName === 'cornerRadius') {
                     item.shapeProps.cornerRadius = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
+                } else if (controlPointName === 'r1') {
+                    item.shapeProps.cornerRadius = Math.max(0, myMath.roundPrecise(Math.min(item.area.w/2, originalX + dx), 1));
+                } else if (controlPointName === 'r2') {
+                    item.shapeProps.r2 = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
+                } else if (controlPointName === 'r3') {
+                    item.shapeProps.r3 = Math.max(0, myMath.roundPrecise(item.area.w - Math.max(item.area.w/2, originalX + dx), 1));
+                } else if (controlPointName === 'r4') {
+                    item.shapeProps.r4 = Math.max(0, myMath.roundPrecise(Math.min(item.area.w/2, originalX + dx), 1));
                 }
             }
         },
 
         args: {
             cornerRadius: {type: 'number', value: 0, name: 'Corner radius', min: 0, softMax: 100},
+            varCorners  : {type: 'boolean', value: false, name: 'Varied Cornerns'},
+            r2          : {type: 'number', value: 0, name: 'Corner radius 2', min: 0, softMax: 100, depends: {varCorners: true}},
+            r3          : {type: 'number', value: 0, name: 'Corner radius 3', min: 0, softMax: 100, depends: {varCorners: true}},
+            r4          : {type: 'number', value: 0, name: 'Corner radius 4', min: 0, softMax: 100, depends: {varCorners: true}},
         }
     }
 };

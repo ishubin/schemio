@@ -49,10 +49,17 @@ if (frame == 'phone') {
     isSimpleFrame = false
 }
 
+desktopButtons = List()
+
 if (frame == 'desktop') {
     frameCornerRadius = 10
     isSimpleFrame = false
     frameFill = Fill.solid('rgba(95,95,95,1)')
     frameStrokeColor = 'rgba(95,95,95,1)'
     frameStrokeSize = 0
+    desktopButtons = List(
+        Item('d-btn-1', 'Button', 'rect', 14, 8, 12, 12),
+        Item('d-btn-2', 'Button', 'rect', 34, 8, 12, 12),
+        Item('d-btn-3', 'Button', 'rect', 54, 8, 12, 12),
+    )
 }

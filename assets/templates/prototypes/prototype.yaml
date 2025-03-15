@@ -200,6 +200,25 @@ item:
             strokeColor: "rgba(20,20,20,1.0)"
             strokeSize: 0
 
+        - $-foreach: {source: "desktopButtons", it: "b"}
+          id: {$-str: "${b.id}-${idx}"}
+          name: "Button"
+          weld: true
+          mount: false
+          area:
+            x: {$-expr: b.x}
+            y: {$-expr: b.y}
+            w: {$-expr: b.w}
+            h: {$-expr: b.h}
+          shape: rect
+          shapeProps:
+            cornerRadius: 10
+            fill:
+              type: solid
+              color: "rgba(150,150,150,1.0)"
+            strokeColor: "rgba(20,20,20,1.0)"
+            strokeSize: 0
+
         - $-if: "frame == 'phone'"
           id: {$-str: "black-layer-${idx}"}
           name: Black layer
@@ -279,10 +298,14 @@ item:
             x: 1
             y: 30
             w: {$-expr: "max(1, width - 2)"}
-            h: {$-expr: "max(1, height - 40)"}
+            h: {$-expr: "max(1, height - 31)"}
           shape: rect
           shapeProps:
             cornerRadius: 0
+            varCorners: true
+            r2: 0
+            r3: 10
+            r4: 10
             fill: {$-expr: background}
             strokeColor: "rgba(240,240,240,1.0)"
             strokeSize: 0
