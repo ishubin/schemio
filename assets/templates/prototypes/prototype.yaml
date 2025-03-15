@@ -1,6 +1,6 @@
 name: Prototype
 args: {
-  frame             : {type: "choice", value: "phone", options: ["simple", "phone", "desktop"], name: "Frame", hidden: true},
+  frame             : {type: "choice", value: "phone", options: ["simple", "phone", "phone-landscape", "desktop"], name: "Frame", hidden: true},
   numPages          : {type: "number", value: 3, min: 1, name: "Numbers of pages"},
   maxCols           : {type: "number", value: 10, min: 1, name: "Max per row"},
   cornerRadius      : {type: "number", value: 40, min: 0, name: "Corner radius"},
@@ -86,6 +86,16 @@ editor:
             name: Phone
             shape: 'image'
             area: {x: 0, y: 5, w: 90, h: 80}
+            shapeProps:
+              image: /assets/templates/prototypes/phone.svg
+              fill: { type: none }
+              strokeSize: 0
+
+          - id: 'phone-landscape'
+            toggled: {$-expr: "frame == 'phone-landscape'"}
+            name: Phone Landscape
+            shape: 'image'
+            area: {x: 0, y: 5, w: 90, h: 80, r: -90}
             shapeProps:
               image: /assets/templates/prototypes/phone.svg
               fill: { type: none }
@@ -258,7 +268,7 @@ item:
             strokeColor: "rgba(20,20,20,1.0)"
             strokeSize: 0
 
-        - $-if: "frame == 'phone'"
+        - $-if: "frame == 'phone' || frame == 'phone-landscape'"
           id: {$-str: "black-layer-${idx}"}
           name: Black layer
           mount: false
@@ -298,8 +308,9 @@ item:
             - id: {$-str: "page-camera-overlay-${idx}"}
               name: "Page camera overlay"
               area:
-                x: {$-expr: "(width - 8)/2 - cameraOverlayWidth/2"}
-                y: 12
+                x: {$-expr: cameraOverlayX}
+                y: {$-expr: cameraOverlayY}
+                r: {$-expr: cameraOverlayR}
                 w: {$-expr: cameraOverlayWidth}
                 h: {$-expr: cameraOverlayHeight}
               mount: false

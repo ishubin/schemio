@@ -25,6 +25,9 @@ func selectFrame(panelItem) {
     } else if (panelItem.id == 'phone') {
         frame = 'phone'
         cornerRadius = 40
+    } else if (panelItem.id == 'phone-landscape') {
+        frame = 'phone-landscape'
+        cornerRadius = 40
     } else if (panelItem.id == 'desktop') {
         cornerRadius = 10
         frame = 'desktop'
@@ -32,33 +35,54 @@ func selectFrame(panelItem) {
 }
 
 
-cameraOverlayWidth = min(width / 2, 80)
-cameraOverlayHeight = 24
-cameraLenseSize = cameraOverlayHeight * 0.4
-cameraLensePadding = (cameraOverlayHeight - cameraLenseSize) / 2
-
 
 frameCornerRadius = cornerRadius
 frameFill = background
 frameStrokeColor = strokeColor
 frameStrokeSize = strokeSize
 frameClip = true
-btnWidth = width*0.022
 phoneButtons = List()
 isSimpleFrame = true
 
-if (frame == 'phone') {
+cameraOverlayWidth = min(width / 2, 80)
+cameraOverlayHeight = 24
+cameraLenseSize = cameraOverlayHeight * 0.4
+cameraLensePadding = (cameraOverlayHeight - cameraLenseSize) / 2
+
+if (frame == 'phone' || frame == 'phone-landscape') {
     frameFill = Fill.solid('rgba(95,95,95,1)')
     frameStrokeColor = 'rgba(95,95,95,1)'
     frameStrokeSize = 0
     frameClip = false
+    isSimpleFrame = false
+}
+
+cameraOverlayX = 0
+cameraOverlayY = 0
+cameraOverlayR = 0
+if (frame == 'phone') {
+    btnWidth = width*0.022
     phoneButtons = List(
         Item('btn-r', 'Button', 'rect', width - btnWidth/2, height*0.32, btnWidth, height*0.125),
         Item('btn-l1', 'Button', 'rect', -btnWidth/2, height*0.194, btnWidth, height*0.045),
         Item('btn-l2', 'Button', 'rect', -btnWidth/2, height*0.27, btnWidth, height*0.08),
         Item('btn-l3', 'Button', 'rect', -btnWidth/2, height*0.381, btnWidth, height*0.08),
     )
-    isSimpleFrame = false
+    cameraOverlayX = (width - 8)/2 - cameraOverlayWidth/2
+    cameraOverlayY = 12
+}
+if (frame == 'phone-landscape') {
+    btnHeight = height*0.022
+    cameraOverlayWidth = min(height / 2, 80)
+    phoneButtons = List(
+        Item('btn-r', 'Button', 'rect', width*0.32, -btnHeight/2, width*0.125, btnHeight),
+        Item('btn-l1', 'Button', 'rect', width*0.194, height - btnHeight/2, width*0.045, btnHeight),
+        Item('btn-l2', 'Button', 'rect', width*0.27, height - btnHeight/2, width*0.08, btnHeight),
+        Item('btn-l3', 'Button', 'rect', width*0.381, height - btnHeight/2, width*0.08, btnHeight),
+    )
+    cameraOverlayX = 12 
+    cameraOverlayY = (height - 8)/2 - cameraOverlayWidth/2
+    cameraOverlayR = -90
 }
 
 desktopButtons = List()
