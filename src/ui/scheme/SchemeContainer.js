@@ -3661,6 +3661,29 @@ class SchemeContainer {
         return null;
     }
 
+    /**
+     * Checks if item is either part of or placed inside of a template and returns this template in a promise
+     * @param {Item} item
+     * @returns {Promise<ItemTemplate|null>} returns a promise with either a template or null
+     */
+    findAncestorTemplate(item) {
+        let currentItem = item;
+        let templateRef = currentItem.args ? currentItem.args.templateRef : null;
+        while(currentItem.meta.parentId && !templateRef) {
+            const parentItem = this.findItemById(currentItem.meta.parentId);
+            if (parentItem) {
+                currentItem = parentItem;
+                templateRef = parentItem.args.templateRef;
+            }
+        }
+
+        if (templateRef) {
+            return this.getTemplate(templateRef);
+        } else {
+            return Promise.resolve(null);
+        }
+    }
+
     prepareFrameAnimations() {
         // This function is needed because animations for frame player can be triggered from two places:
         // a) by clicking play button

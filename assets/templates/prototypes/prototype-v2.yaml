@@ -172,12 +172,14 @@ item:
               script: |
                 findChildItemsByTag('prototype-page').forEach(page => {
                     Connections.findConnectionsWith(page).forEach(otherItem => {
-                        Connections.findConnections(page, otherItem).forEach(connector => {
-                            connector.hide()
-                        })
-                        otherItem.assignEvent('clicked', () => {
-                            page.sendEvent('Open Page')
-                        })
+                        if (otherItem.getTags().findIndex(x => {x == 'prototype-page'}) < 0) {
+                            Connections.findConnections(page, otherItem).forEach(connector => {
+                                connector.hide()
+                            })
+                            otherItem.assignEvent('clicked', () => {
+                                page.sendEvent('Open Page')
+                            })
+                        }
                     })
                 })
   textSlots:

@@ -13,9 +13,9 @@ import StoreUtils from '../../../store/StoreUtils.js';
 import {forEach} from '../../../collections';
 import { localPointOnItem, worldPointOnItem } from '../../../scheme/ItemMath.js';
 import shortid from 'shortid';
+import EditorEventBus from '../EditorEventBus.js';
 
 const IS_NOT_SOFT = false;
-const IS_SOFT = true;
 
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     id: '',
@@ -559,6 +559,30 @@ export default class StateConnecting extends State {
         this.listener.onItemChanged(this.item.id, 'area');
         this.listener.onSchemeChangeCommitted();
         this.schemeContainer.selectItem(this.item);
+
+
+        //TODO the following code is only a temporary hack until I figure out a better way of implementing this logic from the template itself
+        const connectorItem = this.item;
+        const editorId = this.editorId;
+        const sourceItem = this.schemeContainer.findFirstElementBySelector(this.item.shapeProps.sourceItem);
+        const schemeContainer = this.schemeContainer;
+        if (sourceItem) {
+            this.schemeContainer.findAncestorTemplate(sourceItem)
+            .then(template => {
+                if (!template) {
+                    return;
+                }
+                if (template.name === 'Prototype') {
+                    connectorItem.shapeProps.strokeColor = 'rgba(200, 200, 255, 0.6)';
+                    connectorItem.shapeProps.strokeSize = 2;
+                    connectorItem.shapeProps.sourceCap = 'empty';
+                    connectorItem.shapeProps.destinationCap = 'empty';
+                    EditorEventBus.item.changed.specific.$emit(editorId, connectorItem.id);
+                    schemeContainer.updateEditBox();
+
+                }
+            })
+        }
         this.reset();
     }
 
