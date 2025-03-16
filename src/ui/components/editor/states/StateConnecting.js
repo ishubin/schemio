@@ -561,27 +561,23 @@ export default class StateConnecting extends State {
         this.schemeContainer.selectItem(this.item);
 
 
-        //TODO the following code is only a temporary hack until I figure out a better way of implementing this logic from the template itself
         const connectorItem = this.item;
-        const editorId = this.editorId;
         const sourceItem = this.schemeContainer.findFirstElementBySelector(this.item.shapeProps.sourceItem);
+        const destinationItem = this.schemeContainer.findFirstElementBySelector(this.item.shapeProps.destinationItem);
         const schemeContainer = this.schemeContainer;
+        const promiseResolve = ({template, rootItem}) => {
+            if (!template || !rootItem) {
+                return;
+            }
+            template.onConnectorAttached(rootItem, connectorItem);
+            EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, connectorItem.id);
+            schemeContainer.updateEditBox();
+        };
         if (sourceItem) {
-            this.schemeContainer.findAncestorTemplate(sourceItem)
-            .then(template => {
-                if (!template) {
-                    return;
-                }
-                if (template.name === 'Prototype') {
-                    connectorItem.shapeProps.strokeColor = 'rgba(200, 200, 255, 0.6)';
-                    connectorItem.shapeProps.strokeSize = 2;
-                    connectorItem.shapeProps.sourceCap = 'empty';
-                    connectorItem.shapeProps.destinationCap = 'empty';
-                    EditorEventBus.item.changed.specific.$emit(editorId, connectorItem.id);
-                    schemeContainer.updateEditBox();
-
-                }
-            })
+            this.schemeContainer.findAncestorWithTemplate(sourceItem).then(promiseResolve);
+        }
+        if (destinationItem) {
+            this.schemeContainer.findAncestorWithTemplate(destinationItem).then(promiseResolve);
         }
         this.reset();
     }

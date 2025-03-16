@@ -3662,11 +3662,16 @@ class SchemeContainer {
     }
 
     /**
+     * @typedef {Object} AncestorWithTemplate
+     * @property {CompiledItemTemplate|null} template
+     * @property {Item|null} rootItem
+     */
+    /**
      * Checks if item is either part of or placed inside of a template and returns this template in a promise
      * @param {Item} item
-     * @returns {Promise<ItemTemplate|null>} returns a promise with either a template or null
+     * @returns {Promise<AncestorWithTemplate>} returns a promise with either a template or null
      */
-    findAncestorTemplate(item) {
+    findAncestorWithTemplate(item) {
         let currentItem = item;
         let templateRef = currentItem.args ? currentItem.args.templateRef : null;
         while(currentItem.meta.parentId && !templateRef) {
@@ -3678,9 +3683,12 @@ class SchemeContainer {
         }
 
         if (templateRef) {
-            return this.getTemplate(templateRef);
+            return this.getTemplate(templateRef)
+            .then(template => {
+                return {template, rootItem: currentItem};
+            });
         } else {
-            return Promise.resolve(null);
+            return Promise.resolve({template: null, rootItem: null});
         }
     }
 

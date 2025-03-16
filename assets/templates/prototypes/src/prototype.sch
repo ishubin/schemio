@@ -1,18 +1,18 @@
 
 func duplicatePage(pageIdx) {
     duplicateItem(`page-${numPages}`, `page-${numPages+1}`, `Page ${numPages+1}`)
-    copyNativeChildren(`page-${pageIdx}`, `page-${numPages+1}`)
+    copyNativeChildren(`page-container-${pageIdx}`, `page-container-${numPages+1}`)
     numPages += 1
 }
 
 func deletePage(pageIndex) {
     for (i = pageIndex + 1; i < numPages; i++) {
-        moveNativeChildren(`page-${i+1}`, `page-${i}`)
+        moveNativeChildren(`page-container-${i+1}`, `page-container-${i}`)
     }
     numPages = max(1, numPages - 1)
 }
 
-func onDeleteItem(itemId, item) {
+func onDeleteItem(itemId) {
     if (itemId.startsWith('page-')) {
         pageIdx = parseInt(itemId.substring('page-'.length)) - 1
         deletePage(pageIdx)
@@ -40,6 +40,12 @@ func selectFrame(panelItem) {
     }
 }
 
+func onConnectItems(connector) {
+    connector.setStrokeColor('rgba(100, 140, 250, 0.5)')
+    connector.setStrokeSize(2)
+    connector.setSourceCap('empty')
+    connector.setDestinationCap('empty')
+}
 
 
 frameCornerRadius = cornerRadius

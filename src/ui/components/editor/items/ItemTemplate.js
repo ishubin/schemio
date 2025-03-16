@@ -12,6 +12,8 @@ import { parseExpression } from "../../../templater/ast";
 import { Scope } from "../../../templater/scope";
 import { ASTNode } from "../../../templater/nodes";
 import utils from "../../../utils";
+import { createItemScriptWrapper } from "../../../scripting/item";
+import UserEventBus from "../../../userevents/UserEventBus";
 
 
 const ContextPhases = {
@@ -131,6 +133,9 @@ function parseTemplateExpressionBlock(expressions) {
     const raw = expressions.join('\n');
     return parseExpression(raw);
 }
+
+
+const dummyUserEventBus = new UserEventBus('default');
 
 /**
  * @param {String} editorId
@@ -260,6 +265,11 @@ export function compileItemTemplate(editorId, template, templateRef) {
 
         onShapePropsUpdate(rootItem, itemId, item, name, value, callback) {
             this.triggerTemplateEvent(rootItem, 'shapeProps', {itemId, item, name, value}, callback);
+        },
+
+        onConnectorAttached(rootItem, connectorItem) {
+            const connector = createItemScriptWrapper(connectorItem, dummyUserEventBus);
+            this.triggerTemplateEvent(rootItem, 'connect', {connector});
         },
 
         buildItem : (args, width, height, postBuild) => {

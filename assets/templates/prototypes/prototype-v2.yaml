@@ -15,7 +15,8 @@ import:
   - ./src/prototype.sch
 
 handlers:
-  delete: onDeleteItem(itemId, item)
+  delete: onDeleteItem(itemId)
+  connect: onConnectItems(connector)
 
 description: |
   Helps designing a basic app prototype with multiple app pages.
