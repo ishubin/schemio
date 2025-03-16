@@ -65,7 +65,7 @@ def index_template_item(index, file_path):
         write_json_to_file(template, resulting_file_path)
 
 
-    if template is not None:
+    if template is not None and not ('unlisted' in template and template['unlisted'] is True):
         entry = {
             'name': template['name'],
             'path' : urllib.request.pathname2url('/' + resulting_file_path),
