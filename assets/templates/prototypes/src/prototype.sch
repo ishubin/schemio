@@ -1,6 +1,6 @@
 
 func duplicatePage(pageIdx) {
-    duplicateItem(`page-${numPages}`, `page-${numPages+1}`, `Page ${numPages+1}`)
+    duplicateItem(`page-container-${numPages}`, `page-container-${numPages+1}`, `Page ${numPages+1}`)
     copyNativeChildren(`page-container-${pageIdx}`, `page-container-${numPages+1}`)
     numPages += 1
 }
@@ -41,10 +41,10 @@ func selectFrame(panelItem) {
 }
 
 func onConnectItems(connector) {
-    connector.setStrokeColor('rgba(100, 140, 250, 0.5)')
-    connector.setStrokeSize(2)
-    connector.setSourceCap('empty')
-    connector.setDestinationCap('empty')
+    connector.shapeProps.strokeColor = 'rgba(100, 140, 250, 0.5)'
+    connector.shapeProps.strokeSize = 2
+    connector.shapeProps.sourceCap = 'empty'
+    connector.shapeProps.destinationCap = 'empty'
 }
 
 

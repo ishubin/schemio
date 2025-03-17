@@ -12,7 +12,6 @@ import { parseExpression } from "../../../templater/ast";
 import { Scope } from "../../../templater/scope";
 import { ASTNode } from "../../../templater/nodes";
 import utils from "../../../utils";
-import { createItemScriptWrapper } from "../../../scripting/item";
 import UserEventBus from "../../../userevents/UserEventBus";
 
 
@@ -267,8 +266,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
             this.triggerTemplateEvent(rootItem, 'shapeProps', {itemId, item, name, value}, callback);
         },
 
-        onConnectorAttached(rootItem, connectorItem) {
-            const connector = createItemScriptWrapper(connectorItem, dummyUserEventBus);
+        onConnectorAttached(rootItem, connector) {
             this.triggerTemplateEvent(rootItem, 'connect', {connector});
         },
 
