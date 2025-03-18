@@ -7,15 +7,21 @@ import utils from '../../../utils';
 import { traverseItems } from '../../../scheme/Item';
 import EditorEventBus from '../EditorEventBus';
 import { enrichItemWithDefaults } from '../../../scheme/ItemFixer';
+import { createConnectionsFunctions } from '../../../scripting/connections';
+import UserEventBus from '../../../userevents/UserEventBus';
+
+
+const dummyUserEventBus = new UserEventBus();
 
 /**
  * Creates an object that provides various functions, that could be used from inside of
  * template scripts (control handlers, etc.) to manipulate items in the template
  * @param {String} editorId
  * @param {Item} rootItem
+ * @param {SchemeContainer} schemeContainer
  * @returns {Object} an object that contains various functions that could be used from template
  */
-export function createTemplateFunctions(editorId, rootItem) {
+export function createTemplateFunctions(editorId, rootItem, schemeContainer) {
     return {
         findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
         moveNativeChildren: moveNativeChildren(rootItem),
@@ -23,6 +29,10 @@ export function createTemplateFunctions(editorId, rootItem) {
         swapNativeChildren: swapNativeChildren(rootItem),
         duplicateItem: duplicateItem(rootItem),
         updateItem: updateItemFunc(editorId, rootItem),
+
+        Connections: createConnectionsFunctions(schemeContainer, dummyUserEventBus),
+
+        traverseItems: traverseItems,
 
         calculateTextSize,
         clone: (obj) => utils.clone(obj),

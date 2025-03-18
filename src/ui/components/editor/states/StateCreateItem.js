@@ -7,7 +7,6 @@ import StoreUtils from '../../../store/StoreUtils';
 import Shape from '../items/shapes/Shape.js';
 import { traverseItems } from '../../../scheme/Item.js';
 import EditorEventBus from '../EditorEventBus.js';
-import { compileItemTemplate } from '../items/ItemTemplate.js';
 
 export default class StateCreateItem extends State {
     constructor(editorId, store, listener) {

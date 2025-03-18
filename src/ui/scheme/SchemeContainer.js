@@ -968,12 +968,12 @@ class SchemeContainer {
                 const docId = templateRef.substring(5);
                 promise = this.apiClient.getScheme(docId)
                 .then(doc => {
-                    return compileTemplateFromDoc(doc.scheme, docId, this.editorId);
+                    return compileTemplateFromDoc(doc.scheme, docId, this.editorId, this);
                 });
             } else {
                 promise = this.apiClient.getTemplate(templateRef)
                 .then(templateDef => {
-                    return compileItemTemplate(this.editorId, templateDef, templateRef);
+                    return compileItemTemplate(this.editorId, templateDef, templateRef, this);
                 });
             }
             return promise.then(template => {
@@ -2078,17 +2078,18 @@ class SchemeContainer {
     }
 
     deleteSelectedItems() {
+        let templatePromises = [];
         if (this.selectedItems && this.selectedItems.length > 0) {
             for (let i = this.selectedItems.length - 1; i >= 0; i--) {
                 const item = this.selectedItems[i];
                 if (item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id) {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
-                        this.getTemplate(rootItem.args.templateRef).then(template => {
+                        templatePromises.push(this.getTemplate(rootItem.args.templateRef).then(template => {
                             template.onDeleteItem(rootItem, item.args.templatedId, item, templateArgs => {
                                 this.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
                             });
-                        });
+                        }));
                     }
                 } else {
                     delete this.selectedItemsMap[item.id];
@@ -2122,7 +2123,15 @@ class SchemeContainer {
 
         this.selectedConnectorPoints = [];
 
-        this.reindexItems();
+        // in case the templated item was in selection it should wait until the promises were done
+        // to ensure the reindexing is performed on the most recent document
+        if (templatePromises.length > 0) {
+            Promise.all(templatePromises).then(() => {
+                this.reindexItems();
+            });
+        } else {
+            this.reindexItems();
+        }
 
         this.editBox = null;
         // This event is needed to inform some components that they need to update their state because selection has dissapeared

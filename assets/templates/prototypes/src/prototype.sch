@@ -6,15 +6,77 @@ func duplicatePage(pageIdx) {
 }
 
 func deletePage(pageIndex) {
-    for (i = pageIndex + 1; i < numPages; i++) {
+    local connectors = Connections.findAllConnectors()
+
+    local connectorsById = Map()
+    local itemSelectorToConnectorIds = Map()
+
+    func registerSelectorToConnectorId(selector, connectorId) {
+        if (selector) {
+            if (itemSelectorToConnectorIds.has(selector)) {
+                itemSelectorToConnectorIds.get(selector).add(connectorId)
+            } else {
+                itemSelectorToConnectorIds.set(selector, Set(connectorId))
+            }
+        }
+    }
+
+    connectors.forEach(connector => {
+        connectorsById.set(connector.getId(), connector)
+        registerSelectorToConnectorId(connector.getSourceItem(), connector.getId())
+        registerSelectorToConnectorId(connector.getDestinationItem(), connector.getId())
+    })
+
+
+    func cleanConnectorsForItem(item) {
+        local selector = '#' + item.id
+        if (itemSelectorToConnectorIds.has(selector)) {
+            itemSelectorToConnectorIds.get(selector).forEach(connectorId => {
+                if (connectorsById.has(connectorId)) {
+                    connectorsById.get(connectorId).remove()
+                }
+            })
+        }
+    }
+
+    local pageItem = findItemByTemplatedId(`page-${pageIndex}`)
+    if (pageItem) {
+        cleanConnectorsForItem(pageItem)
+        traverseItems(pageItem.childItems, cleanConnectorsForItem)
+    }
+
+    for (local i = pageIndex; i < numPages; i++) {
         moveNativeChildren(`page-container-${i+1}`, `page-container-${i}`)
     }
+
+    // moving connectors attached to the page by 1 page back to adjust for the deleted page
+    for (local i = pageIndex; i <= numPages; i++) {
+        local previousPageItem = findItemByTemplatedId(`page-${i-1}`)
+        local pageItem = findItemByTemplatedId(`page-${i}`)
+        if (pageItem && previousPageItem) {
+            local selector = '#' + pageItem.id
+            if (itemSelectorToConnectorIds.has(selector)) {
+                itemSelectorToConnectorIds.get(selector).forEach(connectorId => {
+                    local connector = connectorsById.get(connectorId)
+                    if (connector) {
+                        if (connector.getSourceItem() == selector) {
+                            connector.setSourceItem('#' + previousPageItem.id)
+                        }
+                        if (connector.getDestinationItem() == selector) {
+                            connector.setDestinationItem('#' + previousPageItem.id)
+                        }
+                    }
+                })
+            }
+        }
+    }
+
     numPages = max(1, numPages - 1)
 }
 
 func onDeleteItem(itemId) {
     if (itemId.startsWith('page-')) {
-        pageIdx = parseInt(itemId.substring('page-'.length)) - 1
+        pageIdx = parseInt(itemId.substring('page-'.length))
         deletePage(pageIdx)
     }
 }

@@ -37,7 +37,7 @@ controls:
   - $-for: { start: 0, until: {$-expr: numPages }, it: idx }
     $-if: numPages > 1
     data:
-      pageIndex: { $-expr: idx }
+      pageIndex: { $-expr: "idx+1" }
     selectedItemId: { $-str: "page-${idx+1}" }
     name: removeSlide
     type: button

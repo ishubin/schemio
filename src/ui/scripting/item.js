@@ -85,6 +85,13 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             return new List(...tags);
         },
 
+        hasTag(tag) {
+            if (!Array.isArray(item.tags)) {
+                return false;
+            }
+            return item.tags.indexOf(tag) >= 0;
+        },
+
         setVar(name, value) {
             if (!item.args) {
                 item.args = {};
