@@ -127,6 +127,8 @@ export default {
             }
             this.$emit('template-rebuild-requested', this.item.id, this.template, this.item.args.templateArgs);
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+            EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id);
+            this.schemeContainer.readjustItem(this.item);
             this.updateTemplateArgs();
             this.updateEditorPanels();
         },

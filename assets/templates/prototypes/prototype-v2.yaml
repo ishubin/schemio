@@ -19,8 +19,10 @@ handlers:
   connect: onConnectItems(connector)
 
 description: |
-  Helps designing a basic app prototype with multiple app pages.
-  Each page has an "Open Page" event that, once triggered, displays that page on top.
+  Helps design a basic app prototype with multiple pages.
+  Each page has an "Open Page" event that, when triggered, brings the page to the front.
+  Alternatively, you can connect items to specific pages
+  so that clicking an item will display the corresponding page.
 
 preview: /assets/templates/prototypes/phone.svg
 controls:
@@ -189,6 +191,9 @@ item:
         <p>This is a root of the page. <b>Do not use it</b>. Instead add items to other pages.</p>
         <p>Each page has "<b>Open page</b>" event, which, when triggered,
         displays the page on top of the root item</p>
+        <p></p>
+        <p>Alternatively, you can connect items to specific pages
+        so that clicking an item will display the corresponding page.</p>
       color: rgba(170, 170, 170, 1)
 
   childItems:

@@ -236,6 +236,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                 templateArgs.height = updatedScopeData.height;
             }
             rootItem.args.templateArgs = templateArgs;
+            schemeContainer.readjustItem(rootItem);
             if (callback) {
                 callback(updatedScopeData);
             }
