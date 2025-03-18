@@ -75,7 +75,7 @@ func deletePage(pageIndex) {
 }
 
 func onDeleteItem(itemId) {
-    if (itemId.startsWith('page-')) {
+    if (matchesRegex(itemId, 'page-[0-9]+$')) {
         pageIdx = parseInt(itemId.substring('page-'.length))
         deletePage(pageIdx)
     }
