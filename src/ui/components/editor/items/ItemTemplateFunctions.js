@@ -208,6 +208,7 @@ function swapNativeChildren(rootItem) {
  * and is stored in item.args object.
  * @param {Item} rootItem templated item
  * @param {String} itemId templated id id. Do not confuse it with native item id (that is always unique per scene)
+ * @returns {Item}
  */
 function findItemByTemplatedId(rootItem, itemId) {
     if (rootItem.args && rootItem.args.templatedId === itemId) {

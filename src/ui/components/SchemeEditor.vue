@@ -3574,6 +3574,9 @@ export default {
                 this.schemeContainer.screenTransform.y = bbox.y + bbox.h/2;
             }
 
+            this.sidePanelLeftWidth = this.sidePanelLeftDefaultWidth;
+            this.sidePanelRightWidth = this.sidePanelRightDefaultWidth;
+
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
 
