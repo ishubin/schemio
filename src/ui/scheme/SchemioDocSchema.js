@@ -107,6 +107,7 @@ const baseSchema = {
                 blendMode        : {type: 'string', patching: ['replace']},
                 cursor           : {type: 'string', patching: ['replace']},
                 clip             : {type: 'boolean', patching: ['replace']},
+                weld             : {type: 'boolean', patching: ['replace']},
                 interactionMode  : {type: 'string', patching: ['replace']},
                 shape            : {type: 'string', patching: ['replace']},
                 tooltipBackground: {type: 'string', patching: ['replace']},

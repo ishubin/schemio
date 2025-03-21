@@ -666,7 +666,7 @@ class DragEditBoxState extends EditBoxState {
 
             if (!areAllItemsTemplated) {
                 const fakeItem = {meta: {}, area: this.editBox.area};
-                this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, item => {
+                this.proposedItemForMounting = this.schemeContainer.findItemSuitableForParent(fakeItem, 0.5, item => {
                     if (this.editBox.itemIds.has(item.id)) {
                         return false;
                     }
@@ -748,6 +748,7 @@ class DragEditBoxState extends EditBoxState {
                     }
                 }
             }
+            EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
         });
         this.schemeContainer.reindexItems();
         this.schemeContainer.updateEditBox();
@@ -897,6 +898,13 @@ class IdleState extends SubState {
         }
         if (!clickedItem) {
             return;
+        }
+
+        if (clickedItem.weld) {
+            const parent = this.schemeContainer.findNonWeldedAncestor(clickedItem);
+            if (parent) {
+                clickedItem = parent;
+            }
         }
         const isMultiSelect = isMultiSelectKey(event);
         this.schemeContainer.selectItem(clickedItem, isMultiSelect);

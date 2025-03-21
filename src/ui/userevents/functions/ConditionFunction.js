@@ -2,11 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import { createItemBasedScope, createItemScriptWrapper } from "./ScriptFunction";
 import ConditionFunctionEditor from '../../components/editor/properties/behavior/ConditionFunctionEditor.vue';
 import EditorEventBus from "../../components/editor/EditorEventBus";
 import { parseExpression } from "../../templater/ast";
 import { List } from "../../templater/list";
+import { createItemScriptWrapper } from "../../scripting/item";
+import { createItemBasedScope } from '../../scripting/main';
 
 
 const conditionBranchOptions = ['pass', 'skip-next', 'break-event', 'send-event'];

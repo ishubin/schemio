@@ -132,7 +132,7 @@
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
                             @choice-control-clicked="onEditBoxChoiceControlClicked"
                             @custom-control-clicked="onEditBoxCustomControlClicked"
-                            @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
+                            @template-rebuild-requested="onTemplateRebuildRequested"
                             @template-properties-updated-requested="onEditBoxTemplatePropertiesUpdateRequested"
                             />
 
@@ -508,7 +508,7 @@
                                 @updated="onTemplatePropertiesUpdated"
                                 @break-template="breakTemplate"
                                 @update-template="updateTemplate"
-                                @template-rebuild-requested="onEditBoxTemplateRebuildRequested"
+                                @template-rebuild-requested="onTemplateRebuildRequested"
                             />
                         </div>
 
@@ -2382,7 +2382,7 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${itemIds}.textSlots.${textSlotName}.${propertyName}`);
         },
 
-        onEditBoxTemplateRebuildRequested(originItemId, template, templateArgs) {
+        onTemplateRebuildRequested(originItemId, template, templateArgs) {
             // storing ids of selected items so that we can restore the selection after the regeneration
             this.rebuildTemplate(originItemId, template, templateArgs);
             this.schemeContainer.updateEditBox();
@@ -2408,6 +2408,7 @@ export default {
             this.schemeContainer.regenerateTemplatedItem(originItem, template, templateArgs, originItem.area.w, originItem.area.h);
             this.editorRevision++;
             traverseItems([originItem], item => {
+                item.meta.revision += 1;
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
             });
             this.schemeContainer.reindexItems();
@@ -3572,6 +3573,9 @@ export default {
                 this.schemeContainer.screenTransform.x = bbox.x + bbox.w/2;
                 this.schemeContainer.screenTransform.y = bbox.y + bbox.h/2;
             }
+
+            this.sidePanelLeftWidth = this.sidePanelLeftDefaultWidth;
+            this.sidePanelRightWidth = this.sidePanelRightDefaultWidth;
 
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },

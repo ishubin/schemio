@@ -353,6 +353,10 @@ class SchemeContainer {
         this.worldItemAreas = new Map(); // used for storing rough item bounding areas in world transform (used for finding suitable parent)
         this.dependencyItemMap = {}; // used for looking up items that should be re-adjusted once the item area is changed (e.g. path item can be attached to other items)
 
+        // stores references to connector items. This is needed to optimize the performance of searching
+        // for connections between items in SchemioScript
+        this.connectors = [];
+
         this.itemCloneIds = new Map(); // stores Set of item ids that were cloned and attached to the component from the reference item
         this.itemCloneReferenceIds = new Map(); // stores ids of reference items that were used for cloned items
 
@@ -568,6 +572,7 @@ class SchemeContainer {
         log.info('reindexItems()', this);
         log.time('reindexItems');
 
+        this.connectors = [];
         this.itemMap = {};
         this.itemsByName = new Map();
         this._itemArray = [];
@@ -870,7 +875,9 @@ class SchemeContainer {
                 this.itemMap[item.id] = item;
             }
 
-            if (item.shape === 'connector' && item.shapeProps.autoAttach) {
+            if (item.shape === 'connector') {
+                this.connectors.push(item);
+
                 if (item.shapeProps.sourceItem) {
                     registerDependant(item.shapeProps.sourceItem, item.id);
                 }
@@ -961,12 +968,12 @@ class SchemeContainer {
                 const docId = templateRef.substring(5);
                 promise = this.apiClient.getScheme(docId)
                 .then(doc => {
-                    return compileTemplateFromDoc(doc.scheme, docId, this.editorId);
+                    return compileTemplateFromDoc(doc.scheme, docId, this.editorId, this);
                 });
             } else {
                 promise = this.apiClient.getTemplate(templateRef)
                 .then(templateDef => {
-                    return compileItemTemplate(this.editorId, templateDef, templateRef);
+                    return compileItemTemplate(this.editorId, templateDef, templateRef, this);
                 });
             }
             return promise.then(template => {
@@ -1405,6 +1412,10 @@ class SchemeContainer {
             if (itemId === excludedId) {
                 return;
             }
+            const item = this.findItemById(itemId);
+            if (item && item.weld) {
+                return;
+            }
             const distance = (x - point.x) * (x - point.x) + (y - point.y) * (y - point.y);
             if (!closestPin || closestPin.distance > distance) {
                 closestPin = { itemId, pinId, point: worldPinPoint, distance };
@@ -1458,7 +1469,7 @@ class SchemeContainer {
 
         items.forEach((pathLocation, itemId) => {
             const item = this.findItemById(itemId);
-            if (item.id === excludedId) {
+            if (item.id === excludedId || item.weld) {
                 return;
             }
 
@@ -2067,17 +2078,18 @@ class SchemeContainer {
     }
 
     deleteSelectedItems() {
+        let templatePromises = [];
         if (this.selectedItems && this.selectedItems.length > 0) {
             for (let i = this.selectedItems.length - 1; i >= 0; i--) {
                 const item = this.selectedItems[i];
                 if (item.meta.templated && item.meta.templateRootId && item.meta.templateRootId !== item.id) {
                     const rootItem = this.findItemById(item.meta.templateRootId);
                     if (rootItem && rootItem.args.templateRef) {
-                        this.getTemplate(rootItem.args.templateRef).then(template => {
+                        templatePromises.push(this.getTemplate(rootItem.args.templateRef).then(template => {
                             template.onDeleteItem(rootItem, item.args.templatedId, item, templateArgs => {
                                 this.regenerateTemplatedItem(rootItem, template, templateArgs, rootItem.area.w, rootItem.area.h);
                             });
-                        });
+                        }));
                     }
                 } else {
                     delete this.selectedItemsMap[item.id];
@@ -2111,7 +2123,15 @@ class SchemeContainer {
 
         this.selectedConnectorPoints = [];
 
-        this.reindexItems();
+        // in case the templated item was in selection it should wait until the promises were done
+        // to ensure the reindexing is performed on the most recent document
+        if (templatePromises.length > 0) {
+            Promise.all(templatePromises).then(() => {
+                this.reindexItems();
+            });
+        } else {
+            this.reindexItems();
+        }
 
         this.editBox = null;
         // This event is needed to inform some components that they need to update their state because selection has dissapeared
@@ -2163,6 +2183,13 @@ class SchemeContainer {
      */
     getItems() {
         return this._itemArray;
+    }
+
+    /**
+     * @returns {Array<Item>}
+     */
+    getConnectors() {
+        return this.connectors;
     }
 
     getTopLevelItems() {
@@ -2392,12 +2419,16 @@ class SchemeContainer {
      * @param {Array} itemArray
      */
     bringSelectedItemsToFront(itemArray) {
+        const parentItemIds = new Set();
         if (!itemArray) {
             itemArray = this.scheme.items;
         }
         let i = 0;
         let topItems = [];
         while (i < itemArray.length) {
+            if (itemArray[i].meta && itemArray[i].meta.parentId) {
+                parentItemIds.add(itemArray[i].meta.parentId);
+            }
             if (itemArray[i].childItems) {
                 this.bringSelectedItemsToFront(itemArray[i].childItems);
             }
@@ -2412,6 +2443,10 @@ class SchemeContainer {
 
         forEach(topItems, item => {
             itemArray.push(item);
+        });
+
+        parentItemIds.forEach(itemId => {
+            EditorEventBus.item.changed.specific.$emit(this.editorId, itemId);
         });
     }
 
@@ -2489,6 +2524,22 @@ class SchemeContainer {
             }
         }
         return [];
+    }
+
+    /**
+     * @param {Item} item
+     * @returns {Item|null}
+     */
+    findNonWeldedAncestor(item) {
+        const parent = this.findItemById(item.meta.parentId);
+        if (parent) {
+            if (!parent.weld) {
+                return parent;
+            } else {
+                return this.findNonWeldedAncestor(parent);
+            }
+        }
+        return null;
     }
 
     copySelectedItems() {
@@ -2879,6 +2930,9 @@ class SchemeContainer {
             item.locked = false;
             this.scheme.items.push(item);
             this.itemMap[item.id] = item;
+            // disabling any auto-layout rules since the item is added as the root of the scene
+            item.autoLayout.on = false;
+            item.autoLayout.rules = {};
         });
 
         this.fixPastedConnectors(copiedItems, copiedIds);
@@ -3583,10 +3637,11 @@ class SchemeContainer {
     /**
      * Searches for item that is able to fit item inside it and that has the min area out of all specified items
      * @param {Item} item  - item that it needs to fit into another parent item (should be in world transform)
+     * @param {Number} overlapRatio - the minimum ratio of the area that is inside of potential parent to the items full area
      * @param {function(Item): Boolean} itemPredicate - callback function which should return true for specified item if it should be considered
      * @returns {Item}
      */
-    findItemSuitableForParent(item, itemPredicate) {
+    findItemSuitableForParent(item, overlapRatio = 0.5, itemPredicate) {
         const area = this.calculateItemWorldArea(item);
         const items = this.getItems();
 
@@ -3604,7 +3659,7 @@ class SchemeContainer {
 
                     const A = area.w * area.h;
                     if (overlap && !myMath.tooSmall(A)) {
-                        if ((overlap.w * overlap.h) / A >= 0.5)  {
+                        if ((overlap.w * overlap.h) / A >= overlapRatio)  {
                             return candidateItem;
                         }
                     }
@@ -3613,6 +3668,37 @@ class SchemeContainer {
         }
 
         return null;
+    }
+
+    /**
+     * @typedef {Object} AncestorWithTemplate
+     * @property {CompiledItemTemplate|null} template
+     * @property {Item|null} rootItem
+     */
+    /**
+     * Checks if item is either part of or placed inside of a template and returns this template in a promise
+     * @param {Item} item
+     * @returns {Promise<AncestorWithTemplate>} returns a promise with either a template or null
+     */
+    findAncestorWithTemplate(item) {
+        let currentItem = item;
+        let templateRef = currentItem.args ? currentItem.args.templateRef : null;
+        while(currentItem.meta.parentId && !templateRef) {
+            const parentItem = this.findItemById(currentItem.meta.parentId);
+            if (parentItem) {
+                currentItem = parentItem;
+                templateRef = parentItem.args.templateRef;
+            }
+        }
+
+        if (templateRef) {
+            return this.getTemplate(templateRef)
+            .then(template => {
+                return {template, rootItem: currentItem};
+            });
+        } else {
+            return Promise.resolve({template: null, rootItem: null});
+        }
     }
 
     prepareFrameAnimations() {

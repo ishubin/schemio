@@ -1,0 +1,446 @@
+name: Prototype
+args: {
+  frame             : {type: "choice", value: "phone", options: ["simple", "phone", "phone-landscape", "desktop"], name: "Frame", hidden: true},
+  numPages          : {type: "number", value: 3, min: 1, name: "Numbers of pages"},
+  maxCols           : {type: "number", value: 10, min: 1, name: "Max per row"},
+  cornerRadius      : {type: "number", value: 40, min: 0, name: "Corner radius"},
+  pageMargin        : {type: "number", value: 60, min: 0, name: "Page margin"},
+  background        : {type: "advanced-color", value: { type: "solid", color: "rgba(240, 240, 240, 1)" }, name: "Background"},
+  strokeColor       : {type: "color", value: "rgba(212,212,212,1.0)", name: "Stroke color"},
+  strokeSize        : {type: "number", value: 1, min: 0, name: "Stroke size"},
+}
+
+import:
+  - ../diagrams/src/item.sch
+  - ./src/prototype.sch
+
+handlers:
+  delete: onDeleteItem(itemId)
+  connect: onConnectItems(connector)
+
+description: |
+  Helps design a basic app prototype with multiple pages.
+  Each page has an "Open Page" event that, when triggered, brings the page to the front.
+  Alternatively, you can connect items to specific pages
+  so that clicking an item will display the corresponding page.
+
+preview: /assets/templates/prototypes/phone.svg
+controls:
+  - name: addPage
+    type: button
+    text: Add page
+    x: {$-expr: "(numPages % maxCols) * (width + pageMargin) + width + 10" }
+    y: {$-expr: "floor(numPages / maxCols) * (height + pageMargin)" }
+    width: 120
+    height: 30
+    click:
+      - numPages += 1
+
+  - $-for: { start: 0, until: {$-expr: numPages }, it: idx }
+    $-if: numPages > 1
+    data:
+      pageIndex: { $-expr: "idx+1" }
+    selectedItemId: { $-str: "page-${idx+1}" }
+    name: removeSlide
+    type: button
+    text: "⤫"
+    placement: BL
+    x: {$-expr: "((idx+1) % maxCols) * (width + pageMargin) + width"}
+    y: {$-expr: "floor((idx+1) / maxCols) * (height + pageMargin)"}
+    width: 20
+    height: 20
+    click:
+      - deletePage(control.data.pageIndex)
+
+  - $-for: { start: 1, until: {$-expr: "numPages + 1"}, it: idx}
+    name: duplicatePage
+    text: Duplicate page
+    type: button
+    data:
+      pageIndex: {$-expr: idx}
+    selectedItemId: {$-str: "page-${idx}"}
+    x: {$-expr: "(idx % maxCols) * (width + pageMargin) + width/2 - 60"}
+    y: {$-expr: "floor(idx / maxCols) * (height + pageMargin) + height + 5"}
+    width: 120
+    height: 30
+    click:
+      - duplicatePage(control.data.pageIndex)
+
+editor:
+    panels:
+      - id: frame
+        type: item-menu
+        click: 'selectFrame(panelItem)'
+        name: Frame
+        slotSize:
+            width: 100
+            height: 100
+        items:
+          - id: 'simple'
+            toggled: {$-expr: "frame == 'simple'"}
+            name: Simple
+            shape: 'rect'
+            area: {x: 10, w: 72, h: 90}
+            shapeProps:
+              cornerRadius: 5
+              fill: { type: solid, color: 'rgba(255,255,255,1)'}
+              strokeSize: 1
+              strokeColor: 'rgba(155,155,155,1)'
+
+          - id: 'phone'
+            toggled: {$-expr: "frame == 'phone'"}
+            name: Phone
+            shape: 'image'
+            area: {x: 0, y: 5, w: 90, h: 80}
+            shapeProps:
+              image: /assets/templates/prototypes/phone.svg
+              fill: { type: none }
+              strokeSize: 0
+
+          - id: 'phone-landscape'
+            toggled: {$-expr: "frame == 'phone-landscape'"}
+            name: Phone Landscape
+            shape: 'image'
+            area: {x: 0, y: 5, w: 90, h: 80, r: -90}
+            shapeProps:
+              image: /assets/templates/prototypes/phone.svg
+              fill: { type: none }
+              strokeSize: 0
+
+          - id: 'desktop'
+            toggled: {$-expr: "frame == 'desktop'"}
+            name: Desktop
+            shape: 'image'
+            area: {x: 0, y: 5, w: 90, h: 90}
+            shapeProps:
+              image: /assets/templates/prototypes/desktop.svg
+              fill: { type: none }
+              strokeSize: 0
+
+
+item:
+  id: root
+  name: Slides
+  shape: rect
+  area:
+    x: 0
+    "y": 0
+    w: {$-expr: width}
+    h: {$-expr: height}
+    r: 0
+    px: 0.5
+    py: 0.5
+    sx: 1
+    sy: 1
+  shapeProps:
+    cornerRadius: {$-expr: cornerRadius}
+    fill:
+      type: none
+    strokeColor: {$-expr: strokeColor}
+    strokeSize: {$-expr: strokeSize}
+    strokePattern: solid
+  opacity: 100
+  selfOpacity: 100
+  visible: true
+  clip: false
+  behavior:
+    events:
+      - id: init
+        event: init
+        actions:
+          - $-for: {start: 2, until: {$-expr: "numPages + 1"}, it: idx}
+            id: {$-str: "hide-page-${idx}"}
+            element: {$-str: "#page-${idx}"}
+            method: hide
+            args:
+              animated: false
+
+          - $-for: {start: 1, until: {$-expr: "numPages + 1"}, it: idx}
+            id: {$-str: "hide-title-${idx}"}
+            element: {$-str: "#page-title-${idx}"}
+            method: hide
+            args:
+              animated: false
+
+          - id: "set-var-current"
+            element: self
+            method: script
+            args:
+              script: setVar('currentPage', 1)
+
+          - id: identify-connectors
+            element: self
+            method: script
+            args:
+              script: |
+                findChildItemsByTag('prototype-page').forEach(page => {
+                    Connections.findConnectionsWith(page).forEach(otherItem => {
+                        if (otherItem.getTags().findIndex(x => {x == 'prototype-page'}) < 0) {
+                            Connections.findConnections(page, otherItem).forEach(connector => {
+                                connector.hide()
+                            })
+                            otherItem.assignEvent('clicked', () => {
+                                page.sendEvent('Open Page')
+                            })
+                        }
+                    })
+                })
+  textSlots:
+    body:
+      text: |
+        <p>This is a root of the page. <b>Do not use it</b>. Instead add items to other pages.</p>
+        <p>Each page has "<b>Open page</b>" event, which, when triggered,
+        displays the page on top of the root item</p>
+        <p></p>
+        <p>Alternatively, you can connect items to specific pages
+        so that clicking an item will display the corresponding page.</p>
+      color: rgba(170, 170, 170, 1)
+
+  childItems:
+    - $-for: {start: 1, until: {$-expr: "numPages + 1"}, it: idx}
+      id: {$-str: "page-${idx}"}
+      name: {$-str: "Page ${idx}"}
+      args:
+        templateIgnoredProps:
+          - name
+      clip: {$-expr: frameClip }
+      shape: rect
+      tags:
+        - $-str: page-${idx}
+        - prototype-page
+      area:
+        x: {$-expr: "(((idx-1) % maxCols) + 1) * (width + pageMargin)"}
+        y: {$-expr: "floor((idx-1) / maxCols) * (height + pageMargin)"}
+        w: {$-expr: width}
+        h: {$-expr: height}
+        r: 0
+        px: 0.5
+        py: 0.5
+        sx: 1
+        sy: 1
+      shapeProps:
+        cornerRadius: {$-expr: frameCornerRadius}
+        fill: {$-expr: frameFill}
+        strokeColor: {$-expr: frameStrokeColor}
+        strokeSize: {$-expr: frameStrokeSize}
+        strokePattern: solid
+
+      childItems:
+        - $-if: "isSimpleFrame"
+          id: {$-str: "page-container-${idx}"}
+          name: {$-str: "Page container ${idx}"}
+          clip: true
+          area:
+            x: 0
+            y: 0
+            w: {$-expr: "width"}
+            h: {$-expr: "height"}
+          shape: rect
+          shapeProps:
+            cornerRadius: {$-expr: "max(0, cornerRadius - 6)"}
+            fill: {$-expr: background}
+            strokeColor: "rgba(240,240,240,1.0)"
+            strokeSize: 0
+            strokePattern: solid
+
+        - $-foreach: {source: "phoneButtons", it: "b"}
+          id: {$-str: "${b.id}-${idx}"}
+          name: "Button"
+          weld: true
+          mount: false
+          area:
+            x: {$-expr: b.x}
+            y: {$-expr: b.y}
+            w: {$-expr: b.w}
+            h: {$-expr: b.h}
+          shape: rect
+          shapeProps:
+            cornerRadius: 3
+            fill: {$-expr: frameFill}
+            strokeColor: "rgba(20,20,20,1.0)"
+            strokeSize: 0
+
+        - $-foreach: {source: "desktopButtons", it: "b"}
+          id: {$-str: "${b.id}-${idx}"}
+          name: "Button"
+          weld: true
+          mount: false
+          area:
+            x: {$-expr: b.x}
+            y: {$-expr: b.y}
+            w: {$-expr: b.w}
+            h: {$-expr: b.h}
+          shape: rect
+          shapeProps:
+            cornerRadius: 10
+            fill:
+              type: solid
+              color: "rgba(150,150,150,1.0)"
+            strokeColor: "rgba(20,20,20,1.0)"
+            strokeSize: 0
+
+        - $-if: "frame == 'phone' || frame == 'phone-landscape'"
+          id: {$-str: "black-layer-${idx}"}
+          name: Black layer
+          mount: false
+          weld: true
+          area:
+            x: 4
+            y: 4
+            w: {$-expr: "max(1, width - 8)"}
+            h: {$-expr: "max(1, height - 8)"}
+          shape: rect
+          shapeProps:
+            cornerRadius: {$-expr: "max(0, cornerRadius - 4)"}
+            fill:
+              type: "solid"
+              color: "rgba(20, 20, 20, 1)"
+            strokeColor: "rgba(20,20,20,1.0)"
+            strokeSize: 0
+            strokePattern: solid
+          childItems:
+            - id: {$-str: "page-container-${idx}"}
+              name: {$-str: "Page container ${idx}"}
+              clip: true
+              weld: true
+              mount: true
+              area:
+                x: 6
+                y: 6
+                w: {$-expr: "max(1, width - 20)"}
+                h: {$-expr: "max(1, height - 20)"}
+              shape: rect
+              shapeProps:
+                cornerRadius: {$-expr: "max(0, cornerRadius - 6)"}
+                fill: {$-expr: background}
+                strokeColor: "rgba(240,240,240,1.0)"
+                strokeSize: 0
+                strokePattern: solid
+            - id: {$-str: "page-camera-overlay-${idx}"}
+              name: "Page camera overlay"
+              area:
+                x: {$-expr: cameraOverlayX}
+                y: {$-expr: cameraOverlayY}
+                r: {$-expr: cameraOverlayR}
+                w: {$-expr: cameraOverlayWidth}
+                h: {$-expr: cameraOverlayHeight}
+              mount: false
+              weld: true
+              shape: rect
+              shapeProps:
+                cornerRadius: {$-expr: cameraOverlayHeight}
+                fill:
+                  color: "rgba(20, 20, 20, 1)"
+                  type: "solid"
+                strokeColor:  "rgba(20, 20, 20, 1)"
+                strokeSize: 0
+              childItems:
+                - id: {$-str: "camera-lense-${idx}"}
+                  name: Camera Lense
+                  mount: false
+                  weld: true
+                  area:
+                    x: {$-expr: "cameraOverlayWidth - cameraLenseSize - cameraLensePadding"}
+                    y: {$-expr: "cameraLensePadding"}
+                    w: {$-expr: cameraLenseSize}
+                    h: {$-expr: cameraLenseSize}
+                  shape: ellipse
+                  shapeProps:
+                    cornerRadius: {$-expr: cameraOverlayHeight}
+                    fill:
+                      color: "rgba(60, 60, 60, 1)"
+                      type: "solid"
+                    strokeColor:  "rgba(60, 60, 60, 1)"
+                    strokeSize: 0
+
+        - $-if: "frame == 'desktop'"
+          id: {$-str: "page-container-${idx}"}
+          name: {$-str: "Page container ${idx}"}
+          clip: true
+          weld: true
+          mount: true
+          area:
+            x: 1
+            y: 30
+            w: {$-expr: "max(1, width - 2)"}
+            h: {$-expr: "max(1, height - 31)"}
+          shape: rect
+          shapeProps:
+            cornerRadius: 0
+            varCorners: true
+            r2: 0
+            r3: {$-expr: frameCornerRadius}
+            r4: {$-expr: frameCornerRadius}
+            fill: {$-expr: background}
+            strokeColor: "rgba(240,240,240,1.0)"
+            strokeSize: 0
+            strokePattern: solid
+
+
+
+
+      behavior:
+        events:
+          - id: init
+            event: init
+            actions:
+              - $-if: "idx != 1"
+                id: hide-self
+                element: self
+                method: hide
+                args:
+                  animated: false
+
+              - id: move-to-root
+                element: self
+                method: moveToItem
+                args:
+                  destinationItem: '#root'
+                  matchPoint: top-left
+                  animated: false
+
+          - id: open-page
+            event: Open Page
+            actions:
+              - id: 'condition'
+                element: '#root'
+                method: condition
+                args:
+                  expression: {$-str: "getVar('currentPage') == ${idx}"}
+                  fail: pass
+                  success: break-event
+
+              - id: root-simple-script
+                element: '#root'
+                method: script
+                args:
+                  script:
+                    $-str: |
+                      currentPage = getVar('currentPage')
+                      findChildItemsByTag('page-' + currentPage).forEach((page) => {
+                          page.hide()
+                      })
+                      findChildItemsByTag('page-' + ${idx}).forEach((page) => {
+                          page.show()
+                      })
+                      setVar('currentPage', ${idx})
+      textSlots: {}
+
+    - $-for: {start: 1, until: {$-expr: "numPages + 1"}, it: idx}
+      id: {$-str: "page-title-${idx}"}
+      name: {$-str: "Page ${idx}"}
+      shape: none
+      area:
+        x: {$-expr: "(((idx-1) % maxCols) + 1) * (width + pageMargin)"}
+        y: {$-expr: "floor((idx-1) / maxCols) * (height + pageMargin) - 30"}
+        w: {$-expr: width}
+        h: 30
+        r: 0
+        px: 0.5
+        py: 0.5
+        sx: 1
+        sy: 1
+      shapeProps: {}
+      textSlots:
+        body:
+          text: {$-str: "Page ${idx}"}

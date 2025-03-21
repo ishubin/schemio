@@ -82,7 +82,7 @@
                         <tr>
                             <td class="label" width="50%">Cursor</td>
                             <td class="value" width="50%">
-                                <select :value="item.cursor" @input="emitItemFieldChange('cursor', arguments[0].target.value)">
+                                <select :value="item.cursor" @input="emitItemFieldChange('cursor', $event.target.value)">
                                     <option v-for="cursor in knownCursors">{{cursor}}</option>
                                 </select>
                             </td>
@@ -121,7 +121,7 @@
                                     :schemeContainer="schemeContainer"
                                     :leftOriented="argName === 'sourceCap'"
                                     :itemId="item.id"
-                                    @input="onShapePropChange(argName, arg.type, arguments[0])"
+                                    @input="onShapePropChange(argName, arg.type, $event)"
                                 />
                             </td>
                         </tr>
@@ -145,7 +145,7 @@
                         <tr>
                             <td class="label" width="50%">Blend mode</td>
                             <td class="value" width="50%">
-                                <select :value="item.blendMode" @input="emitItemFieldChange('blendMode', arguments[0].target.value)">
+                                <select :value="item.blendMode" @input="emitItemFieldChange('blendMode', $event.target.value)">
                                     <option v-for="blendMode in knownBlendModes">{{blendMode}}</option>
                                 </select>
                             </td>
@@ -153,7 +153,7 @@
                         <tr>
                             <td class="label" width="50%">Visible</td>
                             <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="emitItemFieldChange('visible', arguments[0].target.checked)"/>
+                                <input class="checkbox" type="checkbox" :checked="item.visible" @input="emitItemFieldChange('visible', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
@@ -162,7 +162,19 @@
                                 <tooltip>Only renders parts of the child items that are located inside the visible shape of the parent item</tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.clip" @input="emitItemFieldChange('clip', arguments[0].target.checked)"/>
+                                <input class="checkbox" type="checkbox" :checked="item.clip" @input="emitItemFieldChange('clip', $event.target.checked)"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" width="50%">
+                                Weld
+                                <tooltip>
+                                    If enabled, the item will not be selectable, and connectors will not attach to it.
+                                    It will be treated as part of the parent item, which will receive all mouse events instead.
+                                </tooltip>
+                            </td>
+                            <td class="value" width="50%">
+                                <input class="checkbox" type="checkbox" :checked="item.weld" @input="emitItemFieldChange('weld', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
@@ -174,13 +186,13 @@
                                 </tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <input class="checkbox" type="checkbox" :checked="item.mount" @input="emitItemFieldChange('mount', arguments[0].target.checked)"/>
+                                <input class="checkbox" type="checkbox" :checked="item.mount" @input="emitItemFieldChange('mount', $event.target.checked)"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Shape</td>
                             <td class="value" width="50%">
-                                <select :value="item.shape" @input="$emit('shape-changed', arguments[0].target.value)">
+                                <select :value="item.shape" @input="$emit('shape-changed', $event.target.value)">
                                     <option v-for="shape in knownShapes">{{shape}}</option>
                                 </select>
                             </td>
@@ -194,7 +206,7 @@
                                 </tooltip>
                             </td>
                             <td class="value" width="50%">
-                                <select :value="item.interactionMode" @input="emitItemFieldChange('interactionMode', arguments[0].target.value)">
+                                <select :value="item.interactionMode" @input="emitItemFieldChange('interactionMode', $event.target.value)">
                                     <option v-for="interactionMode in knownInteractionModes"
                                         :value="interactionMode"
                                         :key="interactionMode">{{interactionMode}}</option>

@@ -200,11 +200,11 @@ import { COMPONENT_FAILED, } from './items/shapes/Component.vue';
 import EditorEventBus from './EditorEventBus';
 import {ObjectTypes} from './ObjectTypes';
 import { parseExpression } from '../../templater/ast.js';
-import { createMainScriptScope } from '../../userevents/functions/ScriptFunction.js';
 import { KeyBinder } from './KeyBinder.js';
 import { loadAndMountExternalComponent } from './Component.js';
 import { collectItemsHighlightsByCondition, collectItemsHighlightsForClickableMarkers, generateItemHighlight } from './ItemHighlight.js';
 import { mouseCoordsFromEvent } from '../../events.js';
+import { createMainScriptScope } from '../../scripting/main.js';
 
 const EMPTY_OBJECT = {type: 'void'};
 const LINK_FONT_SYMBOL_SIZE = 10;
@@ -645,7 +645,13 @@ export default {
 
                 const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
-                    const item = this.schemeContainer.findItemById(itemId);
+                    let item = this.schemeContainer.findItemById(itemId);
+                    if (item.weld) {
+                        const parentItem = this.schemeContainer.findNonWeldedAncestor(item);
+                        if (parentItem) {
+                            item = parentItem;
+                        }
+                    }
                     if (item) {
                         return {
                             type: 'item',

@@ -48,12 +48,13 @@ function enrichPanelItem(item) {
  * @param {Object} data
  * @param {Array<String>} selectedItemIds
  * @param {Map<String, Function>} cachedCompiledExpressions
+ * @param {SchemeContainer} schemeContainer
  */
-function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, data, selectedItemIds, cachedCompiledExpressions) {
+function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, data, selectedItemIds, cachedCompiledExpressions, schemeContainer) {
     // cloning selected items to make sure that the script cannot mutate items
     const extraData = {
         selectedItemIds: new List(...selectedItemIds),
-        ...createTemplateFunctions(editorId, templateRootItem)
+        ...createTemplateFunctions(editorId, templateRootItem, schemeContainer)
     };
     const finalData = {
         ...data,
@@ -132,13 +133,15 @@ function parseTemplateExpressionBlock(expressions) {
     return parseExpression(raw);
 }
 
+
 /**
  * @param {String} editorId
  * @param {ItemTemplate} template
  * @param {String} templateRef
+ * @param {SchemeContainer} schemeContainer 
  * @returns {CompiledItemTemplate}
  */
-export function compileItemTemplate(editorId, template, templateRef) {
+export function compileItemTemplate(editorId, template, templateRef, schemeContainer) {
     const initBlock = toExpressionBlock(template.init);
     const compiledControlBuilder = compileJSONTemplate({
         '$-eval': initBlock,
@@ -206,7 +209,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
             const fullData = {
                 ...defaultArgs,
                 ...rootItem.args.templateArgs,
-                ...createTemplateFunctions(editorId, rootItem),
+                ...createTemplateFunctions(editorId, rootItem, schemeContainer),
                 width: rootItem.area.w,
                 height: rootItem.area.h,
                 context: new TemplateContext(ContextPhases.EVENT, eventName, rootItem.id)
@@ -233,6 +236,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                 templateArgs.height = updatedScopeData.height;
             }
             rootItem.args.templateArgs = templateArgs;
+            schemeContainer.readjustItem(rootItem);
             if (callback) {
                 callback(updatedScopeData);
             }
@@ -262,28 +266,32 @@ export function compileItemTemplate(editorId, template, templateRef) {
             this.triggerTemplateEvent(rootItem, 'shapeProps', {itemId, item, name, value}, callback);
         },
 
+        onConnectorAttached(rootItem, connector) {
+            this.triggerTemplateEvent(rootItem, 'connect', {connector});
+        },
+
         buildItem : (args, width, height, postBuild) => {
             if (postBuild) {
                 return itemPostBuilder({
-                    ...createTemplateFunctions(editorId, null),
+                    ...createTemplateFunctions(editorId, null, schemeContainer),
                     ...args, width, height,
                     context: new TemplateContext(ContextPhases.POST_BUILD, null, '')
                 }).item;
             }
             return itemBuilder({
-                ...createTemplateFunctions(editorId, null),
+                ...createTemplateFunctions(editorId, null, schemeContainer),
                 ...args, width, height,
                 context: new TemplateContext(ContextPhases.BUILD, null, '')
             }).item;
         },
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => {
-            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds, cachedCompiledExpressions);
+            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds, cachedCompiledExpressions, schemeContainer);
         },
 
         buildControls: (args, width, height) => {
             return compiledControlBuilder({
-                    ...createTemplateFunctions(editorId, null),
+                    ...createTemplateFunctions(editorId, null, schemeContainer),
                     ...args, width, height,
                     context: new TemplateContext(ContextPhases.EVENT, 'control', '')
                 }).controls.map(control => {
@@ -307,7 +315,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                      */
                     eventCallback = (item, value) => {
                         return eventExecutor({
-                            ...createTemplateFunctions(editorId, item),
+                            ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...args, width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
@@ -324,7 +332,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                      */
                     eventCallback = (item, option) => {
                         return eventExecutor({
-                            ...createTemplateFunctions(editorId, item),
+                            ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...args, width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
@@ -340,7 +348,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                      */
                     eventCallback = (item) => {
                         return eventExecutor({
-                            ...createTemplateFunctions(editorId, item),
+                            ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...args, width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
@@ -358,7 +366,7 @@ export function compileItemTemplate(editorId, template, templateRef) {
                     const providerExecutor = compileTemplateCallbackExpression(providerFullScript);
                     enrichedControl.optionsProvider = (item) => {
                         const options = providerExecutor({
-                            ...createTemplateFunctions(editorId, item),
+                            ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...args, width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
@@ -679,8 +687,9 @@ function mergeItemBehavior(templatedBehavior, oldBehavior) {
  * @param {SchemioDoc} doc
  * @param {String} id - id of a document
  * @param {String} editorId
+ * @param {SchemeContainer} schemeContainer
  */
-export function compileTemplateFromDoc(doc, id, editorId) {
+export function compileTemplateFromDoc(doc, id, editorId, schemeContainer) {
     const rootItem = prepareDocTemplateItem(doc.items[0]);
     const template = {
         name: doc.name,
@@ -688,7 +697,7 @@ export function compileTemplateFromDoc(doc, id, editorId) {
         defaultArea: {x: 0, y: 0, w: 100, h: 100},
         item: rootItem
     };
-    return compileItemTemplate(editorId, template, '#doc:' + id);
+    return compileItemTemplate(editorId, template, '#doc:' + id, schemeContainer);
 }
 
 /**
