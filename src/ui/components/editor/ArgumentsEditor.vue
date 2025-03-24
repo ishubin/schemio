@@ -261,7 +261,11 @@ export default {
                     }
                     let shown = true;
                     forEach(argConfig.depends, (depArgValue, depArgName) => {
-                        shown = shown && this.argumentValues[depArgName] === depArgValue;
+                        if (Array.isArray(depArgValue)) {
+                            shown = shown && depArgValue.indexOf(this.argumentValues[depArgName]) >= 0;
+                        } else {
+                            shown = shown && this.argumentValues[depArgName] === depArgValue;
+                        }
                     });
                     this.argumentControlStates[argName].shown = shown;
                 }

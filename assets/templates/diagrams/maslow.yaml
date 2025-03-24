@@ -1,0 +1,49 @@
+name: Maslow pyramid
+
+
+args:
+  levels: {type: number, value: 3, name: "Levels", min: 1, softMax: 10}
+  colorStyle: {type: choice, value: 'gradient 2', options: ["gradient 2", "gradient 3", "custom"], name: "Color style"}
+  color1: {type: color, value: '#C6E7F5', name: "Color 1", depends: {colorStyle: ['gradient 2', 'gradient 3']}}
+  color2: {type: color, value: '#50A6DA', name: "Color 2", depends: {colorStyle: ['gradient 2', 'gradient 3']}}
+  color3: {type: color, value: '#CC89ED', name: "Color 3", depends: {colorStyle: 'gradient 3'}}
+  gap: {type: number, value: 5, name: "Gap", min: 0, softMax: 30}
+  strokeSize: {type: number, value: 2, name: "Stroke size", min: 0, softMax: 10}
+  strokeColor: {type: color, value: '#5C8197', name: "Stroke color", depends: {colorStyle: ['gradient 2', 'gradient 3']}}
+
+preview: "/assets/templates/previews/maslow.svg"
+defaultArea: {x: 0, y: 0, w: 400, h: 700}
+
+
+import:
+  - ./src/item.sch
+  - ./src/maslow.sch
+
+item:
+  id: root
+  name: Maslow pyramid
+  shape: dummy
+  shapeProps:
+    fill:
+      type: none
+    strokeColor: rgba(200,200,200,1)
+  locked: false
+  area:
+    x: 0
+    y: 0
+    w: {$-expr: "width"}
+    h: {$-expr: "height"}
+  childItems:
+    - $-foreach: {source: "levelItems", it: "it"}
+      id: {$-expr: "it.id"}
+      tags: []
+      name: {$-expr: "it.name"}
+      shape: trapezoid
+      area:
+        x: {$-expr: "it.x"}
+        y: {$-expr: "it.y"}
+        w: {$-expr: "it.w"}
+        h: {$-expr: "it.h"}
+      shapeProps: {$-expr: "toJSON(it.shapeProps)"}
+      args: {$-expr: "toJSON(it.args)"}
+      textSlots: {$-expr: "toJSON(it.textSlots)"}

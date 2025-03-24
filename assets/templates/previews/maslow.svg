@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-4 -4 401 321"><defs><style>
+/****************** Language Markup ***************/
+
+.syntax-theme-dark .hljs-strong,.syntax-theme-dark .hljs-emphasis{color:#a8a8a2}
+.syntax-theme-dark .hljs-bullet,.syntax-theme-dark .hljs-quote,.syntax-theme-dark .hljs-link,.syntax-theme-dark .hljs-number,.syntax-theme-dark .hljs-regexp,.syntax-theme-dark .hljs-literal{color:#6896ba}
+.syntax-theme-dark .hljs-code,.syntax-theme-dark .hljs-selector-class{color:#a6e22e}
+.syntax-theme-dark .hljs-emphasis{font-style:italic}
+.syntax-theme-dark .hljs-keyword,.syntax-theme-dark .hljs-selector-tag,.syntax-theme-dark .hljs-section,.syntax-theme-dark .hljs-attribute,.syntax-theme-dark .hljs-name,.syntax-theme-dark .hljs-variable{color:#cb7832}
+.syntax-theme-dark .hljs-params{color:#bdc791}
+.syntax-theme-dark .hljs-string{color:#5a8840}
+.syntax-theme-dark .hljs-subst,.syntax-theme-dark .hljs-type,.syntax-theme-dark .hljs-built_in,.syntax-theme-dark .hljs-builtin-name,.syntax-theme-dark .hljs-symbol,.syntax-theme-dark .hljs-selector-id,.syntax-theme-dark .hljs-selector-attr,
+.syntax-theme-dark .hljs-selector-pseudo,.syntax-theme-dark .hljs-template-tag,.syntax-theme-dark .hljs-template-variable,.syntax-theme-dark .hljs-addition{color:#e0c46c}
+.syntax-theme-dark .hljs-comment,.syntax-theme-dark .hljs-deletion,.syntax-theme-dark .hljs-meta{color:#7f7f7f}
+
+
+.syntax-theme-light .hljs-comment,.syntax-theme-light .hljs-quote {color:#655f6d}
+.syntax-theme-light .hljs-variable,.syntax-theme-light .hljs-template-variable,.syntax-theme-light .hljs-attribute,.syntax-theme-light .hljs-tag,.syntax-theme-light .hljs-name,.syntax-theme-light .hljs-regexp,.syntax-theme-light .hljs-link,.syntax-theme-light .hljs-name,.syntax-theme-light .hljs-name,.syntax-theme-light .hljs-selector-id,.syntax-theme-light .hljs-selector-class{color:#be4678}
+.syntax-theme-light .hljs-number,.syntax-theme-light .hljs-meta,.syntax-theme-light .hljs-built_in,.syntax-theme-light .hljs-builtin-name,.syntax-theme-light .hljs-literal,.syntax-theme-light .hljs-type,.syntax-theme-light .hljs-params{color:#aa573c}
+.syntax-theme-light .hljs-string,.syntax-theme-light .hljs-symbol,.syntax-theme-light .hljs-bullet{color:#2a9292}
+.syntax-theme-light .hljs-title,.syntax-theme-light .hljs-section{color:#576ddb}
+.syntax-theme-light .hljs-keyword,.syntax-theme-light .hljs-selector-tag{color:#955ae7}
+.syntax-theme-light .hljs-deletion,.syntax-theme-light .hljs-addition{color:#19171c;display:inline-block;width:100%}
+.syntax-theme-light .hljs-deletion{background-color:#be4678}
+.syntax-theme-light .hljs-addition{background-color:#2a9292}
+.syntax-theme-light .hljs-emphasis{font-style:italic}
+.syntax-theme-light .hljs-strong{font-weight:bold}
+
+
+</style></defs><g xmlns="http://www.w3.org/2000/svg" transform="translate(0,0) rotate(0)" data-svg-item-container-id="cb2-zYCrx8" data-item-id="cb2-zYCrx8">  <g style="opacity: 1; mix-blend-mode: normal;"> <defs/> <g filter="">   <g/></g>  <g id="animation-container-cb2-zYCrx8"/>        <g><g transform="matrix(1,0,0,1,150.08824337030376,0)">  <g style="opacity: 1; mix-blend-mode: normal;"> <defs/> <g filter=""> <g style="opacity: 1;"><g><g><g> </g> <path d="M 0 73.85365853658536  L 46.27033200216653 0  L 46.27033200216653 0  L 92.54066400433307 73.85365853658536  Z" stroke-width="2px" stroke="rgba(42, 83, 138, 1)" stroke-dasharray="" stroke-linejoin="round" fill="rgba(119,211,249,1)"/></g></g></g>  <g><g style="opacity: 1;"/></g></g>  <g id="animation-container-FFsJSxvmSv"/>         </g></g><g transform="matrix(1,0,0,1,100.05882891353583,79.85365853658536)">  <g style="opacity: 1; mix-blend-mode: normal;"> <defs/> <g filter=""> <g style="opacity: 1;"><g><g><g> </g> <path d="M 0 73.85365853658536  L 46.27033200216653 0  L 146.32916091570237 0  L 192.5994929178689 73.85365853658536  Z" stroke-width="2px" stroke="rgba(42, 83, 138, 1)" stroke-dasharray="" stroke-linejoin="round" fill="rgba(90.00000000000001,173.33333333333334,212.00000000000003,1)"/></g></g></g>  <g><g style="opacity: 1;"/></g></g>  <g id="animation-container-aiPvTIAwAS"/>         </g></g><g transform="matrix(1,0,0,1,50.02941445676794,159.7073170731707)">  <g style="opacity: 1; mix-blend-mode: normal;"> <defs/> <g filter=""> <g style="opacity: 1;"><g><g><g> </g> <path d="M 0 73.85365853658536  L 46.27033200216651 0  L 246.38798982923817 0  L 292.6583218314047 73.85365853658536  Z" stroke-width="2px" stroke="rgba(42, 83, 138, 1)" stroke-dasharray="" stroke-linejoin="round" fill="rgba(61,135.66666666666669,175,1)"/></g></g></g>  <g><g style="opacity: 1;"/></g></g>  <g id="animation-container-La_h4gYOd"/>         </g></g><g transform="matrix(1,0,0,1,0,239.56097560975604)">  <g style="opacity: 1; mix-blend-mode: normal;"> <defs/> <g filter=""> <g style="opacity: 1;"><g><g><g> </g> <path d="M 0 73.85365853658536  L 46.270332002166555 0  L 346.446818742774 0  L 392.71715074494057 73.85365853658536  Z" stroke-width="2px" stroke="rgba(42, 83, 138, 1)" stroke-dasharray="" stroke-linejoin="round" fill="rgba(32,98,138,1)"/></g></g></g>  <g><g style="opacity: 1;"/></g></g>  <g id="animation-container-kWQsBdGY9"/>         </g></g></g> </g></g></svg>

@@ -116,11 +116,11 @@
                             height="18px"
                             @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
                     </li>
-                    <li v-if="firstSelectedItem">
+                    <li v-if="strokeItem">
                         <StrokeControl
                             :key="`stroke-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
                             :editorId="editorId"
-                            :item="firstSelectedItem"
+                            :item="strokeItem"
                             @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
                             @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
                             @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"
@@ -128,11 +128,11 @@
                             @expanded="onStrokeControlExpanded"
                             />
                     </li>
-                    <li v-if="firstSelectedItem">
+                    <li v-if="textStyleItem">
                         <TextStyleControl
                             :key="`text-style-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
                             :editorId="editorId"
-                            :item="firstSelectedItem"
+                            :item="textStyleItem"
                             @property-changed="onTextStylePropertyChange"
                             />
                     </li>
@@ -296,6 +296,12 @@ export default {
             firstSelectedItem: null,
 
             supportsFill: false,
+
+            // the first item in the selection that supports stroke props
+            strokeItem: null,
+            // the first item in the selection that has text slots
+            textStyleItem: null,
+
             fillColor: {type: 'solid', color: 'rgba(255,255,255,1.0)'},
 
             pathSourceCap: 'empty',
@@ -326,22 +332,38 @@ export default {
             this.itemSurround.shown = false;
 
             this.selectedItemsCount = this.schemeContainer.getSelectedItems().length;
-            if (this.schemeContainer.getSelectedItems().length > 0) {
-                const item = this.schemeContainer.getSelectedItems()[0];
-                const shape = Shape.find(item.shape);
-                this.firstSelectedItem = item;
-                if (shape && shape.argType('fill') === 'advanced-color') {
-                    this.fillColor = item.shapeProps.fill;
-                    this.supportsFill = true;
-                } else {
-                    this.supportsFill = false;
-                }
 
-                if (item.shape === 'connector' || item.shape === 'path') {
-                    this.pathSourceCap = item.shapeProps.sourceCap;
-                    this.pathDestinationCap = item.shapeProps.destinationCap;
+            let supportsFill = false;
+            let strokeItem = null;
+            let textStyleItem = null;
+
+            this.schemeContainer.getSelectedItems().forEach((item, idx) => {
+                if (idx === 0) {
+                    this.firstSelectedItem = item;
+                    if (item.shape === 'connector' || item.shape === 'path') {
+                        this.pathSourceCap = item.shapeProps.sourceCap;
+                        this.pathDestinationCap = item.shapeProps.destinationCap;
+                    }
                 }
-            }
+                const shape = Shape.find(item.shape);
+                if (!shape) {
+                    return;
+                }
+                if (shape.argType('fill') === 'advanced-color' && !supportsFill) {
+                    this.fillColor = item.shapeProps.fill;
+                    supportsFill = true;
+                }
+                if (shape.argType('strokeColor') === 'color') {
+                    strokeItem = item;
+                }
+                if (shape.getTextSlots(item).length > 0) {
+                    textStyleItem = item;
+                }
+            });
+
+            this.supportsFill = supportsFill;
+            this.strokeItem = strokeItem;
+            this.textStyleItem = textStyleItem;
 
             if (this.selectedItemsCount > 0 && this.firstSelectedItem.shape === 'connector') {
                 this.currentConnectorSmoothing = this.firstSelectedItem.shapeProps.smoothing;
