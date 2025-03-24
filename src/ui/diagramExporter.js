@@ -290,7 +290,16 @@ function insertCustomFonts(svg) {
         }
     });
 
-    fontPromises.push(axios.get('/assets/katex/katex.css'));
+    let containsKatexRef = false;
+    allFonts.forEach(fontName => {
+        if (fontName.indexOf('KaTeX') === 0) {
+            containsKatexRef = true;
+        }
+    })
+
+    if (containsKatexRef) {
+        fontPromises.push(axios.get('/assets/katex/katex.css'));
+    }
     fontPromises.push(axios.get('/assets/css/syntax-highlight.css'));
 
     return Promise.all(fontPromises)
