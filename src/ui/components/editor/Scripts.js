@@ -6,7 +6,7 @@ import {syntaxTree} from "@codemirror/language";
 import {tags as t} from '@lezer/highlight';
 
 const keywords = `
-    local for while if else func struct this
+    local for while if else func struct this let
 `.split(/\s+/).filter(name => name).map(name => {return {
     label: name, type: 'keyword'
 }});

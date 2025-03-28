@@ -347,8 +347,8 @@ class ASTParser extends TokenScanner {
                 return this.parseStruct();
             } else if (token.v === ReservedTerms.FUNC) {
                 return this.parseFunctionDeclaration();
-            } else if (token.v === ReservedTerms.LOCAL) {
-                return this.parseLocalVarDeclaration();
+            } else if (token.v === ReservedTerms.LOCAL || token.v === ReservedTerms.LET) {
+                return this.parseLocalVarDeclaration(token);
             }
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
@@ -429,17 +429,17 @@ class ASTParser extends TokenScanner {
         return new ASTWhileStatement(whileExpression, whileBlock);
     }
 
-    parseLocalVarDeclaration() {
+    parseLocalVarDeclaration(definitionToken) {
         const node = this.parseSingleExpression();
         if (!node) {
-            throw new SchemioScriptParseError('Expected variable declaration after "local"', this.processedText());
+            throw new SchemioScriptParseError(`Expected variable declaration after "${definitionToken.v}"`, this.processedText());
         }
         if (node instanceof ASTVarRef) {
             return new ASTLocalVariable(node.varName, null);
         } else if (node instanceof ASTAssign && node.a instanceof ASTVarRef) {
             return new ASTLocalVariable(node.a.varName, node);
         } else {
-            throw new SchemioScriptParseError('Invalid local variable declaration', this.processedText());
+            throw new SchemioScriptParseError('Invalid variable declaration', this.processedText());
         }
     }
 

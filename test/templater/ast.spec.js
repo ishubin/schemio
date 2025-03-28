@@ -814,7 +814,7 @@ describe('templater ast parser', () => {
         expect(result).toBe(-3);
     });
 
-    it('should let define local variables', () => {
+    it('should define local variables', () => {
         const node = parseExpression(`
             someVar = 12
 
@@ -831,12 +831,45 @@ describe('templater ast parser', () => {
         expect(result).toBe(12);
     });
 
-    it('should let define local variable with assignment', () => {
+    it('should define local variable with assignment', () => {
         const node = parseExpression(`
             someVar = 12
 
             func testFunc() {
                 local someVar = 14
+            }
+
+            testFunc()
+
+            someVar
+        `)
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(12);
+    });
+
+    it('should define local variables with let keyword', () => {
+        const node = parseExpression(`
+            someVar = 12
+
+            func testFunc() {
+                let someVar
+                someVar = 14
+            }
+
+            testFunc()
+
+            someVar
+        `)
+        const result = node.evalNode(new Scope({}));
+        expect(result).toBe(12);
+    });
+
+    it('should define local variable with assignment and let keyword', () => {
+        const node = parseExpression(`
+            someVar = 12
+
+            func testFunc() {
+                let someVar = 14
             }
 
             testFunc()

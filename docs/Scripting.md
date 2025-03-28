@@ -687,13 +687,13 @@ log(myMin(4)(3))
 
 Local variables
 ----------------
-You may want to isolate your local variables to the scope of your function, loop or if statement. For such cases you should use `local` keyword:
+You may want to isolate your local variables to the scope of your function, loop or if statement. For such cases you should use `let` keywords:
 
 ```
 name = 'John'
 
 func someFunc() {
-    local name
+    let name
     name = 'Sara'
     log(someVar)
 }
@@ -704,11 +704,11 @@ log(someVar)
 
 The example above should first output 'Sara' and then 'John', because the `name` variable in `someFunc` function is redefined as local.
 
-You can also assign a value to a local variable on the same line with `local` keyword:
+You can also assign a value to a local variable on the same line with `let` keyword:
 
 ```
 func someFunc() {
-    local name = 'Sara'
+    let name = 'Sara'
     // ...
 }
 ```
