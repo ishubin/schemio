@@ -3687,7 +3687,9 @@ class SchemeContainer {
             const parentItem = this.findItemById(currentItem.meta.parentId);
             if (parentItem) {
                 currentItem = parentItem;
-                templateRef = parentItem.args.templateRef;
+                if (parentItem.args) {
+                    templateRef = parentItem.args.templateRef;
+                }
             }
         }
 

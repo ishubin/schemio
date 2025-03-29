@@ -646,13 +646,13 @@ export default {
                 const itemId = element.getAttribute('data-item-id');
                 if (itemId) {
                     let item = this.schemeContainer.findItemById(itemId);
-                    if (item.weld) {
-                        const parentItem = this.schemeContainer.findNonWeldedAncestor(item);
-                        if (parentItem) {
-                            item = parentItem;
-                        }
-                    }
                     if (item) {
+                        if (item.weld) {
+                            const parentItem = this.schemeContainer.findNonWeldedAncestor(item);
+                            if (parentItem) {
+                                item = parentItem;
+                            }
+                        }
                         return {
                             type: 'item',
                             item
