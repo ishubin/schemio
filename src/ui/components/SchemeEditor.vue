@@ -413,10 +413,7 @@
                 </span>
                 <span class="side-panel-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
                 </span>
-                <ul v-if="inPlaceTextEditor.shown" class="tabs text-nonselectable">
-                    <li><span class="tab active">Text</span></li>
-                </ul>
-                <ul v-else-if="state === 'draw'" class="tabs text-nonselectable">
+                <ul v-if="state === 'draw'" class="tabs text-nonselectable">
                     <li><span class="tab active">Draw</span></li>
                 </ul>
                 <ul v-else-if="sidePanelRightWidth > 10" class="tabs">
@@ -462,7 +459,7 @@
                             />
                     </div>
                     <div v-else>
-                        <div v-if="currentTab === 'Doc' && schemeContainer && !inPlaceTextEditor.shown">
+                        <div v-if="currentTab === 'Doc'">
                             <SchemeProperties v-if="mode === 'edit'"
                                 :scheme-container="schemeContainer"
                                 :editorId="editorId"
@@ -471,7 +468,7 @@
 
                             <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
                         </div>
-                        <div v-if="currentTab === 'Item' && !inPlaceTextEditor.shown">
+                        <div v-if="currentTab === 'Item'">
                             <div v-if="mode === 'edit'">
                                 <panel name="Items">
                                     <ItemSelector
@@ -496,9 +493,9 @@
                                 />
                             </div>
 
-                            <item-details v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
+                            <ItemDetails v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
                         </div>
-                        <div v-if="mode !== 'view' && currentTab === 'template' && !inPlaceTextEditor.shown && selectedTemplateRootItem && selectedTemplateRef">
+                        <div v-if="mode !== 'view' && currentTab === 'template' && selectedTemplateRootItem && selectedTemplateRef">
                             <TemplateProperties
                                 :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
                                 :editorId="editorId"
@@ -512,7 +509,7 @@
                             />
                         </div>
 
-                        <div v-if="inPlaceTextEditor.shown && mode === 'edit'">
+                        <!-- <div v-if="inPlaceTextEditor.shown && mode === 'edit'">
                             <TextSlotProperties
                                 :editorId="editorId"
                                 :item="inPlaceTextEditor.item"
@@ -520,7 +517,7 @@
                                 @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0]);"
                                 @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
                                 />
-                        </div>
+                        </div> -->
                         <div>
                             <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
@@ -924,10 +921,10 @@ export default {
                 onVoidDoubleClicked: (x, y, mx, my) => EditorEventBus.void.doubleClicked.$emit(this.editorId, x, y, mx, my),
                 onEditPathRequested: (item) => this.onEditPathRequested(item),
                 onItemDeselected: (item) => EditorEventBus.item.deselected.specific.$emit(this.editorId, item.id),
-                onItemTextSlotEditTriggered: (item, slotName, area, markupDisabled, creatingNewItem) => {
-                    item.meta.activeTextSlot = slotName;
+                onItemTextSlotEditTriggered: (item, textSlot, creatingNewItem) => {
+                    item.meta.activeTextSlot = textSlot.name;
                     EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'meta');
-                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, slotName, area, markupDisabled, creatingNewItem);
+                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, item, textSlot, creatingNewItem);
                 },
                 onItemRightClick: (item, mx, my) => this.onItemRightClick(item, mx, my),
                 onItemChanged,
@@ -1072,6 +1069,7 @@ export default {
 
             inPlaceTextEditor: {
                 item: null,
+                textSlot: null,
                 slotName: '',
                 markupDisabled: false,
                 shown: false,
@@ -1584,16 +1582,25 @@ export default {
             }
         },
 
-        onItemTextSlotEditTriggered(item, slotName, area, markupDisabled, creatingNewItem) {
+        onItemTextSlotEditTriggered(item, textSlot, creatingNewItem) {
             // it is expected that text slot is always available with all fields as it is supposed to be enriched based on the return of getTextSlots function
-            if (!item.textSlots[slotName]) {
-                item.textSlots[slotName] = utils.clone(defaultTextSlotProps);
+            let itemTextSlot = null;
+            if (item.textSlots[textSlot.name]) {
+                itemTextSlot = item.textSlots[textSlot.name];
+            } else if (textSlot.kind === 'ghost') {
+                // in case of "ghost" text slots we don't want to initialize text slot propeties in the item
+                // as the use of this text slot is overriden by the shape
+                const props = textSlot.props || {};
+                itemTextSlot = utils.clone({...defaultTextSlotProps, ...props});
+            } else {
+                // if the item does not yet have this text slot, we need to initialize it
+                item.textSlots[textSlot.name] = utils.clone(defaultTextSlotProps);
+                itemTextSlot = item.textSlots[textSlot.name];
             }
-            const itemTextSlot = item.textSlots[slotName];
-            const p0 = worldPointOnItem(area.x, area.y, item);
-            const p1 = worldPointOnItem(area.x + area.w, area.y, item);
-            const p2 = worldPointOnItem(area.x + area.w, area.y + area.h, item);
-            const p3 = worldPointOnItem(area.x, area.y + area.h, item);
+            const p0 = worldPointOnItem(textSlot.area.x, textSlot.area.y, item);
+            const p1 = worldPointOnItem(textSlot.area.x + textSlot.area.w, textSlot.area.y, item);
+            const p2 = worldPointOnItem(textSlot.area.x + textSlot.area.w, textSlot.area.y + textSlot.area.h, item);
+            const p3 = worldPointOnItem(textSlot.area.x, textSlot.area.y + textSlot.area.h, item);
             const center = myMath.averagePoint(p0, p1, p2, p3);
 
             const worldWidth = myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y);
@@ -1603,14 +1610,15 @@ export default {
             const x = center.x - worldWidth / 2;
             const y = center.y - worldHeight / 2;
 
-            this.inPlaceTextEditor.slotName = slotName;
+            this.inPlaceTextEditor.slotName = textSlot.name;
+            this.inPlaceTextEditor.textSlot = textSlot;
             this.inPlaceTextEditor.item = item;
-            if (item.meta.templated && item.args && item.args.tplText && item.args.tplText[slotName]) {
-                this.inPlaceTextEditor.text = item.args.tplText[slotName];
+            if (item.meta.templated && item.args && item.args.tplText && item.args.tplText[textSlot.name]) {
+                this.inPlaceTextEditor.text = item.args.tplText[textSlot.name];
             } else {
                 this.inPlaceTextEditor.text = itemTextSlot.text;
             }
-            this.inPlaceTextEditor.markupDisabled = markupDisabled;
+            this.inPlaceTextEditor.markupDisabled = textSlot.markupDisabled;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
@@ -1626,18 +1634,24 @@ export default {
             this.inPlaceTextEditor.area.w = this._z(worldWidth);
             this.inPlaceTextEditor.area.h = this._z(worldHeight);
             this.inPlaceTextEditor.shown = true;
+            this.currentTab = `Text: ${textSlot.name}`;
             this.inPlaceTextEditor.scalingVector = scalingVector;
             this.updateFloatingHelperPanel();
         },
 
         onInPlaceTextEditorUpdate(text) {
             if (this.inPlaceTextEditor.shown) {
+                if (this.inPlaceTextEditor.textSlot.onUpdate) {
+                    this.inPlaceTextEditor.textSlot.onUpdate(text);
+                }
                 const slotName = this.inPlaceTextEditor.slotName;
                 const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.item.id);
                 if (!item || !item.textSlots || !item.textSlots[slotName]) {
                     return;
                 }
-                item.textSlots[slotName].text = text;
+                if (this.inPlaceTextEditor.textSlot.kind !== 'ghost') {
+                    item.textSlots[slotName].text = text;
+                }
             }
         },
 
@@ -1665,6 +1679,7 @@ export default {
 
         closeItemTextEditor() {
             this.inPlaceTextEditor.shown = false;
+            this.currentTab = 'Item';
             this.inPlaceTextEditor.markupDisabled = false;
 
             const item = this.inPlaceTextEditor.item;
@@ -1694,6 +1709,9 @@ export default {
         },
 
         updateInPlaceTextEditorStyle() {
+            if (!this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName]) {
+                return;
+            }
             const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
             this.inPlaceTextEditor.style = generateTextStyle(textSlot);
         },
@@ -2162,7 +2180,7 @@ export default {
                 }
 
                 if (textSlots && textSlots.length > 0 && !(shape.editorProps && shape.editorProps.textSlotTabsDisabled)) {
-                    this.itemTextSlotsAvailable = map(textSlots, textSlot => {
+                    this.itemTextSlotsAvailable = textSlots.filter(textSlot => textSlot.kind !== 'ghost').map(textSlot => {
                         return {
                             tabName: `Text: ${textSlot.name}`,
                             slotName: textSlot.name,
@@ -3625,6 +3643,10 @@ export default {
     },
 
     computed: {
+        shouldShowDocTab() {
+
+        },
+
         finalMenuOptions() {
             return this.menuOptions.concat([ {
                 name: 'Export as SVG', callback: () => this.exportAsSVG(),  iconClass: 'fas fa-file-export'

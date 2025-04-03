@@ -1311,6 +1311,9 @@ ul.pagination li a.current {
     opacity: 1.0;
     cursor: pointer;
 }
+.svg-editor-plot .item-control-point-delete {
+    color: #d34242;
+}
 .svg-editor-plot .item-control-point:hover {
     opacity: 0.7;
 }
@@ -1456,6 +1459,7 @@ textarea.in-place-text-editor {
     border: none;
     background: none;
     outline: none;
+    resize: none;
 }
 
 /*************** Item marker ********************/

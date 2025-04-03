@@ -51,7 +51,6 @@
             :style="editorCssStyle"
             @keydown="onTextareaKeyDown"
             @input="onTextareaInput"
-            autofocus
         ></textarea>
         <div v-else-if="editor" ref="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
             <editor-content :editor="editor" />
@@ -100,6 +99,13 @@ export default {
     },
 
     mounted() {
+        if (this.markupDisabled) {
+            const textarea = this.$refs.textarea;
+            // have no idea why it doesn't want to focus without timeout
+            // autofocus also does not work anymore
+            setTimeout(() => textarea.focus(), 60);
+        }
+
         if (!this.$refs.floatingMenu) {
             return;
         }

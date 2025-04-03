@@ -140,7 +140,6 @@ export default {
             return [];
         },
 
-        // it doesn't support text slots
         getTextSlots(item) {
             const h = myMath.clamp(item.shapeProps.size, 0, item.area.h);
             let area = null;

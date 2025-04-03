@@ -981,9 +981,14 @@ export default {
                 enrichItemWithDefaults(textItem);
                 this.schemeContainer.addItem(textItem);
                 this.$nextTick(() => {
-                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, textItem, 'body', {
-                        x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
-                    }, false, true);
+                    const textSlot = {
+                        name :'body',
+                        area:{
+                            x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
+                        },
+                        markupDisabled: false
+                    };
+                    EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, textItem, textSlot, true);
                 });
             }
         },

@@ -161,9 +161,9 @@ const EditorEventBus = {
             specific: {
                 $on: (editorId, itemId, callback) => $on(editorId, 'text-slot-triggered', [itemId], callback),
                 $off: (editorId, itemId, callback) => $off(editorId, 'text-slot-triggered', [itemId], callback),
-                $emit: (editorId, item, slotName, area, markupDisabled, creatingNewItem) => {
-                    EditorEventBus.textSlot.triggered.any.$emit(editorId, item, slotName, area, markupDisabled, creatingNewItem);
-                    $emit(editorId, 'text-slot-triggered', [item.id], item, slotName, area, markupDisabled, creatingNewItem);
+                $emit: (editorId, item, textSlot, creatingNewItem) => {
+                    EditorEventBus.textSlot.triggered.any.$emit(editorId, item, textSlot, creatingNewItem);
+                    $emit(editorId, 'text-slot-triggered', [item.id], item, textSlot, creatingNewItem);
                 }
             },
         },

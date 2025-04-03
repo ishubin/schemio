@@ -312,6 +312,11 @@ function createFieldSchemaForArg(argDef) {
             kind : {type: 'string'}
         }}
     }
+    if (argDef.type === 'array') {
+        schema = {type: 'array', of: 'object', patching: ['patch-id-array', 'replace', 'delete'], fields: {
+            '*': {type: 'any'},
+        }}
+    }
     return schema;
 }
 

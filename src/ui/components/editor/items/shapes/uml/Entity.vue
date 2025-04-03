@@ -1,0 +1,304 @@
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+     License, v. 2.0. If a copy of the MPL was not distributed with this
+     file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
+<template>
+    <g>
+        <advanced-fill :fillId="`fill-pattern-${item.id}`" :fill="item.shapeProps.fill" :area="item.area"/>
+        <advanced-fill :fillId="`headerfill-pattern-${item.id}`" :fill="item.shapeProps.headerFill" :area="headerArea"/>
+
+        <path :d="shapePath" stroke-width="0" stroke="none" :fill="svgFill"></path>
+
+        <path :d="headerPath" stroke-width="0" stroke="none" :fill="headerFill"></path>
+
+        <foreignObject v-if="item.meta.activeTextSlot !== 'header'"
+            x="0" y="0"
+            :width="item.area.w"
+            :height="Math.min(item.shapeProps.headerHeight, item.area.h)">
+            <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-container" v-html="headerHtml" :style="headerStyle"></div>
+        </foreignObject>
+
+        <path :d="shapePath"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :stroke="item.shapeProps.strokeColor"
+            fill="none"></path>
+
+        <clipPath :id="`entity-clip-path-${item.id}`">
+            <path :d="clipPath"
+                stroke-width="0px"
+                stroke="rgba(255, 255, 255, 0)"
+                fill="rgba(255, 255, 255, 0)" />
+        </clipPath>
+
+        <g :style="{'clip-path': `url(#entity-clip-path-${this.item.id})`}">
+            <template v-for="(field, idx) in item.shapeProps.fields">
+                <circle r="5"
+                    :cx="20"
+                    :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 8"
+                    fill="none"
+                    :stroke="item.shapeProps.strokeColor"
+                    :style="{opacity: 0.3}"
+                    />
+                <foreignObject
+                    v-if="item.meta.activeTextSlot !== `field_${field.id}`"
+                    :x="35"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :width="Math.max(0, item.area.w - 35)/2"
+                    :height="fieldHeight"
+                    >
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        :style="{...fieldDefaultStyle, width: `${Math.max(0, item.area.w - 18)/2}px`, height: `${fieldHeight}px`, color: item.shapeProps.textColor}">
+                        <div>{{ field.name }}</div>
+                    </div>
+                </foreignObject>
+            </template>
+        </g>
+    </g>
+</template>
+
+<script>
+import AdvancedFill, { computeSvgFill } from '../../AdvancedFill.vue';
+import myMath from '../../../../../myMath';
+import { computeStandardFill } from '../../AdvancedFill.vue';
+import shortid from 'shortid';
+import EditorEventBus from '../../../EditorEventBus';
+import { generateTextStyle } from '../../../text/ItemText';
+import htmlSanitize from '../../../../../../htmlSanitize';
+
+
+function computePath(item) {
+    const W = item.area.w;
+    const H = item.area.h;
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4, item.shapeProps.headerHeight);
+
+    return `M ${W-R} ${H}  L ${R} ${H} a ${R} ${R} 0 0 1 ${-R} ${-R}  L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H-R}   a ${R} ${R} 0 0 1 ${-R} ${R} Z`;
+}
+
+function computeHeaderPath(item) {
+    const W = item.area.w;
+    const H = Math.min(item.shapeProps.headerHeight, item.area.h);
+    const R = Math.min(item.shapeProps.cornerRadius, item.area.w/4, item.area.h/4, item.shapeProps.headerHeight);
+
+    return `M ${W} ${H}  L 0 ${H} L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H} Z`;
+}
+
+function removeField(editorId, item, fieldIdx) {
+    item.shapeProps.fields.splice(fieldIdx, 1);
+    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
+    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+}
+
+const fieldHeight = 25;
+
+export default {
+    props: ['item', 'editorId'],
+    components: {AdvancedFill},
+
+    shapeConfig: {
+        shapeType: 'vue',
+
+        id: 'uml_entity',
+
+        menuItems: [{
+            group: 'UML',
+            name: 'Entity',
+            iconUrl: '/assets/images/items/uml-process.svg',
+            item: {
+                shapeProps: {
+                    fields: [{
+                        id: shortid.generate(),
+                        name: 'user_id',
+                        type: 'BIGINT(11)',
+                        flags: ['PK', 'AUTOINC']
+                    }, {
+                        id: shortid.generate(),
+                        name: 'name',
+                        type: 'varchar(32)',
+                        flags: []
+                    }, {
+                        id: shortid.generate(),
+                        name: 'email',
+                        type: 'varchar(256)',
+                        flags: ['UNIQUE']
+                    }, {
+                        id: shortid.generate(),
+                        name: 'attributes',
+                        type: 'JSON'
+                    }]
+                },
+                textSlots: {
+                    header: {
+                        text: 'User',
+                        bold: false,
+                        color: '#ffffffff',
+                        fontSize: 16
+                    }
+                }
+            }
+        }],
+
+        getTextSlots(item) {
+            const slots = [{
+                name: 'header',
+                area: {x: 0, y: 0, w: item.area.w, h: Math.min(item.shapeProps.headerHeight, item.area.h)}
+            }];
+
+            item.shapeProps.fields.forEach((field, idx) => {
+                slots.push({
+                    name: `field_${field.id}`,
+                    kind: 'ghost',
+                    markupDisabled: true,
+                    props: {
+                        text: field.name,
+                        valign: 'middle',
+                        halign: 'left',
+                    },
+                    area: {
+                        x: 35,
+                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
+                        w: Math.max(0, item.area.w - 35)/2,
+                        h: fieldHeight
+                    },
+                    onUpdate(text) {
+                        field.name = text;
+                    }
+                });
+            });
+            return slots;
+        },
+
+        computePath,
+
+        controlPoints: {
+            make(item) {
+                return {
+                    headerHeight: {
+                        x: item.area.w / 2,
+                        y: item.shapeProps.headerHeight
+                    },
+                    cornerRadius: {
+                        x: item.area.w - item.shapeProps.cornerRadius,
+                        y: 0
+                    },
+                };
+            },
+            handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
+                if (controlPointName === 'headerHeight') {
+                    item.shapeProps.headerHeight = myMath.clamp(myMath.roundPrecise1(originalY + dy), 0, item.area.h);
+                } else if (controlPointName === 'cornerRadius') {
+                    item.shapeProps.cornerRadius = myMath.clamp(myMath.roundPrecise1(item.area.w - originalX - dx), 0, Math.min(item.area.w/4, item.area.h/4));
+                }
+            }
+        },
+
+        editorProps: {
+            customTextRendering: true,
+
+            editBoxControls: (editorId, item) => {
+                const controls = [];
+
+
+                item.shapeProps.fields.forEach((field, idx) => {
+                    controls.push({
+                        name: 'Delete',
+                        type: 'icon',
+                        hPlace: 'middle',
+                        vPlace: 'center',
+                        iconClass: 'fa-solid fa-times item-control-point-delete',
+                        radius: 5,
+                        position: {
+                            x: 8,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 8,
+                        },
+                        click: () => {
+                            removeField(editorId, item, idx);
+                        }
+                    });
+                });
+                return controls;
+            }
+        },
+
+        args: {
+            fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
+            headerFill   : {name: 'Header fill', type: 'advanced-color', value: {type: 'solid', color: '#4A5965'}},
+            strokeColor  : {name: 'Stroke', type: 'color', value: '#284D69'},
+            strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
+            strokeSize   : {name: 'Stroke Size', type: 'number', value: 1, min: 0, softMax: 100},
+            textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
+            cornerRadius : {name: 'Stroke Size', type: 'number', value: 10, min: 0, softMax: 100},
+            headerHeight : {type: 'number', value: 35, name: 'Header Height', min: 0},
+            fields       : {type: 'array', value: [], name: 'Fields', hidden: true},
+        },
+    },
+
+    beforeMount() {
+        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+    },
+    beforeDestroy() {
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+    },
+
+    data() {
+        return {
+            fieldHeight,
+            fieldDefaultStyle: {
+                'font-size': '14px',
+            },
+            headerStyle: this.createHeaderStyle(),
+        };
+    },
+
+    methods: {
+        createHeaderStyle() {
+            const style = generateTextStyle(this.item.textSlots.header);
+            style.width = `${this.item.area.w}px`;
+            style.height = `${Math.min(this.item.shapeProps.headerHeight, this.item.area.h)}px`;
+            return style;
+        },
+        onItemChanged() {
+            if (this.item.shape !== 'uml_entity') {
+                return;
+            }
+            this.geaderStyle = this.createHeaderStyle();
+        },
+    },
+
+    computed: {
+        headerHtml() {
+            return htmlSanitize(this.item.textSlots.header.text);
+        },
+        shapePath() {
+            return computePath(this.item);
+        },
+
+        headerPath() {
+            return computeHeaderPath(this.item);
+        },
+
+        clipPath() {
+            const w = this.item.area.w;
+            const h = this.item.area.h;
+            const y0 = Math.min(this.item.shapeProps.headerHeight, this.item.area.h);
+            return `M 0 ${y0} L ${w} ${y0} L ${w} ${h}, L 0 ${h} Z`;
+        },
+
+        svgFill() {
+            return computeStandardFill(this.item);
+        },
+
+        headerFill() {
+            return computeSvgFill(this.item.shapeProps.headerFill, `headerfill-pattern-${this.item.id}`);
+        },
+
+        headerArea() {
+            return {
+                x: 0,
+                y: 0,
+                w: this.item.area.w,
+                h: Math.min(this.item.shapeProps.headerHeight, this.item.area.h)
+            };
+        }
+    },
+}
+
+</script>

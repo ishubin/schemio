@@ -120,7 +120,8 @@
                 <g v-for="(control, idx) in customControls"
                     :transform="`translate(${editBox.area.w * control.xAxis.widthFactor + control.xAxis.direction * (control.position.x * control.xAxis.scaleFactor / safeZoom + control.position.x * (1 - control.xAxis.scaleFactor))}, ${editBox.area.h * control.yAxis.widthFactor + control.yAxis.direction * (control.position.y * control.yAxis.scaleFactor / safeZoom + control.position.y * (1 - control.yAxis.scaleFactor))})`"
                     >
-                    <circle class="item-control-point"
+                    <circle v-if="control.type === 'button'"
+                        class="item-control-point"
                         :cx="0"
                         :cy="0"
                         :r="10/safeZoom"
@@ -138,7 +139,7 @@
                     <circle class="item-control-point"
                         :cx="0"
                         :cy="0"
-                        :r="10/safeZoom"
+                        :r="control.radius/safeZoom"
                         fill="rgba(255, 255, 255, 0.0)"
                         :title="control.name"
                         data-type="edit-box-custom-control"
@@ -734,6 +735,7 @@ export default {
 
             editorProps.editBoxControls(this.editorId, item).forEach(control => {
                 this.customControls.push({
+                    radius: 10,
                     ...control,
                     xAxis: createCustomControlAxis(control.hPlace),
                     yAxis: createCustomControlAxis(control.vPlace),

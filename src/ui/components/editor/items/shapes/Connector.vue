@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import {forEach, map} from '../../../../collections';
+import {forEach} from '../../../../collections';
 import StrokePattern from '../StrokePattern.js';
 import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
@@ -37,7 +37,6 @@ import AdvancedFill from '../AdvancedFill.vue';
 import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
 import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../../scheme/ItemMath';
-import { convertCurvePointToItemScale, convertCurvePointToRelative } from './StandardCurves';
 import { Vector } from '../../../../templater/vector';
 
 const log = new Logger('Connector');

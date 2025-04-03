@@ -42,6 +42,7 @@ let _shapes = [
     require('./Table.vue').default,
     require('./Grid.vue').default,
 
+    require('./uml/Entity.vue').default,
     require('./uml/UMLObject.js').default,
     require('./uml/UMLClass.js').default,
     require('./uml/UMLModule.js').default,
