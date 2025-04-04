@@ -3,9 +3,9 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <input v-if="descriptor.type === 'string'" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
+        <input v-if="descriptor.type === 'string'" class="textfield" :value="value" :disabled="disabled" @input="emitValue($event.target.value)"/>
 
-        <input v-if="descriptor.type === 'image'" class="textfield" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)"/>
+        <input v-if="descriptor.type === 'image'" class="textfield" :value="value" :disabled="disabled" @input="emitValue($event.target.value)"/>
 
         <NumberTextfield v-if="descriptor.type === 'number'"
             :value="value"
@@ -15,20 +15,20 @@
             :softMax="softMaxValue"
             :slider="minValue !== null && (maxValue !== null || softMaxValue !== null)"
             :step="stepValue"
-            @changed="emitValue(arguments[0])"
+            @changed="emitValue"
             />
 
-        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue(arguments[0])"/>
+        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue"/>
 
-        <AdvancedColorEditor :editorId="editorId" v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue(arguments[0])" />
+        <AdvancedColorEditor :editorId="editorId" v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue" />
 
-        <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue(arguments[0].srcElement.checked)"/>
+        <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue($event.srcElement.checked)"/>
 
-        <select v-if="descriptor.type === 'choice'" :value="value" :disabled="disabled" @input="emitValue(arguments[0].target.value)">
+        <select v-if="descriptor.type === 'choice'" :value="value" :disabled="disabled" @input="emitValue($event.target.value)">
             <option v-for="argOption in descriptor.options">{{argOption}}</option>
         </select>
 
-        <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :editorId="editorId" :value="value" :disabled="disabled" @selected="emitValue( arguments[0])"/>
+        <StrokePatternDropdown v-if="descriptor.type === 'stroke-pattern'" :editorId="editorId" :value="value" :disabled="disabled" @selected="emitValue"/>
 
         <PathCapDropdown v-if="descriptor.type === 'path-cap'"
             :value="value"
@@ -37,7 +37,7 @@
             width="16px"
             :height="16"
             :disabled="disabled"
-            @selected="emitValue(arguments[0])"/>
+            @selected="emitValue"/>
 
         <ElementPicker v-if="descriptor.type === 'element'"
             :editorId="editorId"
@@ -47,7 +47,7 @@
             :scheme-container="schemeContainer"
             :disabled="disabled"
             :excluded-item-ids="[itemId]"
-            @selected="emitValue(arguments[0])"
+            @selected="emitValue"
             />
 
         <DiagramPicker v-if="descriptor.type === 'scheme-ref'"
@@ -57,7 +57,12 @@
             @diagram-selected="onDiagramPicked"
             />
 
-        <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue(arguments[0])"/>
+        <ColorMatrix v-if="descriptor.type === 'color-matrix'" :matrix="value" @changed="emitValue"/>
+
+        <Dropdown v-if="descriptor.type === 'font'"
+            :options="allFonts"
+            :value="value"
+            @selected="emitValue($event.name)"/>
     </div>
 
 </template>
@@ -71,6 +76,8 @@ import PathCapDropdown from '../PathCapDropdown.vue';
 import ElementPicker from '../ElementPicker.vue';
 import DiagramPicker from '../DiagramPicker.vue';
 import ColorMatrix from './ColorMatrix.vue';
+import Dropdown from '../../Dropdown.vue';
+import { getAllFonts } from '../../../scheme/Fonts';
 
 export default {
     props: {
@@ -86,7 +93,13 @@ export default {
 
     components: {
         NumberTextfield, ColorPicker, AdvancedColorEditor, StrokePatternDropdown,
-        PathCapDropdown, ElementPicker, ColorMatrix, DiagramPicker
+        PathCapDropdown, ElementPicker, ColorMatrix, DiagramPicker, Dropdown
+    },
+
+    data() {
+        return {
+            allFonts: getAllFonts().map(font => {return {name: font.name, style: {'font-family': font.family}}}),
+        };
     },
 
     methods: {

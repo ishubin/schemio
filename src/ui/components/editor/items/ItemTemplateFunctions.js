@@ -45,7 +45,7 @@ const fontCorrections = {
     'Lucida Console': 1.47,
 };
 
-function calculateTextSize(text, font, fontSize) {
+export function calculateTextSize(text, font, fontSize) {
     const canvas = calculateTextSize.canvas || (calculateTextSize.canvas = document.createElement("canvas"));
     const context = canvas.getContext("2d");
     context.font = `${fontSize}px ${font}`;

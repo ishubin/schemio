@@ -33,21 +33,33 @@
             <template v-for="(field, idx) in item.shapeProps.fields">
                 <circle r="5"
                     :cx="20"
-                    :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 8"
+                    :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10 + fieldHeight / 2"
                     fill="none"
                     :stroke="item.shapeProps.strokeColor"
                     :style="{opacity: 0.3}"
                     />
                 <foreignObject
-                    v-if="item.meta.activeTextSlot !== `field_${field.id}`"
+                    v-if="item.meta.activeTextSlot !== `field_${field.id}_name`"
                     :x="35"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
-                    :width="Math.max(0, item.area.w - 35)/2"
+                    :width="maxFieldWidth"
                     :height="fieldHeight"
                     >
                     <div xmlns="http://www.w3.org/1999/xhtml"
-                        :style="{...fieldDefaultStyle, width: `${Math.max(0, item.area.w - 18)/2}px`, height: `${fieldHeight}px`, color: item.shapeProps.textColor}">
+                        :style="{...fieldStyle, width: `${maxFieldWidth}px`, height: `${fieldHeight}px`}">
                         <div>{{ field.name }}</div>
+                    </div>
+                </foreignObject>
+                <foreignObject
+                    v-if="item.meta.activeTextSlot !== `field_${field.id}_type`"
+                    :x="40 + maxFieldWidth"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
+                    :height="fieldHeight"
+                    >
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        :style="{...fieldStyle, width: `${Math.max(0, item.area.w - 18)/2}px`, height: `${fieldHeight}px`}">
+                        <div>{{ field.type }}</div>
                     </div>
                 </foreignObject>
             </template>
@@ -63,6 +75,8 @@ import shortid from 'shortid';
 import EditorEventBus from '../../../EditorEventBus';
 import { generateTextStyle } from '../../../text/ItemText';
 import htmlSanitize from '../../../../../../htmlSanitize';
+import { calculateTextSize } from '../../ItemTemplateFunctions';
+import { defaultTextSlotProps } from '../../../../../scheme/Item';
 
 
 function computePath(item) {
@@ -87,7 +101,42 @@ function removeField(editorId, item, fieldIdx) {
     EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
 }
 
-const fieldHeight = 25;
+function addField(editorId, item, fieldIdx) {
+    item.shapeProps.fields.push({
+        id: shortid.generate(),
+        name: 'field' + (fieldIdx+1),
+        type: 'varchar(32)',
+        flags: []
+    });
+
+    const maxFieldSize = calculateMaxFieldSize(item);
+    const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+
+    const y = Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + fieldIdx * fieldHeight + 8 + fieldHeight;
+    if (y > item.area.h) {
+        item.area.h = y;
+    }
+    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
+    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+}
+
+function calculateMaxFieldSize(item) {
+    let maxWidth = item.area.w / 3;
+    let maxHeight = 5;
+    item.shapeProps.fields.forEach(field => {
+        const s = calculateTextSize(field.name, item.shapeProps.font, item.shapeProps.fontSize);
+        if (maxWidth < s.w) {
+            maxWidth = s.w;
+        }
+        if (maxHeight < s.h) {
+            maxHeight = s.h;
+        }
+    });
+    return {
+        w: maxWidth,
+        h: maxHeight
+    };
+}
 
 export default {
     props: ['item', 'editorId'],
@@ -142,9 +191,13 @@ export default {
                 area: {x: 0, y: 0, w: item.area.w, h: Math.min(item.shapeProps.headerHeight, item.area.h)}
             }];
 
+            const maxFieldSize = calculateMaxFieldSize(item);
+            const maxFieldWidth = Math.max(10, maxFieldSize.w);
+            const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+
             item.shapeProps.fields.forEach((field, idx) => {
                 slots.push({
-                    name: `field_${field.id}`,
+                    name: `field_${field.id}_name`,
                     kind: 'ghost',
                     markupDisabled: true,
                     props: {
@@ -155,11 +208,34 @@ export default {
                     area: {
                         x: 35,
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
-                        w: Math.max(0, item.area.w - 35)/2,
+                        w: maxFieldWidth,
                         h: fieldHeight
                     },
-                    onUpdate(text) {
+                    onUpdate(editorId, text) {
                         field.name = text;
+                        EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields.${idx}.name`);
+                        EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields.${idx}.name`);
+                    },
+                });
+                slots.push({
+                    name: `field_${field.id}_type`,
+                    kind: 'ghost',
+                    markupDisabled: true,
+                    props: {
+                        text: field.type,
+                        valign: 'middle',
+                        halign: 'left',
+                    },
+                    area: {
+                        x: 40 + maxFieldWidth,
+                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
+                        w: Math.max(1, item.area.w - 40 - maxFieldWidth),
+                        h: fieldHeight
+                    },
+                    onUpdate(editorId, text) {
+                        field.type = text;
+                        EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields.${idx}.type`);
+                        EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields.${idx}.type`);
                     }
                 });
             });
@@ -168,13 +244,24 @@ export default {
 
         computePath,
 
+        getPins(item) {
+            const pins = {};
+            const maxFieldSize = calculateMaxFieldSize(item);
+            const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+
+            item.shapeProps.fields.forEach((field, idx) => {
+                pins[`f_${field.id}`] = {
+                    x: 20,
+                    y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 8,
+                    nx: -1, ny: 0
+                };
+            });
+            return pins;
+        },
+
         controlPoints: {
             make(item) {
                 return {
-                    headerHeight: {
-                        x: item.area.w / 2,
-                        y: item.shapeProps.headerHeight
-                    },
                     cornerRadius: {
                         x: item.area.w - item.shapeProps.cornerRadius,
                         y: 0
@@ -182,9 +269,7 @@ export default {
                 };
             },
             handleDrag(item, controlPointName, originalX, originalY, dx, dy) {
-                if (controlPointName === 'headerHeight') {
-                    item.shapeProps.headerHeight = myMath.clamp(myMath.roundPrecise1(originalY + dy), 0, item.area.h);
-                } else if (controlPointName === 'cornerRadius') {
+                if (controlPointName === 'cornerRadius') {
                     item.shapeProps.cornerRadius = myMath.clamp(myMath.roundPrecise1(item.area.w - originalX - dx), 0, Math.min(item.area.w/4, item.area.h/4));
                 }
             }
@@ -196,6 +281,8 @@ export default {
             editBoxControls: (editorId, item) => {
                 const controls = [];
 
+                const maxFieldSize = calculateMaxFieldSize(item);
+                const fieldHeight = Math.max(5, maxFieldSize.h + 10);
 
                 item.shapeProps.fields.forEach((field, idx) => {
                     controls.push({
@@ -214,6 +301,21 @@ export default {
                         }
                     });
                 });
+                controls.push({
+                    name: 'Add',
+                    type: 'button',
+                    hPlace: 'middle',
+                    vPlace: 'center',
+                    iconClass: 'fa-solid fa-plus',
+                    radius: 7,
+                    position: {
+                        x: 20,
+                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + item.shapeProps.fields.length * fieldHeight + 8,
+                    },
+                    click: () => {
+                        addField(editorId, item, item.shapeProps.fields.length);
+                    }
+                });
                 return controls;
             }
         },
@@ -224,10 +326,12 @@ export default {
             strokeColor  : {name: 'Stroke', type: 'color', value: '#284D69'},
             strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 1, min: 0, softMax: 100},
-            textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
             cornerRadius : {name: 'Stroke Size', type: 'number', value: 10, min: 0, softMax: 100},
             headerHeight : {type: 'number', value: 35, name: 'Header Height', min: 0},
             fields       : {type: 'array', value: [], name: 'Fields', hidden: true},
+            font         : {type: 'font', name: 'Font', value: 'Arial'},
+            fontSize     : {type: 'number', value: 14, name: 'Header Height', min: 0},
+            textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
         },
     },
 
@@ -239,16 +343,21 @@ export default {
     },
 
     data() {
+        const maxFieldSize = calculateMaxFieldSize(this.item);
         return {
-            fieldHeight,
-            fieldDefaultStyle: {
-                'font-size': '14px',
-            },
             headerStyle: this.createHeaderStyle(),
+            maxFieldWidth: Math.max(10, maxFieldSize.w),
+            fieldHeight: Math.max(5, maxFieldSize.h + 10)
         };
     },
 
     methods: {
+        updateFieldSize() {
+            const maxFieldSize = calculateMaxFieldSize(this.item);
+            this.maxFieldWidth = Math.max(10, maxFieldSize.w);
+            this.fieldHeight = Math.max(5, maxFieldSize.h + 10);
+        },
+
         createHeaderStyle() {
             const style = generateTextStyle(this.item.textSlots.header);
             style.width = `${this.item.area.w}px`;
@@ -264,6 +373,16 @@ export default {
     },
 
     computed: {
+        fieldStyle() {
+            return generateTextStyle({
+                ...defaultTextSlotProps,
+                halign: 'left',
+                valign: 'middle',
+                fontSize: this.item.shapeProps.fontSize,
+                font: this.item.shapeProps.font,
+                color: this.item.shapeProps.textColor
+            });
+        },
         headerHtml() {
             return htmlSanitize(this.item.textSlots.header.text);
         },

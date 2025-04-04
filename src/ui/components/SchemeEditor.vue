@@ -1642,7 +1642,7 @@ export default {
         onInPlaceTextEditorUpdate(text) {
             if (this.inPlaceTextEditor.shown) {
                 if (this.inPlaceTextEditor.textSlot.onUpdate) {
-                    this.inPlaceTextEditor.textSlot.onUpdate(text);
+                    this.inPlaceTextEditor.textSlot.onUpdate(this.editorId, text);
                 }
                 const slotName = this.inPlaceTextEditor.slotName;
                 const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.item.id);
