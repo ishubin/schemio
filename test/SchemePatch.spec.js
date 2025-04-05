@@ -695,7 +695,7 @@ describe('SchemioDocSchema', () => {
                     expect(fieldSchema).toStrictEqual(entry.schema);
                 }
                 catch(err) {
-                    throw new Error(`Mismatch for "${condition.on}" for "${fieldName}" field`, err);
+                    throw new Error(`Mismatch in "${condition.on}" shape for "${fieldName}" field (${entry.on[0]})`, err);
                 }
                 entry.on.push(condition.on);
             });

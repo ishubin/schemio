@@ -330,7 +330,7 @@ export default {
             headerHeight : {type: 'number', value: 35, name: 'Header Height', min: 0},
             fields       : {type: 'array', value: [], name: 'Fields', hidden: true},
             font         : {type: 'font', name: 'Font', value: 'Arial'},
-            fontSize     : {type: 'number', value: 14, name: 'Header Height', min: 0},
+            fontSize     : {type: 'number', value: 14, name: 'Header Height', min: 1, softMax: 100},
             textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
         },
     },
