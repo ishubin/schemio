@@ -1455,11 +1455,31 @@ ul.pagination li a.current {
     color: unset;
 }
 
+input[type="text"].in-place-text-editor,
 textarea.in-place-text-editor {
     border: none;
     background: none;
     outline: none;
     resize: none;
+}
+
+.in-place-text-edit-dropdown-options {
+    position: absolute;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: var(--faint-weak);
+    color: var(--base-strong);
+    max-height: 300px;
+    overflow: auto;
+}
+.in-place-text-edit-dropdown-options li {
+    padding: 5px 15px;
+    cursor: pointer;
+}
+.in-place-text-edit-dropdown-options li.selected,
+.in-place-text-edit-dropdown-options li:hover {
+    background: var(--faint-weak-down);
 }
 
 /*************** Item marker ********************/
@@ -5409,3 +5429,4 @@ svg input.item-shape-textfield,
 svg textarea.item-shape-textfield {
     color: unset;
 }
+

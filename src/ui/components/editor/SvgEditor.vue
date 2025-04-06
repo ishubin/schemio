@@ -985,8 +985,7 @@ export default {
                         name :'body',
                         area:{
                             x: 0, y: 0, w: textItem.area.w, h: textItem.area.h
-                        },
-                        markupDisabled: false
+                        }
                     };
                     EditorEventBus.textSlot.triggered.specific.$emit(this.editorId, textItem, textSlot, true);
                 });

@@ -79,6 +79,26 @@ import { calculateTextSize } from '../../ItemTemplateFunctions';
 import { defaultTextSlotProps } from '../../../../../scheme/Item';
 
 
+const typeSuggestions = [
+    'binary',
+    'boolean',
+    'date',
+    'datetime',
+    'decimal',
+    'email',
+    'enum',
+    'float',
+    'foreign key',
+    'integer',
+    'json',
+    'string',
+    'text',
+    'time',
+    'timestamp',
+    'url',
+    'uuid'
+]
+
 function computePath(item) {
     const W = item.area.w;
     const H = item.area.h;
@@ -199,8 +219,9 @@ export default {
                 slots.push({
                     name: `field_${field.id}_name`,
                     kind: 'ghost',
-                    markupDisabled: true,
+                    display: 'textarea',
                     props: {
+                        font: item.shapeProps.font,
                         text: field.name,
                         valign: 'middle',
                         halign: 'left',
@@ -220,12 +241,14 @@ export default {
                 slots.push({
                     name: `field_${field.id}_type`,
                     kind: 'ghost',
-                    markupDisabled: true,
+                    display: 'dropdown',
                     props: {
+                        font: item.shapeProps.font,
                         text: field.type,
                         valign: 'middle',
                         halign: 'left',
                     },
+                    suggestions: typeSuggestions,
                     area: {
                         x: 40 + maxFieldWidth,
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
@@ -245,14 +268,33 @@ export default {
         computePath,
 
         getPins(item) {
-            const pins = {};
+            const w = item.area.w;
+            const h = item.area.h;
+            const pins = {
+                t: {
+                    x: w / 2, y: 0,
+                    nx: 0, ny: -1
+                },
+                b: {
+                    x: w / 2, y: h,
+                    nx: 0, ny: 1
+                },
+                l: {
+                    x: 0, y: h/2,
+                    nx: -1, ny: 0
+                },
+                r: {
+                    x: w, y: h/2,
+                    nx: 1, ny: 0
+                }
+            };
             const maxFieldSize = calculateMaxFieldSize(item);
             const fieldHeight = Math.max(5, maxFieldSize.h + 10);
 
             item.shapeProps.fields.forEach((field, idx) => {
                 pins[`f_${field.id}`] = {
                     x: 20,
-                    y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 8,
+                    y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
                     nx: -1, ny: 0
                 };
             });
@@ -294,7 +336,7 @@ export default {
                         radius: 5,
                         position: {
                             x: 8,
-                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 8,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
                         },
                         click: () => {
                             removeField(editorId, item, idx);

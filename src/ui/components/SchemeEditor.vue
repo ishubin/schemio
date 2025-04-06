@@ -234,16 +234,15 @@
                 </SvgEditor>
 
                 <!-- Item Text Editor -->
-                <InPlaceTextEditBox v-if="inPlaceTextEditor.shown"
-                    :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.slotName}`"
+                <InPlaceTextEditBox v-if="inPlaceTextEditor.shown && inPlaceTextEditor.textSlot"
+                    :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.textSlot.name}`"
                     :editorId="editorId"
                     :item="inPlaceTextEditor.item"
-                    :slotName="inPlaceTextEditor.slotName"
-                    :area="inPlaceTextEditor.area"
-                    :css-style="inPlaceTextEditor.style"
+                    :cssStyle="inPlaceTextEditor.style"
                     :text="inPlaceTextEditor.text"
-                    :markup-disabled="inPlaceTextEditor.markupDisabled"
-                    :creating-new-item="inPlaceTextEditor.creatingNewItem"
+                    :area="inPlaceTextEditor.area"
+                    :textSlot="inPlaceTextEditor.textSlot"
+                    :creatingNewItem="inPlaceTextEditor.creatingNewItem"
                     :scalingVector="inPlaceTextEditor.scalingVector"
                     :zoom="schemeContainer.screenTransform.scale"
                     :mouseDownId="mouseDownId"
@@ -509,15 +508,6 @@
                             />
                         </div>
 
-                        <!-- <div v-if="inPlaceTextEditor.shown && mode === 'edit'">
-                            <TextSlotProperties
-                                :editorId="editorId"
-                                :item="inPlaceTextEditor.item"
-                                :slot-name="inPlaceTextEditor.slotName"
-                                @moved-to-slot="onTextSlotMoved(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0]);"
-                                @property-changed="onInPlaceEditTextPropertyChanged(inPlaceTextEditor.item, inPlaceTextEditor.slotName, arguments[0], arguments[1])"
-                                />
-                        </div> -->
                         <div>
                             <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
                                 :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
@@ -1071,7 +1061,6 @@ export default {
                 item: null,
                 textSlot: null,
                 slotName: '',
-                markupDisabled: false,
                 shown: false,
                 area: {x: 0, y: 0, w: 100, h: 100},
                 text: '',
@@ -1610,7 +1599,6 @@ export default {
             const x = center.x - worldWidth / 2;
             const y = center.y - worldHeight / 2;
 
-            this.inPlaceTextEditor.slotName = textSlot.name;
             this.inPlaceTextEditor.textSlot = textSlot;
             this.inPlaceTextEditor.item = item;
             if (item.meta.templated && item.args && item.args.tplText && item.args.tplText[textSlot.name]) {
@@ -1618,7 +1606,6 @@ export default {
             } else {
                 this.inPlaceTextEditor.text = itemTextSlot.text;
             }
-            this.inPlaceTextEditor.markupDisabled = textSlot.markupDisabled;
             this.inPlaceTextEditor.style = generateTextStyle(itemTextSlot);
             this.inPlaceTextEditor.creatingNewItem = creatingNewItem;
 
@@ -1644,7 +1631,7 @@ export default {
                 if (this.inPlaceTextEditor.textSlot.onUpdate) {
                     this.inPlaceTextEditor.textSlot.onUpdate(this.editorId, text);
                 }
-                const slotName = this.inPlaceTextEditor.slotName;
+                const slotName = this.inPlaceTextEditor.textSlot.name;
                 const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.item.id);
                 if (!item || !item.textSlots || !item.textSlots[slotName]) {
                     return;
@@ -1680,11 +1667,9 @@ export default {
         closeItemTextEditor() {
             this.inPlaceTextEditor.shown = false;
             this.currentTab = 'Item';
-            this.inPlaceTextEditor.markupDisabled = false;
 
             const item = this.inPlaceTextEditor.item;
-            const slotName = this.inPlaceTextEditor.slotName;
-            // StoreUtils.clearInPlaceTextEditItem(this.$store);
+            const slotName = this.inPlaceTextEditor.textSlot.name;
             if (item) {
                 item.meta.activeTextSlot = null;
                 EditorEventBus.textSlot.canceled.specific.$emit(this.editorId, item, slotName);
@@ -1709,10 +1694,10 @@ export default {
         },
 
         updateInPlaceTextEditorStyle() {
-            if (!this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName]) {
+            if (!this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.textSlot.name]) {
                 return;
             }
-            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.slotName];
+            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.textSlot.name];
             this.inPlaceTextEditor.style = generateTextStyle(textSlot);
         },
 

@@ -5,10 +5,10 @@
     <div class="in-place-edit-editor-wrapper"
         ref="wrapper"
         :id="`in-place-text-edit-wrapper-${editorId}-${item.id}`"
-        :data-slot-name="slotName"
+        :data-slot-name="textSlot.name"
         :style="cssStyle2"
         >
-        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="!markupDisabled && !isSimpleText" :style="editorMenuStyle">
+        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="isRichEditor && !isSimpleText" :style="editorMenuStyle">
             <editor-menu-bar :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
                 <div class="rich-text-editor-menubar">
                     <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
@@ -44,7 +44,7 @@
                 </div>
             </editor-menu-bar>
         </div>
-        <textarea v-if="markupDisabled" ref="textarea"
+        <textarea v-if="textSlot.display === 'textarea'" ref="textarea"
             class="in-place-text-editor"
             data-type="item-in-place-text-editor"
             :value="text"
@@ -52,6 +52,25 @@
             @keydown="onTextareaKeyDown"
             @input="onTextareaInput"
         ></textarea>
+        <div v-else-if="textSlot.display === 'dropdown'" class="in-place-text-edit-dropdown-container">
+            <input ref="input"
+                type="text"
+                class="in-place-text-editor"
+                data-type="item-in-place-text-editor"
+                :value="text"
+                :style="editorCssStyle"
+                @keydown="onTextareaKeyDown"
+                @input="onDropdownInput"
+                @click="onDropdownClicked"
+            />
+            <ul class="in-place-text-edit-dropdown-options" v-if="suggestionsShown">
+                <template v-for="suggestion in suggestions">
+                    <li v-if="suggestion.indexOf(suggestionKeyword) >= 0" @click="onDropdownSuggestionSelected(suggestion)">
+                        {{ suggestion }}
+                    </li>
+                </template>
+            </ul>
+        </div>
         <div v-else-if="editor" ref="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
             <editor-content :editor="editor" />
         </div>
@@ -69,23 +88,23 @@ import {
     TodoItem, TodoList, Bold, Code, Italic, Strike, Underline, History
 } from 'tiptap-extensions';
 import EditorEventBus from './EditorEventBus';
+import Dropdown from '../Dropdown.vue';
 
 
 export default {
     props: {
         editorId       : {type: String, required: true},
         item           : {type: Object},
-        slotName       : {type: String},
         area           : {type: Object},
+        textSlot       : {type: Object},
         text           : {type: String},
         cssStyle       : {type: Object},
         zoom           : {type: Number},
         creatingNewItem: {type: Boolean},
         scalingVector  : {type: Object},
-        markupDisabled : {type: Boolean, default: false},
         mouseDownId    : {type: Number},
     },
-    components: {RichTextEditor, EditorContent, EditorMenuBar},
+    components: {RichTextEditor, EditorContent, EditorMenuBar, Dropdown},
 
     beforeMount() {
         document.addEventListener('keydown', this.onKeyDown);
@@ -99,11 +118,17 @@ export default {
     },
 
     mounted() {
-        if (this.markupDisabled) {
+        if (this.textSlot.display === 'textarea') {
             const textarea = this.$refs.textarea;
             // have no idea why it doesn't want to focus without timeout
             // autofocus also does not work anymore
             setTimeout(() => textarea.focus(), 60);
+        }
+        if (this.textSlot.display === 'dropdown') {
+            const input = this.$refs.input;
+            // have no idea why it doesn't want to focus without timeout
+            // autofocus also does not work anymore
+            setTimeout(() => input.focus(), 60);
         }
 
         if (!this.$refs.floatingMenu) {
@@ -155,16 +180,21 @@ export default {
     },
 
     data() {
+        console.log('inplace data', this.text);
         return {
-            editor: null,
-            editorCssStyle: this.generateStyle(this.cssStyle),
-            editorMenuStyle: {top: '-30px'},
+            editor             : null,
+            editorCssStyle     : this.generateStyle(this.cssStyle),
+            editorMenuStyle    : {top: '-30px'},
+            suggestions        : this.textSlot.suggestions || [],
+            suggestionsShown   : this.textSlot.display === 'dropdown',
+            suggestionKeyword  : '',
+            inputValue         : this.text
         };
     },
 
     methods: {
         init() {
-            if (!this.markupDisabled) {
+            if (this.textSlot.display !== 'textarea' && this.textSlot.display !== 'dropdown') {
                 this.editor = this.createEditor(this.text);
                 EditorEventBus.inPlaceTextEditor.created.$emit(this.editorId, this.editor);
             }
@@ -183,7 +213,7 @@ export default {
                 // for simple labels we want to be able to reduce the editor height in case we delete some lines from the text
                 // but we want to make sure that text slot editor rect is correctly positioned for other shapes
                 // Also, in case label has valign middle or bottom, the height should be limited, otherwise text will "jump up"
-                const valign = this.item.textSlots[this.slotName] ? this.item.textSlots[this.slotName].valign : 'top';
+                const valign = this.item.textSlots[this.textSlot.name] ? this.item.textSlots[this.textSlot.name].valign : 'top';
                 if (this.item.shape !== 'none' || (this.item.shape === 'none' && valign !== 'top')) {
                     editorCssStyle.height = `${this.area.h/scale}px`;
                 }
@@ -218,7 +248,7 @@ export default {
                     this.$emit('updated', event.getHTML());
                 }
             });
-            editor.setContent(this.text, true, {preserveWhitespace: true})
+            editor.setContent(text, true, {preserveWhitespace: true})
             return editor;
         },
 
@@ -242,6 +272,20 @@ export default {
 
         onTextareaInput(event) {
             this.$emit('updated', event.target.value);
+        },
+
+        onDropdownInput(event) {
+            this.$emit('updated', event.target.value);
+            this.text = event.target.value;
+            const text = event.target.value.trim();
+            if (this.textSlot.display === 'dropdown' && this.suggestionsShown) {
+                this.suggestionKeyword = text;
+            }
+        },
+
+        onDropdownClicked() {
+            this.suggestionKeyword = '';
+            this.suggestionsShown = true;
         },
 
         closeEditBox() {
@@ -269,10 +313,22 @@ export default {
                 }
             }
             this.$emit('close');
+        },
+
+        onDropdownSuggestionSelected(suggestion) {
+            this.suggestionsShown = false;
+            this.suggestionKeyword = '';
+
+            this.$emit('updated', suggestion);
+            this.text = suggestion;
         }
     },
 
     computed: {
+        isRichEditor() {
+            return this.textSlot.display !== 'textarea' && this.textSlot.display !== 'dropdown';
+        },
+
         isSimpleText() {
             return this.item.args && this.item.args.simpleText;
         },
@@ -292,6 +348,9 @@ export default {
         },
         mouseDownId() {
             this.closeEditBox();
+        },
+        text(text) {
+            this.inputValue = text;
         }
     }
 

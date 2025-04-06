@@ -186,7 +186,7 @@ export default {
 
             const slots = [{
                 name: 'body',
-                markupDisabled: true,
+                display: 'textarea',
                 cssClass: `syntax-theme-${item.shapeProps.theme}`,
                 area: {x: 0, y: headerHeight, w: item.area.w, h: Math.max(1, item.area.h - headerHeight)}
             }];
