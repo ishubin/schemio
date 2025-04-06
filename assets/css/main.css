@@ -1464,18 +1464,18 @@ textarea.in-place-text-editor {
 }
 
 .in-place-text-edit-dropdown-options {
-    position: absolute;
+    position: fixed;
     list-style: none;
     margin: 0;
     padding: 0;
     background: var(--faint-weak);
     color: var(--base-strong);
-    max-height: 300px;
     overflow: auto;
 }
 .in-place-text-edit-dropdown-options li {
     padding: 5px 15px;
     cursor: pointer;
+    white-space: nowrap;
 }
 .in-place-text-edit-dropdown-options li.selected,
 .in-place-text-edit-dropdown-options li:hover {

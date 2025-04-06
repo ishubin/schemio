@@ -219,7 +219,7 @@ export default {
                 slots.push({
                     name: `field_${field.id}_name`,
                     kind: 'ghost',
-                    display: 'textarea',
+                    display: 'textfield',
                     props: {
                         font: item.shapeProps.font,
                         text: field.name,

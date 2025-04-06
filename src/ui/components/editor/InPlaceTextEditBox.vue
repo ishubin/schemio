@@ -52,23 +52,36 @@
             @keydown="onTextareaKeyDown"
             @input="onTextareaInput"
         ></textarea>
+        <input v-else-if="textSlot.display === 'textfield'"
+            ref="textfield"
+            type="text"
+            class="in-place-text-editor"
+            data-type="item-in-place-text-editor"
+            :value="text"
+            :style="editorCssStyle"
+            @input="onTextareaInput"
+        />
         <div v-else-if="textSlot.display === 'dropdown'" class="in-place-text-edit-dropdown-container">
-            <input ref="input"
+            <input ref="dropdownInput"
                 type="text"
                 class="in-place-text-editor"
                 data-type="item-in-place-text-editor"
-                :value="text"
+                :value="dropdownText"
                 :style="editorCssStyle"
-                @keydown="onTextareaKeyDown"
+                @keydown="onDropdownKeyDown"
                 @input="onDropdownInput"
                 @click="onDropdownClicked"
             />
-            <ul class="in-place-text-edit-dropdown-options" v-if="suggestionsShown">
-                <template v-for="suggestion in suggestions">
-                    <li v-if="suggestion.indexOf(suggestionKeyword) >= 0" @click="onDropdownSuggestionSelected(suggestion)">
-                        {{ suggestion }}
-                    </li>
-                </template>
+            <ul ref="suggestions"
+                class="in-place-text-edit-dropdown-options"
+                :style="{'max-height': `${suggestionsMaxHeight}px`}"
+                v-if="suggestionsShown">
+                <li v-for="(suggestion, suggestionIdx) in filteredSuggestions"
+                    @click="onDropdownSuggestionSelected(suggestion)"
+                    :class="{selected: suggestionIdx === suggestionActiveIdx}"
+                    >
+                    {{ suggestion }}
+                </li>
             </ul>
         </div>
         <div v-else-if="editor" ref="editor" data-type="item-in-place-text-editor" class="item-text-container" :style="editorCssStyle">
@@ -118,83 +131,90 @@ export default {
     },
 
     mounted() {
+        // have no idea why it doesn't want to focus without timeout
+        // autofocus also does not work anymore
         if (this.textSlot.display === 'textarea') {
             const textarea = this.$refs.textarea;
-            // have no idea why it doesn't want to focus without timeout
-            // autofocus also does not work anymore
             setTimeout(() => textarea.focus(), 60);
-        }
-        if (this.textSlot.display === 'dropdown') {
-            const input = this.$refs.input;
-            // have no idea why it doesn't want to focus without timeout
-            // autofocus also does not work anymore
+        } else if (this.textSlot.display === 'textfield') {
+            const input = this.$refs.textfield;
+            setTimeout(() => input.focus(), 60);
+        } else if (this.textSlot.display === 'dropdown') {
+            const input = this.$refs.dropdownInput;
             setTimeout(() => input.focus(), 60);
         }
 
-        if (!this.$refs.floatingMenu) {
-            return;
-        }
-        const rect = this.$refs.wrapper.getBoundingClientRect();
-        const svgElement = document.getElementById(`svg-plot-${this.editorId}`);
-        const svgRect = svgElement.getBoundingClientRect();
-        const menuRect = this.$refs.floatingMenu.getBoundingClientRect();
-
-        // visible area of the svg
-        let x1 = svgRect.left,
-            y1 = svgRect.top,
-            x2 = svgRect.right,
-            y2 = svgRect.bottom;
-
-        // correcting the visible area by subtracting the space that was taken by the left side panel
-        const sideLeftPanel = document.querySelector('.side-panel.side-panel-left');
-        if (sideLeftPanel) {
-            const sideLeftPanelRect = sideLeftPanel.getBoundingClientRect();
-            x1 = Math.max(x1, sideLeftPanelRect.right);
+        if (this.$refs.suggestions) {
+            const rect = this.$refs.suggestions.getBoundingClientRect();
+            if (rect.bottom > window.innerHeight - 5) {
+                this.suggestionsMaxHeight = Math.min(Math.max(5, window.innerHeight - 5 - rect.top), 300);
+            }
         }
 
-        // correcting the visible area by subtracting the space that was taken by the right side panel
-        const sideRightPanel = document.querySelector('.side-panel.side-panel-right');
-        if (sideRightPanel) {
-            const sideRightPanelRect = sideRightPanel.getBoundingClientRect();
-            x2 = Math.min(x2, sideRightPanelRect.left);
-        }
+        if (this.$refs.floatingMenu) {
+            const rect = this.$refs.wrapper.getBoundingClientRect();
+            const svgElement = document.getElementById(`svg-plot-${this.editorId}`);
+            const svgRect = svgElement.getBoundingClientRect();
+            const menuRect = this.$refs.floatingMenu.getBoundingClientRect();
 
-        const topSpace = rect.top - y1;
-        const bottomSpace = y2 - rect.bottom;
-        const style = {};
-        if (topSpace > menuRect.height) {
-            style.top = `${-menuRect.height}px`;
-        } else if (bottomSpace > menuRect.height) {
-            style.bottom = `-${menuRect.height}px`;
-        } else {
-            style.top = `${-topSpace}px`;
-        }
+            // visible area of the svg
+            let x1 = svgRect.left,
+                y1 = svgRect.top,
+                x2 = svgRect.right,
+                y2 = svgRect.bottom;
 
-        if (menuRect.right > x2) {
-            style.left = `${-(menuRect.right - x2)}px`;
+            // correcting the visible area by subtracting the space that was taken by the left side panel
+            const sideLeftPanel = document.querySelector('.side-panel.side-panel-left');
+            if (sideLeftPanel) {
+                const sideLeftPanelRect = sideLeftPanel.getBoundingClientRect();
+                x1 = Math.max(x1, sideLeftPanelRect.right);
+            }
+
+            // correcting the visible area by subtracting the space that was taken by the right side panel
+            const sideRightPanel = document.querySelector('.side-panel.side-panel-right');
+            if (sideRightPanel) {
+                const sideRightPanelRect = sideRightPanel.getBoundingClientRect();
+                x2 = Math.min(x2, sideRightPanelRect.left);
+            }
+
+            const topSpace = rect.top - y1;
+            const bottomSpace = y2 - rect.bottom;
+            const style = {};
+            if (topSpace > menuRect.height) {
+                style.top = `${-menuRect.height}px`;
+            } else if (bottomSpace > menuRect.height) {
+                style.bottom = `-${menuRect.height}px`;
+            } else {
+                style.top = `${-topSpace}px`;
+            }
+
+            if (menuRect.right > x2) {
+                style.left = `${-(menuRect.right - x2)}px`;
+            }
+            if (menuRect.left < x1) {
+                style.left = `${x1 - menuRect.left}px`;
+            }
+            this.editorMenuStyle = style;
         }
-        if (menuRect.left < x1) {
-            style.left = `${x1 - menuRect.left}px`;
-        }
-        this.editorMenuStyle = style;
     },
 
     data() {
-        console.log('inplace data', this.text);
         return {
-            editor             : null,
-            editorCssStyle     : this.generateStyle(this.cssStyle),
-            editorMenuStyle    : {top: '-30px'},
-            suggestions        : this.textSlot.suggestions || [],
-            suggestionsShown   : this.textSlot.display === 'dropdown',
-            suggestionKeyword  : '',
-            inputValue         : this.text
+            editor              : null,
+            editorCssStyle      : this.generateStyle(this.cssStyle),
+            editorMenuStyle     : {top: '-30px'},
+            dropdownText        : this.text,
+            suggestions         : this.textSlot.suggestions || [],
+            suggestionsShown    : this.textSlot.display === 'dropdown',
+            filteredSuggestions : this.textSlot.suggestions || [],
+            suggestionActiveIdx : -1,
+            suggestionsMaxHeight: 250,
         };
     },
 
     methods: {
         init() {
-            if (this.textSlot.display !== 'textarea' && this.textSlot.display !== 'dropdown') {
+            if (this.textSlot.display !== 'textarea' && this.textSlot.display !== 'dropdown' & this.textSlot.display !== 'textfield') {
                 this.editor = this.createEditor(this.text);
                 EditorEventBus.inPlaceTextEditor.created.$emit(this.editorId, this.editor);
             }
@@ -270,6 +290,38 @@ export default {
             }
         },
 
+        onDropdownKeyDown(event) {
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                if (!this.suggestionsShown) {
+                    this.suggestionsShown = true;
+                    this.suggestionActiveIdx = -1;
+                    this.filteredSuggestions = this.suggestions;
+                }
+                this.suggestionActiveIdx = Math.min(this.filteredSuggestions.length - 1, this.suggestionActiveIdx + 1);
+                this.scrollToSelectedSuggestion();
+            } else if (event.key === 'ArrowUp' && this.suggestionsShown) {
+                event.preventDefault();
+                this.suggestionActiveIdx = Math.max(-1, this.suggestionActiveIdx - 1);
+                this.scrollToSelectedSuggestion();
+            } else if (event.key === 'Enter'
+                && this.suggestionsShown
+                && this.suggestionActiveIdx >= 0
+                && this.suggestionActiveIdx < this.filteredSuggestions.length) {
+                this.onDropdownSuggestionSelected(this.filteredSuggestions[this.suggestionActiveIdx]);
+            }
+        },
+
+        scrollToSelectedSuggestion() {
+            if (!this.$refs.suggestions) {
+                return;
+            }
+            const liElements = this.$refs.suggestions.querySelectorAll('li');
+            if (liElements && this.suggestionActiveIdx >= 0 && this.suggestionActiveIdx < liElements.length) {
+                liElements[this.suggestionActiveIdx].scrollIntoView();
+            }
+        },
+
         onTextareaInput(event) {
             this.$emit('updated', event.target.value);
         },
@@ -278,13 +330,15 @@ export default {
             this.$emit('updated', event.target.value);
             this.text = event.target.value;
             const text = event.target.value.trim();
-            if (this.textSlot.display === 'dropdown' && this.suggestionsShown) {
-                this.suggestionKeyword = text;
+            if (this.textSlot.display === 'dropdown') {
+                this.suggestionsShown = true;
+                this.filteredSuggestions = this.suggestions.filter(suggestion => suggestion.indexOf(text) >= 0);
+                this.suggestionActiveIdx = -1;
             }
         },
 
         onDropdownClicked() {
-            this.suggestionKeyword = '';
+            this.filteredSuggestions = this.suggestions;
             this.suggestionsShown = true;
         },
 
@@ -317,10 +371,10 @@ export default {
 
         onDropdownSuggestionSelected(suggestion) {
             this.suggestionsShown = false;
-            this.suggestionKeyword = '';
+            this.filteredSuggestions = this.suggestions;
 
             this.$emit('updated', suggestion);
-            this.text = suggestion;
+            this.dropdownText = suggestion;
         }
     },
 
@@ -350,7 +404,7 @@ export default {
             this.closeEditBox();
         },
         text(text) {
-            this.inputValue = text;
+            this.dropdownText = text;
         }
     }
 
