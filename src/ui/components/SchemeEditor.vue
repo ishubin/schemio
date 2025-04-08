@@ -3409,8 +3409,10 @@ export default {
             }
 
             this.$emit('context-menu-requested', p.x, p.y, options.map(option => {
+                const convertedOption = typeof option === 'object' ? option : {name: option};
+
                 return {
-                    name: option,
+                    ...convertedOption,
                     clicked: () => {
                         callback(option);
                     }

@@ -30,17 +30,30 @@
         </clipPath>
 
         <g :style="{'clip-path': `url(#entity-clip-path-${this.item.id})`}">
-            <template v-for="(field, idx) in item.shapeProps.fields">
+            <template v-for="(field, idx) in fields">
                 <circle r="5"
-                    :cx="20"
+                    :cx="15"
                     :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10 + fieldHeight / 2"
                     fill="none"
                     :stroke="item.shapeProps.strokeColor"
                     :style="{opacity: 0.3}"
                     />
+
+                <foreignObject
+                    v-if="field.primaryIcon"
+                    :x="25"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :width="20"
+                    :height="fieldHeight"
+                    >
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        :style="{...fieldStyle, width: '20px', height: `${fieldHeight}px`}">
+                        <i :class="field.primaryIcon.iconClass"></i>
+                    </div>
+                </foreignObject>
                 <foreignObject
                     v-if="item.meta.activeTextSlot !== `field_${field.id}_name`"
-                    :x="35"
+                    :x="25 + primaryIconOffset"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
                     :width="maxFieldWidth"
                     :height="fieldHeight"
@@ -52,7 +65,7 @@
                 </foreignObject>
                 <foreignObject
                     v-if="item.meta.activeTextSlot !== `field_${field.id}_type`"
-                    :x="40 + maxFieldWidth"
+                    :x="35 + maxFieldWidth + primaryIconOffset"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
                     :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
                     :height="fieldHeight"
@@ -60,6 +73,21 @@
                     <div xmlns="http://www.w3.org/1999/xhtml"
                         :style="{...fieldStyle, width: `${Math.max(0, item.area.w - 18)/2}px`, height: `${fieldHeight}px`}">
                         <div>{{ field.type }}</div>
+                    </div>
+                </foreignObject>
+
+                <foreignObject
+                    :x="40 + maxFieldWidth"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
+                    :height="fieldHeight"
+                    >
+                    <div xmlns="http://www.w3.org/1999/xhtml"
+                        :style="{...fieldStyle, 'white-space': 'nowrap', 'text-align': 'right', width: `${Math.max(0, item.area.w - 18)/2}px`, height: `${fieldHeight}px`}">
+                        <div>
+                            <!-- <span style="margin: 2px;" v-for="flagIcon in field.flagIcons">{{ flag }}</span> -->
+                            <i v-for="flagIcon in field.flagIcons" :class="flagIcon.iconClass" style="margin: 2px;"></i>
+                        </div>
                     </div>
                 </foreignObject>
             </template>
@@ -140,6 +168,49 @@ function addField(editorId, item, fieldIdx) {
     EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
 }
 
+
+function toggleFieldFlag(editorId, item, fieldIdx, flag) {
+    const field = item.shapeProps.fields[fieldIdx];
+    if (!Array.isArray(field.flags)) {
+        field.flags = [];
+    }
+
+    let existed = false;
+    for (let i = field.flags.length - 1; i >= 0; i--) {
+        if (field.flags[i] === flag) {
+            existed = true;
+            field.flags.splice(i, 1);
+        }
+    }
+    if (!existed) {
+        field.flags.push(flag);
+    }
+
+    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
+    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+}
+
+
+const allEntityIcons = {
+    PK: { name: 'Primary Key', shortName: 'PK', iconClass: 'fa-solid fa-key' },
+    U : { name: 'Unique Key', shortName: 'U', iconClass: 'fa-solid fa-star' },
+    FK: { name: 'Foreign Key', shortName: 'FK', iconClass: 'fa-solid fa-link' },
+    AI: { name: 'Auto-increment', shortName: 'AI', iconClass: 'fa-solid fa-circle-up' },
+    IX: { name: 'Indexed', shortName: 'IX', iconClass: 'fa-solid fa-book-open' },
+    N : { name: 'Null', shortName: 'N', iconClass: 'fa-solid fa-check-double' },
+    NN: { name: 'Non-null', shortName: 'NN', iconClass: 'fa-solid fa-circle-exclamation' }
+};
+
+const allIconOptions = [];
+for (let key in allEntityIcons) {
+    if (allEntityIcons.hasOwnProperty(key)) {
+        allIconOptions.push({
+            ...allEntityIcons[key],
+            value: key
+        });
+    }
+}
+
 function calculateMaxFieldSize(item) {
     let maxWidth = item.area.w / 3;
     let maxHeight = 5;
@@ -156,6 +227,34 @@ function calculateMaxFieldSize(item) {
         w: maxWidth,
         h: maxHeight
     };
+}
+
+function convertField(field) {
+    let primaryIcon = null;
+    const flagIcons = [];
+    if (Array.isArray(field.flags)) {
+        field.flags.forEach(flag => {
+            if (flag === 'PK') {
+                primaryIcon = allEntityIcons.PK;
+            } else if (flag === 'U') {
+                primaryIcon = allEntityIcons.U;
+            } else if (flag === 'FK') {
+                primaryIcon = allEntityIcons.FK;
+            } else {
+                if (allEntityIcons.hasOwnProperty(flag)) {
+                    flagIcons.push(allEntityIcons[flag]);
+                }
+            }
+        });
+    }
+
+    const result = {
+        ...field,
+        primaryIcon,
+        flagIcons,
+    };
+
+    return result;
 }
 
 export default {
@@ -177,7 +276,7 @@ export default {
                         id: shortid.generate(),
                         name: 'user_id',
                         type: 'BIGINT(11)',
-                        flags: ['PK', 'AUTOINC']
+                        flags: ['PK', 'AI']
                     }, {
                         id: shortid.generate(),
                         name: 'name',
@@ -187,7 +286,7 @@ export default {
                         id: shortid.generate(),
                         name: 'email',
                         type: 'varchar(256)',
-                        flags: ['UNIQUE']
+                        flags: ['U']
                     }, {
                         id: shortid.generate(),
                         name: 'attributes',
@@ -206,6 +305,8 @@ export default {
         }],
 
         getTextSlots(item) {
+            const fields = item.shapeProps.fields.map(convertField);
+            const primaryIconOffset = fields.findIndex(field => field.primaryIcon) >= 0 ? 20 : 0;
             const slots = [{
                 name: 'header',
                 area: {x: 0, y: 0, w: item.area.w, h: Math.min(item.shapeProps.headerHeight, item.area.h)}
@@ -227,7 +328,7 @@ export default {
                         halign: 'left',
                     },
                     area: {
-                        x: 35,
+                        x: 25 + primaryIconOffset,
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
                         w: maxFieldWidth,
                         h: fieldHeight
@@ -250,9 +351,9 @@ export default {
                     },
                     suggestions: typeSuggestions,
                     area: {
-                        x: 40 + maxFieldWidth,
+                        x: 35 + maxFieldWidth + primaryIconOffset,
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
-                        w: Math.max(1, item.area.w - 40 - maxFieldWidth),
+                        w: Math.max(1, item.area.w - 40 - maxFieldWidth - primaryIconOffset),
                         h: fieldHeight
                     },
                     onUpdate(editorId, text) {
@@ -335,11 +436,27 @@ export default {
                         iconClass: 'fa-solid fa-times item-control-point-delete',
                         radius: 5,
                         position: {
-                            x: 8,
+                            x: 5,
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
                         },
                         click: () => {
                             removeField(editorId, item, idx);
+                        }
+                    });
+                    controls.push({
+                        name: 'Menu',
+                        type: 'menu',
+                        hPlace: 'middle',
+                        vPlace: 'center',
+                        iconClass: 'fa-solid fa-ellipsis-vertical item-control-point-menu-icon',
+                        radius: 5,
+                        options: allIconOptions,
+                        position: {
+                            x: item.area.w - 8,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
+                        },
+                        click: (option) => {
+                            toggleFieldFlag(editorId, item, idx, option.value);
                         }
                     });
                 });
@@ -386,10 +503,15 @@ export default {
 
     data() {
         const maxFieldSize = calculateMaxFieldSize(this.item);
+        const fields = this.item.shapeProps.fields.map(convertField);
+        const primaryIconOffset = fields.findIndex(field => field.primaryIcon) >= 0 ? 20 : 0;
+
         return {
             headerStyle: this.createHeaderStyle(),
             maxFieldWidth: Math.max(10, maxFieldSize.w),
-            fieldHeight: Math.max(5, maxFieldSize.h + 10)
+            fieldHeight: Math.max(5, maxFieldSize.h + 10),
+            fields: fields,
+            primaryIconOffset,
         };
     },
 

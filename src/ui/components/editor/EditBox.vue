@@ -143,7 +143,7 @@
                         fill="rgba(255, 255, 255, 0.0)"
                         :title="control.name"
                         data-type="edit-box-custom-control"
-                        @click="onCustomControlClick(idx)"
+                        @click="onCustomControlClick(idx, $event)"
                         >
                     </circle>
                 </g>
@@ -743,9 +743,21 @@ export default {
             });
         },
 
-        onCustomControlClick(idx) {
-            this.customControls[idx].click();
-            this.$emit('custom-control-clicked', this.editBox.items[0]);
+        onCustomControlClick(idx, event) {
+            const control = this.customControls[idx];
+            if (control.type === 'menu') {
+                this.$emit('choice-control-clicked', {
+                    options: control.options,
+                    editBoxId: this.editBox.id,
+                    event,
+                    callback: (selectedOption) => {
+                        control.click(selectedOption);
+                    }
+                });
+            } else if (control.click) {
+                control.click();
+                this.$emit('custom-control-clicked', this.editBox.items[0]);
+            }
         },
 
         buildTemplateControls() {
