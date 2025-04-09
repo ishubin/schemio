@@ -133,12 +133,26 @@
                 @drop="onItemDrop"
                 :fill="hoverPathFill" />
 
+            <template v-if="mode === 'edit'">
+                <path v-for="customArea in editorCustomAreas"
+                    class="svg-event-layer"
+                    data-preview-ignore="true"
+                    :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
+                    :d="customArea.path"
+                    data-type="custom-item-area"
+                    :data-item-id="item.id"
+                    :stroke-width="hoverPathStrokeWidth"
+                    stroke="rgba(255, 255, 255, 0)"
+                    @click="onCustomEditorAreaClick(customArea)"
+                    :fill="hoverPathFill" />
+            </template>
+
             <g v-if="mode === 'view' && !textSelectionEnabled">
                 <path v-for="customArea in customAreas"
                     class="svg-event-layer"
                     data-preview-ignore="true"
                     :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
-                    :id="`item-svg-path-${item.id}`"
+                    :id="`item-svg-path-${item.id}-${customArea.id}`"
                     :d="customArea.path"
                     data-type="custom-item-area"
                     :data-item-id="item.id"
@@ -400,6 +414,8 @@ export default {
             svgItemTransform : this.calculateSVGItemTransform(),
             customAreas      : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item): [],
 
+            editorCustomAreas: this.mode === 'edit' && shape && shape.editorProps && shape.editorProps.customAreas ? shape.editorProps.customAreas(this.editorId, this.item) : [],
+
             draggingFileOver: false,
             shapeStyle: {},
 
@@ -428,6 +444,12 @@ export default {
     },
 
     methods: {
+        onCustomEditorAreaClick(customArea) {
+            if (customArea.click) {
+                customArea.click(this.editorId, this.item);
+            }
+        },
+
         computeShapeStyle(cssFilter) {
             const style = {
                 opacity: this.item.selfOpacity/100

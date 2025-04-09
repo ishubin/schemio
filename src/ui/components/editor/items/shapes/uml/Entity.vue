@@ -428,6 +428,25 @@ export default {
         editorProps: {
             customTextRendering: true,
 
+            customAreas: (editorId, item) => {
+                const maxFieldSize = calculateMaxFieldSize(item);
+                const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+                const layers = [];
+                item.shapeProps.fields.forEach((field, idx) => {
+                    const r = 5;
+                    const x = 15;
+                    const y = Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10 + fieldHeight / 2 - r;
+                    layers.push({
+                        cursor: 'pointer',
+                        path: `M ${x} ${y} A ${r} ${r} 0 1 1 ${x} ${y+2*r} A ${r} ${r} 0 1 1 ${x} ${y}`,
+                        click: () => {
+                            EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`);
+                        }
+                    });
+                });
+                return layers;
+            },
+
             editBoxControls: (editorId, item) => {
                 const controls = [];
 
@@ -483,7 +502,7 @@ export default {
                         vPlace: 'center',
                         iconClass: 'fa-regular fa-circle',
                         style: {
-                            color: '#639368'
+                            color: 'rgba(200,255,200,0.0)'
                         },
                         radius: 5,
                         position: {
