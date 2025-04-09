@@ -3595,6 +3595,7 @@ class SchemeContainer {
             templateRef: templateRef,
             templateItemRoot: templateItemRoot,
             ruleGuides,
+            updateKey: 0,
 
             // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
             // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world

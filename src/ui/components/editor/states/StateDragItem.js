@@ -437,6 +437,7 @@ class DragPivotEditBoxState extends EditBoxState {
         this.editBox.pivotPoint.x = myMath.clamp(this.oldPivotPoint.x + (localPoint.x - localOriginalPoint.x) / this.editBox.area.w, 0, 1);
         this.editBox.pivotPoint.y = myMath.clamp(this.oldPivotPoint.y + (localPoint.y - localOriginalPoint.y) / this.editBox.area.h, 0, 1);
 
+        this.editBox.updateKey += 1;
         updateEditBoxWorldPivot(this.editBox);
     }
 
@@ -514,6 +515,7 @@ class ResizeEditBoxState extends EditBoxState {
             resized: true,
             id: this.modificationContextId
         }, this.getUpdatePrecision());
+        this.editBox.updateKey += 1;
 
         if (this.editBox.items.length === 1) {
             // perhaps this should be optimized to only update the control points so it doesn't re-create the same array of control points

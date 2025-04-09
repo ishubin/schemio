@@ -131,7 +131,7 @@
                     <foreignObject :x="-10/safeZoom" :y="-10/safeZoom"  :width="20/safeZoom" :height="20/safeZoom">
                         <div xmlns="http://www.w3.org/1999/xhtml"
                             style="color: white; display: table-cell; text-align: center; vertical-align: middle"
-                            :style="{'font-size': `${12/safeZoom}px`,width: `${Math.round(20/safeZoom)}px`, height: `${Math.round(20/safeZoom)}px`}"
+                            :style="{'font-size': `${12/safeZoom}px`,width: `${Math.round(20/safeZoom)}px`, height: `${Math.round(20/safeZoom)}px`, ...control.style}"
                             >
                             <i :class="control.iconClass"></i>
                         </div>
@@ -566,6 +566,8 @@ export default {
 
         // can be regular or crop-image
         kind: {type: String, default: 'regular'},
+
+        updateKey: {type: Number, default: 0},
     },
 
     beforeMount() {
@@ -733,14 +735,19 @@ export default {
                 return;
             }
 
+            const customControls = [];
+
             editorProps.editBoxControls(this.editorId, item).forEach(control => {
-                this.customControls.push({
+                customControls.push({
                     radius: 10,
+                    style: {},
                     ...control,
                     xAxis: createCustomControlAxis(control.hPlace),
                     yAxis: createCustomControlAxis(control.vPlace),
                 });
             });
+
+            this.customControls = customControls;
         },
 
         onCustomControlClick(idx, event) {
@@ -894,6 +901,13 @@ export default {
     watch: {
         cursor(p) {
             this.onCursorChange(p);
+        },
+        updateKey(key) {
+            if (this.editBox.items.length === 1) {
+                const item = this.editBox.items[0];
+                const shape = Shape.find(item.shape);
+                this.configureCustomControls(item, shape ? shape.editorProps : {});
+            }
         }
     },
 

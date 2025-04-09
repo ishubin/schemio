@@ -48,7 +48,10 @@
                     >
                     <div xmlns="http://www.w3.org/1999/xhtml"
                         :style="{...fieldStyle, width: '20px', height: `${fieldHeight}px`}">
-                        <i :class="field.primaryIcon.iconClass"></i>
+                        <span v-if="item.shapeProps.flagStyle === 'text'" style="font-size: 12px;">
+                            {{ field.primaryIcon.shortName }}
+                        </span>
+                        <i v-else :class="field.primaryIcon.iconClass"></i>
                     </div>
                 </foreignObject>
                 <foreignObject
@@ -85,8 +88,12 @@
                     <div xmlns="http://www.w3.org/1999/xhtml"
                         :style="{...fieldStyle, 'white-space': 'nowrap', 'text-align': 'right', width: `${Math.max(0, item.area.w - 18)/2}px`, height: `${fieldHeight}px`}">
                         <div>
-                            <!-- <span style="margin: 2px;" v-for="flagIcon in field.flagIcons">{{ flag }}</span> -->
-                            <i v-for="flagIcon in field.flagIcons" :class="flagIcon.iconClass" style="margin: 2px;"></i>
+                            <template v-if="item.shapeProps.flagStyle === 'text'">
+                                <span style="margin: 2px;font-size: 12px;" v-for="flagIcon in field.flagIcons">{{ flagIcon.shortName }}</span>
+                            </template>
+                            <template v-else>
+                                <i v-for="flagIcon in field.flagIcons" :class="flagIcon.iconClass" style="margin: 2px;"></i>
+                            </template>
                         </div>
                     </div>
                 </foreignObject>
@@ -394,7 +401,7 @@ export default {
 
             item.shapeProps.fields.forEach((field, idx) => {
                 pins[`f_${field.id}`] = {
-                    x: 20,
+                    x: 15,
                     y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
                     nx: -1, ny: 0
                 };
@@ -426,6 +433,8 @@ export default {
 
                 const maxFieldSize = calculateMaxFieldSize(item);
                 const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+                const fields = item.shapeProps.fields.map(convertField);
+                const primaryIconOffset = fields.findIndex(field => field.primaryIcon) >= 0 ? 20 : 0;
 
                 item.shapeProps.fields.forEach((field, idx) => {
                     controls.push({
@@ -433,10 +442,13 @@ export default {
                         type: 'icon',
                         hPlace: 'middle',
                         vPlace: 'center',
-                        iconClass: 'fa-solid fa-times item-control-point-delete',
+                        iconClass: 'fa-solid fa-times',
                         radius: 5,
+                        style: {
+                            color: '#d34242'
+                        },
                         position: {
-                            x: 5,
+                            x: 25 + maxFieldSize.w + primaryIconOffset,
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
                         },
                         click: () => {
@@ -448,15 +460,38 @@ export default {
                         type: 'menu',
                         hPlace: 'middle',
                         vPlace: 'center',
-                        iconClass: 'fa-solid fa-ellipsis-vertical item-control-point-menu-icon',
+                        iconClass: 'fa-solid fa-ellipsis-vertical',
                         radius: 5,
                         options: allIconOptions,
+                        style: {
+                            color: '#777',
+                            background: 'rgba(255,255,255,0.4)',
+                            'border-radius': '10px',
+                        },
                         position: {
-                            x: item.area.w - 8,
+                            x: item.area.w - 11,
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
                         },
                         click: (option) => {
                             toggleFieldFlag(editorId, item, idx, option.value);
+                        }
+                    });
+                    controls.push({
+                        name: 'Connect',
+                        type: 'icon',
+                        hPlace: 'middle',
+                        vPlace: 'center',
+                        iconClass: 'fa-regular fa-circle',
+                        style: {
+                            color: '#639368'
+                        },
+                        radius: 5,
+                        position: {
+                            x: 15,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
+                        },
+                        click: () => {
+                            EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`);
                         }
                     });
                 });
@@ -491,6 +526,7 @@ export default {
             font         : {type: 'font', name: 'Font', value: 'Arial'},
             fontSize     : {type: 'number', value: 14, name: 'Header Height', min: 1, softMax: 100},
             textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
+            flagStyle    : {type: 'choice', value: 'icons', options: ['icons', 'text'], name: 'Flag style'},
         },
     },
 

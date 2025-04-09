@@ -108,6 +108,7 @@
  * @property {Item|undefined} templateItemRoot - the root of templated item on scene
  * @property {Array<ConnectorPointProjection>} connectorPoints
  * @property {Map<String,ConnectorAttachments} connectorOriginalAttachments - stores original attachment data of connectors.
+ * @property {Number} updateKey - used to trigger updates in EditBox components
  * @property {Map<String,Object} cache - used for temporary storage of various objects (for now this is used for reattaching connectors to the same spot)
  * This is used for reattaching and detaching the connector during edit box movements
  */

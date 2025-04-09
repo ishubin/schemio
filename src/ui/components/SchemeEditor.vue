@@ -130,6 +130,7 @@
                             :zoom="schemeContainer.screenTransform.scale"
                             :boundaryBoxColor="schemeContainer.scheme.style.boundaryBoxColor"
                             :controlPointsColor="schemeContainer.scheme.style.controlPointsColor"
+                            :updateKey="schemeContainer.editBox.updateKey"
                             @choice-control-clicked="onEditBoxChoiceControlClicked"
                             @custom-control-clicked="onEditBoxCustomControlClicked"
                             @template-rebuild-requested="onTemplateRebuildRequested"
@@ -971,6 +972,7 @@ export default {
         EditorEventBus.editBox.fillEnabled.$on(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
         EditorEventBus.exportSchemeAsPicture.$on(this.editorId, this.onExportSchemeAsPictureRequested);
+        EditorEventBus.connectorRequested.$on(this.editorId, this.onConnectorRequested);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -992,6 +994,7 @@ export default {
         EditorEventBus.editBox.fillEnabled.$off(this.editorId, this.onEditBoxFillEnabled);
         EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
         EditorEventBus.exportSchemeAsPicture.$off(this.editorId, this.onExportSchemeAsPictureRequested);
+        EditorEventBus.connectorRequested.$off(this.editorId, this.onConnectorRequested);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1478,6 +1481,48 @@ export default {
             if (this.state === 'connecting') {
                 this.states.connecting.cancel();
             }
+            this.updateFloatingHelperPanel();
+        },
+
+        onConnectorRequested(sourceItem, sourcePin) {
+            const shape = Shape.find(sourceItem.shape);
+            if (!shape) {
+                return;
+            }
+
+            this.resetItemHighlight();
+            this.states[this.state].cancel();
+            this.states.connecting.schemeContainer = this.schemeContainer;
+            this.states.connecting.reset();
+
+            let worldPoint = worldPointOnItem(0, 0, sourceItem);
+
+            const pins = shape.getPins(sourceItem);
+            if (sourcePin && pins && pins[sourcePin]) {
+                const pin = pins[sourcePin];
+                worldPoint = worldPointOnItem(pin.x, pin.y, sourceItem);
+            }
+
+            const connector = this.schemeContainer.addItem({
+                name: `${sourceItem.name} ->`,
+                shape: 'connector',
+                area: {
+                    x: 0, y: 0, w: 100, h: 100, r: 0
+                },
+                shapeProps: {
+                    sourceItem: '#' + sourceItem.id,
+                    sourcePin: sourcePin,
+                    points: [{
+                        t: 'L', x: worldPoint.x, y: worldPoint.y
+                    }, {
+                        t: 'L', x: worldPoint.x, y: worldPoint.y
+                    }]
+                }
+            });
+            recentPropsChanges.applyItemProps(connector);
+            this.states.connecting.setItem(connector);
+            connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
+            this.state = 'connecting';
             this.updateFloatingHelperPanel();
         },
 

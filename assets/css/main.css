@@ -1311,13 +1311,6 @@ ul.pagination li a.current {
     opacity: 1.0;
     cursor: pointer;
 }
-.svg-editor-plot .item-control-point-delete {
-    color: #d34242;
-}
-.svg-editor-plot .item-control-point-menu-icon {
-    color: #333;
-    background: rgba(255,255,255,0.6);
-}
 .svg-editor-plot .item-control-point:hover {
     opacity: 0.7;
 }

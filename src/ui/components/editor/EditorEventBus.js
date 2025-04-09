@@ -367,6 +367,12 @@ const EditorEventBus = {
         $on: (editorId, callback) => $on(editorId, 'export-scheme-as-picture', [], callback),
         $off: (editorId, callback) => $off(editorId, 'export-scheme-as-picture', [], callback),
         $emit: (editorId, kind) => $emit(editorId, 'export-scheme-as-picture', [], kind),
+    },
+
+    connectorRequested: {
+        $on: (editorId, callback) => $on(editorId, 'connector-requested', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'connector-requested', [], callback),
+        $emit: (editorId, sourceItem, sourcePin) => $emit(editorId, 'connector-requested', [], sourceItem, sourcePin),
     }
 };
 
