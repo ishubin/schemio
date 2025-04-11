@@ -24,7 +24,8 @@ export default {
         x: Number,
         y: Number,
         connectorItemId: String,
-        schemeContainer: Object
+        schemeContainer: Object,
+        primaryShapeId: {type: String, default: null}
     },
 
     components: { ItemSvg },
@@ -53,7 +54,7 @@ export default {
         const itemEntries = [];
 
         forEach(Shape.getRegistry(), (shape, shapeId) => {
-            if (shape.menuItems && shapeId !== 'sticky_note') {
+            if (shape.menuItems && shapeId !== 'sticky_note' && shapeId !== 'connector') {
                 forEach(shape.menuItems, (menuEntry) => {
                     if (!menuEntry.imageProperty) {
                         const entry = utils.clone(menuEntry);
@@ -61,7 +62,11 @@ export default {
                             entry.item = {};
                         }
                         entry.item.shape = shapeId;
-                        itemEntries.push(utils.clone(entry));
+                        if (shapeId === this.primaryShapeId) {
+                            itemEntries.splice(0, 0, utils.clone(entry));
+                        } else {
+                            itemEntries.push(utils.clone(entry));
+                        }
                     }
                 });
             }
@@ -81,6 +86,13 @@ export default {
             const item = utils.clone(itemEntry.item);
             item.name = itemEntry.name;
             this.enrichItem(item);
+            if (itemEntry.size) {
+                item.area.w = itemEntry.size.w;
+                item.area.h = itemEntry.size.h;
+            } else if (itemEntry.previewArea) {
+                item.area.w = itemEntry.previewArea.w;
+                item.area.h = itemEntry.previewArea.h;
+            }
             this.$emit('item-selected', item);
             this.$emit('close');
         },

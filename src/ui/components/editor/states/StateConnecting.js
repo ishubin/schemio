@@ -535,8 +535,12 @@ export default class StateConnecting extends State {
             }
         }
 
-        realignConnectorNormal(this.item.shapeProps.points[0], this.item.shapeProps.points[1]);
-        realignConnectorNormal(this.item.shapeProps.points[this.item.shapeProps.points.length - 1], this.item.shapeProps.points[this.item.shapeProps.points.length - 2]);
+        if (!this.item.shapeProps.sourcePin) {
+            realignConnectorNormal(this.item.shapeProps.points[0], this.item.shapeProps.points[1]);
+        }
+        if (!this.item.shapeProps.destionationPin) {
+            realignConnectorNormal(this.item.shapeProps.points[this.item.shapeProps.points.length - 1], this.item.shapeProps.points[this.item.shapeProps.points.length - 2]);
+        }
     }
 
     submitItem() {
@@ -588,7 +592,12 @@ export default class StateConnecting extends State {
     }
 
     proposeNewDestinationItemForConnector(item, mx, my) {
-        StoreUtils.proposeConnectorDestinationItems(this.store, item.id, mx, my);
+        let primaryShapeId = null;
+        const sourceItem = this.schemeContainer.findFirstElementBySelector(this.item.shapeProps.sourceItem);
+        if (sourceItem) {
+            primaryShapeId = sourceItem.shape;
+        }
+        StoreUtils.proposeConnectorDestinationItems(this.store, item.id, mx, my, primaryShapeId);
     }
 
     /**
@@ -598,13 +607,15 @@ export default class StateConnecting extends State {
     submitConnectorDestinationItem(item) {
         item = utils.clone(item);
 
-        if (item.shape === 'uml_actor') {
-            // uml_actor item looks ugly when stretched wide
-            item.area.w = 50;
-            item.area.h = 100;
-        } else {
-            item.area.w = 100;
-            item.area.h = 50;
+        if (item.area.w < 1 || item.area.h < 1) {
+            if (item.shape === 'uml_actor') {
+                // uml_actor item looks ugly when stretched wide
+                item.area.w = 50;
+                item.area.h = 100;
+            } else {
+                item.area.w = 100;
+                item.area.h = 50;
+            }
         }
 
         const lp0 = this.item.shapeProps.points[this.item.shapeProps.points.length - 2];
@@ -657,6 +668,30 @@ export default class StateConnecting extends State {
             this.item.shapeProps.destinationItemPosition = closestPoint.distanceOnPath;
         }
         this.item.name += destinationItem.name;
+
+        this.moveConnectorToFront();
         this.cancel();
+    }
+
+    moveConnectorToFront() {
+        const parentArray = this.schemeContainer.scheme.items;
+        if (this.item.meta.parentId) {
+            const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
+            if (!parentItem) {
+                return;
+            }
+            parentArray = parentItem.childItems;
+        }
+
+        for (let i = parentArray.length - 1; i >= 0; i--) {
+            if (parentArray[i].id === this.item.id) {
+                if (i < parentArray.length - 1) {
+                    const [item] = parentArray.splice(i, 1);
+                    parentArray.push(item);
+                    break;
+                }
+                break;
+            }
+        }
     }
 }

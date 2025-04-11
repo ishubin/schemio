@@ -753,8 +753,12 @@ export default {
         onCustomControlClick(idx, event) {
             const control = this.customControls[idx];
             if (control.type === 'menu') {
+                let options = control.options;
+                if (!options && control.getOptions) {
+                    options = control.getOptions();
+                }
                 this.$emit('choice-control-clicked', {
-                    options: control.options,
+                    options: options,
                     editBoxId: this.editBox.id,
                     event,
                     callback: (selectedOption) => {

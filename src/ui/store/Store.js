@@ -88,6 +88,7 @@ const store = new Vuex.Store({
             connectorItemId: null,
             mx: 0, // value on x viewport axis
             my: 0, // value on y viewport axis
+            primaryShapeId: null,
         },
 
         // used for storing information about images that were dropped on svg editor
@@ -191,11 +192,12 @@ const store = new Vuex.Store({
             state.snappers.vertical = null;
         },
 
-        PROPOSE_CONNECTOR_DESTINATION_ITEMS(state, {connectorItemId, mx, my}) {
+        PROPOSE_CONNECTOR_DESTINATION_ITEMS(state, {connectorItemId, mx, my, primaryShapeId}) {
             state.connectorProposedDestination.connectorItemId = connectorItemId;
             state.connectorProposedDestination.mx = mx;
             state.connectorProposedDestination.my = my;
             state.connectorProposedDestination.shown = true;
+            state.connectorProposedDestination.primaryShapeId = primaryShapeId;
         },
         DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS(state) {
             state.connectorProposedDestination.shown = false;
@@ -447,8 +449,8 @@ const store = new Vuex.Store({
             commit('TOGGLE_ITEM_DETAIL_MARKERS');
         },
 
-        proposeConnectorDestinationItems({commit}, payload) {
-            commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', payload);
+        proposeConnectorDestinationItems({commit}, {connectorItemId, mx, my, primaryShapeId}) {
+            commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', {connectorItemId, mx, my, primaryShapeId});
         },
         disableProposeConnectorDestinationItems({commit}) {
             commit('DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS');

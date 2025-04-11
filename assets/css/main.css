@@ -3129,6 +3129,12 @@ ul.script-options .script-option.selected {
 .context-menu ul li:hover {
     background: var(--faint-strong-up);
 }
+.context-menu ul li i.context-menu-option-checkbox {
+    position: absolute;
+    right: 0;
+    left: unset;
+    width: 20px;
+}
 
 /***************** Connector Destination Proposal ************/
 .connector-destination-proposal {

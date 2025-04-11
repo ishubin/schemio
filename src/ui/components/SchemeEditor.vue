@@ -551,11 +551,12 @@
             @mouseleave="onItemDetailsTooltipMouseLeave"
             @close="itemDetails.item = null"/>
 
-        <connector-destination-proposal v-if="connectorProposedDestination && connectorProposedDestination.shown"
+        <ConnectorDestinationProposal v-if="connectorProposedDestination && connectorProposedDestination.shown"
             :x="connectorProposedDestination.mx"
             :y="connectorProposedDestination.my"
-            :connector-item-id="connectorProposedDestination.connectorItemId"
-            :scheme-container="schemeContainer"
+            :connectorItemId="connectorProposedDestination.connectorItemId"
+            :primaryShapeId="connectorProposedDestination.primaryShapeId"
+            :schemeContainer="schemeContainer"
             @item-selected="onConnectorDestinationItemSelected"
             @close="closeConnectorProposedDestination()"
         />

@@ -763,11 +763,14 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
         }
     }
 
-    if (item.shapeProps.sourceItem && item.shapeProps.points.length > 1) {
+    // Realigning connector attachments normals so that it does not get weirdly curved when attached to such shapes as lifeline.
+    // But we should avoid realigning in case of pins, because pin normals should be respected
+
+    if (item.shapeProps.sourceItem && !item.shapeProps.sourcePin && item.shapeProps.points.length > 1) {
         realignConnectorNormal(item.shapeProps.points[0], item.shapeProps.points[1]);
     }
 
-    if (item.shapeProps.destinationItem && item.shapeProps.points.length > 1) {
+    if (item.shapeProps.destinationItem && !item.shapeProps.destinationPin && item.shapeProps.points.length > 1) {
         realignConnectorNormal(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[item.shapeProps.points.length - 2]);
     }
 

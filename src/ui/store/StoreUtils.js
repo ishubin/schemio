@@ -76,8 +76,8 @@ export default {
         store.dispatch('toggleItemDetailMarkers');
     },
 
-    proposeConnectorDestinationItems(store, connectorItemId, mx, my) {
-        store.dispatch('proposeConnectorDestinationItems', {connectorItemId, mx, my});
+    proposeConnectorDestinationItems(store, connectorItemId, mx, my, primaryShapeId) {
+        store.dispatch('proposeConnectorDestinationItems', {connectorItemId, mx, my, primaryShapeId});
     },
 
     disableProposeConnectorDestinationItems(store) {

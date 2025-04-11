@@ -15,6 +15,10 @@
 
                 <i v-if="option.iconClass" :class="option.iconClass"/>
                 <span class="context-menu-option-name">{{option.name}}</span>
+                <template v-if="option.display === 'checkbox'">
+                    <i v-if="option.checked" class="context-menu-option-checkbox fa-solid fa-square-check"></i>
+                    <i v-else class="context-menu-option-checkbox fa-regular fa-square"></i>
+                </template>
             </li>
         </ul>
 

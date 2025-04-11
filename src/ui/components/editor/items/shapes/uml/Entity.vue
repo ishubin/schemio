@@ -17,11 +17,6 @@
             <div xmlns="http://www.w3.org/1999/xhtml" class="item-text-container" v-html="headerHtml" :style="headerStyle"></div>
         </foreignObject>
 
-        <path :d="shapePath"
-            :stroke-width="item.shapeProps.strokeSize + 'px'"
-            :stroke="item.shapeProps.strokeColor"
-            fill="none"></path>
-
         <clipPath :id="`entity-clip-path-${item.id}`">
             <path :d="clipPath"
                 stroke-width="0px"
@@ -31,6 +26,13 @@
 
         <g :style="{'clip-path': `url(#entity-clip-path-${this.item.id})`}">
             <template v-for="(field, idx) in fields">
+                <line v-if="item.shapeProps.lineSize > 0 && idx > 0"
+                    :x1="0"
+                    :y1="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :x2="item.area.w"
+                    :y2="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :style="{stroke: item.shapeProps.lineColor, 'stroke-width': item.shapeProps.lineSize}" />
+
                 <circle r="5"
                     :cx="15"
                     :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10 + fieldHeight / 2"
@@ -99,6 +101,11 @@
                 </foreignObject>
             </template>
         </g>
+
+        <path :d="shapePath"
+            :stroke-width="item.shapeProps.strokeSize + 'px'"
+            :stroke="item.shapeProps.strokeColor"
+            fill="none"></path>
     </g>
 </template>
 
@@ -123,7 +130,6 @@ const typeSuggestions = [
     'email',
     'enum',
     'float',
-    'foreign key',
     'integer',
     'json',
     'string',
@@ -132,7 +138,18 @@ const typeSuggestions = [
     'timestamp',
     'url',
     'uuid'
-]
+];
+
+const allEntityIcons = {
+    PK: { name: 'Primary Key', shortName: 'PK', iconClass: 'fa-solid fa-key', group: 1},
+    U : { name: 'Unique Key', shortName: 'U', iconClass: 'fa-solid fa-star', group: 1 },
+    FK: { name: 'Foreign Key', shortName: 'FK', iconClass: 'fa-solid fa-link', group: 1 },
+    AI: { name: 'Auto-increment', shortName: 'AI', iconClass: 'fa-solid fa-circle-up' },
+    IX: { name: 'Indexed', shortName: 'IX', iconClass: 'fa-solid fa-book-open' },
+    N : { name: 'Null', shortName: 'N', iconClass: 'fa-solid fa-check-double', group: 2 },
+    NN: { name: 'Non-null', shortName: 'NN', iconClass: 'fa-solid fa-circle-exclamation', group: 2 }
+};
+
 
 function computePath(item) {
     const W = item.area.w;
@@ -182,10 +199,15 @@ function toggleFieldFlag(editorId, item, fieldIdx, flag) {
         field.flags = [];
     }
 
+    // identifying if there is a flag already from competing group
+    const flagGroup = allEntityIcons[flag] ? allEntityIcons[flag].group : 0;
+
     let existed = false;
     for (let i = field.flags.length - 1; i >= 0; i--) {
         if (field.flags[i] === flag) {
             existed = true;
+            field.flags.splice(i, 1);
+        } else if (flagGroup > 0 && allEntityIcons[field.flags[i]] && allEntityIcons[field.flags[i]].group === flagGroup) {
             field.flags.splice(i, 1);
         }
     }
@@ -198,16 +220,6 @@ function toggleFieldFlag(editorId, item, fieldIdx, flag) {
 }
 
 
-const allEntityIcons = {
-    PK: { name: 'Primary Key', shortName: 'PK', iconClass: 'fa-solid fa-key' },
-    U : { name: 'Unique Key', shortName: 'U', iconClass: 'fa-solid fa-star' },
-    FK: { name: 'Foreign Key', shortName: 'FK', iconClass: 'fa-solid fa-link' },
-    AI: { name: 'Auto-increment', shortName: 'AI', iconClass: 'fa-solid fa-circle-up' },
-    IX: { name: 'Indexed', shortName: 'IX', iconClass: 'fa-solid fa-book-open' },
-    N : { name: 'Null', shortName: 'N', iconClass: 'fa-solid fa-check-double' },
-    NN: { name: 'Non-null', shortName: 'NN', iconClass: 'fa-solid fa-circle-exclamation' }
-};
-
 const allIconOptions = [];
 for (let key in allEntityIcons) {
     if (allEntityIcons.hasOwnProperty(key)) {
@@ -216,6 +228,38 @@ for (let key in allEntityIcons) {
             value: key
         });
     }
+}
+
+function createAllIconOptionsForField(item, field) {
+    let options = allIconOptions;
+
+    const existingFlags = new Set();
+    if (Array.isArray(field.flags)) {
+        field.flags.forEach(flag => {
+            existingFlags.add(flag);
+        });
+    }
+
+    if (item.shapeProps.flagStyle === 'text') {
+        options = allIconOptions.map(option => {
+            return {
+                name: `${option.shortName} ${option.name}`,
+                shortName: option.shortName,
+                value: option.value,
+                display: 'checkbox',
+                checked: existingFlags.has(option.shortName)
+            };
+        })
+    } else {
+        options = allIconOptions.map(option => {
+            return {
+                ...option,
+                display: 'checkbox',
+                checked: existingFlags.has(option.shortName)
+            };
+        })
+    }
+    return options;
 }
 
 function calculateMaxFieldSize(item) {
@@ -276,33 +320,26 @@ export default {
         menuItems: [{
             group: 'UML',
             name: 'Entity',
-            iconUrl: '/assets/images/items/uml-process.svg',
+            iconUrl: '/assets/images/items/entity.svg',
+            previewArea: { x: 5, y: 5, w: 200, h: 120},
+            size: {w: 200, h: 120},
             item: {
                 shapeProps: {
                     fields: [{
                         id: shortid.generate(),
-                        name: 'user_id',
-                        type: 'BIGINT(11)',
-                        flags: ['PK', 'AI']
-                    }, {
-                        id: shortid.generate(),
-                        name: 'name',
-                        type: 'varchar(32)',
+                        name: 'id',
+                        type: 'integer',
                         flags: []
                     }, {
                         id: shortid.generate(),
-                        name: 'email',
-                        type: 'varchar(256)',
-                        flags: ['U']
-                    }, {
-                        id: shortid.generate(),
-                        name: 'attributes',
-                        type: 'JSON'
+                        name: 'name',
+                        type: 'string',
+                        flags: []
                     }]
                 },
                 textSlots: {
                     header: {
-                        text: 'User',
+                        text: 'Entity',
                         bold: false,
                         color: '#ffffffff',
                         fontSize: 16
@@ -481,7 +518,9 @@ export default {
                         vPlace: 'center',
                         iconClass: 'fa-solid fa-ellipsis-vertical',
                         radius: 5,
-                        options: allIconOptions,
+                        getOptions() {
+                            return createAllIconOptionsForField(item, field);
+                        },
                         style: {
                             color: '#777',
                             background: 'rgba(255,255,255,0.4)',
@@ -535,8 +574,8 @@ export default {
 
         args: {
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
-            headerFill   : {name: 'Header fill', type: 'advanced-color', value: {type: 'solid', color: '#4A5965'}},
-            strokeColor  : {name: 'Stroke', type: 'color', value: '#284D69'},
+            headerFill   : {name: 'Header fill', type: 'advanced-color', value: {type: 'solid', color: '#5E6469'}},
+            strokeColor  : {name: 'Stroke', type: 'color', value: '#51606C'},
             strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 1, min: 0, softMax: 100},
             cornerRadius : {name: 'Stroke Size', type: 'number', value: 10, min: 0, softMax: 100},
@@ -546,6 +585,8 @@ export default {
             fontSize     : {type: 'number', value: 14, name: 'Header Height', min: 1, softMax: 100},
             textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
             flagStyle    : {type: 'choice', value: 'icons', options: ['icons', 'text'], name: 'Flag style'},
+            lineColor    : {type: 'color', value: 'rgba(230,230,230,0.7)', name: 'Line color'},
+            lineSize     : {type: 'number', value: 0, name: 'Line size', min: 0, softMax: 100},
         },
     },
 
