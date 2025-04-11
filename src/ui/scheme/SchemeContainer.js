@@ -1062,6 +1062,12 @@ class SchemeContainer {
 
             worldPinPoint.nx = p1.x - p0.x;
             worldPinPoint.ny = p1.y - p0.y;
+
+            if (pinPoint.r) {
+                const p2 = worldPointOnItem(pinPoint.x + pinPoint.nx * pinPoint.r, pinPoint.y + pinPoint.ny * pinPoint.r, item);
+                worldPinPoint.x = p2.x;
+                worldPinPoint.y = p2.y;
+            }
         }
         return worldPinPoint;
     }

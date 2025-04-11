@@ -440,7 +440,8 @@ export default {
                 pins[`f_${field.id}`] = {
                     x: 15,
                     y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
-                    nx: -1, ny: 0
+                    nx: -1, ny: 0,
+                    r: 5
                 };
             });
             return pins;
