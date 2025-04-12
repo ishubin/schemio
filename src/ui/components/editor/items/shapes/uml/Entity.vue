@@ -31,7 +31,10 @@
                     :y1="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
                     :x2="item.area.w"
                     :y2="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
-                    :style="{stroke: item.shapeProps.lineColor, 'stroke-width': item.shapeProps.lineSize}" />
+                    :stroke-dasharray="strokeDashArray"
+                    :stroke="item.shapeProps.lineColor"
+                    :stroke-width="`${item.shapeProps.lineSize}px`"
+                    />
 
                 <circle r="5"
                     :cx="15"
@@ -105,6 +108,7 @@
         <path :d="shapePath"
             :stroke-width="item.shapeProps.strokeSize + 'px'"
             :stroke="item.shapeProps.strokeColor"
+            :stroke-dasharray="strokeDashArray"
             fill="none"></path>
     </g>
 </template>
@@ -119,6 +123,7 @@ import { generateTextStyle } from '../../../text/ItemText';
 import htmlSanitize from '../../../../../../htmlSanitize';
 import { calculateTextSize } from '../../ItemTemplateFunctions';
 import { defaultTextSlotProps } from '../../../../../scheme/Item';
+import StrokePattern from '../../StrokePattern';
 
 
 const typeSuggestions = [
@@ -177,12 +182,12 @@ function addField(editorId, item, fieldIdx) {
     item.shapeProps.fields.push({
         id: shortid.generate(),
         name: 'field' + (fieldIdx+1),
-        type: 'varchar(32)',
+        type: 'string',
         flags: []
     });
 
     const maxFieldSize = calculateMaxFieldSize(item);
-    const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+    const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
 
     const y = Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + fieldIdx * fieldHeight + 8 + fieldHeight;
     if (y > item.area.h) {
@@ -358,7 +363,7 @@ export default {
 
             const maxFieldSize = calculateMaxFieldSize(item);
             const maxFieldWidth = Math.max(10, maxFieldSize.w);
-            const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+            const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
 
             item.shapeProps.fields.forEach((field, idx) => {
                 slots.push({
@@ -434,7 +439,7 @@ export default {
                 }
             };
             const maxFieldSize = calculateMaxFieldSize(item);
-            const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+            const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
 
             item.shapeProps.fields.forEach((field, idx) => {
                 pins[`f_${field.id}`] = {
@@ -468,7 +473,7 @@ export default {
 
             customAreas: (editorId, item) => {
                 const maxFieldSize = calculateMaxFieldSize(item);
-                const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+                const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
                 const layers = [];
                 item.shapeProps.fields.forEach((field, idx) => {
                     const r = 5;
@@ -489,7 +494,7 @@ export default {
                 const controls = [];
 
                 const maxFieldSize = calculateMaxFieldSize(item);
-                const fieldHeight = Math.max(5, maxFieldSize.h + 10);
+                const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
                 const fields = item.shapeProps.fields.map(convertField);
                 const primaryIconOffset = fields.findIndex(field => field.primaryIcon) >= 0 ? 20 : 0;
 
@@ -577,17 +582,18 @@ export default {
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
             headerFill   : {name: 'Header fill', type: 'advanced-color', value: {type: 'solid', color: '#5E6469'}},
             strokeColor  : {name: 'Stroke', type: 'color', value: '#51606C'},
-            strokePattern: {type: 'stroke-pattern', value: 'dashed', name: 'Stroke pattern'},
+            strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 1, min: 0, softMax: 100},
             cornerRadius : {name: 'Stroke Size', type: 'number', value: 10, min: 0, softMax: 100},
             headerHeight : {type: 'number', value: 35, name: 'Header Height', min: 0},
             fields       : {type: 'array', value: [], name: 'Fields', hidden: true},
+            fieldPadding : {type: 'number', value: 10, name: 'Field padding', min: 0, softMax: 100},
             font         : {type: 'font', name: 'Font', value: 'Arial'},
             fontSize     : {type: 'number', value: 14, name: 'Header Height', min: 1, softMax: 100},
             textColor    : {name: 'Text color', type: 'color', value: 'rgba(0, 0, 0, 1)'},
             flagStyle    : {type: 'choice', value: 'icons', options: ['icons', 'text'], name: 'Flag style'},
             lineColor    : {type: 'color', value: 'rgba(230,230,230,0.7)', name: 'Line color'},
-            lineSize     : {type: 'number', value: 0, name: 'Line size', min: 0, softMax: 100},
+            lineSize     : {type: 'number', value: 0, name: 'Line size', min: 0, softMax: 10},
         },
     },
 
@@ -606,7 +612,7 @@ export default {
         return {
             headerStyle: this.createHeaderStyle(),
             maxFieldWidth: Math.max(10, maxFieldSize.w),
-            fieldHeight: Math.max(5, maxFieldSize.h + 10),
+            fieldHeight: Math.max(5, maxFieldSize.h + this.item.shapeProps.fieldPadding),
             fields: fields,
             primaryIconOffset,
         };
@@ -616,7 +622,7 @@ export default {
         updateFieldSize() {
             const maxFieldSize = calculateMaxFieldSize(this.item);
             this.maxFieldWidth = Math.max(10, maxFieldSize.w);
-            this.fieldHeight = Math.max(5, maxFieldSize.h + 10);
+            this.fieldHeight = Math.max(5, maxFieldSize.h + this.item.shapeProps.fieldPadding);
         },
 
         createHeaderStyle() {
@@ -634,6 +640,9 @@ export default {
     },
 
     computed: {
+        strokeDashArray() {
+            return StrokePattern.createDashArray(this.item.shapeProps.strokePattern, this.item.shapeProps.strokeSize);
+        },
         fieldStyle() {
             return generateTextStyle({
                 ...defaultTextSlotProps,
