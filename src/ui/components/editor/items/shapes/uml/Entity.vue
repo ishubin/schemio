@@ -28,9 +28,9 @@
             <template v-for="(field, idx) in fields">
                 <line v-if="item.shapeProps.lineSize > 0 && idx > 0"
                     :x1="0"
-                    :y1="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :y1="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :x2="item.area.w"
-                    :y2="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :y2="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :stroke-dasharray="strokeDashArray"
                     :stroke="item.shapeProps.lineColor"
                     :stroke-width="`${item.shapeProps.lineSize}px`"
@@ -38,7 +38,7 @@
 
                 <circle r="5"
                     :cx="15"
-                    :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10 + fieldHeight / 2"
+                    :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + fieldHeight / 2"
                     fill="none"
                     :stroke="item.shapeProps.strokeColor"
                     :style="{opacity: 0.3}"
@@ -47,7 +47,7 @@
                 <foreignObject
                     v-if="field.primaryIcon"
                     :x="25"
-                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="20"
                     :height="fieldHeight"
                     >
@@ -62,7 +62,7 @@
                 <foreignObject
                     v-if="item.meta.activeTextSlot !== `field_${field.id}_name`"
                     :x="25 + primaryIconOffset"
-                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="maxFieldWidth"
                     :height="fieldHeight"
                     >
@@ -74,7 +74,7 @@
                 <foreignObject
                     v-if="item.meta.activeTextSlot !== `field_${field.id}_type`"
                     :x="35 + maxFieldWidth + primaryIconOffset"
-                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
                     :height="fieldHeight"
                     >
@@ -86,7 +86,7 @@
 
                 <foreignObject
                     :x="40 + maxFieldWidth"
-                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10"
+                    :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
                     :height="fieldHeight"
                     >
@@ -189,7 +189,7 @@ function addField(editorId, item, fieldIdx) {
     const maxFieldSize = calculateMaxFieldSize(item);
     const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
 
-    const y = Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + fieldIdx * fieldHeight + 8 + fieldHeight;
+    const y = Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + fieldIdx * fieldHeight + fieldHeight;
     if (y > item.area.h) {
         item.area.h = y;
     }
@@ -378,7 +378,7 @@ export default {
                     },
                     area: {
                         x: 25 + primaryIconOffset,
-                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
+                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight,
                         w: maxFieldWidth,
                         h: fieldHeight
                     },
@@ -401,7 +401,7 @@ export default {
                     suggestions: typeSuggestions,
                     area: {
                         x: 35 + maxFieldWidth + primaryIconOffset,
-                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10,
+                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight,
                         w: Math.max(1, item.area.w - 40 - maxFieldWidth - primaryIconOffset),
                         h: fieldHeight
                     },
@@ -444,7 +444,7 @@ export default {
             item.shapeProps.fields.forEach((field, idx) => {
                 pins[`f_${field.id}`] = {
                     x: 15,
-                    y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
+                    y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                     nx: -1, ny: 0,
                     r: 5
                 };
@@ -478,7 +478,7 @@ export default {
                 item.shapeProps.fields.forEach((field, idx) => {
                     const r = 5;
                     const x = 15;
-                    const y = Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + 10 + fieldHeight / 2 - r;
+                    const y = Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + fieldHeight / 2 - r;
                     layers.push({
                         cursor: 'pointer',
                         path: `M ${x} ${y} A ${r} ${r} 0 1 1 ${x} ${y+2*r} A ${r} ${r} 0 1 1 ${x} ${y}`,
@@ -511,7 +511,7 @@ export default {
                         },
                         position: {
                             x: 25 + maxFieldSize.w + primaryIconOffset,
-                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
                             removeField(editorId, item, idx);
@@ -534,7 +534,7 @@ export default {
                         },
                         position: {
                             x: item.area.w - 11,
-                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: (option) => {
                             toggleFieldFlag(editorId, item, idx, option.value);
@@ -552,7 +552,7 @@ export default {
                         radius: 5,
                         position: {
                             x: 15,
-                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight + 10,
+                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
                             EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`);
@@ -568,7 +568,7 @@ export default {
                     radius: 7,
                     position: {
                         x: 20,
-                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + item.shapeProps.fields.length * fieldHeight + 8,
+                        y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + item.shapeProps.fields.length * fieldHeight,
                     },
                     click: () => {
                         addField(editorId, item, item.shapeProps.fields.length);
