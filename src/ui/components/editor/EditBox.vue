@@ -737,7 +737,7 @@ export default {
 
             const customControls = [];
 
-            editorProps.editBoxControls(this.editorId, item).forEach(control => {
+            editorProps.editBoxControls(this.schemeContainer, item).forEach(control => {
                 customControls.push({
                     radius: 10,
                     style: {},

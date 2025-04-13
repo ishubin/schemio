@@ -869,7 +869,7 @@ export default {
             },
 
             // Is invoked from edit-box for rendering additional controls
-            editBoxControls: (editorId, item) => {
+            editBoxControls: (schemeContainer, item) => {
                 const controls = [];
                 if (item.shapeProps.columns < maxCells) {
                     controls.push({
@@ -880,7 +880,7 @@ export default {
                         iconClass: 'fa-solid fa-plus',
                         position: {x: 30, y: 0},
                         click: () => {
-                            addColumn(editorId, item);
+                            addColumn(schemeContainer.editorId, item);
                         }
                     });
                 }
@@ -893,7 +893,7 @@ export default {
                         iconClass: 'fa-solid fa-minus',
                         position: {x: 0, y: 30},
                         click: () => {
-                            removeColumn(editorId, item);
+                            removeColumn(schemeContainer.editorId, item);
                         }
                     });
                 }
@@ -906,7 +906,7 @@ export default {
                         iconClass: 'fa-solid fa-plus',
                         position: {x: 0, y: 30},
                         click: () => {
-                            addRow(editorId, item);
+                            addRow(schemeContainer.editorId, item);
                         }
                     });
                 }
@@ -919,7 +919,7 @@ export default {
                         iconClass: 'fa-solid fa-minus',
                         position: {x: 30, y: 0},
                         click: () => {
-                            removeRow(editorId, item);
+                            removeRow(schemeContainer.editorId, item);
                         }
                     });
                 }

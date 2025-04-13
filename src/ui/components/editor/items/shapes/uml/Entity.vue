@@ -187,7 +187,7 @@ function addField(editorId, item, fieldIdx) {
     });
 
     const maxFieldSize = calculateMaxFieldSize(item);
-    const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
+    const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
 
     const y = Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + fieldIdx * fieldHeight + fieldHeight;
     if (y > item.area.h) {
@@ -197,6 +197,15 @@ function addField(editorId, item, fieldIdx) {
     EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
 }
 
+function moveField(editorId, item, fieldIdx, offset) {
+    if (fieldIdx < 0 || fieldIdx + offset < 0 || fieldIdx > item.shapeProps.fields.length - 1 || fieldIdx + offset > item.shapeProps.fields.length - 1) {
+        return;
+    }
+    const deletedFields = item.shapeProps.fields.splice(fieldIdx, 1);
+    item.shapeProps.fields.splice(fieldIdx + offset, 0, ...deletedFields);
+    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
+    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+}
 
 function toggleFieldFlag(editorId, item, fieldIdx, flag) {
     const field = item.shapeProps.fields[fieldIdx];
@@ -363,7 +372,7 @@ export default {
 
             const maxFieldSize = calculateMaxFieldSize(item);
             const maxFieldWidth = Math.max(10, maxFieldSize.w);
-            const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
+            const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
 
             item.shapeProps.fields.forEach((field, idx) => {
                 slots.push({
@@ -439,7 +448,7 @@ export default {
                 }
             };
             const maxFieldSize = calculateMaxFieldSize(item);
-            const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
+            const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
 
             item.shapeProps.fields.forEach((field, idx) => {
                 pins[`f_${field.id}`] = {
@@ -473,7 +482,7 @@ export default {
 
             customAreas: (editorId, item) => {
                 const maxFieldSize = calculateMaxFieldSize(item);
-                const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
+                const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
                 const layers = [];
                 item.shapeProps.fields.forEach((field, idx) => {
                     const r = 5;
@@ -490,11 +499,11 @@ export default {
                 return layers;
             },
 
-            editBoxControls: (editorId, item) => {
+            editBoxControls: (schemeContainer, item) => {
                 const controls = [];
 
                 const maxFieldSize = calculateMaxFieldSize(item);
-                const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding);
+                const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
                 const fields = item.shapeProps.fields.map(convertField);
                 const primaryIconOffset = fields.findIndex(field => field.primaryIcon) >= 0 ? 20 : 0;
 
@@ -514,7 +523,7 @@ export default {
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
-                            removeField(editorId, item, idx);
+                            removeField(schemeContainer.editorId, item, idx);
                         }
                     });
                     controls.push({
@@ -525,7 +534,37 @@ export default {
                         iconClass: 'fa-solid fa-ellipsis-vertical',
                         radius: 5,
                         getOptions() {
-                            return createAllIconOptionsForField(item, field);
+                            const options = [];
+                            if (idx > 0 && item.shapeProps.fields.length > 1) {
+                                options.push({
+                                    name: 'Move up',
+                                    iconClass: 'fa-solid fa-arrow-up',
+                                    click() {
+                                        moveField(schemeContainer.editorId, item, idx, -1);
+                                    }
+                                });
+                            }
+                            if (idx < item.shapeProps.fields.length - 1) {
+                                options.push({
+                                    name: 'Move down',
+                                    iconClass: 'fa-solid fa-arrow-down',
+                                    click() {
+                                        moveField(schemeContainer.editorId, item, idx, 1);
+                                    }
+                                });
+                            }
+                            return options
+                            .concat(createAllIconOptionsForField(item, field))
+                            .concat([{
+                                name: 'Delete',
+                                iconClass: 'fa-solid fa-trash',
+                                click() {
+                                    removeField(schemeContainer.editorId, item, idx);
+                                    if (schemeContainer.editBox) {
+                                        schemeContainer.editBox.updateKey += 1;
+                                    }
+                                }
+                            }]);
                         },
                         style: {
                             color: '#777',
@@ -537,7 +576,11 @@ export default {
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: (option) => {
-                            toggleFieldFlag(editorId, item, idx, option.value);
+                            if (option.click) {
+                                option.click();
+                            } else {
+                                toggleFieldFlag(schemeContainer.editorId, item, idx, option.value);
+                            }
                         }
                     });
                     controls.push({
@@ -555,7 +598,7 @@ export default {
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
-                            EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`);
+                            EditorEventBus.connectorRequested.$emit(schemeContainer.editorId, item, `f_${field.id}`);
                         }
                     });
                 });
@@ -571,7 +614,7 @@ export default {
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + item.shapeProps.fields.length * fieldHeight,
                     },
                     click: () => {
-                        addField(editorId, item, item.shapeProps.fields.length);
+                        addField(schemeContainer.editorId, item, item.shapeProps.fields.length);
                     }
                 });
                 return controls;
@@ -612,7 +655,7 @@ export default {
         return {
             headerStyle: this.createHeaderStyle(),
             maxFieldWidth: Math.max(10, maxFieldSize.w),
-            fieldHeight: Math.max(5, maxFieldSize.h + this.item.shapeProps.fieldPadding),
+            fieldHeight: Math.max(5, maxFieldSize.h + this.item.shapeProps.fieldPadding*2),
             fields: fields,
             primaryIconOffset,
         };
@@ -622,7 +665,7 @@ export default {
         updateFieldSize() {
             const maxFieldSize = calculateMaxFieldSize(this.item);
             this.maxFieldWidth = Math.max(10, maxFieldSize.w);
-            this.fieldHeight = Math.max(5, maxFieldSize.h + this.item.shapeProps.fieldPadding);
+            this.fieldHeight = Math.max(5, maxFieldSize.h + this.item.shapeProps.fieldPadding*2);
         },
 
         createHeaderStyle() {
