@@ -131,6 +131,12 @@ function _simplifyPathPointsUsingRDP(points, epsilon, idxStart, idxEnd) {
     }
 }
 
+function distanceToRect(x, y, x1, y1, x2, y2) {
+    const dx = Math.max(x1 - x, 0, x - x2);
+    const dy = Math.max(y1 - y, 0, y - y2);
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
 
 export default {
 
@@ -1045,5 +1051,7 @@ export default {
             v1: (-b - d) / (2*a),
             v2: (d - b) / (2*a),
         };
-    }
+    },
+
+    distanceToRect,
 }

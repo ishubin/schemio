@@ -1124,17 +1124,25 @@ class IdleState extends SubState {
         const localPoint = this.schemeContainer.localPointOnItem(x, y, item);
         const shape = Shape.find(item.shape);
         const textSlots = shape.getTextSlots(item);
-        let selectedTextSlot = null;
-        for (let i = 0; i < textSlots.length && !selectedTextSlot; i++) {
+
+        let bestDistance = -1;
+        let bestDistanceSlotIdx = -1;
+        for (let i = 0; i < textSlots.length; i++) {
             const textSlot = textSlots[i];
             if(myMath.isPointInArea(localPoint.x, localPoint.y, textSlot.area)) {
-                selectedTextSlot = textSlot;
+                return textSlot;
+            } else {
+                const d = myMath.distanceToRect(localPoint.x, localPoint.y, textSlot.area.x, textSlot.area.y, textSlot.area.x + textSlot.area.w, textSlot.area.y + textSlot.area.h);
+                if (bestDistanceSlotIdx < 0 || bestDistance > d) {
+                    bestDistance = d;
+                    bestDistanceSlotIdx = i;
+                }
             }
         }
-        if (!selectedTextSlot && textSlots.length > 0) {
-            selectedTextSlot = textSlots[0];
+        if (bestDistanceSlotIdx >= 0) {
+            return textSlots[bestDistanceSlotIdx];
         }
-        return selectedTextSlot;
+        return null;
     }
 
     selectByBoundaryBox(box, inclusive) {
