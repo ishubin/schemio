@@ -381,7 +381,7 @@ export default {
 
     data() {
         const shape = Shape.find(this.item.shape);
-
+        const editorCustomAreas = this.mode === 'edit' && shape && shape.editorProps && shape.editorProps.customAreas ? shape.editorProps.customAreas(this.editorId, this.item) : [];
         const data = {
             shapeType         : shape ? shape.shapeType: 'missing',
             shapeComponent    : null,
@@ -414,7 +414,7 @@ export default {
             svgItemTransform : this.calculateSVGItemTransform(),
             customAreas      : shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item): [],
 
-            editorCustomAreas: this.mode === 'edit' && shape && shape.editorProps && shape.editorProps.customAreas ? shape.editorProps.customAreas(this.editorId, this.item) : [],
+            editorCustomAreas,
 
             draggingFileOver: false,
             shapeStyle: {},
@@ -676,6 +676,10 @@ export default {
                 this.revision += 1;
                 return;
             }
+            if (this.mode === 'edit' && shape && shape.editorProps && shape.editorProps.customAreas) {
+                this.editorCustomAreas = shape.editorProps.customAreas(this.editorId, this.item);
+            }
+
             this.hasDescription = hasItemDescription(this.item);
             this.hasLinks = Array.isArray(this.item.links) && this.item.links.length > 0;
             this.hasFiles = Array.isArray(this.item.links) && this.item.links.findIndex(link => link.type === 'file') >= 0;
