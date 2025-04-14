@@ -135,7 +135,7 @@
 
             <template v-if="mode === 'edit'">
                 <path v-for="customArea in editorCustomAreas"
-                    class="svg-event-layer"
+                    class="svg-event-layer editor-custom-area"
                     data-preview-ignore="true"
                     :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
                     :d="customArea.path"
@@ -144,7 +144,7 @@
                     :stroke-width="hoverPathStrokeWidth"
                     stroke="rgba(255, 255, 255, 0)"
                     @click="onCustomEditorAreaClick(customArea)"
-                    :fill="hoverPathFill" />
+                    />
             </template>
 
             <g v-if="mode === 'view' && !textSelectionEnabled">

@@ -1949,6 +1949,10 @@ class SchemeContainer {
         return this.svgOutlinePathCache.get(item);
     }
 
+    closestPointToItem(item, x, y) {
+        return this.closestPointToItemOutline(item, {x, y}, {withNormal: true});
+    }
+
     /**
      *
      * @param {*} item

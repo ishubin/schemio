@@ -191,6 +191,32 @@ export default {
             }
         },
 
+        editorProps: {
+            customAreas: (editorId, item) => {
+                const layers = [];
+                const y1 = Math.max(0, Math.min(item.shapeProps.size, item.area.h));
+                const y2 = item.area.h;
+
+                const step = 20;
+                if (y2 - y1 >= step * 2) {
+                    const n = Math.ceil((y2 - y1) / step);
+                    for (let i = 1; i < n; i++) {
+                        const x = item.area.w / 2;
+                        const y = y1 + i * step;
+                        const r = 5;
+                        layers.push({
+                            cursor: 'pointer',
+                            path: `M ${x} ${y-r} A ${r} ${r} 0 1 1 ${x} ${y+2*r} A ${r} ${r} 0 1 1 ${x} ${y-r}`,
+                            click: () => {
+                                EditorEventBus.connectorRequested.$emit(editorId, item, null, x, y);
+                            }
+                        });
+                    }
+                }
+                return layers;
+            },
+        },
+
         args: {
             size         : {name: 'Size', type: 'number', value: 40, min: 0, softMax: 200},
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},

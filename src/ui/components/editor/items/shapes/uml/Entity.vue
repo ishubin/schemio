@@ -492,7 +492,7 @@ export default {
                         cursor: 'pointer',
                         path: `M ${x} ${y} A ${r} ${r} 0 1 1 ${x} ${y+2*r} A ${r} ${r} 0 1 1 ${x} ${y}`,
                         click: () => {
-                            EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`);
+                            EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`, 0, 0);
                         }
                     });
                 });

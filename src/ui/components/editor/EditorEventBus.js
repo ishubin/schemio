@@ -372,7 +372,7 @@ const EditorEventBus = {
     connectorRequested: {
         $on: (editorId, callback) => $on(editorId, 'connector-requested', [], callback),
         $off: (editorId, callback) => $off(editorId, 'connector-requested', [], callback),
-        $emit: (editorId, sourceItem, sourcePin) => $emit(editorId, 'connector-requested', [], sourceItem, sourcePin),
+        $emit: (editorId, sourceItem, sourcePin, x, y) => $emit(editorId, 'connector-requested', [], sourceItem, sourcePin, x, y),
     }
 };
 

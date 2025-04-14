@@ -1485,7 +1485,7 @@ export default {
             this.updateFloatingHelperPanel();
         },
 
-        onConnectorRequested(sourceItem, sourcePin) {
+        onConnectorRequested(sourceItem, sourcePin, x, y) {
             const shape = Shape.find(sourceItem.shape);
             if (!shape) {
                 return;
@@ -1496,12 +1496,24 @@ export default {
             this.states.connecting.schemeContainer = this.schemeContainer;
             this.states.connecting.reset();
 
-            let worldPoint = worldPointOnItem(0, 0, sourceItem);
+            let worldPoint = worldPointOnItem(x, y, sourceItem);
+            let sourceItemPosition = 0;
 
             const pins = shape.getPins(sourceItem);
             if (sourcePin && pins && pins[sourcePin]) {
                 const pin = pins[sourcePin];
-                worldPoint = worldPointOnItem(pin.x, pin.y, sourceItem);
+                if (pin.r && pin.hasOwnProperty('nx') && pin.hasOwnProperty('ny')) {
+                    worldPoint = worldPointOnItem(pin.x + pin.r * pin.nx, pin.y + pin.r * pin.ny, sourceItem);
+                } else {
+                    worldPoint = worldPointOnItem(pin.x + r, pin.y, sourceItem);
+                }
+            } else {
+                const closestPoint = this.schemeContainer.closestPointToItem(sourceItem, worldPoint.x, worldPoint.y);
+                if (closestPoint) {
+                    worldPoint.x = closestPoint.x;
+                    worldPoint.y = closestPoint.y;
+                    sourceItemPosition = closestPoint.distanceOnPath;
+                }
             }
 
             const connector = this.schemeContainer.addItem({
@@ -1512,7 +1524,8 @@ export default {
                 },
                 shapeProps: {
                     sourceItem: '#' + sourceItem.id,
-                    sourcePin: sourcePin,
+                    sourcePin,
+                    sourceItemPosition,
                     points: [{
                         t: 'L', x: worldPoint.x, y: worldPoint.y
                     }, {

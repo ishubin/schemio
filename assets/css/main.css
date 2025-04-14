@@ -5433,3 +5433,10 @@ svg textarea.item-shape-textfield {
     color: unset;
 }
 
+svg .editor-custom-area {
+    fill: rgba(155, 183, 255, 1);
+    opacity: 0;
+}
+.state-dragItem.sub-state-idle svg .editor-custom-area:hover {
+    opacity: 0.5;
+}
