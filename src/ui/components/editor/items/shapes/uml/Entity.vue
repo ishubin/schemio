@@ -354,9 +354,9 @@ export default {
                 textSlots: {
                     header: {
                         text: 'Entity',
-                        bold: false,
-                        color: '#ffffffff',
-                        fontSize: 16
+                        bold: true,
+                        color: '#333333',
+                        fontSize: 14
                     }
                 }
             }
@@ -623,12 +623,12 @@ export default {
 
         args: {
             fill         : {name: 'Fill', type: 'advanced-color', value: {type: 'solid', color: 'rgba(240, 240, 240, 1.0)'}},
-            headerFill   : {name: 'Header fill', type: 'advanced-color', value: {type: 'solid', color: '#5E6469'}},
+            headerFill   : {name: 'Header fill', type: 'advanced-color', value: {type: 'solid', color: '#C9D1D6'}},
             strokeColor  : {name: 'Stroke', type: 'color', value: '#51606C'},
             strokePattern: {type: 'stroke-pattern', value: 'solid', name: 'Stroke pattern'},
             strokeSize   : {name: 'Stroke Size', type: 'number', value: 1, min: 0, softMax: 100},
-            cornerRadius : {name: 'Stroke Size', type: 'number', value: 10, min: 0, softMax: 100},
-            headerHeight : {type: 'number', value: 35, name: 'Header Height', min: 0},
+            cornerRadius : {name: 'Corner radius', type: 'number', value: 8, min: 0, softMax: 100},
+            headerHeight : {type: 'number', value: 30, name: 'Header Height', min: 0, softMax: 100},
             fields       : {type: 'array', value: [], name: 'Fields', hidden: true},
             fieldPadding : {type: 'number', value: 10, name: 'Field padding', min: 0, softMax: 100},
             font         : {type: 'font', name: 'Font', value: 'Arial'},

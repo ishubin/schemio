@@ -153,7 +153,7 @@
 /**
  * @typedef {Object} Shape
  * @property {function(Item): Array<TextSlot>} getTextSlots
- * @property {function(Item): Array<ShapePin>} getPins
+ * @property {function(Item): Object} getPins
  * @property {function(Item): Array<ShapeSVGPrimitive>} computePrimitives
  * @property {function(Item): String} computePath
  * @property {function(Item): String} computeOutline

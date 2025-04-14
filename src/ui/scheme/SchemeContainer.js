@@ -3343,278 +3343,7 @@ class SchemeContainer {
      * @returns {EditBox}
      */
     generateEditBox(items, connectorPointRefs) {
-        log.info('generating edit box', 'items:', items.length, 'connectorPointRefs:', connectorPointRefs.length);
-        /** @type {ItemArea} */
-        let area = null;
-        let locked = true;
-
-        const pivotPoint = {
-            x: 0.5,
-            y: 0.5
-        };
-
-        // this is needed as there could be a situation, when user pastes new items to the scene and the reindex was not run yet
-        // It uses edit box to move the newly pasted items. Because of the missing reindex in SchemeContainer
-        // is not able to find these items by id
-        const connectorItemsMap = new Map();
-
-        /** @type {Array<ConnectorPointRef>} */
-        const allConnectorPointRefs = [].concat(connectorPointRefs);
-        items.forEach(item => {
-            connectorItemsMap.set(item.id, item);
-            if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points) || item.locked) {
-                return;
-            }
-            item.shapeProps.points.forEach((p, pointIdx) => {
-                allConnectorPointRefs.push({itemId: item.id, pointIdx});
-            });
-        })
-
-        if (items.length === 1 && (!items[0].meta.templated || items[0].meta.templateRootId === items[0].id)) {
-            // we want the item edit box to be aligned with item only if that item was selected
-            // But we need to skip this stage if the item is part of template (but not root),
-            // otherwise the edit box may incorrectly calculate the positioning of template controls
-            const   p0 = worldPointOnItem(0, 0, items[0]),
-                    p1 = worldPointOnItem(items[0].area.w, 0, items[0]),
-                    p3 = worldPointOnItem(0, items[0].area.h, items[0]);
-
-            // angle has to be calculated with taking width into account
-            // if the width is too small (e.g. vertical path line), then the computed angle will be incorrect
-            let angle = 0;
-            if (myMath.tooSmall(items[0].area.w)) {
-                angle = myMath.fullAngleForVector(p3.x - p0.x, p3.y - p0.y) * 180 / Math.PI - 90;
-            } else {
-                angle = myMath.fullAngleForVector(p1.x - p0.x, p1.y - p0.y) * 180 / Math.PI;
-            }
-
-            area = {
-                x: p0.x,
-                y: p0.y,
-                r: angle,
-                w: myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y),
-                h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
-                px: 0,
-                py: 0,
-                sx: 1.0,
-                sy: 1.0
-            };
-            pivotPoint.x = items[0].area.px;
-            pivotPoint.y = items[0].area.py;
-        } else if (items.length > 0) {
-            // otherwise item edit box area will be an average of all other items
-            area = createEditBoxAveragedArea(items);
-        }
-
-
-        /** @type {Array<ConnectorPointProjection>} */
-        const connectorPoints = [];
-
-        allConnectorPointRefs.forEach(pointRef => {
-            const item = connectorItemsMap.has(pointRef.itemId) ? connectorItemsMap.get(pointRef.itemId) : this.findItemById(pointRef.itemId);
-            if (!item || item.shape !== 'connector') {
-                return;
-            }
-
-            if (pointRef.pointIdx < 0 || pointRef.pointIdx >= item.shapeProps.points.length) {
-                return;
-            }
-
-            const localPoint = item.shapeProps.points[pointRef.pointIdx];
-            const p = worldPointOnItem(localPoint.x, localPoint.y, item);
-
-            if (!area) {
-                area = {...p, r: 0, w: 0, h: 0, px: 0.5, py: 0.5, sx: 1.0, sy: 1.0};
-            } else {
-                if (area.x > p.x) {
-                    area.w += area.x - p.x;
-                    area.x = p.x;
-                } else if (area.x + area.w < p.x) {
-                    area.w = p.x - area.x;
-                }
-                if (area.y > p.y) {
-                    area.h += area.y - p.y;
-                    area.y = p.y;
-                } else if (area.y + area.h < p.y) {
-                    area.h = p.y - area.y;
-                }
-            }
-            connectorPoints.push({
-                ...p,
-                ...pointRef
-            });
-        });
-
-        if (!area) {
-            throw new Error('Could not calculate edit box area');
-        }
-
-        const itemProjections = {};
-
-        // used to store additional information that might be needed when modifying items
-        const itemData = {};
-
-        //storing ids of all items that are included in the box
-        const itemIds = new Set();
-
-        const projectPoint = (x, y) => {
-            const localPoint = myMath.localPointInArea(x, y, area);
-            if (area.w > 0) {
-                localPoint.x = localPoint.x / area.w;
-            }
-            if (area.h > 0) {
-                localPoint.y = localPoint.y / area.h;
-            }
-            return localPoint;
-        };
-
-        /** @type {Map<String,ConnectorAttachments>} */
-        const connectorOriginalAttachments = new Map();
-        const registerConnectorOriginalAttachments = (item) => {
-            if (connectorOriginalAttachments.has(item.id)) {
-                return;
-            }
-
-            if (item.shapeProps.points.length < 2) {
-                return;
-            }
-
-            const firstPoint = item.shapeProps.points[0];
-            const lastPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
-            const sourceWorldPoint = worldPointOnItem(firstPoint.x, firstPoint.y, item);
-            const destinationWorldPoint = worldPointOnItem(lastPoint.x, lastPoint.y, item);
-
-            connectorOriginalAttachments.set(item.id, {
-                sourceItem: item.shapeProps.sourceItem,
-                sourceItemPosition: item.shapeProps.sourceItemPosition,
-                destinationItem: item.shapeProps.destinationItem,
-                destinationItemPosition: item.shapeProps.destinationItemPosition,
-                sourceProjection: projectPoint(sourceWorldPoint.x, sourceWorldPoint.y),
-                destinationProjection: projectPoint(destinationWorldPoint.x, destinationWorldPoint.y)
-            });
-        };
-
-        connectorPoints.forEach(p => {
-            p.projection = projectPoint(p.x, p.y);
-
-            // transforming connector point coords from world to edit box local coords
-            const lp = myMath.localPointInArea(p.x, p.y, area);
-            p.x = lp.x;
-            p.y = lp.y;
-
-            const item = connectorItemsMap.has(p.itemId) ? connectorItemsMap.get(p.itemId) : this.findItemById(p.itemId);
-            registerConnectorOriginalAttachments(item);
-            itemIds.add(p.itemId);
-        });
-
-        forEach(items, item => {
-            itemData[item.id] = {
-                originalArea: utils.clone(item.area)
-            };
-            itemIds.add(item.id);
-            // locked and auto-layout enabled items are not allowed to moved
-            if (!item.locked && (!item.autoLayout || !item.autoLayout.on)) {
-                locked = false;
-            }
-
-            // caclulating projection of item world coords on the top and left edges of original edit box
-            // since some items can be children of other items we need to project only their world location
-
-            const worldTopLeftPoint = worldPointOnItem(0, 0, item);
-            const worldBottomRightPoint = worldPointOnItem(item.area.w, item.area.h, item);
-
-            // the following two checks with corrections are needed for the cases when items area is 0 on either width or height
-            // in that case it is impossible to generate items area projections on the edit box
-            // and user will not be able to recover the size of the item ever
-            if (myMath.tooSmall(worldTopLeftPoint.x - worldBottomRightPoint.x)) {
-                worldBottomRightPoint.x += 1;
-            }
-            if (myMath.tooSmall(worldTopLeftPoint.y - worldBottomRightPoint.y)) {
-                worldBottomRightPoint.y += 1;
-            }
-
-            itemProjections[item.id] = {
-                topLeft: projectPoint(worldTopLeftPoint.x, worldTopLeftPoint.y),
-                bottomRight: projectPoint(worldBottomRightPoint.x, worldBottomRightPoint.y),
-                // the following angle correction is needed in case only one item is selected,
-                // in that case the initial edit box area might have a starting angle that matches item area
-                // in all other cases the initial angle will be 0
-                r: item.area.r - area.r,
-            };
-
-            if (item.shape === 'path') {
-                // storing original points so that they can be readjusted in case the item is resized
-                itemData[item.id].originalCurvePaths = utils.clone(item.shapeProps.paths);
-            }
-        });
-
-        if (connectorPoints.length > 0) {
-            locked = false;
-        }
-
-        let templateRef = null;
-        let templateItemRoot = null;
-        let rotationEnabled = true;
-        let connectorStarterEnabled = true;
-
-        if (items.length === 1) {
-            const item = items[0];
-            if (item.args && item.args.templated) {
-                if (item.args.templateRef) {
-                    templateItemRoot = item;
-                    templateRef = item.args.templateRef;
-                } else {
-                    const ancestor = this.findAncestor(item, it => it.args && it.args.templateRef);
-                    if (ancestor) {
-                        templateRef = ancestor.args.templateRef;
-                        templateItemRoot = ancestor;
-                    }
-                }
-
-                if (templateRef && item.args.tplRotation === 'off') {
-                    rotationEnabled = false;
-                }
-                if (templateRef && item.args.tplConnector === 'off') {
-                    connectorStarterEnabled = false;
-                }
-            }
-        }
-
-        let ruleGuides = [];
-
-        if (items.length === 1 && items[0].meta.parentId) {
-            const parentItem = this.findItemById(items[0].meta.parentId);
-            if (parentItem) {
-                ruleGuides = autoLayoutGenerateEditBoxRuleGuides(items[0], parentItem);
-            }
-        }
-
-        return {
-            id: shortid.generate(),
-            locked,
-            items,
-            itemIds,
-            itemData,
-            area,
-            itemProjections,
-            pivotPoint,
-            rotationEnabled,
-            connectorStarterEnabled,
-            connectorPoints,
-            connectorOriginalAttachments,
-            cache: new Map(),
-            templateRef: templateRef,
-            templateItemRoot: templateItemRoot,
-            ruleGuides,
-            updateKey: 0,
-
-            // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
-            // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world
-            // I tried to rewrite the entire edit box calculation to make it simpler. I tried matching pivot point in edit box area to the ones of the item
-            // It turned out a lot better in the beginning, but later I discovered that resizing of edit box becomes wonky and the same problem appears
-            // when user  types x, y, width or height in number textfield in Position panel.
-            // So thats why I decided to keep it as is and to perform all the trickery only for rotation control.
-            worldPivotPoint: myMath.worldPointInArea(pivotPoint.x * area.w, pivotPoint.y * area.h, area)
-        };
+        return generateEditBox(this, items, connectorPointRefs);
     }
 
     /**
@@ -4022,5 +3751,331 @@ class SchemeContainer {
     }
 }
 
+/**
+ *
+ * @param {SchemeContainer} schemeContainer
+ * @param {String} itemSelector
+ * @param {String} pinId
+ * @returns
+ */
+function findWorldPinPointOnItem(schemeContainer, itemSelector, pinId) {
+    const item = schemeContainer.findFirstElementBySelector(itemSelector);
+    if (!item) {
+        return null;
+    }
+    const shape = Shape.find(item.shape);
+    if (!shape || !shape.getPins) {
+        return null;
+    }
+
+    const pins = shape.getPins(item);
+    if (!pins || !pins[pinId]) {
+        return null;
+    }
+
+    return worldPointOnItem(pins[pinId].x, pins[pinId].y, item);
+}
+
+/**
+ *
+ * @param {SchemeContainer} items
+ * @param {Array<Item>} items
+ * @param {Array<ConnectorPointRef} connectorPointRefs
+ * @returns {EditBox}
+ */
+function generateEditBox(schemeContainer, items, connectorPointRefs) {
+    //TODO This function needs to be refactored into multiple functions. It's just way too long
+    log.info('generating edit box', 'items:', items.length, 'connectorPointRefs:', connectorPointRefs.length);
+    /** @type {ItemArea} */
+    let area = null;
+    let locked = true;
+
+    const pivotPoint = {
+        x: 0.5,
+        y: 0.5
+    };
+
+    // this is needed as there could be a situation, when user pastes new items to the scene and the reindex was not run yet
+    // It uses edit box to move the newly pasted items. Because of the missing reindex in SchemeContainer
+    // is not able to find these items by id
+    const connectorItemsMap = new Map();
+
+    /** @type {Array<ConnectorPointRef>} */
+    const allConnectorPointRefs = [].concat(connectorPointRefs);
+    items.forEach(item => {
+        connectorItemsMap.set(item.id, item);
+        if (item.shape !== 'connector' || !Array.isArray(item.shapeProps.points) || item.locked) {
+            return;
+        }
+        item.shapeProps.points.forEach((p, pointIdx) => {
+            allConnectorPointRefs.push({itemId: item.id, pointIdx});
+        });
+    })
+
+    if (items.length === 1 && (!items[0].meta.templated || items[0].meta.templateRootId === items[0].id)) {
+        // we want the item edit box to be aligned with item only if that item was selected
+        // But we need to skip this stage if the item is part of template (but not root),
+        // otherwise the edit box may incorrectly calculate the positioning of template controls
+        const   p0 = worldPointOnItem(0, 0, items[0]),
+                p1 = worldPointOnItem(items[0].area.w, 0, items[0]),
+                p3 = worldPointOnItem(0, items[0].area.h, items[0]);
+
+        // angle has to be calculated with taking width into account
+        // if the width is too small (e.g. vertical path line), then the computed angle will be incorrect
+        let angle = 0;
+        if (myMath.tooSmall(items[0].area.w)) {
+            angle = myMath.fullAngleForVector(p3.x - p0.x, p3.y - p0.y) * 180 / Math.PI - 90;
+        } else {
+            angle = myMath.fullAngleForVector(p1.x - p0.x, p1.y - p0.y) * 180 / Math.PI;
+        }
+
+        area = {
+            x: p0.x,
+            y: p0.y,
+            r: angle,
+            w: myMath.distanceBetweenPoints(p0.x, p0.y, p1.x, p1.y),
+            h: myMath.distanceBetweenPoints(p0.x, p0.y, p3.x, p3.y),
+            px: 0,
+            py: 0,
+            sx: 1.0,
+            sy: 1.0
+        };
+        pivotPoint.x = items[0].area.px;
+        pivotPoint.y = items[0].area.py;
+    } else if (items.length > 0) {
+        // otherwise item edit box area will be an average of all other items
+        area = createEditBoxAveragedArea(items);
+    }
+
+
+    /** @type {Array<ConnectorPointProjection>} */
+    const connectorPoints = [];
+
+    allConnectorPointRefs.forEach(pointRef => {
+        const item = connectorItemsMap.has(pointRef.itemId) ? connectorItemsMap.get(pointRef.itemId) : schemeContainer.findItemById(pointRef.itemId);
+        if (!item || item.shape !== 'connector') {
+            return;
+        }
+
+        if (pointRef.pointIdx < 0 || pointRef.pointIdx >= item.shapeProps.points.length) {
+            return;
+        }
+
+        const localPoint = item.shapeProps.points[pointRef.pointIdx];
+        let p = worldPointOnItem(localPoint.x, localPoint.y, item);
+
+        // Adjusting for attachment pins position as some pins could have a radius defined
+        // e.g. in the "entity" shape you can attach connector to fields. The pins for those fields
+        // define a radius to make connector attachments aesthetically pleasing so that they attach from the side of the pin
+        if (pointRef.pointIdx === 0 && item.shapeProps.sourceItem && item.shapeProps.sourcePin) {
+            const pinPoint = findWorldPinPointOnItem(schemeContainer, item.shapeProps.sourceItem, item.shapeProps.sourcePin);
+            if (pinPoint) {
+                p.x = pinPoint.x;
+                p.y = pinPoint.y;
+            }
+        } else if (pointRef.pointIdx === item.shapeProps.points.length - 1 && item.shapeProps.destinationItem && item.shapeProps.destinationPin) {
+            const pinPoint = findWorldPinPointOnItem(schemeContainer, item.shapeProps.destinationItem, item.shapeProps.destinationPin);
+            if (pinPoint) {
+                p.x = pinPoint.x;
+                p.y = pinPoint.y;
+            }
+        }
+
+
+        if (!area) {
+            area = {...p, r: 0, w: 0, h: 0, px: 0.5, py: 0.5, sx: 1.0, sy: 1.0};
+        } else {
+            if (area.x > p.x) {
+                area.w += area.x - p.x;
+                area.x = p.x;
+            } else if (area.x + area.w < p.x) {
+                area.w = p.x - area.x;
+            }
+            if (area.y > p.y) {
+                area.h += area.y - p.y;
+                area.y = p.y;
+            } else if (area.y + area.h < p.y) {
+                area.h = p.y - area.y;
+            }
+        }
+        connectorPoints.push({
+            ...p,
+            ...pointRef
+        });
+    });
+
+    if (!area) {
+        throw new Error('Could not calculate edit box area');
+    }
+
+    const itemProjections = {};
+
+    // used to store additional information that might be needed when modifying items
+    const itemData = {};
+
+    //storing ids of all items that are included in the box
+    const itemIds = new Set();
+
+    const projectPoint = (x, y) => {
+        const localPoint = myMath.localPointInArea(x, y, area);
+        if (area.w > 0) {
+            localPoint.x = localPoint.x / area.w;
+        }
+        if (area.h > 0) {
+            localPoint.y = localPoint.y / area.h;
+        }
+        return localPoint;
+    };
+
+    /** @type {Map<String,ConnectorAttachments>} */
+    const connectorOriginalAttachments = new Map();
+    const registerConnectorOriginalAttachments = (item) => {
+        if (connectorOriginalAttachments.has(item.id)) {
+            return;
+        }
+
+        if (item.shapeProps.points.length < 2) {
+            return;
+        }
+
+        const firstPoint = item.shapeProps.points[0];
+        const lastPoint = item.shapeProps.points[item.shapeProps.points.length - 1];
+        const sourceWorldPoint = worldPointOnItem(firstPoint.x, firstPoint.y, item);
+        const destinationWorldPoint = worldPointOnItem(lastPoint.x, lastPoint.y, item);
+
+        connectorOriginalAttachments.set(item.id, {
+            sourceItem: item.shapeProps.sourceItem,
+            sourceItemPosition: item.shapeProps.sourceItemPosition,
+            destinationItem: item.shapeProps.destinationItem,
+            destinationItemPosition: item.shapeProps.destinationItemPosition,
+            sourceProjection: projectPoint(sourceWorldPoint.x, sourceWorldPoint.y),
+            destinationProjection: projectPoint(destinationWorldPoint.x, destinationWorldPoint.y)
+        });
+    };
+
+    connectorPoints.forEach(p => {
+        p.projection = projectPoint(p.x, p.y);
+
+        // transforming connector point coords from world to edit box local coords
+        const lp = myMath.localPointInArea(p.x, p.y, area);
+        p.x = lp.x;
+        p.y = lp.y;
+
+        const item = connectorItemsMap.has(p.itemId) ? connectorItemsMap.get(p.itemId) : schemeContainer.findItemById(p.itemId);
+        registerConnectorOriginalAttachments(item);
+        itemIds.add(p.itemId);
+    });
+
+    forEach(items, item => {
+        itemData[item.id] = {
+            originalArea: utils.clone(item.area)
+        };
+        itemIds.add(item.id);
+        // locked and auto-layout enabled items are not allowed to moved
+        if (!item.locked && (!item.autoLayout || !item.autoLayout.on)) {
+            locked = false;
+        }
+
+        // caclulating projection of item world coords on the top and left edges of original edit box
+        // since some items can be children of other items we need to project only their world location
+
+        const worldTopLeftPoint = worldPointOnItem(0, 0, item);
+        const worldBottomRightPoint = worldPointOnItem(item.area.w, item.area.h, item);
+
+        // the following two checks with corrections are needed for the cases when items area is 0 on either width or height
+        // in that case it is impossible to generate items area projections on the edit box
+        // and user will not be able to recover the size of the item ever
+        if (myMath.tooSmall(worldTopLeftPoint.x - worldBottomRightPoint.x)) {
+            worldBottomRightPoint.x += 1;
+        }
+        if (myMath.tooSmall(worldTopLeftPoint.y - worldBottomRightPoint.y)) {
+            worldBottomRightPoint.y += 1;
+        }
+
+        itemProjections[item.id] = {
+            topLeft: projectPoint(worldTopLeftPoint.x, worldTopLeftPoint.y),
+            bottomRight: projectPoint(worldBottomRightPoint.x, worldBottomRightPoint.y),
+            // the following angle correction is needed in case only one item is selected,
+            // in that case the initial edit box area might have a starting angle that matches item area
+            // in all other cases the initial angle will be 0
+            r: item.area.r - area.r,
+        };
+
+        if (item.shape === 'path') {
+            // storing original points so that they can be readjusted in case the item is resized
+            itemData[item.id].originalCurvePaths = utils.clone(item.shapeProps.paths);
+        }
+    });
+
+    if (connectorPoints.length > 0) {
+        locked = false;
+    }
+
+    let templateRef = null;
+    let templateItemRoot = null;
+    let rotationEnabled = true;
+    let connectorStarterEnabled = true;
+
+    if (items.length === 1) {
+        const item = items[0];
+        if (item.args && item.args.templated) {
+            if (item.args.templateRef) {
+                templateItemRoot = item;
+                templateRef = item.args.templateRef;
+            } else {
+                const ancestor = schemeContainer.findAncestor(item, it => it.args && it.args.templateRef);
+                if (ancestor) {
+                    templateRef = ancestor.args.templateRef;
+                    templateItemRoot = ancestor;
+                }
+            }
+
+            if (templateRef && item.args.tplRotation === 'off') {
+                rotationEnabled = false;
+            }
+            if (templateRef && item.args.tplConnector === 'off') {
+                connectorStarterEnabled = false;
+            }
+        }
+    }
+
+    let ruleGuides = [];
+
+    if (items.length === 1 && items[0].meta.parentId) {
+        const parentItem = schemeContainer.findItemById(items[0].meta.parentId);
+        if (parentItem) {
+            ruleGuides = autoLayoutGenerateEditBoxRuleGuides(items[0], parentItem);
+        }
+    }
+
+    return {
+        id: shortid.generate(),
+        locked,
+        items,
+        itemIds,
+        itemData,
+        area,
+        itemProjections,
+        pivotPoint,
+        rotationEnabled,
+        connectorStarterEnabled,
+        connectorPoints,
+        connectorOriginalAttachments,
+        cache: new Map(),
+        templateRef: templateRef,
+        templateItemRoot: templateItemRoot,
+        ruleGuides,
+        updateKey: 0,
+
+        // the sole purpose of this point is for the user to be able to rotate edit box via number textfield in Position panel
+        // because there we have to readjust edit box position to make sure its pivot point stays in the same place relatively to the world
+        // I tried to rewrite the entire edit box calculation to make it simpler. I tried matching pivot point in edit box area to the ones of the item
+        // It turned out a lot better in the beginning, but later I discovered that resizing of edit box becomes wonky and the same problem appears
+        // when user  types x, y, width or height in number textfield in Position panel.
+        // So thats why I decided to keep it as is and to perform all the trickery only for rotation control.
+        worldPivotPoint: myMath.worldPointInArea(pivotPoint.x * area.w, pivotPoint.y * area.h, area)
+    };
+
+}
 
 export default SchemeContainer;
