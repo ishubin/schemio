@@ -127,22 +127,50 @@ import StrokePattern from '../../StrokePattern';
 
 
 const typeSuggestions = [
+    'bigint',
     'binary',
+    'blob',
     'boolean',
+    'char',
     'date',
     'datetime',
     'decimal',
+    'double',
     'email',
     'enum',
+    'fixed',
     'float',
+    'geometry',
+    'int',
     'integer',
     'json',
+    'linestring',
+    'longblob',
+    'longtext',
+    'mediumblob',
+    'mediumint',
+    'mediumtext',
+    'multilinestring',
+    'multipoint',
+    'multipolygon',
+    'numeric',
+    'point',
+    'polygon',
+    'real',
+    'set',
+    'smallint',
     'string',
     'text',
     'time',
     'timestamp',
+    'tinyblob',
+    'tinyint',
+    'tinytext',
     'url',
-    'uuid'
+    'uuid',
+    'varbinary',
+    'varchar',
+    'year'
 ];
 
 const allEntityIcons = {
@@ -581,24 +609,6 @@ export default {
                             } else {
                                 toggleFieldFlag(schemeContainer.editorId, item, idx, option.value);
                             }
-                        }
-                    });
-                    controls.push({
-                        name: 'Connect',
-                        type: 'icon',
-                        hPlace: 'middle',
-                        vPlace: 'center',
-                        iconClass: 'fa-regular fa-circle',
-                        style: {
-                            color: 'rgba(200,255,200,0.0)'
-                        },
-                        radius: 5,
-                        position: {
-                            x: 15,
-                            y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
-                        },
-                        click: () => {
-                            EditorEventBus.connectorRequested.$emit(schemeContainer.editorId, item, `f_${field.id}`);
                         }
                     });
                 });

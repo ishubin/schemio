@@ -23,6 +23,7 @@
 
 <script>
 import myMath from '../../../../../myMath';
+import { computeRectPath } from '../../../../../scheme/Item';
 import EditorEventBus from '../../../EditorEventBus';
 import AdvancedFill from '../../AdvancedFill.vue';
 import {computeSvgFill} from '../../AdvancedFill.vue';
@@ -134,6 +135,10 @@ export default {
         computeOutline(item) {
             const y = myMath.clamp(item.shapeProps.size, 0, item.area.h);
             return `M ${item.area.w/2} ${y} L ${item.area.w/2} ${item.area.h} ` + createRoundRectPath(item.area.w, y, item.shapeProps.cornerRadius);
+        },
+
+        computeEditBoxOutline(item) {
+            return computeRectPath(item);
         },
 
         getPins(item) {

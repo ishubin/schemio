@@ -195,6 +195,7 @@ function enrichShape(shapeComponent, shapeName) {
         computePath             : shapeConfig.computePath,
         computePrimitives       : shapeConfig.computePrimitives,
         computeOutline          : shapeConfig.computeOutline || shapeConfig.computePath,
+        computeEditBoxOutline   : shapeConfig.computeEditBoxOutline || shapeConfig.computeOutline || shapeConfig.computePath,
         readjustItem            : shapeConfig.readjustItem,
         getTextSlots            : shapeConfig.getTextSlots || defaultGetTextSlots,
         getEvents               : shapeConfig.getEvents || defaultGetEventsFunc,

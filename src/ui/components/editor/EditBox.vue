@@ -205,6 +205,18 @@
                         </foreignObject>
                     </template>
                 </g>
+
+                <path v-for="customArea in editorCustomAreas"
+                    class="svg-event-layer editor-custom-area"
+                    data-preview-ignore="true"
+                    :style="{cursor: customArea.cursor ? customArea.cursor : item.cursor}"
+                    :d="customArea.path"
+                    data-type="custom-item-area"
+                    :data-item-id="customArea.itemId"
+                    :stroke-width="hoverPathStrokeWidth"
+                    stroke="rgba(255, 255, 255, 0)"
+                    @click="onCustomEditorAreaClick(customArea)"
+                    />
             </g>
         </g>
 
@@ -523,7 +535,7 @@ function computeEditBoxPath(editBox) {
             }
         };
 
-        return shape.computeOutline(item);
+        return shape.computeEditBoxOutline(item);
     }
     return `M 0 0 L ${editBox.area.w} 0  L ${editBox.area.w} ${editBox.area.h} L 0 ${editBox.area.h} Z`;
 }
@@ -582,7 +594,7 @@ export default {
             const item = this.editBox.items[0];
             const shape = Shape.find(item.shape);
 
-            this.configureCustomControls(item, shape ? shape.editorProps : {});
+            this.configureCustomControls(item);
 
             if (item.shape === 'connector' && this.editBox.itemIds.size === 1) {
                 StoreUtils.setSelectedConnector(this.$store, item);
@@ -613,6 +625,7 @@ export default {
 
             template: null,
             customControls: [],
+            editorCustomAreas: [],
             templateControls: [],
             colorControlToggled: false,
             draggingFileOver: false,
@@ -620,6 +633,12 @@ export default {
     },
 
     methods: {
+        onCustomEditorAreaClick(customArea) {
+            if (customArea.click) {
+                customArea.click(this.editorId, this.item);
+            }
+        },
+
         onItemDragEnter(event) {
             if (!this.$store.state.apiClient || !this.$store.state.apiClient.uploadFile || !this.editBox.items || this.editBox.items.length === 0) {
                 return;
@@ -730,23 +749,33 @@ export default {
             }
         },
 
-        configureCustomControls(item, editorProps) {
-            if (!editorProps || !editorProps.editBoxControls) {
+        configureCustomControls(item) {
+            const shape = Shape.find(item.shape);
+            if (!shape || !shape.editorProps) {
                 return;
             }
-
             const customControls = [];
-
-            editorProps.editBoxControls(this.schemeContainer, item).forEach(control => {
-                customControls.push({
-                    radius: 10,
-                    style: {},
-                    ...control,
-                    xAxis: createCustomControlAxis(control.hPlace),
-                    yAxis: createCustomControlAxis(control.vPlace),
+            if (shape.editorProps.editBoxControls) {
+                shape.editorProps.editBoxControls(this.schemeContainer, item).forEach(control => {
+                    customControls.push({
+                        radius: 10,
+                        style: {},
+                        ...control,
+                        xAxis: createCustomControlAxis(control.hPlace),
+                        yAxis: createCustomControlAxis(control.vPlace),
+                    });
                 });
-            });
-
+            }
+            if (shape.editorProps.customAreas) {
+                this.editorCustomAreas = shape.editorProps.customAreas(this.editorId, item).map(area => {
+                    return {
+                        ...area,
+                        itemId: item.id
+                    };
+                });
+            } else {
+                this.editorCustomAreas = [];
+            }
             this.customControls = customControls;
         },
 
@@ -910,7 +939,7 @@ export default {
             if (this.editBox.items.length === 1) {
                 const item = this.editBox.items[0];
                 const shape = Shape.find(item.shape);
-                this.configureCustomControls(item, shape ? shape.editorProps : {});
+                this.configureCustomControls(item);
             }
         }
     },
