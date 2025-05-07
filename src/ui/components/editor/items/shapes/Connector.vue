@@ -264,7 +264,11 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
                 cap = computeCapByPosition(nextPoint.x, nextPoint.y, currentPoint.x, currentPoint.y, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap);
             }
             if (cap) {
-                path += ` L ${cap.entryPoint.x} ${cap.entryPoint.y}`;
+                if (!cap.prolongLine) {
+                    path += ` L ${cap.entryPoint.x} ${cap.entryPoint.y}`;
+                } else {
+                    path += ` L ${nextPoint.x} ${nextPoint.y}`;
+                }
                 caps.push(cap);
             } else {
                 path += ` L ${nextPoint.x} ${nextPoint.y}`;
@@ -397,8 +401,8 @@ function computeSmoothPath(item) {
         let path = '';
 
         if (firstCap && firstCap.prolongLine) {
-            path = `M ${p0.x} ${round(p0.y)} `
-                + `L ${round(p0.x)} ${round(p0.y)} `;
+            const p = item.shapeProps.points[0];
+            path = `M ${p.x} ${round(p.y)} L ${round(p0.x)} ${round(p0.y)} `;
         } else {
             path =  `M ${round(p0.x)} ${round(p0.y)} `;
         }
@@ -758,7 +762,7 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
 
     if (!isSoft) {
         const parentItem = item.meta.parentId ?  schemeContainer.findItemById(item.meta.parentId) : null;
-        if (shouldAreaByAdjusted(item, parentItem)) {
+        if (shouldAreaByAdjusted(item)) {
             readjustItemArea(item, parentItem, precision);
         }
     }
@@ -777,38 +781,8 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     return true;
 }
 
-function shouldAreaByAdjusted(item, parentItem) {
-    if (item.shapeProps.points.length === 0) {
-        return false;
-    }
-
-    const points = item.shapeProps.points;
-    let minX = points[0].x;
-    let minY = points[0].y;
-    let maxX = points[0].x;
-    let maxY = points[0].y;
-    forEach(points, point => {
-        if (minX > point.x) {
-            minX = point.x;
-        }
-        if (minY > point.y) {
-            minY = point.y;
-        }
-        if (maxX < point.x) {
-            maxX = point.x;
-        }
-        if (maxY < point.y) {
-            maxY = point.y;
-        }
-    });
-
-    const dx = maxX - minX;
-    const dy = maxY - minY;
-
-    if (minX < -1 || minY < -1 || Math.abs(dx - item.area.w) > 1 || Math.abs(dy - item.area.h) > 1) {
-        return true;
-    }
-    return false;
+function shouldAreaByAdjusted(item) {
+    return item.shapeProps.points.length > 0;
 }
 
 function readjustItemArea(item, parentItem, precision) {
