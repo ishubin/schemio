@@ -314,6 +314,11 @@ const EditorEventBus = {
             $on: (editorId, callback) => $on(editorId, 'edit-box-fill-disabled', [], callback),
             $off: (editorId, callback) => $off(editorId, 'edit-box-fill-disabled', [], callback),
             $emit: (editorId) => $emit(editorId, 'edit-box-fill-disabled', []),
+        },
+        regenerate: {
+            $on: (editorId, callback) => $on(editorId, 'edit-box-items-regenerate', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'edit-box-items-regenerate', [], callback),
+            $emit: (editorId) => $emit(editorId, 'edit-box-items-regenerate', []),
         }
     },
 

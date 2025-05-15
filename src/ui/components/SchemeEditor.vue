@@ -974,6 +974,7 @@ export default {
         EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
         EditorEventBus.exportSchemeAsPicture.$on(this.editorId, this.onExportSchemeAsPictureRequested);
         EditorEventBus.connectorRequested.$on(this.editorId, this.onConnectorRequested);
+        EditorEventBus.editBox.regenerate.$on(this.editorId, this.regenerateEditBox);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -996,6 +997,7 @@ export default {
         EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
         EditorEventBus.exportSchemeAsPicture.$off(this.editorId, this.onExportSchemeAsPictureRequested);
         EditorEventBus.connectorRequested.$off(this.editorId, this.onConnectorRequested);
+        EditorEventBus.editBox.regenerate.$off(this.editorId, this.regenerateEditBox);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1196,6 +1198,14 @@ export default {
         };
     },
     methods: {
+        regenerateEditBox() {
+            if (!this.schemeContainer) {
+                return;
+            }
+
+            this.schemeContainer.updateEditBox();
+        },
+
         onExternalComponentMouseDown(worldX, worldY, screenX, screenY, event, componentItem) {
             console.log('onExternalComponentMouseDown', worldX, worldY, screenX, screenY, event, componentItem);
         },
@@ -1505,7 +1515,7 @@ export default {
                 if (pin.r && pin.hasOwnProperty('nx') && pin.hasOwnProperty('ny')) {
                     worldPoint = worldPointOnItem(pin.x + pin.r * pin.nx, pin.y + pin.r * pin.ny, sourceItem);
                 } else {
-                    worldPoint = worldPointOnItem(pin.x + r, pin.y, sourceItem);
+                    worldPoint = worldPointOnItem(pin.x, pin.y, sourceItem);
                 }
             } else {
                 const closestPoint = this.schemeContainer.closestPointToItem(sourceItem, worldPoint.x, worldPoint.y);

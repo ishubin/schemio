@@ -36,17 +36,9 @@
                     :stroke-width="`${item.shapeProps.lineSize}px`"
                     />
 
-                <circle r="5"
-                    :cx="15"
-                    :cy="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + fieldHeight / 2"
-                    fill="none"
-                    :stroke="item.shapeProps.strokeColor"
-                    :style="{opacity: 0.3}"
-                    />
-
                 <foreignObject
                     v-if="field.primaryIcon"
-                    :x="25"
+                    :x="10"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="20"
                     :height="fieldHeight"
@@ -61,7 +53,7 @@
                 </foreignObject>
                 <foreignObject
                     v-if="item.meta.activeTextSlot !== `field_${field.id}_name`"
-                    :x="25 + primaryIconOffset"
+                    :x="10 + primaryIconOffset"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="maxFieldWidth"
                     :height="fieldHeight"
@@ -73,7 +65,7 @@
                 </foreignObject>
                 <foreignObject
                     v-if="item.meta.activeTextSlot !== `field_${field.id}_type`"
-                    :x="35 + maxFieldWidth + primaryIconOffset"
+                    :x="20 + maxFieldWidth + primaryIconOffset"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
                     :height="fieldHeight"
@@ -85,7 +77,7 @@
                 </foreignObject>
 
                 <foreignObject
-                    :x="40 + maxFieldWidth"
+                    :x="25 + maxFieldWidth"
                     :y="Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight"
                     :width="Math.max(1, item.area.w - 40 - maxFieldWidth)"
                     :height="fieldHeight"
@@ -259,6 +251,7 @@ function toggleFieldFlag(editorId, item, fieldIdx, flag) {
 
     EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
     EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+    EditorEventBus.editBox.regenerate.$emit(editorId);
 }
 
 
@@ -466,24 +459,24 @@ export default {
                     x: w / 2, y: h,
                     nx: 0, ny: 1
                 },
-                l: {
-                    x: 0, y: h/2,
-                    nx: -1, ny: 0
-                },
-                r: {
-                    x: w, y: h/2,
-                    nx: 1, ny: 0
-                }
             };
             const maxFieldSize = calculateMaxFieldSize(item);
             const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
 
             item.shapeProps.fields.forEach((field, idx) => {
-                pins[`f_${field.id}`] = {
-                    x: 15,
+                // left pin for a field
+                pins[`l_${field.id}`] = {
+                    x: 0,
                     y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                     nx: -1, ny: 0,
-                    r: 5
+                    r: 0
+                };
+                // right pin for a field
+                pins[`r_${field.id}`] = {
+                    x: item.area.w,
+                    y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
+                    nx: 1, ny: 0,
+                    r: 0
                 };
             });
             return pins;
@@ -513,14 +506,21 @@ export default {
                 const fieldHeight = Math.max(5, maxFieldSize.h + item.shapeProps.fieldPadding*2);
                 const layers = [];
                 item.shapeProps.fields.forEach((field, idx) => {
-                    const r = 5;
-                    const x = 15;
+                    const r = 7;
+                    const x = 0;
                     const y = Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight + fieldHeight / 2 - r;
                     layers.push({
                         cursor: 'pointer',
                         path: `M ${x} ${y} A ${r} ${r} 0 1 1 ${x} ${y+2*r} A ${r} ${r} 0 1 1 ${x} ${y}`,
                         click: () => {
-                            EditorEventBus.connectorRequested.$emit(editorId, item, `f_${field.id}`, 0, 0);
+                            EditorEventBus.connectorRequested.$emit(editorId, item, `l_${field.id}`, 0, 0);
+                        }
+                    });
+                    layers.push({
+                        cursor: 'pointer',
+                        path: `M ${item.area.w} ${y} A ${r} ${r} 0 1 1 ${item.area.w} ${y+2*r} A ${r} ${r} 0 1 1 ${item.area.w} ${y}`,
+                        click: () => {
+                            EditorEventBus.connectorRequested.$emit(editorId, item, `r_${field.id}`, 0, 0);
                         }
                     });
                 });
@@ -547,7 +547,7 @@ export default {
                             color: '#d34242'
                         },
                         position: {
-                            x: 25 + maxFieldSize.w + primaryIconOffset,
+                            x: 10 + maxFieldSize.w + primaryIconOffset,
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
@@ -560,7 +560,7 @@ export default {
                         hPlace: 'middle',
                         vPlace: 'center',
                         iconClass: 'fa-solid fa-ellipsis-vertical',
-                        radius: 5,
+                        radius: 10,
                         getOptions() {
                             const options = [];
                             if (idx > 0 && item.shapeProps.fields.length > 1) {
@@ -600,7 +600,7 @@ export default {
                             'border-radius': '10px',
                         },
                         position: {
-                            x: item.area.w - 11,
+                            x: item.area.w - 14,
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: (option) => {
