@@ -242,7 +242,9 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
 
     const applySteps = (steps) => {
         forEach(steps, step => {
-            pathSteps.push(step);
+            if (step.value > 0) {
+                pathSteps.push(step);
+            }
             currentPoint = movePointWithStep(currentPoint.x, currentPoint.y, step.way, step.value);
         });
         currentDirection = steps[steps.length - 1].way;
