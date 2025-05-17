@@ -182,7 +182,7 @@ export default {
             editor: null,
             textSlotTabsDisabled: shape.editorProps && shape.editorProps.textSlotTabsDisabled,
             textSlot: this.item.textSlots[this.slotName],
-            availableTextSlots: map(shape.getTextSlots(this.item), textSlot => textSlot.name),
+            availableTextSlots: map(shape.getTextSlots(this.item).filter(slot => slot.kind !== 'ghost'), textSlot => textSlot.name),
             allFonts: map(getAllFonts(), font => {return {name: font.name, style: {'font-family': font.family}}}),
             supportedWhiteSpaceOptions: textWhiteSpaceOptions,
 
