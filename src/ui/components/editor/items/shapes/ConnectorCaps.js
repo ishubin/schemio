@@ -85,6 +85,22 @@ const allCaps = {
     'line':        standard((x, y, Vx, Vy) => createLineCap(x, y, Vx, Vy, 1)),
     'double-line': standard((x, y, Vx, Vy) => createLineCap(x, y, Vx, Vy, 2)),
     'tripple-line':standard((x, y, Vx, Vy) => createLineCap(x, y, Vx, Vy, 3)),
+
+    'many': hollow((x, y, Vx, Vy) => {
+        const squaredD = Vx * Vx + Vy * Vy;
+        if (squaredD < 0.01) {
+            return null;
+        }
+        const nx = Vy / 2;
+        const ny = -Vx / 2;
+        const cx = x + Vx;
+        const cy = y + Vy;
+        return {
+            path: ` M ${x} ${y} L ${cx} ${cy} M ${x + nx} ${y + ny} L ${cx} ${cy} L ${x - nx} ${y - ny}`,
+            hollow: false,
+            entryPoint: {x: x + Vx, y: y + Vy}
+        };
+    }),
 };
 
 
