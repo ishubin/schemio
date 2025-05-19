@@ -9,41 +9,48 @@
         :style="cssStyle2"
         >
         <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="isRichEditor && !isSimpleText" :style="editorMenuStyle">
-            <editor-menu-bar :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
-                <div class="rich-text-editor-menubar">
-                    <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
-                        <i class="fas fa-bold"></i>
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.italic() }" @click="commands.italic">
-                        <i class="fas fa-italic"></i>
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.strike() }" @click="commands.strike">
-                        <i class="fas fa-strikethrough"></i>
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
-                        <i class="fas fa-underline"></i>
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
-                        <i class="fas fa-code"></i>
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 1 }) }" @click="commands.heading({level: 1})">
-                        H1
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 2 }) }" @click="commands.heading({level: 2})">
-                        H2
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 3 }) }" @click="commands.heading({level: 3})">
-                        H3
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.bullet_list() }" @click="commands.bullet_list">
-                        <i class="fas fa-list-ul"></i>
-                    </span>
-                    <span class="editor-icon" :class="{ 'is-active': isActive.ordered_list() }" @click="commands.ordered_list">
-                        <i class="fas fa-list-ol"></i>
-                    </span>
-                </div>
-            </editor-menu-bar>
+            <RichTextMenuBar :editor="editor" />
         </div>
+        <!-- <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="isRichEditor && !isSimpleText" :style="editorMenuStyle">
+            <div class="rich-text-editor-menubar">
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('bold') }" @click="editor.chain().focus().toggleBold().run()">
+                    <i class="fas fa-bold"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('italic') }" @click="editor.chain().focus().toggleItalic().run()">
+                    <i class="fas fa-italic"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('strike') }" @click="editor.chain().focus().toggleStrike().run()">
+                    <i class="fas fa-strikethrough"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('underline') }" @click="editor.chain().focus().toggleUnderline().run()">
+                    <i class="fas fa-underline"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('code') }" @click="editor.chain().focus().toggleCode().run()">
+                    <i class="fas fa-code"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('heading', {level: 1})}" @click="editor.chain().focus().toggleHeading({level: 1}).run()">
+                    H1
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('heading', {level: 2})}" @click="editor.chain().focus().toggleHeading({level: 2}).run()">
+                    H2
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('heading', {level: 3})}" @click="editor.chain().focus().toggleHeading({level: 3}).run()">
+                    H3
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('bulletList') }" @click="editor.chain().focus().toggleBulletList().run()">
+                    <i class="fas fa-list-ul"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('orderedList') }" @click="editor.chain().focus().toggleOrderedList().run()">
+                    <i class="fas fa-list-ol"></i>
+                </span>
+                <span class="editor-icon" :class="{ 'is-active': editor.isActive('blockquote') }" @click="editor.chain().focus().toggleBlockquote().run()">
+                    <i class="fas fa-quote-left"></i>
+                </span>
+                <span class="editor-icon" @click="toggleEmoticonsPopup">
+                    <i class="fa-solid fa-face-smile"></i>
+                </span>
+            </div>
+        </div> -->
         <textarea v-if="textSlot.display === 'textarea'" ref="textarea"
             class="in-place-text-editor"
             data-type="item-in-place-text-editor"
@@ -91,18 +98,16 @@
 </template>
 
 <script>
-import htmlSanitize from '../../../htmlSanitize';
-import utils from '../../utils';
-import RichTextEditor from '../RichTextEditor.vue';
-import { Keys, identifyKeyPress } from '../../events';
-import { Editor, EditorContent, EditorMenuBar } from 'tiptap';
-import {
-    CodeBlock, HardBreak, Heading, OrderedList, BulletList, ListItem,
-    TodoItem, TodoList, Bold, Code, Italic, Strike, Underline, History
-} from 'tiptap-extensions';
-import EditorEventBus from './EditorEventBus';
-import Dropdown from '../Dropdown.vue';
-
+import htmlSanitize from '../../../../htmlSanitize';
+import utils from '../../../utils';
+import { Keys, identifyKeyPress } from '../../../events';
+import { Editor, EditorContent } from '@tiptap/vue-2';
+import EmoticonTipTapExtension from './IconTipTapExtension';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import EditorEventBus from '../EditorEventBus';
+import Dropdown from '../../Dropdown.vue';
+import RichTextMenuBar from './RichTextMenuBar.vue';
 
 export default {
     props: {
@@ -114,10 +119,9 @@ export default {
         cssStyle       : {type: Object},
         zoom           : {type: Number},
         creatingNewItem: {type: Boolean},
-        scalingVector  : {type: Object},
         mouseDownId    : {type: Number},
     },
-    components: {RichTextEditor, EditorContent, EditorMenuBar, Dropdown},
+    components: {RichTextMenuBar, EditorContent, Dropdown},
 
     beforeMount() {
         document.addEventListener('keydown', this.onKeyDown);
@@ -216,7 +220,6 @@ export default {
         init() {
             if (this.textSlot.display !== 'textarea' && this.textSlot.display !== 'dropdown' & this.textSlot.display !== 'textfield') {
                 this.editor = this.createEditor(this.text);
-                EditorEventBus.inPlaceTextEditor.created.$emit(this.editorId, this.editor);
             }
         },
 
@@ -246,29 +249,18 @@ export default {
                 disablePasteRules: true,
                 disableInputRules: true,
                 extensions: [
-                    new CodeBlock(),
-                    new HardBreak(),
-                    new Heading({ levels: [1, 2, 3] }),
-                    new BulletList(),
-                    new OrderedList(),
-                    new ListItem(),
-                    new TodoItem(),
-                    new TodoList(),
-                    new Bold(),
-                    new Code(),
-                    new Italic(),
-                    new Strike(),
-                    new Underline(),
-                    new History(),
+                    EmoticonTipTapExtension,
+                    StarterKit,
+                    Underline,
                 ],
 
-                autoFocus: true,
-                content: '',
+                autofocus: true,
+                content: text,
                 onUpdate: (event) => {
-                    this.$emit('updated', event.getHTML());
+                    this.$emit('updated', editor.getHTML());
                 }
             });
-            editor.setContent(text, true, {preserveWhitespace: true})
+            // editor.commands.setContent(text, true, {preserveWhitespace: true})
             return editor;
         },
 
@@ -391,7 +383,6 @@ export default {
             return {
                 left: `${this.area.x + 1/this.zoom}px`,
                 top: `${this.area.y + 1/this.zoom}px`,
-                transform: `scale(${this.scalingVector.x}, ${this.scalingVector.y})`
             };
         }
     },

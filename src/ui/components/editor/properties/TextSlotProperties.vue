@@ -3,44 +3,6 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div>
-        <editor-menu-bar v-if="editor" :editor="editor" v-slot="{ commands, isActive, getMarkAttrs }">
-            <div class="rich-text-editor-menubar">
-                <span class="editor-icon" :class="{ 'is-active': isActive.bold() }" @click="commands.bold">
-                    <i class="fas fa-bold"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.italic() }" @click="commands.italic">
-                    <i class="fas fa-italic"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.strike() }" @click="commands.strike">
-                    <i class="fas fa-strikethrough"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.underline() }" @click="commands.underline">
-                    <i class="fas fa-underline"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.code() }" @click="commands.code">
-                    <i class="fas fa-code"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 1 }) }" @click="commands.heading({level: 1})">
-                    H1
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 2 }) }" @click="commands.heading({level: 2})">
-                    H2
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.heading({ level: 3 }) }" @click="commands.heading({level: 3})">
-                    H3
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.bullet_list() }" @click="commands.bullet_list">
-                    <i class="fas fa-list-ul"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.ordered_list() }" @click="commands.ordered_list">
-                    <i class="fas fa-list-ol"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': isActive.blockquote() }" @click="commands.blockquote">
-                    <i class="fas fa-quote-left"></i>
-                </span>
-            </div>
-        </editor-menu-bar>
-
         <div v-if="textSlot">
             <table class="properties-table">
                 <tbody>
@@ -153,7 +115,6 @@
 </template>
 
 <script>
-import { EditorMenuBar } from 'tiptap';
 import {getAllFonts} from '../../../scheme/Fonts';
 import {map} from '../../../collections';
 import Shape from '../../editor/items/shapes/Shape';
@@ -165,21 +126,18 @@ import EditorEventBus from '../EditorEventBus';
 
 export default {
     props: ['item', 'editorId', 'slotName'],
-    components: {EditorMenuBar, Dropdown, NumberTextfield, ColorPicker},
+    components: {Dropdown, NumberTextfield, ColorPicker},
 
     beforeMount() {
-        EditorEventBus.inPlaceTextEditor.created.$on(this.editorId, this.onTextEditorCreated);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
     beforeDestroy() {
-        EditorEventBus.inPlaceTextEditor.created.$off(this.editorId, this.onTextEditorCreated);
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
     },
     data() {
         const shape = Shape.find(this.item.shape);
 
         return {
-            editor: null,
             textSlotTabsDisabled: shape.editorProps && shape.editorProps.textSlotTabsDisabled,
             textSlot: this.item.textSlots[this.slotName],
             availableTextSlots: map(shape.getTextSlots(this.item).filter(slot => slot.kind !== 'ghost'), textSlot => textSlot.name),
@@ -210,9 +168,6 @@ export default {
                 this.textSlot = this.item.textSlots[this.slotName];
                 this.$forceUpdate();
             }
-        },
-        onTextEditorCreated(editor) {
-            this.editor = editor;
         },
         onMoveToSlotClicked(anotherSlotName) {
             this.$emit('moved-to-slot', anotherSlotName);

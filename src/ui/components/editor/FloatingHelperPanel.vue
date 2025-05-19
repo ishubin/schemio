@@ -63,7 +63,7 @@
                     ></vue-tags-input>
 
                 <h5>Description</h5>
-                <rich-text-editor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+                <RichTextEditor :id="`floating-helper-panel-${item.id}`" :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" />
 
                 <LinksPanel :key="`floating-links-panel-${updateKey}`" :editorId="editorId" :item="item"/>
             </modal>
@@ -77,7 +77,7 @@
 
 <script>
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
-import RichTextEditor from '../RichTextEditor.vue';
+import RichTextEditor from './text-editor/RichTextEditor.vue';
 import StrokeControl from './StrokeControl.vue';
 import StylesMiniPalette from './properties/StylesMiniPalette.vue';
 import Modal from '../Modal.vue';

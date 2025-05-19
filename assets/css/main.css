@@ -2619,6 +2619,18 @@ ul.links-editor .edit-link:hover {
     color: var(--base-strong-up);
 }
 
+.rech-text-editor-emoticons-modal {
+    z-index: 500;
+    position: fixed;
+    width: 300px;
+    height: 250px;
+    background: var(--base-weak);
+    color: var(--base-strong-up);
+    border: 1px solid var(--base-strong-up-up-up);
+    padding: 5px;
+    box-shadow: 2px 2px 4px var(--shadow-color);
+}
+
 
 /************ Script editor ***************/
 .script-editor-container {

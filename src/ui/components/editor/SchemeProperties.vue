@@ -17,9 +17,9 @@
                     ></vue-tags-input>
 
                 <h5 class="section">Description</h5>
-                <rich-text-editor :value="schemeContainer.scheme.description"
+                <RichTextEditor :value="schemeContainer.scheme.description"
                     @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
-                    ></rich-text-editor>
+                    />
             </panel>
 
             <panel name="Screen Settings">
@@ -81,7 +81,7 @@
 
 <script>
 import VueTagsInput from '@johmun/vue-tags-input';
-import RichTextEditor from '../RichTextEditor.vue';
+import RichTextEditor from './text-editor/RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
 import {map, indexOf} from '../../collections';

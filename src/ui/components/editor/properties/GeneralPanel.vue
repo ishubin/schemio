@@ -21,7 +21,7 @@
         <div v-if="descriptionType === 'rich'">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <rich-text-editor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" ></rich-text-editor>
+                <RichTextEditor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" />
             </div>
         </div>
     </panel>
@@ -29,7 +29,7 @@
 
 <script>
 import {map} from '../../../collections';
-import RichTextEditor from '../../RichTextEditor.vue';
+import RichTextEditor from '../text-editor/RichTextEditor.vue';
 import Panel from '../Panel.vue';
 import VueTagsInput from '@johmun/vue-tags-input';
 import EditorEventBus from '../EditorEventBus';

@@ -193,16 +193,6 @@ const EditorEventBus = {
         }
     },
 
-    inPlaceTextEditor: {
-        created: {
-            $on: (editorId, callback) => $on(editorId, 'in-place-text-editor-created', [], callback),
-            $off: (editorId, callback) => $off(editorId, 'in-place-text-editor-created', [], callback),
-            $emit: (editorId, editor) => {
-                $emit(editorId, 'in-place-text-editor-created', [], editor);
-            }
-        }
-    },
-
     void: {
         clicked: {
             $on: (editorId, callback) => $on(editorId, 'void-clicked', [], callback),

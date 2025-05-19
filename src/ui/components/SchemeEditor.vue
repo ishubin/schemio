@@ -244,7 +244,6 @@
                     :area="inPlaceTextEditor.area"
                     :textSlot="inPlaceTextEditor.textSlot"
                     :creatingNewItem="inPlaceTextEditor.creatingNewItem"
-                    :scalingVector="inPlaceTextEditor.scalingVector"
                     :zoom="schemeContainer.screenTransform.scale"
                     :mouseDownId="mouseDownId"
                     @close="closeItemTextEditor"
@@ -633,7 +632,7 @@ import Dropdown from './Dropdown.vue';
 import SvgEditor from './editor/SvgEditor.vue';
 import EditBox from './editor/EditBox.vue';
 import PathEditBox from './editor/PathEditBox.vue';
-import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
+import InPlaceTextEditBox from './editor/text-editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer  from '../scheme/SchemeContainer.js';
 import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea } from '../scheme/ItemMath.js';
@@ -1071,7 +1070,6 @@ export default {
                 area: {x: 0, y: 0, w: 100, h: 100},
                 text: '',
                 creatingNewItem: false,
-                scalingVector: {x: 1, y: 1},
                 style: {},
             },
 
@@ -1691,7 +1689,6 @@ export default {
             this.inPlaceTextEditor.area.h = this._z(worldHeight);
             this.inPlaceTextEditor.shown = true;
             this.currentTab = `Text: ${textSlot.name}`;
-            this.inPlaceTextEditor.scalingVector = scalingVector;
             this.updateFloatingHelperPanel();
         },
 

@@ -13,7 +13,7 @@
             />
 
         <h5>Description</h5>
-        <rich-text-editor :value="schemeDescription" @changed="schemeDescription = arguments[0]" ></rich-text-editor>
+        <RichTextEditor :value="schemeDescription" @changed="schemeDescription = arguments[0]" />
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
 
@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import RichTextEditor from './RichTextEditor.vue';
+import RichTextEditor from './editor/text-editor/RichTextEditor.vue';
 import Modal from './Modal.vue';
 
 export default {
