@@ -35,6 +35,12 @@ export function getAllTemplates() {
     return axios.get(`${routePrefix}/assets/templates/index.json`).then(unwrapAxios);
 }
 
+export function getTextIconsIndex() {
+    const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+    return axios.get(`${routePrefix}/assets/text-icons-index.json`).then(unwrapAxios);
+}
+
+
 export function getTemplate(path) {
     return templateCache.get(path, () => axios.get(path).then(unwrapAxios));
 }

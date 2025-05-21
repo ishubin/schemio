@@ -2619,19 +2619,56 @@ ul.links-editor .edit-link:hover {
     color: var(--base-strong-up);
 }
 
-.rech-text-editor-emoticons-modal {
+.rich-text-editor-icons-modal {
     z-index: 500;
     position: fixed;
-    width: 300px;
-    height: 250px;
-    background: var(--base-weak);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 350px;
+    height: 380px;
+    background: var(--faint-weak-up);
     color: var(--base-strong-up);
+    border-radius: 3px;
     border: 1px solid var(--base-strong-up-up-up);
     padding: 5px;
     box-shadow: 2px 2px 4px var(--shadow-color);
 }
+.rich-text-editor-icons-modal .icons-search-keyword {
+    height: 30px;
+    border: 1px solid var(--faint-strong);
+    border-radius: 3px;
+}
+.rich-text-editor-icons-modal .icons-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+}
+.rich-text-editor-icons-modal .icons-container ul.icons {
+    color: var(--base-strong);
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+    grid-auto-rows: 40px;
+    gap: 5px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    box-sizing: border-box;
+}
+.rich-text-editor-icons-modal .icons-container ul.icons li {
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 3px;
+}
 
-
+.rich-text-editor-icons-modal .icons-container ul.icons li:hover {
+    background: var(--faint-weak-down);
+}
 /************ Script editor ***************/
 .script-editor-container {
     position: relative;
