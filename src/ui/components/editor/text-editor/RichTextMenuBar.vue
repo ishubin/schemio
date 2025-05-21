@@ -36,13 +36,13 @@
         <span class="editor-icon" :class="{ 'is-active': editor.isActive('blockquote') }" @click="editor.chain().focus().toggleBlockquote().run()">
             <i class="fas fa-quote-left"></i>
         </span>
-        <span class="editor-icon" @click="toggleIconsPopup">
+        <span class="editor-icon" data-type="icon-modal-toggle-button" @click="toggleIconsPopup">
             <i class="fa-solid fa-face-smile"></i>
         </span>
 
         <slot></slot>
 
-        <div v-if="iconsModalShown" class="rich-text-editor-icons-modal" :style="{top: `${emY}px`, left: `${emX}px`}">
+        <div v-if="iconsModalShown" ref="iconsModal" class="rich-text-editor-icons-modal" :style="{top: `${emY}px`, left: `${emX}px`}">
             <input type="text" class="icons-search-keyword" placeholder="Search..." v-model="iconsSearchQuery" @input="onIconSearchInput"/>
             <div class="icons-container">
                 <Pagination
@@ -53,8 +53,8 @@
                     />
 
                 <ul class="icons">
-                    <li v-for="icon in pageIcons" :title="icon.searchTerms.join(', ')">
-                        <i :class="icon.iconClass" @click="insertIcon(icon.iconClass)"></i>
+                    <li v-for="icon in pageIcons" :title="icon.searchTerms.join(', ')" @click="insertIcon(icon.iconClass)">
+                        <i :class="icon.iconClass"></i>
                     </li>
                 </ul>
             </div>
@@ -94,11 +94,24 @@ export default {
         };
     },
 
+    mounted() {
+        document.body.addEventListener('click', this.onGlobalClick);
+    },
+
     beforeDestroy() {
+        document.body.removeEventListener('click', this.onGlobalClick);
         this.iconFilterDelayer.destroy();
     },
 
     methods: {
+        onGlobalClick(event) {
+            const modalSelector = '.rich-text-editor-menubar .rich-text-editor-icons-modal';
+            const modalToggleButtonSelector = 'span[data-type="icon-modal-toggle-button"]';
+            if (this.iconsModalShown && !(event.target.closest(modalSelector) || event.target.closest(modalToggleButtonSelector))) {
+                this.iconsModalShown = false;
+            }
+        },
+
         filterIcons() {
             this.iconsCurrentPage = 1;
             if (this.iconsSearchQuery) {
@@ -133,6 +146,10 @@ export default {
         },
 
         toggleIconsPopup(event) {
+            if (this.iconsModalShown) {
+                this.iconsModalShown = true;
+                return;
+            }
             this.iconsLoading = true;
             getTextIconsIndex().then(index => {
                 this.iconsLoading = false;
@@ -153,6 +170,13 @@ export default {
             this.emX = box.left;
             this.emY = box.bottom;
             this.iconsModalShown = true;
+            this.$nextTick(() => {
+                const box = this.$refs.iconsModal.getBoundingClientRect();
+                const rightOffset = Math.min(0, window.innerWidth - box.right - 5);
+                const topOffset = Math.min(0, window.innerHeight - box.bottom - 5);
+                this.emX += rightOffset;
+                this.emY += topOffset;
+            });
         },
 
         insertIcon(iconClass) {

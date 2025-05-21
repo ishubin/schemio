@@ -8,49 +8,9 @@
         :data-slot-name="textSlot.name"
         :style="cssStyle2"
         >
-        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="isRichEditor && !isSimpleText" :style="editorMenuStyle">
+        <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="editor && isRichEditor && !isSimpleText" :style="editorMenuStyle">
             <RichTextMenuBar :editor="editor" />
         </div>
-        <!-- <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="isRichEditor && !isSimpleText" :style="editorMenuStyle">
-            <div class="rich-text-editor-menubar">
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('bold') }" @click="editor.chain().focus().toggleBold().run()">
-                    <i class="fas fa-bold"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('italic') }" @click="editor.chain().focus().toggleItalic().run()">
-                    <i class="fas fa-italic"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('strike') }" @click="editor.chain().focus().toggleStrike().run()">
-                    <i class="fas fa-strikethrough"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('underline') }" @click="editor.chain().focus().toggleUnderline().run()">
-                    <i class="fas fa-underline"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('code') }" @click="editor.chain().focus().toggleCode().run()">
-                    <i class="fas fa-code"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('heading', {level: 1})}" @click="editor.chain().focus().toggleHeading({level: 1}).run()">
-                    H1
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('heading', {level: 2})}" @click="editor.chain().focus().toggleHeading({level: 2}).run()">
-                    H2
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('heading', {level: 3})}" @click="editor.chain().focus().toggleHeading({level: 3}).run()">
-                    H3
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('bulletList') }" @click="editor.chain().focus().toggleBulletList().run()">
-                    <i class="fas fa-list-ul"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('orderedList') }" @click="editor.chain().focus().toggleOrderedList().run()">
-                    <i class="fas fa-list-ol"></i>
-                </span>
-                <span class="editor-icon" :class="{ 'is-active': editor.isActive('blockquote') }" @click="editor.chain().focus().toggleBlockquote().run()">
-                    <i class="fas fa-quote-left"></i>
-                </span>
-                <span class="editor-icon" @click="toggleEmoticonsPopup">
-                    <i class="fa-solid fa-face-smile"></i>
-                </span>
-            </div>
-        </div> -->
         <textarea v-if="textSlot.display === 'textarea'" ref="textarea"
             class="in-place-text-editor"
             data-type="item-in-place-text-editor"

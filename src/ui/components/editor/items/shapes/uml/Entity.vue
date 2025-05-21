@@ -407,7 +407,7 @@ export default {
                         halign: 'left',
                     },
                     area: {
-                        x: 25 + primaryIconOffset,
+                        x: 10 + primaryIconOffset,
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight,
                         w: maxFieldWidth,
                         h: fieldHeight
@@ -430,7 +430,7 @@ export default {
                     },
                     suggestions: typeSuggestions,
                     area: {
-                        x: 35 + maxFieldWidth + primaryIconOffset,
+                        x: 20 + maxFieldWidth + primaryIconOffset,
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + idx * fieldHeight,
                         w: Math.max(1, item.area.w - 40 - maxFieldWidth - primaryIconOffset),
                         h: fieldHeight
