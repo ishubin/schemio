@@ -1285,15 +1285,15 @@ ul.pagination li a.current {
     width: 100%;
     height: 100%;
 }
-.svg-editor-plot foreignObject h1,
-.svg-editor-plot foreignObject h2,
-.svg-editor-plot foreignObject h3,
-.svg-editor-plot foreignObject h4,
-.svg-editor-plot foreignObject h4,
-.svg-editor-plot foreignObject h6 {
+svg foreignObject h1,
+svg foreignObject h2,
+svg foreignObject h3,
+svg foreignObject h4,
+svg foreignObject h4,
+svg foreignObject h6 {
     color: unset;
 }
-.svg-editor-plot foreignObject ul {
+svg foreignObject ul {
     margin: 0;
 }
 .svg-editor-plot .grid line {
