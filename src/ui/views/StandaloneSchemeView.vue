@@ -177,33 +177,78 @@ export default {
         },
 
         mouseWheel(x, y, mx, my, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseWheel(x, y, mx, my, event);
+            if (!this.initialized) {
+                return;
             }
+            this.stateInteract.mouseWheel(x, y, mx, my, event);
         },
 
-        mouseDown(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+        mouseDown(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event, componentItem);
         },
 
-        mouseUp(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+        mouseUp(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event, componentItem);
         },
 
-        mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+        mouseMove(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event, componentItem);
         },
 
-        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event, componentItem);
+        },
+
+        /**
+         * @param {*} event
+         * @param {Item} componentItem
+         */
+        identifyComponentObject(event, componentItem) {
+            const elementType = event.srcElement.getAttribute('data-type');
+            const itemId = event.srcElement.getAttribute('data-item-id');
+            if (elementType === 'custom-item-area') {
+                return {
+                    type: elementType,
+                    item: componentItem.meta.componentSchemeContainer.findItemById(itemId),
+                    areaId: event.srcElement.getAttribute('data-custom-area-id'),
+                };
+            }
+            if (itemId) {
+                const item = componentItem.meta.componentSchemeContainer.findItemById(itemId);
+                if (item) {
+                    return {
+                        type: 'item',
+                        item
+                    };
+                }
+            }
+            return {
+                type: 'void'
+            };
         },
 
         onScreenTransformUpdated(screenTransform) {
