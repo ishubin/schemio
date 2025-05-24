@@ -90,12 +90,14 @@ export default {
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+        EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
         this.startStateLoop();
     },
     beforeDestroy() {
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+        EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
         this.animationRegistry.destroy();
         this.stopStateLoop();
     },
@@ -148,6 +150,10 @@ export default {
     },
 
     methods: {
+        onCustomShapeEvent(itemId, eventName, ...args) {
+            this.userEventBus.emitItemEvent(itemId, eventName, ...args);
+        },
+
         onAnyItemChanged(itemId) {
             this.stateInteract.onItemChanged(itemId);
         },
