@@ -36,7 +36,7 @@
                 @screen-transform-updated="onScreenTransformUpdated"
                 />
 
-            <item-tooltip :key="`item-tooltip-${itemTooltip.id}`" v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+            <ItemTooltip :key="`item-tooltip-${itemTooltip.id}`" v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
 
             <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
                 <div class="ssc-side-panel-content">
@@ -63,23 +63,24 @@ import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
 import { filterNonHUDItems } from '../scheme/ItemMath';
 
-
+const ANIMATED = true;
 
 export default {
     props: {
-        scheme          : {type: Object},
-        zoom            : {type: Number, default: 100},
-        autoZoom        : {type: Boolean, default: true},
-        sidePanelWidth  : {type: Number, default: 400},
-        useMouseWheel   : {type: Boolean, default: true},
-        homeLink        : {type: String, default: 'https://github.com/ishubin/schemio'},
-        linkColor       : {type: String, default: '#b0d8f5'},
-        headerBackground: {type: String, default: '#555'},
-        headerColor     : {type: String, default: '#f0f0f0'},
-        headerEnabled   : {type: Boolean, default: true},
-        zoomButton      : {type: Boolean, default: true},
-        zoomInput       : {type: Boolean, default: true},
-        title           : {type: String, default: ''},
+        scheme           : {type: Object},
+        zoom             : {type: Number, default: 100},
+        autoZoom         : {type: Boolean, default: true},
+        sidePanelWidth   : {type: Number, default: 400},
+        useMouseWheel    : {type: Boolean, default: true},
+        homeLink         : {type: String, default: 'https://github.com/ishubin/schemio'},
+        linkColor        : {type: String, default: '#b0d8f5'},
+        headerBackground : {type: String, default: '#555'},
+        headerColor      : {type: String, default: '#f0f0f0'},
+        headerEnabled    : {type: Boolean, default: true},
+        zoomButton       : {type: Boolean, default: true},
+        zoomInput        : {type: Boolean, default: true},
+        title            : {type: String, default: ''},
+        autoZoomUpdateKey: {type: Number, default: 1},
     },
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
@@ -142,10 +143,6 @@ export default {
             },
 
             isStateLooping: false,
-
-            eventListener: {
-                //TODO implement event listener the same way as in SchemeEditor component
-            }
         }
     },
 
@@ -253,6 +250,7 @@ export default {
 
         onScreenTransformUpdated(screenTransform) {
             this.textZoom = '' + Math.round(screenTransform.scale * 10000) / 100;
+            this.$emit('screen-transform-updated', screenTransform);
         },
 
         onInteractVoidClicked() {
@@ -286,15 +284,15 @@ export default {
             this.sidePanel.item = null;
         },
 
-        zoomToScheme() {
-            this.zoomToItems(this.schemeContainer.getItems());
+        zoomToScheme(animated = false) {
+            this.zoomToItems(this.schemeContainer.getItems(), animated);
         },
 
-        zoomToItems(items) {
+        zoomToItems(items, animated = false) {
             if (items && items.length > 0) {
                 const area = this.getBoundingBoxOfItems(items);
                 if (area) {
-                    EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
+                    EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, animated);
                 }
             }
         },
@@ -341,6 +339,19 @@ export default {
         stopStateLoop() {
             this.isStateLooping = false;
         },
+    },
+
+    watch: {
+        zoom(zoom) {
+            if (!this.schemeContainer) {
+                return
+            }
+            this.stateInteract.changeZoomTo(zoom/100);
+        },
+
+        autoZoomUpdateKey() {
+            this.zoomToScheme(ANIMATED);
+        }
     }
 }
 </script>

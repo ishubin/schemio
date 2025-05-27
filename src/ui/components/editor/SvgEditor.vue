@@ -702,9 +702,11 @@ export default {
         },
 
         mouseWheel(event) {
+            event.preventDefault();
             const coords = this.mouseCoordsFromEvent(event);
             const p = this.toLocalPoint(coords.x, coords.y);
             this.$emit('mouse-wheel', p.x, p.y, coords.x, coords.y, event);
+            return false;
         },
 
         touchStart(event) {
