@@ -290,7 +290,7 @@ export default {
         },
 
         zoomToScheme(animated = false) {
-            const area = calculateZoomingAreaForItems(this.schemeContainer.getItems());
+            const area = calculateZoomingAreaForItems(collectOnlyVisibleNonHUDItems(this.schemeContainer.scheme.items));
             if (area) {
                 EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, animated);
             }
