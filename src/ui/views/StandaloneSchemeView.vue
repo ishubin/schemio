@@ -61,7 +61,7 @@ import { StateInteract } from '../components/editor/states/interact/StateInterac
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
-import { filterNonHUDItems } from '../scheme/ItemMath';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, filterNonHUDItems } from '../scheme/ItemMath';
 
 const ANIMATED = true;
 
@@ -168,7 +168,12 @@ export default {
                 this.stateInteract.reset();
                 this.initialized = true;
                 if (this.autoZoom) {
-                    this.zoomToScheme();
+                    const area = calculateZoomingAreaForItems(this.schemeContainer.getItems());
+                    const transform = calculateScreenTransformForArea(area, window.innerWidth, window.innerHeight - 20);
+                    this.schemeContainer.screenTransform.scale = transform.scale;
+                    this.schemeContainer.screenTransform.x = transform.x;
+                    this.schemeContainer.screenTransform.y = transform.y;
+                    this.$emit('screen-transform-updated', this.schemeContainer.screenTransform);
                 }
             });
         },
@@ -285,15 +290,9 @@ export default {
         },
 
         zoomToScheme(animated = false) {
-            this.zoomToItems(this.schemeContainer.getItems(), animated);
-        },
-
-        zoomToItems(items, animated = false) {
-            if (items && items.length > 0) {
-                const area = this.getBoundingBoxOfItems(items);
-                if (area) {
-                    EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, animated);
-                }
+            const area = calculateZoomingAreaForItems(this.schemeContainer.getItems());
+            if (area) {
+                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, animated);
             }
         },
 
