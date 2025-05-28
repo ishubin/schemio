@@ -647,7 +647,7 @@ import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer  from '../scheme/SchemeContainer.js';
-import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea } from '../scheme/ItemMath.js';
+import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea, collectOnlyVisibleNonHUDItems } from '../scheme/ItemMath.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import ItemProperties from './editor/properties/ItemProperties.vue';
 import TemplateProperties from './editor/properties/TemplateProperties.vue';
@@ -1728,7 +1728,7 @@ export default {
                     this.zoomToItems(this.schemeContainer.getItems());
                 }
             } else if (this.mode === 'view') {
-                this.zoomToItems(this.interactiveSchemeContainer.getItems());
+                this.zoomToItems(collectOnlyVisibleNonHUDItems(this.interactiveSchemeContainer.scheme.items));
             }
         },
 
