@@ -205,7 +205,7 @@ export function diagramImageExporter(items, area) {
             }
 
             return rasterizeAllImagesToDataURL(svg)
-            .then(() => insertCustomFonts(svg))
+            .then(() => insertCustomFonts(svg, options.format !== 'svg'))
             .then(() => {
                 const svgCode = new XMLSerializer().serializeToString(svg);
                 if (options.format === 'png') {
@@ -280,7 +280,12 @@ function collectAllUsedFonts(node, fonts) {
     return fonts;
 }
 
-function insertCustomFonts(svg) {
+/**
+ * @param {SVGAElement} svg
+ * @param {Boolean} includeFontAwesome
+ * @returns {Promise}
+ */
+function insertCustomFonts(svg, includeFontAwesome = false) {
     const allFonts = collectAllUsedFonts(svg);
 
     const fontPromises = [];
@@ -301,6 +306,13 @@ function insertCustomFonts(svg) {
         fontPromises.push(axios.get('/assets/katex/katex.css'));
     }
     fontPromises.push(axios.get('/assets/css/syntax-highlight.css'));
+
+    // The entire fontawesome css takes almost 3 MB, so it only makes sense to include it when exporting PNG
+    // since it will not effect the size of the resulting PNG file. Unfortunately this would mean that
+    // fontawesome icons would not be exported in SVG
+    if (includeFontAwesome) {
+        fontPromises.push(axios.get('/assets/css/all.min.embedded.css'));
+    }
 
     return Promise.all(fontPromises)
     .then(fontResponses => {

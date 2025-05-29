@@ -3,6 +3,7 @@
 import re
 import json
 import base64
+import sys
 
 __field_def_pattern__ = r'^([a-z-]+):\s*(.*);$'
 
@@ -43,7 +44,35 @@ def extract_font_name(font_family):
     return re.sub('[\'\"]', '', font_family['font-family'])
 
 
+
+def convert_font_awesome_src(src_text):
+    url_part = src_text.split(",")[1]
+    return convert_font_url('assets/css/', url_part)
+
+
+def process_fontawesome_styling():
+    text = ''.join(read_file('assets/css/all.min.css'))
+
+    idx = text.find('src:')
+    with open('assets/css/all.min.embedded.css', 'w+') as f:
+        while idx >= 0:
+            f.write(text[0:idx])
+            text = text[idx+4:]
+
+            match = re.search(r"[;}]", text)
+            src_text_idx = match.start()
+            src_text = text[0:src_text_idx]
+            text = text[src_text_idx:]
+            f.write('src:')
+            f.write(convert_font_awesome_src(src_text))
+            idx = text.find('src:')
+        f.write(text)
+
+
 if __name__ == '__main__':
+    process_fontawesome_styling()
+    sys.exit(0)
+
     font_files = [
         'assets/custom-fonts/fonts.css',
         'assets/katex/katex.css'
