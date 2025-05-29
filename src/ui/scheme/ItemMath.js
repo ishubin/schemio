@@ -2,16 +2,41 @@ import { filter, forEach } from "../collections";
 import Shape from "../components/editor/items/shapes/Shape";
 import { Logger } from "../logger";
 import myMath from "../myMath";
+import { traverseItemsConditionally } from "./Item";
 
 
 const log = new Logger('ItemMath');
 
 /**
- * @param {Array<Item>} items
+ * @param {Array<Item>} items - flatten item arrray
  * @returns {Array<Item>}
  */
 export function filterNonHUDItems(items) {
     return filter(items, item => item.shape !== 'hud' && !item.meta.isInHUD);
+}
+
+
+/**
+ * Traverses items hierarchically and collects a flatten item array with items that are visible and not in HUD
+ * This is supposed to be used for improved auto-zoom experience
+ * @param {Array<Item>} items - non-flatten item array
+ * @returns {Array<Item>}
+ */
+export function collectOnlyVisibleNonHUDItems(items) {
+    const filteredItems = [];
+    traverseItemsConditionally(items, item => {
+        if (item.shape === 'hud') {
+            return false
+        }
+        if (item.visible === false || item.opacity < 0.0001) {
+            return false;
+        }
+
+        filteredItems.push(item);
+        return true;
+    });
+
+    return filteredItems;
 }
 
 export function calculateZoomingAreaForItems(items, mode) {

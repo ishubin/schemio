@@ -36,7 +36,7 @@
                 @screen-transform-updated="onScreenTransformUpdated"
                 />
 
-            <item-tooltip :key="`item-tooltip-${itemTooltip.id}`" v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
+            <ItemTooltip :key="`item-tooltip-${itemTooltip.id}`" v-if="itemTooltip.shown" :item="itemTooltip.item" :x="itemTooltip.x" :y="itemTooltip.y" @close="itemTooltip.shown = false"/>
 
             <div class="ssc-side-panel-right" v-if="sidePanel.item" :style="{width: `${sidePanelWidth}px`}">
                 <div class="ssc-side-panel-content">
@@ -61,25 +61,26 @@ import { StateInteract } from '../components/editor/states/interact/StateInterac
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
-import { filterNonHUDItems } from '../scheme/ItemMath';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, collectOnlyVisibleNonHUDItems, filterNonHUDItems } from '../scheme/ItemMath';
 
-
+const ANIMATED = true;
 
 export default {
     props: {
-        scheme          : {type: Object},
-        zoom            : {type: Number, default: 100},
-        autoZoom        : {type: Boolean, default: true},
-        sidePanelWidth  : {type: Number, default: 400},
-        useMouseWheel   : {type: Boolean, default: true},
-        homeLink        : {type: String, default: 'https://github.com/ishubin/schemio'},
-        linkColor       : {type: String, default: '#b0d8f5'},
-        headerBackground: {type: String, default: '#555'},
-        headerColor     : {type: String, default: '#f0f0f0'},
-        headerEnabled   : {type: Boolean, default: true},
-        zoomButton      : {type: Boolean, default: true},
-        zoomInput       : {type: Boolean, default: true},
-        title           : {type: String, default: ''},
+        scheme           : {type: Object},
+        zoom             : {type: Number, default: 100},
+        autoZoom         : {type: Boolean, default: true},
+        sidePanelWidth   : {type: Number, default: 400},
+        useMouseWheel    : {type: Boolean, default: true},
+        homeLink         : {type: String, default: 'https://github.com/ishubin/schemio'},
+        linkColor        : {type: String, default: '#b0d8f5'},
+        headerBackground : {type: String, default: '#555'},
+        headerColor      : {type: String, default: '#f0f0f0'},
+        headerEnabled    : {type: Boolean, default: true},
+        zoomButton       : {type: Boolean, default: true},
+        zoomInput        : {type: Boolean, default: true},
+        title            : {type: String, default: ''},
+        autoZoomUpdateKey: {type: Number, default: 1},
     },
 
     components: {SvgEditor, ItemTooltip, ItemDetails},
@@ -90,12 +91,14 @@ export default {
         EditorEventBus.screenTransformUpdated.$on(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.item.changed.any.$on(this.editorId, this.onAnyItemChanged);
         EditorEventBus.void.clicked.$on(this.editorId, this.onVoidClicked);
+        EditorEventBus.item.userEvent.$on(this.editorId, this.onCustomShapeEvent);
         this.startStateLoop();
     },
     beforeDestroy() {
         EditorEventBus.screenTransformUpdated.$off(this.editorId, this.onScreenTransformUpdated);
         EditorEventBus.item.changed.any.$off(this.editorId, this.onAnyItemChanged);
         EditorEventBus.void.clicked.$off(this.editorId, this.onVoidClicked);
+        EditorEventBus.item.userEvent.$off(this.editorId, this.onCustomShapeEvent);
         this.animationRegistry.destroy();
         this.stopStateLoop();
     },
@@ -140,14 +143,14 @@ export default {
             },
 
             isStateLooping: false,
-
-            eventListener: {
-                //TODO implement event listener the same way as in SchemeEditor component
-            }
         }
     },
 
     methods: {
+        onCustomShapeEvent(itemId, eventName, ...args) {
+            this.userEventBus.emitItemEvent(itemId, eventName, ...args);
+        },
+
         onAnyItemChanged(itemId) {
             this.stateInteract.onItemChanged(itemId);
         },
@@ -160,48 +163,99 @@ export default {
             .then(() => {
                 this.schemeContainer = new SchemeContainer(this.scheme, this.editorId, 'view', this.$store.state.apiClient);
                 this.stateInteract.setSchemeContainer(this.schemeContainer);
-                const boundingBox = this.schemeContainer.getBoundingBoxOfItems(filterNonHUDItems(this.schemeContainer.getItems()));
+                const boundingBox = this.schemeContainer.getBoundingBoxOfItems(collectOnlyVisibleNonHUDItems(this.schemeContainer.scheme.items));
                 this.schemeContainer.screenSettings.boundingBox = boundingBox;
                 this.stateInteract.reset();
                 this.initialized = true;
                 if (this.autoZoom) {
-                    this.zoomToScheme();
+                    const area = calculateZoomingAreaForItems(this.schemeContainer.getItems());
+                    const transform = calculateScreenTransformForArea(area, window.innerWidth, window.innerHeight - 20);
+                    this.schemeContainer.screenTransform.scale = transform.scale;
+                    this.schemeContainer.screenTransform.x = transform.x;
+                    this.schemeContainer.screenTransform.y = transform.y;
+                    this.$emit('screen-transform-updated', this.schemeContainer.screenTransform);
                 }
             });
         },
 
         mouseWheel(x, y, mx, my, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseWheel(x, y, mx, my, event);
+            if (!this.initialized) {
+                return;
             }
+            this.stateInteract.mouseWheel(x, y, mx, my, event);
         },
 
-        mouseDown(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event);
+        mouseDown(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseDown(worldX, worldY, screenX, screenY, object, event, componentItem);
         },
 
-        mouseUp(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event);
+        mouseUp(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseUp(worldX, worldY, screenX, screenY, object, event, componentItem);
         },
 
-        mouseMove(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event);
+        mouseMove(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseMove(worldX, worldY, screenX, screenY, object, event, componentItem);
         },
 
-        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event) {
-            if (this.initialized) {
-                this.stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event);
+        mouseDoubleClick(worldX, worldY, screenX, screenY, object, event, componentItem) {
+            if (!this.initialized) {
+                return;
             }
+            if (componentItem && !object) {
+                object = this.identifyComponentObject(event, componentItem);
+            }
+            this.stateInteract.mouseDoubleClick(worldX, worldY, screenX, screenY, object, event, componentItem);
+        },
+
+        /**
+         * @param {*} event
+         * @param {Item} componentItem
+         */
+        identifyComponentObject(event, componentItem) {
+            const elementType = event.srcElement.getAttribute('data-type');
+            const itemId = event.srcElement.getAttribute('data-item-id');
+            if (elementType === 'custom-item-area') {
+                return {
+                    type: elementType,
+                    item: componentItem.meta.componentSchemeContainer.findItemById(itemId),
+                    areaId: event.srcElement.getAttribute('data-custom-area-id'),
+                };
+            }
+            if (itemId) {
+                const item = componentItem.meta.componentSchemeContainer.findItemById(itemId);
+                if (item) {
+                    return {
+                        type: 'item',
+                        item
+                    };
+                }
+            }
+            return {
+                type: 'void'
+            };
         },
 
         onScreenTransformUpdated(screenTransform) {
             this.textZoom = '' + Math.round(screenTransform.scale * 10000) / 100;
+            this.$emit('screen-transform-updated', screenTransform);
         },
 
         onInteractVoidClicked() {
@@ -235,16 +289,10 @@ export default {
             this.sidePanel.item = null;
         },
 
-        zoomToScheme() {
-            this.zoomToItems(this.schemeContainer.getItems());
-        },
-
-        zoomToItems(items) {
-            if (items && items.length > 0) {
-                const area = this.getBoundingBoxOfItems(items);
-                if (area) {
-                    EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, false);
-                }
+        zoomToScheme(animated = false) {
+            const area = calculateZoomingAreaForItems(collectOnlyVisibleNonHUDItems(this.schemeContainer.scheme.items));
+            if (area) {
+                EditorEventBus.zoomToAreaRequested.$emit(this.editorId, area, animated);
             }
         },
 
@@ -290,6 +338,19 @@ export default {
         stopStateLoop() {
             this.isStateLooping = false;
         },
+    },
+
+    watch: {
+        zoom(zoom) {
+            if (!this.schemeContainer) {
+                return
+            }
+            this.stateInteract.changeZoomTo(zoom/100);
+        },
+
+        autoZoomUpdateKey() {
+            this.zoomToScheme(ANIMATED);
+        }
     }
 }
 </script>

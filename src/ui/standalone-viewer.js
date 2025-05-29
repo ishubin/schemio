@@ -21,8 +21,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         store.dispatch('setApiClient', options.apiClient);
     }
     store.dispatch('setAssetsPath', options.assetsPath || '/');
-
-    new Vue({
+    const app = new Vue({
         components: {StandaloneSchemeView},
         store,
         data() {
@@ -40,12 +39,42 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
                 zoomButton      : objProperty(options, 'zoomButton', true),
                 zoomInput       : objProperty(options, 'zoomInput', true),
                 title           : objProperty(options, 'title', ''),
+                autoZoomUpdateKey : 1,
             };
         },
-        template: '<standalone-scheme-view :scheme="scheme" :zoom="zoom" :auto-zoom="autoZoom"'
-            +' :link-color="linkColor" :header-background="headerBackground" :headerColor="headerColor" :header-enabled="headerEnabled"'
-            +' :zoom-button="zoomButton" :zoom-input="zoomInput"'
-            +' :home-link="homeLink" :side-panel-width="sidePanelWidth" :use-mouse-wheel="useMouseWheel" :title="title"/>'
+        methods: {
+            onScreenTransformUpdated(screenTransform) {
+                if (options.events && options.events.onScreenTransformUpdated) {
+                    options.events.onScreenTransformUpdated(screenTransform);
+                }
+            }
+        },
+        template: `
+            <standalone-scheme-view :scheme="scheme" :zoom="zoom" :auto-zoom="autoZoom"
+            :link-color="linkColor"
+            :header-background="headerBackground"
+            :headerColor="headerColor"
+            :header-enabled="headerEnabled"
+            :zoom-button="zoomButton"
+            :zoom-input="zoomInput"
+            :home-link="homeLink"
+            :side-panel-width="sidePanelWidth"
+            :use-mouse-wheel="useMouseWheel"
+            :title="title"
+            :auto-zoom-update-key="autoZoomUpdateKey"
+            @screen-transform-updated="onScreenTransformUpdated"
+            />
+        `
     }).$mount(elementOrSelector);
+
+    return {
+        setZoom(zoom) {
+            app.$data.zoom = zoom;
+        },
+
+        autoZoom() {
+            app.$data.autoZoomUpdateKey = app.$data.autoZoomUpdateKey + 1;
+        }
+    }
 }
 

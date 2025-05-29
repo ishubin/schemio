@@ -185,7 +185,7 @@
                     v-if="componentItem.visible && componentItem.shape !== 'hud'"
                     :class="'item-cursor-' + componentItem.cursor">
                     <ItemSvg
-                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}`"
                         :item="componentItem"
                         :editorId="editorId"
                         :mode="mode"

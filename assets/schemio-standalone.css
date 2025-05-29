@@ -76,7 +76,6 @@ html, body, .ssc-container, #svg-editor, .ssc-body {
     margin-top: 0;
 }
 .ssc-container svg foreignObject .item-text-container p {
-    min-height: 18px;
     margin-top: 0;
     margin-bottom: 0;
     padding: 0;
