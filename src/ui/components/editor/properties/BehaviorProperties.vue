@@ -507,6 +507,7 @@ export default {
                 this.eventMetas[dstIndex] = temp;
 
                 this.$forceUpdate();
+                this.emitChangeCommited();
             });
         },
 
