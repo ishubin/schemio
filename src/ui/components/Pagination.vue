@@ -121,6 +121,12 @@ export default {
 
             return pages;
         }
+    },
+
+    watch: {
+        currentPage(currentPage) {
+            this.pages = this.buildPages(currentPage, this.totalPages);
+        }
     }
 }
 </script>

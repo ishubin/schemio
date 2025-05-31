@@ -66,7 +66,7 @@ export default {
             onUpdate: ({ editor }) => {
                 const content = editor.getHTML();
                 this.$emit('changed', content);
-                this.editorLarge.commands.setContent(content, false);
+                this.editorLarge.commands.setContent(content, false, {preserveWhitespace: true});
             },
             onFocus: () => {
                 this.focused = true;
@@ -92,7 +92,7 @@ export default {
             onUpdate: ({ editor }) => {
                 const content = editor.getHTML();
                 this.$emit('changed', content);
-                this.editor.commands.setContent(content, false);
+                this.editor.commands.setContent(content, false, {preserveWhitespace: true});
             }
         });
     },
@@ -155,8 +155,8 @@ export default {
         // In such cases we should reset the text in the text area.
         // Otherwise it will not get updated
         id(val) {
-            this.editor.commands.setContent(conteithis.value);
-            this.editorLarge.commands.setContent(conteithis.value);
+            this.editor.commands.setContent(this.value, false, {preserveWhitespace: true});
+            this.editorLarge.commands.setContent(this.value, false, {preserveWhitespace: true});
         }
     }
 }

@@ -220,7 +220,6 @@ export default {
                     this.$emit('updated', editor.getHTML());
                 }
             });
-            // editor.commands.setContent(text, true, {preserveWhitespace: true})
             return editor;
         },
 
@@ -303,6 +302,8 @@ export default {
                 const html = this.editor.getHTML();
                 const el = document.createElement('div');
                 el.innerHTML = htmlSanitize(html);
+
+
                 const text = el.innerText.trim();
 
                 if (text) {
@@ -311,11 +312,16 @@ export default {
                         if (name.length > 20) {
                             name = name.substring(0, 20);
                         }
-                        this.$emit('item-renamed', this.item, name);
+                        if (name.length > 0) {
+                            this.$emit('item-renamed', this.item, name);
+                        }
                     }
                     this.$emit('item-area-changed', this.item, (rect.width + 2)/this.zoom, (rect.height + 2)/this.zoom);
                 } else {
-                    this.$emit('item-text-cleared', this.item);
+                    // checking if perhaps it only has icons
+                    if (el.querySelectorAll('span.icon').length === 0) {
+                        this.$emit('item-text-cleared', this.item);
+                    }
                 }
             }
             this.$emit('close');

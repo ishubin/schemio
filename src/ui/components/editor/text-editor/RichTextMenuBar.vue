@@ -46,7 +46,7 @@
             <input type="text" class="icons-search-keyword" placeholder="Search..." v-model="iconsSearchQuery" @input="onIconSearchInput"/>
             <div class="icons-container">
                 <Pagination
-                    :key="`icons-pagination-${iconsCurrentPage}-${iconsPages}`"
+                    :key="`icons-pagination-${iconsPages}`"
                     :currentPage="iconsCurrentPage"
                     :totalPages="iconsPages"
                     @page-clicked="onIconsPage"
@@ -65,6 +65,7 @@
 <script>
 import { getTextIconsIndex } from '../../../app/client/clientCommons';
 import { createDelayer } from '../../../delayer';
+import utils from '../../../utils';
 import Pagination from '../../Pagination.vue';
 
 export default {
@@ -105,8 +106,17 @@ export default {
 
     methods: {
         onGlobalClick(event) {
-            const modalSelector = '.rich-text-editor-menubar .rich-text-editor-icons-modal';
+            if (!event.target.closest('body')) {
+                // this happens due to a race condition between the events triggered by clicking pagination link
+                // and a global click handler.
+                // when user clicks pagination links - it updates the dom of pagination links
+                // and the original link is no longer attached to dom. Therefore it is not possible to check if the
+                // event.target is inside of the modal
+                return;
+            }
+            const modalSelector = '.rich-text-editor-icons-modal';
             const modalToggleButtonSelector = 'span[data-type="icon-modal-toggle-button"]';
+
             if (this.iconsModalShown && !(event.target.closest(modalSelector) || event.target.closest(modalToggleButtonSelector))) {
                 this.iconsModalShown = false;
             }
@@ -180,7 +190,7 @@ export default {
         },
 
         insertIcon(iconClass) {
-            this.editor.commands.insertContent({type: 'icon', attrs: {class: iconClass}});
+            this.editor.commands.insertContent({type: 'icon', attrs: {class: `icon icon-fa ${iconClass}`}});
             this.iconsModalShown = false;
         },
 
