@@ -238,10 +238,16 @@ class DragControlPointState extends SubState {
                 this.handleConnectorEdgeControlPointDrag(x, y, this.controlPoint);
                 this.schemeContainer.updateItemClones(this.item);
             } else {
+                const newOffset = this.snapPoints({
+                    vertical: [{x, y}],
+                    horizontal: [{x, y}],
+                }, new Set(), 0, 0);
+
                 const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.item);
-                const localPoint2 = this.schemeContainer.localPointOnItem(x, y, this.item);
-                const dx          = localPoint2.x - localPoint.x;
-                const dy          = localPoint2.y - localPoint.y;
+                const localPoint2 = this.schemeContainer.localPointOnItem(x + newOffset.dx, y + newOffset.dy, this.item);
+
+                const dx = localPoint2.x - localPoint.x;
+                const dy = localPoint2.y - localPoint.y;
 
                 const shape = Shape.find(this.item.shape);
 
