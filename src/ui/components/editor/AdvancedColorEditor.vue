@@ -9,7 +9,7 @@
         <div v-if="color.type === 'image'" class="image-container" @click="showModal()"><img :src="color.image"/></div>
         <div v-if="color.type === 'gradient'" class="gradient-container" @click="showModal()" :style="{'background': gradientPreview}"></div>
 
-        <Modal class="advanced-color-editor-modal" title="Color" v-if="modal.shown" @close="closeModal" :width="400" :use-mask="false">
+        <modal title="Color" v-if="modal.shown" @close="modal.shown = false" :width="400" :use-mask="false">
             <ul class="tabs">
                 <li v-for="colorType in colorTypes">
                     <span class="tab"
@@ -27,8 +27,8 @@
                         This setting disables the fill
                     </p>
                 </div>
-                <div v-if="color.type === 'solid'">
-                    <ColorPicker v-model="modal.pickerColor" @input="updateSolidColor" :palette="[]" :pressets="[]"/>
+                <div v-if="color.type === 'solid'" class="raw-color-picker-container">
+                    <RawColorPicker :color="solidColor" @color-changed="updateSolidColor"/>
                 </div>
 
                 <div v-if="color.type === 'image'">
@@ -60,7 +60,7 @@
                             <div class="gradient-slider-knob"
                                 :style="{'background': slider.c}"
                                 :class="{'selected': sliderIdx === gradient.selectedSliderIdx}"
-                                @mousedown="onGradientSliderKnobClick(sliderIdx, arguments[0])"
+                                @mousedown="onGradientSliderKnobClick(sliderIdx, $event)"
                                 @dblclick="onGradientSliderKnobDblClick(sliderIdx)"
                                 ></div>
                         </div>
@@ -76,45 +76,30 @@
                         </div>
                         <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
                             <div class="ctrl-label">Direction</div>
-                            <NumberTextfield :value="color.gradient.direction" @changed="updateRotation"/>
-
-                            <div class="gradient-rotation-knob-container">
-                                <div class="gradient-rotation-knob" @mousedown="onGradientRotationKnobMouseDown">
-                                    <svg ref="gradientRotationKnob" viewBox="0 0 24 24" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-                                        <g :transform="`translate(12 12) rotate(${color.gradient.direction})`">
-                                            <circle class="hollow" cx="0" cy="0" r="9" fill="rgba(0,0,0,0)"/>
-                                            <circle class="full" cx="0" cy="-9" r="2" stroke="none"/>
-                                            <circle class="center" cx="0" cy="0" r="0.5" stroke="none"/>
-                                            <line x1="0" y1="0" x2="0" y2="-9"/>
-                                        </g>
-                                    </svg>
-                                </div>
-                            </div>
+                            <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = $event; emitChange()"/>
                         </div>
                         <div class="ctrl-group">
                             <span class="btn btn-secondary" @click="invertGradient">Invert</span>
                         </div>
                     </div>
                     <div class="gradient-color-picker">
-                        <ColorPicker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :value="gradient.selectedColor" @input="updateGradientSliderColor"/>
+                        <RawColorPicker :key="`gradient-${id}-${gradient.selectedSliderIdx}-${revision}`" :color="gradientSelectedColor" @color-changed="onGradientColorChanged"/>
                     </div>
                 </div>
             </div>
-        </Modal>
+        </modal>
     </div>
 </template>
 
 <script>
 import shortid from 'shortid';
-import VueColor from 'vue-color';
+import RawColorPicker from './RawColorPicker.vue';
 import Modal from '../Modal.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import {parseColor, encodeColor} from '../../colors';
 import utils from '../../utils';
 import StoreUtils from '../../store/StoreUtils';
 import myMath from '../../myMath';
-import { getPageCoordsFromEvent } from '../../dragndrop';
-import EditorEventBus from './EditorEventBus';
 
 
 /**
@@ -148,7 +133,7 @@ export default {
         disabled : {type: Boolean, default : false},
     },
 
-    components: {'ColorPicker': VueColor.Chrome, Modal, NumberTextfield},
+    components: {RawColorPicker, Modal, NumberTextfield},
 
     beforeMount() {
         this.updateCurrentColor(this.value);
@@ -160,7 +145,6 @@ export default {
     beforeDestroy() {
         document.body.removeEventListener('mousemove', this.onMouseMove);
         document.body.addEventListener('mouseup', this.onMouseUp);
-        EditorEventBus.colorControlToggled.$emit(this.editorId, false);
     },
 
     data() {
@@ -171,19 +155,20 @@ export default {
             revision: 0,
             colorTypes: ['none', 'solid', 'image', 'gradient'],
             color: utils.clone(this.value),
+
+            solidColor: this.value.color || '#ffffff',
             modal: {
                 shown: false,
-                pickerColor: {hex: this.value.color || '#fff'},
-
                 image: {
                     path: this.value.image || ''
                 }
             },
 
+            gradientSelectedColor: '#ffffff',
+
             gradient: {
                 selectedSliderIdx: 0,
                 isDragging: false,
-                selectedColor: {hex: '#fff'},
                 originalClickPoint: {x: 0},
                 originalKnobPosition: 0
             },
@@ -198,53 +183,18 @@ export default {
     watch: {
         value(color) {
             this.updateCurrentColor(color);
-        }
+        },
+
+        gradientSelectedColor(color) {
+            this.color.gradient.colors[this.gradient.selectedSliderIdx].c = color;
+            this.gradientPreview = this.computeGradientPreview(this.color.gradient);
+            this.emitChange();
+        },
     },
 
     methods: {
-        closeModal() {
-            this.modal.shown = false;
-            EditorEventBus.colorControlToggled.$emit(this.editorId, false);
-        },
-        updateRotation(rotation) {
-            this.color.gradient.direction = rotation;
-            this.$forceUpdate();
-            this.emitChange();
-        },
-        onGradientRotationKnobMouseDown(originalEvent) {
-            let mouseMoveEventName = originalEvent.touches ? 'touchmove' : 'mousemove';
-            let mouseUpEventName = originalEvent.touches ? 'touchend' : 'mouseup';
-
-            const onMouseMove = (event) => {
-                if (event.buttons === 0) {
-                    reset(event);
-                    return;
-                }
-                const rect = this.$refs.gradientRotationKnob.getBoundingClientRect();
-                const coords = getPageCoordsFromEvent(event);
-                const x = coords.pageX - rect.left - rect.width/2;
-                const y = coords.pageY - rect.top - rect.height/2;
-                if (Math.abs(x) + Math.abs(y) < 1) {
-                    return;
-                }
-
-                this.color.gradient.direction = Math.round(myMath.fullAngleForVector(x, y) * 180 / Math.PI) + 90;
-                this.$forceUpdate();
-                this.emitChange();
-            };
-            const onMouseUp = (event) => {
-                reset();
-                onMouseMove(event);
-            };
-
-            const reset = () => {
-                document.removeEventListener(mouseMoveEventName, onMouseMove);
-                document.removeEventListener(mouseUpEventName, onMouseUp);
-            };
-            document.addEventListener(mouseMoveEventName, onMouseMove);
-            document.addEventListener(mouseUpEventName, onMouseUp);
-
-            onMouseMove(originalEvent);
+        onGradientColorChanged(color) {
+            this.gradientSelectedColor = color;
         },
 
         showModal() {
@@ -253,16 +203,15 @@ export default {
             }
 
             this.modal.shown = true;
-            EditorEventBus.colorControlToggled.$emit(this.editorId, true);
         },
 
         updateCurrentColor(color) {
             if (color.type === 'gradient') {
-                this.gradient.selectedColor.hex = color.gradient.colors[this.gradient.selectedSliderIdx].c;
+                this.gradientSelectedColor = color.gradient.colors[this.gradient.selectedSliderIdx].c;
                 this.gradientPreview = this.computeGradientPreview(color.gradient);
             }
             this.color = utils.clone(color);
-            this.modal.pickerColor = {hex: color.color || '#fff'};
+            this.solidColor = color.color || '#ffffffff';
             if (this.color.type === 'image') {
                 this.modal.image.path = this.color.image;
             }
@@ -280,12 +229,15 @@ export default {
         },
 
         emitChange() {
-            this.$emit('changed', utils.clone(this.color));
+            const value = utils.clone(this.color);
+            this.$emit('changed', value);
         },
+
         updateSolidColor(color) {
-            this.color.color = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.color.color = color;
             this.emitChange();
         },
+
         selectColorType(colorType) {
             this.color.type = colorType;
             if (colorType === 'image' && !this.color.image) {
@@ -419,12 +371,12 @@ export default {
             }
 
             this.gradient.selectedSliderIdx = insertAt;
-            this.gradient.selectedColor.hex = this.color.gradient.colors[insertAt].c;
+            this.gradientSelectedColor = this.color.gradient.colors[insertAt].c;
             // Updating revision to trigger re-mount of color picker
             this.revision += 1;
 
             this.gradient.isDragging = false;
-            
+
             this.gradientPreview = this.computeGradientPreview(this.color.gradient);
             this.emitChange();
         },
@@ -432,7 +384,7 @@ export default {
         onGradientSliderKnobClick(sliderIdx, event) {
             this.gradient.isDragging = true;
             this.gradient.originalClickPoint.x = event.clientX;
-            this.gradient.selectedColor.hex = this.color.gradient.colors[sliderIdx].c;
+            this.gradientSelectedColor = this.color.gradient.colors[sliderIdx].c;
             this.gradient.selectedSliderIdx = sliderIdx;
             this.gradient.originalKnobPosition = this.color.gradient.colors[sliderIdx].p;
         },
@@ -443,17 +395,11 @@ export default {
                 if (sliderIdx > 0) {
                     sliderIdx -= 1;
                 }
-                this.color.gradient.selectedColor = this.color.gradient.colors[sliderIdx].c;
+                this.gradientSelectedColor = this.color.gradient.colors[sliderIdx].c;
                 this.revision += 1;
                 this.gradientPreview = this.computeGradientPreview(this.color.gradient);
                 this.emitChange();
             }
-        },
-
-        updateGradientSliderColor(color) {
-            this.color.gradient.colors[this.gradient.selectedSliderIdx].c = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
-            this.gradientPreview = this.computeGradientPreview(this.color.gradient);
-            this.emitChange();
         },
 
         invertGradient() {

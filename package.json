@@ -78,7 +78,6 @@
     "style-loader": "^3.3.1",
     "thememirror": "^2.0.1",
     "vue": "^2.6.10",
-    "vue-color": "2.8.1",
     "vue-gtag": "^1.16.1",
     "vue-loader": "^15.9.8",
     "vue-router": "^2.7.0",

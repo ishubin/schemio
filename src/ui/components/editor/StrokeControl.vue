@@ -8,11 +8,11 @@
             ></div>
         <div class="stroke-control-dropdown" v-if="toggled">
             <div class="stroke-control-color-container">
-                <color-picker v-if="supportsStrokeColor" v-model="vuePickerColor" @input="updateColor"/>
+                <RawColorPicker v-if="supportsStrokeColor" :color="vuePickerColor" @color-changed="updateColor"/>
             </div>
             <div class="stroke-control-other-controls">
                 <div>
-                    <NumberTextfield v-if="supportsStrokeSize" :value="strokeSize" @changed="onStrokeSizeChange(arguments[0])" :min="0" :softMax="100" :slider="true"/>
+                    <NumberTextfield v-if="supportsStrokeSize" name="Size" :value="strokeSize" @changed="onStrokeSizeChange($event)" :min="0"/>
                 </div>
                 <div class="stroke-control-patterns" v-if="supportsStrokePattern">
                     <div v-for="knownPattern in strokePatterns"
@@ -29,7 +29,7 @@
 
 <script>
 import Shape from './items/shapes/Shape';
-import VueColor from 'vue-color';
+import RawColorPicker from './RawColorPicker.vue';
 import NumberTextfield from '../NumberTextfield.vue';
 import {map} from '../../collections';
 import StrokePattern from './items/StrokePattern';
@@ -49,7 +49,7 @@ export default {
         item: {type: Object, required: true},
     },
 
-    components: {'color-picker': VueColor.Chrome, NumberTextfield},
+    components: {RawColorPicker, NumberTextfield},
 
     mounted() {
         document.body.addEventListener('click', this.onBodyClick);
@@ -77,7 +77,7 @@ export default {
             strokeSize: props.strokeSize,
             strokePattern: props.strokePattern,
 
-            vuePickerColor: {hex: props.strokeColor},
+            vuePickerColor: props.strokeColor,
 
             strokePatterns: this.buildStrokePatterns(props.strokeSize)
         };
@@ -124,7 +124,7 @@ export default {
                 this.strokeColor = props.strokeColor;
                 this.strokeSize = props.strokeSize;
                 this.strokePattern = props.strokePattern;
-                this.vuePickerColor.hex = props.strokeColor;
+                this.vuePickerColor = props.strokeColor;
 
                 this.strokePatterns = this.buildStrokePatterns(Math.max(1, props.strokeSize));
 
@@ -150,7 +150,7 @@ export default {
         },
 
         updateColor(color) {
-            this.strokeColor = `rgba(${color.rgba.r}, ${color.rgba.g}, ${color.rgba.b}, ${color.rgba.a})`;
+            this.strokeColor = color;
             this.$emit('color-changed', this.strokeColor);
         },
 
