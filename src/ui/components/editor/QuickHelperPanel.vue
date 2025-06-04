@@ -114,16 +114,16 @@
                             :value="fillColor"
                             width="18px"
                             height="18px"
-                            @changed="emitShapePropChange('fill', 'advanced-color', arguments[0])" />
+                            @changed="emitShapePropChange('fill', 'advanced-color', $event)" />
                     </li>
                     <li v-if="strokeItem">
                         <StrokeControl
                             :key="`stroke-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
                             :editorId="editorId"
                             :item="strokeItem"
-                            @color-changed="emitShapePropChange('strokeColor', 'color', arguments[0])"
-                            @size-changed="emitShapePropChange('strokeSize', 'number', arguments[0])"
-                            @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', arguments[0])"
+                            @color-changed="emitShapePropChange('strokeColor', 'color', $event)"
+                            @size-changed="emitShapePropChange('strokeSize', 'number', $event)"
+                            @pattern-changed="emitShapePropChange('strokePattern', 'stroke-pattern', $event)"
                             @collapsed="onStrokeControlCollapsed"
                             @expanded="onStrokeControlExpanded"
                             />
@@ -144,7 +144,7 @@
                             :is-thick="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.thick"
                             width="16px"
                             :height="15"
-                            @selected="emitShapePropChange('sourceCap', 'path-cap', arguments[0])"/>
+                            @selected="emitShapePropChange('sourceCap', 'path-cap', $event)"/>
                     </li>
                     <li v-if="shouldShowPathCaps">
                         <path-cap-dropdown
@@ -154,7 +154,7 @@
                             :is-thick="firstSelectedItem.shape === 'connector' && firstSelectedItem.shapeProps.thick"
                             width="16px"
                             :height="15"
-                            @selected="emitShapePropChange('destinationCap', 'path-cap', arguments[0])"/>
+                            @selected="emitShapePropChange('destinationCap', 'path-cap', $event)"/>
                     </li>
                 </ul>
             </div>

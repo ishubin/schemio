@@ -21,7 +21,7 @@
         <div v-if="descriptionType === 'rich'">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <RichTextEditor :value="item.description" @changed="item.description = arguments[0]; commitSchemeChange('description')" />
+                <RichTextEditor :value="item.description" @changed="item.description = $event; commitSchemeChange('description')" />
             </div>
         </div>
     </panel>

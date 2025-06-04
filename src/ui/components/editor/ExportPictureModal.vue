@@ -13,18 +13,18 @@
             <div class="col-1">
                 <div v-if="simplePadding" class="row padded centered gap">
                     <i @click="simplePadding=false" class="fa-solid fa-border-none" style="cursor:pointer" title="Advanced padding"></i>
-                    <NumberTextfield :value="padding" name="Padding" @changed="padding = arguments[0]" style="max-width: 150px;"/>
+                    <NumberTextfield :value="padding" name="Padding" @changed="padding = $event" style="max-width: 150px;"/>
                 </div>
                 <div v-else class="row centered gap">
                     <i @click="simplePadding=true" class="fa-solid fa-border-all" style="cursor:pointer" title="Simple padding"></i>
                     <div class="col-1">
                         <div class="row padded centered gap">
-                            <NumberTextfield :value="paddingLeft" name="Left" @changed="paddingLeft = arguments[0]"/>
-                            <NumberTextfield :value="paddingTop" name="Top" @changed="paddingTop = arguments[0]"/>
+                            <NumberTextfield :value="paddingLeft" name="Left" @changed="paddingLeft = $event"/>
+                            <NumberTextfield :value="paddingTop" name="Top" @changed="paddingTop = $event"/>
                         </div>
                         <div class="row padded centered gap">
-                            <NumberTextfield :value="paddingRight" name="Right" @changed="paddingRight = arguments[0]"/>
-                            <NumberTextfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = arguments[0]"/>
+                            <NumberTextfield :value="paddingRight" name="Right" @changed="paddingRight = $event"/>
+                            <NumberTextfield :value="paddingBottom" name="Bottom" @changed="paddingBottom = $event"/>
                         </div>
                     </div>
                 </div>

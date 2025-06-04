@@ -19,13 +19,13 @@
         </div>
         <div class="row gap">
             <div class="col-1">
-                <NumberTextfield name="Duration (sec)" :value="duration" @changed="duration = arguments[0]"/>
+                <NumberTextfield name="Duration (sec)" :value="duration" @changed="duration = $event"/>
             </div>
             <div class="col-1">
-                <NumberTextfield name="Delay (sec)" :value="delay" @changed="delay = arguments[0]"/>
+                <NumberTextfield name="Delay (sec)" :value="delay" @changed="delay = $event"/>
             </div>
             <div class="col-1">
-                <NumberTextfield name="Frames per second" :value="fps" @changed="fps = arguments[0]"/>
+                <NumberTextfield name="Frames per second" :value="fps" @changed="fps = $event"/>
             </div>
         </div>
         <div class="row gap centered">

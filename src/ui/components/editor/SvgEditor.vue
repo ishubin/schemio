@@ -65,7 +65,7 @@
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
-                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, arguments[0])"
+                    <a :id="`item-link-${linkIndex}`" class="item-link" @click="onSvgItemLinkClick(link.url, $event)"
                         :xlink:href="linksAnimated ? '#' : link.url" target="_blank"
                         :title="link.title"
                         >

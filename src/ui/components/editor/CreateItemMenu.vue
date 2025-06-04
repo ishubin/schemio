@@ -147,7 +147,7 @@
 
         </div>
 
-        <create-image-modal v-if="imageCreation.popupShown" @close="imageCreation.popupShown = false" @submit-image="onImageSubmited(arguments[0])"></create-image-modal>
+        <create-image-modal v-if="imageCreation.popupShown" @close="imageCreation.popupShown = false" @submit-image="onImageSubmited($event)"></create-image-modal>
 
         <custom-art-upload-modal v-if="customArtUploadModalShown" @close="customArtUploadModalShown = false" @art-created="onArtCreated"/>
         <edit-art-modal v-if="editArtModalShown" :art-list="artList" @close="editArtModalShown = false"/>

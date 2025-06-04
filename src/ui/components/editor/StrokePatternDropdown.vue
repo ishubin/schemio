@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <dropdown :options="patternOptions"
-        @selected="$emit('selected', arguments[0].name)">
+        @selected="$emit('selected', $event.name)">
         <div v-html="selectedPatternHtml"></div>
     </dropdown>
 </template>

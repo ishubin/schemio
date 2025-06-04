@@ -18,7 +18,7 @@
 
                 <h5 class="section">Description</h5>
                 <RichTextEditor :value="schemeContainer.scheme.description"
-                    @changed="schemeContainer.scheme.description = arguments[0]; onPropertyChange('description')"
+                    @changed="schemeContainer.scheme.description = $event; onPropertyChange('description')"
                     />
             </panel>
 
@@ -46,25 +46,25 @@
                         <tr>
                             <td class="label" width="50%">Background</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.backgroundColor" @input="onSchemeStylePropertyChange('backgroundColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.backgroundColor" @input="onSchemeStylePropertyChange('backgroundColor', $event)"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Grid</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.gridColor" @input="onSchemeStylePropertyChange('gridColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.gridColor" @input="onSchemeStylePropertyChange('gridColor', $event)"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Bound box</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.boundaryBoxColor" @input="onSchemeStylePropertyChange('boundaryBoxColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.boundaryBoxColor" @input="onSchemeStylePropertyChange('boundaryBoxColor', $event)"></color-picker>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Control points</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', $event)"></color-picker>
                             </td>
                         </tr>
                     </tbody>

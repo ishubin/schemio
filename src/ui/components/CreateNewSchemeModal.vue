@@ -13,7 +13,7 @@
             />
 
         <h5>Description</h5>
-        <RichTextEditor :value="schemeDescription" @changed="schemeDescription = arguments[0]" />
+        <RichTextEditor :value="schemeDescription" @changed="schemeDescription = $event" />
 
         <div class="msg msg-error" v-if="errorMessage">{{errorMessage}}</div>
 

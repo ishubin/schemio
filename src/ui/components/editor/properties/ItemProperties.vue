@@ -25,7 +25,7 @@
             :editorId="editorId"
             :item="item"
             :schemeContainer="schemeContainer"
-            @tags-changed="emitItemFieldChange('tags', arguments[0])"/>
+            @tags-changed="emitItemFieldChange('tags', $event)"/>
         <LinksPanel v-if="currentTab === 'description'" :editorId="editorId" :key="`links-panel-${item.id}`" :item="item"/>
 
         <div v-if="currentTab === 'behavior'">
@@ -70,13 +70,13 @@
                         <tr>
                             <td class="label" width="50%">Opacity</td>
                             <td class="value" width="50%">
-                                <NumberTextfield :value="item.opacity" @changed="emitItemFieldChange('opacity', arguments[0])" :min="0" :max="100" :slider="true"/>
+                                <NumberTextfield :value="item.opacity" @changed="emitItemFieldChange('opacity', $event)" :min="0" :max="100" :slider="true"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Self Opacity</td>
                             <td class="value" width="50%">
-                                <NumberTextfield :value="item.selfOpacity" @changed="emitItemFieldChange('selfOpacity', arguments[0])" :min="0" :max="100" :slider="true"/>
+                                <NumberTextfield :value="item.selfOpacity" @changed="emitItemFieldChange('selfOpacity', $event)" :min="0" :max="100" :slider="true"/>
                             </td>
                         </tr>
                         <tr>
@@ -216,13 +216,13 @@
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Background</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', $event)"></color-picker>
                             </td>
                         </tr>
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Color</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', arguments[0])"></color-picker>
+                                <color-picker :editorId="editorId" :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', $event)"></color-picker>
                             </td>
                         </tr>
                     </tbody>

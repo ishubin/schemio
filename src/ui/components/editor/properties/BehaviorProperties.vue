@@ -102,13 +102,13 @@
                     <dropdown
                         :options="eventOptions"
                         :auto-focus-search="isStandardEvent(event.event)"
-                        @selected="onBehaviorEventSelected(eventIndex, arguments[0])"
+                        @selected="onBehaviorEventSelected(eventIndex, $event)"
                         :inline="true"
                         :borderless="true"
                         >
                         <span class="icon-event"><i class="fas fa-bell"></i></span>
                         <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
-                        <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = arguments[0].target.value"/>
+                        <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = $event.target.value"/>
                     </dropdown>
                 </div>
 
@@ -147,7 +147,7 @@
                                     :self-item="item"
                                     :inline="true"
                                     :borderless="true"
-                                    @selected="onActionElementSelected(eventIndex, actionIndex, arguments[0])"
+                                    @selected="onActionElementSelected(eventIndex, actionIndex, $event)"
                                     />
                             </div>
                             <div class="behavior-goto-element" title="Double click to jump to element" @dblclick="jumpToElement(action.element)">: </div>
@@ -155,7 +155,7 @@
                                 <dropdown
                                     :key="action.element.item"
                                     :options="createMethodSuggestionsForElement(action.element)"
-                                    @selected="onActionMethodSelected(eventIndex, actionIndex, arguments[0])"
+                                    @selected="onActionMethodSelected(eventIndex, actionIndex, $event)"
                                     :inline="true"
                                     :borderless="true"
                                     >
@@ -182,7 +182,7 @@
                                 @property-changed="onArgumentPropertyChangeForSet(eventIndex, actionIndex, arguments[0], arguments[1])"
                                 :scopeArgs="scopeArgs"
                                 :argBinds="action.argBinds"
-                                @argument-bind-removed="onSetArgumentBindRemoved(eventIndex, actionIndex, arguments[0])"
+                                @argument-bind-removed="onSetArgumentBindRemoved(eventIndex, actionIndex, $event)"
                                 @argument-bind-added="onSetArgumentBindAdded(eventIndex, actionIndex, arguments[0], arguments[1])"
                                 />
                         </div>
