@@ -787,14 +787,14 @@ func onDeleteItem(itemId, item) {
     }
 }
 
-
 func provideOptionsForDstNode(nodeId) {
     local options = List('-- Create new node --')
+
 
     local node = allNodes.find(n => {n.id == nodeId})
     if (node) {
         allNodes.forEach(anotherNode => {
-            if (anotherNode.level > node.level) {
+            if (anotherNode.level > node.level && !allConnetionsIds.has(`${nodeId}[]${anotherNode.id}`)) {
                 options.add(anotherNode.id)
             }
         })
@@ -808,7 +808,7 @@ func provideOptionsForSrcNode(nodeId) {
     local node = allNodes.find(n => {n.id == nodeId})
     if (node) {
         allNodes.forEach(anotherNode => {
-            if (anotherNode.level < node.level) {
+            if (anotherNode.level < node.level && !allConnetionsIds.has(`${anotherNode.id}[]${nodeId}`)) {
                 options.add(anotherNode.id)
             }
         })
@@ -972,6 +972,12 @@ local nodesDataById = decodeNodesData(nodesData)
 
 local codeLines = parseConnections(diagramCode, nodesDataById)
 local allConnections = codeLines.filter(cl => { cl.connection != null }).map(cl => { cl.connection })
+
+local allConnetionsIds = Set()
+allConnections.forEach(c => {
+    allConnetionsIds.add(`${c.srcId}[]${c.dstId}`)
+    allConnetionsIds.add(`${c.dstId}[]${c.srcId}`)
+})
 local allNodes = extractNodesFromConnections(allConnections)
 
 local levels = buildLevels(allNodes, allConnections)
