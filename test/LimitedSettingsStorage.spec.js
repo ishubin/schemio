@@ -1,5 +1,5 @@
 import expect from 'expect';
-import LimitedSettingsStorage from '../src/ui/LimitedSettingsStorage';
+import {LimitedSettingsStorage} from '../src/ui/LimitedSettingsStorage';
 
 const storageStub = {
     getItem(){},

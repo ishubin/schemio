@@ -594,7 +594,7 @@ function toExpressionBlock(block) {
 /**
  * @param {Array<String>} props
  */
-function createTemplatePropertyMatcher(props) {
+export function createTemplatePropertyMatcher(props) {
     if (!Array.isArray(props)) {
         return () => false;
     }

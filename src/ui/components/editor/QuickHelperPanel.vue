@@ -231,6 +231,7 @@ import Shape from './items/shapes/Shape';
 import {find, forEach} from '../../collections';
 import StoreUtils from '../../store/StoreUtils';
 import EditorEventBus from './EditorEventBus';
+import { createTemplatePropertyMatcher } from './items/ItemTemplate';
 
 export default {
     props: {
@@ -256,12 +257,14 @@ export default {
     },
 
     beforeMount() {
+        EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChangeCommitted);
         EditorEventBus.item.selected.any.$on(this.editorId, this.onItemSelectionChanged);
         EditorEventBus.item.deselected.any.$on(this.editorId, this.onItemSelectionChanged);
         EditorEventBus.itemSurround.created.$on(this.editorId, this.onItemSurroundCreated);
     },
 
     beforeDestroy() {
+        EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChangeCommitted);
         EditorEventBus.item.selected.any.$off(this.editorId, this.onItemSelectionChanged);
         EditorEventBus.item.deselected.any.$off(this.editorId, this.onItemSelectionChanged);
         EditorEventBus.itemSurround.created.$off(this.editorId, this.onItemSurroundCreated);
@@ -321,6 +324,11 @@ export default {
     },
 
     methods: {
+        // this event handler is needed for sitations like change the properties of the templated item
+        // in such case the template is regenerated and we need to update the state of all of the buttons and color pickers
+        onSchemeChangeCommitted() {
+            this.onItemSelectionChanged();
+        },
         toggleSnapToGrid(enabled) {
             this.$store.dispatch('setGridSnap', enabled);
         },
@@ -338,6 +346,17 @@ export default {
             let textStyleItem = null;
 
             this.schemeContainer.getSelectedItems().forEach((item, idx) => {
+                let templatePropMatcher = null;
+                if (item.meta.templated) {
+                    if (item.args && item.args.templateIgnoredProps) {
+                        templatePropMatcher = createTemplatePropertyMatcher(item.args.templateIgnoredProps);
+                    } else {
+                        // if the templated item does not have ignored props, then it should always return false
+                        // so that it can override the support for fill and stroke later
+                        templatePropMatcher = () => false;
+                    }
+                }
+
                 if (idx === 0) {
                     this.firstSelectedItem = item;
                     if (item.shape === 'connector' || item.shape === 'path') {
@@ -351,10 +370,20 @@ export default {
                 }
                 if (shape.argType('fill') === 'advanced-color' && !supportsFill) {
                     this.fillColor = item.shapeProps.fill;
-                    supportsFill = true;
+                    if (templatePropMatcher) {
+                        supportsFill = templatePropMatcher('shapeProps.fill');
+                    } else {
+                        supportsFill = true;
+                    }
                 }
                 if (shape.argType('strokeColor') === 'color') {
-                    strokeItem = item;
+                    if (templatePropMatcher) {
+                        if (templatePropMatcher('shapeProps.strokeColor')) {
+                            strokeItem = item;
+                        }
+                    } else {
+                        strokeItem = item;
+                    }
                 }
                 if (shape.getTextSlots(item).length > 0) {
                     textStyleItem = item;

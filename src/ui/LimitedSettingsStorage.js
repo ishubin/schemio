@@ -4,7 +4,7 @@
 import { forEach } from "./collections";
 
 
-export default class LimitedSettingsStorage {
+export class LimitedSettingsStorage {
 
     /**
      *

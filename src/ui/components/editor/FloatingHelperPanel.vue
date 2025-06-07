@@ -88,6 +88,7 @@ import { applyItemStyle } from './properties/ItemStyles';
 import LinksPanel from './properties/LinksPanel.vue';
 import {map} from '../../collections';
 import EditorEventBus from './EditorEventBus';
+import { createTemplatePropertyMatcher } from './items/ItemTemplate';
 
 export default {
     props: {
@@ -121,12 +122,31 @@ export default {
         let supportsStroke = false;
         const shape = Shape.find(this.item.shape);
 
+        let templatePropMatcher = null;
+        if (this.item.meta.templated) {
+            if (this.item.args && this.item.args.templateIgnoredProps) {
+                templatePropMatcher = createTemplatePropertyMatcher(this.item.args.templateIgnoredProps);
+            } else {
+                // if the templated item does not have ignored props, then it should always return false
+                // so that it can override the support for fill and stroke later
+                templatePropMatcher = () => false;
+            }
+        }
+
         if (shape && shape.argType('fill') === 'advanced-color') {
             fillColor = this.item.shapeProps.fill;
-            supportsFill = true;
+            if (templatePropMatcher) {
+                supportsFill = templatePropMatcher('shapeProps.fill');
+            } else {
+                supportsFill = true;
+            }
         }
         if (shape && shape.argType('strokeColor') === 'color') {
-            supportsStroke = true;
+            if (templatePropMatcher) {
+                supportsStroke = templatePropMatcher('shapeProps.strokeColor');
+            } else {
+                supportsStroke = true;
+            }
         }
 
         return {

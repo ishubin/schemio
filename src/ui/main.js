@@ -19,7 +19,7 @@ import MenuDropdown from './components/MenuDropdown.vue';
 import { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic } from './scheme/SchemePatch.js';
 import { enrichSchemeWithDefaults } from './scheme/Scheme.js';
 import htmlSanitize from '../htmlSanitize.js';
-import RichTextEditor from './components/RichTextEditor.vue';
+import RichTextEditor from './components/editor/text-editor/RichTextEditor.vue';
 import utils from './utils.js';
 import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js'
 import { diagramImageExporter } from './diagramExporter.js';

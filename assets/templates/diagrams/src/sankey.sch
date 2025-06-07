@@ -343,6 +343,9 @@ func buildNodeItems(levels) {
                 nodeItem.args.set('tplArea', 'movable')
                 nodeItem.args.set('tplConnector', 'off')
                 nodeItem.args.set('tplRotation', 'off')
+                if (colorTheme == 'custom') {
+                    nodeItem.args.set('templateIgnoredProps', List('shapeProps.fill'))
+                }
                 nodeItem.locked = false
                 nodeItems.add(nodeItem)
 
