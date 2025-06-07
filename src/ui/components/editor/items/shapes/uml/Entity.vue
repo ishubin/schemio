@@ -192,10 +192,11 @@ function computeHeaderPath(item) {
     return `M ${W} ${H}  L 0 ${H} L 0 ${R}  a ${R} ${R} 0 0 1 ${R} ${-R}   L ${W-R} 0   a ${R} ${R} 0 0 1 ${R} ${R}  L ${W} ${H} Z`;
 }
 
-function removeField(editorId, item, fieldIdx) {
+function removeField(schemeContainer, item, fieldIdx) {
     item.shapeProps.fields.splice(fieldIdx, 1);
-    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
-    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+    schemeContainer.readjustItem(item.id);
+    EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id, `shapeProps.fields`);
+    EditorEventBus.schemeChangeCommitted.$emit(schemeContainer.editorId, `item.${item.id}.shapeProps.fields`);
 }
 
 function addField(editorId, item, fieldIdx) {
@@ -217,14 +218,15 @@ function addField(editorId, item, fieldIdx) {
     EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
 }
 
-function moveField(editorId, item, fieldIdx, offset) {
+function moveField(schemeContainer, item, fieldIdx, offset) {
     if (fieldIdx < 0 || fieldIdx + offset < 0 || fieldIdx > item.shapeProps.fields.length - 1 || fieldIdx + offset > item.shapeProps.fields.length - 1) {
         return;
     }
     const deletedFields = item.shapeProps.fields.splice(fieldIdx, 1);
     item.shapeProps.fields.splice(fieldIdx + offset, 0, ...deletedFields);
-    EditorEventBus.item.changed.specific.$emit(editorId, item.id, `shapeProps.fields`);
-    EditorEventBus.schemeChangeCommitted.$emit(editorId, `item.${item.id}.shapeProps.fields`);
+    schemeContainer.readjustItem(item.id);
+    EditorEventBus.item.changed.specific.$emit(schemeContainer.editorId, item.id, `shapeProps.fields`);
+    EditorEventBus.schemeChangeCommitted.$emit(schemeContainer.editorId, `item.${item.id}.shapeProps.fields`);
 }
 
 function toggleFieldFlag(editorId, item, fieldIdx, flag) {
@@ -551,7 +553,7 @@ export default {
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
-                            removeField(schemeContainer.editorId, item, idx);
+                            removeField(schemeContainer, item, idx);
                         }
                     });
                     controls.push({
@@ -568,7 +570,7 @@ export default {
                                     name: 'Move up',
                                     iconClass: 'fa-solid fa-arrow-up',
                                     click() {
-                                        moveField(schemeContainer.editorId, item, idx, -1);
+                                        moveField(schemeContainer, item, idx, -1);
                                     }
                                 });
                             }
@@ -577,7 +579,7 @@ export default {
                                     name: 'Move down',
                                     iconClass: 'fa-solid fa-arrow-down',
                                     click() {
-                                        moveField(schemeContainer.editorId, item, idx, 1);
+                                        moveField(schemeContainer, item, idx, 1);
                                     }
                                 });
                             }
@@ -587,7 +589,7 @@ export default {
                                 name: 'Delete',
                                 iconClass: 'fa-solid fa-trash',
                                 click() {
-                                    removeField(schemeContainer.editorId, item, idx);
+                                    removeField(schemeContainer, item, idx);
                                     if (schemeContainer.editBox) {
                                         schemeContainer.editBox.updateKey += 1;
                                     }
