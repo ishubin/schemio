@@ -213,7 +213,7 @@
                     :d="customArea.path"
                     data-type="custom-item-area"
                     :data-item-id="customArea.itemId"
-                    :stroke-width="hoverPathStrokeWidth"
+                    stroke-width="0px"
                     stroke="rgba(255, 255, 255, 0)"
                     @click="onCustomEditorAreaClick(customArea)"
                     />
