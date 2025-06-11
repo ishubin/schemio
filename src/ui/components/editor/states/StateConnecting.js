@@ -674,7 +674,7 @@ export default class StateConnecting extends State {
     }
 
     moveConnectorToFront() {
-        const parentArray = this.schemeContainer.scheme.items;
+        let parentArray = this.schemeContainer.scheme.items;
         if (this.item.meta.parentId) {
             const parentItem = this.schemeContainer.findItemById(this.item.meta.parentId);
             if (!parentItem) {
