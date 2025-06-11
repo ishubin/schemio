@@ -203,7 +203,26 @@
     max-width: 180px;
     min-width: 110px;
     height: 100%;
-    overflow: hidden;
+}
+.elec-tab-container .file-tab.dragged-before::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    left: -1px;
+    top: 0;
+    height: 30px;
+    width: 3px;
+    background: var(--base-weak);
+}
+.elec-tab-container .file-tab.dragged-after::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 30px;
+    width: 3px;
+    background: var(--base-weak);
 }
 .elec-tab-container .file-tab .icon-file-modified {
     position: absolute;
@@ -224,6 +243,7 @@
     width: 100%;
     height: 100%;
     font-size: 13px;
+    overflow: hidden;
 }
 .elec-tab-container .file-tab.selected {
     background: #eeeeee;
@@ -246,6 +266,11 @@
 }
 .elec-tab-container .file-tab .close:hover {
     background: #aaa;
+}
+.elec-tab-container .file-tab.file-tab-dragged-preview {
+    position: fixed;
+    white-space:nowrap;
+    height: 30px;
 }
 .elec-tab-container .scroller {
     display: none;

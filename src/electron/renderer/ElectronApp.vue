@@ -18,7 +18,7 @@
             />
         <div class="elec-main-body">
             <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
-            <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile"/>
+            <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile" @reordered-files="onFileTabReorder"/>
             <div class="elec-file-container">
 
                 <div v-if="!projectPath" class="elec-welcome-panel">
@@ -404,6 +404,22 @@ export default {
                 window.electronAPI.menu.events.emitItemsSelected();
             } else {
                 window.electronAPI.menu.events.emitAllItemsDeselected();
+            }
+        },
+
+        onFileTabReorder(srcIdx, dstIdx) {
+            if (dstIdx > srcIdx) {
+                dstIdx -= 1;
+            }
+            const currentOpenPath = this.files[this.currentOpenFileIdx].path;
+            const srcItem = this.files[srcIdx];
+            this.files.splice(srcIdx, 1);
+            this.files.splice(dstIdx, 0, srcItem);
+
+            // restoring the selected open file
+            const idx = this.files.findIndex(f => f.path === currentOpenPath);
+            if (idx >= 0) {
+                this.currentOpenFileIdx = idx;
             }
         },
 

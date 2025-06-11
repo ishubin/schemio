@@ -25,6 +25,7 @@ export function dragAndDropBuilder(originalEvent) {
         draggedElement: null,
         droppableClass: null,
         scrollableElemet: null,
+        scrollVertically: true,
 
         callbacks: {
             onDrag: () => {},
@@ -32,11 +33,13 @@ export function dragAndDropBuilder(originalEvent) {
             onDrop: () => {},
             onDragStart: () => {},
             onSimpleClick: () => {},
-            onDone: () => {}
+            onDone: () => {},
+            onScroll: () => {},
         },
 
-        withScrollableElement(element) {
+        withScrollableElement(element, scrollVertically = true) {
             this.scrollableElemet = element;
+            this.scrollVertically = scrollVertically;
             return this;
         },
 
@@ -49,7 +52,10 @@ export function dragAndDropBuilder(originalEvent) {
             this.droppableClass = cssClass;
             return this;
         },
-
+        onScroll(callback) {
+            this.callbacks.onScroll = callback;
+            return this;
+        },
         onDragStart(callback) {
             this.callbacks.onDragStart = callback;
             return this;
@@ -112,7 +118,14 @@ export function dragAndDropBuilder(originalEvent) {
                     stopScrolling();
                     lastScrollingStep = scrollStep;
                     scrollIntervalId = setInterval(() => {
-                        this.scrollableElemet.scrollTop += scrollStep;
+                        if (this.scrollVertically) {
+                            this.scrollableElemet.scrollTop += scrollStep;
+                        } else {
+                            this.scrollableElemet.scrollLeft += scrollStep;
+                        }
+                        if (this.scrollableElemet) {
+                            this.callbacks.onScroll(this.scrollableElemet);
+                        }
                     }, 10);
                 }
             };
@@ -148,13 +161,7 @@ export function dragAndDropBuilder(originalEvent) {
 
                     if (this.scrollableElemet) {
                         const rootBbox = this.scrollableElemet.getBoundingClientRect();
-                        if (rootBbox.bottom - pageY < scrollMargin) {
-                            startScrolling(2);
-                        } else if (rootBbox.top - pageY > -scrollMargin) {
-                            startScrolling(-2);
-                        } else {
-                            stopScrolling();
-                        }
+                        handleScrolling(rootBbox, pageX, pageY);
                     }
 
                 } else {
@@ -162,6 +169,19 @@ export function dragAndDropBuilder(originalEvent) {
                         startedDragging = true;
                         this.callbacks.onDragStart(event, originalClickX, originalClickY);
                     }
+                }
+            };
+
+            const handleScrolling = (rootBbox, pageX, pageY) => {
+                const edgeProximity1 = this.scrollVertically ? rootBbox.bottom - pageY : rootBbox.right - pageX;
+                const edgeProximity2 = this.scrollVertically ? rootBbox.top - pageY : rootBbox.left - pageX;
+
+                if (edgeProximity1 < scrollMargin) {
+                    startScrolling(2);
+                } else if (edgeProximity2 > -scrollMargin) {
+                    startScrolling(-2);
+                } else {
+                    stopScrolling();
                 }
             };
 
