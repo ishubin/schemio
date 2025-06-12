@@ -271,6 +271,7 @@
     position: fixed;
     white-space:nowrap;
     height: 30px;
+    z-index: 1000;
 }
 .elec-tab-container .scroller {
     display: none;
