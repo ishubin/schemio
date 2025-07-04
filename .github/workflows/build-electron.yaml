@@ -7,7 +7,7 @@ on:
       node_version:
         description: 'Node version'
         type: string
-        default: 18.x
+        default: 22.x
 
 jobs:
   build-mac:
