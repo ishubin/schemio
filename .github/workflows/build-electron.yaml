@@ -30,15 +30,22 @@ jobs:
           MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
           MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
         run: |
+        run: |
           echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
           security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security default-keychain -s build.keychain
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          /usr/bin/codesign --force --deep --sign "$MACOS_CERTIFICATE_NAME" --options runtime out/schemio-darwin-arm64/schemio.app -vvv
+          # /usr/bin/codesign --force --deep --sign "$MACOS_CERTIFICATE_NAME" --options runtime out/schemio-darwin-arm64/schemio.app -vvv
+          npx electron-osx-sign "out/schemio-darwin-arm64/schemio.app" \
+            --identity="$MACOS_CERTIFICATE_NAME" \
+            --entitlements="entitlements.plist" \
+            --entitlements-inherit="entitlements.plist" \
+            --hardened-runtime \
+            --gatekeeper-assess
           echo "Finished codesigning, testing the signature"
-          codesign -vvv --verify out/schemio-darwin-arm64/schemio.app
+          codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
       # - name: "Notarize app bundle"
       #   env:
       #     PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
