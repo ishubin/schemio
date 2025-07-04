@@ -48,7 +48,7 @@ jobs:
           codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" \
               out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt
           echo "Finished codesigning, testing the signature"
-          codesign -vvv --verify --deep out/schemio-darwin-arm64/schemio.app
+          codesign -vvv --verify out/schemio-darwin-arm64/schemio.app
       # - name: "Notarize app bundle"
       #   env:
       #     PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
