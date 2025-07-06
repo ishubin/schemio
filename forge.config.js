@@ -1,6 +1,19 @@
 module.exports = {
   packagerConfig: {
-    icon: 'design/app-icons/icons/all/icon'
+    icon: 'design/app-icons/icons/all/icon',
+    osxSign: {
+      identity: process.env.MACOS_CERTIFICATE_NAME,
+      'hardened-runtime': true,
+      entitlements: 'entitlements.plist',
+      'entitlements-inherit': 'entitlements.plist',
+      verbose: true,
+      'gatekeeper-assess': false,
+      optionsForFile: (filePath) => {
+        return {
+          entitlements: 'entitlements.plist'
+        };
+      }
+    },
   },
   rebuildConfig: {},
   makers: [

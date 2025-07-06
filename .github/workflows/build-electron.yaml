@@ -19,11 +19,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ github.event.inputs.node_version }}
-      - run: npm ci
-      - run: npm run package-electron
-      - run: npm run make-electron
-      - run: find out | grep -v .webpack/renderer/assets
-      - name: Codesign app bundle
+
+      - name: Configure mac certificate
         env:
           MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
           MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
@@ -36,20 +33,40 @@ jobs:
           security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          echo "Signing app"
-          codesign --force --deep --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" --options runtime --timestamp out/schemio-darwin-arm64/schemio.app -vvv
-          codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-              out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libEGL.dylib
-          codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-              out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libffmpeg.dylib
-          codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-              out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libGLESv2.dylib
-          codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-              out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib
-          codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-              out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt
-          echo "Finished codesigning, testing the signature"
-          codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
+
+      - run: npm ci
+
+      - name: Package electron
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+        run: |
+          npm run package-electron
+          npm run make-electron
+
+      - run: find out | grep -v .webpack/renderer/assets
+
+      - name: Verify signature
+        run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
+
+      # - name: Codesign app bundle
+      #   env:
+      #     MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+      #   run: |
+      #     echo "Signing app"
+      #     codesign --force --deep --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" --options runtime --timestamp out/schemio-darwin-arm64/schemio.app -vvv
+      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
+      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libEGL.dylib
+      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
+      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libffmpeg.dylib
+      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
+      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libGLESv2.dylib
+      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
+      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib
+      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
+      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt
+      #     echo "Finished codesigning, testing the signature"
+      #     codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
+
       # - name: "Notarize app bundle"
       #   env:
       #     PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
@@ -67,6 +84,7 @@ jobs:
 
       #     echo "Attach staple"
       #     xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
+
       - name: Zip artifact for deployment
         run: zip out/make/zip/darwin/arm64/schemio-darwin-arm64.zip out/schemio-darwin-arm64/schemio.app -r
       - uses: actions/upload-artifact@v4
