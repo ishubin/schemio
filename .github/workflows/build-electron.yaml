@@ -48,25 +48,6 @@ jobs:
       - name: Verify signature
         run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
 
-      # - name: Codesign app bundle
-      #   env:
-      #     MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
-      #   run: |
-      #     echo "Signing app"
-      #     codesign --force --deep --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" --options runtime --timestamp out/schemio-darwin-arm64/schemio.app -vvv
-      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libEGL.dylib
-      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libffmpeg.dylib
-      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libGLESv2.dylib
-      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Electron\ Framework.framework/Versions/A/Libraries/libvk_swiftshader.dylib
-      #     codesign --force --options runtime --timestamp --sign "$MACOS_CERTIFICATE_NAME" --entitlements "entitlements.plist" \
-      #         out/schemio-darwin-arm64/schemio.app/Contents/Frameworks/Squirrel.framework/Versions/A/Resources/ShipIt
-      #     echo "Finished codesigning, testing the signature"
-      #     codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
-
       - name: "Notarize app bundle"
         env:
           PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}

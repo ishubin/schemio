@@ -10,7 +10,7 @@ on:
       node_version:
         description: 'Node version'
         type: string
-        default: 18.x
+        default: 22.x
 
 jobs:
   release:
@@ -73,10 +73,35 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node_version }}
+
+      - name: Configure mac certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
+        run: |
+          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
+
       - run: npm ci
-      - run: npm run package-electron
-      - run: npm run make-electron
+
+      - name: Package electron
+        env:
+          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+        run: |
+          npm run package-electron
+          npm run make-electron
+
       - run: find out | grep -v .webpack/renderer/assets
+
+      - name: Zip artifact for deployment
+        run: zip out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip out/schemio-darwin-arm64/schemio.app -r
+
       - name: Upload to release asset
         uses: softprops/action-gh-release@v1
         with:
