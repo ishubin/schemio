@@ -9,12 +9,11 @@ Features of Schemio:
 - Documenting individual items in your diagrams
 - Linking diagrams. You can add links to other diagrams or to external documents
 - Component based diagrams: you can load diagrams dynamically inside of each other. This allows you to manage your digrams better and lets the user discover more and more while staying in original document
-- Templated diagrams: you can either use existing complex templates or you can re-use your own diagrams as templates
-- Frame animation editor: it is possible to use frame based animations for any property of any object in your diagram.
-- Drawing free-form shapes
-- Relative transformations: you can attach objects to one another and tweak rotation, pivot point and scale
-- Behavior editor: you can assign event handlers to any item (events like: init, click, mouse in, mouse out, custom events etc.)
-- Various animation functions: smooth transitions like fade in or fade out, move items, render particle effect etc.
+- Frame animation editor: t is possible to use frame based animations for any property.
+- Draw free-form shapes
+- Relative transformations: you can attach items to other items in your diagrams and tweak rotation, pivot point and scale
+- Behavior editor: you can assign event handlers to any item (events like: init, click, mouse in, mouse out)
+- Various animation functions: you can have smooth transitions like fade in or fade out, move items, render particle effect etc.
 - Export entire diagram or only selected objects as SVG
 - Generate static version of all of your diagrams so that you can host it anywhere, even on GitHub pages
 
@@ -29,7 +28,8 @@ Demo: What happens when you open a website in your browser
 
 There is a demo, built with Schemio that contains interactive diagrams that answer a popular interview question: "What happens when you open a website in your browser".
 
-* Demo: https://schem.io/projects/site-reliability-engineering-t4kEQtKNxpSvZG0b/docs/what-happens-when-you-enter-a-website-in-a-browser-USqkMRHEY7JZav9t
+* Demo: https://ishubin.github.io/sre-knowledge-base/#/docs/what-happens-when.
+* Source code: https://github.com/ishubin/sre-knowledge-base
 
 
 Introduction to interactive diagrams with Schemio (Youtube video)
