@@ -120,15 +120,17 @@ jobs:
           echo "Attach staple"
           xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
 
+      - run: find . | grep -v .webpack/renderer/assets
+
       - name: Zip artifact for deployment
-        run: zip out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip out/schemio-darwin-arm64/schemio.app -r
+        run: cd out/schemio-darwin-arm64 && zip ../../schemio-darwin-arm64-${{ inputs.schemio_version }}.zip schemio.app -r
 
       - name: Upload to release asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ inputs.schemio_version }}
           fail_on_unmatched_files: true
-          files: out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
+          files: schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
 
 
 
