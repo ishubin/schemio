@@ -57,7 +57,7 @@ jobs:
           npm run package-electron
           npm run make-electron
 
-      - run: find out | grep -v .webpack/renderer/assets
+      - run: find . | grep -v .git | grep -v node_modules | grep -v .webpack/renderer/assets
 
       # - name: Verify signature
       #   run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
