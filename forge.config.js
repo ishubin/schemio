@@ -15,6 +15,7 @@ module.exports = {
       }
     },
     osxNotarize: {
+      tool: "notarytool",
       appleApiKey: process.env.MACOS_NOTARYTOOL_API_KEY,
       appleApiKeyId: process.env.MACOS_NOTARYTOOL_API_KEY_ID,
       appleApiIssuer: process.env.MACOS_NOTARYTOOL_API_KEY_ISSUER_ID,
