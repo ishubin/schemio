@@ -81,13 +81,19 @@ jobs:
       #     echo "Attach staple"
       #     xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
 
-      - name: Zip artifact for deployment
-        run: zip schemio-darwin-arm64.zip out/schemio-darwin-arm64/schemio.app -r
+      # - name: Zip artifact for deployment
+      #   run: zip schemio-darwin-arm64.zip out/schemio-darwin-arm64/schemio.app -r
+
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: schemio-electron-mac-zip
+      #     path: schemio-darwin-arm64.zip
 
       - uses: actions/upload-artifact@v4
         with:
-          name: schemio-electron-mac-zip
-          path: schemio-darwin-arm64.zip
+          name: schemio-electron-mac-build
+          path: ./out/make/zip/darwin/arm64/schemio-darwin-arm64-*.zip
+
 
 
 
