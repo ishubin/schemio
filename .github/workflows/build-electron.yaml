@@ -39,9 +39,10 @@ jobs:
           MACOS_NOTARYTOOL_API_KEY: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY }}
           MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
         run: |
-          mkdir ~/private_keys
-          touch ~/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
-          echo "$MACOS_NOTARYTOOL_API_KEY" > ~/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$MACOS_NOTARYTOOL_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
+          echo "Placed the api key"
+          ls -lah ~/.appstoreconnect/private_keys
 
       - run: npm ci
 
@@ -51,7 +52,7 @@ jobs:
           MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
           MACOS_NOTARYTOOL_API_KEY_ISSUER_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ISSUER_ID }}
           MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          MACOS_NOTARYTOOL_API_KEY: ~/private_keys/AuthKey_${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
+          MACOS_NOTARYTOOL_API_KEY: AuthKey_${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
         run: |
           npm run package-electron
           npm run make-electron
