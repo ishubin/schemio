@@ -39,33 +39,37 @@ jobs:
       - name: Package electron
         env:
           MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_NOTARYTOOL_API_KEY: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY }}
+          MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
+          MACOS_NOTARYTOOL_API_KEY_ISSUER_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ISSUER_ID }}
+          MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
         run: |
           npm run package-electron
           npm run make-electron
 
       - run: find out | grep -v .webpack/renderer/assets
 
-      - name: Verify signature
-        run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
+      # - name: Verify signature
+      #   run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
 
-      - name: "Notarize app bundle"
-        env:
-          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
-          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
-        run: |
+      # - name: "Notarize app bundle"
+      #   env:
+      #     PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
+      #     PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+      #     PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
+      #   run: |
 
-          echo "Create keychain profile"
-          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
+      #     echo "Create keychain profile"
+      #     xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
 
-          echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "out/schemio-darwin-arm64/schemio.app" "notarization.zip"
+      #     echo "Creating temp notarization archive"
+      #     ditto -c -k --keepParent "out/schemio-darwin-arm64/schemio.app" "notarization.zip"
 
-          echo "Notarize app"
-          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
+      #     echo "Notarize app"
+      #     xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
-          echo "Attach staple"
-          xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
+      #     echo "Attach staple"
+      #     xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
 
       - name: Zip artifact for deployment
         run: zip schemio-darwin-arm64.zip out/schemio-darwin-arm64/schemio.app -r
