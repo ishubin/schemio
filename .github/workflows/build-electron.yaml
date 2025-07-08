@@ -1,6 +1,5 @@
 name: Electron app builder
 
-
 on:
   workflow_dispatch:
     inputs:
@@ -41,8 +40,6 @@ jobs:
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$MACOS_NOTARYTOOL_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
-          echo "Placed the api key"
-          ls -lah ~/.appstoreconnect/private_keys
 
       - run: npm ci
 
@@ -57,83 +54,49 @@ jobs:
           npm run package-electron
           npm run make-electron
 
-      - run: find . | grep -v .git | grep -v node_modules | grep -v .webpack/renderer/assets
-
-      # - name: Verify signature
-      #   run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
-
-      # - name: "Notarize app bundle"
-      #   env:
-      #     PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
-      #     PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-      #     PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
-      #   run: |
-
-      #     echo "Create keychain profile"
-      #     xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
-
-      #     echo "Creating temp notarization archive"
-      #     ditto -c -k --keepParent "out/schemio-darwin-arm64/schemio.app" "notarization.zip"
-
-      #     echo "Notarize app"
-      #     xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-
-      #     echo "Attach staple"
-      #     xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
-
-      # - name: Zip artifact for deployment
-      #   run: zip schemio-darwin-arm64.zip out/schemio-darwin-arm64/schemio.app -r
-
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: schemio-electron-mac-zip
-      #     path: schemio-darwin-arm64.zip
-
       - uses: actions/upload-artifact@v4
         with:
-          name: schemio-electron-mac-build
+          name: schemio-darwin-arm64
           path: ./out/make/zip/darwin/arm64/schemio-darwin-arm64-*.zip
 
 
+  build-linux:
+    runs-on: ubuntu-latest
+    name: Build on Linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.event.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.event.inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schemio-electron-linux-rpm
+          path: out/make/rpm/x64/schemio-*-1.x86_64.rpm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schemio-electron-linux-deb
+          path: out/make/deb/x64/schemio_*_amd64.deb
+      - run: find out | grep -v .webpack/renderer/assets
 
-
-  # build-linux:
-  #   runs-on: ubuntu-latest
-  #   name: Build on Linux
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Use Node.js ${{ github.event.inputs.node_version }}
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: ${{ github.event.inputs.node_version }}
-  #     - run: npm ci
-  #     - run: npm run package-electron
-  #     - run: npm run make-electron
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: schemio-electron-linux-rpm
-  #         path: out/make/rpm/x64/schemio-*-1.x86_64.rpm
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: schemio-electron-linux-deb
-  #         path: out/make/deb/x64/schemio_*_amd64.deb
-  #     - run: find out | grep -v .webpack/renderer/assets
-
-  # build-win:
-  #   name: Build Windows app
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - name: Use Node.js ${{ github.event.inputs.node_version }}
-  #       uses: actions/setup-node@v3
-  #       with:
-  #         node-version: ${{ github.event.inputs.node_version }}
-  #     - run: npm ci
-  #     - run: npm run package-electron
-  #     - run: npm run make-electron
-  #     - uses: actions/upload-artifact@v4
-  #       with:
-  #         name: schemio-electron-win-setup
-  #         path: out/make/squirrel.windows/x64/schemio-* Setup.exe
-  #     - run: npm install -g tree-cli
-  #     - run: cd out && tree -l 8
+  build-win:
+    name: Build Windows app
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ github.event.inputs.node_version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ github.event.inputs.node_version }}
+      - run: npm ci
+      - run: npm run package-electron
+      - run: npm run make-electron
+      - uses: actions/upload-artifact@v4
+        with:
+          name: schemio-electron-win-setup
+          path: out/make/squirrel.windows/x64/schemio-* Setup.exe
+      - run: npm install -g tree-cli
+      - run: cd out && tree -l 8

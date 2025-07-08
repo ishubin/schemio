@@ -88,49 +88,33 @@ jobs:
           security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
 
+      - name: Confiure notarytool API key
+        env:
+          MACOS_NOTARYTOOL_API_KEY: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY }}
+          MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$MACOS_NOTARYTOOL_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
+
       - run: npm ci
 
       - name: Package electron
         env:
           MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
+          MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
+          MACOS_NOTARYTOOL_API_KEY_ISSUER_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ISSUER_ID }}
+          MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
+          MACOS_NOTARYTOOL_API_KEY: ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}.p8
         run: |
           npm run package-electron
           npm run make-electron
-
-      - run: find out | grep -v .webpack/renderer/assets
-
-      - name: Verify signature
-        run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
-
-      - name: "Notarize app bundle"
-        env:
-          PROD_MACOS_NOTARIZATION_APPLE_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_APPLE_ID }}
-          PROD_MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          PROD_MACOS_NOTARIZATION_PWD: ${{ secrets.PROD_MACOS_NOTARIZATION_PWD }}
-        run: |
-          echo "Create keychain profile"
-          xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
-
-          echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "out/schemio-darwin-arm64/schemio.app" "notarization.zip"
-
-          echo "Notarize app"
-          xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
-
-          echo "Attach staple"
-          xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
-
-      # - run: find . | grep -v .webpack/renderer/assets
-
-      - name: Zip artifact for deployment
-        run: zip schemio-darwin-arm64-${{ inputs.schemio_version }}.zip out/schemio-darwin-arm64/schemio.app -r
 
       - name: Upload to release asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ inputs.schemio_version }}
           fail_on_unmatched_files: true
-          files: schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
+          files: ./out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
 
 
 
