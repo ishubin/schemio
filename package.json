@@ -46,6 +46,7 @@
     "@electron-forge/maker-squirrel": "^6.0.1",
     "@electron-forge/maker-zip": "^6.0.1",
     "@electron-forge/plugin-webpack": "^6.0.1",
+    "@electron/notarize": "^3.0.1",
     "@electron/osx-sign": "^2.0.0",
     "@johmun/vue-tags-input": "^1.5.10",
     "@tiptap/extension-link": "^2.12.0",
