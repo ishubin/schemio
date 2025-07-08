@@ -70,7 +70,7 @@ jobs:
           xcrun stapler staple "schemio.app"
 
       - name: Zip artifact for deployment
-        run: zip schemio-darwin-arm64.schemio_version }}.zip schemio.app -r
+        run: zip schemio-darwin-arm64.zip schemio.app -r
 
       - uses: actions/upload-artifact@v4
         with:
