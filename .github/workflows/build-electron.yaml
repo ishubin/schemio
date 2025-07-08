@@ -37,9 +37,10 @@ jobs:
       - name: Confiure notarytool API key
         env:
           MACOS_NOTARYTOOL_API_KEY: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY }}
+          MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
         run: |
           mkdir ~/private_keys
-          echo "$MACOS_NOTARYTOOL_API_KEY" > ~/private_keys/notary-tool-api-key.p8
+          echo "$MACOS_NOTARYTOOL_API_KEY" > "~/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8"
 
       - run: npm ci
 
@@ -49,7 +50,7 @@ jobs:
           MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
           MACOS_NOTARYTOOL_API_KEY_ISSUER_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ISSUER_ID }}
           MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          MACOS_NOTARYTOOL_API_KEY: ~/private_keys/notary-tool-api-key.p8
+          MACOS_NOTARYTOOL_API_KEY: ~/private_keys/AuthKey_${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}.p8
         run: |
           npm run package-electron
           npm run make-electron
