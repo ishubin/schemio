@@ -45,10 +45,8 @@ jobs:
 
       - run: find out | grep -v .webpack/renderer/assets
 
-      - run: mv out/schemio-darwin-arm64/schemio.app schemio.app
-
       - name: Verify signature
-        run: codesign -vvv --verify --deep --strict schemio.app
+        run: codesign -vvv --verify --deep --strict out/schemio-darwin-arm64/schemio.app
 
       - name: "Notarize app bundle"
         env:
@@ -61,16 +59,16 @@ jobs:
           xcrun notarytool store-credentials "notarytool-profile" --apple-id "$PROD_MACOS_NOTARIZATION_APPLE_ID" --team-id "$PROD_MACOS_NOTARIZATION_TEAM_ID" --password "$PROD_MACOS_NOTARIZATION_PWD"
 
           echo "Creating temp notarization archive"
-          ditto -c -k --keepParent "schemio.app" "notarization.zip"
+          ditto -c -k --keepParent "out/schemio-darwin-arm64/schemio.app" "notarization.zip"
 
           echo "Notarize app"
           xcrun notarytool submit "notarization.zip" --keychain-profile "notarytool-profile" --wait
 
           echo "Attach staple"
-          xcrun stapler staple "schemio.app"
+          xcrun stapler staple "out/schemio-darwin-arm64/schemio.app"
 
       - name: Zip artifact for deployment
-        run: zip schemio-darwin-arm64.zip schemio.app -r
+        run: zip schemio-darwin-arm64.zip out/schemio-darwin-arm64/schemio.app -r
 
       - uses: actions/upload-artifact@v4
         with:
