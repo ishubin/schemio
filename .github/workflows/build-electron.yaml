@@ -40,7 +40,8 @@ jobs:
           MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
         run: |
           mkdir ~/private_keys
-          echo "$MACOS_NOTARYTOOL_API_KEY" > "~/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8"
+          touch ~/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
+          echo "$MACOS_NOTARYTOOL_API_KEY" > ~/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
 
       - run: npm ci
 
