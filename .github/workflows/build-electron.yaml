@@ -52,7 +52,7 @@ jobs:
           MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
           MACOS_NOTARYTOOL_API_KEY_ISSUER_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ISSUER_ID }}
           MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          MACOS_NOTARYTOOL_API_KEY: ~/.appstoreconnect/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
+          MACOS_NOTARYTOOL_API_KEY: ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}.p8
         run: |
           npm run package-electron
           npm run make-electron
