@@ -109,12 +109,15 @@ jobs:
           npm run package-electron
           npm run make-electron
 
+      - name: Rename binary
+        run: mv ./out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip  schemio-macos-arm64-${{ inputs.schemio_version }}.zip
+
       - name: Upload to release asset
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ inputs.schemio_version }}
           fail_on_unmatched_files: true
-          files: ./out/make/zip/darwin/arm64/schemio-darwin-arm64-${{ inputs.schemio_version }}.zip
+          files: schemio-macos-arm64-${{ inputs.schemio_version }}.zip
 
 
 
