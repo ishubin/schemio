@@ -1,6 +1,6 @@
 {
   "name": "schemio",
-  "version": "0.26.5",
+  "version": "0.26.6",
   "description": "in browser app for creating interactive diagrams",
   "main": "./.webpack/main",
   "scripts": {
