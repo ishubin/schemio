@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: schemio-darwin
-          path: ./out/make/zip/darwin/arm64/schemio-darwin-*.zip
+          path: out/make/zip/darwin/x64/schemio-darwin-x64-*.zip
 
   # build-mac:
   #   runs-on: macOS-latest
