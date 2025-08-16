@@ -34,7 +34,7 @@
                     :borderless="true"
                     :options="bindOptions"
                     title="Bind argument"
-                    @selected="onArgumentBindSelected(arguments[0])"
+                    @selected="onArgumentBindSelected"
                     >
                     <i v-if="isBinded" class="fa-solid fa-link property-arg-binder-icon binded"></i>
                     <i v-else class="fa-solid fa-link-slash property-arg-binder-icon"></i>
@@ -58,7 +58,7 @@
                         <tr>
                             <td class="label" width="50%">Duration</td>
                             <td class="value" width="50%">
-                                <NumberTextfield :disabled="!args.animated" :min="0" :value="args.animationDuration" @changed="onPropertyChange('animationDuration', arguments[0])"/>
+                                <NumberTextfield :disabled="!args.animated" :min="0" :value="args.animationDuration" @changed="onPropertyChange('animationDuration', $event)"/>
                             </td>
                         </tr>
                         <tr>
@@ -149,7 +149,7 @@ export default {
             if (option.kind === 'scopeArg') {
                 this.isBinded = true;
                 this.bindValue = {ref: option.name};
-                this.$emit(`argument-bind-added`, 'value', this.bindValue);
+                this.$emit(`argument-bind-added`, {name: 'value', value: this.bindValue});
             } else if (option.kind === 'unbind') {
                 this.isBinded = false;
                 this.bindValue = null;
@@ -187,8 +187,8 @@ export default {
         onCheckboxInput(event) {
             this.emitValue(event.target.checked);
         },
-        onPropertyChange(property, value) {
-            this.$emit('property-changed', property, value);
+        onPropertyChange(name, value) {
+            this.$emit('property-changed', {name, value});
         }
     },
     filters: {

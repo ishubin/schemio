@@ -173,8 +173,8 @@ export default {
             this.$emit('moved-to-slot', anotherSlotName);
         },
 
-        emitTextSlotPropertyChange(propertyPath, value) {
-            this.$emit('property-changed', propertyPath, value);
+        emitTextSlotPropertyChange(name, value) {
+            this.$emit('property-changed', {name, value});
             this.$forceUpdate();
         }
     }

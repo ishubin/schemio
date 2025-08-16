@@ -64,11 +64,11 @@
                             @items-deselected="onItemsDeselected(file)"
                             @scheme-save-requested="saveFile(file, $event)"
                             @mode-change-requested="onModeChangeRequested(file, $event)"
-                            @history-committed="onHistoryCommitted(file, arguments[0], arguments[1])"
+                            @history-committed="onHistoryCommitted(file, $event.scheme, $event.affinityId)"
                             @undo-history-requested="undoHistory(file)"
                             @redo-history-requested="redoHistory(file)"
-                            @context-menu-requested="onContextMenuRequested(files, arguments[2])"
-                            @new-diagram-requested-for-item="onNewDiagramRequestedForItem(file, arguments[0], arguments[1])"
+                            @context-menu-requested="onContextMenuRequested($event.menuOptions)"
+                            @new-diagram-requested-for-item="onNewDiagramRequestedForItem(file, $event.item, $event.isExternalComponent)"
                         />
                     </div>
                 </div>
@@ -722,7 +722,7 @@ export default {
             }
         },
 
-        onContextMenuRequested(file, menuOptions) {
+        onContextMenuRequested(menuOptions) {
             this.contextMenu.id = shortid.generate();
             this.contextMenu.options = new Map();
             const convertMenuOptions = (options) => {

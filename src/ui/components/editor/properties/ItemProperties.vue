@@ -35,7 +35,7 @@
                 :item="item"
                 :scheme-container="schemeContainer"
                 :onlyEvents="false"
-                @item-field-changed="emitItemFieldChange(arguments[0], arguments[1])"
+                @item-field-changed="emitItemFieldChange"
                 @jumped-to-item="onJumpedToItem"
                 />
         </div>

@@ -32,13 +32,13 @@
             @items-deselected="$emit('items-deselected')"
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
-            @history-committed="$emit('patched-history-committed', arguments[0], arguments[1])"
+            @history-committed="$emit('patched-history-committed', $event)"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', $event)"
             @delete-diagram-requested="$emit('delete-diagram-requested')"
-            @context-menu-requested="$emit('context-menu-requested', arguments[0], arguments[1], arguments[2])"
-            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
+            @context-menu-requested="$emit('context-menu-requested', $event)"
+            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
             />
 
         <SchemeEditor v-else
@@ -71,13 +71,13 @@
             @new-scheme-submitted="onNewSchemeSubmitted"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="$emit('scheme-save-requested', $event)"
-            @history-committed="$emit('history-committed', arguments[0], arguments[1])"
+            @history-committed="$emit('history-committed', $event)"
             @undo-history-requested="$emit('undo-history-requested')"
             @redo-history-requested="$emit('redo-history-requested')"
             @editor-state-changed="$emit('editor-state-changed', $event)"
             @delete-diagram-requested="$emit('delete-diagram-requested')"
-            @context-menu-requested="$emit('context-menu-requested', arguments[0], arguments[1], arguments[2])"
-            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
+            @context-menu-requested="$emit('context-menu-requested', $event)"
+            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
             />
 
 
@@ -93,12 +93,12 @@
                         <span class="toggle-button" :class="[!patch.isToggled ? 'toggled':'']" @click="showPatchOrigin" title="Original document without changes" >Origin</span>
                     </div>
 
-                    <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring(arguments[0].target.checked)"/>
+                    <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring($event.target.checked)"/>
                     <label for="chk-patch-menu-toggle-diff-coloring">diff</label>
 
-                    <ColorPicker :editorId="editorId" :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', arguments[0])" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
-                    <ColorPicker :editorId="editorId" :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', arguments[0])" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
-                    <ColorPicker :editorId="editorId" :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', arguments[0])" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', $event)" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', $event)" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', $event)" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
 
                     <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
 

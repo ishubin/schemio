@@ -179,11 +179,11 @@
                                 :argument-description="getArgumentDescriptionForElement(action.element, action.args.field)"
                                 :argument-value="action.args.value"
                                 :args="action.args"
-                                @property-changed="onArgumentPropertyChangeForSet(eventIndex, actionIndex, arguments[0], arguments[1])"
+                                @property-changed="onArgumentPropertyChangeForSet(eventIndex, actionIndex, $event.name, $event.value)"
                                 :scopeArgs="scopeArgs"
                                 :argBinds="action.argBinds"
                                 @argument-bind-removed="onSetArgumentBindRemoved(eventIndex, actionIndex, $event)"
-                                @argument-bind-added="onSetArgumentBindAdded(eventIndex, actionIndex, arguments[0], arguments[1])"
+                                @argument-bind-added="onSetArgumentBindAdded(eventIndex, actionIndex, $event.name, $event.value)"
                                 />
                         </div>
                     </div>

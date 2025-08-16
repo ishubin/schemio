@@ -133,7 +133,7 @@
                             :key="`text-style-control-${firstSelectedItem.id}-${firstSelectedItem.shape}`"
                             :editorId="editorId"
                             :item="textStyleItem"
-                            @property-changed="onTextStylePropertyChange"
+                            @property-changed="onTextStylePropertyChange($event.name, $event.value)"
                             />
                     </li>
                     <li v-if="shouldShowPathCaps">

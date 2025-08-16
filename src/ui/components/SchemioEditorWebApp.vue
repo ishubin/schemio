@@ -29,17 +29,17 @@
             @patch-applied="onPatchApplied"
             @mode-change-requested="onModeChangeRequested"
             @scheme-save-requested="saveScheme"
-            @history-committed="onHistoryCommitted"
+            @history-committed="onHistoryCommitted($event.scheme, $event.affinityId)"
             @undo-history-requested="undoHistory"
             @redo-history-requested="redoHistory"
             @editor-state-changed="onEditorStateChanged"
             @delete-diagram-requested="deleteDiagram"
-            @context-menu-requested="onContextMenuRequested"
+            @context-menu-requested="onContextMenuRequested($event.x, $event.y, $event.menuOptions)"
             @patch-origin-toggled="onPatchOriginToggled"
             @patch-modified-toggled="onPatchModifiedToggled"
             @patch-modified-generated="onPatchModifiedGenerated"
-            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', arguments[0], arguments[1])"
-            @patched-history-committed="onPatchedHistoryCommitted"
+            @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
+            @patched-history-committed="onPatchedHistoryCommitted($event.scheme, $event.affinityId)"
         />
 
         <ContextMenu v-if="customContextMenu.show"
@@ -285,7 +285,7 @@ export default {
         onPatchedHistoryCommitted(scheme, affinityId) {
             this.histories.modified.commit(scheme, affinityId);
             this.modified = true;
-            this.$emit('patched-history-committed', scheme, affinityId)
+            this.$emit('patched-history-committed', {scheme, affinityId});
             this.updateHistoryState();
         },
 

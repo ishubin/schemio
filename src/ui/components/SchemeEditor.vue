@@ -514,8 +514,8 @@
                                 :editorId="editorId"
                                 :item="itemTextSlot.item"
                                 :slot-name="itemTextSlot.slotName"
-                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, arguments[0]);"
-                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, arguments[0], arguments[1])"
+                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
+                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
                                 />
                             <component
                                 v-for="tab in extraTabs"
@@ -1834,7 +1834,7 @@ export default {
         },
 
         startCreatingChildSchemeForItem(item, isExternalComponent) {
-            this.$emit('new-diagram-requested-for-item', item, isExternalComponent);
+            this.$emit('new-diagram-requested-for-item', {item, isExternalComponent});
         },
 
         onUpdateOffset(x, y) {
@@ -2078,7 +2078,7 @@ export default {
         },
 
         commitHistory(affinityId) {
-            this.$emit('history-committed', this.schemeContainer.scheme, affinityId);
+            this.$emit('history-committed', {scheme: this.schemeContainer.scheme, affinityId});
         },
 
         historyEditAllowed() {
@@ -2782,7 +2782,7 @@ export default {
 
             contextMenuOptions = contextMenuOptions.concat(this.generateCustomContextMenuOptions(this.schemeContainer.editBox.items));
 
-            this.$emit('context-menu-requested', mouseX, mouseY, contextMenuOptions);
+            this.$emit('context-menu-requested', {x: mouseX, y: mouseY, menuOptions: contextMenuOptions});
         },
 
         generateCustomContextMenuOptions(selectedItems) {
@@ -2829,7 +2829,11 @@ export default {
 
         onContextMenuRequested(mouseX, mouseY, menuOptions) {
             const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
-            this.$emit('context-menu-requested', mouseX + svgRect.left + 5, mouseY + svgRect.top + 5, menuOptions);
+            this.$emit('context-menu-requested', {
+                x: mouseX + svgRect.left + 5,
+                y: mouseY + svgRect.top + 5,
+                menuOptions
+            });
         },
 
         addItemBehaviorEvent(item, eventName) {
@@ -3474,16 +3478,19 @@ export default {
                 p = {x: 0, y: 0};
             }
 
-            this.$emit('context-menu-requested', p.x, p.y, options.map(option => {
-                const convertedOption = typeof option === 'object' ? option : {name: option};
-
-                return {
-                    ...convertedOption,
-                    clicked: () => {
-                        callback(option);
+            this.$emit('context-menu-requested', {
+                x: p.x,
+                y: p.y,
+                menuOptions: options.map(option => {
+                    const convertedOption = typeof option === 'object' ? option : {name: option};
+                    return {
+                        ...convertedOption,
+                        clicked: () => {
+                            callback(option);
+                        }
                     }
-                }
-            }));
+                })
+            });
         },
 
         onWindowResize() {

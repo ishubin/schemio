@@ -18,17 +18,17 @@
         <div v-if="selectedOptionIdx > 0" class="script-parameters">
             <div v-if="selectedOptionIdx === 1" class="script-parameter">
                 <span>Duration</span>
-                <NumberTextfield :value="args.animationDuration" @changed="emitArgChange('animationDuration', arguments[0])" :min="0" :softMax="10" :step="0.1" :slider="true"/>
+                <NumberTextfield :value="args.animationDuration" @changed="emitArgChange('animationDuration', $event)" :min="0" :softMax="10" :step="0.1" :slider="true"/>
             </div>
             <div v-if="selectedOptionIdx === 1" class="script-parameter">
                 <span>Transition</span>
-                <select :value="args.transition" @input="emitArgChange('transition', arguments[0].target.value)">
+                <select :value="args.transition" @input="emitArgChange('transition', $event.target.value)">
                     <option v-for="transition in knownTransitions" :value="transition">{{ transition }}</option>
                 </select>
             </div>
             <div class="script-parameter">
                 <input id="chk-script-animation-in-background" type="checkbox" :checked="args.inBackground"
-                    @input="emitArgChange('inBackground', arguments[0].target.checked)"/>
+                    @input="emitArgChange('inBackground', $event.target.checked)"/>
                 <label for="chk-script-animation-in-background">In background</label>
                 <Tooltip>Play animation in background without blocking invocation of other actions</Tooltip>
             </div>
@@ -49,21 +49,21 @@
                 :schemeContainer="schemeContainer"
                 :previousScripts="[schemeContainer.scheme.scripts.main.source]"
                 :scopeArgs="scopeArgs"
-                @changed="emitArgChange('initScript', arguments[0])"
+                @changed="emitArgChange('initScript', $event)"
             />
             <ScriptEditor key="script-tab-1" v-if="selectedTabIdx === 1"
                 :value="args.script"
                 :schemeContainer="schemeContainer"
                 :previousScripts="[schemeContainer.scheme.scripts.main.source, args.initScript]"
                 :scopeArgs="scopeArgs"
-                @changed="emitArgChange('script', arguments[0])"
+                @changed="emitArgChange('script', $event)"
             />
             <ScriptEditor key="script-tab-2" v-if="selectedTabIdx === 2"
                 :value="args.endScript"
                 :schemeContainer="schemeContainer"
                 :previousScripts="[schemeContainer.scheme.scripts.main.source, args.initScript]"
                 :scopeArgs="scopeArgs"
-                @changed="emitArgChange('endScript', arguments[0])"
+                @changed="emitArgChange('endScript', $event)"
             />
         </div>
     </div>
