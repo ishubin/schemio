@@ -293,7 +293,11 @@ export default {
 
         closeEditBox() {
             if (this.item.shape === 'none') {
-                const rect = this.$refs.editor.getBoundingClientRect();
+                const editor = this.$refs.editor;
+                if (!editor) {
+                    return;
+                }
+                const rect = editor.getBoundingClientRect();
                 // in case the shape is none - only text matters
                 // so if text was removed perhaps it makes sense to remove the item from SchemeContainer if it doesn't have child items
                 // the trick we do here is getting pure text from html and checking if it is empty
