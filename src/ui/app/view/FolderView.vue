@@ -65,7 +65,7 @@
                                 </router-link>
                             </td>
                             <td class="time-column">
-                                <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
+                                <span v-if="entry.modifiedTime">{{entry.modifiedTime}}</span>
                             </td>
                             <td class="operation-column">
                                 <menu-dropdown v-if="entry.name !== '..' && !viewOnly" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
@@ -168,20 +168,7 @@ export default {
     },
 
     data() {
-        let path = this.$route.fullPath.trim();
-        if (path === '/') {
-            path = '';
-        }
-        const routePrefix = this.$store.state.routePrefix || '';
-
-        if (path.startsWith(routePrefix)) {
-            path = path.substring(routePrefix.length);
-        }
-
-        if (path.indexOf('/f/') === 0) {
-            path = decodeURI(path.substring(3));
-        }
-
+        const path = this.$route.params.folders ? this.$route.params.folders.join('/') : '';
 
         return {
             path: path,
@@ -319,9 +306,9 @@ export default {
 
                 const routePrefix = this.$store.state.routePrefix || '';
                 if (this.$router.mode === 'history') {
-                    this.$router.push({path: `${routePrefix}/docs/${createdScheme.id}#m=edit`});
+                    this.$router.push(`${routePrefix}/docs/${createdScheme.id}#m=edit`);
                 } else {
-                    this.$router.push({path: `${routePrefix}/docs/${createdScheme.id}?m=edit`});
+                    this.$router.push(`${routePrefix}/docs/${createdScheme.id}?m=edit`);
                 }
             })
             .catch(err => {
@@ -443,9 +430,8 @@ export default {
         },
 
         searchSchemes() {
-            this.$router.push({
-                path: `${this.$store.state.routePrefix}/search?q=${encodeURIComponent(this.searchKeyword)}`
-            });
+            const path = `${this.$store.state.routePrefix}/search?q=${encodeURIComponent(this.searchKeyword)}`;
+            this.$router.push(path);
         },
 
         loadNextPage() {

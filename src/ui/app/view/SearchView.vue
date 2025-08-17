@@ -1,11 +1,11 @@
 <template>
     <div class="search-view web-view">
         <schemio-header>
-            <template v-slot:loader>
+            <div slot="loader">
                 <div v-if="isLoading" class="loader">
                     <div class="loader-element"></div>
                 </div>
-            </template>
+            </div>
         </schemio-header>
 
 
@@ -50,7 +50,7 @@
                                 </router-link>
                             </td>
                             <td class="time-column">
-                                <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
+                                <span v-if="entry.modifiedTime">{{entry.modifiedTime}}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -87,8 +87,8 @@ export default {
     },
 
     data() {
-        const query = this.$route.query.q;
-        const page = toPageNumber(this.$route.query.page);
+        const query = this.$route.query.q || '';
+        const page = toPageNumber(this.$route.query.page || 1);
         return {
             query,
             page,
