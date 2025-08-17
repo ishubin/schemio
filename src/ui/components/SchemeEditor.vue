@@ -118,7 +118,7 @@
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
                     >
-                    <g slot="scene-transform">
+                    <template v-slot:scene-transform>
                         <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && state !== 'imageBox' && !inPlaceTextEditor.shown"
                             :key="`edit-box-${editorRevision}-${schemeContainer.editBox.id}`"
                             :useFill="state !== 'pickElement' && editBoxUseFill"
@@ -174,9 +174,9 @@
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                                 :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
                         </g>
-                    </g>
+                    </template>
 
-                    <div slot="overlay">
+                    <template v-slot:overlay>
                         <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
 
                         <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
@@ -198,7 +198,7 @@
                             @close="closeStarterProposalModal"
                             @selected="onStarterProposalSelected"
                             />
-                    </div>
+                    </template>
                 </SvgEditor>
 
                 <SvgEditor
@@ -226,12 +226,12 @@
                     @compiler-error="onCompilerError"
                     >
 
-                    <div slot="overlay">
+                    <template v-slot:overlay>
                         <div v-if="mode === 'view' && textSelectionEnabled" class="editor-top-hint-label">
                             You can select any text, but you cannot interact with items
                             <span class="btn btn-primary" @click="textSelectionEnabled = false">Cancel</span>
                         </div>
-                    </div>
+                    </template>
                 </SvgEditor>
 
                 <!-- Item Text Editor -->
@@ -432,12 +432,14 @@
                             <span v-if="tab.count">({{tab.count}})</span>
                         </div>
                     </li>
-                    <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
-                        <span class="tab"
-                            :class="{active: currentTab === itemTextSlotTab.tabName}"
-                            @click="changeTab(itemTextSlotTab.tabName)"
-                            >&#167; {{itemTextSlotTab.slotName}}</span>
-                    </li>
+                    <template v-for="itemTextSlotTab in itemTextSlotsAvailable">
+                        <li v-if="mode === 'edit'">
+                            <span class="tab"
+                                :class="{active: currentTab === itemTextSlotTab.tabName}"
+                                @click="changeTab(itemTextSlotTab.tabName)"
+                                >&#167; {{itemTextSlotTab.slotName}}</span>
+                        </li>
+                    </template>
                     <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
                         <span class="tab"
                             :class="{active: currentTab === 'template'}"
@@ -509,22 +511,25 @@
                         </div>
 
                         <div>
-                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
-                                :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
-                                :editorId="editorId"
-                                :item="itemTextSlot.item"
-                                :slot-name="itemTextSlot.slotName"
-                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
-                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
+                            <template v-for="itemTextSlot in itemTextSlotsAvailable">
+                                <TextSlotProperties v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
+                                    :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
+                                    :editorId="editorId"
+                                    :item="itemTextSlot.item"
+                                    :slot-name="itemTextSlot.slotName"
+                                    @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
+                                    @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
+                                    />
+                            </template>
+                            <template v-for="tab in extraTabs">
+                                <component
+                                    v-if="currentTab === `extra:${tab.name}`"
+                                    :key="`tab-${currentTab}`"
+                                    :is="tab.component"
+                                    :mode="mode"
+                                    @tab-event="$emit('custom-tab-event', $event)"
                                 />
-                            <component
-                                v-for="tab in extraTabs"
-                                v-if="currentTab === `extra:${tab.name}`"
-                                :key="`tab-${currentTab}`"
-                                :is="tab.component"
-                                :mode="mode"
-                                @tab-event="$emit('custom-tab-event', $event)"
-                            />
+                            </template>
                         </div>
                     </div>
                 </div>

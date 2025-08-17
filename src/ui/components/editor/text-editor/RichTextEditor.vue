@@ -34,7 +34,7 @@
 <script>
 import Link from '@tiptap/extension-link';
 import StarterKit from '@tiptap/starter-kit';
-import { Editor, EditorContent } from '@tiptap/vue-2';
+import { Editor, EditorContent } from '@tiptap/vue-3';
 import Underline from '@tiptap/extension-underline';
 import Modal from '../../Modal.vue';
 import RichTextMenuBar from './RichTextMenuBar.vue';

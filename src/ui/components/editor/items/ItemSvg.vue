@@ -81,21 +81,23 @@
                 </g>
 
                 <g v-if="shouldBeDrawn">
-                    <g v-for="slot in textSlots" v-if="slot.name !== item.meta.activeTextSlot" :style="{'opacity': item.selfOpacity/100.0}">
-                        <foreignObject
-                            ref="textSlots"
-                            :data-text-slot-name="slot.name"
-                            :id="`item-text-slot-${item.id}-${slot.name}`"
-                            :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
-                            <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
-                                :class="slot.cssClass"
-                                :style="slot.style"
-                                :data-item-id="item.id"
-                                >
-                                <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
-                            </div>
-                        </foreignObject>
-                    </g>
+                    <template v-for="slot in textSlots">
+                        <g v-if="slot.name !== item.meta.activeTextSlot" :style="{'opacity': item.selfOpacity/100.0}">
+                            <foreignObject
+                                ref="textSlots"
+                                :data-text-slot-name="slot.name"
+                                :id="`item-text-slot-${item.id}-${slot.name}`"
+                                :x="slot.area.x" :y="slot.area.y" :width="slot.area.w" :height="slot.area.h">
+                                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml"
+                                    :class="slot.cssClass"
+                                    :style="slot.style"
+                                    :data-item-id="item.id"
+                                    >
+                                    <div class="item-text-element" :data-item-text-element-item-id="item.id" style="display: inline-block" v-html="slot.sanitizedText"></div>
+                                </div>
+                            </foreignObject>
+                        </g>
+                    </template>
                 </g>
             </g>
 
@@ -105,17 +107,19 @@
             <g :id="`animation-container-${item.id}`"></g>
 
             <g v-if="item._childItems && item.visible && mode === 'edit'" :style="componentChildrenLayerStyle">
-                <ItemSvg v-for="childItem in item._childItems"
-                    v-if="childItem.visible"
-                    :key="`itsvg-${childItem.id}-${childItem.shape}-${item.meta.revision}`"
-                    :item="childItem"
-                    :editorId="editorId"
-                    :patchIndex="patchIndex"
-                    :mode="mode"
-                    :eventListener="eventListener"
-                    @frame-animator="passThroughFrameAnimatorEvent"
-                    @component-load-requested="onComponentLoadRequested"
-                    />
+                <template v-for="childItem in item._childItems">
+                    <ItemSvg
+                        v-if="childItem.visible"
+                        :key="`itsvg-${childItem.id}-${childItem.shape}-${item.meta.revision}`"
+                        :item="childItem"
+                        :editorId="editorId"
+                        :patchIndex="patchIndex"
+                        :mode="mode"
+                        :eventListener="eventListener"
+                        @frame-animator="passThroughFrameAnimatorEvent"
+                        @component-load-requested="onComponentLoadRequested"
+                        />
+                </template>
             </g>
 
             <path v-if="shouldBeDrawn && itemSvgOutlinePath && !textSelectionEnabled"
@@ -181,20 +185,22 @@
                 @mouseup="onComponentMouseUp"
                 @mousemove="onComponentMouseMove"
                 >
-                <g v-for="componentItem in item.meta.componentSchemeContainer.worldItems" class="item-container"
-                    v-if="componentItem.visible && componentItem.shape !== 'hud'"
-                    :class="'item-cursor-' + componentItem.cursor">
-                    <ItemSvg
-                        :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}`"
-                        :item="componentItem"
-                        :editorId="editorId"
-                        :mode="mode"
-                        :textSelectionEnabled="textSelectionEnabled"
-                        :patchIndex="patchIndex"
-                        :eventListener="eventListener"
-                        @component-load-requested="onComponentLoadRequested"
-                        @frame-animator="onFrameAnimatorEventInsideComponent" />
-                </g>
+                <template v-for="componentItem in item.meta.componentSchemeContainer.worldItems">
+                    <g class="item-container"
+                        v-if="componentItem.visible && componentItem.shape !== 'hud'"
+                        :class="'item-cursor-' + componentItem.cursor">
+                        <ItemSvg
+                            :key="`${item.id}-component-${componentItem.id}-${componentItem.shape}-${textSelectionEnabled}`"
+                            :item="componentItem"
+                            :editorId="editorId"
+                            :mode="mode"
+                            :textSelectionEnabled="textSelectionEnabled"
+                            :patchIndex="patchIndex"
+                            :eventListener="eventListener"
+                            @component-load-requested="onComponentLoadRequested"
+                            @frame-animator="onFrameAnimatorEventInsideComponent" />
+                    </g>
+                </template>
             </g>
 
             <g v-if="mode === 'edit' && !isSelected && showItemDetailMarkers && (hasDescription || hasLinks || hasFiles)" data-preview-ignore="true">
@@ -231,32 +237,36 @@
 
 
             <g v-if="item.childItems && item.visible" :style="childrenLayerStyle">
-                <ItemSvg v-for="childItem in item.childItems"
-                    v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
-                    :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
-                    :item="childItem"
-                    :editorId="editorId"
-                    :textSelectionEnabled="textSelectionEnabled"
-                    :patchIndex="patchIndex"
-                    :mode="mode"
-                    :eventListener="eventListener"
-                    @frame-animator="passThroughFrameAnimatorEvent"
-                    @component-load-requested="onComponentLoadRequested"
-                    />
+                <template v-for="childItem in item.childItems">
+                    <ItemSvg
+                        v-if="childItem.visible && (childItem.shape !== 'hud' && mode === 'view' || mode === 'edit' )"
+                        :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                        :item="childItem"
+                        :editorId="editorId"
+                        :textSelectionEnabled="textSelectionEnabled"
+                        :patchIndex="patchIndex"
+                        :mode="mode"
+                        :eventListener="eventListener"
+                        @frame-animator="passThroughFrameAnimatorEvent"
+                        @component-load-requested="onComponentLoadRequested"
+                        />
+                </template>
             </g>
 
             <g v-if="item._childItems && item.visible && mode === 'view'" :style="componentChildrenLayerStyle">
-                <ItemSvg v-for="childItem in item._childItems"
-                    v-if="childItem.visible && childItem.shape !== 'hud'"
-                    :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
-                    :item="childItem"
-                    :editorId="editorId"
-                    :textSelectionEnabled="textSelectionEnabled"
-                    :mode="mode"
-                    :eventListener="eventListener"
-                    @frame-animator="passThroughFrameAnimatorEvent"
-                    @component-load-requested="onComponentLoadRequested"
-                    />
+                <template v-for="childItem in item._childItems">
+                    <ItemSvg
+                        v-if="childItem.visible && childItem.shape !== 'hud'"
+                        :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                        :item="childItem"
+                        :editorId="editorId"
+                        :textSelectionEnabled="textSelectionEnabled"
+                        :mode="mode"
+                        :eventListener="eventListener"
+                        @frame-animator="passThroughFrameAnimatorEvent"
+                        @component-load-requested="onComponentLoadRequested"
+                        />
+                </template>
             </g>
         </g>
     </g>

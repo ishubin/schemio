@@ -22,20 +22,22 @@
 
             <g v-if="mode === 'view' && schemeContainer">
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="item in schemeContainer.worldItems" class="item-container"
-                        v-if="item.visible && item.shape !== 'hud'"
-                        :class="'item-cursor-' + item.cursor">
-                        <ItemSvg
-                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
-                            :item="item"
-                            :editorId="editorId"
-                            :mode="mode"
-                            :textSelectionEnabled="textSelectionEnabled"
-                            :patchIndex="patchIndex"
-                            :eventListener="eventListenerInterceptor"
-                            @component-load-requested="onComponentLoadRequested"
-                            @frame-animator="onFrameAnimatorEvent" />
-                    </g>
+                    <template v-for="item in schemeContainer.worldItems" >
+                        <g v-if="item.visible && item.shape !== 'hud'"
+                            class="item-container"
+                            :class="'item-cursor-' + item.cursor">
+                            <ItemSvg
+                                :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                                :item="item"
+                                :editorId="editorId"
+                                :mode="mode"
+                                :textSelectionEnabled="textSelectionEnabled"
+                                :patchIndex="patchIndex"
+                                :eventListener="eventListenerInterceptor"
+                                @component-load-requested="onComponentLoadRequested"
+                                @frame-animator="onFrameAnimatorEvent" />
+                        </g>
+                </template>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
                             :stroke-width="`${item.strokeSize + 6/(item.scalingFactor*safeZoom)}px`"
@@ -46,22 +48,25 @@
                 </g>
 
                 <g>
-                    <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
-                        :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
-                        >
-                        <ItemSvg
-                            v-for="item in hud.childItems"
-                            v-if="item.visible"
-                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
-                            :item="item"
-                            :editorId="editorId"
-                            :textSelectionEnabled="textSelectionEnabled"
-                            :patchIndex="patchIndex"
-                            :mode="mode"
-                            :eventListener="eventListenerInterceptor"
-                            @component-load-requested="onComponentLoadRequested"
-                            @frame-animator="onFrameAnimatorEvent"/>
-                    </g>
+                    <template v-for="hud in schemeContainer.hudItems">
+                        <g v-if="hud.visible" :transform="createHUDTransform(hud)"
+                            :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
+                            >
+                            <template v-for="item in hud.childItems">
+                                <ItemSvg
+                                    v-if="item.visible"
+                                    :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                                    :item="item"
+                                    :editorId="editorId"
+                                    :textSelectionEnabled="textSelectionEnabled"
+                                    :patchIndex="patchIndex"
+                                    :mode="mode"
+                                    :eventListener="eventListenerInterceptor"
+                                    @component-load-requested="onComponentLoadRequested"
+                                    @frame-animator="onFrameAnimatorEvent"/>
+                            </template>
+                        </g>
+                    </template>
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
@@ -116,19 +121,20 @@
 
 
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <g v-for="item in schemeContainer.worldItems"
-                        v-if="item.visible"
+                    <template v-for="item in schemeContainer.worldItems">
+                        <g v-if="item.visible"
                         class="item-container"
                         :class="'item-cursor-'+item.cursor">
-                        <ItemSvg
-                            :key="`${item.id}-${item.shape}-${itemsReloadKey}`"
-                            :item="item"
-                            :editorId="editorId"
-                            :patchIndex="patchIndex"
-                            :mode="mode"
-                            :eventListener="eventListenerInterceptor"
-                            />
-                    </g>
+                            <ItemSvg
+                                :key="`${item.id}-${item.shape}-${itemsReloadKey}`"
+                                :item="item"
+                                :editorId="editorId"
+                                :patchIndex="patchIndex"
+                                :mode="mode"
+                                :eventListener="eventListenerInterceptor"
+                                />
+                        </g>
+                    </template>
 
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->

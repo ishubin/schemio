@@ -3,7 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import { findKey } from './collections';
-import Vue from 'vue';
+import Emitter from 'tiny-emitter';
 
 
 
@@ -60,14 +60,14 @@ export function identifyKeyPress(event) {
     return findKey(keyMap, check => check(event));
 }
 
-const keyEventBus = new Vue({});
+const keyEventBus = new Emitter();
 
 export function registerKeyPressHandler(callback) {
-    keyEventBus.$on('key-press', callback);
+    keyEventBus.on('key-press', callback);
 }
 
 export function deregisterKeyPressHandler(callback) {
-    keyEventBus.$off('key-press', callback);
+    keyEventBus.off('key-press', callback);
 }
 
 let lastKeyPressed = null;
@@ -101,7 +101,7 @@ function handleKeyPress(event, isDown) {
             }
         }
 
-        keyEventBus.$emit('key-press', isDown, key, {
+        keyEventBus.emit('key-press', isDown, key, {
             ctrlCmdPressed: event.metaKey || event.ctrlKey
         }, event);
     }
@@ -109,7 +109,7 @@ function handleKeyPress(event, isDown) {
 
 export function simulateKeyPress(key, isControlPressed) {
     if (document.activeElement === document.body) {
-        keyEventBus.$emit('key-press', true, key, {
+        keyEventBus.emit('key-press', true, key, {
             ctrlCmdPressed: isControlPressed
         });
     }

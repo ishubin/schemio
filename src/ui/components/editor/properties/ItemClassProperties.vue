@@ -9,28 +9,30 @@
             </div>
         </div>
 
-        <div v-for="(itemClass, classIdx) in itemClasses" v-if="itemClass.args.length > 0" class="item-class-args-container">
-            <div class="item-class-name-separator">
-                <span class="item-class-name">{{ itemClass.name }}</span>
+        <template v-for="(itemClass, classIdx) in itemClasses">
+            <div v-if="itemClass.args.length > 0" class="item-class-args-container">
+                <div class="item-class-name-separator">
+                    <span class="item-class-name">{{ itemClass.name }}</span>
+                </div>
+                <table class="properties-table">
+                    <tbody>
+                        <tr v-for="(arg, argIdx) in itemClass.args">
+                            <td class="label" width="50%">{{ arg.name }}</td>
+                            <td class="value" width="50%">
+                                <PropertyInput
+                                    :key="`item-class-arg-property-input-${argIdx}-${arg.type}`"
+                                    :editorId="editorId"
+                                    :schemeContainer="schemeContainer"
+                                    :descriptor="arg.descriptor"
+                                    :value="arg.value"
+                                    @input="onClassArgValueChange(classIdx, arg.name, $event)"
+                                    />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <table class="properties-table">
-                <tbody>
-                    <tr v-for="(arg, argIdx) in itemClass.args">
-                        <td class="label" width="50%">{{ arg.name }}</td>
-                        <td class="value" width="50%">
-                            <PropertyInput
-                                :key="`item-class-arg-property-input-${argIdx}-${arg.type}`"
-                                :editorId="editorId"
-                                :schemeContainer="schemeContainer"
-                                :descriptor="arg.descriptor"
-                                :value="arg.value"
-                                @input="onClassArgValueChange(classIdx, arg.name, $event)"
-                                />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        </template>
     </div>
 </template>
 

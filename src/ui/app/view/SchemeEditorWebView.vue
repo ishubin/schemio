@@ -4,7 +4,7 @@
 <template>
     <div class="scheme-editor-view" :class="{'diagram-404-view': is404}">
         <schemio-header>
-            <div slot="middle-section">
+            <template v-slot:middle-section>
                 <ul class="header-breadcrumbs">
                     <li v-for="(crumb,  crumbIdx) in breadcrumbs">
                         <router-link v-if="crumb.kind === 'dir'" :to="`${routePrefix}/f/${crumb.path}`">
@@ -19,12 +19,12 @@
                     <img class="icon" :src="`${assetsPath}/images/schemio-logo-white.small.png`" height="20"/>
                     <span>{{scheme.name}}</span>
                 </div>
-            </div>
-            <div slot="loader">
+            </template>
+            <template v-slot:loader>
                 <div v-if="isLoading" class="loader">
                     <div class="loader-element"></div>
                 </div>
-            </div>
+            </template>
         </schemio-header>
 
         <div v-if="is404" class="middle-content">

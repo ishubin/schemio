@@ -13,7 +13,6 @@ import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
 import SchemeEditorWebView from './app/view/SchemeEditorWebView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
-import { applyVueFilters } from './vue.filters';
 import Header from './app/components/HeaderDrive.vue';
 import Footer from './app/components/FooterDrive.vue';
 import HomeDriveView from './app/view/HomeDriveView.vue';
@@ -26,7 +25,6 @@ import { defaultStarterTemplates } from './components/editor/DefaultStarterTempl
 initGoogleAPI();
 
 Vue.use(VueRouter);
-applyVueFilters(Vue);
 
 Vue.component('schemio-header', Header);
 Vue.component('schemio-footer', Footer);

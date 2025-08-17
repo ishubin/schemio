@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <g data-preview-ignore="true" :style="{opacity: mainOpacity}">
+    <g data-preview-ignore="true" :style="{opacity: mainOpacity}" class="edit-box">
         <path v-if="!isItemConnector && isThin" :transform="svgEditBoxTransform"
             :d="editBoxPath"
             data-type="edit-box"

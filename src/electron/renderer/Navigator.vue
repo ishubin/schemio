@@ -5,26 +5,28 @@
             <div v-else class="project-name">{{projectName}}</div>
         </div>
         <div v-if="!collapsed" class="navigator-body navigator-droppable" data-entry-kind="void" @contextmenu.prevent="onVoidRightClick">
-            <div class="navigator-entry navigator-droppable" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
-                @mousedown="onEntryMouseDown($event, entry)"
-                @contextmenu.prevent="openContextMenuForFile(entry)"
-                @mouseover="showPreviewForEntry($event, entry)"
-                @mouseleave="stopPreviewForEntry(entry)"
-                :class="{focused: entry.path === focusedFile}"
-                :data-entry-path="entry.path"
-                :data-entry-kind="entry.kind"
-            >
-                <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
-                <i v-if="entry.kind === 'dir'" class="icon folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
-                <i v-else class="icon fa-regular fa-file"></i>
-                <input v-if="renamingFilePath === entry.path" ref="renamingInput" type="text" class="renaming-textfield"
-                    :value="renamingName"
-                    @keydown.enter="submitRenaming"
-                    @keydown.esc="submitRenaming"
-                    @blur="submitRenaming"
-                    />
-                <span class="entry-name" v-else>{{entry.name}}</span>
-            </div>
+            <template v-for="entry in flatTree">
+                <div class="navigator-entry navigator-droppable" v-if="entry.collapseBitMask === 0"
+                    @mousedown="onEntryMouseDown($event, entry)"
+                    @contextmenu.prevent="openContextMenuForFile(entry)"
+                    @mouseover="showPreviewForEntry($event, entry)"
+                    @mouseleave="stopPreviewForEntry(entry)"
+                    :class="{focused: entry.path === focusedFile}"
+                    :data-entry-path="entry.path"
+                    :data-entry-kind="entry.kind"
+                >
+                    <div class="navigator-spacing" :style="{'padding-left': `${10 * entry.level}px`}"></div>
+                    <i v-if="entry.kind === 'dir'" class="icon folder-collapser fa-solid" :class="[entry.collapsed ? 'fa-angle-right' : 'fa-angle-down']"></i>
+                    <i v-else class="icon fa-regular fa-file"></i>
+                    <input v-if="renamingFilePath === entry.path" ref="renamingInput" type="text" class="renaming-textfield"
+                        :value="renamingName"
+                        @keydown.enter="submitRenaming"
+                        @keydown.esc="submitRenaming"
+                        @blur="submitRenaming"
+                        />
+                    <span class="entry-name" v-else>{{entry.name}}</span>
+                </div>
+            </template>
         </div>
         <div ref="navigatorExpander" class="elec-navigator-expander" :style="{left: `${navigatorWidth-1}px`}" @mousedown="navigatorExpanderMouseDown"></div>
 

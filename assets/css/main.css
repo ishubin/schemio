@@ -532,6 +532,10 @@ html, body, .app-container {
     min-height: 100vh;
 }
 
+body > #app {
+    height: 100%;
+}
+
 body {
     font-family: Roboto, 'Segoe UI', 'Helvetica Neue', Helvetica, sans-serif;
     margin: 0;

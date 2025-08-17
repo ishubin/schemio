@@ -61,10 +61,9 @@
 import htmlSanitize from '../../../../htmlSanitize';
 import utils from '../../../utils';
 import { Keys, identifyKeyPress } from '../../../events';
-import { Editor, EditorContent } from '@tiptap/vue-2';
+import { Editor, EditorContent } from '@tiptap/vue-3';
 import EmoticonTipTapExtension from './IconTipTapExtension';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
 import EditorEventBus from '../EditorEventBus';
 import Dropdown from '../../Dropdown.vue';
 import RichTextMenuBar from './RichTextMenuBar.vue';
@@ -211,7 +210,6 @@ export default {
                 extensions: [
                     EmoticonTipTapExtension,
                     StarterKit,
-                    Underline,
                 ],
 
                 autofocus: true,

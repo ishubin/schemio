@@ -4,11 +4,11 @@
 <template>
     <div class="folder-view web-view">
         <schemio-header>
-            <div slot="loader">
+            <template v-slot:loader>
                 <div v-if="isLoading" class="loader">
                     <div class="loader-element"></div>
                 </div>
-            </div>
+            </template>
         </schemio-header>
 
         <div class="middle-content">
