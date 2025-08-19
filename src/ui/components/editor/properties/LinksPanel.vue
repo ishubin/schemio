@@ -9,7 +9,7 @@
             <li v-for="(link, linkId) in item.links">
                 <a class="link" :href="link.url" target="_blank">
                    <i :class="getLinkCssClass(link)"></i>
-                    {{link | formatLinkTitle }}
+                    {{ formatLinkTitle(link) }}
                 </a>
                 <span class="link edit-link" @click="editLink(linkId, link)"><i class="fas fa-pen-square"></i></span>
                 <span class="link delete-link" @click="deleteLink(linkId)"><i class="fas fa-times"></i></span>
@@ -89,8 +89,7 @@ export default {
             }
             EditorEventBus.item.changed.specific.$emit(this.editorId, this.item.id, 'links');
         },
-    },
-    filters: {
+
         formatLinkTitle(link) {
             if (link.title) {
                 return link.title;
@@ -98,7 +97,7 @@ export default {
                 return link.url;
             }
         }
-    }
+    },
 }
 </script>
 

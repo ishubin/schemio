@@ -13,7 +13,7 @@
             >
             <div class="picked-element" :class="[`picked-element-type-${enrichedElement.type}`, disabled?'disabled': '']">
                 <i :class="enrichedElement.iconClass"/>
-                <span class="element-name">{{enrichedElement.name | toShortName}}</span>
+                <span class="element-name">{{toShortName(enrichedElement.name)}}</span>
             </div>
         </dropdown>
     </div>
@@ -174,16 +174,8 @@ export default {
 
         onDropdownHidden() {
             EditorEventBus.elementPick.canceled.$emit(this.editorId);
-        }
-    },
+        },
 
-    computed: {
-        enrichedElement() {
-            return generateEnrichedElement(this.element, this.schemeContainer);
-        }
-    },
-
-    filters: {
         toShortName(name) {
             // tried to use overflow: hidden but it din't work out
             // I hate CSS so have to use this function :(
@@ -192,7 +184,12 @@ export default {
             }
             return name;
         }
-    }
+    },
 
+    computed: {
+        enrichedElement() {
+            return generateEnrichedElement(this.element, this.schemeContainer);
+        }
+    },
 }
 </script>

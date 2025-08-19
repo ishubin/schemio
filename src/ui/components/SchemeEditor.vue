@@ -327,8 +327,8 @@
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{cursorX | prettifyAxisValue(zoom)}}</span>
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{cursorY | prettifyAxisValue(zoom)}}</span>
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{prettifyAxisValue(cursorX, zoom)}}</span>
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{prettifyAxisValue(cursorY, zoom)}}</span>
                         <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
                             <span class="label">x: </span>
                             <input type="text" class="textfield"
@@ -3673,12 +3673,6 @@ export default {
         y_(y) { return (y - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale },
         z_(v) { return v / this.schemeContainer.screenTransform.scale; },
 
-    },
-
-    filters: {
-        prettifyAxisValue(value, zoom) {
-            return prettifyAxisValue(value, zoom);
-        }
     },
 
     watch: {

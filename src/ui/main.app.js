@@ -22,6 +22,7 @@ import { Scope } from './templater/scope';
 import { generateMapPatch, generateSchemePatch } from './scheme/SchemePatch';
 import { processJSONTemplate } from './templater/templater.js';
 import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
+import { formatDateTime } from './date.js';
 
 
 const routePrefix = document.body.getAttribute('data-route-prefix') || '';
@@ -62,6 +63,13 @@ const router = createRouter({
 
 
 const app = createApp(App);
+
+app.config.globalProperties.$filters = {
+  formatDateTime(value) {
+    return formatDateTime(value);
+  }
+}
+
 app.use(router);
 app.use(store);
 app.component('schemio-header', Header);

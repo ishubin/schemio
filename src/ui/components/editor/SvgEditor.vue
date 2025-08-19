@@ -83,7 +83,7 @@
                         </foreignObject>
 
                         <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
-                            <span class="item-link-title">{{link | formatLinkTitle}}</span>
+                            <span class="item-link-title">{{ formatLinkTitle(link) }}</span>
                         </foreignObject>
                     </a>
                 </g>
@@ -1360,6 +1360,14 @@ export default {
             requestAnimationFrame(() => highlightAnimationLoop(performance.now()));
         },
 
+        formatLinkTitle(link) {
+            if (link.title) {
+                return link.title;
+            } else {
+                return link.url;
+            }
+        },
+
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
@@ -1439,15 +1447,6 @@ export default {
         shouldShowDropMask() {
             return this.$store.getters.isDraggingItemCreation;
         },
-    },
-    filters: {
-        formatLinkTitle(link) {
-            if (link.title) {
-                return link.title;
-            } else {
-                return link.url;
-            }
-        }
     },
     watch: {
         textSelectionEnabled(isEnabled) {

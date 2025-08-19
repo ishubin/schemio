@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import Vue from 'vue';
+import {createApp} from 'vue';
 import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
 import store from './store/Store';
 
@@ -21,7 +21,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         store.dispatch('setApiClient', options.apiClient);
     }
     store.dispatch('setAssetsPath', options.assetsPath || '/');
-    const app = new Vue({
+    const app = createApp({
         components: {StandaloneSchemeView},
         store,
         data() {
@@ -65,7 +65,8 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
             @screen-transform-updated="onScreenTransformUpdated"
             />
         `
-    }).$mount(elementOrSelector);
+    });
+    app.mount(elementOrSelector);
 
     return {
         setZoom(zoom) {

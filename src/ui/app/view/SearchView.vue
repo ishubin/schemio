@@ -50,7 +50,7 @@
                                 </router-link>
                             </td>
                             <td class="time-column">
-                                <span v-if="entry.modifiedTime">{{entry.modifiedTime}}</span>
+                                <span v-if="entry.modifiedTime">{{$filters.formatDateTime(entry.modifiedTime)}}</span>
                             </td>
                         </tr>
                     </tbody>

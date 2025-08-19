@@ -23,7 +23,7 @@
                             :borderless="false"
                             @selected="onSuccessSelected">
                             <i :class="toIcon(args.success)"/>
-                            <span> {{ args.success | toPrettyName }} </span>
+                            <span> {{ toPrettyName(args.success) }} </span>
                         </Dropdown>
                         <input ref="sendEventInputSuccess" v-if="args.success === 'send-event'" type="text" :value="args.successEvent" class="condition-function-send-event"/>
                     </td>
@@ -38,7 +38,7 @@
                             :borderless="false"
                             @selected="onFailSelected">
                             <i :class="toIcon(args.fail)"/>
-                            <span> {{ args.fail | toPrettyName }} </span>
+                            <span> {{ toPrettyName(args.fail) }} </span>
                         </Dropdown>
                         <input ref="sendEventInputFail" v-if="args.fail === 'send-event'" type="text" :value="args.failEvent" class="condition-function-send-event"/>
                     </td>
@@ -125,11 +125,10 @@ export default {
                 });
             }
         },
-    },
-    filters: {
+
         toPrettyName(id) {
             return eventPrettyNames[id];
         }
-    }
+    },
 };
 </script>

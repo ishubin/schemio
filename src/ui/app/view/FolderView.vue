@@ -65,7 +65,7 @@
                                 </router-link>
                             </td>
                             <td class="time-column">
-                                <span v-if="entry.modifiedTime">{{entry.modifiedTime}}</span>
+                                <span v-if="entry.modifiedTime">{{$filters.formatDateTime(entry.modifiedTime)}}</span>
                             </td>
                             <td class="operation-column">
                                 <menu-dropdown v-if="entry.name !== '..' && !viewOnly" name="" iconClass="fas fa-ellipsis-v" :options="entry.menuOptions"
@@ -133,6 +133,7 @@ import Modal from '../../components/Modal.vue';
 import CreateNewSchemeModal from '../../components/CreateNewSchemeModal.vue';
 import MenuDropdown from '../../components/MenuDropdown.vue';
 import MoveToFolderModal from '../components/MoveToFolderModal.vue';
+import utils from '../../utils';
 
 const _kindPrefix = (kind) => kind === 'dir' ? 'a': 'b';
 function entriesSorter(a, b) {
