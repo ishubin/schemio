@@ -2,8 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import Vue from 'vue';
-import Vuex from 'vuex';
+import {createApp} from 'vue';
+import {createStore} from 'vuex';
+import Emitter from 'tiny-emitter';
 import store from './store/Store.js';
 import {createHasher} from './url/hasher.js';
 import SchemioEditorWebApp from './components/SchemioEditorWebApp.vue';
@@ -28,8 +29,9 @@ import ColorPicker from './components/editor/ColorPicker.vue';
 
 window.Schemio = {
     components: {
-        Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
-        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker
+        createApp, createStore, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
+        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker,
+        createEventBus
     },
     utils: {
         getObjectProperty: utils.getObjectProperty,
@@ -59,13 +61,23 @@ window.Schemio = {
         if (options.apiClient) {
             store.dispatch('setApiClient', options.apiClient);
         }
-        const appComponent = Vue.component('SchemioEditorWebApp', Vue.util.extend({store}, SchemioEditorWebApp));
-
-        new Vue({
-            el: querySelector,
-            components: { appComponent },
-            render: h => h('appComponent', {
-                props: {
+        const app = createApp({
+            components: { SchemioEditorWebApp },
+            template: `
+                <schemio-editor-web-app
+                    :editor-id=editorId
+                    :scheme=scheme
+                    :editor-mode=editorMode
+                    :edit-allowed=editAllowed
+                    :user-styles-enabled=userStylesEnabled
+                    :menu-options=menuOptions
+                    :detect-browser-close=detectBrowserClose
+                    @mode-changed="onModeChanged"
+                    @delete-diagram-requested="onDeleteDiagramRequested"
+            />
+            `,
+            data() {
+                return {
                     editorId          : options.editorId || 'default',
                     scheme            : options.scheme || null,
                     editorMode        : options.editorMode || 'view',
@@ -73,20 +85,37 @@ window.Schemio = {
                     userStylesEnabled : options.userStylesEnabled || false,
                     menuOptions       : options.menuOptions || [],
                     detectBrowserClose: options.detectBrowserClose || false,
+                };
+            },
+            methods: {
+                onModeChanged(mode) {
+                    if (options.onModeChanged) {
+                        options.onModeChanged(mode);
+                    }
                 },
-                on: {
-                    'mode-changed': (mode) => {
-                        if (options.onModeChanged) {
-                            options.onModeChanged(mode);
-                        }
-                    },
-                    'delete-diagram-requested': (docId) => {
-                        if (options.onDeleteDiagram) {
-                            options.onDeleteDiagram(docId);
-                        }
+                onDeleteDiagramRequested(docId) {
+                    if (options.onDeleteDiagram) {
+                        options.onDeleteDiagram(docId);
                     }
                 }
-            })
+            }
         });
+        app.use(store);
+        app.mount(querySelector);
     }
+}
+
+function createEventBus() {
+    const bus = new Emitter();
+    return {
+        $on: (...args) => {
+            bus.on(...args)
+        },
+        $off: (...args) => {
+            bus.off(...args)
+        },
+        $emit: (...args) => {
+            bus.emit(...args)
+        },
+    };
 }

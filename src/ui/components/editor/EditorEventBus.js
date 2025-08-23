@@ -1,5 +1,3 @@
-// const Emitter = require('tiny-emitter');
-
 import Emitter from 'tiny-emitter';
 
 import {Logger} from '../../logger';
