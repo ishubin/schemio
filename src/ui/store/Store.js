@@ -12,6 +12,7 @@ const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
 const store = createStore({
+    devtools: false,
     state: {
         //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages then we cannot use '/' as root path
         rootPath: '/',

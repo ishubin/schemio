@@ -3,9 +3,11 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 import {createApp} from 'vue';
+import store from './store/Store.js';
 import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
-import store from './store/Store';
 
+// stupid bug: for some reason if I remove this unused import - the vue itself stops working
+import VueTagsInput from '@sipec/vue3-tags-input';
 
 function objProperty(obj, field, defaultValue) {
     if (obj && obj.hasOwnProperty(field)) {
@@ -66,6 +68,7 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
             />
         `
     });
+    app.use(store);
     app.mount(elementOrSelector);
 
     return {

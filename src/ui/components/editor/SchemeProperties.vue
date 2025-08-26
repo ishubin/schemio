@@ -84,7 +84,7 @@ import VueTagsInput from '@sipec/vue3-tags-input';
 import RichTextEditor from './text-editor/RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
-import {map, indexOf} from '../../collections';
+import { map } from '../../collections';
 import Tooltip from '../Tooltip.vue';
 import EditorEventBus from './EditorEventBus.js';
 

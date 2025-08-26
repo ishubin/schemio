@@ -1,10 +1,9 @@
 const { VueLoaderPlugin } = require('vue-loader');
 const webpack = require('webpack');
 const path = require('path');
-
-
 module.exports = {
     // This is the "main" file which should include all other modules
+    mode: 'production',
     entry: './src/ui/standalone-viewer.js',
     // Where should the compiled file go?
     output: {
@@ -12,7 +11,6 @@ module.exports = {
         publicPath: 'dist/assets/schemio-standalone.js',
         filename: 'schemio-standalone.js'
     },
-    devtool: false,
     optimization: {
         minimize: false
     },

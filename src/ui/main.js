@@ -26,11 +26,12 @@ import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js
 import { diagramImageExporter } from './diagramExporter.js';
 import { compileItemTemplate } from './components/editor/items/ItemTemplate.js';
 import ColorPicker from './components/editor/ColorPicker.vue';
+import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
 
 window.Schemio = {
     components: {
         createApp, createStore, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
-        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker,
+        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker, StandaloneSchemeView,
         createEventBus
     },
     utils: {
