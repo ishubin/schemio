@@ -23,9 +23,14 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         store.dispatch('setApiClient', options.apiClient);
     }
     store.dispatch('setAssetsPath', options.assetsPath || '/');
+
+    let _app = null;
     const app = createApp({
         components: {StandaloneSchemeView},
         store,
+        mounted() {
+            _app = this;
+        },
         data() {
             return {
                 scheme,
@@ -73,11 +78,15 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
 
     return {
         setZoom(zoom) {
-            app.$data.zoom = zoom;
+            if (_app) {
+                _app.zoom = zoom;
+            }
         },
 
         autoZoom() {
-            app.$data.autoZoomUpdateKey = app.$data.autoZoomUpdateKey + 1;
+            if (_app) {
+                _app.autoZoomUpdateKey += 1;
+            }
         }
     }
 }
