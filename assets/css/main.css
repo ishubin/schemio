@@ -2729,9 +2729,8 @@ ul.links-editor .edit-link:hover {
     background: var(--base-strong-up);
     color: var(--base-weak);
 }
-
 .rich-text-editor-menubar .editor-icon:hover {
-    background: #bbb;
+    background: var(--faint-weak-down);
     color: var(--base-strong-up);
 }
 

@@ -2,9 +2,9 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template lang="html">
-    <div class="rich-text-editor-container" :data-editor-layout="editorLayout">
+    <div ref="root" class="rich-text-editor-container" :data-editor-layout="editorLayout">
         <div class="editor-frame" :style="{width, height: editorContentHeight}" :class="{focused}">
-            <RichTextMenuBar :editor="editor"/>
+            <RichTextMenuBar :editor="editor" @link-toggled="onLinkRequested"/>
             <div class="editor-content" @click="onEditorClick" :style="{width, height: editorContentHeight}">
                 <EditorContent :editor="editor" />
             </div>
@@ -26,20 +26,26 @@ import IconTipTapExtension from './IconTipTapExtension';
 
 export default {
     props: {
-        value : {type: String},
-        id    : {type: String},
-        width : {type: String, default: '100%'},
-        height: {type: String, default: '150px'},
+        value      : {type: String},
+        id         : {type: String},
+        width      : {type: String, default: '100%'},
+        height     : {type: String, default: '150px'},
+        linkEnabled: {type: Boolean, default: true},
     },
     components: {Modal, EditorContent, RichTextMenuBar},
 
     beforeMount() {
-        this.editor = new Editor({
+        const editor = new Editor({
             disablePasteRules: true,
             disableInputRules: true,
             extensions: [
                 IconTipTapExtension,
-                StarterKit,
+                StarterKit.configure({
+                    link: {
+                        openOnClick: false,
+                        autolink: true,
+                    }
+                }),
             ],
             content: this.value,
             onUpdate: ({ editor }) => {
@@ -51,15 +57,16 @@ export default {
             },
             onBlur: () => {
                 this.focused = false;
-            }
+            },
         });
+
+        this.editor = editor;
 
         document.addEventListener('keydown', this.onKeyPress);
     },
 
     beforeDestroy() {
         this.editor.destroy();
-        document.removeEventListener('keydown', this.onKeyPress);
     },
 
     data() {
@@ -73,13 +80,17 @@ export default {
                 shown: false,
                 url: '',
                 onSubmit: null
-            }
+            },
         };
     },
 
     methods: {
         toggleLayout() {
             this.enlarged = !this.enlarged;
+        },
+
+        onLinkRequested() {
+            this.toggleLink(this.editor);
         },
 
         onEditorClick(event) {
@@ -93,7 +104,15 @@ export default {
             this.linkModal.url = previousUrl;
             this.linkModal.onSubmit = () => {
                 if (this.linkModal.url) {
-                    editor.chain().focus().extendMarkRange('link').setLink({ href: this.linkModal.url }).run();
+                    editor.chain().focus().extendMarkRange('link').run();
+                    if (editor.view.state.selection.empty) {
+                        const link = document.createElement('a');
+                        link.setAttribute('href', this.linkModal.url);
+                        link.innerText = this.linkModal.url;
+                        editor.commands.insertContent(link.outerHTML);
+                    } else {
+                        editor.chain().focus().extendMarkRange('link').setLink({ href: this.linkModal.url }).run();
+                    }
                 } else {
                     editor.chain().focus().extendMarkRange('link').unsetLink().run();
                 }

@@ -9,7 +9,7 @@
         :style="cssStyle2"
         >
         <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="editor && isRichEditor && !isSimpleText" :style="editorMenuStyle">
-            <RichTextMenuBar :editor="editor" />
+            <RichTextMenuBar :editor="editor" :linkEnabled="false"/>
         </div>
         <textarea v-if="textSlot.display === 'textarea'" ref="textarea"
             class="in-place-text-editor"
@@ -209,7 +209,12 @@ export default {
                 disableInputRules: true,
                 extensions: [
                     EmoticonTipTapExtension,
-                    StarterKit,
+                    StarterKit.configure({
+                        link: {
+                            openOnClick: false,
+                            autolink: false,
+                        }
+                    }),
                 ],
 
                 autofocus: true,
