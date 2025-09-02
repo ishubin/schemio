@@ -52,8 +52,6 @@
     "@electron/notarize": "^3.0.1",
     "@electron/osx-sign": "^2.0.0",
     "@sipec/vue3-tags-input": "^3.0.4",
-    "@tiptap/extension-link": "^3.2.0",
-    "@tiptap/extension-underline": "^3.2.0",
     "@tiptap/starter-kit": "^3.2.0",
     "@tiptap/vue-3": "^3.2.0",
     "@vercel/webpack-asset-relocator-loader": "1.7.3",
