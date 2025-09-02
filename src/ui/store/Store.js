@@ -71,7 +71,6 @@ const store = createStore({
         selectedConnectorPath: null,
         selectedConnector: null,
 
-        multiSelectBox: null,
 
         // used to render snapping lines when user drags item and it is snapped to other items
         snappers: {
@@ -164,10 +163,6 @@ const store = createStore({
         },
         CLEAR_ITEM_CONTROL_POINTS(state) {
             state.itemControlPoints.length = 0;
-        },
-
-        SET_MULTI_SELECT_BOX(state, box) {
-            state.multiSelectBox = box;
         },
 
         SET_SELECTED_CONNECTOR_WITH_PATH(state, {item, path}) {
@@ -417,10 +412,6 @@ const store = createStore({
             commit('CLEAR_ITEM_CONTROL_POINTS');
         },
 
-        setMultiSelectBox({commit}, box) {
-            commit('SET_MULTI_SELECT_BOX', box);
-        },
-
         setSelectedConnectorWithPath({commit}, {item, path}) {
             commit('SET_SELECTED_CONNECTOR_WITH_PATH', {item, path});
         },
@@ -519,8 +510,6 @@ const store = createStore({
         apiClient: state => state.apiClient,
 
         itemControlPointsList: state => state.itemControlPoints,
-
-        multiSelectBox: state => state.multiSelectBox,
 
         horizontalSnapper: state => state.snappers.horizontal,
         verticalSnapper: state => state.snappers.vertical,

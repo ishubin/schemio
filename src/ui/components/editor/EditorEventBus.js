@@ -379,6 +379,12 @@ const EditorEventBus = {
         $on: (editorId, callback) => $on(editorId, 'connector-requested', [], callback),
         $off: (editorId, callback) => $off(editorId, 'connector-requested', [], callback),
         $emit: (editorId, sourceItem, sourcePin, x, y) => $emit(editorId, 'connector-requested', [], sourceItem, sourcePin, x, y),
+    },
+
+    multiSelectBoxUpdated: {
+        $on: (editorId, callback) => $on(editorId, 'multi-select-box-updated', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'multi-select-box-updated', [], callback),
+        $emit: (editorId, multiSelectBox) => $emit(editorId, 'multi-select-box-updated', [], multiSelectBox),
     }
 };
 

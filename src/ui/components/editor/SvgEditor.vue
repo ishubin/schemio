@@ -293,6 +293,8 @@ export default {
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
 
         EditorEventBus.component.destroyed.$on(this.editorId, this.onComponentDestroyed);
+
+        EditorEventBus.multiSelectBoxUpdated.$on(this.editorId, this.onMultiSelectBoxUpdated);
     },
 
     mounted() {
@@ -351,6 +353,8 @@ export default {
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.component.destroyed.$off(this.editorId, this.onComponentDestroyed);
 
+        EditorEventBus.multiSelectBoxUpdated.$off(this.editorId, this.onMultiSelectBoxUpdated);
+
         if (this.mode === 'view') {
             this.destroyUserKeyBinders();
         }
@@ -367,6 +371,7 @@ export default {
             mouseEventsEnabled: !(this.mode === 'view' && this.textSelectionEnabled),
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#226D18', '#6A590E', '#0F8989', '#7B245B'],
 
+            multiSelectBox: null,
 
             lastClickPoint: null,
             // setting last click time to -1000 as performance.now() returns 0 when the page just loaded
@@ -416,6 +421,11 @@ export default {
         };
     },
     methods: {
+        onMultiSelectBoxUpdated(box) {
+            this.multiSelectBox = box;
+            this.$forceUpdate();
+        },
+
         onSearchedItemsToggled() {
             if (this.worldHighlightedItems.length > 0) {
                 const area = {
@@ -1433,9 +1443,6 @@ export default {
             let x = Math.ceil(this.schemeContainer.screenTransform.x % zSnap) - zSnap;
             let y = Math.ceil(this.schemeContainer.screenTransform.y % zSnap) - zSnap;
             return `translate(${x} ${y})`;
-        },
-        multiSelectBox() {
-            return this.$store.getters.multiSelectBox;
         },
         horizontalSnapper() {
             return this.$store.getters.horizontalSnapper;

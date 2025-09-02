@@ -740,12 +740,12 @@ export class MultiSelectState extends SubState {
             this.multiSelectBox.y = y;
             this.multiSelectBox.h = this.originalClickPoint.y - y;
         }
-        StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
+        EditorEventBus.multiSelectBoxUpdated.$emit(this.editorId, this.multiSelectBox);
     }
 
     mouseUp(x, y, mx, my, object, event) {
         this.selectorCallback(this.multiSelectBox, isMultiSelectKey(event));
-        StoreUtils.setMultiSelectBox(this.store, null);
+        EditorEventBus.multiSelectBoxUpdated.$emit(this.editorId, null);
         this.migrateToPreviousSubState();
     }
 }
