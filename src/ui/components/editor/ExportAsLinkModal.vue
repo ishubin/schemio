@@ -38,7 +38,7 @@ export default {
 
             const chars = {'+': '.', '/': '_', '=': '-'};
             const content = base64Content.replace(/[+/=]/g, m => chars[m]);
-            const mode = this.$router ? this.$router.mode : 'history';
+            const mode = this.$router ? this.$router.options.mode : 'history';
 
             const routeName = 'offline-editor';
 

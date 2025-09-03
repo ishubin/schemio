@@ -46,6 +46,7 @@ window.createSchemioStaticApp = function (options) {
     const router = createRouter({
         history: createWebHashHistory(),
         routes: routes,
+        mode: 'hash' // custom property to be able to get the mode of the router through this.$router.options.mode
     });
 
     const app = createApp(App);

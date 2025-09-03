@@ -59,6 +59,7 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes: routes,
+    mode: 'history' // custom property to be able to get the mode of the router through this.$router.options.mode
 });
 
 

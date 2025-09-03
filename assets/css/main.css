@@ -188,7 +188,7 @@ body[data-theme="dark"] {
 [data-theme="dark"]  textarea.textfield,
 [data-theme="dark"]  .vc-chrome-fields .vc-input__input,
 [data-theme="dark"]  select.dropdown  {
-    background: var(--faint-weak-down);
+    background: none;
     color: var(--base-strong);
 }
 [data-theme="dark"]  input[type="text"].custom-event-textfield  {
@@ -2907,6 +2907,9 @@ ul.script-options .script-option.selected {
     text-overflow: ellipsis;
     overflow-x: hidden;
 }
+.dropdown-container .dropdown-popup ul li > i {
+    margin-right: 3px;
+}
 .dropdown-container .dropdown-popup ul li.hovered {
     background: var(--accent-strong);
     color: var(--base-weak);
@@ -3009,6 +3012,10 @@ ul.script-options .script-option.selected {
     padding: 5px;
 }
 
+.behavior-container .dropdown-container .icon-event {
+    margin-right: 5px;
+}
+
 .behavior-event {
     position: relative;
     padding-left: 35px;
@@ -3071,6 +3078,8 @@ ul.script-options .script-option.selected {
 .behavior-action-container .icon-container .icon-move {
     display: none;
     cursor: grab;
+    margin-left: 3px;
+    margin-right: 3px;
 }
 .behavior-action-container .icon-container .icon-check {
     display: none;
@@ -3225,6 +3234,9 @@ ul.script-options .script-option.selected {
 .element-picker {
     display: block;
     font-size: 14px;
+}
+.element-picker .picked-element > i {
+    margin-right: 3px;
 }
 .element-picker .picked-element.picked-element-type-item {
     color: var(--complement-strong);

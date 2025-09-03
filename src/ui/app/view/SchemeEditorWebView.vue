@@ -179,7 +179,7 @@ export default {
         const schemeId = this.$route.params.schemeId;
 
         return {
-            hasher: createHasher(this.$router ? this.$router.mode : 'history'),
+            hasher: createHasher(this.$router ? this.$router.options.mode : 'history'),
             schemeId: schemeId,
             path: '',
             breadcrumbs: [],
@@ -292,7 +292,7 @@ export default {
                     EditorEventBus.schemeChangeCommitted.$emit(`scheme-${this.appReloadKey}`);
                     this.newSchemePopup.item = null;
                 }
-                const isHistoryMode = this.$router && this.$router.mode === 'history';
+                const isHistoryMode = this.$router && this.$router.options.mode === 'history';
                 const publicLink = isHistoryMode ?  `/docs/${createdScheme.id}#m=edit` : `#/docs/${createdScheme.id}?m=edit`
                 window.open(publicLink, '_blank');
             })
@@ -306,7 +306,7 @@ export default {
         },
 
         loadSchemeFromLink() {
-            const mode = this.$router ? this.$router.mode : 'history';
+            const mode = this.$router ? this.$router.options.mode : 'history';
             const chars = {'.': '+', '_': '/', '-': '='};
 
             const pageParams = createHasher(mode).decodeURLHash(window.location.hash);

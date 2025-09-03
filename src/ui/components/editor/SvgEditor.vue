@@ -1098,7 +1098,7 @@ export default {
                 // perhaps not the best way to handle this, but for now this trick should do
                 // drive app uses different type of router and therefor we need to adjust the url so that it can properly reference other diagrams
                 const convertLinkUrl = link => {
-                    if (link.type === 'doc' && link.url && link.url.startsWith('/docs/') && this.$router && this.$router.mode !== 'history') {
+                    if (link.type === 'doc' && link.url && link.url.startsWith('/docs/') && this.$router && this.$router.options.mode !== 'history') {
                         return '#' + link.url;
                     }
                     return link.url;

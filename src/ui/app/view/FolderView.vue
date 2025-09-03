@@ -306,7 +306,7 @@ export default {
                 this.progressModal.shown = false;
 
                 const routePrefix = this.$store.state.routePrefix || '';
-                if (this.$router.mode === 'history') {
+                if (this.$router.options.mode === 'history') {
                     this.$router.push(`${routePrefix}/docs/${createdScheme.id}#m=edit`);
                 } else {
                     this.$router.push(`${routePrefix}/docs/${createdScheme.id}?m=edit`);
