@@ -93,10 +93,10 @@
     --faint-strong-up: #373636;
     --faint-strong-up-up: #414040;
 
-    --accent-strong-down-down: #243e5c;
-    --accent-strong-down: #304f73;
-    --accent-strong: #3b618c;
-    --accent-faint: #6a84a1;
+    --accent-strong-down-down: #3e546c;
+    --accent-strong-down: #446892;
+    --accent-strong: #306aac;
+    --accent-faint: #769fcd;
     --accent-faint-up: #b1cdec;
 
     --accent-weak-down: #4d555f;
@@ -4227,7 +4227,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     padding-right: 5px;
 }
 .header .modal-container a, .header .modal-container .link {
-    color: var(--accent-strong);
+    color: var(--accent-faint);
 }
 
 .header .scheme-title {
