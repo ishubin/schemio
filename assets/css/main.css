@@ -3360,6 +3360,11 @@ ul.script-options .script-option.selected {
     overflow: auto;
     flex: 1;
 }
+.item-tooltip .item-tooltip-body p {
+    margin-top: var(--paragraph-top-margin);
+    margin-bottom: 0;
+    padding: 0;
+}
 
 @media (max-width: 900px) {
     .item-tooltip .item-tooltip-close {
@@ -3399,6 +3404,19 @@ ul.script-options .script-option.selected {
 }
 .item-tooltip.item-short-details-tooltip .item-tooltip-links > li a {
     flex: 1
+}
+
+.item-tooltip ul.item-tooltip-links {
+    list-style: none;
+    margin: 0 0 5px 0;
+    padding: 0;
+}
+.item-tooltip ul.item-tooltip-links > li {
+    margin-bottom: 3px;
+}
+
+.item-tooltip .item-tooltip-links a {
+    color: rgb(55, 158, 255);
 }
 
 /***************** Item Selector *********************/
