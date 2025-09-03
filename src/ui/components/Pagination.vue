@@ -33,6 +33,7 @@
 </template>
 
 <script>
+
 export default {
     props: {
         currentPage:    {type: Number, default: 1},
@@ -122,6 +123,12 @@ export default {
             }
 
             return pages;
+        }
+    },
+
+    watch: {
+        currentPage() {
+            this.pages = this.buildPages(this.pageUrlPrefix, this.currentPage, this.totalPages);
         }
     }
 }
