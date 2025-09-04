@@ -2833,7 +2833,11 @@ export default {
         },
 
         onContextMenuRequested(mouseX, mouseY, menuOptions) {
-            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
+            const svgPlot = document.getElementById(`svg-plot-${this.editorId}`);
+            if (!svgPlot) {
+                return;
+            }
+            const svgRect = svgPlot.getBoundingClientRect();
             this.$emit('context-menu-requested', {
                 x: mouseX + svgRect.left + 5,
                 y: mouseY + svgRect.top + 5,
@@ -3172,7 +3176,11 @@ export default {
             const maxScreen = {x: this._x(max.x), y: this._y(max.y) + bottomMargin};
             const midX = (minScreen.x + maxScreen.x)/2;
 
-            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
+            const svgPlot = document.getElementById(`svg-plot-${this.editorId}`)
+            if (!svgPlot) {
+                return;
+            }
+            const svgRect = svgPlot.getBoundingClientRect();
 
             if (midX < 0 || midX > svgRect.width) {
                 this.resetFloatingHelperPanel();
