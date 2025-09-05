@@ -2907,9 +2907,6 @@ ul.script-options .script-option.selected {
     text-overflow: ellipsis;
     overflow-x: hidden;
 }
-.dropdown-container .dropdown-popup ul li > i {
-    margin-right: 3px;
-}
 .dropdown-container .dropdown-popup ul li.hovered {
     background: var(--accent-strong);
     color: var(--base-weak);
@@ -3010,10 +3007,6 @@ ul.script-options .script-option.selected {
     background: var(--base-weak);
     border-radius: 6px;
     padding: 5px;
-}
-
-.behavior-container .dropdown-container .icon-event {
-    margin-right: 5px;
 }
 
 .behavior-event {
@@ -3234,9 +3227,6 @@ ul.script-options .script-option.selected {
 .element-picker {
     display: block;
     font-size: 14px;
-}
-.element-picker .picked-element > i {
-    margin-right: 3px;
 }
 .element-picker .picked-element.picked-element-type-item {
     color: var(--complement-strong);
