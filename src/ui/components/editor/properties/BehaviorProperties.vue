@@ -277,7 +277,7 @@ import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties, getItemPropertyDescriptionForShape, DragType, coreItemPropertyTypes} from '../../../scheme/Item';
+import {textSlotProperties, getItemPropertyDescriptionForShape, DragType, coreItemPropertyTypes, getPropertyDefaultValue} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
@@ -881,7 +881,12 @@ export default {
                             if (property && supportsAnimationForSetFunction(property.type)) {
                                 args.animated = true;
                             }
-                            args.value = utils.getObjectProperty(element, methodOption.fieldPath);
+                            const propertyValue = utils.getObjectProperty(element, methodOption.fieldPath);
+                            if (isNaN(propertyValue)) {
+                                args.value = getPropertyDefaultValue(property);
+                            } else {
+                                args.value = propertyValue;
+                            }
                         }
                     }
                     action.args = args;
