@@ -223,7 +223,7 @@ export default {
 
         onBodyClick(event) {
             if (this.shown === true && (new Date().getTime() - this.lastTimeClicked) > 200) {
-                if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
+                if (event.target && event.target.getAttribute('data-input-type') === 'dropdown-search') {
                     return;
                 }
                 this.cancelPopup();
@@ -231,7 +231,7 @@ export default {
         },
         onGlobalKeydown(event) {
             if (this.shown === true && (new Date().getTime() - this.lastTimeClicked) > 200) {
-                if (event.srcElement && event.srcElement.getAttribute('data-input-type') === 'dropdown-search') {
+                if (event.target && event.target.getAttribute('data-input-type') === 'dropdown-search') {
                     return;
                 }
                 this.cancelPopup();

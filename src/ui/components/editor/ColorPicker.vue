@@ -128,7 +128,7 @@ export default {
 
         onColorChange(color) {
             this.pickerColor = color;
-            this.$emit('input', color);
+            this.$emit('changed', color);
         }
     },
     computed: {

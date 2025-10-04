@@ -122,7 +122,7 @@
                                         :schemeContainer="schemeContainer"
                                         :leftOriented="argName === 'sourceCap'"
                                         :itemId="item.id"
-                                        @input="onShapePropChange(argName, arg.type, $event)"
+                                        @changed="onShapePropChange(argName, arg.type, $event)"
                                     />
                                 </td>
                             </tr>

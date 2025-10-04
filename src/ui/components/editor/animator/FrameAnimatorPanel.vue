@@ -47,7 +47,7 @@
                                     :shapeProps="{}"
                                     :schemeContainer="schemeContainer"
                                     :itemId="null"
-                                    @input="onFramePropertyInput" />
+                                    @changed="onFramePropertyInput" />
 
                         </div>
                     </div>

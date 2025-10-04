@@ -33,7 +33,7 @@
                                 :schemeContainer="schemeContainer"
                                 :descriptor="arg.descriptor"
                                 :value="arg.value"
-                                @input="onArgDefaultValueChange(argIdx, $event)"
+                                @changed="onArgDefaultValueChange(argIdx, $event)"
                                 />
                         </div>
                     </td>

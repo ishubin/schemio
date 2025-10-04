@@ -813,7 +813,7 @@ export default {
             var p = this.toLocalPoint(coords.x, coords.y);
             lastMousePosition.x = coords.x;
             lastMousePosition.y = coords.y;
-            this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
+            this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.target, p), event);
         },
 
         onEventListenerInterceptorMouseEvent(eventName, event, componentItem) {

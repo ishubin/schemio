@@ -98,7 +98,7 @@ export default {
 
         onBodyClick(event) {
             if (this.menuDisplayed === true) {
-                if (event.srcElement && event.srcElement.closest(`#${this.uid}`)) {
+                if (event.target && event.target.closest(`#${this.uid}`)) {
                     return;
                 }
                 this.menuDisplayed = false;
