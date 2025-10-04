@@ -4,8 +4,8 @@
 
 // This is an entry point for schemio bundle that is used for Google Drive based Schemio app
 
-import Vue from 'vue';
-import VueRouter from 'vue-router';
+import {createApp} from 'vue';
+import {createRouter, createWebHashHistory} from 'vue-router';
 import App from './app/App.vue';
 import FolderView from './app/view/FolderView.vue';
 import SearchView from './app/view/SearchView.vue';
@@ -13,7 +13,6 @@ import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
 import SchemeEditorWebView from './app/view/SchemeEditorWebView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
-import { applyVueFilters } from './vue.filters';
 import Header from './app/components/HeaderDrive.vue';
 import Footer from './app/components/FooterDrive.vue';
 import HomeDriveView from './app/view/HomeDriveView.vue';
@@ -21,15 +20,10 @@ import { googleDriveClientProvider } from './app/client/googleDriveClient';
 import { offlineClientProvider } from './app/client/offlineClient';
 import { initGoogleAPI } from './googleApi';
 import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
+import { formatDateTime } from './date.js';
 
 
 initGoogleAPI();
-
-Vue.use(VueRouter);
-applyVueFilters(Vue);
-
-Vue.component('schemio-header', Header);
-Vue.component('schemio-footer', Footer);
 
 function route(name, path, component, props) {
     return { name, path, component, props };
@@ -53,17 +47,27 @@ const routes = [
     route('NotFoundView',           '/not-found',        NotFoundView),
     route('HomeView',               '/',                 HomeDriveView),
     route('SearchView',             '/search',           SearchView, {clientProvider: googleDriveClientProvider}),
-    route('FolderView',             '/f/*',              FolderView, {clientProvider: googleDriveClientProvider}),
-    { path: '*', redirect: '/not-found'}
+    route('FolderView',             '/f/:folders*',      FolderView, {clientProvider: googleDriveClientProvider}),
+    { path: '/.*', redirect: '/not-found'}
 ];
 
 
-const router = new VueRouter({
+const router = createRouter({
+    history: createWebHashHistory(),
     routes: routes,
+    mode: 'hash', // custom property to be able to get the mode of the router through this.$router.options.mode
 });
 
 
-new Vue(Vue.util.extend({
-    router,
-    store,
-}, App)).$mount('#app');
+const app = createApp(App);
+
+app.config.globalProperties.$filters = {
+  formatDateTime(value) {
+    return formatDateTime(value);
+  }
+}
+app.use(router);
+app.use(store);
+app.component('schemio-header', Header);
+app.component('schemio-footer', Footer);
+app.mount('#app');

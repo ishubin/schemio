@@ -35,13 +35,15 @@
         </div>
 
         <ul class="tabs tabs-file">
-            <li v-for="(tab, tabIdx) in tabs" v-if="!tab.disabled">
-                <span class="tab" @click="selectScriptTab(tabIdx)" :class="{active: tabIdx === selectedTabIdx}">
-                    <i class="fa-solid fa-code"></i>
-                    {{ tab.name }}
-                    <Tooltip v-if="tab.description">{{ tab.description }}</Tooltip>
-                </span>
-            </li>
+            <template v-for="(tab, tabIdx) in tabs">
+                <li v-if="!tab.disabled">
+                    <span class="tab" @click="selectScriptTab(tabIdx)" :class="{active: tabIdx === selectedTabIdx}">
+                        <i class="fa-solid fa-code"></i>
+                        {{ tab.name }}
+                        <Tooltip v-if="tab.description">{{ tab.description }}</Tooltip>
+                    </span>
+                </li>
+            </template>
         </ul>
         <div class="tabs-body">
             <ScriptEditor key="script-tab-0" v-if="selectedTabIdx === 0"

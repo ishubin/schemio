@@ -88,13 +88,15 @@
 
 
         <div ref="itemDragger" class="item-selector-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
-            <div class="item-name" :class="`preview-${itemIdx}`" v-for="(item, itemIdx) in dragging.items" v-if="itemIdx < 3">
-                <img v-if="item.meta.iconUrl" :src="item.meta.iconUrl" class="item-icon"/>
-                <i v-else class="fas fa-cube"></i>
-                <span>
-                    {{item.name}}
-                </span>
-            </div>
+            <template v-for="(item, itemIdx) in dragging.items">
+                <div v-if="itemIdx < 3" class="item-name" :class="`preview-${itemIdx}`">
+                    <img v-if="item.meta.iconUrl" :src="item.meta.iconUrl" class="item-icon"/>
+                    <i v-else class="fas fa-cube"></i>
+                    <span>
+                        {{item.name}}
+                    </span>
+                </div>
+            </template>
         </div>
 
         <div class="item-selector-resize-dragger" @mousedown="onItemSelectorResizeDraggerMouseDown"> </div>

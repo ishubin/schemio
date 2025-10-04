@@ -14,7 +14,7 @@
                 <li v-for="link in item.links">
                     <a class="link" :href="link.url" target="_blank">
                        <i :class="getLinkCssClass(link)"></i>
-                        {{link | formatLinkTitle}}
+                        {{  formatLinkTitle(link) }}
                     </a>
                 </li>
             </ul>
@@ -32,21 +32,20 @@ export default {
     methods: {
         getLinkCssClass(link) {
             return linkTypes.findTypeByNameOrDefault(link.type).cssClass;
-        }
-    },
+        },
 
-    computed: {
-        sanitizedItemDescription() {
-            return htmlSanitize(this.item.description);
-        }
-    },
-    filters: {
         formatLinkTitle(link) {
             if (link.title) {
                 return link.title;
             } else {
                 return link.url;
             }
+        }
+    },
+
+    computed: {
+        sanitizedItemDescription() {
+            return htmlSanitize(this.item.description);
         }
     }
 }

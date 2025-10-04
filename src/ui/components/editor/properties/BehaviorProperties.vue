@@ -19,7 +19,7 @@
                                 :options="draggingOptions"
                                 @selected="onItemDraggingChange"
                             >
-                                {{ item.behavior.dragging | toPrettyDraggingOptionName }}
+                                {{ toPrettyDraggingOptionName(item.behavior.dragging) }}
                             </dropdown>
                         </td>
                     </tr>
@@ -107,7 +107,7 @@
                         :borderless="true"
                         >
                         <span class="icon-event"><i class="fas fa-bell"></i></span>
-                        <span v-if="isStandardEvent(event.event)">{{event.event | toPrettyEventName}}</span>
+                        <span v-if="isStandardEvent(event.event)">{{toPrettyEventName(event.event)}}</span>
                         <input v-else :id="`custom-event-textfield-${item.id}-${eventIndex}`" class="custom-event-textfield" type="text" :value="event.event" @input="event.event = $event.target.value"/>
                     </dropdown>
                 </div>
@@ -159,17 +159,17 @@
                                     :inline="true"
                                     :borderless="true"
                                     >
-                                    <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{action.args.field | toPrettyPropertyName(action.element, item, schemeContainer)}}</span>
+                                    <span v-if="action.method === 'set'"><i class="fas fa-cog"></i> {{toPrettyPropertyName(action.args.field, action.element, item, schemeContainer)}}</span>
                                     <span class="behavior-function" v-else-if="action.method === 'sendEvent'"><i class="icon fas fa-play"></i> {{action.args.event}} </span>
-                                    <span class="behavior-function" v-else-if="action.method.startsWith('function:')">{{action.method | functionToPrettyName }} </span>
-                                    <span class="behavior-function" v-else>{{action.method | toPrettyMethod(action.element) }} </span>
+                                    <span class="behavior-function" v-else-if="action.method.startsWith('function:')">{{ functionToPrettyName(action.method) }} </span>
+                                    <span class="behavior-function" v-else>{{ toPrettyMethod(action.method, action.element) }} </span>
                                 </dropdown>
                             </div>
                             <span v-if="action.method !== 'set' && action.method !== 'sendEvent' && action.args && Object.keys(action.args).length > 0"
                                 class="action-method-arguments-expand"
                                 @click="showFunctionArgumentsEditor(action, eventIndex, actionIndex)"
                                 title="Edit function arguments"
-                                >{{action | toPrettyActionArgs(schemeContainer) }}</span>
+                                >{{toPrettyActionArgs(action, schemeContainer) }}</span>
 
                             <span v-if="action.method === 'set'" class="function-brackets"> = </span>
 
@@ -263,7 +263,7 @@
 import {forEach, map, mapObjectValues, filter, find, indexOf, uniq} from '../../../collections';
 
 import shortid from 'shortid';
-import VueTagsInput from '@johmun/vue-tags-input';
+import VueTagsInput from '@sipec/vue3-tags-input';
 import utils from '../../../utils.js';
 import Shape from '../items/shapes/Shape.js'
 import Dropdown from '../../Dropdown.vue';
@@ -277,7 +277,7 @@ import {generateEnrichedElement} from '../ElementPicker.vue';
 import SetArgumentEditor from './behavior/SetArgumentEditor.vue';
 import ArgumentsEditor from '../ArgumentsEditor.vue';
 import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
-import {textSlotProperties, getItemPropertyDescriptionForShape, DragType, coreItemPropertyTypes} from '../../../scheme/Item';
+import {textSlotProperties, getItemPropertyDescriptionForShape, DragType, coreItemPropertyTypes, getPropertyDefaultValue} from '../../../scheme/Item';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard.js';
 import StoreUtils from '../../../store/StoreUtils.js';
 import {COMPONENT_LOADED_EVENT, COMPONENT_FAILED, COMPONENT_DESTROYED} from '../items/shapes/Component.vue';
@@ -881,7 +881,12 @@ export default {
                             if (property && supportsAnimationForSetFunction(property.type)) {
                                 args.animated = true;
                             }
-                            args.value = utils.getObjectProperty(element, methodOption.fieldPath);
+                            const propertyValue = utils.getObjectProperty(element, methodOption.fieldPath);
+                            if (isNaN(propertyValue)) {
+                                args.value = getPropertyDefaultValue(property);
+                            } else {
+                                args.value = propertyValue;
+                            }
                         }
                     }
                     action.args = args;
@@ -1313,24 +1318,6 @@ export default {
                 this.$forceUpdate();
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
             });
-        }
-    },
-
-    filters: {
-        toPrettyEventName(event) {
-            if (Events.standardEvents[event]) {
-                return Events.standardEvents[event].name;
-            } else {
-                return event;
-            }
-        },
-
-        toPrettyMethod(method, element) {
-            if (Functions.main[method]) {
-                return Functions.main[method].name;
-            } else {
-                return method;
-            }
         },
 
         toPrettyActionArgs(action, schemeContainer) {
@@ -1345,6 +1332,22 @@ export default {
                 }
             }
             return '( ... )';
+        },
+
+        toPrettyEventName(event) {
+            if (Events.standardEvents[event]) {
+                return Events.standardEvents[event].name;
+            } else {
+                return event;
+            }
+        },
+
+        toPrettyMethod(method, element) {
+            if (Functions.main[method]) {
+                return Functions.main[method].name;
+            } else {
+                return method;
+            }
         },
 
         toPrettyPropertyName(propertyPath, element, selfItem, schemeContainer) {

@@ -1,9 +1,10 @@
-import Vue from 'vue';
+import Emitter from 'tiny-emitter';
+
 import {Logger} from '../../logger';
 
 const log = new Logger('EditorEventBus');
 
-const bus = new Vue({});
+const bus = new Emitter();
 
 function generateEvent(editorId, eventName, args) {
     let fullEvent = editorId + '/' + eventName;
@@ -17,13 +18,13 @@ function $on(editorId, eventName, args, callback) {
     if (!editorId) {
         throw new Error('editorId should be specified, got: ', editorId);
     }
-    bus.$on(generateEvent(editorId, eventName, args), callback);
+    bus.on(generateEvent(editorId, eventName, args), callback);
 }
 function $off(editorId, eventName, args, callback) {
     if (!editorId) {
         throw new Error('editorId should be specified, got: ', editorId);
     }
-    bus.$off(generateEvent(editorId, eventName, args), callback);
+    bus.off(generateEvent(editorId, eventName, args), callback);
 }
 function $emit(editorId, eventName, eventArgs, ...emitArgs) {
     if (!editorId) {
@@ -31,7 +32,7 @@ function $emit(editorId, eventName, eventArgs, ...emitArgs) {
     }
     const fullEventName = generateEvent(editorId, eventName, eventArgs);
     log.infoEvent(fullEventName, emitArgs);
-    bus.$emit(fullEventName, ...emitArgs);
+    bus.emit(fullEventName, ...emitArgs);
 }
 
 const EditorEventBus = {
@@ -154,16 +155,16 @@ const EditorEventBus = {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-text-slot-triggered', [], callback),
                 $off: (editorId, callback) => $off(editorId, 'any-text-slot-triggered', [], callback),
-                $emit: (editorId, item, textSlot, creatingNewItem) => {
-                    $emit(editorId, 'any-text-slot-triggered', [], item, textSlot, creatingNewItem);
+                $emit: (editorId, item, slotName, area, markupDisabled, creatingNewItem) => {
+                    $emit(editorId, 'any-text-slot-triggered', [], item, slotName, area, markupDisabled, creatingNewItem);
                 }
             },
             specific: {
                 $on: (editorId, itemId, callback) => $on(editorId, 'text-slot-triggered', [itemId], callback),
                 $off: (editorId, itemId, callback) => $off(editorId, 'text-slot-triggered', [itemId], callback),
-                $emit: (editorId, item, textSlot, creatingNewItem) => {
-                    EditorEventBus.textSlot.triggered.any.$emit(editorId, item, textSlot, creatingNewItem);
-                    $emit(editorId, 'text-slot-triggered', [item.id], item, textSlot, creatingNewItem);
+                $emit: (editorId, item, slotName, area, markupDisabled, creatingNewItem) => {
+                    EditorEventBus.textSlot.triggered.any.$emit(editorId, item, slotName, area, markupDisabled, creatingNewItem);
+                    $emit(editorId, 'text-slot-triggered', [item.id], item, slotName, area, markupDisabled, creatingNewItem);
                 }
             },
         },
@@ -189,6 +190,16 @@ const EditorEventBus = {
             $off: (editorId, callback) => $off(editorId, 'text-slot-moved', [], callback),
             $emit: (editorId, item, slotName, destinationSlotName) => {
                 $emit(editorId, 'text-slot-moved', [], item, slotName, destinationSlotName);
+            }
+        }
+    },
+
+    inPlaceTextEditor: {
+        created: {
+            $on: (editorId, callback) => $on(editorId, 'in-place-text-editor-created', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'in-place-text-editor-created', [], callback),
+            $emit: (editorId, editor) => {
+                $emit(editorId, 'in-place-text-editor-created', [], editor);
             }
         }
     },
@@ -368,6 +379,12 @@ const EditorEventBus = {
         $on: (editorId, callback) => $on(editorId, 'connector-requested', [], callback),
         $off: (editorId, callback) => $off(editorId, 'connector-requested', [], callback),
         $emit: (editorId, sourceItem, sourcePin, x, y) => $emit(editorId, 'connector-requested', [], sourceItem, sourcePin, x, y),
+    },
+
+    multiSelectBoxUpdated: {
+        $on: (editorId, callback) => $on(editorId, 'multi-select-box-updated', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'multi-select-box-updated', [], callback),
+        $emit: (editorId, multiSelectBox) => $emit(editorId, 'multi-select-box-updated', [], multiSelectBox),
     }
 };
 

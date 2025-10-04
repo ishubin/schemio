@@ -102,11 +102,13 @@
                             <NumberTextfield :value="textSlot.lineHeight" :step="0.1" @changed="emitTextSlotPropertyChange('lineHeight', $event)" :min="0" :softMax="10" :slider="true"/>
                         </td>
                     </tr>
-                    <tr v-for="availableTextSlot in availableTextSlots" v-if="slotName !== availableTextSlot && !textSlotTabsDisabled">
-                        <td colspan="2">
-                            <span class="btn btn-secondary" style="width: 100%" @click="onMoveToSlotClicked(availableTextSlot)">Move to "{{availableTextSlot}}" slot</span>
-                        </td>
-                    </tr>
+                    <template v-for="availableTextSlot in availableTextSlots">
+                        <tr v-if="slotName !== availableTextSlot && !textSlotTabsDisabled">
+                            <td colspan="2">
+                                <span class="btn btn-secondary" style="width: 100%" @click="onMoveToSlotClicked(availableTextSlot)">Move to "{{availableTextSlot}}" slot</span>
+                            </td>
+                        </tr>
+                    </template>
                 </tbody>
             </table>
 

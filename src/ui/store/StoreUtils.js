@@ -42,10 +42,6 @@ export default {
         store.dispatch('clearItemControlPoints');
     },
 
-    setMultiSelectBox(store, box) {
-        store.dispatch('setMultiSelectBox', box);
-    },
-
     setSelectedConnector(store, item) {
         const path = item ? Shape.find(item.shape).computeOutline(item) : null;
         store.dispatch('setSelectedConnectorWithPath', {item, path});

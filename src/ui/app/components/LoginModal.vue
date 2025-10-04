@@ -25,7 +25,7 @@ export default {
     methods: {
         loginGoogleDrive() {
             googleSignIn().then(() => {
-                this.$router.push({path: '/f/'});
+                this.$router.push('/f/');
             });
         }
     }

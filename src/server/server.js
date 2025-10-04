@@ -23,8 +23,6 @@ import { apiMiddleware } from './middleware.js';
 import fileUpload from 'express-fileupload';
 import { ProjectService } from '../common/fs/projectService.js';
 const { readFile } = require('node:fs/promises');
-import Handlebars from 'handlebars';
-
 
 const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
 
@@ -45,8 +43,8 @@ projectService.load()
 .then(() => {
     return readFile(`${cwd}/html/index-server.tpl.html`, { encoding: 'utf8' })
 })
-.then((templateFile) => {
-    const indexTemplate = Handlebars.compile(templateFile);
+.then((indexTemplate) => {
+    const indexHtml = indexTemplate.replaceAll('PLACEHOLDER_ROUTE_PREFIX', config.routePrefix);
 
     const app = express();
     const modification = false;
@@ -102,7 +100,7 @@ projectService.load()
     app.get(`${config.routePrefix}/media/*`, fsDownloadMediaFile(config));
 
     app.get('*', (req, res) => {
-        res.send(indexTemplate({routePrefix: config.routePrefix}));
+        res.send(indexHtml);
     });
 
     app.listen(config.serverPort, () => {

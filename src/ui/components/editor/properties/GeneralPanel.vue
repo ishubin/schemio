@@ -21,7 +21,7 @@
         <div v-if="descriptionType === 'rich'">
             <h5 class="section">Description</h5>
             <div class="textarea-wrapper">
-                <RichTextEditor :value="item.description" @changed="item.description = $event; commitSchemeChange('description')" />
+                <RichTextEditor :value="itemDescription" @changed="item.description = $event; commitSchemeChange('description')" />
             </div>
         </div>
     </panel>
@@ -31,7 +31,7 @@
 import {map} from '../../../collections';
 import RichTextEditor from '../text-editor/RichTextEditor.vue';
 import Panel from '../Panel.vue';
-import VueTagsInput from '@johmun/vue-tags-input';
+import VueTagsInput from '@sipec/vue3-tags-input';
 import EditorEventBus from '../EditorEventBus';
 import Shape from '../items/shapes/Shape';
 
@@ -58,6 +58,7 @@ export default {
             existingItemTags: map(this.schemeContainer.itemTags, tag => {return {text: tag}}),
             shapeComponent: shapeComponent,
             descriptionType,
+            itemDescription: this.item.description,
         };
     },
 

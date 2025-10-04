@@ -93,10 +93,10 @@
     --faint-strong-up: #373636;
     --faint-strong-up-up: #414040;
 
-    --accent-strong-down-down: #243e5c;
-    --accent-strong-down: #304f73;
-    --accent-strong: #3b618c;
-    --accent-faint: #6a84a1;
+    --accent-strong-down-down: #3e546c;
+    --accent-strong-down: #446892;
+    --accent-strong: #306aac;
+    --accent-faint: #769fcd;
     --accent-faint-up: #b1cdec;
 
     --accent-weak-down: #4d555f;
@@ -188,7 +188,7 @@ body[data-theme="dark"] {
 [data-theme="dark"]  textarea.textfield,
 [data-theme="dark"]  .vc-chrome-fields .vc-input__input,
 [data-theme="dark"]  select.dropdown  {
-    background: var(--faint-weak-down);
+    background: none;
     color: var(--base-strong);
 }
 [data-theme="dark"]  input[type="text"].custom-event-textfield  {
@@ -530,6 +530,10 @@ html, body, .app-container {
     overscroll-behavior-x: none;
     overscroll-behavior-y: none;
     min-height: 100vh;
+}
+
+body > #app {
+    height: 100%;
 }
 
 body {
@@ -2621,52 +2625,12 @@ ul.links-editor .edit-link:hover {
 
 
 /******************************* Rich Text Editor ******************************/
-.textarea-enlarged-container {
-    display: grid;
-    grid-template-rows: 40px auto;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 101;
-    background: var(--faint-weak);
-}
-.textarea-enlarged-container .textarea-enlarged-top-panel {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-.textarea-enlarged-container .editor-frame {
-    width: 100%;
-    height: 100%;
-}
-.textarea-enlarged-container textarea {
-    border: 1px solid var(--faint-strong);
-    width: 100%;
-    height: 100%;
-    padding: 4px;
-}
-.textarea-enlarged-container .editor-content {
-    position: absolute;
-    width: 100%;
-    min-height: 100%;
-    max-height: 100%;
-    overflow: auto;
-}
-.textarea-enlarged-container .editor-content > div, .textarea-enlarged-container .editor-content  div.ProseMirror {
-    width: 100%;
-    height: 100%;
-}
-.textarea-enlarged-container .btn.action-close {
-    position: absolute;
-    right: 5px;
-    top: 5px;
-}
-
-.rich-text-editor-container .editor-frame {
+.rich-text-editor-container {
     position: relative;
+}
+.rich-text-editor-container .editor-frame {
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--faint-strong);
     background: var(--base-weak);
     border-radius: 3px;
@@ -2690,6 +2654,41 @@ ul.links-editor .edit-link:hover {
 }
 .text-editor-enlarge:hover {
     opacity: 1.0;
+}
+
+.rich-text-editor-container[data-editor-layout="large"] {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: 101;
+    display: grid;
+    grid-template-rows: 40px auto;
+    background: var(--faint-weak);
+}
+.rich-text-editor-container[data-editor-layout="large"] .editor-frame {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+.rich-text-editor-container[data-editor-layout="large"] textarea {
+    border: 1px solid var(--faint-strong);
+    width: 100%;
+    height: 100%;
+    padding: 4px;
+}
+.rich-text-editor-container[data-editor-layout="large"] .editor-content {
+    width: 100%;
+    min-height: 100%;
+    max-height: 100%;
+    overflow: auto;
+    flex: 1;
+}
+.rich-text-editor-container[data-editor-layout="large"] .editor-content > div,
+.rich-text-editor-container[data-editor-layout="large"] .editor-content div.ProseMirror {
+    width: 100%;
+    height: 100%;
 }
 
 /* ensuring that the cursor is always visible when triggering text edit from void double click */
@@ -2730,9 +2729,8 @@ ul.links-editor .edit-link:hover {
     background: var(--base-strong-up);
     color: var(--base-weak);
 }
-
 .rich-text-editor-menubar .editor-icon:hover {
-    background: #bbb;
+    background: var(--faint-weak-down);
     color: var(--base-strong-up);
 }
 
@@ -3073,6 +3071,8 @@ ul.script-options .script-option.selected {
 .behavior-action-container .icon-container .icon-move {
     display: none;
     cursor: grab;
+    margin-left: 3px;
+    margin-right: 3px;
 }
 .behavior-action-container .icon-container .icon-check {
     display: none;
@@ -3350,6 +3350,11 @@ ul.script-options .script-option.selected {
     overflow: auto;
     flex: 1;
 }
+.item-tooltip .item-tooltip-body p {
+    margin-top: var(--paragraph-top-margin);
+    margin-bottom: 0;
+    padding: 0;
+}
 
 @media (max-width: 900px) {
     .item-tooltip .item-tooltip-close {
@@ -3389,6 +3394,19 @@ ul.script-options .script-option.selected {
 }
 .item-tooltip.item-short-details-tooltip .item-tooltip-links > li a {
     flex: 1
+}
+
+.item-tooltip ul.item-tooltip-links {
+    list-style: none;
+    margin: 0 0 5px 0;
+    padding: 0;
+}
+.item-tooltip ul.item-tooltip-links > li {
+    margin-bottom: 3px;
+}
+
+.item-tooltip .item-tooltip-links a {
+    color: rgb(55, 158, 255);
 }
 
 /***************** Item Selector *********************/
@@ -4199,7 +4217,7 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
     padding-right: 5px;
 }
 .header .modal-container a, .header .modal-container .link {
-    color: var(--accent-strong);
+    color: var(--accent-faint);
 }
 
 .header .scheme-title {

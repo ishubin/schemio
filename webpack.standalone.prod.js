@@ -15,7 +15,7 @@ module.exports = {
     },
     resolve: {
         alias: {
-            vue: 'vue/dist/vue.min.js',
+            // vue: 'vue/dist/vue.min.js',
             '@codemirror/state': path.resolve(__dirname, 'node_modules/@codemirror/state'),
             '@codemirror': path.resolve(__dirname, 'node_modules/@codemirror/'),
         }
@@ -40,7 +40,12 @@ module.exports = {
                 // don't transform node_modules folder (which don't need to be compiled)
                 exclude: /(node_modules|bower_components)/,
                 // Transform it with vue
-                use: 'vue-loader'
+                loader: 'vue-loader',
+                options: {
+                    compilerOptions: {
+                        whitespace: 'preserve',
+                    },
+                },
             }
         ]
     },
@@ -51,4 +56,3 @@ module.exports = {
         })
     ]
 };
-

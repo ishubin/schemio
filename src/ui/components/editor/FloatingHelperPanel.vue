@@ -83,7 +83,7 @@ import StylesMiniPalette from './properties/StylesMiniPalette.vue';
 import Modal from '../Modal.vue';
 import Shape from './items/shapes/Shape';
 import myMath from '../../myMath';
-import VueTagsInput from '@johmun/vue-tags-input';
+import VueTagsInput from '@sipec/vue3-tags-input';
 import { applyItemStyle } from './properties/ItemStyles';
 import LinksPanel from './properties/LinksPanel.vue';
 import {map} from '../../collections';

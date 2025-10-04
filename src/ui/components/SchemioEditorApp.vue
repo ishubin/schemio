@@ -102,8 +102,10 @@
 
                     <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
 
-                    <span v-if="overridePatchControls" v-for="patchControl in patchControls"
-                        class="btn" :class="patchControl.css" @click="patchControl.click()">{{ patchControl.name }}</span>
+                    <template v-for="patchControl in patchControls">
+                        <span v-if="overridePatchControls"
+                            class="btn" :class="patchControl.css" @click="patchControl.click()">{{ patchControl.name }}</span>
+                    </template>
 
                     <span v-if="!overridePatchControls" class="btn btn-primary" @click="applyPatch">Apply</span>
                     <span v-if="!overridePatchControls" class="btn btn-danger" @click="cancelPatch">Cancel</span>

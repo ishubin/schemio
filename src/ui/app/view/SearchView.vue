@@ -50,7 +50,7 @@
                                 </router-link>
                             </td>
                             <td class="time-column">
-                                <span v-if="entry.modifiedTime">{{entry.modifiedTime | formatDateTime }}</span>
+                                <span v-if="entry.modifiedTime">{{$filters.formatDateTime(entry.modifiedTime)}}</span>
                             </td>
                         </tr>
                     </tbody>
@@ -87,8 +87,8 @@ export default {
     },
 
     data() {
-        const query = this.$route.query.q;
-        const page = toPageNumber(this.$route.query.page);
+        const query = this.$route.query.q || '';
+        const page = toPageNumber(this.$route.query.page || 1);
         return {
             query,
             page,

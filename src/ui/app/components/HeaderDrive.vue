@@ -57,7 +57,7 @@ export default {
             googleSignOut().then(() => {
                 this.isSignedIn = false;
                 this.$emit('user-logged-out');
-                this.$router.push({path: '/'});
+                this.$router.push('/');
             });
         },
         changeTheme(theme) {

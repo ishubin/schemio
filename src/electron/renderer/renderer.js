@@ -6,18 +6,15 @@
 // appElem.innerHTML = '<h1>Hi World!</h1>';
 
 
-import Vue from 'vue';
+import { createApp } from 'vue';
 import ElectronApp from './ElectronApp.vue';
 import store from '../../ui/store/Store.js';
-import { applyVueFilters } from '../../ui/vue.filters';
 import '../static/electron.css';
 import { electronAPICLient } from './electronAPIClient';
-
-applyVueFilters(Vue);
 
 store.dispatch('setApiClient', electronAPICLient());
 store.dispatch('setAssetsPath', 'media://assets');
 
-new Vue(Vue.util.extend({
-    store,
-}, ElectronApp)).$mount('#app');
+const app = createApp(ElectronApp);
+app.use(store);
+app.mount('#app');

@@ -74,7 +74,6 @@
 
 <script>
 import SchemioEditorApp from './SchemioEditorApp.vue';
-import StoreUtils from '../store/StoreUtils';
 import CreatePatchModal from './patch/CreatePatchModal.vue';
 import utils from '../utils';
 import {enrichSchemeWithDefaults } from '../scheme/Scheme';

@@ -19,8 +19,7 @@
             </div>
         </div>
         <div class="ssc-body">
-            <SvgEditor ref="svgEditor"
-                v-if="schemeContainer"
+            <SvgEditor v-if="schemeContainer"
                 :editorId="editorId"
                 :scheme-container="schemeContainer"
                 :zoom="vZoom"
@@ -61,7 +60,7 @@ import { StateInteract } from '../components/editor/states/interact/StateInterac
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, collectOnlyVisibleNonHUDItems, filterNonHUDItems } from '../scheme/ItemMath';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, collectOnlyVisibleNonHUDItems } from '../scheme/ItemMath';
 
 const ANIMATED = true;
 
