@@ -287,6 +287,7 @@ import EditorEventBus from '../EditorEventBus';
 import StoreUtils from '../../../store/StoreUtils';
 import { hasItemDescription } from '../../../scheme/Item';
 import Events from '../../../userevents/Events.js';
+import { markRaw } from 'vue';
 
 /**
  * @property {Item} item
@@ -638,7 +639,7 @@ export default {
 
             this.customAreas = shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [];
             if (shape.vueComponent) {
-                this.shapeComponent = shape.vueComponent;
+                this.shapeComponent = markRaw(shape.vueComponent);
             } else {
                 this.shapeComponent = null;
             }

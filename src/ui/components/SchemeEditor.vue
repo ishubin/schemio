@@ -694,6 +694,7 @@ import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import StarterProposalModal from './editor/StarterProposalModal.vue';
 import ScriptConsole from './editor/ScriptConsole.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
+import { markRaw } from 'vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -859,7 +860,7 @@ export default {
         const onItemsHighlighted = (highlightedItems) => this.highlightedItems = highlightedItems;
         const onSubStateMigrated = () => {};
 
-        this.states = {
+        this.states = markRaw({
             interact: new StateInteract(this.editorId, this.$store, this.userEventBus, {
                 onCancel,
                 onItemClicked: (item) => this.onInteractItemClicked(item),
@@ -956,7 +957,7 @@ export default {
                 onItemsHighlighted,
                 onSubStateMigrated,
             }),
-        };
+        });
     },
 
     beforeMount() {
