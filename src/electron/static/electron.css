@@ -62,6 +62,8 @@
     display: flex;
     height: 100%;
     flex-direction: row;
+    width: 100%;
+    overflow: hidden;
 }
 .elec-app-container .link {
     text-decoration: none;

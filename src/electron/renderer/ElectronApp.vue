@@ -8,6 +8,7 @@
             :fileTreeReloadKey="fileTreeReloadKey"
             :focusedFile="currentFocusedFilePath"
             :folderToExpand="navigatorFolderToExpand"
+            :width="navigatorWidth"
             @schemio-doc-selected="onSchemioDocSelected"
             @entry-added="onFileTreeEntryAdded"
             @renamed-folder="onFolderRenamed"
@@ -16,7 +17,7 @@
             @new-diagram-requested="onNewDiagramRequested"
             @navigator-resized="onNavigatorResized"
             />
-        <div class="elec-main-body">
+        <div class="elec-main-body" :style="{width: `calc(100% - ${Math.round(this.navigatorWidth)}px)`}">
             <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile" @reordered-files="onFileTabReorder"/>
             <div class="elec-file-container">
@@ -754,11 +755,11 @@ export default {
             }
         },
 
-        onNavigatorResized() {
+        onNavigatorResized(navigatorWidth) {
             if (this.currentOpenFileIdx < 0 || this.currentOpenFileIdx >= this.files.length) {
                 return;
             }
-
+            this.navigatorWidth = navigatorWidth;
             const file = this.files[this.currentOpenFileIdx];
             EditorEventBus.editorResized.$emit(file.editorId);
         },

@@ -151,6 +151,7 @@ export default {
         fileTreeReloadKey: {type: Number, required: true},
         focusedFile      : {type: String, required: false},
         folderToExpand   : {type: String, default: null},
+        width            : {type: Number, default: 250},
     },
 
     beforeMount() {
@@ -170,7 +171,7 @@ export default {
         updateTreeCollapseBitMaskAndLevel(tree);
         const {flatTree, lookup} = flattenTreeAndCreateLookup(tree);
         return {
-            navigatorWidth: 250,
+            navigatorWidth: this.width,
             tree,
             flatTree,
             // Map of entry path to entry
@@ -314,7 +315,7 @@ export default {
                     this.collapsed = true;
                 }
 
-                this.$emit('navigator-resized');
+                this.$emit('navigator-resized', this.navigatorWidth);
             })
             .build();
         },
