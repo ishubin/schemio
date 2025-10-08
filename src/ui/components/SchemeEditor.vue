@@ -1324,7 +1324,7 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, this.editorId, this.mode, this.$store.state.apiClient, {
+                this.schemeContainer = new SchemeContainer(scheme, this.editorId, 'edit', this.$store.state.apiClient, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 

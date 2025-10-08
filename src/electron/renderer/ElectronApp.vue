@@ -142,6 +142,7 @@ import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
 import {diagramImageExporter} from '../../ui/diagramExporter'
+import utils from '../../ui/utils.js';
 
 const fileHistories = new Map();
 
@@ -482,6 +483,7 @@ export default {
         },
 
         saveFile(file, document) {
+            document = utils.clone(document);
             file.isSaving = true;
             this.$store.dispatch('clearStatusMessage');
             diagramImageExporter(document.items)
