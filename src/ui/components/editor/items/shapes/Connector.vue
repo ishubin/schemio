@@ -32,7 +32,6 @@ import {Logger} from '../../../../logger';
 import myMath from '../../../../myMath';
 import { createConnectorCap } from './ConnectorCaps';
 import '../../../../typedef';
-import utils from '../../../../utils';
 import AdvancedFill from '../AdvancedFill.vue';
 import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
@@ -206,7 +205,7 @@ function movePointWithStep(x, y, stepWay, stepValue) {
 }
 
 function computeStepPathAndCaps(item, useCut, roundCuts) {
-    const points = utils.clone(item.shapeProps.points);
+    const points = [].concat(item.shapeProps.points);
     const caps = [];
 
     // identifying a required direction of first and last points
@@ -227,8 +226,10 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
         const cap = computeCapByPosition(points[0].x, points[0].y, points[0].x + wayPoint.x, points[0].y + wayPoint.y, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
         if (cap) {
             if (!cap.prolongLine) {
-                points[0].x = cap.entryPoint.x;
-                points[0].y = cap.entryPoint.y;
+                points[0] = {
+                    x: cap.entryPoint.x,
+                    y: cap.entryPoint.y
+                };
             }
             caps.push(cap);
         }
@@ -256,6 +257,13 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
     applySteps(findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection)));
 
     let path = `M ${points[0].x} ${points[0].y}`;
+
+    if (pathSteps.length === 0) {
+        return {
+            path: `${path} L ${points[points.length - 1].x} ${points[points.length - 1].y}`,
+            caps: []
+        };
+    }
 
     currentPoint = points[0];
     if (!useCut) {
