@@ -11,7 +11,7 @@
 
                     <NumberTextfield v-if="argumentType === 'number'" :value="argumentValue" @changed="emitValue"/>
 
-                    <color-picker :editorId="editorId" v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @input="emitValue"></color-picker>
+                    <ColorPicker :editorId="editorId" v-if="argumentType === 'color'" width="18px" height="18px" :color="argumentValue" @changed="emitValue"/>
 
                     <AdvancedColorEditor :editorId="editorId" v-if="argumentType === 'advanced-color'" height="18px" :value="argumentValue" @changed="emitValue" />
 

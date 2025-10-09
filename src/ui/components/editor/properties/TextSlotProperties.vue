@@ -9,7 +9,7 @@
                     <tr>
                         <td class="label" width="50%">Color</td>
                         <td class="value" width="50%">
-                            <color-picker :editorId="editorId" :color="textSlot.color" @input="emitTextSlotPropertyChange('color', $event)"></color-picker>
+                            <ColorPicker :editorId="editorId" :color="textSlot.color" @changed="emitTextSlotPropertyChange('color', $event)"/>
                         </td>
                     </tr>
                     <tr>

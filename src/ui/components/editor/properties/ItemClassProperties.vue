@@ -24,7 +24,7 @@
                                 :schemeContainer="schemeContainer"
                                 :descriptor="arg.descriptor"
                                 :value="arg.value"
-                                @input="onClassArgValueChange(classIdx, arg.name, $event)"
+                                @changed="onClassArgValueChange(classIdx, arg.name, $event)"
                                 />
                         </td>
                     </tr>

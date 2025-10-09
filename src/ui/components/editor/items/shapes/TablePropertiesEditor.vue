@@ -21,7 +21,7 @@
                 <AdvancedColorEditor :editorId="editorId" :value="item.shapeProps.headerFill" :disabled="item.shapeProps.header === 'none'" @changed="$emit('shape-prop-changed', 'headerFill', 'advanced-color', $event)" />
             </div>
             <div class="col-1 padded" title="Stroke color">
-                <ColorPicker :editorId="editorId" :color="item.shapeProps.stroke" :disabled="item.shapeProps.style === 'flat'" @input="$emit('shape-prop-changed', 'stroke', 'color', $event)"/>
+                <ColorPicker :editorId="editorId" :color="item.shapeProps.stroke" :disabled="item.shapeProps.style === 'flat'" @changed="$emit('shape-prop-changed', 'stroke', 'color', $event)"/>
             </div>
         </div>
         <div class="row">

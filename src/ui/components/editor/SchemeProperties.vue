@@ -46,25 +46,25 @@
                         <tr>
                             <td class="label" width="50%">Background</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.backgroundColor" @input="onSchemeStylePropertyChange('backgroundColor', $event)"></color-picker>
+                                <ColorPicker :editorId="editorId" :color="schemeContainer.scheme.style.backgroundColor" @changed="onSchemeStylePropertyChange('backgroundColor', $event)"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Grid</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.gridColor" @input="onSchemeStylePropertyChange('gridColor', $event)"></color-picker>
+                                <ColorPicker :editorId="editorId" :color="schemeContainer.scheme.style.gridColor" @changed="onSchemeStylePropertyChange('gridColor', $event)"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Bound box</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.boundaryBoxColor" @input="onSchemeStylePropertyChange('boundaryBoxColor', $event)"></color-picker>
+                                <ColorPicker :editorId="editorId" :color="schemeContainer.scheme.style.boundaryBoxColor" @changed="onSchemeStylePropertyChange('boundaryBoxColor', $event)"/>
                             </td>
                         </tr>
                         <tr>
                             <td class="label" width="50%">Control points</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="schemeContainer.scheme.style.controlPointsColor" @input="onSchemeStylePropertyChange('controlPointsColor', $event)"></color-picker>
+                                <ColorPicker :editorId="editorId" :color="schemeContainer.scheme.style.controlPointsColor" @changed="onSchemeStylePropertyChange('controlPointsColor', $event)"/>
                             </td>
                         </tr>
                     </tbody>

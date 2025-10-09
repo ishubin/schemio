@@ -121,7 +121,7 @@
                                     :schemeContainer="schemeContainer"
                                     :leftOriented="argName === 'sourceCap'"
                                     :itemId="item.id"
-                                    @input="onShapePropChange(argName, arg.type, $event)"
+                                    @changed="onShapePropChange(argName, arg.type, $event)"
                                 />
                             </td>
                         </tr>
@@ -216,13 +216,13 @@
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Background</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="item.tooltipBackground" @input="emitItemFieldChange('tooltipBackground', $event)"></color-picker>
+                                <ColorPicker :editorId="editorId" :color="item.tooltipBackground" @changed="emitItemFieldChange('tooltipBackground', $event)"/>
                             </td>
                         </tr>
                         <tr v-if="item.interactionMode === 'tooltip'">
                             <td class="label" width="50%">Tooltip Color</td>
                             <td class="value" width="50%">
-                                <color-picker :editorId="editorId" :color="item.tooltipColor" @input="emitItemFieldChange('tooltipColor', $event)"></color-picker>
+                                <ColorPicker :editorId="editorId" :color="item.tooltipColor" @changed="emitItemFieldChange('tooltipColor', $event)"/>
                             </td>
                         </tr>
                     </tbody>

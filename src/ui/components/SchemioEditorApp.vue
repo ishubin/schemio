@@ -96,9 +96,9 @@
                     <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring($event.target.checked)"/>
                     <label for="chk-patch-menu-toggle-diff-coloring">diff</label>
 
-                    <ColorPicker :editorId="editorId" :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', $event)" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
-                    <ColorPicker :editorId="editorId" :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', $event)" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
-                    <ColorPicker :editorId="editorId" :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', $event)" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchAdditionsColor" @changed="updatePatchDiffColor('additions', $event)" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchDeletionsColor" @changed="updatePatchDiffColor('deletions', $event)" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchModificationsColor" @changed="updatePatchDiffColor('modifications', $event)" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
 
                     <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
 
