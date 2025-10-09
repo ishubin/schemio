@@ -80,11 +80,11 @@
 </template>
 
 <script>
-import VueTagsInput from '@sipec/vue3-tags-input';
+import VueTagsInput from '@johmun/vue-tags-input';
 import RichTextEditor from './text-editor/RichTextEditor.vue';
 import ColorPicker from '../editor/ColorPicker.vue';
 import Panel from '../editor/Panel.vue';
-import { map } from '../../collections';
+import {map, indexOf} from '../../collections';
 import Tooltip from '../Tooltip.vue';
 import EditorEventBus from './EditorEventBus.js';
 

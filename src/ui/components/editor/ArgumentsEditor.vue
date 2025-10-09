@@ -58,7 +58,7 @@
 
                                     <ColorPicker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
-                                        @changed="onValueChange(argName, $event)"/>
+                                        @input="onValueChange(argName, $event)"/>
 
                                     <AdvancedColorEditor v-if="arg.type === 'advanced-color'" :value="argumentValues[argName]"
                                         :apiClient="apiClient"

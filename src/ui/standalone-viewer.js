@@ -2,12 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-import {createApp} from 'vue';
-import store from './store/Store.js';
+import Vue from 'vue';
 import StandaloneSchemeView from './views/StandaloneSchemeView.vue';
+import store from './store/Store';
 
-// stupid bug: for some reason if I remove this unused import - the vue itself stops working
-import VueTagsInput from '@sipec/vue3-tags-input';
 
 function objProperty(obj, field, defaultValue) {
     if (obj && obj.hasOwnProperty(field)) {
@@ -23,14 +21,9 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
         store.dispatch('setApiClient', options.apiClient);
     }
     store.dispatch('setAssetsPath', options.assetsPath || '/');
-
-    let _app = null;
-    const app = createApp({
+    const app = new Vue({
         components: {StandaloneSchemeView},
         store,
-        mounted() {
-            _app = this;
-        },
         data() {
             return {
                 scheme,
@@ -72,21 +65,15 @@ window.schemioViewScheme = (elementOrSelector, scheme, opts) => {
             @screen-transform-updated="onScreenTransformUpdated"
             />
         `
-    });
-    app.use(store);
-    app.mount(elementOrSelector);
+    }).$mount(elementOrSelector);
 
     return {
         setZoom(zoom) {
-            if (_app) {
-                _app.zoom = zoom;
-            }
+            app.$data.zoom = zoom;
         },
 
         autoZoom() {
-            if (_app) {
-                _app.autoZoomUpdateKey += 1;
-            }
+            app.$data.autoZoomUpdateKey = app.$data.autoZoomUpdateKey + 1;
         }
     }
 }

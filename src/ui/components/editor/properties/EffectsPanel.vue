@@ -9,7 +9,7 @@
                 :data-effect-index="effectIndex"
                 >
                 <div class="effect-entry-container">
-                    <div class="effect-name" @click="openEditEffectModal(effectIndex)">{{ prettyEffectName(effect.name) }}</div>
+                    <div class="effect-name" @click="openEditEffectModal(effectIndex)">{{effect.name | prettyEffectName}}</div>
 
                     <div class="effect-right-panel">
                         <span class="icon icon-effect-edit" @click="openEditEffectModal(effectIndex)">
@@ -286,14 +286,16 @@ export default {
                     }
                 });
             });
-        },
+        }
+    },
 
+    filters: {
         prettyEffectName(name) {
             if (!name) {
                 return 'Unnamed Effect';
             }
             return name;
         }
-    },
+    }
 }
 </script>

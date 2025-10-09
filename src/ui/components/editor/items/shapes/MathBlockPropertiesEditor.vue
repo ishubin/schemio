@@ -17,7 +17,7 @@
                         Color
                     </td>
                     <td class="value" width="50%">
-                        <ColorPicker :editorId="editorId" :color="item.shapeProps.color" @changed="onColorUpdate"/>
+                        <ColorPicker :editorId="editorId" :color="item.shapeProps.color" @input="onColorUpdate"/>
                     </td>
                 </tr>
                 <tr>

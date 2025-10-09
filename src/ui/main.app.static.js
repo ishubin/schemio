@@ -4,14 +4,15 @@
 
 // This is an entry point for schemio bundle that is used for FS based Schemio app
 
-import {createApp} from 'vue';
-import {createRouter, createWebHashHistory} from 'vue-router';
+import Vue from 'vue';
+import VueRouter from 'vue-router';
 import App from './app/App.vue';
 import FolderView from './app/view/FolderView.vue';
 import AboutView from './app/view/AboutView.vue';
 import store from './store/Store.js';
 import SchemeEditorWebView from './app/view/SchemeEditorWebView.vue';
 import NotFoundView from './app/view/NotFoundView.vue';
+import { applyVueFilters } from './vue.filters';
 import Header from './app/components/Header.vue';
 import Footer from './app/components/Footer.vue';
 import { staticClientProvider } from './app/client/staticClient';
@@ -28,37 +29,35 @@ window.createSchemioStaticApp = function (options) {
     store.dispatch('setRootPath', './');
     store.dispatch('setAssetsPath', './assets');
 
+    Vue.use(VueRouter);
+    applyVueFilters(Vue);
+
+    Vue.component('schemio-header', Header);
+    Vue.component('schemio-footer', Footer);
+
     function route(name, path, component, props) {
         return { name, path, component, props };
     }
 
+
     const routes = [
-        route('SchemeEditorWebView',        '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: staticClientProvider, editAllowed}),
-        route('OfflineSchemeEditorWebView', '/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
-        route('AboutView',                  '/about',            AboutView),
-        route('NotFoundView',               '/not-found',        NotFoundView),
-        route('HomeView',                   '/',                 FolderView, {clientProvider: staticClientProvider}),
-        route('FolderView',                 '/f/:folders*',      FolderView, {clientProvider: staticClientProvider, toolbarShown: false}),
-        { path: '/.*', redirect: '/not-found'}
+        route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: staticClientProvider, editAllowed}),
+        route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
+        route('AboutView',              '/about',            AboutView),
+        route('NotFoundView',           '/not-found',        NotFoundView),
+        route('HomeView',               '/',                 FolderView, {clientProvider: staticClientProvider}),
+        route('FolderView',             '/f/*',              FolderView, {clientProvider: staticClientProvider, toolbarShown: false}),
+        { path: '*', redirect: '/not-found'}
     ];
 
 
-    const router = createRouter({
-        history: createWebHashHistory(),
+    const router = new VueRouter({
         routes: routes,
-        mode: 'hash' // custom property to be able to get the mode of the router through this.$router.options.mode
     });
 
-    const app = createApp(App);
 
-    app.config.globalProperties.$filters = {
-    formatDateTime(value) {
-        return formatDateTime(value);
-    }
-    }
-    app.use(router);
-    app.use(store);
-    app.component('schemio-header', Header);
-    app.component('schemio-footer', Footer);
-    app.mount('#app');
+    new Vue(Vue.util.extend({
+        router,
+        store,
+    }, App)).$mount('#app');
 }

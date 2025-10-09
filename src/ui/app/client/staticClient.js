@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAllTemplates, getExportHTMLResources, getTemplate, unwrapAxios } from "./clientCommons";
+import { getExportHTMLResources, unwrapAxios } from "./clientCommons";
 
 const resultsPerPage = 25;
 
@@ -188,12 +188,9 @@ export const staticClientProvider = {
 
             getExportHTMLResources,
 
-            getTemplate,
-            getAllTemplates,
-
             get(url) {
                 return axios.get(url).then(unwrapAxios);
-            },
+            }
         });
     }
 }

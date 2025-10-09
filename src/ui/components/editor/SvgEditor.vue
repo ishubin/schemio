@@ -22,22 +22,20 @@
 
             <g v-if="mode === 'view' && schemeContainer">
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <template v-for="item in schemeContainer.worldItems" >
-                        <g v-if="item.visible && item.shape !== 'hud'"
-                            class="item-container"
-                            :class="'item-cursor-' + item.cursor">
-                            <ItemSvg
-                                :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
-                                :item="item"
-                                :editorId="editorId"
-                                :mode="mode"
-                                :textSelectionEnabled="textSelectionEnabled"
-                                :patchIndex="patchIndex"
-                                :eventListener="eventListenerInterceptor"
-                                @component-load-requested="onComponentLoadRequested"
-                                @frame-animator="onFrameAnimatorEvent" />
-                        </g>
-                </template>
+                    <g v-for="item in schemeContainer.worldItems" class="item-container"
+                        v-if="item.visible && item.shape !== 'hud'"
+                        :class="'item-cursor-' + item.cursor">
+                        <ItemSvg
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                            :item="item"
+                            :editorId="editorId"
+                            :mode="mode"
+                            :textSelectionEnabled="textSelectionEnabled"
+                            :patchIndex="patchIndex"
+                            :eventListener="eventListenerInterceptor"
+                            @component-load-requested="onComponentLoadRequested"
+                            @frame-animator="onFrameAnimatorEvent" />
+                    </g>
                     <g v-for="item in worldHighlightedItems" :transform="item.transform">
                         <path :d="item.path" :fill="item.fill" :stroke="item.stroke"
                             :stroke-width="`${item.strokeSize + 6/(item.scalingFactor*safeZoom)}px`"
@@ -48,25 +46,22 @@
                 </g>
 
                 <g>
-                    <template v-for="hud in schemeContainer.hudItems">
-                        <g v-if="hud.visible" :transform="createHUDTransform(hud)"
-                            :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
-                            >
-                            <template v-for="item in hud.childItems">
-                                <ItemSvg
-                                    v-if="item.visible"
-                                    :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
-                                    :item="item"
-                                    :editorId="editorId"
-                                    :textSelectionEnabled="textSelectionEnabled"
-                                    :patchIndex="patchIndex"
-                                    :mode="mode"
-                                    :eventListener="eventListenerInterceptor"
-                                    @component-load-requested="onComponentLoadRequested"
-                                    @frame-animator="onFrameAnimatorEvent"/>
-                            </template>
-                        </g>
-                    </template>
+                    <g v-for="hud in schemeContainer.hudItems" v-if="hud.visible" :transform="createHUDTransform(hud)"
+                        :style="{'opacity': hud.opacity/100.0, 'mix-blend-mode': hud.blendMode}"
+                        >
+                        <ItemSvg
+                            v-for="item in hud.childItems"
+                            v-if="item.visible"
+                            :key="`${item.id}-${item.shape}-${textSelectionEnabled}-${itemsReloadKey}`"
+                            :item="item"
+                            :editorId="editorId"
+                            :textSelectionEnabled="textSelectionEnabled"
+                            :patchIndex="patchIndex"
+                            :mode="mode"
+                            :eventListener="eventListenerInterceptor"
+                            @component-load-requested="onComponentLoadRequested"
+                            @frame-animator="onFrameAnimatorEvent"/>
+                    </g>
                 </g>
 
                 <g v-for="link, linkIndex in selectedItemLinks" data-preview-ignore="true">
@@ -83,7 +78,7 @@
                         </foreignObject>
 
                         <foreignObject :x="link.x + 16" :y="link.y - 11" :width="link.width" :height="link.height">
-                            <span class="item-link-title">{{ formatLinkTitle(link) }}</span>
+                            <span class="item-link-title">{{link | formatLinkTitle}}</span>
                         </foreignObject>
                     </a>
                 </g>
@@ -121,20 +116,19 @@
 
 
                 <g data-type="scene-transform" :transform="transformSvg">
-                    <template v-for="item in schemeContainer.worldItems">
-                        <g v-if="item.visible"
+                    <g v-for="item in schemeContainer.worldItems"
+                        v-if="item.visible"
                         class="item-container"
                         :class="'item-cursor-'+item.cursor">
-                            <ItemSvg
-                                :key="`${item.id}-${item.shape}-${itemsReloadKey}`"
-                                :item="item"
-                                :editorId="editorId"
-                                :patchIndex="patchIndex"
-                                :mode="mode"
-                                :eventListener="eventListenerInterceptor"
-                                />
-                        </g>
-                    </template>
+                        <ItemSvg
+                            :key="`${item.id}-${item.shape}-${itemsReloadKey}`"
+                            :item="item"
+                            :editorId="editorId"
+                            :patchIndex="patchIndex"
+                            :mode="mode"
+                            :eventListener="eventListenerInterceptor"
+                            />
+                    </g>
 
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
@@ -293,8 +287,6 @@ export default {
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
 
         EditorEventBus.component.destroyed.$on(this.editorId, this.onComponentDestroyed);
-
-        EditorEventBus.multiSelectBoxUpdated.$on(this.editorId, this.onMultiSelectBoxUpdated);
     },
 
     mounted() {
@@ -353,8 +345,6 @@ export default {
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.component.destroyed.$off(this.editorId, this.onComponentDestroyed);
 
-        EditorEventBus.multiSelectBoxUpdated.$off(this.editorId, this.onMultiSelectBoxUpdated);
-
         if (this.mode === 'view') {
             this.destroyUserKeyBinders();
         }
@@ -371,7 +361,6 @@ export default {
             mouseEventsEnabled: !(this.mode === 'view' && this.textSelectionEnabled),
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#226D18', '#6A590E', '#0F8989', '#7B245B'],
 
-            multiSelectBox: null,
 
             lastClickPoint: null,
             // setting last click time to -1000 as performance.now() returns 0 when the page just loaded
@@ -421,11 +410,6 @@ export default {
         };
     },
     methods: {
-        onMultiSelectBoxUpdated(box) {
-            this.multiSelectBox = box;
-            this.$forceUpdate();
-        },
-
         onSearchedItemsToggled() {
             if (this.worldHighlightedItems.length > 0) {
                 const area = {
@@ -813,7 +797,7 @@ export default {
             var p = this.toLocalPoint(coords.x, coords.y);
             lastMousePosition.x = coords.x;
             lastMousePosition.y = coords.y;
-            this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.target, p), event);
+            this.$emit(eventName, p.x, p.y, coords.x, coords.y, this.identifyElement(event.srcElement, p), event);
         },
 
         onEventListenerInterceptorMouseEvent(eventName, event, componentItem) {
@@ -1098,7 +1082,7 @@ export default {
                 // perhaps not the best way to handle this, but for now this trick should do
                 // drive app uses different type of router and therefor we need to adjust the url so that it can properly reference other diagrams
                 const convertLinkUrl = link => {
-                    if (link.type === 'doc' && link.url && link.url.startsWith('/docs/') && this.$router && this.$router.options.mode !== 'history') {
+                    if (link.type === 'doc' && link.url && link.url.startsWith('/docs/') && this.$router && this.$router.mode !== 'history') {
                         return '#' + link.url;
                     }
                     return link.url;
@@ -1370,14 +1354,6 @@ export default {
             requestAnimationFrame(() => highlightAnimationLoop(performance.now()));
         },
 
-        formatLinkTitle(link) {
-            if (link.title) {
-                return link.title;
-            } else {
-                return link.url;
-            }
-        },
-
         //calculates from world to screen
         _x(x) { return x * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.x },
         _y(y) { return y * this.schemeContainer.screenTransform.scale + this.schemeContainer.screenTransform.y; },
@@ -1444,6 +1420,9 @@ export default {
             let y = Math.ceil(this.schemeContainer.screenTransform.y % zSnap) - zSnap;
             return `translate(${x} ${y})`;
         },
+        multiSelectBox() {
+            return this.$store.getters.multiSelectBox;
+        },
         horizontalSnapper() {
             return this.$store.getters.horizontalSnapper;
         },
@@ -1454,6 +1433,15 @@ export default {
         shouldShowDropMask() {
             return this.$store.getters.isDraggingItemCreation;
         },
+    },
+    filters: {
+        formatLinkTitle(link) {
+            if (link.title) {
+                return link.title;
+            } else {
+                return link.url;
+            }
+        }
     },
     watch: {
         textSelectionEnabled(isEnabled) {

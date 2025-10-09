@@ -88,7 +88,7 @@ export default {
 
     methods: {
         onBodyClick(event) {
-            if (!(event.target.closest('svg.svg-editor-plot') || event.target.closest('.item-tooltip'))) {
+            if (!(event.srcElement.closest('svg.svg-editor-plot') || event.srcElement.closest('.item-tooltip'))) {
                 this.$emit('close');
             }
         },

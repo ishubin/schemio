@@ -255,15 +255,7 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
 
     applySteps(findWayToThePoint(currentPoint.x, currentPoint.y, currentDirection, lastPoint.x, lastPoint.y, invertDirection(lastPointDirection)));
 
-    if (pathSteps.length === 0) {
-        return {
-            path:  `M ${points[0].x} ${points[0].y}  L ${points[1].x} ${points[1].y}`,
-            caps: []
-        }
-    }
-
     let path = `M ${points[0].x} ${points[0].y}`;
-
 
     currentPoint = points[0];
     if (!useCut) {

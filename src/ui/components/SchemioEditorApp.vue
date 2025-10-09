@@ -96,16 +96,14 @@
                     <input type="checkbox" id="chk-patch-menu-toggle-diff-coloring" :checked="patchIsDiffColoringEnabled" @input="updatePatchDiffColoring($event.target.checked)"/>
                     <label for="chk-patch-menu-toggle-diff-coloring">diff</label>
 
-                    <ColorPicker :editorId="editorId" :color="patchAdditionsColor" @changed="updatePatchDiffColor('additions', $event)" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
-                    <ColorPicker :editorId="editorId" :color="patchDeletionsColor" @changed="updatePatchDiffColor('deletions', $event)" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
-                    <ColorPicker :editorId="editorId" :color="patchModificationsColor" @changed="updatePatchDiffColor('modifications', $event)" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchAdditionsColor" @input="updatePatchDiffColor('additions', $event)" width="16px" height="16px" hint="Additions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchDeletionsColor" @input="updatePatchDiffColor('deletions', $event)" width="16px" height="16px" hint="Deletions" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
+                    <ColorPicker :editorId="editorId" :color="patchModificationsColor" @input="updatePatchDiffColor('modifications', $event)" width="16px" height="16px" hint="Modifications" :disabled="!patchIsDiffColoringEnabled"></ColorPicker>
 
                     <span class="btn btn-secondary" @click="patch.detailsModalShown = true">Show Changes</span>
 
-                    <template v-for="patchControl in patchControls">
-                        <span v-if="overridePatchControls"
-                            class="btn" :class="patchControl.css" @click="patchControl.click()">{{ patchControl.name }}</span>
-                    </template>
+                    <span v-if="overridePatchControls" v-for="patchControl in patchControls"
+                        class="btn" :class="patchControl.css" @click="patchControl.click()">{{ patchControl.name }}</span>
 
                     <span v-if="!overridePatchControls" class="btn btn-primary" @click="applyPatch">Apply</span>
                     <span v-if="!overridePatchControls" class="btn btn-danger" @click="cancelPatch">Cancel</span>

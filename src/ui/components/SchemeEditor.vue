@@ -118,7 +118,7 @@
                     @mouse-double-click="mouseDoubleClick"
                     @svg-size-updated="onSvgSizeUpdated"
                     >
-                    <template v-slot:scene-transform>
+                    <g slot="scene-transform">
                         <EditBox  v-if="schemeContainer.editBox && state !== 'editPath' && state !== 'cropImage' && state !== 'imageBox' && !inPlaceTextEditor.shown"
                             :key="`edit-box-${editorRevision}-${schemeContainer.editBox.id}`"
                             :useFill="state !== 'pickElement' && editBoxUseFill"
@@ -174,9 +174,9 @@
                                 :boundary-box-color="schemeContainer.scheme.style.boundaryBoxColor"
                                 :control-points-color="schemeContainer.scheme.style.controlPointsColor"/>
                         </g>
-                    </template>
+                    </g>
 
-                    <template v-slot:overlay>
+                    <div slot="overlay">
                         <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
 
                         <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
@@ -198,7 +198,7 @@
                             @close="closeStarterProposalModal"
                             @selected="onStarterProposalSelected"
                             />
-                    </template>
+                    </div>
                 </SvgEditor>
 
                 <SvgEditor
@@ -226,12 +226,12 @@
                     @compiler-error="onCompilerError"
                     >
 
-                    <template v-slot:overlay>
+                    <div slot="overlay">
                         <div v-if="mode === 'view' && textSelectionEnabled" class="editor-top-hint-label">
                             You can select any text, but you cannot interact with items
                             <span class="btn btn-primary" @click="textSelectionEnabled = false">Cancel</span>
                         </div>
-                    </template>
+                    </div>
                 </SvgEditor>
 
                 <!-- Item Text Editor -->
@@ -327,8 +327,8 @@
                 <div class="bottom-panel-body">
                     <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
                     <div class="bottom-panel-content">
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{prettifyAxisValue(cursorX, zoom)}}</span>
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{prettifyAxisValue(cursorY, zoom)}}</span>
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{cursorX | prettifyAxisValue(zoom)}}</span>
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{cursorY | prettifyAxisValue(zoom)}}</span>
                         <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
                             <span class="label">x: </span>
                             <input type="text" class="textfield"
@@ -432,14 +432,12 @@
                             <span v-if="tab.count">({{tab.count}})</span>
                         </div>
                     </li>
-                    <template v-for="itemTextSlotTab in itemTextSlotsAvailable">
-                        <li v-if="mode === 'edit'">
-                            <span class="tab"
-                                :class="{active: currentTab === itemTextSlotTab.tabName}"
-                                @click="changeTab(itemTextSlotTab.tabName)"
-                                >&#167; {{itemTextSlotTab.slotName}}</span>
-                        </li>
-                    </template>
+                    <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
+                        <span class="tab"
+                            :class="{active: currentTab === itemTextSlotTab.tabName}"
+                            @click="changeTab(itemTextSlotTab.tabName)"
+                            >&#167; {{itemTextSlotTab.slotName}}</span>
+                    </li>
                     <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
                         <span class="tab"
                             :class="{active: currentTab === 'template'}"
@@ -511,25 +509,22 @@
                         </div>
 
                         <div>
-                            <template v-for="itemTextSlot in itemTextSlotsAvailable">
-                                <TextSlotProperties v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
-                                    :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
-                                    :editorId="editorId"
-                                    :item="itemTextSlot.item"
-                                    :slot-name="itemTextSlot.slotName"
-                                    @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
-                                    @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
-                                    />
-                            </template>
-                            <template v-for="tab in extraTabs">
-                                <component
-                                    v-if="currentTab === `extra:${tab.name}`"
-                                    :key="`tab-${currentTab}`"
-                                    :is="tab.component"
-                                    :mode="mode"
-                                    @tab-event="$emit('custom-tab-event', $event)"
+                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
+                                :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
+                                :editorId="editorId"
+                                :item="itemTextSlot.item"
+                                :slot-name="itemTextSlot.slotName"
+                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
+                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
                                 />
-                            </template>
+                            <component
+                                v-for="tab in extraTabs"
+                                v-if="currentTab === `extra:${tab.name}`"
+                                :key="`tab-${currentTab}`"
+                                :is="tab.component"
+                                :mode="mode"
+                                @tab-event="$emit('custom-tab-event', $event)"
+                            />
                         </div>
                     </div>
                 </div>
@@ -694,7 +689,6 @@ import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import StarterProposalModal from './editor/StarterProposalModal.vue';
 import ScriptConsole from './editor/ScriptConsole.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
-import { markRaw } from 'vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -860,7 +854,7 @@ export default {
         const onItemsHighlighted = (highlightedItems) => this.highlightedItems = highlightedItems;
         const onSubStateMigrated = () => {};
 
-        this.states = markRaw({
+        this.states = {
             interact: new StateInteract(this.editorId, this.$store, this.userEventBus, {
                 onCancel,
                 onItemClicked: (item) => this.onInteractItemClicked(item),
@@ -957,7 +951,7 @@ export default {
                 onItemsHighlighted,
                 onSubStateMigrated,
             }),
-        });
+        };
     },
 
     beforeMount() {
@@ -2834,11 +2828,7 @@ export default {
         },
 
         onContextMenuRequested(mouseX, mouseY, menuOptions) {
-            const svgPlot = document.getElementById(`svg-plot-${this.editorId}`);
-            if (!svgPlot) {
-                return;
-            }
-            const svgRect = svgPlot.getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
             this.$emit('context-menu-requested', {
                 x: mouseX + svgRect.left + 5,
                 y: mouseY + svgRect.top + 5,
@@ -3051,13 +3041,13 @@ export default {
          * @param {Item} componentItem
          */
         identifyComponentObject(event, componentItem) {
-            const elementType = event.target.getAttribute('data-type');
-            const itemId = event.target.getAttribute('data-item-id');
+            const elementType = event.srcElement.getAttribute('data-type');
+            const itemId = event.srcElement.getAttribute('data-item-id');
             if (elementType === 'custom-item-area') {
                 return {
                     type: elementType,
                     item: componentItem.meta.componentSchemeContainer.findItemById(itemId),
-                    areaId: event.target.getAttribute('data-custom-area-id'),
+                    areaId: event.srcElement.getAttribute('data-custom-area-id'),
                 };
             }
             if (itemId) {
@@ -3177,11 +3167,7 @@ export default {
             const maxScreen = {x: this._x(max.x), y: this._y(max.y) + bottomMargin};
             const midX = (minScreen.x + maxScreen.x)/2;
 
-            const svgPlot = document.getElementById(`svg-plot-${this.editorId}`)
-            if (!svgPlot) {
-                return;
-            }
-            const svgRect = svgPlot.getBoundingClientRect();
+            const svgRect = document.getElementById(`svg-plot-${this.editorId}`).getBoundingClientRect();
 
             if (midX < 0 || midX > svgRect.width) {
                 this.resetFloatingHelperPanel();
@@ -3682,6 +3668,12 @@ export default {
         y_(y) { return (y - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale },
         z_(v) { return v / this.schemeContainer.screenTransform.scale; },
 
+    },
+
+    filters: {
+        prettifyAxisValue(value, zoom) {
+            return prettifyAxisValue(value, zoom);
+        }
     },
 
     watch: {

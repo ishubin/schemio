@@ -19,7 +19,8 @@
             </div>
         </div>
         <div class="ssc-body">
-            <SvgEditor v-if="schemeContainer"
+            <SvgEditor ref="svgEditor"
+                v-if="schemeContainer"
                 :editorId="editorId"
                 :scheme-container="schemeContainer"
                 :zoom="vZoom"
@@ -60,7 +61,7 @@ import { StateInteract } from '../components/editor/states/interact/StateInterac
 import { collectAndLoadAllMissingShapes } from '../components/editor/items/shapes/ExtraShapes';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import shortid from 'shortid';
-import { calculateScreenTransformForArea, calculateZoomingAreaForItems, collectOnlyVisibleNonHUDItems } from '../scheme/ItemMath';
+import { calculateScreenTransformForArea, calculateZoomingAreaForItems, collectOnlyVisibleNonHUDItems, filterNonHUDItems } from '../scheme/ItemMath';
 
 const ANIMATED = true;
 
@@ -229,13 +230,13 @@ export default {
          * @param {Item} componentItem
          */
         identifyComponentObject(event, componentItem) {
-            const elementType = event.target.getAttribute('data-type');
-            const itemId = event.target.getAttribute('data-item-id');
+            const elementType = event.srcElement.getAttribute('data-type');
+            const itemId = event.srcElement.getAttribute('data-item-id');
             if (elementType === 'custom-item-area') {
                 return {
                     type: elementType,
                     item: componentItem.meta.componentSchemeContainer.findItemById(itemId),
-                    areaId: event.target.getAttribute('data-custom-area-id'),
+                    areaId: event.srcElement.getAttribute('data-custom-area-id'),
                 };
             }
             if (itemId) {

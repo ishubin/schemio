@@ -36,12 +36,6 @@
         <span class="editor-icon" :class="{ 'is-active': editor.isActive('blockquote') }" @click="editor.chain().focus().toggleBlockquote().run()">
             <i class="fas fa-quote-left"></i>
         </span>
-        <span class="editor-icon" v-if="linkEnabled" @click="$emit('link-toggled')">
-            <i class="fa-solid fa-link"></i>
-        </span>
-        <span class="editor-icon" v-if="editor.isActive('link')" @click="editor.chain().focus().unsetLink().run()">
-            <i class="fa-solid fa-link-slash"></i>
-        </span>
         <span class="editor-icon" data-type="icon-modal-toggle-button" @click="toggleIconsPopup">
             <i class="fa-solid fa-face-smile"></i>
         </span>
@@ -71,12 +65,12 @@
 <script>
 import { getTextIconsIndex } from '../../../app/client/clientCommons';
 import { createDelayer } from '../../../delayer';
+import utils from '../../../utils';
 import Pagination from '../../Pagination.vue';
 
 export default {
     props: {
-        editor     : {required: true},
-        linkEnabled: {type: Boolean, default: true},
+        editor: {required: true}
     },
 
     components: {Pagination},

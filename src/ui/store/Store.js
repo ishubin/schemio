@@ -1,18 +1,21 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-import {createStore} from 'vuex';
+import Vue from 'vue';
+import Vuex from 'vuex';
 import {forEach} from '../collections';
 import utils from '../utils';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import shortid from 'shortid';
 
+Vue.use(Vuex);
+
 const DEFAULT_CONNECTOR_SMOOTHING = 'defaultConnectorSmoothing';
 
 const myStorage = createSettingStorageFromLocalStorage('store', 100);
 
-const store = createStore({
-    devtools: false,
+
+const store = new Vuex.Store({
     state: {
         //rootPath is used in the header for a home link, since if this is being hosted in GitHub Pages then we cannot use '/' as root path
         rootPath: '/',
@@ -71,6 +74,7 @@ const store = createStore({
         selectedConnectorPath: null,
         selectedConnector: null,
 
+        multiSelectBox: null,
 
         // used to render snapping lines when user drags item and it is snapped to other items
         snappers: {
@@ -84,6 +88,7 @@ const store = createStore({
             connectorItemId: null,
             mx: 0, // value on x viewport axis
             my: 0, // value on y viewport axis
+            primaryShapeId: null,
         },
 
         // used for storing information about images that were dropped on svg editor
@@ -165,6 +170,10 @@ const store = createStore({
             state.itemControlPoints.length = 0;
         },
 
+        SET_MULTI_SELECT_BOX(state, box) {
+            state.multiSelectBox = box;
+        },
+
         SET_SELECTED_CONNECTOR_WITH_PATH(state, {item, path}) {
             state.selectedConnectorPath = path;
             state.selectedConnector = item;
@@ -183,11 +192,12 @@ const store = createStore({
             state.snappers.vertical = null;
         },
 
-        PROPOSE_CONNECTOR_DESTINATION_ITEMS(state, {connectorItemId, mx, my}) {
+        PROPOSE_CONNECTOR_DESTINATION_ITEMS(state, {connectorItemId, mx, my, primaryShapeId}) {
             state.connectorProposedDestination.connectorItemId = connectorItemId;
             state.connectorProposedDestination.mx = mx;
             state.connectorProposedDestination.my = my;
             state.connectorProposedDestination.shown = true;
+            state.connectorProposedDestination.primaryShapeId = primaryShapeId;
         },
         DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS(state) {
             state.connectorProposedDestination.shown = false;
@@ -412,6 +422,10 @@ const store = createStore({
             commit('CLEAR_ITEM_CONTROL_POINTS');
         },
 
+        setMultiSelectBox({commit}, box) {
+            commit('SET_MULTI_SELECT_BOX', box);
+        },
+
         setSelectedConnectorWithPath({commit}, {item, path}) {
             commit('SET_SELECTED_CONNECTOR_WITH_PATH', {item, path});
         },
@@ -435,8 +449,8 @@ const store = createStore({
             commit('TOGGLE_ITEM_DETAIL_MARKERS');
         },
 
-        proposeConnectorDestinationItems({commit}, payload) {
-            commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', payload);
+        proposeConnectorDestinationItems({commit}, {connectorItemId, mx, my, primaryShapeId}) {
+            commit('PROPOSE_CONNECTOR_DESTINATION_ITEMS', {connectorItemId, mx, my, primaryShapeId});
         },
         disableProposeConnectorDestinationItems({commit}) {
             commit('DISABLE_PROPOSE_CONNECTOR_DESTINATION_ITEMS');
@@ -510,6 +524,8 @@ const store = createStore({
         apiClient: state => state.apiClient,
 
         itemControlPointsList: state => state.itemControlPoints,
+
+        multiSelectBox: state => state.multiSelectBox,
 
         horizontalSnapper: state => state.snappers.horizontal,
         verticalSnapper: state => state.snappers.vertical,

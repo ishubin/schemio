@@ -31,26 +31,23 @@
                 </div>
             </div>
 
-            <template v-for="panel in filteredItemPanels">
-                <panel :key="panel.id" v-if="panel.items.length > 0" :name="panel.name">
-                    <div class="item-menu">
-                        <div v-for="item in panel.items"
-                            class="item-container"
-                            :title="item.name"
-                            @mouseleave="stopPreviewItem(item)"
-                            @mouseover="showPreviewItem(item)"
-                            @mousedown="onItemMouseDown($event, item)"
-                            @dragstart="preventEvent"
-                            @drag="preventEvent"
-                            >
+            <panel v-for="panel in filteredItemPanels" :key="panel.id" v-if="panel.items.length > 0" :name="panel.name">
+                <div class="item-menu">
+                    <div v-for="item in panel.items"
+                        class="item-container"
+                        :title="item.name"
+                        @mouseleave="stopPreviewItem(item)"
+                        @mouseover="showPreviewItem(item)"
+                        @mousedown="onItemMouseDown($event, item)"
+                        @dragstart="preventEvent"
+                        @drag="preventEvent"
+                        >
 
-                            <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
-                            <svg v-else-if="item.iconSVG" width="42px" height="32px" v-html="item.iconSVG"></svg>
-                        </div>
+                        <img v-if="item.iconUrl" :src="item.iconUrl" width="42px" height="32px"/>
+                        <svg v-else-if="item.iconSVG" width="42px" height="32px" v-html="item.iconSVG"></svg>
                     </div>
-                </panel>
-            </template>
-
+                </div>
+            </panel>
 
             <panel v-for="panel in extraShapeGroups" :key="panel.id"  :name="panel.name">
                 <div class="item-menu">
@@ -120,31 +117,29 @@
                 </div>
             </panel>
 
-            <template v-for="artPack in filteredArtPacks">
-                <panel :key="artPack.id" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
-                    <div class="art-pack">
-                        <div class="art-pack-author" v-if="artPack.author">
-                            Created by
-                            <a v-if="artPack.link" :href="artPack.link">{{artPack.author}}</a>
-                            <span v-else>{{artPack.author}}</span>
-                        </div>
-                        <div class="item-menu">
-                            <template v-for="icon in artPack.icons">
-                                <div class="item-container"
-                                    v-if="!searchKeyword || safeTextMatchKeyword(icon.name) || safeTextMatchKeyword(icon.description)"
-                                    @mouseover="showPreviewArt(icon)"
-                                    @mouseleave="stopPreviewArt(icon)"
-                                    @mousedown="onArtMouseDown($event, icon)"
-                                    @dragstart="preventEvent"
-                                    @drag="preventEvent"
-                                    >
-                                    <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
-                                </div>
-                            </template>
+            <panel v-for="artPack in filteredArtPacks" :key="artPack.id" v-if="artPack.icons.length > 0" :name="artPack.name" :closable="true" @close="closeArtPack(artPack)">
+                <div class="art-pack">
+                    <div class="art-pack-author" v-if="artPack.author">
+                        Created by
+                        <a v-if="artPack.link" :href="artPack.link">{{artPack.author}}</a>
+                        <span v-else>{{artPack.author}}</span>
+                    </div>
+                    <div class="item-menu">
+                        <div class="item-container"
+                            v-for="icon in artPack.icons"
+                            :key="icon.id"
+                            v-if="!searchKeyword || safeTextMatchKeyword(icon.name) || safeTextMatchKeyword(icon.description)"
+                            @mouseover="showPreviewArt(icon)"
+                            @mouseleave="stopPreviewArt(icon)"
+                            @mousedown="onArtMouseDown($event, icon)"
+                            @dragstart="preventEvent"
+                            @drag="preventEvent"
+                            >
+                            <img :src="icon.url" :title="`${icon.name} ${icon.description}`"/>
                         </div>
                     </div>
-                </panel>
-            </template>
+                </div>
+            </panel>
 
             <div class="section">
                 <span class="btn btn-secondary btn-block" @click="extraShapesModal.shown = true">More shapes &#8230;</span>

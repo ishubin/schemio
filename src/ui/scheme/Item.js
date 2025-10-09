@@ -390,34 +390,6 @@ export function applyStyleFromAnotherItem(referenceItem, dstItem) {
     });
 }
 
-export function getPropertyDefaultValue(property) {
-    if (property.hasOwnProperty('value')) {
-        return property.value;
-    }
-
-    if (property.type === 'number') {
-        if (property.hasOwnProperty('min')) {
-            return property.min;
-        } else if (property.hasOwnProperty('max')) {
-            return property.max;
-        }
-        return 0;
-    }
-    if (property.type === 'string') {
-        return '';
-    }
-    if (property.type === 'choice') {
-        if (Array.isArray(property.options) && property.options.length > 0) {
-            return property.options[0]
-        }
-        return '';
-    }
-    if (property.type === 'boolean') {
-        return false;
-    }
-    return null;
-}
-
 export function getItemPropertyDescriptionForShape(shape, propertyPath) {
     const corePropType = coreItemPropertyTypes[propertyPath];
     if (corePropType) {

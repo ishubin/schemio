@@ -262,7 +262,7 @@ export function enrichItemWithDefaults(item) {
         forEach(textSlots, textSlot => {
             // excluding ghost text slots which are used in shapes like Entity.
             // ghost text slot are only used for allowing the shape to control the text editting itself
-            if (!item.textSlots.hasOwnProperty(textSlot.name) && textSlot.kind !== 'ghost') {
+            if (!item.textSlots.hasOwnProperty(textSlot.name) && !textSlot.kind === 'ghost') {
                 item.textSlots[textSlot.name] = {};
                 enrichItemTextSlotWithDefaults(item.textSlots[textSlot.name]);
             }

@@ -173,7 +173,6 @@ const assetFiles = [
     {file: 'custom-fonts', isDir: true},
     {file: 'shapes', isDir: true},
     {file: 'webfonts', isDir: true},
-    {file: 'katex', isDir: true},
 ];
 
 function copyStaticAssets(exporterPath) {
@@ -255,11 +254,7 @@ export function startStaticExporter(rootPath) {
                             entry.previewURL = `media/previews/${scheme.id}.svg`;
                         }
                         return {entry, scheme};
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        return {entry, scheme};
-                    }) ;
+                    });
                 }).then(({entry, scheme}) => {
                     parentDir.entries.push(entry);
                     return fs.writeFile(path.join(exporterDataPath, filePath), JSON.stringify(scheme))

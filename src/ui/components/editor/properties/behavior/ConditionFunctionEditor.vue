@@ -12,38 +12,37 @@
             @changed="emitArgChange('expression', $event)" />
 
         <table>
-            <tbody>
-                <tr>
-                    <td>If true:</td>
-                    <td>
-                        <Dropdown
-                            :options="conditionBranchOptions"
-                            :auto-focus-search="args.success !== 'send-event'"
-                            :inline="true"
-                            :borderless="false"
-                            @selected="onSuccessSelected">
-                            <i :class="toIcon(args.success)"/>
-                            <span> {{ toPrettyName(args.success) }} </span>
-                        </Dropdown>
-                        <input ref="sendEventInputSuccess" v-if="args.success === 'send-event'" type="text" :value="args.successEvent" class="condition-function-send-event"/>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Else:</td>
-                    <td>
-                        <Dropdown
-                            :options="conditionBranchOptions"
-                            :auto-focus-search="args.fail !== 'send-event'"
-                            :inline="true"
-                            :borderless="false"
-                            @selected="onFailSelected">
-                            <i :class="toIcon(args.fail)"/>
-                            <span> {{ toPrettyName(args.fail) }} </span>
-                        </Dropdown>
-                        <input ref="sendEventInputFail" v-if="args.fail === 'send-event'" type="text" :value="args.failEvent" class="condition-function-send-event"/>
-                    </td>
-                </tr>
-            </tbody>
+            <tr>
+                <td>If true:</td>
+                <td>
+                    <Dropdown
+                        :options="conditionBranchOptions"
+                        :auto-focus-search="args.success !== 'send-event'"
+                        :inline="true"
+                        :borderless="false"
+                        @selected="onSuccessSelected">
+                        <i :class="toIcon(args.success)"/>
+                        <span> {{ args.success | toPrettyName }} </span>
+                    </Dropdown>
+                    <input ref="sendEventInputSuccess" v-if="args.success === 'send-event'" type="text" :value="args.successEvent" class="condition-function-send-event"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Else:</td>
+                <td>
+                    <Dropdown
+                        :options="conditionBranchOptions"
+                        :auto-focus-search="args.fail !== 'send-event'"
+                        :inline="true"
+                        :borderless="false"
+                        @selected="onFailSelected">
+                        <i :class="toIcon(args.fail)"/>
+                        <span> {{ args.fail | toPrettyName }} </span>
+                    </Dropdown>
+                    <input ref="sendEventInputFail" v-if="args.fail === 'send-event'" type="text" :value="args.failEvent" class="condition-function-send-event"/>
+
+                </td>
+            </tr>
         </table>
     </div>
 </template>
@@ -125,10 +124,11 @@ export default {
                 });
             }
         },
-
+    },
+    filters: {
         toPrettyName(id) {
             return eventPrettyNames[id];
         }
-    },
+    }
 };
 </script>

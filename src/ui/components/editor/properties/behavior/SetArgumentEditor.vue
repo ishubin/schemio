@@ -18,7 +18,7 @@
                     <input v-if="argumentType === 'boolean'" type="checkbox" :checked="argumentValue" @input="onCheckboxInput"/>
 
                     <select v-if="isChoice" :value="argumentValue" @input="onInputValue">
-                        <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{ toPrettyOptionName(option) }}</option>
+                        <option v-for="option in choiceOptions" :value="(option.name&&option.value) ? option.value : option">{{option | toPrettyOptionName}}</option>
                     </select>
                 </div>
             </div>
@@ -189,14 +189,15 @@ export default {
         },
         onPropertyChange(name, value) {
             this.$emit('property-changed', {name, value});
-        },
-
+        }
+    },
+    filters: {
         toPrettyOptionName(option) {
             if (option.name && option.value) {
                 return option.name;
             }
             return option;
         }
-    },
+    }
 }
 </script>

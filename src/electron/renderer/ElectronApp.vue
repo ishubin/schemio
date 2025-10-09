@@ -8,7 +8,6 @@
             :fileTreeReloadKey="fileTreeReloadKey"
             :focusedFile="currentFocusedFilePath"
             :folderToExpand="navigatorFolderToExpand"
-            :width="navigatorWidth"
             @schemio-doc-selected="onSchemioDocSelected"
             @entry-added="onFileTreeEntryAdded"
             @renamed-folder="onFolderRenamed"
@@ -17,7 +16,7 @@
             @new-diagram-requested="onNewDiagramRequested"
             @navigator-resized="onNavigatorResized"
             />
-        <div class="elec-main-body" :style="{width: `calc(100% - ${Math.round(this.navigatorWidth)}px)`}">
+        <div class="elec-main-body">
             <div v-if="progressBarShown" class="elec-file-progress-bar"></div>
             <FileTabPanel :files="files" :currentOpenFileIndex="currentOpenFileIdx" @selected-file="focusFile" @closed-file="closeFile" @reordered-files="onFileTabReorder"/>
             <div class="elec-file-container">
@@ -142,7 +141,6 @@ import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
 import {diagramImageExporter} from '../../ui/diagramExporter'
-import utils from '../../ui/utils.js';
 
 const fileHistories = new Map();
 
@@ -483,7 +481,6 @@ export default {
         },
 
         saveFile(file, document) {
-            document = utils.clone(document);
             file.isSaving = true;
             this.$store.dispatch('clearStatusMessage');
             diagramImageExporter(document.items)
@@ -757,11 +754,11 @@ export default {
             }
         },
 
-        onNavigatorResized(navigatorWidth) {
+        onNavigatorResized() {
             if (this.currentOpenFileIdx < 0 || this.currentOpenFileIdx >= this.files.length) {
                 return;
             }
-            this.navigatorWidth = navigatorWidth;
+
             const file = this.files[this.currentOpenFileIdx];
             EditorEventBus.editorResized.$emit(file.editorId);
         },

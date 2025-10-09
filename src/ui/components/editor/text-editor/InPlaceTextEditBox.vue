@@ -9,7 +9,7 @@
         :style="cssStyle2"
         >
         <div class="in-place-text-editor-menu" ref="floatingMenu" v-if="editor && isRichEditor && !isSimpleText" :style="editorMenuStyle">
-            <RichTextMenuBar :editor="editor" :linkEnabled="false"/>
+            <RichTextMenuBar :editor="editor" />
         </div>
         <textarea v-if="textSlot.display === 'textarea'" ref="textarea"
             class="in-place-text-editor"
@@ -61,9 +61,10 @@
 import htmlSanitize from '../../../../htmlSanitize';
 import utils from '../../../utils';
 import { Keys, identifyKeyPress } from '../../../events';
-import { Editor, EditorContent } from '@tiptap/vue-3';
+import { Editor, EditorContent } from '@tiptap/vue-2';
 import EmoticonTipTapExtension from './IconTipTapExtension';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 import EditorEventBus from '../EditorEventBus';
 import Dropdown from '../../Dropdown.vue';
 import RichTextMenuBar from './RichTextMenuBar.vue';
@@ -209,12 +210,8 @@ export default {
                 disableInputRules: true,
                 extensions: [
                     EmoticonTipTapExtension,
-                    StarterKit.configure({
-                        link: {
-                            openOnClick: false,
-                            autolink: false,
-                        }
-                    }),
+                    StarterKit,
+                    Underline,
                 ],
 
                 autofocus: true,
@@ -298,11 +295,7 @@ export default {
 
         closeEditBox() {
             if (this.item.shape === 'none') {
-                const editor = this.$refs.editor;
-                if (!editor) {
-                    return;
-                }
-                const rect = editor.getBoundingClientRect();
+                const rect = this.$refs.editor.getBoundingClientRect();
                 // in case the shape is none - only text matters
                 // so if text was removed perhaps it makes sense to remove the item from SchemeContainer if it doesn't have child items
                 // the trick we do here is getting pure text from html and checking if it is empty

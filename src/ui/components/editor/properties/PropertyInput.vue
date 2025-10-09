@@ -18,11 +18,11 @@
             @changed="emitValue"
             />
 
-        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @changed="emitValue"/>
+        <ColorPicker :editorId="editorId" v-if="descriptor.type === 'color'" :color="value" :disabled="disabled" @input="emitValue"/>
 
         <AdvancedColorEditor :editorId="editorId" v-if="descriptor.type === 'advanced-color'" :value="value" :disabled="disabled" @changed="emitValue" />
 
-        <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitCheckboxValue"/>
+        <input v-if="descriptor.type === 'boolean'" type="checkbox" :checked="value" :disabled="disabled" @input="emitValue($event.srcElement.checked)"/>
 
         <select v-if="descriptor.type === 'choice'" :value="value" :disabled="disabled" @input="emitValue($event.target.value)">
             <option v-for="argOption in descriptor.options">{{argOption}}</option>
@@ -103,12 +103,8 @@ export default {
     },
 
     methods: {
-        emitCheckboxValue(event) {
-            this.emitValue(event.target.checked);
-        },
-
         emitValue(value) {
-            this.$emit('changed', value);
+            this.$emit('input', value);
         },
 
         onDiagramPicked(diagram) {

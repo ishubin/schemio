@@ -43,11 +43,7 @@ function animateZoom(schemeContainer, newScale, screenTransformCallback) {
     const xo = schemeContainer.screenTransform.x;
     const yo = schemeContainer.screenTransform.y;
 
-    const svgPlot = document.getElementById(`svg-plot-${schemeContainer.editorId}`)
-    if (!svgPlot) {
-        return;
-    }
-    const svgRect = svgPlot.getBoundingClientRect();
+    const svgRect = document.getElementById(`svg-plot-${schemeContainer.editorId}`).getBoundingClientRect();
     const cx = svgRect.width / 2;
     const cy = svgRect.height / 2;
 
@@ -744,12 +740,12 @@ export class MultiSelectState extends SubState {
             this.multiSelectBox.y = y;
             this.multiSelectBox.h = this.originalClickPoint.y - y;
         }
-        EditorEventBus.multiSelectBoxUpdated.$emit(this.editorId, this.multiSelectBox);
+        StoreUtils.setMultiSelectBox(this.store, this.multiSelectBox);
     }
 
     mouseUp(x, y, mx, my, object, event) {
         this.selectorCallback(this.multiSelectBox, isMultiSelectKey(event));
-        EditorEventBus.multiSelectBoxUpdated.$emit(this.editorId, null);
+        StoreUtils.setMultiSelectBox(this.store, null);
         this.migrateToPreviousSubState();
     }
 }
