@@ -334,7 +334,7 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
 
 
 function computeSmoothPath(item) {
-    const points = utils.clone(item.shapeProps.points);
+    const points = [].concat(item.shapeProps.points);
 
     if (points.length < 2) {
         return {
@@ -358,8 +358,10 @@ function computeSmoothPath(item) {
 
         firstCap = computeCapByPosition(points[0].x, points[0].y, x2, y2, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
         if (firstCap) {
-            points[0].x = firstCap.entryPoint.x;
-            points[0].y = firstCap.entryPoint.y;
+            points[0] = {
+                x: firstCap.entryPoint.x,
+                y: firstCap.entryPoint.y
+            };
             caps.push(firstCap);
         }
     }
@@ -373,8 +375,10 @@ function computeSmoothPath(item) {
 
         lastCap = computeCapByPosition(points[id].x, points[id].y, x2, y2, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap, item.shapeProps.fill);
         if (lastCap) {
-            points[id].x = lastCap.entryPoint.x;
-            points[id].y = lastCap.entryPoint.y;
+            points[id] = {
+                x: lastCap.entryPoint.x,
+                y: lastCap.entryPoint.y
+            };
             caps.push(lastCap);
         }
     }

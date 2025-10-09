@@ -8,8 +8,8 @@ import { normalizeTokens } from "./normalization";
 
 const operatorPrecedences = [
     '^',
-    '*',
     '/',
+    '*',
     '%',
     '-',
     '+',
