@@ -227,6 +227,7 @@ function computeStepPathAndCaps(item, useCut, roundCuts) {
         if (cap) {
             if (!cap.prolongLine) {
                 points[0] = {
+                    ...points[0],
                     x: cap.entryPoint.x,
                     y: cap.entryPoint.y
                 };
@@ -367,6 +368,7 @@ function computeSmoothPath(item) {
         firstCap = computeCapByPosition(points[0].x, points[0].y, x2, y2, item.shapeProps.sourceCapSize, item.shapeProps.sourceCap);
         if (firstCap) {
             points[0] = {
+                ...points[0],
                 x: firstCap.entryPoint.x,
                 y: firstCap.entryPoint.y
             };
@@ -384,6 +386,7 @@ function computeSmoothPath(item) {
         lastCap = computeCapByPosition(points[id].x, points[id].y, x2, y2, item.shapeProps.destinationCapSize, item.shapeProps.destinationCap, item.shapeProps.fill);
         if (lastCap) {
             points[id] = {
+                ...points[id],
                 x: lastCap.entryPoint.x,
                 y: lastCap.entryPoint.y
             };
