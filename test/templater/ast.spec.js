@@ -901,4 +901,52 @@ describe('templater ast parser', () => {
         }));
         expect(result).toBe("john mike paul claire");
     });
+
+
+    it('return: should interrupt the current stack and return an object', () => {
+        const node = parseExpression(`
+            func doIt(n) {
+                for (let k = 0; k < 10; k++) {
+                    if (n + k > 15) {
+                        return 'a'
+                    }
+                }
+
+                'b'
+            }
+            doIt(1) + doIt(10)
+        `);
+        const result = node.evalNode(new Scope({}, null, (name) => null));
+        expect(result).toBe("ba");
+    });
+
+    it('return: should not interrupt the upper function', () => {
+        const node = parseExpression(`
+            func upper(prefix) {
+                let doIt = (n) => {
+                    for (let k = 0; k < 10; k++) {
+                        if (n + k > 15) {
+                            return 'a'
+                        }
+                    }
+                    'b'
+                }
+                return prefix + doIt(1) + doIt(10)
+            }
+            upper('zxc-')
+        `);
+        const result = node.evalNode(new Scope({}, null, (name) => null));
+        expect(result).toBe("zxc-ba");
+    });
+
+    it('return: should allow to be used in a single statement', () => {
+        const node = parseExpression(`
+            func doIt() {
+                return "qwe"
+            }
+            doIt()
+        `);
+        const result = node.evalNode(new Scope({}, null, (name) => null));
+        expect(result).toBe("qwe");
+    });
 });

@@ -1,4 +1,5 @@
-import { ASTFunctionDeclaration, ASTNode } from "./nodes";
+import { ASTFunctionDeclaration } from "./ASTFunctionDeclaration";
+import { ASTNode } from "./nodes";
 import { Scope } from "./scope";
 
 

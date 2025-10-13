@@ -17,3 +17,12 @@ export class SchemioScriptError extends Error{
         console.error(fullMessage);
     }
 }
+
+
+// This is a temporary solution for handling `return` statements
+// until I refactor all of the `evalNode` functions on all of the AST nodes
+export class ScopeInterruptValue {
+    constructor(value) {
+        this.value = value;
+    }
+}

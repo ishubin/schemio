@@ -1,9 +1,18 @@
 import { ReservedTerms, SchemioScriptParseError, TokenTypes, isReserved, tokenizeExpression } from "./tokenizer";
 import { parseStringExpression } from "./strings";
-import { ASTAdd, ASTAssign, ASTBitShiftLeft, ASTBitShiftRight, ASTBitwiseAnd, ASTBitwiseNot, ASTBitwiseOr, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals, ASTExternalObjectLookup, ASTForLoop, ASTFunctionDeclaration, ASTFunctionInvocation, ASTGreaterThan, ASTGreaterThanOrEquals, ASTIFStatement, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals, ASTLocalVariable, ASTMod, ASTMultiExpression, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTObjectFieldAccessor, ASTPow, ASTString, ASTStringTemplate, ASTSubtract, ASTValue, ASTVarRef, ASTWhileStatement } from "./nodes";
+import { ASTExternalObjectLookup, ASTForLoop, ASTIFStatement,  ASTLocalVariable, ASTMultiExpression, ASTReturn, ASTString, ASTStringTemplate, ASTVarRef, ASTWhileStatement } from "./nodes";
 import { TokenScanner } from "./scanner";
 import { ASTStructNode } from "./struct";
 import { normalizeTokens } from "./normalization";
+import { ASTValue } from "./ASTValue";
+import { ASTAdd, ASTAssign, ASTBitShiftLeft, ASTBitShiftRight, ASTBitwiseAnd, ASTBitwiseNot,
+    ASTBitwiseOr, ASTBoolAnd, ASTBoolOr, ASTDecrementWith, ASTDivide, ASTDivideWith, ASTEquals,
+    ASTGreaterThan, ASTGreaterThanOrEquals, ASTIncrement, ASTIncrementWith, ASTLessThen, ASTLessThenOrEquals,
+    ASTMod, ASTMultiply, ASTMultiplyWith, ASTNegate, ASTNot, ASTNotEqual, ASTPow, ASTSubtract,
+} from "./astoperators";
+import { ASTObjectFieldAccessor } from "./ASTObjectFieldAccessor";
+import { ASTFunctionInvocation } from "./ASTFunctionInvocation";
+import { ASTFunctionDeclaration } from "./ASTFunctionDeclaration";
 
 
 const operatorPrecedences = [
@@ -139,9 +148,7 @@ class ASTParser extends TokenScanner {
                 expressions.push(expression);
             }
         }
-        if (expressions.length === 1) {
-            return expressions[0];
-        } else if (expressions.length > 1) {
+        if (expressions.length > 0) {
             return new ASTMultiExpression(expressions);
         } else {
             return new ASTValue(null);
@@ -323,7 +330,7 @@ class ASTParser extends TokenScanner {
                     this.skipNewlines();
                     return parseFunctionDeclarationUsing(token, this.scanToken(), this.originalText);
                 }
-                const expression = parseAST(token.groupTokens);
+                const expression = parseAST(token.groupTokens, this.originalText);
                 return this.parseTermGroup(expression);
             } else {
                 throw new SchemioScriptParseError(`Unexpected token group "${token.v}"`, this.processedTextToToken(token));
@@ -349,6 +356,9 @@ class ASTParser extends TokenScanner {
                 return this.parseFunctionDeclaration();
             } else if (token.v === ReservedTerms.LOCAL || token.v === ReservedTerms.LET) {
                 return this.parseLocalVarDeclaration(token);
+            } else if (token.v === ReservedTerms.RETURN) {
+                const expr = this.parseSingleExpression();
+                return new ASTReturn(expr);
             }
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
@@ -411,7 +421,7 @@ class ASTParser extends TokenScanner {
             throw new SchemioScriptParseError(`Expected "(" symbol after "while" (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
-        const whileExpression = parseAST(token.groupTokens);
+        const whileExpression = parseAST(token.groupTokens, this.originalText);
         if (!whileExpression) {
             throw new SchemioScriptParseError(`Missing condition expression for while statement (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
@@ -425,7 +435,7 @@ class ASTParser extends TokenScanner {
             throw new SchemioScriptParseError(`Missing "{" symbol after "while" expression (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
-        const whileBlock = parseAST(token.groupTokens);
+        const whileBlock = parseAST(token.groupTokens, this.originalText);
         return new ASTWhileStatement(whileExpression, whileBlock);
     }
 
@@ -526,11 +536,11 @@ class ASTParser extends TokenScanner {
             throw new SchemioScriptParseError(`Missing "{" symbol after "for" expression (at ${nextToken.idx}, line ${nextToken.line})`, this.processedTextToToken(nextToken));
         }
 
-        const forLoopBlock = parseAST(nextToken.groupTokens);
+        const forLoopBlock = parseAST(nextToken.groupTokens, this.originalText);
 
-        const init = parseAST(forLoopTokenGroups[0]);
-        const condition = parseAST(forLoopTokenGroups[1]);
-        const postLoop = parseAST(forLoopTokenGroups[2]);
+        const init = parseAST(forLoopTokenGroups[0], this.originalText);
+        const condition = parseAST(forLoopTokenGroups[1], this.originalText);
+        const postLoop = parseAST(forLoopTokenGroups[2], this.originalText);
 
         return new ASTForLoop(init, condition, postLoop, forLoopBlock);
     }
@@ -546,7 +556,7 @@ class ASTParser extends TokenScanner {
             throw new SchemioScriptParseError(`Missing "(" symbol after "if" (at ${token.idx}, line ${token.line})`, this.processedTextToToken(token));
         }
 
-        const ifExpression = parseAST(token.groupTokens);
+        const ifExpression = parseAST(token.groupTokens, this.originalText);
 
         this.skipNewlines();
 
@@ -558,7 +568,7 @@ class ASTParser extends TokenScanner {
             throw new SchemioScriptParseError(`Missing "{" for if statement`, this.processedTextToToken(token));
         }
 
-        const trueBlock = parseAST(token.groupTokens);
+        const trueBlock = parseAST(token.groupTokens, this.originalText);
 
         token = this.peekToken();
 
@@ -579,7 +589,7 @@ class ASTParser extends TokenScanner {
                 if (token.t !== TokenTypes.TOKEN_GROUP || token.groupCode !== TokenTypes.START_CURLY) {
                     throw new SchemioScriptParseError('Expected "{" after "else"', this.processedTextToToken(token));
                 }
-                falseBlock = parseAST(token.groupTokens);
+                falseBlock = parseAST(token.groupTokens, this.originalText);
             }
         }
         return new ASTIFStatement(ifExpression, trueBlock, falseBlock);
@@ -681,7 +691,7 @@ function parseStruct(name, tokens, originalText) {
                 fieldDefinitions.push({name: fieldNameToken.v, value: astFunc});
             } else {
                 const fieldTokens = scanner.scanUntilNewLine();
-                const expression = parseAST(fieldTokens);
+                const expression = parseAST(fieldTokens, originalText);
                 fieldDefinitions.push({name: fieldNameToken.v, value: expression});
             }
         } else if (nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_BRACKET) {

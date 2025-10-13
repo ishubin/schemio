@@ -11,11 +11,9 @@ import { parseColor } from "../colors";
 import { Color } from "./color";
 import { Area } from "./area";
 import { Fill } from "./fill";
-import { SchemioScriptError } from "./error";
+import { SchemioScriptError, ScopeInterruptValue } from "./error";
 import { stripAllHtml } from "../../htmlSanitize";
-
-const FUNC_INVOKE = 'funcInvoke';
-const VAR_REF = 'var-ref';
+import { VAR_REF } from "./consts";
 
 
 export class ASTNode {
@@ -35,19 +33,25 @@ export class ASTNode {
     }
 }
 
-
-export class ASTValue extends ASTNode {
-    constructor(value) {
-        super('value', value);
-        this.value = value;
+export class ASTReturn extends ASTNode {
+    /**
+     *
+     * @param {ASTNode} expr
+     */
+    constructor(expr) {
+        super('return');
+        this.expr = expr;
     }
 
     evalNode(scope) {
-        return this.value;
+        if (this.expr) {
+            throw new ScopeInterruptValue(this.expr.evalNode(scope));
+        }
+        throw new ScopeInterruptValue(null);
     }
 
     print() {
-        return '' + this.value;
+        return 'return ' + this.expr.print();
     }
 }
 
@@ -84,111 +88,6 @@ export class ASTVarRef extends ASTNode {
     }
 }
 
-export class ASTOperator extends ASTNode {
-    constructor(type, sign, a, b) {
-        super(type);
-        this.sign = sign;
-        this.a = a;
-        this.b = b;
-    }
-    print() {
-        return `(${this.a.print()} ${this.sign} ${this.b.print()})`;
-    }
-
-    evalNode(scope) {
-        const aVal = this.a.evalNode(scope);
-        const bVal = this.b.evalNode(scope);
-        if (aVal instanceof Vector) {
-            return aVal._operator(this.sign, bVal);
-        } if (bVal instanceof Vector) {
-            return bVal._rightOperator(this.sign, aVal);
-        }
-         else {
-            return this.evaluate(aVal, bVal);
-        }
-    }
-
-    evaluate(aVal, bVal) {
-        throw new Error(`operator ${this.sign} is not implemented`);
-    }
-}
-
-export class ASTAdd extends ASTOperator {
-    constructor(a, b) { super('add', '+', a, b); }
-    evaluate(aVal, bVal) { return aVal + bVal};
-}
-
-export class ASTPow extends ASTOperator {
-    constructor(a, b) { super('pow', '^', a, b); }
-    evaluate(aVal, bVal) { return Math.pow(aVal, bVal)};
-}
-
-
-export class ASTSubtract extends ASTOperator {
-    constructor(a, b) { super('subtract', '-', a, b); }
-    evaluate(aVal, bVal) { return aVal - bVal};
-}
-
-export class ASTMultiply extends ASTOperator {
-    constructor(a, b) { super('multiply', '*', a, b); }
-    evaluate(aVal, bVal) { return aVal * bVal};
-}
-
-export class ASTDivide extends ASTOperator {
-    constructor(a, b) { super('divide', '/', a, b); }
-    evaluate(aVal, bVal) { return aVal / bVal};
-}
-
-export class ASTMod extends ASTOperator {
-    constructor(a, b) { super('mod', '%', a, b); }
-    evaluate(aVal, bVal) { return aVal % bVal};
-}
-
-export class ASTNegate extends ASTNode {
-    constructor(node) {
-        super('negate');
-        this.node = node;
-    }
-    evalNode(scope) {
-        const v = this.node.evalNode(scope);
-        if (v instanceof Vector) {
-            return v.inverse();
-        }
-        return -v;
-    }
-    print() {
-        return `(-${this.node.print()})`;
-    }
-}
-
-export class ASTNot extends ASTNode {
-    constructor(node) {
-        super('not');
-        this.node = node;
-    }
-    evalNode(scope) {
-        const v = this.node.evalNode(scope);
-        return !v;
-    }
-    print() {
-        return `(!${this.node.print()})`;
-    }
-}
-
-export class ASTBitwiseNot extends ASTNode {
-    constructor(node) {
-        super('bitwiseNot');
-        this.node = node;
-    }
-    evalNode(scope) {
-        const v = this.node.evalNode(scope);
-        return ~v;
-    }
-
-    print() {
-        return `(~${this.node.print()})`;
-    }
-}
 
 
 export class ASTWhileStatement extends ASTNode {
@@ -247,7 +146,7 @@ export class ASTForLoop extends ASTNode {
     }
     print() {
         const loopBlock = this.loopBlock ? this.loopBody.print() : '';
-        return `while (${this.init.print()}; ${this.condition.print()}; ${this.postLoop.print()}) {${loopBlock}}`;
+        return `for (${this.init.print()}; ${this.condition.print()}; ${this.postLoop.print()}) {${loopBlock}}`;
     }
 }
 
@@ -336,233 +235,6 @@ export class ASTStringTemplate extends ASTNode {
     }
 }
 
-export class ASTLessThen extends ASTOperator {
-    constructor(a, b) { super('lessThan', '<', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) < this.b.evalNode(scope); }
-}
-
-export class ASTGreaterThan extends ASTOperator {
-    constructor(a, b) { super('greaterThan', '>', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) > this.b.evalNode(scope); }
-}
-
-export class ASTLessThenOrEquals extends ASTOperator {
-    constructor(a, b) { super('lessThanOrEquals', '<=', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) <= this.b.evalNode(scope); }
-}
-
-export class ASTGreaterThanOrEquals extends ASTOperator {
-    constructor(a, b) { super('greaterThanOrEquals', '>=', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) >= this.b.evalNode(scope); }
-}
-
-export class ASTEquals extends ASTOperator {
-    constructor(a, b) { super('equals', '==', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) == this.b.evalNode(scope); }
-}
-
-export class ASTNotEqual extends ASTOperator {
-    constructor(a, b) { super('notEqual', '!=', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) != this.b.evalNode(scope); }
-}
-
-export class ASTBoolOr extends ASTOperator {
-    constructor(a, b) { super('boolOr', '||', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) || this.b.evalNode(scope); }
-}
-
-export class ASTBoolAnd extends ASTOperator {
-    constructor(a, b) { super('boolAnd', '&&', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) && this.b.evalNode(scope); }
-}
-
-export class ASTBitwiseAnd extends ASTOperator {
-    constructor(a, b) { super('bitwiseAnd', '&', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) & this.b.evalNode(scope); }
-}
-
-export class ASTBitwiseOr extends ASTOperator {
-    constructor(a, b) { super('bitwiseOr', '|', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) | this.b.evalNode(scope); }
-}
-
-export class ASTBitShiftLeft extends ASTOperator {
-    constructor(a, b) { super('bitShiftLeft', '<<', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) << this.b.evalNode(scope); }
-}
-
-export class ASTBitShiftRight extends ASTOperator {
-    constructor(a, b) { super('bitShiftRight', '>>', a, b); }
-    evalNode(scope) { return this.a.evalNode(scope) >> this.b.evalNode(scope); }
-}
-
-export class ASTAssign extends ASTOperator {
-    constructor(a, b) { super('assign', '=', a, b); }
-    evalNode(scope) {
-        if (!this.a.assignValue) {
-            throw new Error('Cannot use assign operator on non-var');
-        }
-        const value = this.b.evalNode(scope);
-        this.a.assignValue(scope, value);
-    }
-}
-
-export class ASTIncrement extends ASTNode {
-    /**
-     * @param {ASTVarRef} term
-     * @param {Boolean} isPre
-     * @param {number} [step=1]
-     */
-    constructor(term, isPre, step = 1) {
-        super('increment');
-        if (!term || !(term instanceof ASTVarRef)) {
-            throw new Error('Invalid use of ' + this.operatorToString());
-        }
-        this.term = term;
-        this.isPre = isPre;
-        this.step = step;
-    }
-
-    operatorToString() {
-        return this.step > 0 ? '++': '--';
-    }
-
-    print() {
-        const operator = this.operatorToString();
-        if (this.isPre) {
-            return operator + this.term.print();
-        } else {
-            return this.term.print() + operator;
-        }
-    }
-
-    /**
-     * @param {Scope} scope
-     */
-    evalNode(scope) {
-        const oldValue = this.term.evalNode(scope);
-        const value = oldValue + this.step;
-        scope.set(this.term.varName, value);
-        if (this.isPre) {
-            return value;
-        } else {
-            return oldValue;
-        }
-    }
-}
-
-export class ASTIncrementWith extends ASTOperator {
-    constructor(a, b) { super('incrementWith', '+=', a, b); }
-    evalNode(scope) {
-        if (!this.a.assignValue) {
-            throw new Error('Cannot use assign operator on non-var');
-        }
-        const aVal = this.a.evalNode(scope);
-        const bVal = this.b.evalNode(scope);
-
-        let value;
-        if (aVal instanceof Vector) {
-            value = aVal._operator('+', bVal);
-        } else {
-            value = aVal + bVal;
-        }
-        this.a.assignValue(scope, value);
-    }
-}
-
-export class ASTDecrementWith extends ASTOperator {
-    constructor(a, b) { super('decrementWith', '-=', a, b); }
-    evalNode(scope) {
-        if (!this.a.assignValue) {
-            throw new Error('Cannot use assign operator on non-var');
-        }
-        const aVal = this.a.evalNode(scope);
-        const bVal = this.b.evalNode(scope);
-
-        let value;
-        if (aVal instanceof Vector) {
-            value = aVal._operator('-', bVal);
-        } else {
-            value = aVal - bVal;
-        }
-        this.a.assignValue(scope, value);
-    }
-}
-
-export class ASTMultiplyWith extends ASTOperator {
-    constructor(a, b) { super('multiplyWith', '*=', a, b); }
-    evalNode(scope) {
-        if (!this.a.assignValue) {
-            throw new Error('Cannot use assign operator on non-var');
-        }
-        const aVal = this.a.evalNode(scope);
-        const bVal = this.b.evalNode(scope);
-
-        let value;
-        if (aVal instanceof Vector) {
-            value = aVal._operator('*', bVal);
-        } else if (bVal instanceof Vector) {
-            value = bVal._rightOperator('*', aVal);
-        } else {
-            value = aVal * bVal;
-        }
-        this.a.assignValue(scope, value);
-    }
-}
-
-export class ASTDivideWith extends ASTOperator {
-    constructor(a, b) { super('divideWith', '/=', a, b); }
-    evalNode(scope) {
-        if (!this.a.assignValue) {
-            throw new Error('Cannot use assign operator on non-var');
-        }
-        const aVal = this.a.evalNode(scope);
-        const bVal = this.b.evalNode(scope);
-
-        let value;
-        if (aVal instanceof Vector) {
-            value = aVal._operator('/', bVal);
-        } else if (bVal instanceof Vector) {
-            value = bVal._rightOperator('/', aVal);
-        } else {
-            value = aVal / bVal;
-        }
-        this.a.assignValue(scope, value);
-    }
-}
-
-
-export class ASTObjectFieldAccessor extends ASTOperator {
-    constructor(a, b) { super('field', '.', a, b); }
-    evalNode(scope) {
-        const obj = this.a.evalNode(scope);
-
-        if (this.b.type === VAR_REF) {
-            const fieldName = this.b.varName;
-
-            if (typeof obj === 'undefined' || obj === null) {
-                throw new Error(`Cannot get ${fieldName} from ${obj}`);
-            }
-            return obj[fieldName];
-        } else if (this.b.type === FUNC_INVOKE) {
-            return this.b.evalOnObject(scope, obj);
-        }
-        throw new Error('Invalid use for dot operator. Expected field reference but got: ' + this.b.type);
-    }
-
-    assignValue(scope, value) {
-        const obj = this.a.evalNode(scope);
-        if (typeof obj === 'undefined' || obj === null) {
-            throw new Error(`Cannot assign "${fieldName}" on ${obj}`);
-        }
-        if (this.b.type !== VAR_REF) {
-            throw new Error(`Cannot assign value on object, invalid field reference (${this.b.type})`);
-        }
-
-        const fieldName = this.b.varName;
-        obj[fieldName] = value;
-    }
-}
 
 function customParseInt(text) {
     const value = parseInt(text);
@@ -681,92 +353,6 @@ const reservedFunctions = new Map(Object.entries({
 }));
 
 
-export class ASTFunctionDeclaration extends ASTNode {
-    /**
-     * @param {Array<String>} argNames
-     * @param {ASTNode} body
-     */
-    constructor(argNames, body, funcName) {
-        super('function');
-        this.argNames = argNames;
-        this.body = body;
-        this.funcName = funcName;
-    }
-    print() {
-        return `(${this.argNames.join(',')}) => {(${this.body.print()})}`;
-    }
-
-    /**
-     * @param {Scope} scope
-     */
-    evalNode(scope) {
-        return (...args) => {
-            const funcScope = scope.newScope('func ' + this.funcName);
-            for (let i = 0; i < args.length && i < this.argNames.length; i++) {
-                funcScope.setLocal(this.argNames[i], args[i]);
-            }
-            try {
-                return this.body.evalNode(funcScope);
-            } catch (err) {
-                if (err instanceof SchemioScriptError) {
-                    throw err;
-                } else {
-                    throw new SchemioScriptError(err.message, funcScope, err);
-                }
-            }
-        };
-    }
-}
-
-export class ASTFunctionInvocation extends ASTNode {
-    /**
-     * @param {ASTNode} functionProvider provides the actual function either as a named var reference or as a result of expression
-     * @param {Array<ASTNode>} args
-     */
-    constructor(functionProvider, args) {
-        super(FUNC_INVOKE);
-        this.functionProvider = functionProvider;
-        this.args = args;
-    }
-    print() {
-        const argsText = this.args.map(a => a.print()).join(", ");
-        return `${this.functionProvider.print()}(${argsText})`;
-    }
-    evalNode(scope) {
-        const args = this.args.map(arg => arg.evalNode(scope));
-        const func = this.functionProvider.evalNode(scope);
-        if (!func || typeof func !== 'function') {
-            if (this.functionProvider instanceof ASTVarRef) {
-                throw new Error('Cannot resolve function: ', this.functionProvider.varName);
-            } else {
-                throw new Error('Cannot resolve function');
-            }
-        }
-        return func(...args);
-    }
-
-    evalOnObject(scope, obj) {
-        if (this.functionProvider.type !== VAR_REF) {
-            throw new Error('Invalid function invocation on object: ' + obj);
-        }
-
-        const name = this.functionProvider.varName;
-        const args = this.args.map(arg => arg.evalNode(scope));
-        if (obj === null || typeof obj === 'undefined') {
-            throw new Error(`Cannot invoke "${name}" function on non-object`);
-        }
-
-        if (typeof obj[name] !== 'function') {
-            throw new Error(`Function "${name}" is not defined on object ` + obj);
-        }
-
-        const f = obj[name];
-        if (typeof f !== 'function') {
-            throw new Error(`"${name}" is not a function`);
-        }
-        return obj[name](...args);
-    }
-}
 
 export class ASTMultiExpression extends ASTNode {
     /**
@@ -778,6 +364,9 @@ export class ASTMultiExpression extends ASTNode {
     }
 
     print() {
+        if (this.nodes.length === 1) {
+            return this.nodes[0].print();
+        }
         const argsText = this.nodes.map(a => a ? a.print() : '' + a).join("; ");
         return `(${argsText})`;
     }

@@ -36,6 +36,7 @@ export const ReservedTerms = {
     FUNC  : 'func',
     LOCAL : 'local',
     LET   : 'let',
+    RETURN: 'return',
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));

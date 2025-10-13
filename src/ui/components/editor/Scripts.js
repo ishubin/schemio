@@ -1,9 +1,11 @@
 import { createTheme } from "thememirror";
 import { parseExpression } from "../../templater/ast";
-import { ASTAssign, ASTFunctionDeclaration, ASTLocalVariable, ASTMultiExpression, ASTVarRef } from "../../templater/nodes";
+import { ASTLocalVariable, ASTMultiExpression, ASTVarRef } from "../../templater/nodes";
 import { ASTStructNode } from "../../templater/struct";
 import {syntaxTree} from "@codemirror/language";
 import {tags as t} from '@lezer/highlight';
+import { ASTFunctionDeclaration } from "../../templater/ASTFunctionDeclaration";
+import { ASTAssign } from "../../templater/astoperators";
 
 const keywords = `
     local for while if else func struct this let
