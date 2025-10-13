@@ -1,5 +1,4 @@
 name: Slider
-unlisted: true
 args:
   maxVal     : {type: "number", value: 100, name: "Max", description: "Maximum value of the slider"}
   minVal     : {type: "number", value: 0, name: "Min", description: "Minimum value of the slider"}
@@ -22,6 +21,14 @@ args:
   }
   knobStrokeColor: { type: "color", value: "rgba(86, 149, 218, 1)", name: "Knob stroke" }
   knobStrokeSize: { type: "number", value: 3, name: "Knob stroke size" }
+  valueChangeEvents:
+    name: "On value change"
+    type: script
+    description: "Behavior of slider when it is being dragged and its value gets updated"
+    value: |
+      value = getValue()
+      // replace the next line with the your code
+      log(value)
 
 init: |
   scale = pow(10, precision)
@@ -119,6 +126,17 @@ item:
                   }
                   label.setWorldPos(labelPos.x, labelPos.y)
                   setValue(value)
+              animated: false
+      - id: value-changed
+        event: valueChange
+        actions:
+          - id: value-change-action-1
+            element: self
+            method: script
+            "on": true
+            args:
+              initScript: ""
+              script: {$-expr: valueChangeEvents}
               animated: false
     dragging: none
     dropTo: ""
