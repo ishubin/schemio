@@ -723,7 +723,7 @@ export default {
             const w = this.item.area.w;
             const h = this.item.area.h;
             const y0 = Math.min(this.item.shapeProps.headerHeight, this.item.area.h);
-            return `M 0 ${y0} L ${w} ${y0} L ${w} ${h}, L 0 ${h} Z`;
+            return `M 0 ${y0} L ${w} ${y0} L ${w} ${h} L 0 ${h} Z`;
         },
 
         svgFill() {
