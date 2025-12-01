@@ -2981,6 +2981,9 @@ export default {
 
 
         deleteSelectedItems() {
+            if (this.inPlaceTextEditor.shown) {
+                return;
+            }
             this.schemeContainer.deleteSelectedItems();
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
