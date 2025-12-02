@@ -110,6 +110,7 @@
                 <ul class="button-group">
                     <li v-if="supportsFill">
                         <AdvancedColorEditor
+                            :key="`fill-control-${firstSelectedItem.id}`"
                             :editorId="editorId"
                             :value="fillColor"
                             width="18px"
