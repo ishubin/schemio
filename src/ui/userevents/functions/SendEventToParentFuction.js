@@ -18,13 +18,23 @@ It can be used for cross-component communication`,
      *
      * @param {Item} item
      * @param {*} args
-     * @param {*} schemeContainer
+     * @param {SchemeContainer} schemeContainer
      * @param {*} userEventBus
      * @param {*} resultCallback
      */
     execute(item, args, schemeContainer, userEventBus, resultCallback) {
-        if (item.meta && item.meta.parentId) {
+        if (!item.meta) {
+            resultCallback();
+            return;
+        }
+        if (item.meta.parentId) {
             sendEventToParent(item, args.event, userEventBus, schemeContainer);
+        }
+        if (item.meta.componentRoot) {
+            const containerItem = schemeContainer.findContainerItemOfEmbeddedComponentRoot(item);
+            if (containerItem) {
+                userEventBus.emitItemEvent(containerItem.id, args.event);
+            }
         }
         if (item.meta.getParentEnvironment) {
             const env = item.meta.getParentEnvironment();

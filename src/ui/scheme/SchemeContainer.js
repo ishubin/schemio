@@ -753,6 +753,24 @@ class SchemeContainer {
         this.reindexSpecifiedItems(componentItem._childItems, itemTransform, componentItem, componentItem.meta.ancestorIds.concat([componentItem.id]), nonIndexable);
     }
 
+    /**
+     *
+     * @param {Item} componentTemplateRoot
+     * @returns {Item|null}
+     */
+    findContainerItemOfEmbeddedComponentRoot(componentTemplateRoot) {
+        if (!componentTemplateRoot.meta.componentRoot) {
+            return;
+        }
+        // the logic here depends on how the embedded component item is mounted to the component container
+        // you should check this logic in the "attachItemsToComponentItem" function. There you should see
+        // that it is mounted 3 levels deep via an overlay container and a scaled container.
+        // Going back 3 items in the ancestorIds list allows us to get the original component container item
+        if (Array.isArray(componentTemplateRoot.meta.ancestorIds) && componentTemplateRoot.meta.ancestorIds.length > 2) {
+            return this.findItemById(componentTemplateRoot.meta.ancestorIds[componentTemplateRoot.meta.ancestorIds.length - 3]);
+        }
+    }
+
     readjustComponentContainerRect(componentItem) {
         if (!componentItem._childItems || componentItem._childItems.length === 0) {
             return;
