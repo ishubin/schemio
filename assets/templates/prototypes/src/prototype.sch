@@ -109,6 +109,10 @@ func onConnectItems(connector) {
     connector.shapeProps.destinationCap = 'empty'
 }
 
+func makeStarterPage(pageIdx) {
+    starterPage = pageIdx
+}
+
 
 frameCornerRadius = cornerRadius
 frameFill = background

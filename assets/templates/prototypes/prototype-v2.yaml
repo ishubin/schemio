@@ -2,11 +2,12 @@ name: Prototype
 args: {
   frame             : {type: "choice", value: "phone", options: ["simple", "phone", "phone-landscape", "desktop"], name: "Frame", hidden: true},
   numPages          : {type: "number", value: 3, min: 1, name: "Numbers of pages"},
+  starterPage       : {type: "number", value: 1, min: 1, name: "Starter page", hidden: true},
   maxCols           : {type: "number", value: 10, min: 1, name: "Max per row"},
   cornerRadius      : {type: "number", value: 40, min: 0, name: "Corner radius"},
   pageMargin        : {type: "number", value: 60, min: 0, name: "Page margin"},
   background        : {type: "advanced-color", value: { type: "solid", color: "rgba(240, 240, 240, 1)" }, name: "Background"},
-  strokeColor       : {type: "color", value: "rgba(212,212,212,1.0)", name: "Stroke color"},
+  strokeColor       : {type: "color", value: "rgba(200,200,200,1.0)", name: "Stroke color"},
   strokeSize        : {type: "number", value: 1, min: 0, name: "Stroke size"},
 }
 
@@ -65,6 +66,23 @@ controls:
     height: 30
     click:
       - duplicatePage(control.data.pageIndex)
+
+  - $-for: { start: 1, until: {$-expr: "numPages + 1"}, it: idx}
+    $-if: idx != starterPage
+    name: makeStart
+    text: Select as main
+    description: Makes this an entry page in view mode
+    type: button
+    data:
+      pageIndex: {$-expr: idx}
+    selectedItemId: {$-str: "page-${idx}"}
+    x: {$-expr: "(idx % maxCols) * (width + pageMargin) + width/2 - 60"}
+    y: {$-expr: "-40"}
+    placement: BL
+    width: 120
+    height: 30
+    click:
+      - makeStarterPage(control.data.pageIndex)
 
 editor:
     panels:
@@ -148,7 +166,8 @@ item:
       - id: init
         event: init
         actions:
-          - $-for: {start: 2, until: {$-expr: "numPages + 1"}, it: idx}
+          - $-for: {start: 1, until: {$-expr: "numPages + 1"}, it: idx}
+            $-if: "idx != starterPage"
             id: {$-str: "hide-page-${idx}"}
             element: {$-str: "#page-${idx}"}
             method: hide
@@ -166,7 +185,7 @@ item:
             element: self
             method: script
             args:
-              script: setVar('currentPage', 1)
+              script: {$-str: "setVar('currentPage', ${starterPage})"}
 
           - id: identify-connectors
             element: self
@@ -384,7 +403,7 @@ item:
           - id: init
             event: init
             actions:
-              - $-if: "idx != 1"
+              - $-if: "idx != starterPage"
                 id: hide-self
                 element: self
                 method: hide
@@ -428,7 +447,7 @@ item:
 
     - $-for: {start: 1, until: {$-expr: "numPages + 1"}, it: idx}
       id: {$-str: "page-title-${idx}"}
-      name: {$-str: "Page ${idx}"}
+      name: {$-str: "Page Label ${idx}"}
       shape: none
       area:
         x: {$-expr: "(((idx-1) % maxCols) + 1) * (width + pageMargin)"}
