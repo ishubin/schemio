@@ -3393,11 +3393,21 @@ ul.script-options .script-option.selected {
 
 /***************** Item Selector *********************/
 .item-selector .item-selector-items {
+    position: relative;
     overflow: scroll;
     background: var(--base-weak);
     border: 1px solid var(--faint-strong);
     padding: 2px;
     user-select: none;
+}
+
+.item-selector .item-selector-items .item-selector-drop-line {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 100%;
+    height: 5px;
+    border-top: 2px solid red;
 }
 
 .item-selector .item-row {
@@ -3425,6 +3435,37 @@ ul.script-options .script-option.selected {
     display: block;
     width: 100%;
     height: 20px;
+}
+.item-selector .item-row .item.candidate-drop::before {
+    position: absolute;
+    content: " ";
+    font-size: 1px;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    border-top: 2px solid var(--faint-strong-down);
+}
+.item-selector .item-row .item.candidate-drop.candidate-drop-above::before {
+    bottom: unset;
+    top: -1px;
+}
+.item-selector .item-row .item.candidate-drop.candidate-drop-above.candidate-drop-inside::before,
+.item-selector .item-row .item.candidate-drop.candidate-drop-inside::before {
+    top: unset;
+    bottom: 0;
+    width: 50px;
+    left: 30px;
+}
+.item-selector .item-row .item.candidate-drop.candidate-drop-inside::after {
+    position: absolute;
+    content: " ";
+    font-size: 1px;
+    left: 20px;
+    bottom: -6px;
+    transform: rotate(30deg);
+    width: 9px;
+    height: 9px;
+    border-top: 2px solid var(--faint-strong-down);
 }
 .item-selector .item-row .item img.item-icon {
     max-width: 16px;
@@ -3457,9 +3498,6 @@ ul.script-options .script-option.selected {
     font-size: 14px;
     white-space: nowrap;
 }
-.item-selector .item-drop-preview {
-    opacity: 0.5;
-}
 
 .item-selector .item-row .item .item-right-panel .icon .icon-unlocked {
     opacity: 0.3;
@@ -3484,7 +3522,15 @@ ul.script-options .script-option.selected {
     width: 250px;
     border: 1px solid var(--faint-strong);
 }
+.item-selector .item-selector-drag-preview {
+   background: var(--faint-strong);
+   opacity: 0.5;
+   cursor: default;
+   overflow: hidden;
+   max-height: 300px;
+}
 .item-selector .item-selector-drag-preview .item-name {
+    position: absolute;
     display: flex;
     align-items: center;
     gap: 3px;

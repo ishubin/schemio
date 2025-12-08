@@ -14,26 +14,17 @@
         </div>
         <div ref="itemSelectorContainer" class="item-selector-items" :style="{'height': `${height}px`, 'min-height': `${minHeight}px`}" oncontextmenu="return false;">
             <div v-for="(item, idx) in filteredItems"
-                class="item-selector-item-row-container item-droppable-area"
+                class="item-droppable-area"
                 :key="`itsel-${item.id}`"
                 :ref="`row_${item.id}`"
                 :data-item-id="item.id"
                 :data-index="idx"
                 >
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && idx === dragging.previewIdx && dragging.dropAbove"  :style="{'padding-left': `${(item.meta.ancestorIds.length) * 25 + 15}px`}">
-                    <div class="item">
-                        <div class="item-name">
-                            <img v-if="dragging.previewIconUrl" :src="dragging.previewIconUrl" class="item-icon"/>
-                            <i v-else class="fas fa-cube"></i>
-                            <span> {{dragging.previewItemName}} </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="item-row" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
+                <div ref="itemRows" :data-item-id="item.id" class="item-row" :data-padding="item.meta.ancestorIds.length * 25 + 15" :style="{'padding-left': `${item.meta.ancestorIds.length * 25 + 15}px`}">
                     <div class="item"
                         :ref="`item_${item.id}`"
                         v-if="item.meta.collapseBitMask === 0"
-                        :class="{'selected': schemeContainer.isItemSelected(item), 'templated-item': item.args && item.args.templated, 'templated-item-root': item.args && item.args.templateRef}"
+                        :class="{'selected': schemeContainer.isItemSelected(item), 'candidate-drop': dragging.destinationId === item.id, 'candidate-drop-above': dragging.destinationId === item.id && dragging.dropAbove, 'candidate-drop-inside': dragging.destinationId === item.id && dragging.dropInside, 'templated-item': item.args && item.args.templated, 'templated-item-root': item.args && item.args.templateRef}"
                         :title="item.args && item.args.templated ? 'This item is templated': ''"
                         @dragstart="preventEvent"
                         @drag="preventEvent"
@@ -72,27 +63,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="item-row item-drop-preview" v-if="dragging.readyToDrop && idx === dragging.previewIdx && !dragging.dropAbove"  :style="{'padding-left': `${dragging.padding}px`}">
-                    <div class="item">
-                        <div class="item-name">
-                            <img v-if="dragging.previewIconUrl" :src="dragging.previewIconUrl" class="item-icon"/>
-                            <i v-else class="fas fa-cube"></i>
-                            <span>
-                                {{dragging.previewItemName}}
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
 
-        <div ref="itemDragger" class="item-selector-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none' }">
-            <div class="item-name" :class="`preview-${itemIdx}`" v-for="(item, itemIdx) in dragging.items" v-if="itemIdx < 3">
-                <img v-if="item.meta.iconUrl" :src="item.meta.iconUrl" class="item-icon"/>
+        <div ref="itemDragger" class="item-selector-drag-preview" style="position: fixed; white-space:nowrap;" :style="{display: dragging.startedDragging ? 'inline-block' : 'none', width: `${dragging.dragBox.width}px`, height: `${dragging.dragBox.height}px`}">
+            <div class="item-name" v-for="(itemBox) in dragging.dragBox.itemBoxes" :style="{left: `${itemBox.left}px`, top: `${itemBox.top}px`, width: `${itemBox.width}px`, height: `${itemBox.height}px`}">
+                <img v-if="itemBox.iconUrl" :src="itemBox.iconUrl" class="item-icon"/>
                 <i v-else class="fas fa-cube"></i>
                 <span>
-                    {{item.name}}
+                    {{itemBox.name}}
                 </span>
             </div>
         </div>
@@ -171,22 +151,34 @@ export default {
         return {
             searchKeyword: '',
             height: myMath.clamp(height, this.minHeight, 1000),
+            itemRowBoxes: [],
+            itemRowBoxesById: new Map(),
             dragging: {
                 // the items that are dragged,
                 items: [],
+                // ids of items that are dragged
+                itemIds: new Set(),
+
+                dragBox : {
+                    left: 0,
+                    top: 0,
+                    width: 0,
+                    height: 0,
+                    itemBoxes: []
+                },
+                dragOffset: {
+                    left: 0,
+                    top: 0,
+                },
 
                 // the item to which the dragged item is supposed to be dropped
                 destinationId: null,
                 dropInside: false,
                 dropAbove: false, // if set to true then dropInside is ignored
                 readyToDrop: false,
-                previewItemName: 'Drop here',
-                previewIconUrl: null,
 
                 startedDragging: false,
-                pageX: 0,
-                pageY: 0,
-                padding: 0,
+                adding: 0,
                 previewIdx: -1, // used to allocate a slot for previewing the item
             },
             nameEdit: {
@@ -287,12 +279,11 @@ export default {
             .withDraggedElement(this.$refs.itemDragger)
             .withDroppableClass('item-droppable-area')
             .withScrollableElement(this.$refs.itemSelectorContainer)
-
-            .onDragStart(event => {
+            .onDragStart((event, cfg) => {
                 this.dragging.items = [].concat(this.schemeContainer.selectedItems);
                 const draggedItemIds = new Set();
 
-                let found = false
+                let found = false;
                 for (let i = 0; i < this.dragging.items.length && !found; i++) {
                     if (this.dragging.items[i].id === item.id) {
                         found = true;
@@ -307,6 +298,13 @@ export default {
                         draggedItemIds.add(item.id);
                     });
                 });
+                this.dragging.itemIds = draggedItemIds;
+
+                this.dragging.dragBox = this.collectedDragBox(this.dragging.items);
+
+                this.dragging.dragOffset.left = this.dragging.dragBox.left - event.pageX;
+                this.dragging.dragOffset.top = this.dragging.dragBox.top - event.pageY;
+                cfg.setPreviewOffset(this.dragging.dragOffset.left, this.dragging.dragOffset.top);
 
 
                 // checking whether ancestor items are already dragged, then we don't need to reattach it's child on drop
@@ -322,56 +320,49 @@ export default {
                         finalDraggedItems.push(item);
                     }
                 });
-
                 this.dragging.items = finalDraggedItems;
+
+                this.rebuildItemRowBoxes();
 
                 this.dragging.previewItemName = item.name;
                 this.dragging.previewIconUrl = enrichedItem(item, this.$store).meta.iconUrl;
                 this.dragging.startedDragging = true;
-                this.filteredItems = filter(this.filterItemsByKeyword(this.searchKeyword), itemForFilter => {
-                    return !draggedItemIds.has(itemForFilter.id);
-                });
 
                 this.$forceUpdate();
             })
 
-            .onDrag(event => {
-                this.dragging.pageX = event.pageX;
-                this.dragging.pageY = event.pageY;
+            .onScrollStop(() => {
+                this.rebuildItemRowBoxes();
             })
 
-            .onDragOver((event, element) => {
-                const bbox = element.getBoundingClientRect();
-                let overItem = this.schemeContainer.findItemById(element.getAttribute('data-item-id'));
-                let dropAbove = event.clientY < bbox.top + bbox.height/2;
+            .onDrag(event => {
+                const containerRect = this.$refs.itemSelectorContainer.getBoundingClientRect();
+                const x = event.pageX - containerRect.left + this.dragging.dragOffset.left;
+                const y = event.pageY - containerRect.top + this.dragging.dragOffset.top;
 
-                //searching for item index in the filtered list
-                let found = false;
-                for (let idx = 0; idx < this.filteredItems.length && !found; idx++) {
-                    if (this.filteredItems[idx].id === overItem.id) {
-                        found = true;
-                        this.dragging.previewIdx = idx;
+                let matchingBox = null;
+                for (let i = 0; i < this.itemRowBoxes.length; i++) {
+                    const box = this.itemRowBoxes[i];
+                    if (!this.dragging.itemIds.has(box.itemId) && box.top <= y && y <= box.top + box.height) {
+                        matchingBox = box;
+                        break;
                     }
                 }
 
+                if (matchingBox) {
+                    const overItem = this.schemeContainer.findItemById(matchingBox.itemId);
+                    if (!overItem) {
+                        return;
+                    }
 
-                const xDiff = this.dragging.pageX - bbox.left - overItem.meta.ancestorIds.length * 25 - 15;
-
-                this.dragging.destinationId = overItem.id;
-                this.dragging.dropInside = xDiff > 35;
-
-
-                if (xDiff < 0 && overItem.meta.ancestorIds.length > 0) {
-                    const ancestorsBack =  myMath.clamp(Math.ceil(Math.abs(xDiff / 25)), 1, overItem.meta.ancestorIds.length);
-                    this.dragging.destinationId = overItem.meta.ancestorIds[overItem.meta.ancestorIds.length - ancestorsBack];
+                    const xDiff = x - matchingBox.left - overItem.meta.ancestorIds.length * 25 - 15;
+                    const k = (y - matchingBox.top) / matchingBox.height;
+                    this.dragging.destinationId = matchingBox.itemId;
+                    this.dragging.dropInside = xDiff > 15;
+                    this.dragging.dropAbove = !this.dragging.dropInside && k < 0.5;
+                    this.dragging.readyToDrop = true;
                 }
-
-
-                this.dragging.dropAbove = dropAbove;
-                this.dragging.readyToDrop = true;
-                this.dragging.padding = (overItem.meta.ancestorIds.length + (this.dragging.dropInside ? 1:0)) * 25 + 15;
             })
-
             .onDone(() => {
                 if (!this.dragging.startedDragging && !originalEvent.shiftKey) {
                     // should deselect the rest of items as it was just a simple click
@@ -419,6 +410,94 @@ export default {
                 this.filteredItems = this.filterItemsByKeyword(this.searchKeyword);
             })
             .build();
+        },
+
+        collectedDragBox(items) {
+            const $main = this.$refs.itemSelectorContainer;
+
+            const boxes = [];
+            let minX = 0, minY = 0, firstTry = true;
+            let maxX = 0, maxY = 0;
+
+            items.forEach(item => {
+                const el = $main.querySelector(`div.item-row[data-item-id="${item.id}"] > div.item`);
+                if (!el) {
+                    return;
+                }
+                const rect = el.getBoundingClientRect();
+                if (firstTry) {
+                    minX = rect.left;
+                    minY = rect.top;
+                    maxX = rect.right;
+                    maxY = rect.bottom;
+                    firstTry = false;
+                } else {
+                    if (minX > rect.left) {
+                        minX = rect.left;
+                    }
+                    if (minY > rect.top) {
+                        minY = rect.top;
+                    }
+                    if (maxX < rect.right) {
+                        maxX = rect.right;
+                    }
+                    if (maxY < rect.bottom) {
+                        maxY = rect.bottom;
+                    }
+                }
+                boxes.push({
+                    left: rect.left,
+                    top: rect.top,
+                    width: rect.width,
+                    height: rect.height,
+                    iconUrl: item.meta.iconUrl,
+                    name: item.name,
+                });
+            });
+
+            return {
+                left: minX,
+                top: minY,
+                width: maxX - minX,
+                height: maxY - minY,
+                itemBoxes: boxes.map(b => {
+                    return {
+                        left: b.left - minX,
+                        top: b.top - minY,
+                        width: b.width,
+                        height: b.height,
+                        iconUrl: b.iconUrl,
+                        name: b.name,
+                    };
+                })
+            };
+        },
+
+        rebuildItemRowBoxes() {
+            const boxesById = new Map();
+            const boxes = [];
+            if (!Array.isArray(this.$refs.itemRows)) {
+                // no need to build boxes as there is only a single item, and there is no place to re-attach it
+                return [];
+            }
+
+            const containerRect = this.$refs.itemSelectorContainer.getBoundingClientRect();
+
+            this.$refs.itemRows.forEach(itemRowEl => {
+                const itemId = itemRowEl.getAttribute('data-item-id');
+                const rect = itemRowEl.getBoundingClientRect();
+                const box = {
+                    itemId,
+                    left: rect.left - containerRect.left,
+                    top: rect.top - containerRect.top,
+                    width: rect.width,
+                    height: rect.height
+                };
+                boxes.push(box);
+                boxesById.set(itemId, box);
+            });
+            this.itemRowBoxes = boxes;
+            this.itemRowBoxesById = boxesById;
         },
 
         onItemDoubleClicked(item) {
@@ -484,7 +563,6 @@ export default {
             this.schemeContainer.updateEditBox();
             this.$forceUpdate();
         },
-
 
         onAnyItemSelected() {
             this.scrollToSelection();

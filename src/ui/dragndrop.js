@@ -35,6 +35,7 @@ export function dragAndDropBuilder(originalEvent) {
             onSimpleClick: () => {},
             onDone: () => {},
             onScroll: () => {},
+            onScrollStop: () => {},
         },
 
         withScrollableElement(element, scrollVertically = true) {
@@ -54,6 +55,10 @@ export function dragAndDropBuilder(originalEvent) {
         },
         onScroll(callback) {
             this.callbacks.onScroll = callback;
+            return this;
+        },
+        onScrollStop(callback) {
+            this.callbacks.onScrollStop = callback;
             return this;
         },
         onDragStart(callback) {
@@ -82,6 +87,19 @@ export function dragAndDropBuilder(originalEvent) {
         },
 
         build() {
+            const config = {
+                previewOffset: {
+                    left: 0,
+                    top: 0,
+                }
+            };
+            const configUpdater = {
+                setPreviewOffset(left = 0, top = 0) {
+                    config.previewOffset.left = left;
+                    config.previewOffset.top = top;
+                }
+            };
+
             let pixelsMoved = 0;
             const pixelMoveThreshold = 5;
             let startedDragging = false;
@@ -135,6 +153,9 @@ export function dragAndDropBuilder(originalEvent) {
                     scrollIntervalId = null;
                     lastScrollingStep = 0;
                 }
+                if (this.scrollableElemet) {
+                    this.callbacks.onScrollStop(this.scrollableElemet);
+                }
             }
 
             const coords = getPageCoordsFromEvent(this.originalEvent)
@@ -153,8 +174,8 @@ export function dragAndDropBuilder(originalEvent) {
 
                 if (startedDragging) {
                     if (this.draggedElement) {
-                        this.draggedElement.style.left = `${pageX + 4}px`;
-                        this.draggedElement.style.top = `${pageY + 4}px`;
+                        this.draggedElement.style.left = `${pageX + 4 + config.previewOffset.left}px`;
+                        this.draggedElement.style.top = `${pageY + 4 + config.previewOffset.top}px`;
                     }
                     this.callbacks.onDrag(event, pageX, pageY, originalClickX, originalClickY);
                     withDroppableElement(event , element => this.callbacks.onDragOver(event, element, pageX, pageY));
@@ -167,7 +188,7 @@ export function dragAndDropBuilder(originalEvent) {
                 } else {
                     if (pixelsMoved > pixelMoveThreshold) {
                         startedDragging = true;
-                        this.callbacks.onDragStart(event, originalClickX, originalClickY);
+                        this.callbacks.onDragStart(event, configUpdater);
                     }
                 }
             };

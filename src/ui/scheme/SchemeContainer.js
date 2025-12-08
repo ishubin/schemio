@@ -1921,6 +1921,10 @@ class SchemeContainer {
             if (!parent) {
                 return;
             }
+            //checking if item is moved into its own child items. It should be protected from such move, otherwise it is going to be an eternal loop
+            if (parent.id === itemId || indexOf(parent.meta.ancestorIds, itemId) >= 0) {
+                return;
+            }
             if (!parent.childItems) {
                 parent.childItems = [];
             }
