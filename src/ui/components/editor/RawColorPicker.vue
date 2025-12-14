@@ -97,7 +97,7 @@
                             </tbody>
                         </table>
                     </template>
-                    <input v-else type="text" class="rcp-input" :value="colorText" @keydown.enter="onTextInput" @blur="onTextInput"/>
+                    <input v-else ref="colorText" type="text" class="rcp-input" @input="onTextInput"/>
                 </div>
             </div>
         </div>
@@ -123,6 +123,7 @@ export default {
 
     mounted() {
         this.updateKnobs();
+        this.updateColorTextfield();
     },
 
     data() {
@@ -130,7 +131,6 @@ export default {
         const hsl = rgb2hsl(color.r, color.g, color.b);
         return {
             encodedColor: encodeColor(color),
-            colorText: encodeColor(color),
             knobColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
             hue: hsl.h,
             saturation: hsl.s,
@@ -149,6 +149,17 @@ export default {
     },
 
     methods: {
+        updateColorTextfield() {
+            // it is frustrating that I have to do this but for some reason the value binding to input field
+            // did not work well. When user is typing a text to the <input/> tag - it keeps reseting the text back
+            // So I had to find a workaround and to not have value binding on that tag. But we do need to update the text
+            // when user is dragging sliders.
+            if (!this.$refs.colorText) {
+                return;
+            }
+            this.$refs.colorText.value = this.encodedColor;
+        },
+
         onComponentChange(component, value) {
             if (component === 'r') {
                 this.updateRGBAColor(value, this.g, this.b, this.alpha);
@@ -176,19 +187,22 @@ export default {
             this.b = b;
             this.a = a;
             this.encodedColor = encodeColor({r,g,b,a});
-            this.colorText = '' + this.encodedColor;
             this.knobColor = `rgb(${r}, ${g}, ${b})`;
 
             const hsl = rgb2hsl(r, g, b);
             this.hue = hsl.h;
             this.saturation = hsl.s;
             this.lightness = hsl.l;
+            this.updateColorTextfield();
             this.$emit('color-changed', this.encodedColor);
         },
 
         switchMode(mode) {
             this.mode = mode;
             this.$forceUpdate();
+            this.$nextTick(() => {
+                this.updateColorTextfield();
+            });
         },
 
         onTextInput(event) {
@@ -230,12 +244,12 @@ export default {
             const color = hsl2rgb(this.hue, this.saturation, this.lightness, this.alpha);
             color.a = this.alpha;
             this.encodedColor = encodeColor(color);
-            this.colorText = encodeColor(color);
             this.knobColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
             this.r = color.r;
             this.g = color.g;
             this.b = color.b;
             this.a = color.a;
+            this.updateColorTextfield();
             this.$emit('color-changed', this.encodedColor);
         },
 

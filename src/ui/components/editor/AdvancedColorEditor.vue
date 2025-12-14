@@ -76,7 +76,7 @@
                         </div>
                         <div v-if="color.gradient.type === 'linear'" class="ctrl-group">
                             <div class="ctrl-label">Direction</div>
-                            <number-textfield :value="color.gradient.direction" @changed="color.gradient.direction = $event; emitChange()"/>
+                            <NumberTextfield :value="color.gradient.direction" @changed="color.gradient.direction = $event; emitChange()"/>
                         </div>
                         <div class="ctrl-group">
                             <span class="btn btn-secondary" @click="invertGradient">Invert</span>
