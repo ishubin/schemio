@@ -23,6 +23,9 @@ import { Scope } from './templater/scope';
 import { generateMapPatch, generateSchemePatch } from './scheme/SchemePatch';
 import { processJSONTemplate } from './templater/templater.js';
 import { defaultStarterTemplates } from './components/editor/DefaultStarterTemplates.js';
+import utils from './utils.js';
+import { defaultItem } from './scheme/Item.js';
+import { enrichItemWithDefaults } from './scheme/ItemFixer.js';
 
 const sanitizeHtml = require('sanitize-html');
 

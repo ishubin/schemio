@@ -233,9 +233,6 @@ export function enrichItemWithDefaults(item) {
         item.shapeProps = {};
     }
 
-    if (shape.fixItem) {
-        shape.fixItem(item);
-    }
 
     forEach(item.shapeProps, (value, argName) => {
         if (!shape.args || !shape.args.hasOwnProperty(argName)) {
@@ -253,6 +250,10 @@ export function enrichItemWithDefaults(item) {
 
     if (shape.shapeType === 'standard') {
         enrichItemWithStandardShapeProps(item);
+    }
+
+    if (shape.fixItem) {
+        shape.fixItem(item);
     }
 
     // Some getTextSlots functions in some shapes rely on specific fields in shapeProps

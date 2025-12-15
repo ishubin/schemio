@@ -29,21 +29,27 @@ export default {
             const w = item.area.w;
             const h = item.area.h;
             const s = myMath.clamp(item.shapeProps.skew, 0, item.area.w/2);
-            return [{
-                x: w/2, y: h/2,
-            }, {
-                x: w / 2, y: 0,
-                nx: 0, ny: -1
-            }, {
-                x: w / 2, y: h,
-                nx: 0, ny: 1
-            }, {
-                x: s/2, y: h/2,
-                nx: -1, ny: 0
-            }, {
-                x: w - s/2, y: h/2,
-                nx: 1, ny: 0
-            }];
+            return {
+                c: {
+                    x: w/2, y: h/2,
+                },
+                t: {
+                    x: w / 2, y: 0,
+                    nx: 0, ny: -1
+                },
+                b: {
+                    x: w / 2, y: h,
+                    nx: 0, ny: 1
+                },
+                r: {
+                    x: s/2, y: h/2,
+                    nx: -1, ny: 0
+                },
+                l: {
+                    x: w - s/2, y: h/2,
+                    nx: 1, ny: 0
+                }
+            };
         },
 
         computePath(item) {

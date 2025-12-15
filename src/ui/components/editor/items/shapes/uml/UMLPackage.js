@@ -44,7 +44,7 @@ export default {
             return {
                 c: {
                     x: w/2, y: bh + H/2,
-                }, 
+                },
                 t: {
                     x: w / 2, y: bh,
                     nx: 0, ny: -1
