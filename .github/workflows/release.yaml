@@ -63,7 +63,7 @@ jobs:
 
   build-mac-x64:
     needs: release
-    runs-on: macos-13
+    runs-on: macos-15
     name: Build on MacOS
     steps:
       - uses: actions/checkout@v3
