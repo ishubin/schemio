@@ -1083,8 +1083,12 @@ const idArrayPatch = {
         if (!Array.isArray(parrentArray)) {
             return;
         }
-        itemMap.set(change.id, change.value);
-        parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, change.value);
+        const item = utils.clone(change.value);
+        if (fieldSchema && fieldSchema.childrenField && item.hasOwnProperty(fieldSchema.childrenField)) {
+            item[fieldSchema.childrenField] = [];
+        }
+        itemMap.set(change.id, item);
+        parrentArray.splice(Math.min(change.sortOrder, parrentArray.length), 0, item);
     },
 
     findParentItem(itemMap, array, parentId, fieldSchema) {
