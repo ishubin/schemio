@@ -18,8 +18,29 @@
             <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="bodyTextStyle" v-html="sanitizedBodyText"></div>
         </foreignObject>
 
-        <g style="cursor: pointer;" v-if="!(isLoading && item.shapeProps.showProgressBar) && buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
+        <g v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
+            <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70, 1.0)"/>
+            <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
+                <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Loading failed</b></div>
+            </foreignObject>
+            <path v-if="buttonHovered"
+                fill="rgba(250, 130, 130, 0.6)"
+                :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
+                stroke="rgba(150, 30, 30, 0.6)"
+                :d="buttonPath"
+                />
+            <path v-else
+                fill="rgba(250, 130, 130, 1.0)"
+                :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
+                stroke="rgba(150, 30, 30, 0.6)"
+                :d="buttonPath"
+                />
 
+            <foreignObject v-if="isButtonSlotShown" :x="buttonArea.x" :y="buttonArea.y" :width="buttonArea.w" :height="buttonArea.h" >
+                <div class="item-text-container" xmlns="http://www.w3.org/1999/xhtml" :style="failureButtonStyle">Retry</div>
+            </foreignObject>
+        </g>
+        <g style="cursor: pointer;" v-else-if="!(isLoading && item.shapeProps.showProgressBar) && buttonShown && buttonArea.w > 0 && buttonArea.h > 0">
             <path v-if="buttonHovered"
                 :fill="svgButtonHoverFill"
                 :stroke-width="item.shapeProps.buttonStrokeSize + 'px'"
@@ -41,12 +62,6 @@
             <div class="progress-bar" :style="progressBarStyle"></div>
         </foreignObject>
 
-        <g v-if="!isLoading && item.meta && item.meta.componentLoadFailed" style="cursor: pointer;">
-            <rect  :x="0" :y="0" :width="item.area.w" :height="item.area.h" fill="rgba(250, 70, 70)"/>
-            <foreignObject :x="0" :y="0" :width="item.area.w" :height="item.area.h" >
-                <div class="item-text-container" :style="failureMessageStyle" xmlns="http://www.w3.org/1999/xhtml"><b>Loading failed</b></div>
-            </foreignObject>
-        </g>
 
 
         <g v-if="item.meta && item.meta.cyclicComponent">
@@ -354,8 +369,14 @@ export default {
         },
 
         computeCustomAreas(item) {
-            if (item.shapeProps.kind === 'embedded' || (item.meta && item.meta.componentLoadFailed)) {
+            if (item.shapeProps.kind === 'embedded') {
                 return [];
+            } else if (item.meta && item.meta.componentLoadFailed) {
+                return [{
+                    id: 'load-button',
+                    cursor: 'pointer',
+                    path: computeButtonPath(item)
+                }];
             }
             return [{
                 id: 'load-button',
@@ -486,10 +507,10 @@ export default {
             }
         },
         onMouseDown(customAreaId) {
-            if (!this.isLoading && this.item.meta && this.item.meta.componentLoadFailed) {
-                this.resetFailureMessage();
-            } else if (customAreaId === 'load-button') {
+            if (customAreaId === 'load-button') {
                 this.onLoadSchemeClick();
+            } else if (!this.isLoading && this.item.meta && this.item.meta.componentLoadFailed) {
+                this.resetFailureMessage();
             }
         },
         onLoadSchemeClick() {
@@ -615,6 +636,22 @@ export default {
                 text = this.item.textSlots.button.text;
             }
             return htmlSanitize(text);
+        },
+
+        failureButtonStyle() {
+            const area = calculateButtonArea(this.item, this.item.shapeProps.buttonWidth, this.item.shapeProps.buttonHeight);
+            return {
+                color: 'rgb(255, 255, 255)',
+                'font-size': '14px',
+                'font-family': 'Arial, Helvetica, sans-serif',
+                'text-align': 'center',
+                'vertical-align': 'middle',
+                'white-space': 'normal',
+                display: 'table-cell',
+                'box-sizing': 'border-box',
+                width: `${area.w}px`,
+                height: `${area.h}px`,
+            };
         },
 
         failureMessageStyle() {

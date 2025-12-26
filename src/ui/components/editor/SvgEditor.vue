@@ -533,7 +533,7 @@ export default {
             }
             loadAndMountExternalComponent(schemeContainer, userEventBus, item, this.$store, this.onCompilerError)
             .then((component) => {
-                if (!item.shapeProps.autoZoom) {
+                if (!component || !item.shapeProps.autoZoom) {
                     return;
                 }
                 const area = getBoundingBoxOfItems([item], schemeContainer.shadowTransform);
