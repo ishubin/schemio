@@ -9,6 +9,7 @@ import RepeatEffect from './RepeatEffect';
 import { svgElement } from './SvgBuilder';
 import AdjustColorEffect from './AdjustColorEffect';
 import SketchEffect from './SketchEffect';
+import ColorizeEffect from './ColorizeEffect';
 
 
 
@@ -16,6 +17,8 @@ const $ = svgElement;
 
 const effects = {
     'drop-shadow': DropShadowEffect,
+
+    'colorize': ColorizeEffect,
 
     'blur': {
         name: 'Blur',

@@ -2,9 +2,14 @@
     <div class="color-matrix">
         <div class="color-component-selector">
             <div class="ctrl-label">Channel</div>
-            <select v-model="currentComponent">
-                <option v-for="component in colorComponents" :value="component">{{component}}</option>
-            </select>
+
+            <div class="toggle-group">
+                <span v-for="component in colorComponents"
+                    class="toggle-button"
+                    :class="{toggled: currentComponent === component}"
+                    @click="currentComponent = component"
+                    >{{ component }}</span>
+            </div>
         </div>
 
         <div class="ctrl-label">Channel impact</div>

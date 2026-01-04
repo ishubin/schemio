@@ -55,6 +55,7 @@ function getKnownEffects() {
     forEach(getEffects(), (effect, effectId) => {
         effects.push({ id: effectId, name: effect.name});
     });
+    effects.sort((a, b) => a.name.localeCompare(b.name));
     return effects;
 }
 
