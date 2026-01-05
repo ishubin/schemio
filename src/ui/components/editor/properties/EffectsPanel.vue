@@ -1,5 +1,9 @@
 <template>
     <div>
+        <div>
+            <span class="btn btn-secondary" @click="copyAllEffects()">Copy all effects</span>
+            <span class="btn btn-secondary" @click="pasteCopiedEffects()">Paste effects</span>
+        </div>
         <div class="hint hint-small" v-if="!item.effects || item.effects.length === 0">There are no effects yet</div>
         <ul class="effects-list" v-else>
             <li v-for="(effect, effectIndex) in item.effects"
@@ -30,7 +34,7 @@
         <span class="btn btn-secondary" @click="startAddingEffect">Add Effect</span>
 
         <EditEffectModal v-if="editEffectModal.shown"
-            :key="`edit-effect-modal-${item.id}-${editEffectModal.currentEffectIndex}-${editEffectModal.effectId}`"
+            :key="`edit-effect-modal-${item.id}-${editEffectModal.itemEffectId}-${editEffectModal.effectId}`"
             :editorId="editorId"
             :isAdding="editEffectModal.isAdding"
             :name="editEffectModal.name"
@@ -56,6 +60,10 @@ import { traverseItems } from '../../../scheme/Item';
 import EditorEventBus from '../EditorEventBus';
 import { giveUniqueName } from '../../../collections';
 import { dragAndDropBuilder } from '../../../dragndrop';
+import utils from '../../../utils';
+import myMath from '../../../myMath';
+import { copyObjectToClipboard, getObjectFromClipboard } from '../../../clipboard';
+import StoreUtils from '../../../store/StoreUtils';
 
 export default {
     props: ['editorId', 'item', 'schemeContainer'],
@@ -65,11 +73,12 @@ export default {
         return {
             editEffectModal: {
                 effectId: 'drop-shadow',
+                // id of effect entry in effects array
+                itemEffectId: '',
                 name : '',
                 cascade: false,
                 isAdding: true,
                 shown: false,
-                currentEffectIndex: -1,
                 effectArgs: {}
             },
             dragging: {
@@ -101,10 +110,17 @@ export default {
                     if (!this.dragging.above) {
                         dstIdx += 1;
                     }
-                    this.updateCurrentItem('effects', (item) => {
-                        const effect = item.effects[this.dragging.srcIdx];
-                        item.effects.splice(this.dragging.srcIdx, 1);
-                        item.effects.splice(dstIdx, 0, effect);
+                    const diffIdx = dstIdx - this.dragging.srcIdx;
+
+                    this.updateEveryItemsEffect((item, effectIdx) => {
+                        const itemDstIdx = myMath.clamp(effectIdx + diffIdx, 0, item.effects.length - 1);
+                        if (itemDstIdx == effectIdx) {
+                            return;
+                        }
+
+                        const effect = item.effects[effectIdx];
+                        item.effects.splice(effectIdx, 1);
+                        item.effects.splice(itemDstIdx, 0, effect);
                         EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
                     });
                 }
@@ -125,29 +141,33 @@ export default {
             .build();
         },
 
-        updateCurrentItem(property, callback) {
-            this.schemeContainer.updateItem(this.item.id, property, callback);
-        },
-
         startAddingEffect() {
-            this.updateCurrentItem('effects', item => {
-                const effectId = getDefaultEffectId();
-                const effect = findEffect(effectId);
-                this.editEffectModal.effectArgs = generateEffectArgs(effect);
-                const name = this.ensureUniqueEffectName(effect.name);
-                this.editEffectModal.name = name;
-                item.effects.push({
-                    id: shortid.generate(),
-                    effect: effectId,
-                    name: name,
-                    cascade: false,
-                    args: this.editEffectModal.effectArgs
+            const effectId = getDefaultEffectId();
+            const effect = findEffect(effectId);
+            this.editEffectModal.effectArgs = generateEffectArgs(effect);
+            const name = this.ensureUniqueEffectName(effect.name);
+            this.editEffectModal.name = name;
+
+            const itemEffect = {
+                id: shortid.generate(),
+                effect: effectId,
+                name: name,
+                cascade: false,
+                args: this.editEffectModal.effectArgs
+            };
+
+            this.schemeContainer.getSelectedItems().forEach(item => {
+                if (!Array.isArray(item.effects)) {
+                    item.effects = [];
+                }
+                this.schemeContainer.updateItem(item.id, 'effects', item => {
+                    item.effects.push(utils.clone(itemEffect));
                 });
-                this.editEffectModal.isAdding = true;
-                this.editEffectModal.effectId = effectId;
-                this.editEffectModal.shown = true;
-                this.editEffectModal.currentEffectIndex = item.effects.length - 1;
             });
+            this.editEffectModal.isAdding = true;
+            this.editEffectModal.effectId = effectId;
+            this.editEffectModal.itemEffectId = itemEffect.id;
+            this.editEffectModal.shown = true;
         },
 
         ensureUniqueEffectName(effectName) {
@@ -158,72 +178,96 @@ export default {
             return giveUniqueName(effectName, allNames);
         },
 
-        effectModalClosed() {
-            const effectIdx = this.editEffectModal.currentEffectIndex;
-            this.updateCurrentItem(`effects.${effectIdx}`, item => {
-                if (this.editEffectModal.isAdding) {
-                    if (effectIdx >= 0 && effectIdx < item.effects.length) {
-                        item.effects.splice(effectIdx, 1);
-                    }
+        findItemEffectIndexByIdOrEffect(item, effectId, effect) {
+            let byTypeIdx = -1;
+            let idx = -1;
+            for (let i = item.effects.length - 1; i >= 0; i--) {
+                if (item.effects[i].id === effectId) {
+                    idx = i;
+                    break;
                 }
+                if (item.effects[i].effect === effectId) {
+                    byTypeIdx = i;
+                }
+            }
+
+            if (idx < 0) {
+                return byTypeIdx;
+            }
+            return idx;
+        },
+
+        updateEveryItemsEffect(callback) {
+            this.schemeContainer.getSelectedItems().forEach(item => {
+                if (!Array.isArray(item.effects)) {
+                    return;
+                }
+
+                const idx = this.findItemEffectIndexByIdOrEffect(item, this.editEffectModal.itemEffectId, this.editEffectModal.effectId);
+                if (idx < 0) {
+                    return;
+                }
+
+                this.schemeContainer.updateItem(item.id, 'effects', item => {
+                    callback(item, idx);
+                });
             });
+        },
+
+        effectModalClosed() {
+            if (this.editEffectModal.isAdding) {
+                this.updateEveryItemsEffect((item, effectIdx) => {
+                    item.effects.splice(effectIdx, 1);
+                });
+            }
             this.editEffectModal.shown = false;
-            this.editEffectModal.currentEffectIndex = -1;
         },
 
         onEffectArgChanged(argName, value) {
-            const effectIdx = this.editEffectModal.currentEffectIndex;
-            this.updateCurrentItem(`effects.${effectIdx}.args.${argName}`, item => {
-                if (effectIdx >= 0 && effectIdx < item.effects.length) {
-                    item.effects[effectIdx].args[argName] = value;
-                }
+            this.updateEveryItemsEffect((item, effectIdx) => {
+                item.effects[effectIdx].args[argName] = value;
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
-                if (!this.editEffectModal.isAdding) {
-                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
-                }
             });
+
+            if (!this.editEffectModal.isAdding) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
+            }
         },
 
         onEffectCascadeChanged(cascade) {
-            const effectIdx = this.editEffectModal.currentEffectIndex;
-            this.updateCurrentItem(`effects.${effectIdx}`, item => {
-                if (effectIdx >= 0 && effectIdx < item.effects.length) {
-                    item.effects[effectIdx].cascade = cascade;
-                }
+            this.updateEveryItemsEffect((item, effectIdx) => {
+                item.effects[effectIdx].cascade = cascade;
                 EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
-                if (!this.editEffectModal.isAdding) {
-                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects.${effectIdx}.cascade`);
-                }
             });
+
+            if (!this.editEffectModal.isAdding) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects.cascade`);
+            }
         },
 
         onEffectNameChanged(name) {
-            const effectIdx = this.editEffectModal.currentEffectIndex;
-            this.updateCurrentItem(`effects.${effectIdx}`, item => {
-                if (effectIdx >= 0 && effectIdx < item.effects.length) {
-                    item.effects[effectIdx].name = name;
-                }
-                if (!this.editEffectModal.isAdding) {
-                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects.${effectIdx}.name`);
-                }
+            this.updateEveryItemsEffect((item, effectIdx) => {
+                item.effects[effectIdx].name = name;
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
             });
+
+            if (!this.editEffectModal.isAdding) {
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects.name`);
+            }
         },
 
         onEffectSubmited(effect) {
             this.editEffectModal.shown = false;
-            const effectIdx = this.editEffectModal.currentEffectIndex;
-            this.updateCurrentItem(`effects.${effectIdx}`, item => {
-                if (this.editEffectModal.isAdding) {
-                    if (effectIdx >= 0 && effectIdx < item.effects.length) {
-                        item.effects[effectIdx] = effect;
-                    }
-                    EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
-                }
+            this.updateEveryItemsEffect((item, effectIdx) => {
+                item.effects[effectIdx] = effect;
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
             });
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
         },
 
         openEditEffectModal(idx) {
-            this.editEffectModal.currentEffectIndex = idx;
+            this.editEffectModal.itemEffectId = this.item.effects[idx].id;
             this.editEffectModal.effectId = this.item.effects[idx].effect;
             this.editEffectModal.name = this.item.effects[idx].name;
             this.editEffectModal.cascade = this.item.effects[idx].cascade;
@@ -233,35 +277,38 @@ export default {
         },
 
         deleteEffect(idx) {
-            this.updateCurrentItem(`effects.${idx}`, item => {
-                if (idx < 0 || idx >= item.effects.length) {
+            const effect = this.item.effects[idx];
+
+            this.schemeContainer.getSelectedItems().forEach(item => {
+                const idx = this.findItemEffectIndexByIdOrEffect(item, effect.id, effect.effect);
+                if (idx < 0) {
                     return;
                 }
                 this.deleteAllReferencesToEffect(item.id, item.effects[idx].id);
                 item.effects.splice(idx, 1);
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
             });
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
         },
 
         onEffectIdChanged(newEffectId) {
-            this.updateCurrentItem(`effects`, item => {
-                if (this.editEffectModal.currentEffectIndex < 0 || this.editEffectModal.currentEffectIndex >= item.effects.length) {
-                    return;
-                }
+            const effect = findEffect(newEffectId);
+            const effectArgs = generateEffectArgs(effect);
+            const name = this.ensureUniqueEffectName(effect.name);
 
-                const effect = findEffect(newEffectId);
-                this.editEffectModal.effectArgs = generateEffectArgs(effect);
-                const name = this.ensureUniqueEffectName(effect.name);
-                this.editEffectModal.name = name;
-                this.editEffectModal.effectId = newEffectId;
-                item.effects[this.editEffectModal.currentEffectIndex] = {
-                    id: item.effects[this.editEffectModal.currentEffectIndex].id,
-                    effect: newEffectId,
-                    name: name,
-                    args: this.editEffectModal.effectArgs
-                };
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${item.id}.effects`);
+            this.updateEveryItemsEffect((item, effectIdx) => {
+                item.effects[effectIdx].effect = newEffectId;
+                item.effects[effectIdx].name = name;
+                item.effects[effectIdx].args = effectArgs;
+                this.deleteAllReferencesToEffect(item.id, item.effects[effectIdx].id);
+                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
             });
+
+            this.editEffectModal.name = name;
+            this.editEffectModal.effectId = newEffectId;
+            this.editEffectModal.effectArgs = effectArgs;
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
         },
 
         deleteAllReferencesToEffect(itemId, effectId) {
@@ -286,7 +333,44 @@ export default {
                     }
                 });
             });
-        }
+        },
+
+        copyAllEffects() {
+            const effects = (this.item.effects || []).map(effect => {
+                return {
+                    ...effect,
+                    id: null,
+                };
+            })
+            copyObjectToClipboard('effects', effects).then(() => {
+                StoreUtils.addInfoSystemMessage(this.$store, 'Copied all effects');
+            });
+        },
+
+        pasteCopiedEffects() {
+            getObjectFromClipboard('effects').then(effects => {
+                if (!Array.isArray(effects)) {
+                    return;
+                }
+
+                const finalEffects = effects.map(effect => {
+                    return {
+                        ...effect,
+                        id: shortid.generate(),
+                    };
+                });
+
+                this.schemeContainer.getSelectedItems().forEach(item => {
+                    if (!Array.isArray(item.effects)) {
+                        item.effects = [];
+                    }
+                    item.effects = item.effects.concat(utils.clone(finalEffects));
+                    EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, 'effects');
+                });
+
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.item.id}.effects`);
+            });
+        },
     },
 
     filters: {
