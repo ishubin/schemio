@@ -5004,6 +5004,8 @@ ul.patch-field-list {
     display: flex;
     margin: 10px;
     flex-direction: column;
+    width: 100px;
+    height: 100px;
 }
 .external-shapes .external-shape-preview .preview .preview-icon .icon-container {
     flex: 1;
