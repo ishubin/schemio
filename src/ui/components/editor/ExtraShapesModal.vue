@@ -58,8 +58,10 @@
                     <div class="description" v-if="selectedEntry.description">{{ selectedEntry.description }}</div>
                     <div class="preview grid" v-if="selectedArtPack && selectedArtPack.icons && selectedArtPack.icons.length > 0">
                         <div class="preview-icon" v-for="icon in filteredSelectedArtPackIcons">
-                            <img :src="icon.url" :title="icon.name" />
-                            <span class="name">{{ icon.name }}</span>
+                            <div class="icon-container">
+                                <img :src="icon.url" :title="icon.name" />
+                            </div>
+                            <div class="name">{{ icon.name }}</div>
                         </div>
                     </div>
                     <div class="preview" v-else-if="selectedEntry.preview">
