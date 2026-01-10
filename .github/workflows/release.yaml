@@ -61,65 +61,6 @@ jobs:
             binshu/schemio:${{ inputs.schemio_version }}
 
 
-  build-mac-x64:
-    needs: release
-    runs-on: macos-15
-    name: Build on MacOS
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: v${{ inputs.schemio_version }}
-      - name: Use Node.js ${{ inputs.node_version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ inputs.node_version }}
-
-      - name: Configure mac certificate
-        env:
-          MACOS_CERTIFICATE: ${{ secrets.PROD_MACOS_CERTIFICATE }}
-          MACOS_CERTIFICATE_PWD: ${{ secrets.PROD_MACOS_CERTIFICATE_PWD }}
-          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
-          MACOS_CI_KEYCHAIN_PWD: ${{ secrets.PROD_MACOS_CI_KEYCHAIN_PWD }}
-        run: |
-          echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-          security create-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-          security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$MACOS_CI_KEYCHAIN_PWD" build.keychain
-
-      - name: Confiure notarytool API key
-        env:
-          MACOS_NOTARYTOOL_API_KEY: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY }}
-          MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
-        run: |
-          mkdir -p ~/.appstoreconnect/private_keys
-          echo "$MACOS_NOTARYTOOL_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${MACOS_NOTARYTOOL_API_KEY_ID}.p8
-
-      - run: npm ci
-
-      - name: Package electron
-        env:
-          MACOS_CERTIFICATE_NAME: ${{ secrets.PROD_MACOS_CERTIFICATE_NAME }}
-          MACOS_NOTARYTOOL_API_KEY_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}
-          MACOS_NOTARYTOOL_API_KEY_ISSUER_ID: ${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ISSUER_ID }}
-          MACOS_NOTARIZATION_TEAM_ID: ${{ secrets.PROD_MACOS_NOTARIZATION_TEAM_ID }}
-          MACOS_NOTARYTOOL_API_KEY: ~/.appstoreconnect/private_keys/AuthKey_${{ secrets.PROD_MACOS_NOTARYTOOL_API_KEY_ID }}.p8
-        run: |
-          npm run package-electron
-          npm run make-electron
-
-      - name: Rename binary
-        run: mv ./out/make/zip/darwin/x64/schemio-darwin-x64-${{ inputs.schemio_version }}.zip  schemio-macos-x64-${{ inputs.schemio_version }}.zip
-
-      - name: Upload to release asset
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ inputs.schemio_version }}
-          fail_on_unmatched_files: true
-          files: schemio-macos-x64-${{ inputs.schemio_version }}.zip
-
-
   build-mac-arm64:
     needs: release
     runs-on: macOS-latest
