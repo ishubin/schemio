@@ -106,6 +106,8 @@ jobs:
           npm run package-electron
           npm run make-electron
 
+      - run: find out | grep -v webpack
+
       - uses: actions/upload-artifact@v4
         with:
           name: schemio-darwin-arm64
