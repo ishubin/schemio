@@ -1,6 +1,6 @@
 <template>
     <Modal title="Additional shapes"
-        :width="900"
+        :width="1100"
         :repositionId="repositionId"
         :fixedHeight="true"
         :primaryButton="primaryButton"
@@ -57,7 +57,7 @@
                 <div class="external-shape-content">
                     <div class="description" v-if="selectedEntry.description">{{ selectedEntry.description }}</div>
                     <div class="preview grid" v-if="selectedArtPack && selectedArtPack.icons && selectedArtPack.icons.length > 0">
-                        <div class="preview-icon" v-for="icon in filteredSelectedArtPackIcons">
+                        <div class="preview-icon" v-for="icon in filteredSelectedArtPackIcons" @click="onIconClicked(icon)">
                             <div class="icon-container">
                                 <img :src="icon.url" :title="icon.name" />
                             </div>
@@ -78,8 +78,10 @@
 <script>
 import axios from 'axios';
 import Modal from '../Modal.vue';
-import {registerExternalShapeGroup} from './items/shapes/ExtraShapes';
+import {generateShapeId, registerExternalShapeGroup} from './items/shapes/ExtraShapes';
 import StoreUtils from '../../store/StoreUtils';
+import Shape from './items/shapes/Shape';
+import utils from '../../utils';
 
 const ASSETS_PREFIX = '/assets';
 
@@ -169,6 +171,44 @@ export default {
     },
 
     methods: {
+        onIconClicked(icon) {
+            if (icon.shape && icon.shapeGroupId && icon.menuItem) {
+                const shapeId = generateShapeId(icon.shapeGroupId, icon.shape);
+                let chain = Promise.resolve();
+                if (!Shape.find(shapeId)) {
+                    chain = this.registerShapeGroup(this.selectedEntry);
+                }
+                chain.then(() => {
+                    const menuItem = utils.clone(icon.menuItem);
+                    if (menuItem.item) {
+                        menuItem.item.shape = shapeId;
+                    } else {
+                        menuItem.item = {
+                            name: icon.name,
+                            shape: shapeId,
+                        };
+                    }
+                    this.$emit('item-picked-for-creation', menuItem);
+                });
+            } else if (icon.url) {
+                this.$emit('item-picked-for-creation', {
+                    name: icon.name,
+                    ignoreRecentProps: true,
+                    item: {
+                        name: icon.name,
+                        shape: 'image',
+                        area: {x: 0, y: 0, w: 100, h: 100, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1},
+                        shapeProps: {
+                            image: icon.url,
+                            showTitle: false,
+                            strokeSize: 0,
+                            stretch: false,
+                        }
+                    }
+                });
+            }
+        },
+
         selectEntry(entry, entryIdx) {
             if (this.selectedEntryIdx !== entryIdx) {
                 this.selectedArtPack = null;
@@ -198,9 +238,27 @@ export default {
             return axios.get(url).then(response => {
                 this.isLoading = false;
                 const artPack = response.data;
-                if (Array.isArray(artPack.icons)) {
-                    artPack.icons.forEach(icon => {
-                        icon.url = fixAssetsPath(this.$store, icon.url);
+                if (artPackEntry.type === 'art') {
+                    if (Array.isArray(artPack.icons)) {
+                        artPack.icons.forEach(icon => {
+                            icon.url = fixAssetsPath(this.$store, icon.url);
+                        });
+                    }
+                } else if (artPackEntry.type === 'shape' && Array.isArray(artPack.shapes)) {
+                    artPack.icons = [];
+                    artPack.shapes.forEach(shape => {
+                        if (shape.shapeConfig && Array.isArray(shape.shapeConfig.menuItems)) {
+                            shape.shapeConfig.menuItems.forEach(menuItem => {
+                                menuItem.iconUrl = fixAssetsPath(this.$store, menuItem.iconUrl);
+                                artPack.icons.push({
+                                    name        : menuItem.name,
+                                    url         : menuItem.iconUrl,
+                                    shape       : shape.shapeConfig.id,
+                                    shapeGroupId: artPackEntry.id,
+                                    menuItem    : menuItem,
+                                });
+                            });
+                        }
                     });
                 }
                 return artPack;
@@ -231,7 +289,7 @@ export default {
                 url = this.$store.state.routePrefix + url;
             }
             this.isLoading = true;
-            axios.get(url)
+            return axios.get(url)
             .then(response => {
                 this.isLoading = false;
                 const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;

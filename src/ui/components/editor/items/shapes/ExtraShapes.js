@@ -3,8 +3,8 @@ import { traverseItems } from "../../../../scheme/Item";
 import StoreUtils from "../../../../store/StoreUtils";
 import Shape from "./Shape";
 
-export function generateShapeId(shapeGroupId, shapeDef) {
-    return `ext:${shapeDef.shapeConfig.id}:${shapeGroupId}`
+export function generateShapeId(shapeGroupId, shapeId) {
+    return `ext:${shapeId}:${shapeGroupId}`;
 }
 
 export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
@@ -14,23 +14,12 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
         throw new Error(`Invalid shape group in ${url}`);
     }
 
-    // const menuItems = [];
-
     shapeGroup.shapes.forEach(shapeDef => {
         if (shapeDef.shapeConfig.shapeType !== 'templated') {
             return;
         }
-        const shapeId = generateShapeId(shapeGroupId, shapeDef);
+        const shapeId = generateShapeId(shapeGroupId, shapeDef.shapeConfig.id);
         Shape.registerTemplatedShape(shapeId, shapeDef.shapeConfig);
-
-        // if (Array.isArray(shapeDef.shapeConfig.menuItems)) {
-        //     shapeDef.shapeConfig.menuItems.forEach(menuItem => {
-        //         menuItems.push({
-        //             id: shapeId,
-        //             ...menuItem
-        //         });
-        //     });
-        // }
     });
 
     StoreUtils.registerShapeGroupId($store, shapeGroupId);

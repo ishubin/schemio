@@ -17,6 +17,10 @@ class RecentPropsChanges {
     }
 
     applyItemProps(item) {
+        if (item.shape !== 'image' && item.shape !== 'sticky_note') {
+            return;
+        }
+
         const shapeProps = this.itemShapeProps[item.shape];
         if (shapeProps) {
             forEach(shapeProps, (propValue, propName) => {

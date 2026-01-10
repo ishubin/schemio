@@ -2719,41 +2719,42 @@ class SchemeContainer {
         forEach(items, item => {
             // checking whether any of ancestors were already copied for this item
             // as we don't need to copy it twice
-            if (!find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
-                copiedItemIds[item.id] = 1;
-                const worldPivotPoint = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
-                const worldAngle = worldAngleOfItem(item);
-
-                const newItem = this.copyItem(item);
-                if (!preserveOriginalNames) {
-                    newItem.name = this.copyNameAndMakeUnique(item.name);
-                } else {
-                    newItem.name = item.name;
-                }
-
-                newItem.area.r = worldAngle;
-
-                const translation = myMath.findTranslationMatchingWorldPoint(
-                    worldPivotPoint.x, worldPivotPoint.y,
-                    item.area.px * item.area.w, item.area.py * item.area.h,
-                    item.area, item.meta.transformMatrix
-                );
-
-                if (translation) {
-                    newItem.area.x = translation.x;
-                    newItem.area.y = translation.y;
-                } else {
-                    const worldPoint = worldPointOnItem(0, 0, item);
-                    newItem.area.x = worldPoint.x;
-                    newItem.area.y = worldPoint.y;
-                }
-
-                if (item.meta.componentRoot){
-                    newItem.meta.componentRoot = true;
-                }
-
-                copiedItems.push(newItem);
+            if (item.meta && Array.isArray(item.meta.ancestorIds) && find(item.meta.ancestorIds, ancestorId => copiedItemIds[ancestorId] === 1)) {
+                return;
             }
+            copiedItemIds[item.id] = 1;
+            const worldPivotPoint = worldPointOnItem(item.area.px * item.area.w, item.area.py * item.area.h, item);
+            const worldAngle = worldAngleOfItem(item);
+
+            const newItem = this.copyItem(item);
+            if (!preserveOriginalNames) {
+                newItem.name = this.copyNameAndMakeUnique(item.name);
+            } else {
+                newItem.name = item.name;
+            }
+
+            newItem.area.r = worldAngle;
+
+            const translation = myMath.findTranslationMatchingWorldPoint(
+                worldPivotPoint.x, worldPivotPoint.y,
+                item.area.px * item.area.w, item.area.py * item.area.h,
+                item.area, item.meta.transformMatrix
+            );
+
+            if (translation) {
+                newItem.area.x = translation.x;
+                newItem.area.y = translation.y;
+            } else {
+                const worldPoint = worldPointOnItem(0, 0, item);
+                newItem.area.x = worldPoint.x;
+                newItem.area.y = worldPoint.y;
+            }
+
+            if (item.meta.componentRoot){
+                newItem.meta.componentRoot = true;
+            }
+
+            copiedItems.push(newItem);
         });
 
         // collecting id conversions so that later it could be used for converting attached connectors

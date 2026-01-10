@@ -159,7 +159,9 @@
         <ExtraShapesModal v-if="extraShapesModal.shown"
             @art-pack-added="updateAllArtPacks"
             @extra-shapes-registered="updateAllPanels"
-            @close="extraShapesModal.shown = false"/>
+            @close="extraShapesModal.shown = false"
+            @item-picked-for-creation="onExtraShapesItemPickedForCreation"
+            />
 
         <LinkEditModal v-if="linkCreation.popupShown" :edit="false" @submit-link="linkSubmited" @close="linkCreation.popupShown = false"/>
 
@@ -598,6 +600,12 @@ export default {
             }
         },
 
+        onExtraShapesItemPickedForCreation(menuItem) {
+            const item = this.prepareMenuItem(menuItem);
+            this.$emit(ITEM_PICKED_FOR_CREATION, item);
+            this.extraShapesModal.shown = false;
+        },
+
         linkSubmited(link) {
             this.linkCreation.popupShown = false;
             const item = utils.clone(this.linkCreation.item);
@@ -703,8 +711,9 @@ export default {
 
             this.onItemMouseDown(event, {
                 item,
-                name: item.name
-            }, true);
+                name             : item.name,
+                ignoreRecentProps: true,
+            });
         },
 
         onTemplateMouseDown(event, templateEntry) {
@@ -712,9 +721,10 @@ export default {
                 const templatedItem = this.schemeContainer.generateItemFromTemplate(compiledTemplate, compiledTemplate.getDefaultArgs(), compiledTemplate.defaultArea.w, compiledTemplate.defaultArea.h);
 
                 this.onItemMouseDown(event, {
-                    item: templatedItem,
-                    name: templatedItem.name
-                }, true, compiledTemplate);
+                    item             : templatedItem,
+                    name             : templatedItem.name,
+                    ignoreRecentProps: true,
+                }, compiledTemplate);
             })
             .catch(err => {
                 console.error(err);
@@ -722,22 +732,27 @@ export default {
             });
         },
 
+        prepareMenuItem(item) {
+            traverseItems([item.item], enrichItemWithDefaults);
+            const [itemClone] = this.schemeContainer.cloneItems([item.item], true);
+
+            if (!item.ignoreRecentProps) {
+                recentPropsChanges.applyItemProps(itemClone);
+            }
+
+            return itemClone;
+        },
+
         /**
          *
          * @param {*} originalEvent
          * @param {ItemMenuEntry} item
-         * @param {Boolean} shouldIgnoreRecentProps
          * @param {CompiledItemTemplate} template
          */
-        onItemMouseDown(originalEvent, item, shouldIgnoreRecentProps, template) {
+        onItemMouseDown(originalEvent, item, template) {
             this.previewItem.shown = false;
 
-            const [itemClone] = this.schemeContainer.cloneItems([item.item], true);
-            traverseItems([itemClone], enrichItemWithDefaults);
-
-            if (!item.ignoreRecentProps && !shouldIgnoreRecentProps && itemClone.shape !== 'image' && itemClone.shape !== 'sticky_note') {
-                recentPropsChanges.applyItemProps(itemClone);
-            }
+            const itemClone = this.prepareMenuItem(item);
 
             dragAndDropBuilder(originalEvent)
             .withDroppableClass('scheme-container')
@@ -845,9 +860,10 @@ export default {
                     buttons: 0,
                 };
                 this.onItemMouseDown(mokedEvent, {
-                    item: templatedItem,
-                    name: templatedItem.name
-                }, true, compiledTemplate);
+                    item             : templatedItem,
+                    name             : templatedItem.name,
+                    ignoreRecentProps: true,
+                }, compiledTemplate);
             })
             .catch(err => {
                 console.error(err);

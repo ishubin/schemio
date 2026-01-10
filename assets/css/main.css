@@ -5002,13 +5002,19 @@ ul.patch-field-list {
 }
 .external-shapes .external-shape-preview .preview .preview-icon {
     display: flex;
-    margin: 10px;
+    padding: 4px;
+    margin: 4px;
     flex-direction: column;
     width: 100px;
-    height: 100px;
+    height: 130px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.external-shapes .external-shape-preview .preview .preview-icon:hover {
+    background: var(--faint-strong);
 }
 .external-shapes .external-shape-preview .preview .preview-icon .icon-container {
-    flex: 1;
+    flex: 2;
     width: 100%;
     height: 100%;
     display: flex;
@@ -5019,6 +5025,7 @@ ul.patch-field-list {
     max-height: 100%;
 }
 .external-shapes .external-shape-preview .preview .preview-icon .name {
+    flex: 1;
     height: 50px;
     overflow: hidden;
     text-overflow: ellipsis;
