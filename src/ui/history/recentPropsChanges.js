@@ -17,7 +17,7 @@ class RecentPropsChanges {
     }
 
     applyItemProps(item) {
-        if (item.shape !== 'image' && item.shape !== 'sticky_note') {
+        if (item.shape === 'image' || item.shape === 'sticky_note') {
             return;
         }
 
