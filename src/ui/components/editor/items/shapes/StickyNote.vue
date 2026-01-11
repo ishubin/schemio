@@ -37,10 +37,13 @@ import {computeSvgFill} from '../AdvancedFill.vue';
 import {map} from '../../../../collections';
 
 function computePath(item) {
-    const W = item.area.w;
-    const H = item.area.h;
+    const w = item.area.w;
+    const h = item.area.h;
+    const d = item.area.w * 0.02;
+    const k = item.area.h * 0.2;
+    // return `M ${w} ${h}  L 0 ${h} L 0 0   L ${w} 0 L ${w} ${h} Z`;
 
-    return `M ${W} ${H}  L 0 ${H} L 0 0   L ${W} 0 L ${W} ${H} Z`;
+    return `M ${d} 0 L ${w} 0 L ${w} ${k} L ${w-d} ${h} L 0 ${h} L ${d} ${k} Z`;
 };
 
 const palette = [ {
@@ -129,12 +132,12 @@ export default {
         },
 
         shadowPath() {
-            const x0 = this.item.area.w  * 0.1;
+            const x0 = this.item.area.w  * 0.2;
             const x1 = this.item.area.w * 0.99;
-            const y0 = this.item.area.h * 0.1;
+            const y0 = this.item.area.h * 0.2;
             const y1 = this.item.area.h * 0.99;
-            const w = this.item.area.w * 1.03;
-            const h = this.item.area.h * 1.03;
+            const w = this.item.area.w * 1.04;
+            const h = this.item.area.h * 1.02;
             return `M ${x0} ${y0}  L ${x1} ${y0} L ${w} ${h}  L ${x0} ${y1} Z`;
         },
 
