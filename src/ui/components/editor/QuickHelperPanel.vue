@@ -187,7 +187,7 @@
             <div v-if="(mode === 'edit' && shouldShowBaseControls)" class="quick-helper-panel-section">
                 <ul class="button-group">
                     <li>
-                        <div class="toggle-group">
+                        <div>
                             <span class="toggle-button" :class="{toggled: autoRemount}" @click="toggleAutoRemount" title="Automatically mount items into other items">
                                 <i class="fa-solid fa-person-arrow-down-to-line"></i>
                             </span>
