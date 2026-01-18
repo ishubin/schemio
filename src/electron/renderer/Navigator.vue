@@ -2,7 +2,12 @@
     <div class="elec-navigator" ref="navigatorBody" :style="{width: `${navigatorWidth}px`, 'min-width': `${navigatorWidth}px`}" :class="{collapsed: collapsed}">
         <div class="navigator-header">
             <span v-if="collapsed" class="toggle-button" @click="showNavigator"><i class="fa-solid fa-bars"></i></span>
-            <div v-else class="project-name">{{projectName}}</div>
+            <div v-else class="header-content">
+                <div class="project-name">{{projectName}}</div>
+                <div class="filler"></div>
+                <span class="icon-btn" title="New diagram" @click="onNewDiagramAtRoot"><i class="fa-solid fa-file-circle-plus"></i></span>
+                <span class="icon-btn" title="New folder" @click="onNewFolderAtRoot"><i class="fa-solid fa-folder-plus"></i></span>
+            </div>
         </div>
         <div v-if="!collapsed" class="navigator-body navigator-droppable" data-entry-kind="void" @contextmenu.prevent="onVoidRightClick">
             <div class="navigator-entry navigator-droppable" v-for="entry in flatTree" v-if="entry.collapseBitMask === 0"
@@ -399,6 +404,10 @@ export default {
         },
 
         ipcOnNewFolderRequested(event, parentPath) {
+            this.onNewFolderRequested(parentPath);
+        },
+
+        onNewFolderRequested(parentPath) {
             this.newFolderModal.parentPath = parentPath;
             this.newFolderModal.name = '';
             this.newFolderModal.shown = true;
@@ -424,6 +433,14 @@ export default {
 
         ipcOnNewDiagramRequested(event, folderPath) {
             this.$emit('new-diagram-requested', folderPath);
+        },
+
+        onNewDiagramAtRoot() {
+            this.$emit('new-diagram-requested', null);
+        },
+
+        onNewFolderAtRoot() {
+            this.onNewFolderRequested(null);
         },
 
         showPreviewForEntry(event, entry) {

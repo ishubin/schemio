@@ -1,63 +1,3 @@
-:root {
-    --min-paragraph-height: 18px;
-    --paragraph-top-margin: 0px;
-
-    --header-background: #3f4245;
-    --header-text-color: #eee;
-
-    --shadow-color: rgba(0, 0, 0, 0.5);
-    --shadow-color-light: rgba(0, 0, 0, 0.3);
-
-    --base-strong: #111;
-    --base-strong-up: #3b3b3b;
-    --base-strong-up-up: #555;
-    --base-weak: #fff;
-
-    --faint-weak-down: #dddddd;
-    --faint-weak-down-down: #cccccc;
-    --faint-weak: #eeeeee;
-    --faint-weak-up: #f0f0f0;
-
-    --faint-strong-down: #7f8081;
-    --faint-strong: #9a9b9c;
-    --faint-strong-up: #c0c0c0;
-    --faint-strong-up-up: #d1d1d1;
-
-    --accent-strong-down: #135eb4;
-    --accent-strong: #2373ce;
-    --accent-faint: #5291da;
-    --accent-faint-up: #83addd;
-
-    --accent-weak-down: #c4daf5;
-    --accent-weak: #e1ebf7;
-    --accent-weak-up: #f0f4fa;
-
-    --complement-strong: #365a07;
-    --complement-faint: #bbe288;
-    --complement-weak: #fafdec;
-
-    --critic-strong: #d13c31;
-    --critic-faint: #e46960;
-    --critic-weak-down: #f3dedb;
-    --critic-weak: #f5e7e5;
-    --critic-weak-up: #f3e8e7;
-
-    --warning-strong: #eeaa45;
-    --warning-weak: #eedaba;
-
-    --success-strong: #23a85a;
-    --success-weak: #d6f1e1;
-
-
-    --section-delimiter-color: #b3b5b9;
-
-    --control-border-radius: 3px;
-    --middle-border-radius: 5px;
-    --modal-border-radius: 10px;
-
-    --page-content-font-size: 20px;
-}
-
 .app-container {
     display: flex;
     height: 100%;
@@ -65,15 +5,15 @@
 }
 .elec-app-container .link {
     text-decoration: none;
-    color: rgb(68, 125, 183);
+    color: var(--accent-strong);
 }
 .elec-app-container .link:hover {
     text-decoration: none;
-    color: rgb(29, 110, 191);
+    color: var(--accent-faint-up);
 }
 
 .elec-navigator {
-    border-right: 2px solid #999;
+    border-right: 2px solid var(--faint-strong-down-2);
 }
 .elec-main-body {
     flex: 1;
@@ -88,7 +28,7 @@
     height: 30px;
     width: 100%;
     white-space: nowrap;
-    background: #bbb;
+    background: var(--faint-weak-down);
     user-select: none;
 }
 .elec-file-container {
@@ -117,6 +57,9 @@
     width: 22px;
 }
 
+input[type-text], select {
+    outline: none;
+}
 
 .elec-welcome-panel, .elec-no-editor-panel {
     display: flex;
@@ -143,7 +86,7 @@
 .elec-welcome-container h1,
 .elec-welcome-container h3,
 .elec-welcome-container .welcome-caption {
-    color: #1d3d7a;
+    color: var(--base-strong);
 }
 .elec-welcome-container h3 {
     margin-bottom: 5px;
@@ -173,7 +116,7 @@
     cursor: pointer;
 }
 .elec-welcome-container .recent-projects:hover {
-    border: 1px solid var(--faint-weak-down);
+    border: 1px solid var(--faint-strong-down-2);
 }
 .elec-welcome-container .recent-projects:hover .icon-delete {
     display: inline-block;
@@ -197,8 +140,8 @@
 .elec-tab-container .file-tab {
     position: relative;
     display: inline-block;
-    border-left: 1px solid #aaa;
-    background: #cfcfcf;
+    border-left: 1px solid var(--faint-strong-down);
+    background: var(--faint-strong);
     cursor: pointer;
     max-width: 180px;
     min-width: 110px;
@@ -235,7 +178,7 @@
     border-left: none;
 }
 .elec-tab-container .file-tab:last-child {
-    border-right: 1px solid #bbb;
+    border-right: 1px solid var(--faint-strong-down);
 }
 .elec-tab-container .file-tab > span.title{
     display: inline-block;
@@ -246,7 +189,7 @@
     overflow: hidden;
 }
 .elec-tab-container .file-tab.selected {
-    background: #eeeeee;
+    background: var(--faint-weak);
 }
 .elec-tab-container .file-tab .close {
     position: absolute;
@@ -265,7 +208,7 @@
     display: block;
 }
 .elec-tab-container .file-tab .close:hover {
-    background: #aaa;
+    background: var(--faint-strong);
 }
 .elec-tab-container .file-tab.file-tab-dragged-preview {
     position: fixed;
@@ -279,7 +222,7 @@
     width: 80px;
     height: 5px;
     cursor: grab;
-    background: #777;
+    background: var(--faint-strong-down);
     bottom: 0;
     left: 10px;
 }
@@ -295,7 +238,7 @@
     display: flex;
     flex-direction: column;
     overflow: auto;
-    background: #f0f0f0;
+    background: var(--faint-weak);
     user-select: none;
 }
 .elec-navigator-expander {
@@ -303,15 +246,15 @@
     top: 0;
     height: 100%;
     width: 1px;
-    background: #999;
+    background: var(--faint-strong-down-2);
     cursor: ew-resize;
     border: none;
     user-select: none;
     z-index: 100;
 }
 .elec-navigator-expander:hover {
-    border-left: 1px solid #999;
-    border-right: 1px solid #999;
+    border-left: 1px solid var(--faint-strong-down-2);
+    border-right: 1px solid var(--faint-strong-down-2);
 }
 .elec-navigator .navigator-header {
     height: 30px;
@@ -319,11 +262,28 @@
     overflow: hidden;
     white-space: nowrap;
     padding: 7px 13px;
-    background: #ccc;
-    border-bottom: #999 solid 1px;
+    background: var(--faint-weak-down);
+    border-bottom: var(--faint-strong-up) solid 1px;
 }
 .elec-navigator.collapsed .navigator-header {
     padding: 2px;
+}
+.elec-navigator .navigator-header .header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+.elec-navigator .navigator-header .header-content .icon-btn {
+    opacity: 0.7;
+    transition: opacity 0.5s ease;
+    cursor: pointer;
+}
+.elec-navigator .navigator-header .header-content .icon-btn:hover {
+    opacity: 1;
+}
+.elec-navigator .navigator-header .header-content .filler {
+    flex: 1;
 }
 .elec-navigator.collapsed .navigator-header .toggle-button {
     padding: 4px;
@@ -344,6 +304,7 @@
     padding: 3px 5px;
     font-size: 13px;
     cursor: pointer;
+    align-items: center;
 }
 .elec-navigator .navigator-entry .entry-name {
     padding: 1px;
@@ -360,13 +321,16 @@
     margin: 0;
 }
 .elec-navigator .navigator-entry.focused {
-    background: #dedede;
+    background: var(--faint-strong);
 }
 .elec-navigator .navigator-entry:hover {
-    background: #ddd;
+    background: var(--faint-weak-up);
+}
+[data-theme="dark"] .elec-navigator .navigator-entry:hover {
+    background: var(--faint-strong-down-2);
 }
 .elec-navigator .navigator-entry-drag-preview {
-    background: #ddd;
+    background: var(--faint-strong);
     padding: 1px;
     border-radius: 2px;
     font-size: 13px;
@@ -376,8 +340,8 @@
     padding: 5px;
     display: flex;
     flex-direction: column;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
+    background: var(--faint-weak-up);
+    border: 1px solid var(--faint-weak-down);
     z-index: 100;
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
 }

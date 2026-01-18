@@ -121,6 +121,16 @@
         </Modal>
 
         <CreateNewSchemeModal v-if="newDiagramModal.shown" :name="newDiagramModal.name" @scheme-submitted="newDiagramSubmitted" @close="newDiagramModal.shown = false"/>
+
+        <Modal v-if="settings.modalShown" @close="settings.modalShown = false"
+            title="Settings"
+            :width="900"
+            >
+            <div class="ctrl-label">Theme</div>
+            <select name="settingsTheme" id="#settings-theme" :value="settings.theme" @input="onSettingsThemeChange">
+                <option v-for="theme in settings.themeOptions" :value="theme">{{ theme }}</option>
+            </select>
+        </Modal>
     </div>
 </template>
 
@@ -201,6 +211,7 @@ export default {
         window.electronAPI.$on('edit:paste', this.onMenuEditPaste);
         window.electronAPI.$on('edit:delete', this.onMenuEditDelete);
         window.electronAPI.$on('edit:selectAll', this.onMenuEditSelectAll);
+        window.electronAPI.$on('edit:settings', this.onMenuEditSettings);
         window.electronAPI.$on('view:zoomIn', this.onMenuViewZoomIn);
         window.electronAPI.$on('view:zoomOut', this.onMenuViewZoomOut);
         window.electronAPI.$on('view:resetZoom', this.onMenuViewResetZoom);
@@ -235,6 +246,7 @@ export default {
         window.electronAPI.$off('edit:paste', this.onMenuEditPaste);
         window.electronAPI.$off('edit:delete', this.onMenuEditDelete);
         window.electronAPI.$off('edit:selectAll', this.onMenuEditSelectAll);
+        window.electronAPI.$off('edit:settings', this.onMenuEditSettings);
         window.electronAPI.$off('view:zoomIn', this.onMenuViewZoomIn);
         window.electronAPI.$off('view:zoomOut', this.onMenuViewZoomOut);
         window.electronAPI.$off('view:resetZoom', this.onMenuViewResetZoom);
@@ -247,6 +259,10 @@ export default {
         window.electronAPI.$off('file:exportAsSVG', this.onFileExportAsSVG);
         window.electronAPI.$off('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$off('project-selected', this.onProjectSelected);
+    },
+
+    mounted() {
+        this.loadTheme();
     },
 
     data() {
@@ -262,6 +278,13 @@ export default {
             navigatorWidth: 250,
             progressBarShown: false,
             lastOpenProjects: [],
+
+            settings: {
+                modalShown: false,
+                theme: 'dark',
+                themeOptions: ['light', 'dark']
+            },
+
             warnModifiedFileCloseModal: {
                 name: null,
                 fileIdx: null,
@@ -667,6 +690,9 @@ export default {
         onMenuEditSelectAll() {
             simulateKeyPress(Keys.CTRL_A, true);
         },
+        onMenuEditSettings() {
+            this.settings.modalShown = true;
+        },
         onMenuViewZoomIn() {
             simulateKeyPress(Keys.EQUALS, true);
         },
@@ -867,6 +893,15 @@ export default {
                 this.onFileTreeEntryAdded(null, entry);
             });
         },
+
+        onSettingsThemeChange(event) {
+            this.settings.theme = event.target.value;
+            this.loadTheme();
+        },
+
+        loadTheme() {
+            document.body.setAttribute('data-theme', this.settings.theme);
+        }
     },
 
     watch: {
@@ -881,7 +916,7 @@ export default {
             } else {
                 window.electronAPI.menu.events.emitNoEditorDisplayed();
             }
-        }
+        },
     }
 }
 </script>

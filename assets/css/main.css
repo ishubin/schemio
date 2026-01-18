@@ -911,7 +911,6 @@ input.textfield, textarea.textfield, select.dropdown  {
 }
 input.textfield:focus, textarea.textfield:focus, select.dropdown:focus {
     outline: 0;
-    background: var(--faint-weak-down-3);
 }
 textarea.textfield {
     height: 150px;
@@ -1313,6 +1312,7 @@ ul.pagination li a.current {
     width: 50px;
     font-size: 14px;
     text-align: center;
+    outline: none;
 }
 
 /********************* Svg editor *******************/
@@ -2910,9 +2910,6 @@ ul.script-options .script-option.selected {
 
 .script-parameters .script-parameter .number-textfield-container {
     flex: 1;
-}
-.script-parameters .script-parameter select {
-    height: 24px;
 }
 
 /**************  Dropdown    ********************/

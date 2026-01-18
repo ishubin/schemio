@@ -158,6 +158,7 @@ app.whenReady().then(() => {
       'edit:paste',
       'edit:delete',
       'edit:selectAll',
+      'edit:settings',
       'view:zoomIn',
       'view:zoomOut',
       'view:resetZoom',

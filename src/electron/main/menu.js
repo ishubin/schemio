@@ -84,6 +84,7 @@ export function buildAppMenu() {
             menuItem('edit-paste', 'Paste', false, 'edit:paste', null),
             menuItem('edit-delete', 'Delete', false, 'edit:delete', null),
             menuItem('edit-selectAll', 'Select all', false, 'edit:selectAll', null),
+            menuItem('edit-settings', 'Settings...', true, 'edit:settings', null),
         ]
     },
     // { role: 'viewMenu' }
