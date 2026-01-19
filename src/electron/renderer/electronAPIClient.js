@@ -6,7 +6,6 @@ export function electronAPICLient() {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => {
-                    console.log('onload', reader.result);
                     window.electronAPI.copyFileToProjectMedia(file.name, reader.result).then(response => {
                         resolve(response);
                     })

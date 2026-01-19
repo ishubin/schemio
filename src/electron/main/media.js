@@ -11,7 +11,6 @@ import { ContextHolder } from "./context";
  */
 export function copyFileToProjectMedia(contextHolder) {
     return (event, fileName, arrayBuffer) => {
-        console.log('copyFileToProjectMedia', {fileName, arrayBuffer});
         const projectPath = contextHolder.from(event).projectPath;
 
         const extension = getFileExtension(fileName).toLowerCase();
