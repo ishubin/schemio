@@ -32,6 +32,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     copyFileToProjectMedia: (fileName, arrayBuffer) => ipcRenderer.invoke('media:copyFileToProject', fileName, arrayBuffer),
     uploadDiagramPreview  : (docId, preview) => ipcRenderer.invoke('media:uploadDiagramPreview', docId, preview),
 
+    settings: {
+        save: (settings) => ipcRenderer.invoke('settings:save', settings),
+        load: () => ipcRenderer.invoke('settings:load'),
+    },
+
 
     menu: {
         updateHistoryState: (undoable, redoable) => ipcRenderer.invoke('menu:update-history-state', undoable, redoable),

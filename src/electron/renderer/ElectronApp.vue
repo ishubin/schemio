@@ -127,7 +127,7 @@
             :width="900"
             >
             <div class="ctrl-label">Theme</div>
-            <select name="settingsTheme" id="#settings-theme" :value="settings.theme" @input="onSettingsThemeChange">
+            <select name="settingsTheme" id="#settings-theme" :value="settings.settings.theme" @input="onSettingsThemeChange">
                 <option v-for="theme in settings.themeOptions" :value="theme">{{ theme }}</option>
             </select>
         </Modal>
@@ -151,6 +151,7 @@ import EditorEventBus from '../../ui/components/editor/EditorEventBus';
 import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
 import {diagramImageExporter} from '../../ui/diagramExporter'
+import StoreUtils from '../../ui/store/StoreUtils.js';
 
 const fileHistories = new Map();
 
@@ -225,6 +226,8 @@ export default {
         window.electronAPI.$on('file:importDiagramFromText', this.onImportDiagramFromText);
         window.electronAPI.$on('project-selected', this.onProjectSelected);
 
+        window.electronAPI.settings.load().then(settings => this.loadSettings(settings));
+
 
         window.electronAPI.storage.getLastOpenProjects().then(projects => {
             if (projects.length > 10) {
@@ -280,8 +283,10 @@ export default {
             lastOpenProjects: [],
 
             settings: {
+                settings: {
+                    theme: 'light'
+                },
                 modalShown: false,
-                theme: 'dark',
                 themeOptions: ['light', 'dark']
             },
 
@@ -895,12 +900,24 @@ export default {
         },
 
         onSettingsThemeChange(event) {
-            this.settings.theme = event.target.value;
+            this.settings.settings.theme = event.target.value;
+            this.saveSettings();
             this.loadTheme();
         },
 
+        loadSettings(settings) {
+            this.settings.settings = settings;
+            this.loadTheme();
+        },
+
+        saveSettings() {
+            window.electronAPI.settings.save(this.settings.settings).catch(err => {
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to store user settings');
+            });
+        },
+
         loadTheme() {
-            document.body.setAttribute('data-theme', this.settings.theme);
+            document.body.setAttribute('data-theme', this.settings.settings.theme);
         }
     },
 

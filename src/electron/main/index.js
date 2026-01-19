@@ -11,6 +11,7 @@ const { getLastOpenProjects, forgetLastOpenProject } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
 const nodeUrl = require('node:url');
+const { saveUserSettings, loadUserSettings } = require('./settings');
 
 getLastOpenProjects().then(projects => {
     if (Array.isArray(projects)) {
@@ -95,6 +96,9 @@ app.whenReady().then(() => {
 
     ipcMain.handle('storage:getLastOpenProjects', () => getLastOpenProjects());
     ipcMain.handle('storage:forgetLastOpenProject', (projectPath) => forgetLastOpenProject(projectPath));
+
+    ipcMain.handle('settings:save', (event, settings) => saveUserSettings(settings));
+    ipcMain.handle('settings:load', (event) => loadUserSettings());
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
