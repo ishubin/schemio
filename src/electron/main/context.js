@@ -49,11 +49,11 @@ export class ContextHolder {
 
     /**
      *
-     * @param {*} request
+     * @param {String} userAgent
      * @returns {ContextData}
      */
-    fromRequest(request) {
-        const id = extractWebContentIdFromUserAgent(request.headers['User-Agent'])
+    fromUserAgent(userAgent) {
+        const id = extractWebContentIdFromUserAgent(userAgent);
         return this.contexts.get(id);
     }
 

@@ -260,11 +260,11 @@ function createIndexFromScratch(index, rootPath, isElectron, fileReader) {
                 }
 
                 let previewURL = null;
-                if (fs.existsSync(path.join(rootPath, mediaFolder, 'previews', `${schemeId}.svg`))) {
+                if (fs.existsSync(path.join(rootPath, mediaFolder, 'previews', `${schemeId}.png`))) {
                     if (isElectron) {
-                        previewURL = `media/local/previews/${schemeId}.svg`;
+                        previewURL = `media://local/previews/${schemeId}.png`;
                     } else {
-                        previewURL = `/media/previews/${schemeId}.svg`;
+                        previewURL = `/media/previews/${schemeId}.png`;
                     }
                 }
 

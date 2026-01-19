@@ -29,7 +29,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
-    copyFileToProjectMedia: (filePath, fileName) => ipcRenderer.invoke('media:copyFileToProject', filePath, fileName),
+    copyFileToProjectMedia: (fileName, arrayBuffer) => ipcRenderer.invoke('media:copyFileToProject', fileName, arrayBuffer),
     uploadDiagramPreview  : (docId, preview) => ipcRenderer.invoke('media:uploadDiagramPreview', docId, preview),
 
 

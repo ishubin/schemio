@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, protocol } = require('electron');
+const { app, BrowserWindow, ipcMain, protocol, net } = require('electron');
 const path = require('path');
 const { createArt, getAllArt, saveArt, deleteArt } = require('./art');
 const { ContextHolder } = require('./context');
@@ -10,7 +10,7 @@ const { openProject, readProjectFile, createNewDiagram, createNewFolder, renameF
 const { getLastOpenProjects, forgetLastOpenProject } = require('./storage');
 const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
-
+const nodeUrl = require('node:url');
 
 getLastOpenProjects().then(projects => {
     if (Array.isArray(projects)) {
@@ -39,7 +39,7 @@ protocol.registerSchemesAsPrivileged([{
         standard: true,
         secure: true,
         supportFetchAPI: true,
-        corsEnabled: true,
+        // corsEnabled: true,
         bypassCSP: true
     }
 }]);
@@ -50,19 +50,18 @@ app.whenReady().then(() => {
     buildAppMenu();
     defaultMenuState = saveAppMenuState();
 
-    protocol.registerFileProtocol(mediaProtocolName, (request, callback) => {
+    protocol.handle(mediaProtocolName, (request) => {
         let fullPath = null;
         if (request.url.startsWith(mediaUrlPrefix)) {
-            const projectPath = contextHolder.fromRequest(request).projectPath;
+            const projectPath = contextHolder.fromUserAgent(request.headers.get('User-Agent')).projectPath;
             fullPath = path.join(projectPath, '.media', request.url.substring(mediaUrlPrefix.length));
         } else if (request.url.startsWith(assetsUrlPrefix)) {
             fullPath = path.join(__dirname, '..', 'renderer', 'assets', request.url.substring(assetsUrlPrefix.length));
         } else {
             fullPath = request.url.substring(mediaProtocolName.length + 3);
         }
-        callback({path: fullPath});
+        return net.fetch(nodeUrl.pathToFileURL(fullPath).toString());
     });
-
 
     createWindow(contextHolder);
     ipcMain.handle('app:version', () => app.getVersion());

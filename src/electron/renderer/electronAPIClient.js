@@ -3,7 +3,24 @@ import { getCachedSchemeInfo, schemeSearchCacher } from "../../ui/app/client/cli
 export function electronAPICLient() {
     return {
         uploadFile(file) {
-            return window.electronAPI.copyFileToProjectMedia(file.path, file.name);
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    console.log('onload', reader.result);
+                    window.electronAPI.copyFileToProjectMedia(file.name, reader.result).then(response => {
+                        resolve(response);
+                    })
+                    .catch(err => {
+                        reject(err);
+                    });
+                };
+                reader.onerror = (err) => {
+                    reject(err);
+                };
+                // reader.readAsDataURL(file);
+                reader.readAsArrayBuffer(file);
+            });
+
         },
 
         findSchemes(filters) {
