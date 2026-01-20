@@ -36,6 +36,7 @@
     --accent-strong        : oklch(55% 0.1596 var(--accent-hue));
     --accent-faint         : oklch(64% 0.12801 var(--accent-hue));
     --accent-faint-up      : oklch(73.526% 0.08361 var(--accent-hue));
+    --accent-faint-up-2    : oklch(76.526% 0.08361 var(--accent-hue));
     --accent-faint-up-trans: oklch(73% 0.13 var(--accent-hue) / 0.2);
 
     --accent-weak-down: oklch(88% 0.04436 var(--accent-hue));
@@ -4225,7 +4226,6 @@ ul.toggle-menu > li > span.toggle-menu-button.selected:hover {
 .footer {
     background: var(--base-strong-up);
     color: var(--base-weak);
-    margin-top: 60px;
     padding: 20px;
     padding-bottom: 20px;
 }
