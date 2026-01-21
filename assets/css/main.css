@@ -2441,7 +2441,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .properties-table .value select {
     width: 100%;
-    height: 24px;
 }
 .properties-table .value input.textfield {
     width: 100%;
