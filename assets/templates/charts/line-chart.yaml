@@ -46,6 +46,7 @@ item:
   childItems:
   - id: grid
     shape: grid
+    clip: false
     area:
       x: 10
       y: 10
@@ -55,10 +56,10 @@ item:
     - $-foreach: {source: "graphs", it: "graph"}
       id: {$-str: "graph-${graph.id}"}
       name: {$-expr: "graph.name"}
-      shape: "connector"
+      shape: connector
       shapeProps:
-        smoothing: smooth
-        strokeColor: {$-expr: "graph.color"}
+        smoothing: {$-expr: lineType}
+        strokeColor: {$-expr: graph.color}
         strokeSize: 2
         strokePattern: solid
         points:

@@ -8,12 +8,14 @@ func parseGraphPoints(encodedPoints) {
     local h = height - 20
 
     local dy = yMax - yMin
-    if (abs(dy) < 0.000001) {
-        dy = 0.000001
+
+    local dx = w * xStep / max(0.000001, xMax - xMin)
+    if (abs(h/dy) > 100000 || abs(dx) > 10000) {
+        return List()
     }
 
     encodedPoints.split(',').map((p, idx) => {
         local value = parseFloat(p.trim())
-        Point(xStep * idx, (value - yMin) * h / dy)
+        Point(dx * idx, (yMax - value) * h / dy)
     })
 }
