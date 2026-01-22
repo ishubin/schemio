@@ -1578,7 +1578,7 @@ export default {
             }
         },
 
-        onFunctionModalArgumentChanged(name, value) {
+        onFunctionModalArgumentChanged({ name, value }) {
             this.functionEditorModal.args[name] = value;
             if (this.functionEditorModal.functionId) {
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);

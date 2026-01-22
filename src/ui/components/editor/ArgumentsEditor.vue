@@ -131,6 +131,38 @@
                                     ></textarea>
                             </td>
                         </template>
+                        <template v-else-if="arg.type === 'array' && Array.isArray(argumentValues[argName])">
+                            <td colspan="3">
+                                <div class="label">
+                                    {{arg.name}}:
+                                    <tooltip v-if="arg.description">{{arg.description}}</tooltip>
+                                </div>
+                                <div class="array-entry-container" v-for="(entry, entryIdx) in argumentValues[argName]">
+                                    <div class="array-entry">
+                                        <span class="array-idx-label">#{{ entryIdx+1 }}</span>
+                                        <div class="array-entry-ops">
+                                            <span class="icon icon-delete" @click="onDeleteArrayItem(argName, entryIdx)"><i class="fas fa-times"></i></span>
+                                        </div>
+                                        <div>
+                                            <ArgumentsEditor
+                                                :key="`array-entry-${argName}-${entryIdx}-${entry.id}`"
+                                                :editorId="editorId"
+                                                :argsDefinition="arg.args"
+                                                :args="entry"
+                                                :scopeArgs="scopeArgs"
+                                                :argBinds="argBinds"
+                                                :apiClient="apiClient"
+                                                :schemeContainer="schemeContainer"
+                                                @argument-changed="onArrayEntryFieldArgChanged(argName, entryIdx, $event.name, $event.value)"
+                                                />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="array-controls">
+                                    <span class="btn btn-secondary" @click="onAddArrayItem(argName)">{{ arg.singular ? `Add ${arg.singular}` : 'Add item' }}</span>
+                                </div>
+                            </td>
+                        </template>
                     </tr>
                 </template>
             </tbody>
@@ -138,7 +170,7 @@
     </div>
 </template>
 <script>
-import {forEach, map, mapObjectValues} from '../../collections';
+import {forEach, forEachObject, map, mapObjectValues} from '../../collections';
 import ColorPicker from './ColorPicker.vue';
 import AdvancedColorEditor from './AdvancedColorEditor.vue';
 import Modal from '../Modal.vue';
@@ -151,8 +183,11 @@ import PathCapDropdown from './PathCapDropdown.vue';
 import Dropdown from '../Dropdown.vue';
 import { getAllFonts } from '../../scheme/Fonts';
 import Panel from './Panel.vue';
+import shortid from 'shortid';
+import utils from '../../utils';
 
 export default {
+    name: 'ArgumentsEditor',
     props: {
         editorId           : {type: String, required: true},
         argsDefinition     : {type: Object, required: true},
@@ -216,8 +251,65 @@ export default {
                 return false;
             } else if (arg.type === 'string' && arg.textarea) {
                 return false;
+            } else if (arg.type === 'array') {
+                return false;
             }
             return true;
+        },
+
+        onDeleteArrayItem(argName, entryIdx) {
+            if (!Array.isArray(this.argumentValues[argName])) {
+                return;
+            }
+            if (this.argsDefinition[argName].type !== 'array') {
+                return;
+            }
+            this.argumentValues[argName].splice(entryIdx, 1);
+
+            this.emitArgumentChange(argName);
+            this.$forceUpdate();
+        },
+
+        onArrayEntryFieldArgChanged(argName, entryIdx, fieldName, value) {
+            if (!Array.isArray(this.argumentValues[argName])) {
+                return;
+            }
+            if (this.argsDefinition[argName].type !== 'array') {
+                return;
+            }
+            this.argumentValues[argName][entryIdx][fieldName] = value;
+            this.emitArgumentChange(argName);
+            this.$forceUpdate();
+        },
+
+        onAddArrayItem(argName) {
+            if (!Array.isArray(this.argumentValues[argName])) {
+                this.argumentValues[argName] = [];
+            }
+            if (this.argsDefinition[argName].type !== 'array') {
+                return;
+            }
+            if (!this.argsDefinition[argName].args) {
+                return;
+            }
+
+            const obj = {
+                id: shortid.generate(),
+            };
+
+            const array = this.argumentValues[argName];
+
+            array.push(obj);
+
+            forEachObject(this.argsDefinition[argName].args, (argDef, argName) => {
+                obj[argName] = utils.clone(argDef.value);
+                if (argDef.type === 'string') {
+                    obj[argName] = argDef.value.replaceAll('##IDX##', array.length);
+                }
+            });
+
+            this.emitArgumentChange(argName);
+            this.$forceUpdate();
         },
 
         buildArgumentBindOptions(argName) {
@@ -283,7 +375,7 @@ export default {
         },
 
         emitArgumentChange(argName) {
-            this.$emit('argument-changed', argName, this.argumentValues[argName]);
+            this.$emit('argument-changed', {name: argName, value: this.argumentValues[argName]});
         },
 
         /**

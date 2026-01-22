@@ -1100,12 +1100,12 @@ export default {
             });
         },
 
-        onFunctionArgumentsEditorChange(argName, value) {
-            this.updateActionOfFunctionArgumentEditor(`args.${argName}`, action => {
+        onFunctionArgumentsEditorChange({ name, value }) {
+            this.updateActionOfFunctionArgumentEditor(`args.${name}`, action => {
                 if (!action.argBinds) {
                     action.argBinds = {};
                 }
-                action.args[argName] = value;
+                action.args[name] = value;
             });
         },
 

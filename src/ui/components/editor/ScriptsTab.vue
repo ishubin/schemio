@@ -755,7 +755,7 @@ export default {
             }
         },
 
-        onScriptFunctionEditorPropChange(name, value) {
+        onScriptFunctionEditorPropChange({ name, value }) {
             this.funcModal.props[name] = value;
             this.schemeContainer.scheme.scripts.functions[this.funcModal.funcIdx].props[name] = value;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.props.${name}`);

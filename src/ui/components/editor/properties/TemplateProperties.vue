@@ -199,7 +199,7 @@ export default {
             this.editorPanels = editor.panels;
         },
 
-        onArgChanged(name, value) {
+        onArgChanged({ name, value }) {
             // syncing template args that are saved in the template
             // to make sure that we don't override them
             if (this.item.args && this.item.args.templateArgs) {

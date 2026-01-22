@@ -135,8 +135,8 @@ export default {
             this.$forceUpdate();
         },
 
-        emitArgChange(argName, argValue) {
-            this.$emit('argument-changed', argName, argValue);
+        emitArgChange(name, value) {
+            this.$emit('argument-changed', {name, value});
         },
 
         detectScriptOptionIdx() {
