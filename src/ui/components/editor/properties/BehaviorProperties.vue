@@ -208,6 +208,14 @@
             <span class="btn btn-secondary" @click="pasteEvents()">Paste events</span>
         </panel>
 
+        <panel v-if="!onlyEvents" uid="item-classes" name="Functions">
+            <CustomFunctionsEditor
+                :editorId="editorId"
+                :schemeContainer="schemeContainer"
+                :functions="item.functions"
+            />
+        </panel>
+
         <panel v-if="!onlyEvents" uid="item-classes" name="Classes">
             <ItemClassProperties
                 :editorId="editorId"
@@ -286,6 +294,7 @@ import { dragAndDropBuilder } from '../../../dragndrop';
 import Modal from '../../Modal.vue';
 import { getEffects } from '../../effects/Effects';
 import ItemClassProperties from './ItemClassProperties.vue';
+import CustomFunctionsEditor from '../CustomFunctionsEditor.vue';
 
 
 function byName(a, b) {
@@ -383,7 +392,7 @@ export default {
 
     components: {
         Dropdown, ElementPicker, SetArgumentEditor, Panel, ArgumentsEditor,
-        VueTagsInput, Modal, NumberTextfield, ItemClassProperties,
+        VueTagsInput, Modal, NumberTextfield, ItemClassProperties, CustomFunctionsEditor
     },
 
     data() {
@@ -598,14 +607,17 @@ export default {
                 });
             });
 
-            forEach(this.schemeContainer.scheme.scripts.functions, funcDef => {
+            const funcCollector = (funcDef) => {
                 methods.push({
                     method: 'function',
                     name: funcDef.name,
                     description: funcDef.description,
                     iconClass: 'fa-solid fa-florin-sign'
                 });
-            });
+            };
+
+            forEach(this.schemeContainer.scheme.scripts.functions, funcCollector);
+            forEach(item.functions, funcCollector);
 
             methods.sort((a,b) => {
                 if (a.name < b.name) {
@@ -891,7 +903,16 @@ export default {
                 } else if (methodOption.method === 'function') {
                     action.method = 'function:' + methodOption.name;
                     action.args = {};
-                    const funcDef = this.schemeContainer.scheme.scripts.functions.find(f => f.name === methodOption.name);
+                    let funcDef = null;
+                    const elementItem = this.findElement(action.element);
+                    // first searching for a function definition inside of the referenced item
+                    if (elementItem && Array.isArray(elementItem.functions)) {
+                        funcDef = elementItem.functions.find(f => f.name === methodOption.name);
+                    }
+                    // if not found, then searching in the global document functions
+                    if (!funcDef) {
+                        funcDef = this.schemeContainer.scheme.scripts.functions.find(f => f.name === methodOption.name);
+                    }
                     if (funcDef && Array.isArray(funcDef.args)) {
                         funcDef.args.forEach(argDef => {
                             action.args[argDef.name] = argDef.value;
@@ -1011,7 +1032,16 @@ export default {
 
             if (action.method.startsWith('function:')) {
                 const funcName = action.method.substring(9);
-                const funcDef = this.schemeContainer.scheme.scripts.functions.find(fundDef => fundDef.name === funcName);
+                let funcDef = null;
+                const elementItem = this.findElement(action.element);
+                // first searchin in the referenced item functions
+                if (elementItem && Array.isArray(elementItem.functions)) {
+                    funcDef = elementItem.functions.find(fundDef => fundDef.name === funcName);
+                }
+                if (!funcDef) {
+                    // if not found in item functions, searching in the global document functions
+                    funcDef = this.schemeContainer.scheme.scripts.functions.find(fundDef => fundDef.name === funcName);
+                }
 
                 if (funcDef) {
                     functionDescription = {

@@ -5,7 +5,7 @@
 import {forEach} from '../collections';
 import { Logger } from '../logger.js';
 import knownFunctions from './functions/Functions.js';
-import { findSchemeDefinedScriptFunction } from './functions/ScriptFunction.js';
+import { findCustomItemFunction } from './functions/ScriptFunction.js';
 
 const log = new Logger('Compiler');
 
@@ -56,10 +56,13 @@ export function compileActions(schemeContainer, userEventBus, selfItem, actions,
         }
         if (action.element) {
             const elements = schemeContainer.findElementsBySelector(action.element, selfItem);
-            if (elements) {
+            if (Array.isArray(elements) && elements.length > 0) {
                 let knownFunc = knownFunctions.main[action.method];
                 if (!knownFunc && action.method.startsWith('function:')) {
-                    knownFunc = findSchemeDefinedScriptFunction(schemeContainer, action.method.substring(9), action.args);
+                    knownFunc = findCustomItemFunction(elements[0].functions, action.method.substring(9), action.args);
+                    if (!knownFunc) {
+                        knownFunc = findCustomItemFunction(schemeContainer.scheme.scripts.functions, action.method.substring(9), action.args);
+                    }
                 }
                 if (knownFunc) {
                     const args = enrichFuncArgsWithBindedArgs(enrichFuncArgs(action.args, knownFunc), action, classArgs);

@@ -3,7 +3,7 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 
 <template lang="html">
-    <div class="panel">
+    <div class="panel" :class="{'no-border': !border}">
         <div class="panel-title text-nonselectable"
             :class="{'panel-expanded': isOpen, 'panel-collapsed': !isOpen}"
             @click="togglePanel">
@@ -28,6 +28,10 @@ export default {
         closable: {
             type: Boolean,
             default: false
+        },
+        border: {
+            type: Boolean,
+            default: true
         }
     },
     data() {

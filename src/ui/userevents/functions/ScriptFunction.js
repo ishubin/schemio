@@ -160,14 +160,14 @@ function execute(item, args, schemeContainer, userEventBus, resultCallback, subs
 
 
 /**
- * @param {SchemeContainer} schemeContainer
+ * @param {Array} functions
  * @param {Item} funcName
  * @returns {Object}
  */
-export function findSchemeDefinedScriptFunction(schemeContainer, funcName) {
+export function findCustomItemFunction(functions, funcName) {
     let funcDef = null;
     if (!funcDef) {
-        funcDef = schemeContainer.scheme.scripts.functions.find(f => f.name === funcName);
+        funcDef = functions.find(f => f.name === funcName);
     }
     if (!funcDef) {
         return null;

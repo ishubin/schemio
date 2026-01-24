@@ -1,6 +1,7 @@
 <template>
     <div>
         <Dropdown v-if="classOptions.length > 0" :options="classOptions" @selected="onNewClassSelected">Select class</Dropdown>
+        <div v-else class="hint hint-small">There are no classes defined in this document</div>
 
         <div class="item-class-labels">
             <div v-for="(itemClass, idx) in itemClasses" class="item-class-label">

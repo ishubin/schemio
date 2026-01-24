@@ -37,15 +37,17 @@ item:
       type: solid
       color: rgba(200,200,200,1)
     strokeColor: rgba(200,200,200,1)
+    cornerRadius: {$-expr: cornerRadius}
   locked: false
   area:
     x: 0
     y: 0
-    w: {$-expr: "width"}
-    h: {$-expr: "height"}
+    w: {$-expr: width}
+    h: {$-expr: height}
   childItems:
   - id: grid
     shape: grid
+    name: grid
     clip: false
     area:
       x: 10

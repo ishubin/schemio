@@ -2102,6 +2102,10 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     margin: 2px;
     padding-top: 2px;
 }
+.panel.no-border, [data-theme="dark"] .panel.no-border {
+    border: none;
+    box-shadow: none;
+}
 .panel-body {
     margin-bottom: 10px;
 }

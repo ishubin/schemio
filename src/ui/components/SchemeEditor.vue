@@ -469,7 +469,7 @@
                         </div>
                         <div v-if="currentTab === 'Item'">
                             <div v-if="mode === 'edit'">
-                                <panel name="Items">
+                                <panel name="Items" :border="false">
                                     <ItemSelector
                                         :editorId="editorId"
                                         :scheme-container="schemeContainer"
