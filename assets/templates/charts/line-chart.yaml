@@ -34,6 +34,10 @@ $-def:changeDataPointInitScript:
     struct Point {
       x: 0
       y: 0
+      x1: 0
+      y1: 0
+      x2: 0
+      y2: 0
     }
 
     local xStep = ${xStep}
@@ -169,9 +173,8 @@ item:
             pos: relative
             points:
             - $-foreach: {source: "parseDatasetPoints(dataset.values)", it: "point", index: pointIdx}
+              $-extend: {$-expr: 'toJSON(point)'}
               id: {$-expr: pointIdx}
-              x: {$-expr: point.x * 100 / plotWidth}
-              y: {$-expr: point.y * 100 / plotHeight}
 
 
 

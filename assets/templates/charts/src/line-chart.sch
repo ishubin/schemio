@@ -7,6 +7,17 @@ dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 struct Point {
     x: 0
     y: 0
+    t: 'L'
+}
+
+struct SmoothPoint {
+    x: 0
+    y: 0
+    x1: 0
+    y1: 0
+    x2: 0
+    y2: 0
+    t: 'B'
 }
 
 func parseDatasetPoints(encodedPoints) {
@@ -14,8 +25,25 @@ func parseDatasetPoints(encodedPoints) {
         return List()
     }
 
-    encodedPoints.split(',').map((p, idx) => {
+    local points = encodedPoints.split(',').map((p, idx) => {
         local value = parseFloat(p.trim())
-        Point(dx * idx, (yMax - value) * plotHeight / dy)
+        Point(dx * idx * 100 / plotWidth, (yMax - value) * 100 / dy)
     })
+
+    if (lineType == 'smooth') {
+        return points.map((p, idx) => {
+            local p1 = if (idx > 0) { points.get(idx - 1) } else { p }
+            local p2 = if (idx < points.size - 1) { points.get(idx + 1) } else { p }
+            local v = Vector(p2.x, p2.y) - Vector(p1.x, p1.y)
+            v = v.normalized() * dx / 2
+
+            local x1 = -v.x * 100 / plotWidth
+            local y1 = -v.y * 100 / plotHeight
+            local x2 = v.x * 100 / plotWidth
+            local y2 = v.y * 100 / plotHeight
+            SmoothPoint(p.x, p.y, x1, y1, x2, y2)
+        })
+    } else {
+        return points
+    }
 }
