@@ -142,22 +142,34 @@ function parseTemplateExpressionBlock(expressions) {
  * @returns {CompiledItemTemplate}
  */
 export function compileItemTemplate(editorId, template, templateRef, schemeContainer) {
+    const customDefinitions = {};
+    for (let key in template) {
+        if (template.hasOwnProperty(key) && key.startsWith('$-def:')) {
+            customDefinitions[key] = template[key];
+        }
+    }
+
+
     const initBlock = toExpressionBlock(template.init);
     const compiledControlBuilder = compileJSONTemplate({
+        ...customDefinitions,
         '$-eval': initBlock,
         controls: template.controls || []
     });
 
     const itemBuilder = compileJSONTemplate({
+        ...customDefinitions,
         '$-eval': initBlock,
         item: template.item,
     });
 
     const itemPostBuilder = compileJSONTemplate({
+        ...customDefinitions,
         item: template.item
     });
 
     const editorJSONBuilder = compileJSONTemplate({
+        ...customDefinitions,
         '$-eval': initBlock,
         editor: template.editor || defaultEditor,
     });

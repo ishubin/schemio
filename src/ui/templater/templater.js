@@ -173,11 +173,17 @@ function compileObjectProcessor(obj, customDefinitions) {
         extendBuilder = compile(obj[$_EXTEND], customDefinitions);
     }
 
+    // first processing all object definitions
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
             if (key.startsWith($_DEF)) {
                 customDefinitions.set(key.substring($_DEF.length).trim(), obj[key]);
             }
+        }
+    }
+
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
             if (!key.startsWith('$-')) {
                 fieldBuilders.push({
                     key: key,
@@ -447,6 +453,9 @@ function compileForEachLoopArrayItemBuilder(item, $foreach, customDefinitions) {
             const result = [];
             iterator((value, idx) => {
                 scope.set($foreach.it, value);
+                if ($foreach.index) {
+                    scope.set($foreach.index, idx);
+                }
                 const shouldBeAdded = conditionExpression ? conditionExpression.evalNode(scope) : true;
                 if (shouldBeAdded) {
                     result.push(objProcessor(scope));

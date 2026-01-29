@@ -128,7 +128,7 @@ function parseFunction(functionProvider, tokens) {
         }
     }
 
-    return new ASTFunctionInvocation(functionProvider, args.map(parseAST));
+    return new ASTFunctionInvocation(functionProvider, args.map((argTokens) => parseAST(argTokens, "")));
 }
 
 class ASTParser extends TokenScanner {

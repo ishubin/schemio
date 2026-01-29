@@ -26,6 +26,7 @@ import { computeCurvePath, convertCurvePointToItemScale, convertCurvePointToRela
 import EditorEventBus from '../../EditorEventBus';
 import {Vector} from '../../../../templater/vector';
 import { localPointOnItem, worldPointOnItem } from '../../../../scheme/ItemMath';
+import utils from '../../../../utils.js';
 
 const log = new Logger('Path');
 
@@ -205,11 +206,36 @@ function scriptFunctions(editorId, schemeContainer, item) {
             });
         },
 
+        getPathPoints(pathIdx) {
+            return withPath(pathIdx, path => {
+                // cloning the points since we don't want the user to be able to mutate points
+                // of the item, also if the user stores the points somewhere in SchemioScript
+                // we don't want them to be updated with new values
+                const points = utils.clone(path.points);
+                return points.map(point => {
+                    if (path.pos === 'relative') {
+                        return convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                    } else {
+                        return point;
+                    }
+                });
+            });
+        },
+
         getPathPointWorldPos(pathIdx, pointIdx) {
             return withPath(pathIdx, path => {
                 return withPoint(path, pointIdx, point => {
                     const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
                     return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
+                })
+            });
+        },
+
+        getPathPointPos(pathIdx, pointIdx) {
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    const p = convertCurvePointToItemScale(point, item.area.w, item.area.h);
+                    return Vector.fromPoint(p);
                 })
             });
         },
@@ -220,6 +246,18 @@ function scriptFunctions(editorId, schemeContainer, item) {
                 return withPoint(path, pointIdx, point => {
                     const localPoint = localPointOnItem(x, y, item);
                     const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                    point.x = p.x;
+                    point.y = p.y;
+                    emitItemChanged();
+                });
+            });
+        },
+
+        setPathPointPos(pathIdx, pointIdx, x, y) {
+            ensurePathIsValid();
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    const p = convertCurvePointToRelative({x, y}, item.area.w, item.area.h);
                     point.x = p.x;
                     point.y = p.y;
                     emitItemChanged();
@@ -238,8 +276,7 @@ function scriptFunctions(editorId, schemeContainer, item) {
 
         addPoint(pathIdx, x, y) {
             return withPath(pathIdx, path => {
-                const localPoint = localPointOnItem(x, y, item);
-                const p = convertCurvePointToRelative(localPoint, item.area.w, item.area.h);
+                const p = convertCurvePointToRelative({x, y}, item.area.w, item.area.h);
                 path.points.push({
                     t: 'L',
                     x: p.x,
@@ -251,18 +288,14 @@ function scriptFunctions(editorId, schemeContainer, item) {
 
         addBeizerPoint(pathIdx, x, y, x1, y1, x2, y2) {
             return withPath(pathIdx, path => {
-                const lp = localPointOnItem(x, y, item);
-                const lp1 = localPointOnItem(x + x1, y + y1, item);
-                const lp2 = localPointOnItem(x + x2, y + y2, item);
-
                 const p = convertCurvePointToRelative({
                     t: 'B',
-                    x: lp.x,
-                    y: lp.y,
-                    x1: lp1.x - lp.x,
-                    y1: lp1.y - lp.y,
-                    x2: lp2.x - lp.x,
-                    y2: lp2.y - lp.y,
+                    x: x,
+                    y: y,
+                    x1: x1,
+                    y1: y1,
+                    x2: x2,
+                    y2: y2,
                 }, item.area.w, item.area.h);
                 path.points.push(p);
                 emitItemChanged();
@@ -282,6 +315,26 @@ function scriptFunctions(editorId, schemeContainer, item) {
                 return Vector.fromPoint(worldPointOnItem(p.x, p.y, item));
             });
         },
+
+        removePath(pathIdx) {
+            if (pathIdx < 0 || pathIdx >= item.shapeProps.paths.length) {
+                return;
+            }
+            item.shapeProps.paths.splice(pathIdx, 1);
+            emitItemChanged();
+        },
+
+        removePathPoint(pathIdx, pointIdx) {
+            if (pathIdx < 0 || pathIdx >= item.shapeProps.paths.length) {
+                return;
+            }
+            const pathPoints = item.shapeProps.paths[pathIdx].points;
+            if (pointIdx < 0 || pointIdx >= pathPoints.length) {
+                return;
+            }
+            pathPoints.splice(pointIdx, 1);
+            emitItemChanged();
+        }
     };
 }
 

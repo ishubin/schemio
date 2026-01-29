@@ -931,6 +931,29 @@ function scriptFunctions(editorId, schemeContainer, item) {
             });
         },
 
+        setPointPos(pointIdx, x, y) {
+            return withPoint(pointIdx, point => {
+                if (pointIdx === 0) {
+                    item.shapeProps.sourceItem = null;
+                } else if (pointIdx === item.shapeProps.points.length - 1) {
+                    item.shapeProps.destinationItem = null;
+                }
+                point.x = x;
+                point.y = y;
+                emitItemChanged();
+            });
+        },
+
+        addPoint(x, y) {
+            item.shapeProps.destinationItem = null;
+            item.shapeProps.points.push({
+                x: x,
+                y: y
+            });
+            emitItemChanged();
+            return item.shapeProps.points.length - 1;
+        },
+
         addWorldPoint(x, y) {
             item.shapeProps.destinationItem = null;
             const lp = localPointOnItem(x, y, item);

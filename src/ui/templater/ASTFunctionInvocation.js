@@ -1,4 +1,5 @@
 import { FUNC_INVOKE, VAR_REF } from "./consts";
+import { List } from "./list";
 import { ASTNode, ASTVarRef } from "./nodes";
 
 
@@ -27,7 +28,13 @@ export class ASTFunctionInvocation extends ASTNode {
                 throw new Error('Cannot resolve function');
             }
         }
-        return func(...args);
+        const result = func(...args);
+
+        //Automatic convertion of JavaScript array to SchemioScript List object
+        if (Array.isArray(result)) {
+            return new List(...result);
+        }
+        return result;
     }
 
     evalOnObject(scope, obj) {
@@ -49,6 +56,11 @@ export class ASTFunctionInvocation extends ASTNode {
         if (typeof f !== 'function') {
             throw new Error(`"${name}" is not a function`);
         }
-        return obj[name](...args);
+        const result = obj[name](...args);
+        //Automatic convertion of JavaScript array to SchemioScript List object
+        if (Array.isArray(result)) {
+            return new List(...result);
+        }
+        return result;
     }
 }

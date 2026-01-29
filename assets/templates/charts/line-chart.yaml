@@ -8,8 +8,8 @@ args:
     xStep: {type: 'number', value: 10, name: 'X step'}
     yMin: {type: 'number', value: 0, name: 'Y min'}
     yMax: {type: 'number', value: 100, name: 'Y max'}
-    graphs:
-      name: "Graphs"
+    datasets:
+      name: "Datasets"
       singular: graph
       type: array
       value:
@@ -28,6 +28,73 @@ defaultArea: {x: 0, y: 0, w: 120, h: 60}
 import:
     - ./src/line-chart.sch
 
+# initScript for the "Change data points function"
+$-def:changeDataPointInitScript:
+  $-str: |
+    struct Point {
+      x: 0
+      y: 0
+    }
+
+    local xStep = ${xStep}
+    local xMax = ${xMax}
+    local xMin = ${xMin}
+    local yMax = ${yMax}
+    local yMin = ${yMin}
+
+    local pathItem = findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
+    if (pathItem.getShape() != 'path') {
+      return
+    }
+    local plot = pathItem.findParent()
+    local plotWidth = plot.getWidth()
+    local plotHeight = plot.getHeight()
+    local dy = yMax - yMin
+    local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
+
+    local values = data.split(',').map(parseInt)
+    if (pathItem.totalPaths() == 0) {
+      pathItem.addPath()
+    }
+    local numPoints = pathItem.totalPathPoints(0)
+    if (numPoints < values.size) {
+      local lastPointIdx = numPoints - 1
+      local lastPointY = pathItem.getPathPointPos(0, lastPointIdx).y
+
+      for (local i = numPoints; i < values.size; i++) {
+        pathItem.addPoint(0, lastPointIdx * dx, lastPointY)
+      }
+    }
+
+    local srcPoints = pathItem.getPathPoints(0)
+    local dstPoints = List()
+    values.forEach((value, idx) => {
+      dstPoints.add(Point(idx * dx, (yMax - value) * plotHeight / dy))
+    })
+
+    local lastDstPoint = dstPoints.get(dstPoints.size - 1)
+    for (local i = values.size; i < numPoints; i++) {
+      dstPoints.add(lastDstPoint)
+    }
+
+
+$-def:changeDataPointLoopScript: |
+  dstPoints.forEach((dstPoint, idx) => {
+    local srcPoint = srcPoints.get(idx)
+    local x = srcPoint.x * (1 - t) + dstPoint.x * t
+    local y = srcPoint.y * (1 - t) + dstPoint.y * t
+    pathItem.setPathPointPos(0, idx, x, y)
+  })
+
+
+$-def:changeDataPointEndScript: |
+  if (numPoints > values.size) {
+    for (local i = values.size; i < numPoints; i++) {
+      pathItem.removePathPoint(0, i)
+    }
+  }
+
+
 item:
   id: root
   name: Line chart
@@ -44,6 +111,31 @@ item:
     y: 0
     w: {$-expr: width}
     h: {$-expr: height}
+  functions:
+  - id: func1
+    name: Change data points
+    args:
+    - id: arg-index
+      name: name
+      value: "Data 1"
+      type: string
+      description: The name of a dataset
+    - id: arg-data
+      name: data
+      value: 1, 2, 4, 5
+      type: string
+      description: New data point values (comma separated)
+    props:
+      initScript: {$-ref: changeDataPointInitScript}
+      script: {$-ref: changeDataPointLoopScript}
+      endScript: {$-ref: changeDataPointEndScript}
+      animated: true
+      animationType: "animation"
+      animationDuration: 0.5
+      transition: "ease-out"
+      inBackground: true
+
+
   childItems:
   - id: grid
     shape: grid
@@ -52,22 +144,34 @@ item:
     area:
       x: 10
       y: 10
-      w: {$-expr: "max(1, width - 20)"}
-      h: {$-expr: "max(1, height - 20)"}
+      w: {$-expr: "plotWidth"}
+      h: {$-expr: "plotHeight"}
     childItems:
-    - $-foreach: {source: "graphs", it: "graph"}
-      id: {$-str: "graph-${graph.id}"}
-      name: {$-expr: "graph.name"}
-      shape: connector
+    - $-foreach: {source: "datasets", it: "dataset"}
+      id: {$-str: "dataset-${dataset.id}"}
+      name: {$-expr: "dataset.name"}
+      area:
+        x: 0
+        y: 0
+        w: {$-expr: "plotWidth"}
+        h: {$-expr: "plotHeight"}
+      shape: path
+      tags:
+        - dataset-path
       shapeProps:
         smoothing: {$-expr: lineType}
-        strokeColor: {$-expr: graph.color}
+        strokeColor: {$-expr: dataset.color}
         strokeSize: 2
         strokePattern: solid
-        points:
-        - $-foreach: {source: "parseGraphPoints(graph.values)", it: "point"}
-          x: {$-expr: point.x}
-          y: {$-expr: point.y}
+        paths:
+          - id: dataset-path
+            closed: false
+            pos: relative
+            points:
+            - $-foreach: {source: "parseDatasetPoints(dataset.values)", it: "point", index: pointIdx}
+              id: {$-expr: pointIdx}
+              x: {$-expr: point.x * 100 / plotWidth}
+              y: {$-expr: point.y * 100 / plotHeight}
 
 
 
