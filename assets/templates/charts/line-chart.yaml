@@ -37,8 +37,9 @@ $-def:changeDataPointInitScript:
   $-str: |
     ${baseScriptForFunctions}
 
-    local pathItem = findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
-    if (pathItem.getShape() != 'path') {
+    local pathItem = findChildItemsByTag('dataset-path').find((item) => { item.getName() == name })
+    if (!pathItem || pathItem.getShape() != 'path') {
+      stop()
       return
     }
 
@@ -76,21 +77,7 @@ $-def:changeDataPointInitScript:
 
 
 $-def:changeDataPointLoopScript: |
-  dstPoints.forEach((dstPoint, idx) => {
-    local srcPoint = srcPoints.get(idx)
-    local x = srcPoint.x * (1 - t) + dstPoint.x * t
-    local y = srcPoint.y * (1 - t) + dstPoint.y * t
-    if (lineType == 'smooth') {
-      local x1 = srcPoint.x1 * (1 - t) + dstPoint.x1 * t
-      local y1 = srcPoint.y1 * (1 - t) + dstPoint.y1 * t
-      local x2 = srcPoint.x2 * (1 - t) + dstPoint.x2 * t
-      local y2 = srcPoint.y2 * (1 - t) + dstPoint.y2 * t
-      pathItem.setPathBezierPointPos(0, idx, x, y, x1, y1, x2, y2)
-
-    } else {
-      pathItem.setPathPointPos(0, idx, x, y)
-    }
-  })
+  changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
 
 
 $-def:changeDataPointEndScript: |
@@ -111,6 +98,8 @@ $-def:addDatasetInitScript:
     pathItem.setWidth(plot.getWidth())
     pathItem.setHeight(plot.getHeight())
     pathItem.addPath()
+    pathItem.tag('dataset-path')
+
     local values = data.split(',').map(parseInt)
 
     local valueY = yMax * plotHeight / dy
@@ -131,6 +120,38 @@ $-def:addDatasetInitScript:
 
     // smoothening the points
     smoothenPoints(dstPoints)
+
+$-def:addDatasetLoopScript: |
+  changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+  pathItem.setOpacity(100 * t)
+
+
+
+
+$-def:removeDatasetInitScript:
+  $-str: |
+    ${baseScriptForFunctions}
+
+    local pathItem = findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
+    if (!pathItem || pathItem.getShape() != 'path') {
+      stop()
+      return
+    }
+
+    local srcPoints = pathItem.getPathPoints(0)
+    local dstPoints = List()
+    srcPoints.forEach((p, idx) => {
+      dstPoints.add(Point(idx * dx, 0))
+    })
+
+$-def:removeDatasetLoopScript:
+  $-str: |
+    changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+    pathItem.setOpacity(100 * (1 - t))
+
+$-def:removeDatasetEndScript:
+  $-str: |
+    pathItem.remove()
 
 
 item:
@@ -200,7 +221,7 @@ item:
       type: stroke-pattern
     props:
       initScript: {$-ref: addDatasetInitScript}
-      script: {$-ref: changeDataPointLoopScript}
+      script: {$-ref: addDatasetLoopScript}
       endScript: ''
       animated: true
       animationType: "animation"
@@ -208,6 +229,24 @@ item:
       transition: "ease-out"
       inBackground: true
 
+
+  - id: func-delete-dataset
+    name: Delete dataset
+    args:
+    - id: arg-name
+      name: name
+      value: "Data 1"
+      type: string
+      description: The name of a dataset that should be removed from the plot
+    props:
+      initScript: {$-ref: removeDatasetInitScript}
+      script: {$-ref: removeDatasetLoopScript}
+      endScript: {$-ref: removeDatasetEndScript}
+      animated: true
+      animationType: "animation"
+      animationDuration: 0.5
+      transition: "ease-out"
+      inBackground: true
 
 
   childItems:

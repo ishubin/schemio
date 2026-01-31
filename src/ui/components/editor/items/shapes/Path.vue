@@ -288,6 +288,7 @@ function scriptFunctions(editorId, schemeContainer, item) {
             ensurePathIsValid();
             item.shapeProps.paths.push({
                 closed: false,
+                pos: 'relative',
                 points: []
             });
             return item.shapeProps.paths.length - 1;

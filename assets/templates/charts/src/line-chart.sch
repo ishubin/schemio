@@ -87,4 +87,21 @@ func smoothenPoints(points) {
         p.y2 = v.y
     })
 }
+
+func changePointsInAnimation(pathItem, srcPoints, dstPoints, t) {
+    dstPoints.forEach((dstPoint, idx) => {
+        local srcPoint = srcPoints.get(idx)
+        local x = srcPoint.x * (1 - t) + dstPoint.x * t
+        local y = srcPoint.y * (1 - t) + dstPoint.y * t
+        if (lineType == 'smooth') {
+            local x1 = srcPoint.x1 * (1 - t) + dstPoint.x1 * t
+            local y1 = srcPoint.y1 * (1 - t) + dstPoint.y1 * t
+            local x2 = srcPoint.x2 * (1 - t) + dstPoint.x2 * t
+            local y2 = srcPoint.y2 * (1 - t) + dstPoint.y2 * t
+            pathItem.setPathBezierPointPos(0, idx, x, y, x1, y1, x2, y2)
+        } else {
+            pathItem.setPathPointPos(0, idx, x, y)
+        }
+    })
+}
 `
