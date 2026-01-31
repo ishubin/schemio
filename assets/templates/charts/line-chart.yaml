@@ -35,31 +35,12 @@ import:
 # initScript for the "Change data points function"
 $-def:changeDataPointInitScript:
   $-str: |
-    struct Point {
-      x: 0
-      y: 0
-      x1: 0
-      y1: 0
-      x2: 0
-      y2: 0
-    }
-
-    local xStep = ${xStep}
-    local xMax = ${xMax}
-    local xMin = ${xMin}
-    local yMax = ${yMax}
-    local yMin = ${yMin}
-    local lineType = "${lineType}"
+    ${baseScriptForFunctions}
 
     local pathItem = findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
     if (pathItem.getShape() != 'path') {
       return
     }
-    local plot = pathItem.findParent()
-    local plotWidth = plot.getWidth()
-    local plotHeight = plot.getHeight()
-    local dy = yMax - yMin
-    local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
     local values = data.split(',').map(parseInt)
     if (pathItem.totalPaths() == 0) {
@@ -91,17 +72,7 @@ $-def:changeDataPointInitScript:
     }
 
     // smoothening the points
-    dstPoints.forEach((p, idx) => {
-      local p1 = if (idx > 0) { dstPoints.get(idx - 1) } else { p }
-      local p2 = if (idx < dstPoints.size - 1) { dstPoints.get(idx + 1) } else { p }
-      local v = Vector(p2.x, p2.y) - Vector(p1.x, p1.y)
-      v = v.normalized() * dx / 2
-
-      p.x1 = -v.x
-      p.y1 = -v.y
-      p.x2 = v.x
-      p.y2 = v.y
-    })
+    smoothenPoints(dstPoints)
 
 
 $-def:changeDataPointLoopScript: |
@@ -128,6 +99,38 @@ $-def:changeDataPointEndScript: |
       pathItem.removePathPoint(0, i)
     }
   }
+
+
+$-def:addDatasetInitScript:
+  $-str: |
+    ${baseScriptForFunctions}
+
+    local pathItem = buildItem('path', name)
+    pathItem.mount(plot)
+    pathItem.setPos(0, 0)
+    pathItem.setWidth(plot.getWidth())
+    pathItem.setHeight(plot.getHeight())
+    pathItem.addPath()
+    local values = data.split(',').map(parseInt)
+
+    local valueY = yMax * plotHeight / dy
+    for (local i = 0; i < values.size; i++) {
+      if (lineType == 'smooth') {
+        pathItem.addBezierPoint(0, i * dx, valueY, 0, 0, 0, 0)
+      } else {
+        pathItem.addPoint(0, i * dx, valueY)
+      }
+    }
+
+    local srcPoints = List()
+    local dstPoints = List()
+    values.forEach((value, idx) => {
+      srcPoints.add(Point(idx * dx, valueY))
+      dstPoints.add(Point(idx * dx, (yMax - value) * plotHeight / dy))
+    })
+
+    // smoothening the points
+    smoothenPoints(dstPoints)
 
 
 item:
@@ -170,12 +173,50 @@ item:
       transition: "ease-out"
       inBackground: true
 
+  - id: func2
+    name: Add dataset
+    args:
+    - id: arg-name
+      name: name
+      value: "New data"
+      type: string
+      description: The name of a dataset
+    - id: arg-data
+      name: data
+      value: 1, 2, 4, 5
+      type: string
+      description: New dataset values (comma separated)
+    - id: arg-color
+      name: color
+      value: "#355E97FF"
+      type: color
+    - id: arg-stroke-size
+      name: strokeSize
+      value: 2
+      type: number
+    - id: arg-stroke-pattern
+      name: strokePattern
+      value: solid
+      type: stroke-pattern
+    props:
+      initScript: {$-ref: addDatasetInitScript}
+      script: {$-ref: changeDataPointLoopScript}
+      endScript: ''
+      animated: true
+      animationType: "animation"
+      animationDuration: 0.5
+      transition: "ease-out"
+      inBackground: true
+
+
 
   childItems:
   - id: grid
     shape: grid
     name: grid
     clip: false
+    tags:
+      - chart-plot
     area:
       x: 10
       y: 10
