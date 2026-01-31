@@ -56,6 +56,13 @@
                                         :disabled="!argumentControlStates[argName].shown"
                                         @changed="onValueChange(argName, $event)"/>
 
+
+                                    <StrokePatternDropdown v-if="arg.type === 'stroke-pattern'"
+                                        :editorId="editorId"
+                                        :value="argumentValues[argName]"
+                                        :disabled="!argumentControlStates[argName].shown"
+                                        @selected="onValueChange(argName, $event)" />
+
                                     <ColorPicker :editorId="editorId" v-if="arg.type === 'color'" :color="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
                                         @changed="onValueChange(argName, $event)"/>
@@ -185,6 +192,7 @@ import { getAllFonts } from '../../scheme/Fonts';
 import Panel from './Panel.vue';
 import shortid from 'shortid';
 import utils from '../../utils';
+import StrokePatternDropdown from './StrokePatternDropdown.vue';
 
 export default {
     name: 'ArgumentsEditor',
@@ -202,7 +210,7 @@ export default {
     components: {
         Modal, ColorPicker, ElementPicker, Tooltip, NumberTextfield, Dropdown,
         AdvancedColorEditor, ScriptEditor, DiagramPicker, PathCapDropdown,
-        Panel
+        Panel, StrokePatternDropdown
     },
 
     beforeMount() {
