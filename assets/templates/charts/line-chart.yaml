@@ -45,6 +45,7 @@ $-def:changeDataPointInitScript:
     local xMin = ${xMin}
     local yMax = ${yMax}
     local yMin = ${yMin}
+    local lineType = "${lineType}"
 
     local pathItem = findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
     if (pathItem.getShape() != 'path') {
@@ -66,7 +67,11 @@ $-def:changeDataPointInitScript:
       local lastPointY = pathItem.getPathPointPos(0, lastPointIdx).y
 
       for (local i = numPoints; i < values.size; i++) {
-        pathItem.addPoint(0, lastPointIdx * dx, lastPointY)
+        if (lineType == 'smooth') {
+          pathItem.addBezierPoint(0, lastPointIdx * dx, lastPointY, 0, 0, 0, 0)
+        } else {
+          pathItem.addPoint(0, lastPointIdx * dx, lastPointY)
+        }
       }
     }
 
@@ -81,13 +86,35 @@ $-def:changeDataPointInitScript:
       dstPoints.add(lastDstPoint)
     }
 
+    // smoothening the points
+    dstPoints.forEach((p, idx) => {
+      local p1 = if (idx > 0) { dstPoints.get(idx - 1) } else { p }
+      local p2 = if (idx < dstPoints.size - 1) { dstPoints.get(idx + 1) } else { p }
+      local v = Vector(p2.x, p2.y) - Vector(p1.x, p1.y)
+      v = v.normalized() * dx / 2
+
+      p.x1 = -v.x
+      p.y1 = -v.y
+      p.x2 = v.x
+      p.y2 = v.y
+    })
+
 
 $-def:changeDataPointLoopScript: |
   dstPoints.forEach((dstPoint, idx) => {
     local srcPoint = srcPoints.get(idx)
     local x = srcPoint.x * (1 - t) + dstPoint.x * t
     local y = srcPoint.y * (1 - t) + dstPoint.y * t
-    pathItem.setPathPointPos(0, idx, x, y)
+    if (lineType == 'smooth') {
+      local x1 = srcPoint.x1 * (1 - t) + dstPoint.x1 * t
+      local y1 = srcPoint.y1 * (1 - t) + dstPoint.y1 * t
+      local x2 = srcPoint.x2 * (1 - t) + dstPoint.x2 * t
+      local y2 = srcPoint.y2 * (1 - t) + dstPoint.y2 * t
+      pathItem.setPathBezierPointPos(0, idx, x, y, x1, y1, x2, y2)
+
+    } else {
+      pathItem.setPathPointPos(0, idx, x, y)
+    }
   })
 
 

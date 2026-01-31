@@ -877,7 +877,7 @@ const groupName = 'Connections';
 function scriptFunctions(editorId, schemeContainer, item) {
     const withPoint = (pointIdx, callback) => {
         if (pointIdx < 0 || pointIdx >= item.shapeProps.points.length) {
-            throw new Error(`Invalid point index: ${pointIdx}`);
+            return;
         }
 
         return callback(item.shapeProps.points[pointIdx]);

@@ -126,7 +126,7 @@ function scriptFunctions(editorId, schemeContainer, item) {
 
     const withPoint = (path, pointIdx, callback) => {
         if (pointIdx < 0 || pointIdx >= path.points.length) {
-            throw new Error(`Invalid point index: ${pointIdx}`);
+            return;
         }
 
         return callback(path.points[pointIdx]);
@@ -265,6 +265,25 @@ function scriptFunctions(editorId, schemeContainer, item) {
             });
         },
 
+        setPathBezierPointPos(pathIdx, pointIdx, x, y, x1, y1, x2, y2) {
+            ensurePathIsValid();
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    const p = convertCurvePointToRelative({
+                        t: 'B', x, y, x1, y1, x2, y2
+                    }, item.area.w, item.area.h);
+                    point.x = p.x;
+                    point.y = p.y;
+                    point.t = 'B';
+                    point.x1 = p.x1;
+                    point.y1 = p.y1;
+                    point.x2 = p.x2;
+                    point.y2 = p.y2;
+                    emitItemChanged();
+                });
+            });
+        },
+
         addPath() {
             ensurePathIsValid();
             item.shapeProps.paths.push({
@@ -286,7 +305,11 @@ function scriptFunctions(editorId, schemeContainer, item) {
             });
         },
 
+        // keeping the old name with typo not to break diagrams of users that were using this function
         addBeizerPoint(pathIdx, x, y, x1, y1, x2, y2) {
+            return this.addBezierPoint(pathIdx, x, y, x1, y1, x2, y2);
+        },
+        addBezierPoint(pathIdx, x, y, x1, y1, x2, y2) {
             return withPath(pathIdx, path => {
                 const p = convertCurvePointToRelative({
                     t: 'B',
