@@ -1,5 +1,100 @@
-plotWidth = max(1, width - 20)
-plotHeight = max(1, height - 20)
+legendHeight = 0
+legendWidth = width - padding * 2
+legendLabels = List()
+local labelsGap = 15
+local labelIconWidth = 20
+local legendTopMargin = 10
+
+struct LegendLabel {
+    name: ""
+    color: "#ff00ffff"
+    x: 0
+    y: 0
+    w: 1
+    h: 1
+}
+
+if (hasLegend) {
+    local maxTextHeight = -1
+
+    local freeSlotWidth = legendWidth
+    local freeSlotY = 0
+    local freeSlotX = 0
+
+    if (datasets.size == 0) {
+        return
+    }
+
+    local allLabels = datasets.map((dataset, idx) => {
+        local size = calculateTextSize(dataset.name, font, fontSize)
+        size.h *= 2.2
+        if (size.w > legendWidth) {
+            size.w = legendWidth
+        }
+        LegendLabel(
+            dataset.name, dataset.color,
+            0, 0, size.w, size.h
+        )
+    })
+
+    for( ; allLabels.size > 0 ; ) {
+        local label = allLabels.get(0)
+        if (labelIconWidth + label.w <= freeSlotWidth) {
+            label.x = freeSlotX
+            label.y = freeSlotY
+
+            legendLabels.add(label)
+            allLabels.shift()
+
+            if (maxTextHeight < label.h) {
+                maxTextHeight = label.h
+            }
+
+            freeSlotX += labelIconWidth + label.w + labelsGap
+            freeSlotWidth = legendWidth - freeSlotX
+        } else {
+            local idx = allLabels.findIndex((label) => { label.w + labelIconWidth <= freeSlotWidth })
+            if (idx >= 0) {
+                local label = allLabels.get(idx)
+                label.x = freeSlotX
+                label.y = freeSlotY
+
+                legendLabels.add(label)
+                allLabels.remove(idx)
+
+                if (maxTextHeight < label.h) {
+                    maxTextHeight = label.h
+                }
+
+                freeSlotX += label.w + labelIconWidth + labelsGap
+                freeSlotWidth = legendWidth - freeSlotX
+            } else {
+                freeSlotX = 0
+                if (maxTextHeight > 0) {
+                    freeSlotY += maxTextHeight + 5
+                }
+                freeSlotWidth = legendWidth
+
+                label.x = freeSlotX
+                label.y = freeSlotY
+
+                legendLabels.add(label)
+                allLabels.shift()
+
+                freeSlotX += labelIconWidth + label.w + labelsGap
+                freeSlotWidth = legendWidth - freeSlotX
+            }
+        }
+    }
+
+    legendHeight = min(height/2, legendTopMargin + freeSlotY + maxTextHeight + 5)
+}
+
+plotWidth = max(1, width - padding*2)
+plotHeight = max(1, height - padding*2 - legendHeight)
+
+
+
 dy = yMax - yMin
 dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
@@ -32,16 +127,8 @@ func parseDatasetPoints(encodedPoints) {
 
     if (lineType == 'smooth') {
         return points.map((p, idx) => {
-            local p1 = if (idx > 0) { points.get(idx - 1) } else { p }
-            local p2 = if (idx < points.size - 1) { points.get(idx + 1) } else { p }
-            local v = Vector(p2.x, p2.y) - Vector(p1.x, p1.y)
-            v = v.normalized() * dx / 2
-
-            local x1 = -v.x * 100 / plotWidth
-            local y1 = -v.y * 100 / plotHeight
-            local x2 = v.x * 100 / plotWidth
-            local y2 = v.y * 100 / plotHeight
-            SmoothPoint(p.x, p.y, x1, y1, x2, y2)
+            local vdx = dx * 100 / (plotWidth*2)
+            SmoothPoint(p.x, p.y, -vdx, 0, vdx, 0)
         })
     } else {
         return points
@@ -76,15 +163,10 @@ local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
 func smoothenPoints(points) {
     points.forEach((p, idx) => {
-        local p1 = if (idx > 0) { points.get(idx - 1) } else { p }
-        local p2 = if (idx < points.size - 1) { points.get(idx + 1) } else { p }
-        local v = Vector(p2.x, p2.y) - Vector(p1.x, p1.y)
-        v = v.normalized() * dx / 2
-
-        p.x1 = -v.x
-        p.y1 = -v.y
-        p.x2 = v.x
-        p.y2 = v.y
+        p.x1 = -dx/2
+        p.y1 = 0
+        p.x2 = dx/2
+        p.y2 = 0
     })
 }
 

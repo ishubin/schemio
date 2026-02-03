@@ -8,6 +8,12 @@ args:
     xStep: {type: 'number', value: 10, name: 'X step'}
     yMin: {type: 'number', value: 0, name: 'Y min'}
     yMax: {type: 'number', value: 100, name: 'Y max'}
+    padding: {type: 'number', value: 10, name: 'Padding'}
+    hasLegend: {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
+    fontSize: {group: 'Legend', type: 'number', value: 14, name: 'Font size', depends: {hasLegend: true}}
+    font: {group: 'Legend', type: font, value: Arial, name: Font, depends: {hasLegend: true}}
+    fontColor: {group: 'Legend', type: color, value: "#333333FF", name: Label color, depends: {hasLegend: true}}
+
     datasets:
       name: "Datasets"
       singular: graph
@@ -257,10 +263,10 @@ item:
     tags:
       - chart-plot
     area:
-      x: 10
-      y: 10
-      w: {$-expr: "plotWidth"}
-      h: {$-expr: "plotHeight"}
+      x: { $-expr: padding }
+      y: { $-expr: padding }
+      w: { $-expr: plotWidth }
+      h: { $-expr: plotHeight }
     childItems:
     - $-foreach: {source: "datasets", it: "dataset"}
       id: {$-str: "dataset-${dataset.id}"}
@@ -286,6 +292,55 @@ item:
             - $-foreach: {source: "parseDatasetPoints(dataset.values)", it: "point", index: pointIdx}
               $-extend: {$-expr: 'toJSON(point)'}
               id: {$-expr: pointIdx}
+
+  - id: legend
+    $-if: hasLegend
+    shape: rect
+    name: Legend
+    area:
+      x: {$-expr: padding}
+      y: {$-expr: 'plotHeight + padding + legendTopMargin'}
+      w: {$-expr: legendWidth}
+      h: {$-expr: legendHeight}
+    shapeProps:
+      fill: {type: none}
+      strokeSize: 0
+      cornerRadius: 0
+    childItems:
+      - $-foreach: {source: legendLabels, it: label, index: idx}
+        id: {$-str: "legend-label-${idx}"}
+        shape: rect
+        name: {$-expr: label.name}
+        area:
+          x: {$-expr: label.x}
+          y: {$-expr: 'label.y + fontSize/2 - 2'}
+          w: 15
+          h: 5
+        shapeProps:
+          cornerRadius: 5
+          strokeSize: 0
+          fill: {type: solid, color: {$-expr: label.color}}
+
+      - $-foreach: {source: legendLabels, it: label, index: idx}
+        id: {$-str: "legend-label-text-${idx}"}
+        shape: none
+        name: {$-expr: label.name}
+        area:
+          x: {$-expr: 'label.x + 20'}
+          y: {$-expr: 'label.y'}
+          w: {$-expr: label.w}
+          h: {$-expr: label.h}
+        args:
+          templateForceText: true
+        textSlots:
+          body:
+            text: {$-expr: label.name}
+            color: {$-expr: fontColor}
+            font: {$-expr: font}
+            fontSize: {$-expr: fontSize}
+            halign: left
+            valign: top
+
 
 
 

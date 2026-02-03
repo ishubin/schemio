@@ -70,6 +70,10 @@
 
     --page-content-font-size: 20px;
 
+    --shadow-xs:
+    inset 0 1px 1px #ffffff25,
+    1px 1px 2px #00000030;
+
     --shadow-s:
     inset 0 1px 2px #ffffff30,
     0 1px 2px #00000030;
@@ -300,16 +304,17 @@ body[data-theme="dark"] {
 }
 
 [data-theme="dark"] .btn.btn-secondary, [data-theme="dark"] .btn.btn-secondary.disabled:hover {
-    background: var(--faint-strong);
     color: var(--base-strong);
+    background: var(--faint-strong-up-2);
     border: 1px solid var(--faint-weak);
     box-shadow: var(--shadow-s);
 }
 
 [data-theme="dark"] .btn.btn-secondary:hover {
+    background: var(--faint-strong);
     color: var(--base-strong);
-    background: var(--faint-strong-up-2);
-    border: 1px solid var(--faint-strong);
+    border: 1px solid var(--faint-weak);
+    box-shadow: var(--shadow-s);
 }
 
 [data-theme="dark"] .btn.btn-primary, [data-theme="dark"] .btn.btn-primary.disabled:hover{
@@ -329,6 +334,7 @@ body[data-theme="dark"] {
     background: var(--critic-strong);
     color: var(--critic-weak-up);
     border: 1px solid var(--faint-weak);
+    box-shadow: var(--shadow-s);
 }
 [data-theme="dark"] .btn.btn-danger:hover {
     background: var(--critic-strong-down);
@@ -1186,9 +1192,8 @@ ul.pagination li a.current {
 }
 
 .quick-helper-panel .btn.btn-small {
-    padding: 3px 8px;
+    padding: 6px 8px;
     font-size: 13px;
-    height: 24px;
 }
 
 .quick-helper-panel ul.button-group > li {
@@ -2482,9 +2487,10 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     flex: 1;
     padding: 15px 10px 10px 10px;
     border-radius: 10px;
-    border: 1px solid var(--faint-strong);
+    border: none;
     margin: 5px;
     position: relative;
+    box-shadow: var(--shadow-xs);
 }
 .properties-table .array-entry-container .array-entry-ops {
     position: absolute;
