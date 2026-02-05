@@ -12,6 +12,7 @@ import { parseExpression } from "../../../templater/ast";
 import { Scope } from "../../../templater/scope";
 import { ASTNode } from "../../../templater/nodes";
 import utils from "../../../utils";
+import { jsObjectToSchemioScript, schemioScriptObjectToJS } from "../../../templater/conversions";
 
 
 const ContextPhases = {
@@ -133,12 +134,11 @@ function parseTemplateExpressionBlock(expressions) {
     return parseExpression(raw);
 }
 
-
 /**
  * @param {String} editorId
  * @param {ItemTemplate} template
  * @param {String} templateRef
- * @param {SchemeContainer} schemeContainer 
+ * @param {SchemeContainer} schemeContainer
  * @returns {CompiledItemTemplate}
  */
 export function compileItemTemplate(editorId, template, templateRef, schemeContainer) {
@@ -208,7 +208,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
         preview    : template.preview,
         defaultArea: template.defaultArea || {x: 0, y: 0, w: 350, h: 200, px: 0.5, py: 0.5, sx: 1, sy: 1},
         templateRef: templateRef,
-        args       : template.args || {},
+        args       : jsObjectToSchemioScript(template.args) || {},
         argsDef    : template.args,
         defaultArgs: defaultArgs,
 
@@ -220,7 +220,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
             }
             const fullData = {
                 ...defaultArgs,
-                ...rootItem.args.templateArgs,
+                ...jsObjectToSchemioScript(rootItem.args.templateArgs),
                 ...createTemplateFunctions(editorId, rootItem, schemeContainer),
                 width: rootItem.area.w,
                 height: rootItem.area.h,
@@ -239,7 +239,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
 
             const templateArgs = {};
             forEachObject(template.args, (argDef, argName) => {
-                templateArgs[argName] = updatedScopeData[argName];
+                templateArgs[argName] = schemioScriptObjectToJS(updatedScopeData[argName]);
             });
             if (updatedScopeData.hasOwnProperty('width')) {
                 templateArgs.width = updatedScopeData.width;
@@ -412,7 +412,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
  * @returns {Item}
  */
 export function generateItemFromTemplate(template, args, width, height, postBuild = false) {
-    const item = template.buildItem(args, width, height, postBuild);
+    const item = schemioScriptObjectToJS(template.buildItem(args, width, height, postBuild));
     traverseItems([item], (it, parentItem) => {
         if (!it.args) {
             it.args = {};
@@ -483,7 +483,7 @@ export function regenerateTemplatedItem(rootItem, template, templateArgs, width,
         rootItem.area.h = height;
     }
     const finalArgs = {...template.getDefaultArgs(), ...templateArgs};
-    const dstRootItem = generateItemFromTemplate(template, finalArgs, width, height, postBuild);
+    const dstRootItem = schemioScriptObjectToJS(generateItemFromTemplate(template, finalArgs, width, height, postBuild));
 
     const srcItemsByTemplatedId = new Map();
 

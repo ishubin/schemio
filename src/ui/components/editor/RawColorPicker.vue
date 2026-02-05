@@ -174,6 +174,7 @@ export default {
                 this.changeColor();
             } else if (component === 's') {
                 this.saturation = value / 100;
+                this.changeColor();
             } else if (component === 'l') {
                 this.lightness = value / 100;
                 this.changeColor();

@@ -5,7 +5,9 @@ local labelsGap = 15
 local labelIconWidth = 20
 local legendTopMargin = 10
 
+
 struct LegendLabel {
+    index: 0
     name: ""
     color: "#ff00ffff"
     x: 0
@@ -32,7 +34,7 @@ if (hasLegend) {
             size.w = legendWidth
         }
         LegendLabel(
-            dataset.name, dataset.color,
+            idx, dataset.name, dataset.color,
             0, 0, size.w, size.h
         )
     })
@@ -135,6 +137,56 @@ func parseDatasetPoints(encodedPoints) {
     }
 }
 
+
+func onTextUpdate(itemId, item, text) {
+    local prefix = 'legend-label-text-'
+    if (!itemId.startsWith(prefix)) {
+        return
+    }
+    text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
+    local dataIdx = parseInt(itemId.substring(prefix.length))
+    if (dataIdx < 0 || dataIdx >= datasets.size) {
+        return
+    }
+
+    datasets.get(dataIdx).name = text
+}
+
+
+func selectTheme(theme) {
+    if (theme == 'light') {
+        background = Fill.solid('#D4D7D9FF')
+        strokeColor = '#C7C7C7FF'
+        gridBackground = Fill.solid("#FAFAFAFF")
+        gridColor = '#DCDBDBFF'
+        fontColor = '#333333FF'
+
+        datasets.forEach((dataset) => {
+            local c = decodeColor(dataset.color).hsl()
+            if (c.l > 0.4) {
+                c.l = 0.4
+            }
+            if (c.s < 0.7) {
+                c.s = 0.7
+            }
+            dataset.color = c.rgb().encode()
+        })
+    } else if (theme == 'dark') {
+        background = Fill.solid('#202227FF')
+        strokeColor = '#161717FF'
+        gridBackground = Fill.solid("#252731FF")
+        gridColor = '#474766FF'
+        fontColor = '#C9C9CAFF'
+
+        datasets.forEach((dataset) => {
+            local c = decodeColor(dataset.color).hsl()
+            if (c.l < 0.65) {
+                c.l = 0.65
+            }
+            dataset.color = c.rgb().encode()
+        })
+    }
+}
 
 
 local baseScriptForFunctions = `
