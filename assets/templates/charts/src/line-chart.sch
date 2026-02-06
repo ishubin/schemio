@@ -6,6 +6,7 @@ local labelIconWidth = 20
 local legendTopMargin = 10
 
 
+
 struct LegendLabel {
     index: 0
     name: ""
@@ -95,7 +96,37 @@ if (hasLegend) {
 plotWidth = max(1, width - padding*2)
 plotHeight = max(1, height - padding*2 - legendHeight)
 
+gridCols = min(max(xMax - xMin)/max(xStep, 0.00001), 500)
 
+
+func calculateYStep() {
+    local range = yMax - yMin
+    local pixelsPerLine = 50 // Minimum pixels between grid lines
+    local maxLines = floor(plotHeight / pixelsPerLine)
+
+    // Calculate rough step
+    local roughStep = range / maxLines
+    // Round to a "nice" number
+    local magnitude = 10^(floor(log10(roughStep)))
+    local normalized = roughStep / magnitude // Between 1 and 10
+
+    local niceStep = 1
+    if (normalized <= 1) {
+        niceStep = 1
+    } else if (normalized <= 2) {
+        niceStep = 2
+    } else if (normalized <= 5) {
+        niceStep = 5
+    } else {
+        niceStep = 10
+    }
+
+    niceStep * magnitude
+}
+
+
+local yStep = calculateYStep()
+gridRows = round(abs((yMax - yMin)/yStep))
 
 dy = yMax - yMin
 dx = plotWidth * xStep / max(0.000001, xMax - xMin)

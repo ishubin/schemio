@@ -61,8 +61,8 @@ export default {
 
     data() {
         return {
-            xLines: generateLineValues(this.item.area.w, Math.max(1, this.item.shapeProps.gridCols)),
-            yLines: generateLineValues(this.item.area.h, Math.max(1, this.item.shapeProps.gridRows)),
+            xLines: generateLineValues(this.item.area.w, Math.max(1, Math.round(this.item.shapeProps.gridCols))),
+            yLines: generateLineValues(this.item.area.h, Math.max(1, Math.round(this.item.shapeProps.gridRows))),
         }
     },
 

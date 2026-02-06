@@ -309,6 +309,8 @@ item:
       fill: {$-expr: gridBackground}
       strokeColor: {$-expr: gridColor}
       strokeSize: {$-expr: gridStrokeSize}
+      gridCols: {$-expr: gridCols}
+      gridRows: {$-expr: gridRows}
     childItems:
     - $-foreach: {source: "datasets", it: "dataset"}
       id: {$-str: "dataset-${dataset.id}"}
