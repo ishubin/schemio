@@ -45,6 +45,7 @@ preview: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAw
 defaultArea: {x: 0, y: 0, w: 120, h: 60}
 
 import:
+    - ./src/base-chart.sch
     - ./src/line-chart.sch
 
 handlers:
@@ -295,22 +296,20 @@ item:
 
   childItems:
   - id: grid
-    shape: grid
+    shape: path
     name: grid
     clip: false
     tags:
       - chart-plot
     area:
-      x: { $-expr: padding }
+      x: { $-expr: plotOffset }
       y: { $-expr: padding }
       w: { $-expr: plotWidth }
       h: { $-expr: plotHeight }
     shapeProps:
-      fill: {$-expr: gridBackground}
-      strokeColor: {$-expr: gridColor}
-      strokeSize: {$-expr: gridStrokeSize}
-      gridCols: {$-expr: gridCols}
-      gridRows: {$-expr: gridRows}
+      strokeColor: { $-expr: gridColor }
+      strokeSize: { $-expr: gridStrokeSize }
+      paths: { $-expr: gridPaths }
     childItems:
     - $-foreach: {source: "datasets", it: "dataset"}
       id: {$-str: "dataset-${dataset.id}"}
@@ -333,9 +332,47 @@ item:
             closed: false
             pos: relative
             points:
-            - $-foreach: {source: "parseDatasetPoints(dataset.values)", it: "point", index: pointIdx}
+            - $-foreach: {source: "parseDatasetPoints(dataset.values, yAxis, dx, plotWidth, plotHeight)", it: "point", index: pointIdx}
               $-extend: {$-expr: 'toJSON(point)'}
               id: {$-expr: pointIdx}
+
+  - $-foreach: {source: "yAxis.labels", it: label, index: labelIdx}
+    id: {$-str: "y-axis-label-${labelIdx}"}
+    name: {$-str: "Y axis label ${labelIdx}"}
+    shape: none
+    area:
+      x: {$-expr: label.x}
+      y: {$-expr: label.y}
+      w: {$-expr: label.w}
+      h: {$-expr: label.h}
+    textSlots:
+      body:
+        text: {$-expr: label.text}
+        color: {$-expr: fontColor}
+        font: {$-expr: font}
+        fontSize: {$-expr: fontSize}
+        halign: right
+        valign: middle
+        paddingRight: 5
+
+  - $-foreach: {source: "xAxis.labels", it: label, index: labelIdx}
+    id: {$-str: "x-axis-label-${labelIdx}"}
+    name: {$-str: "X axis label ${labelIdx}"}
+    shape: none
+    area:
+      x: {$-expr: label.x}
+      y: {$-expr: label.y}
+      w: {$-expr: label.w}
+      h: {$-expr: label.h}
+    textSlots:
+      body:
+        text: {$-expr: label.text}
+        color: {$-expr: fontColor}
+        font: {$-expr: font}
+        fontSize: {$-expr: fontSize}
+        halign: right
+        valign: middle
+        paddingRight: 5
 
   - id: legend
     $-if: hasLegend
@@ -343,7 +380,7 @@ item:
     name: Legend
     area:
       x: {$-expr: padding}
-      y: {$-expr: 'plotHeight + padding + legendTopMargin'}
+      y: {$-expr: legendTop}
       w: {$-expr: legendWidth}
       h: {$-expr: legendHeight}
     shapeProps:

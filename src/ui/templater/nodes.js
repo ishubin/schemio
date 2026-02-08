@@ -322,6 +322,7 @@ const reservedFunctions = new Map(Object.entries({
     tan       : Math.tan,
     atan      : Math.atan,
     isNumber  : (text) => Number.isFinite(parseFloat(text)) || Number.isFinite(parseInt(text)),
+    isInteger : (value) => Number.isInteger(value),
     parseInt  : customParseInt,
     parseFloat: customParseFloat,
     rndInt    : (a, b) => Math.round(Math.random()* (b-a)) + a,

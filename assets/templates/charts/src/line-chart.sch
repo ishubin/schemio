@@ -1,21 +1,20 @@
 legendHeight = 0
+legendTop = 0
 legendWidth = width - padding * 2
 legendLabels = List()
+gridPaths = List()
+plotOffset = padding
+plotWidth = max(1, width - padding*2)
+plotHeight = max(1, height - padding*2)
+dx = plotWidth * xStep / max(0.000001, xMax - xMin)
+
+xLabelsTotalWidth = 20
+
 local labelsGap = 15
 local labelIconWidth = 20
-local legendTopMargin = 10
+local minSpacing = 50
 
 
-
-struct LegendLabel {
-    index: 0
-    name: ""
-    color: "#ff00ffff"
-    x: 0
-    y: 0
-    w: 1
-    h: 1
-}
 
 if (hasLegend) {
     local maxTextHeight = -1
@@ -90,72 +89,20 @@ if (hasLegend) {
         }
     }
 
-    legendHeight = min(height/2, legendTopMargin + freeSlotY + maxTextHeight + 5)
-}
-
-plotWidth = max(1, width - padding*2)
-plotHeight = max(1, height - padding*2 - legendHeight)
-
-gridCols = min(max(xMax - xMin)/max(xStep, 0.00001), 500)
-
-
-func calculateYStep() {
-    local range = yMax - yMin
-    local pixelsPerLine = 50 // Minimum pixels between grid lines
-    local maxLines = floor(plotHeight / pixelsPerLine)
-
-    // Calculate rough step
-    local roughStep = range / maxLines
-    // Round to a "nice" number
-    local magnitude = 10^(floor(log10(roughStep)))
-    local normalized = roughStep / magnitude // Between 1 and 10
-
-    local niceStep = 1
-    if (normalized <= 1) {
-        niceStep = 1
-    } else if (normalized <= 2) {
-        niceStep = 2
-    } else if (normalized <= 5) {
-        niceStep = 5
-    } else {
-        niceStep = 10
-    }
-
-    niceStep * magnitude
+    legendHeight = min(height/2, freeSlotY + maxTextHeight + 5)
 }
 
 
-local yStep = calculateYStep()
-gridRows = round(abs((yMax - yMin)/yStep))
 
-dy = yMax - yMin
-dx = plotWidth * xStep / max(0.000001, xMax - xMin)
-
-
-struct Point {
-    x: 0
-    y: 0
-    t: 'L'
-}
-
-struct SmoothPoint {
-    x: 0
-    y: 0
-    x1: 0
-    y1: 0
-    x2: 0
-    y2: 0
-    t: 'B'
-}
-
-func parseDatasetPoints(encodedPoints) {
+func parseDatasetPoints(encodedPoints, yAxis, dx, plotWidth, plotHeight) {
+    local dy = yAxis.max - yAxis.min
     if (abs(plotHeight / dy) > 100000 || abs(dx) > 10000) {
         return List()
     }
 
     local points = encodedPoints.split(',').map((p, idx) => {
         local value = parseFloat(p.trim())
-        Point(dx * idx * 100 / plotWidth, (yMax - value) * 100 / dy)
+        Point(dx * idx * 100 / plotWidth, (yAxis.max - value) * 100 / dy)
     })
 
     if (lineType == 'smooth') {
@@ -220,6 +167,49 @@ func selectTheme(theme) {
 }
 
 
+plotHeight = max(1, height - padding*2 - legendHeight)
+
+// Calculate how many ticks can fit with the minimum spacing
+local maxTicks = floor(plotHeight / minSpacing)
+local yAxis = generateYAxis(yMin, yMax, max(2, maxTicks))
+local xAxis = generateXAxis(xMin, xMax, xStep)
+
+plotOffset = 0
+
+yAxis.lines.forEach((line) => {
+    gridPaths.add(Path(List(Point(0, line.position), Point(100, line.position))))
+
+    local size = calculateTextSize(line.labelText, font, fontSize)
+    size.w *= 1.1
+    size.h *= 2.2
+
+    plotOffset = max(plotOffset, size.w)
+    yAxis.labels.add(AxisLabel(line.labelText, 0, line.position,  size.w, size.h))
+})
+
+plotOffset += padding
+
+yAxis.labels.forEach((label) => { label.w = plotOffset })
+
+plotWidth = max(1, width - plotOffset - padding)
+
+xAxis.lines.forEach((line) => {
+    gridPaths.add(Path(List(Point(line.position, 0), Point(line.position, 100))))
+    local size = calculateTextSize(line.labelText, line.position * plotWidth / 100, plotHeight, font, fontSize)
+    size.w *= 1.1
+    size.h *= 2.2
+    xLabelsTotalWidth = max(xLabelsTotalWidth, size.h)
+    xAxis.labels.add(AxisLabel(line.labelText, plotOffset + line.position * plotWidth / 100, plotHeight, size.w, size.h))
+})
+
+plotHeight = max(1, height - xLabelsTotalWidth - legendHeight - padding)
+yAxis.labels.forEach((label) => { label.y = label.y * plotHeight / 100 })
+xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
+
+
+legendTop = xLabelsTotalWidth + plotHeight + padding
+
+
 local baseScriptForFunctions = `
 struct Point {
     x: 0
@@ -233,8 +223,8 @@ struct Point {
 local xStep = ${xStep}
 local xMax = ${xMax}
 local xMin = ${xMin}
-local yMax = ${yMax}
-local yMin = ${yMin}
+local yMax = ${yAxis.max}
+local yMin = ${yAxis.min}
 local lineType = "${lineType}"
 
 local plot = findChildItemsByTag('chart-plot').find((x) => { x.getShape() == 'grid' })
