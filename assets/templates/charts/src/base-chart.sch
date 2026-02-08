@@ -45,6 +45,12 @@ struct LegendLabel {
     h: 1
 }
 
+struct Legend {
+    w: 0
+    h: 0
+    labels: List()
+}
+
 struct AxisLabel {
     text: ""
     x: 0
@@ -150,4 +156,84 @@ func formatLabel(value, range) {
 
     // Format and remove trailing zeros
     parseFloat(value.toFixed(decimalPlaces)).toString()
+}
+
+
+func buildLegend(datasets, legendWidth) {
+    local maxTextHeight = -1
+    local legendLabels = List()
+
+    local freeSlotWidth = legendWidth
+    local freeSlotY = 0
+    local freeSlotX = 0
+
+    if (datasets.size == 0) {
+        return Legend()
+    }
+
+    local allLabels = datasets.map((dataset, idx) => {
+        local size = calculateTextSize(dataset.name, font, fontSize)
+        size.h *= 2.2
+        if (size.w > legendWidth) {
+            size.w = legendWidth
+        }
+        LegendLabel(
+            idx, dataset.name, dataset.color,
+            0, 0, size.w, size.h
+        )
+    })
+
+    for( ; allLabels.size > 0 ; ) {
+        local label = allLabels.get(0)
+        if (labelIconWidth + label.w <= freeSlotWidth) {
+            label.x = freeSlotX
+            label.y = freeSlotY
+
+            legendLabels.add(label)
+            allLabels.shift()
+
+            if (maxTextHeight < label.h) {
+                maxTextHeight = label.h
+            }
+
+            freeSlotX += labelIconWidth + label.w + labelsGap
+            freeSlotWidth = legendWidth - freeSlotX
+        } else {
+            local idx = allLabels.findIndex((label) => { label.w + labelIconWidth <= freeSlotWidth })
+            if (idx >= 0) {
+                local label = allLabels.get(idx)
+                label.x = freeSlotX
+                label.y = freeSlotY
+
+                legendLabels.add(label)
+                allLabels.remove(idx)
+
+                if (maxTextHeight < label.h) {
+                    maxTextHeight = label.h
+                }
+
+                freeSlotX += label.w + labelIconWidth + labelsGap
+                freeSlotWidth = legendWidth - freeSlotX
+            } else {
+                freeSlotX = 0
+                if (maxTextHeight > 0) {
+                    freeSlotY += maxTextHeight + 5
+                }
+                freeSlotWidth = legendWidth
+
+                label.x = freeSlotX
+                label.y = freeSlotY
+
+                legendLabels.add(label)
+                allLabels.shift()
+
+                freeSlotX += labelIconWidth + label.w + labelsGap
+                freeSlotWidth = legendWidth - freeSlotX
+            }
+        }
+    }
+
+    local legendHeight = min(height/2, freeSlotY + maxTextHeight + 5)
+
+    Legend(legendWidth, legendHeight, legendLabels)
 }

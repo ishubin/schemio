@@ -1,7 +1,6 @@
-legendHeight = 0
 legendTop = 0
 legendWidth = width - padding * 2
-legendLabels = List()
+legend = Legend()
 gridPaths = List()
 plotOffset = padding
 plotWidth = max(1, width - padding*2)
@@ -17,79 +16,7 @@ local minSpacing = 50
 
 
 if (hasLegend) {
-    local maxTextHeight = -1
-
-    local freeSlotWidth = legendWidth
-    local freeSlotY = 0
-    local freeSlotX = 0
-
-    if (datasets.size == 0) {
-        return
-    }
-
-    local allLabels = datasets.map((dataset, idx) => {
-        local size = calculateTextSize(dataset.name, font, fontSize)
-        size.h *= 2.2
-        if (size.w > legendWidth) {
-            size.w = legendWidth
-        }
-        LegendLabel(
-            idx, dataset.name, dataset.color,
-            0, 0, size.w, size.h
-        )
-    })
-
-    for( ; allLabels.size > 0 ; ) {
-        local label = allLabels.get(0)
-        if (labelIconWidth + label.w <= freeSlotWidth) {
-            label.x = freeSlotX
-            label.y = freeSlotY
-
-            legendLabels.add(label)
-            allLabels.shift()
-
-            if (maxTextHeight < label.h) {
-                maxTextHeight = label.h
-            }
-
-            freeSlotX += labelIconWidth + label.w + labelsGap
-            freeSlotWidth = legendWidth - freeSlotX
-        } else {
-            local idx = allLabels.findIndex((label) => { label.w + labelIconWidth <= freeSlotWidth })
-            if (idx >= 0) {
-                local label = allLabels.get(idx)
-                label.x = freeSlotX
-                label.y = freeSlotY
-
-                legendLabels.add(label)
-                allLabels.remove(idx)
-
-                if (maxTextHeight < label.h) {
-                    maxTextHeight = label.h
-                }
-
-                freeSlotX += label.w + labelIconWidth + labelsGap
-                freeSlotWidth = legendWidth - freeSlotX
-            } else {
-                freeSlotX = 0
-                if (maxTextHeight > 0) {
-                    freeSlotY += maxTextHeight + 5
-                }
-                freeSlotWidth = legendWidth
-
-                label.x = freeSlotX
-                label.y = freeSlotY
-
-                legendLabels.add(label)
-                allLabels.shift()
-
-                freeSlotX += labelIconWidth + label.w + labelsGap
-                freeSlotWidth = legendWidth - freeSlotX
-            }
-        }
-    }
-
-    legendHeight = min(height/2, freeSlotY + maxTextHeight + 5)
+    legend = buildLegend(datasets, legendWidth)
 }
 
 
@@ -167,7 +94,7 @@ func selectTheme(theme) {
 }
 
 
-plotHeight = max(1, height - padding*2 - legendHeight)
+plotHeight = max(1, height - padding*2 - legend.h)
 
 // Calculate how many ticks can fit with the minimum spacing
 local maxTicks = floor(plotHeight / minSpacing)
@@ -202,7 +129,7 @@ xAxis.lines.forEach((line) => {
     xAxis.labels.add(AxisLabel(line.labelText, plotOffset + line.position * plotWidth / 100, plotHeight, size.w, size.h))
 })
 
-plotHeight = max(1, height - xLabelsTotalWidth - legendHeight - padding)
+plotHeight = max(1, height - xLabelsTotalWidth - legend.h - padding)
 yAxis.labels.forEach((label) => { label.y = label.y * plotHeight / 100 })
 xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
 

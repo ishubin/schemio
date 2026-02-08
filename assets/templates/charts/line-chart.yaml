@@ -381,14 +381,16 @@ item:
     area:
       x: {$-expr: padding}
       y: {$-expr: legendTop}
-      w: {$-expr: legendWidth}
-      h: {$-expr: legendHeight}
+      w: {$-expr: legend.w}
+      h: {$-expr: legend.h}
     shapeProps:
       fill: {type: none}
       strokeSize: 0
       cornerRadius: 0
+      clip: true
+
     childItems:
-      - $-foreach: {source: legendLabels, it: label}
+      - $-foreach: {source: legend.labels, it: label}
         id: {$-str: "legend-label-${label.index}"}
         shape: rect
         name: {$-expr: label.name}
@@ -402,7 +404,7 @@ item:
           strokeSize: 0
           fill: {type: solid, color: {$-expr: label.color}}
 
-      - $-foreach: {source: legendLabels, it: label}
+      - $-foreach: {source: legend.labels, it: label}
         id: {$-str: "legend-label-text-${label.index}"}
         shape: none
         name: {$-expr: label.name}
