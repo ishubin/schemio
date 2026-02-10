@@ -73,7 +73,7 @@ struct Axis {
     labels: List()
 }
 
-func generateYAxis(softMin, softMax, numTicks) {
+func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
     numTicks = max(2, numTicks)
     // Calculate a nice step size
     local range = softMax - softMin
@@ -104,16 +104,45 @@ func generateYAxis(softMin, softMax, numTicks) {
     local lines = List()
     for (local value = niceMin; value <= niceMax; value += niceStep) {
         // Normalize position to 0-100% range (0 = bottom, 100% = top)
-        local position = 100 * (value - niceMin) / max(1, (niceMax - niceMin))
+        local position = 100 - 100 * (value - niceMin) / max(1, (niceMax - niceMin))
 
         lines.add(AxisLine(value, position, formatLabel(value, range)))
     }
 
-    Axis(lines, niceMin, niceMax, niceStep)
+    Axis(lines, niceMin, niceMax, niceStep, generateYAxisLabels(lines, font, fontSize))
 }
 
+func generateYAxisLabels(lines, font, fontSize) {
+    local labels = List()
+    lines.forEach((line) => {
+        local size = calculateTextSize(line.labelText, font, fontSize)
+        size.w *= 1.1
+        size.h *= 2.2
 
-func generateXAxis(xMin, xMax, xStep) {
+        labels.add(AxisLabel(line.labelText, 0, line.position,  size.w, size.h))
+    })
+    labels
+}
+
+local minPixelDistance = 40
+
+
+func generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize) {
+    local dataRange = max(0.00001, xMax - xMin)
+    local pixelsPerUnit = plotWidth / dataRange
+    local pixelsPerStep = xStep * pixelsPerUnit
+
+    // If the current step is already large enough, use it
+    if (pixelsPerStep >= minPixelDistance) {
+        return _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize)
+    } else {
+        local minMultiplier = ceil(minPixelDistance / pixelsPerStep)
+        local optimizedStep = xStep * minMultiplier
+        _generateXAxis(xMin, xMax, optimizedStep, plotOffset, plotWidth, plotHeight, font, fontSize)
+    }
+}
+
+func _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize) {
     local lines = List()
 
     local range = abs(xMax - xMin)
@@ -125,7 +154,25 @@ func generateXAxis(xMin, xMax, xStep) {
         lines.add(AxisLine(value, position, formatLabel(value, range)))
     }
 
-    Axis(lines, xMin, xMax, xStep)
+    Axis(lines, xMin, xMax, xStep, generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize))
+}
+
+func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize) {
+    local labels = List()
+    lines.forEach((line, idx) => {
+        local size = calculateTextSize(line.labelText, line.position * plotWidth / 100, plotHeight, font, fontSize)
+        size.w *= 1.1
+        size.h *= 2.2
+        local x = if (idx == 0) {
+            plotOffset + line.position * plotWidth / 100
+        } else if (idx < lines.size - 1) {
+            plotOffset + line.position * plotWidth / 100 - size.w / 2
+        } else {
+            plotOffset + plotWidth - size.w
+        }
+        labels.add(AxisLabel(line.labelText, x, plotHeight, size.w, size.h))
+    })
+    labels
 }
 
 func formatLabel(value, range) {
@@ -159,7 +206,7 @@ func formatLabel(value, range) {
 }
 
 
-func buildLegend(datasets, legendWidth) {
+func buildLegend(datasets, legendWidth, legendTopMargin) {
     local maxTextHeight = -1
     local legendLabels = List()
 
@@ -187,7 +234,7 @@ func buildLegend(datasets, legendWidth) {
         local label = allLabels.get(0)
         if (labelIconWidth + label.w <= freeSlotWidth) {
             label.x = freeSlotX
-            label.y = freeSlotY
+            label.y = freeSlotY + legendTopMargin
 
             legendLabels.add(label)
             allLabels.shift()
@@ -203,7 +250,7 @@ func buildLegend(datasets, legendWidth) {
             if (idx >= 0) {
                 local label = allLabels.get(idx)
                 label.x = freeSlotX
-                label.y = freeSlotY
+                label.y = freeSlotY + legendTopMargin
 
                 legendLabels.add(label)
                 allLabels.remove(idx)
@@ -222,7 +269,7 @@ func buildLegend(datasets, legendWidth) {
                 freeSlotWidth = legendWidth
 
                 label.x = freeSlotX
-                label.y = freeSlotY
+                label.y = freeSlotY + legendTopMargin
 
                 legendLabels.add(label)
                 allLabels.shift()
@@ -233,7 +280,7 @@ func buildLegend(datasets, legendWidth) {
         }
     }
 
-    local legendHeight = min(height/2, freeSlotY + maxTextHeight + 5)
+    local legendHeight = min(height/2, legendTopMargin + freeSlotY + maxTextHeight + 5)
 
     Legend(legendWidth, legendHeight, legendLabels)
 }

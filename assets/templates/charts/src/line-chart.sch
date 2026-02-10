@@ -1,13 +1,13 @@
 legendTop = 0
 legendWidth = width - padding * 2
+legendTopMargin = 10
 legend = Legend()
 gridPaths = List()
 plotOffset = padding
 plotWidth = max(1, width - padding*2)
 plotHeight = max(1, height - padding*2)
-dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
-xLabelsTotalWidth = 20
+xLabelsFullHeight = 20
 
 local labelsGap = 15
 local labelIconWidth = 20
@@ -15,13 +15,20 @@ local minSpacing = 50
 
 
 
+struct Dataset {
+    args: 0
+    points: List()
+}
+
+
 if (hasLegend) {
-    legend = buildLegend(datasets, legendWidth)
+    legend = buildLegend(datasets, legendWidth, legendTopMargin)
 }
 
 
 
-func parseDatasetPoints(encodedPoints, yAxis, dx, plotWidth, plotHeight) {
+func parseDatasetPoints(encodedPoints, yAxis, plotWidth, plotHeight) {
+    local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
     local dy = yAxis.max - yAxis.min
     if (abs(plotHeight / dy) > 100000 || abs(dx) > 10000) {
         return List()
@@ -98,20 +105,12 @@ plotHeight = max(1, height - padding*2 - legend.h)
 
 // Calculate how many ticks can fit with the minimum spacing
 local maxTicks = floor(plotHeight / minSpacing)
-local yAxis = generateYAxis(yMin, yMax, max(2, maxTicks))
-local xAxis = generateXAxis(xMin, xMax, xStep)
+local yAxis = generateYAxis(yMin, yMax, max(2, maxTicks), font, fontSize)
+
 
 plotOffset = 0
-
-yAxis.lines.forEach((line) => {
-    gridPaths.add(Path(List(Point(0, line.position), Point(100, line.position))))
-
-    local size = calculateTextSize(line.labelText, font, fontSize)
-    size.w *= 1.1
-    size.h *= 2.2
-
-    plotOffset = max(plotOffset, size.w)
-    yAxis.labels.add(AxisLabel(line.labelText, 0, line.position,  size.w, size.h))
+yAxis.labels.forEach((label) => {
+    plotOffset = max(plotOffset, label.w)
 })
 
 plotOffset += padding
@@ -120,22 +119,30 @@ yAxis.labels.forEach((label) => { label.w = plotOffset })
 
 plotWidth = max(1, width - plotOffset - padding)
 
-xAxis.lines.forEach((line) => {
-    gridPaths.add(Path(List(Point(line.position, 0), Point(line.position, 100))))
-    local size = calculateTextSize(line.labelText, line.position * plotWidth / 100, plotHeight, font, fontSize)
-    size.w *= 1.1
-    size.h *= 2.2
-    xLabelsTotalWidth = max(xLabelsTotalWidth, size.h)
-    xAxis.labels.add(AxisLabel(line.labelText, plotOffset + line.position * plotWidth / 100, plotHeight, size.w, size.h))
+local xAxis = generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize)
+
+xAxis.labels.forEach((label) => {
+    xLabelsFullHeight = max(xLabelsFullHeight, label.h)
 })
 
-plotHeight = max(1, height - xLabelsTotalWidth - legend.h - padding)
-yAxis.labels.forEach((label) => { label.y = label.y * plotHeight / 100 })
+plotHeight = max(1, height - xLabelsFullHeight - legend.h - padding)
+yAxis.labels.forEach((label) => { label.y = padding + label.y * plotHeight / 100 - label.h / 2 })
 xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
 
+legendTop = xLabelsFullHeight + plotHeight + padding
 
-legendTop = xLabelsTotalWidth + plotHeight + padding
+// generating plot grid paths
+yAxis.lines.forEach((line) => {
+    gridPaths.add(Path(List(Point(0, line.position), Point(100, line.position))))
+})
+xAxis.lines.forEach((line) => {
+    gridPaths.add(Path(List(Point(line.position, 0), Point(line.position, 100))))
+})
 
+
+parsedDatasets = datasets.map((dataset) => {
+    Dataset(dataset, parseDatasetPoints(dataset.values, yAxis, plotWidth, plotHeight))
+})
 
 local baseScriptForFunctions = `
 struct Point {
@@ -154,7 +161,7 @@ local yMax = ${yAxis.max}
 local yMin = ${yAxis.min}
 local lineType = "${lineType}"
 
-local plot = findChildItemsByTag('chart-plot').find((x) => { x.getShape() == 'grid' })
+local plot = findChildItemsByTag('chart-plot').find((x) => { x.getShape() == 'path' })
 local plotWidth = plot.getWidth()
 local plotHeight = plot.getHeight()
 local dy = yMax - yMin
