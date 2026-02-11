@@ -9,11 +9,20 @@ plotHeight = max(1, height - padding*2)
 
 xLabelsFullHeight = 20
 
+local size = calculateTextSize("TgjW", font, titleFontSize)
+axisNameFontMaxHeight = size.h * 2
+
+
 local labelsGap = 15
 local labelIconWidth = 20
 local minSpacing = 50
 
 
+pointStrokeSize = if (pointType == "hollow" || pointType == "cut") {
+    2
+} else {
+    0
+}
 
 struct Dataset {
     args: 0
@@ -51,26 +60,38 @@ func parseDatasetPoints(encodedPoints, yAxis, plotWidth, plotHeight) {
 
 
 func onTextUpdate(itemId, item, text) {
-    local prefix = 'legend-label-text-'
-    if (!itemId.startsWith(prefix)) {
-        return
-    }
-    text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
-    local dataIdx = parseInt(itemId.substring(prefix.length))
-    if (dataIdx < 0 || dataIdx >= datasets.size) {
-        return
-    }
+    local legendLabelPrefix = 'legend-label-text-'
 
-    datasets.get(dataIdx).name = text
+    if (itemId == 'axis-title-y') {
+        yTitle = text
+    } else if (itemId == 'axis-title-x') {
+        xTitle = text
+    } else if (itemId.startsWith(legendLabelPrefix)) {
+        text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
+        local dataIdx = parseInt(itemId.substring(legendLabelPrefix.length))
+        if (dataIdx < 0 || dataIdx >= datasets.size) {
+            return
+        }
+        datasets.get(dataIdx).name = text
+    }
+}
+
+func onDeleteItem(itemId, item) {
+    if (itemId == 'axis-title-y') {
+        yTitleShow = false
+    } else if (itemId == 'axis-title-x') {
+        xTitleShow = false
+    } else if (itemId == 'legend') {
+        hasLegend = false
+    }
 }
 
 
 func selectTheme(theme) {
     if (theme == 'light') {
-        background = Fill.solid('#D4D7D9FF')
+        background = '#E8E8E9FF'
         strokeColor = '#C7C7C7FF'
-        gridBackground = Fill.solid("#FAFAFAFF")
-        gridColor = '#DCDBDBFF'
+        gridColor = '#BDBDBDFF'
         fontColor = '#333333FF'
 
         datasets.forEach((dataset) => {
@@ -84,9 +105,8 @@ func selectTheme(theme) {
             dataset.color = c.rgb().encode()
         })
     } else if (theme == 'dark') {
-        background = Fill.solid('#202227FF')
+        background = '#202227FF'
         strokeColor = '#161717FF'
-        gridBackground = Fill.solid("#252731FF")
         gridColor = '#474766FF'
         fontColor = '#C9C9CAFF'
 
@@ -105,7 +125,7 @@ plotHeight = max(1, height - padding*2 - legend.h)
 
 // Calculate how many ticks can fit with the minimum spacing
 local maxTicks = floor(plotHeight / minSpacing)
-local yAxis = generateYAxis(yMin, yMax, max(2, maxTicks), font, fontSize)
+local yAxis = generateYAxis(yMin, yMax, max(2, maxTicks), font, axisFontSize)
 
 
 plotOffset = 0
@@ -115,21 +135,27 @@ yAxis.labels.forEach((label) => {
 
 plotOffset += padding
 
+if (yTitleShow) {
+    plotOffset += axisNameFontMaxHeight
+}
+
 yAxis.labels.forEach((label) => { label.w = plotOffset })
 
 plotWidth = max(1, width - plotOffset - padding)
 
-local xAxis = generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize)
+local xAxis = generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, axisFontSize)
 
 xAxis.labels.forEach((label) => {
     xLabelsFullHeight = max(xLabelsFullHeight, label.h)
 })
 
-plotHeight = max(1, height - xLabelsFullHeight - legend.h - padding)
+xTitleK = if (xTitleShow) { 1 } else { 0 }
+
+plotHeight = max(1, height - xLabelsFullHeight - axisNameFontMaxHeight * xTitleK - legend.h - padding)
 yAxis.labels.forEach((label) => { label.y = padding + label.y * plotHeight / 100 - label.h / 2 })
 xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
 
-legendTop = xLabelsFullHeight + plotHeight + padding
+legendTop = xLabelsFullHeight + axisNameFontMaxHeight * xTitleK + plotHeight + padding
 
 // generating plot grid paths
 yAxis.lines.forEach((line) => {
