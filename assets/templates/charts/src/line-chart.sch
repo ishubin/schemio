@@ -1,6 +1,6 @@
 legendTop = 0
 legendWidth = width - padding * 2
-legendTopMargin = 10
+legendTopMargin = 25
 legend = Legend()
 gridPaths = List()
 plotOffset = padding
@@ -8,6 +8,8 @@ plotWidth = max(1, width - padding*2)
 plotHeight = max(1, height - padding*2)
 
 xLabelsFullHeight = 20
+
+local labelsOverride = xAxisLabels.trim().split(",").map((x) => { x.trim() }).filter((x) => { x.length > 0 })
 
 local size = calculateTextSize("TgjW", font, titleFontSize)
 axisNameFontMaxHeight = size.h * 2
@@ -61,11 +63,14 @@ func parseDatasetPoints(encodedPoints, yAxis, plotWidth, plotHeight) {
 
 func onTextUpdate(itemId, item, text) {
     local legendLabelPrefix = 'legend-label-text-'
+    local xAxisLabelPrefix = 'x-axis-label-'
 
     if (itemId == 'axis-title-y') {
         yTitle = text
     } else if (itemId == 'axis-title-x') {
         xTitle = text
+    } else if (itemId.startsWith(xAxisLabelPrefix)) {
+        onXAxisLabelUpdate(parseInt(itemId.substring(xAxisLabelPrefix.length)), text)
     } else if (itemId.startsWith(legendLabelPrefix)) {
         text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
         local dataIdx = parseInt(itemId.substring(legendLabelPrefix.length))
@@ -83,6 +88,23 @@ func onDeleteItem(itemId, item) {
         xTitleShow = false
     } else if (itemId == 'legend') {
         hasLegend = false
+    }
+}
+
+func onXAxisLabelUpdate(labelIdx, text) {
+    if (labelsOverride.size > 0) {
+        if (labelIdx >= 0 && labelIdx < labelsOverride.size) {
+            labelsOverride.set(labelIdx, stripHTML(text))
+
+            local str = ""
+            labelsOverride.forEach((value, idx) => {
+                if (idx > 0) {
+                    str += ", "
+                }
+                str += value
+            })
+            xAxisLabels = str
+        }
     }
 }
 
@@ -143,7 +165,7 @@ yAxis.labels.forEach((label) => { label.w = plotOffset })
 
 plotWidth = max(1, width - plotOffset - padding)
 
-local xAxis = generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, axisFontSize)
+local xAxis = generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, axisFontSize, labelsOverride)
 
 xAxis.labels.forEach((label) => {
     xLabelsFullHeight = max(xLabelsFullHeight, label.h)
@@ -151,7 +173,7 @@ xAxis.labels.forEach((label) => {
 
 xTitleK = if (xTitleShow) { 1 } else { 0 }
 
-plotHeight = max(1, height - xLabelsFullHeight - axisNameFontMaxHeight * xTitleK - legend.h - padding)
+plotHeight = max(1, height - xLabelsFullHeight - axisNameFontMaxHeight * xTitleK - legend.h - padding * 2)
 yAxis.labels.forEach((label) => { label.y = padding + label.y * plotHeight / 100 - label.h / 2 })
 xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
 

@@ -127,31 +127,41 @@ func generateYAxisLabels(lines, font, fontSize) {
 local minPixelDistance = 40
 
 
-func generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize) {
+func generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride) {
     local dataRange = max(0.00001, xMax - xMin)
     local pixelsPerUnit = plotWidth / dataRange
     local pixelsPerStep = xStep * pixelsPerUnit
 
     // If the current step is already large enough, use it
     if (pixelsPerStep >= minPixelDistance) {
-        return _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize)
+        return _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride)
     } else {
         local minMultiplier = ceil(minPixelDistance / pixelsPerStep)
         local optimizedStep = xStep * minMultiplier
-        _generateXAxis(xMin, xMax, optimizedStep, plotOffset, plotWidth, plotHeight, font, fontSize)
+        _generateXAxis(xMin, xMax, optimizedStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride)
     }
 }
 
-func _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize) {
+func _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride) {
     local lines = List()
 
     local range = abs(xMax - xMin)
 
+    local idx = 0
     for (local value = xMin; value <= xMax; value += xStep) {
         // Normalize position to 0-100 range (0 = left, 100% = right)
         local position = 100 * (value - xMin) / (xMax - xMin)
 
-        lines.add(AxisLine(value, position, formatLabel(value, range)))
+        local labelName = ""
+        if (labelsOverride.size > 0) {
+            if (idx < labelsOverride.size) {
+                labelName = labelsOverride.get(idx)
+            }
+        } else {
+            labelName = formatLabel(value, range)
+        }
+        lines.add(AxisLine(value, position, labelName))
+        idx += 1
     }
 
     Axis(lines, xMin, xMax, xStep, generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize))
@@ -159,10 +169,12 @@ func _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, 
 
 func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize) {
     local labels = List()
+    local maxHeight = 0
     lines.forEach((line, idx) => {
         local size = calculateTextSize(line.labelText, line.position * plotWidth / 100, plotHeight, font, fontSize)
         size.w *= 1.1
         size.h *= 2.2
+        maxHeight = max(maxHeight, size.h)
         local x = if (idx == 0) {
             plotOffset + line.position * plotWidth / 100
         } else if (idx < lines.size - 1) {
@@ -172,6 +184,8 @@ func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSiz
         }
         labels.add(AxisLabel(line.labelText, x, plotHeight, size.w, size.h))
     })
+
+    labels.forEach((label) => { label.h = maxHeight })
     labels
 }
 

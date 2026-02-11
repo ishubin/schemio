@@ -47,6 +47,10 @@ args:
     hasLegend: {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
     yTitle: {group: Axis, type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
     xTitle: {group: Axis, type: string, value: 'X axis', name: 'Y Axis Name', hidden: true}
+    xAxisLabels: {
+      group: 'Axis', type: string, value: '', name: 'X Axis Labels',
+      description: 'Provide custom labels for X axis. Type comma-separated words to change the appearance of X axis'
+    }
 
     yTitleShow: {group: Axis, type: boolean, value: true, name: 'Show Y Axis Name'}
     xTitleShow: {group: Axis, type: boolean, value: true, name: 'Show Y Axis Name'}
@@ -402,7 +406,7 @@ item:
       h: {$-expr: label.h}
     textSlots:
       body:
-        text: {$-expr: label.text}
+        text: {$-expr: "stripHTML(label.text)"}
         color: {$-expr: fontColor}
         font: {$-expr: font}
         fontSize: {$-expr: fontSize}
