@@ -6,6 +6,7 @@ gridPaths = List()
 plotOffset = padding
 plotWidth = max(1, width - padding*2)
 plotHeight = max(1, height - padding*2)
+maxPoints = ceil(abs(xMax - xMin) / max(0.0000001, xStep)) + 1
 
 xLabelsFullHeight = 20
 
@@ -38,8 +39,7 @@ if (hasLegend) {
 
 
 
-func parseDatasetPoints(encodedPoints, yAxis, plotWidth, plotHeight) {
-    local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
+func parseDatasetPoints(encodedPoints, dx, yAxis, plotWidth, plotHeight) {
     local dy = yAxis.max - yAxis.min
     if (abs(plotHeight / dy) > 100000 || abs(dx) > 10000) {
         return List()
@@ -188,9 +188,33 @@ xAxis.lines.forEach((line) => {
 })
 
 
+local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
+
 parsedDatasets = datasets.map((dataset) => {
-    Dataset(dataset, parseDatasetPoints(dataset.values, yAxis, plotWidth, plotHeight))
+    Dataset(dataset, parseDatasetPoints(dataset.values, dx, yAxis, plotWidth, plotHeight))
 })
+
+
+
+parsedLineDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'line' }).map((dataset) => {
+    local threshold = max(1, maxPoints)
+    for ( ; dataset.points.size > threshold ; ) {
+        dataset.points.pop()
+    }
+    dataset
+})
+parsedBarDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'bar' }).map((dataset) => {
+    local threshold = max(1, maxPoints - 1)
+    for ( ; dataset.points.size > threshold; ) {
+        dataset.points.pop()
+    }
+    dataset
+})
+
+
+barWidth = dx / (parsedBarDatasets.size + 1)
+
+
 
 local baseScriptForFunctions = `
 struct Point {

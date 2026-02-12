@@ -19,34 +19,35 @@ args:
           strokeSize: 2
           strokePattern: solid
       args:
-        name: {type: "string", value: "Data ##IDX##", name: "Name"}
-        values: {type: "string", value: "20, 40, 25, 45", name: "Values"}
-        color: {type: "color", value: "#355E97FF", name: "Color"}
-        strokeSize: {type: "number", value: 2, name: "Stroke size", min: 0}
+        type         : {type: "choice", value: "line", options: ["line", "bar"], name: "Type"}
+        name         : {type: "string", value: "Data ##IDX##", name: "Name"}
+        values       : {type: "string", value: "20, 40, 25, 45", name: "Values"}
+        color        : {type: "color", value: "#355E97FF", name: "Color"}
+        strokeSize   : {type: "number", value: 2, name: "Stroke size", min: 0}
         strokePattern: {type: "stroke-pattern", value: "solid", name: "Stroke Pattern"}
 
-    background: {group: "Style", type: 'color', value: "#E8E8E9FF", name: 'Background'}
-    strokeColor: {group: "Style", type: "color", value: "#C7C7C7FF", name: "Stroke color"}
-    strokeSize: {group: "Style", type: "number", value: 1, name: "Stroke size"}
-    gridColor: {group: "Style", type: "color", value: "#BDBDBDFF", name: 'Grid color'}
+    background    : {group: "Style", type: 'color', value: "#E8E8E9FF", name: 'Background'}
+    strokeColor   : {group: "Style", type: "color", value: "#C7C7C7FF", name: "Stroke color"}
+    strokeSize    : {group: "Style", type: "number", value: 1, name: "Stroke size"}
+    gridColor     : {group: "Style", type: "color", value: "#BDBDBDFF", name: 'Grid color'}
     gridStrokeSize: {group: "Style", type: "number", value: 1, name: 'Grid stroke size'}
-    cornerRadius: {group: "Style", type: "number", value: 5, name: "Corner radius", min: 0}
-    lineType : {group: "Style", type: 'choice', value: 'smooth', options: ['linear', 'smooth'], name: 'Line Type'}
-    padding: {group: "Style", type: 'number', value: 20, name: 'Padding'}
+    cornerRadius  : {group: "Style", type: "number", value: 5, name: "Corner radius", min: 0}
+    lineType      : {group: "Style", type: 'choice', value: 'smooth', options: ['linear', 'smooth'], name: 'Line Type'}
+    padding       : {group: "Style", type: 'number', value: 20, name: 'Padding'}
 
     showPoints: {group: "Points", type: 'boolean', value: true, name: 'Show points'}
-    pointType: {group: "Points", type: 'choice', options: ['simple', 'hollow', 'cut'], value: 'simple', name: 'Point type', depends: {showPoints: true}}
-    pointSize: {group: "Points", type: number, value: 8, min: 0, softMax: 20, name: 'Point size'}
+    pointType : {group: "Points", type: 'choice', options: ['simple', 'hollow', 'cut'], value: 'simple', name: 'Point type', depends: {showPoints: true}}
+    pointSize : {group: "Points", type: number, value: 8, min: 0, softMax: 20, name: 'Point size'}
 
     titleFontSize: {group: 'Text', type: 'number', value: 16, name: 'Title font size'}
-    axisFontSize: {group: 'Text', type: 'number', value: 14, name: 'Axis font size'}
-    font: {group: 'Text', type: font, value: Arial, name: Font}
-    fontSize: {group: 'Text', type: 'number', value: 14, name: 'Legend size'}
-    fontColor: {group: 'Text', type: color, value: "#333333FF", name: Label color}
+    axisFontSize : {group: 'Text', type: 'number', value: 14, name: 'Axis font size'}
+    font         : {group: 'Text', type: font, value: Arial, name: Font}
+    fontSize     : {group: 'Text', type: 'number', value: 14, name: 'Legend size'}
+    fontColor    : {group: 'Text', type: color, value: "#333333FF", name: Label color}
 
-    hasLegend: {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
-    yTitle: {group: Axis, type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
-    xTitle: {group: Axis, type: string, value: 'X axis', name: 'Y Axis Name', hidden: true}
+    hasLegend  : {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
+    yTitle     : {group: Axis, type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
+    xTitle     : {group: Axis, type: string, value: 'X axis', name: 'Y Axis Name', hidden: true}
     xAxisLabels: {
       group: 'Axis', type: string, value: '', name: 'X Axis Labels',
       description: 'Provide custom labels for X axis. Type comma-separated words to change the appearance of X axis'
@@ -331,23 +332,61 @@ item:
       strokeSize: { $-expr: gridStrokeSize }
       paths: { $-expr: gridPaths }
     childItems:
-    - $-foreach: {source: "parsedDatasets", it: "dataset"}
-      id: {$-str: "dataset-${dataset.args.id}"}
-      name: {$-expr: "dataset.args.name"}
+    - $-foreach: {source: "parsedBarDatasets", it: "dataset", index: "datasetBarIdx"}
+      id: {$-str: "dataset-container-${dataset.args.id}"}
+      name: {$-str: "${dataset.args.name} container"}
+      tags:
+        - dataset-container
       area:
         x: 0
         y: 0
         w: { $-expr: "max(1, plotWidth)" }
         h: { $-expr: "max(1, plotHeight)" }
-      shape: path
+      shape: dummy
+      selfOpacity: 0
+      childItems:
+      - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
+        id: {$-str: "dataset-${dataset.args.id}-bar-${pointIdx}"}
+        tags: {$-expr: 'List(`dataset-bar-${pointIdx}`)'}
+        shape: rect
+        area:
+          x: {$-expr: "point.x * plotWidth / 100 + barWidth * datasetBarIdx"}
+          y: {$-expr: "point.y * plotHeight / 100"}
+          w: {$-expr: "barWidth"}
+          h: {$-expr: "plotHeight - point.y * plotHeight / 100"}
+        shapeProps:
+          strokeSize: 0
+          fill: {type: solid, color: {$-expr: dataset.args.color}}
+
+    - $-foreach: {source: "parsedLineDatasets", it: "dataset"}
+      id: {$-str: "dataset-container-${dataset.args.id}"}
+      name: {$-str: "${dataset.args.name} container"}
       tags:
-        - dataset-path
-      shapeProps:
-        smoothing: {$-expr: lineType}
-        strokeColor: {$-expr: dataset.args.color}
-        strokeSize: {$-expr: dataset.args.strokeSize}
-        strokePattern: {$-expr: dataset.args.strokePattern}
-        paths:
+        - dataset-container
+      area:
+        x: 0
+        y: 0
+        w: { $-expr: "max(1, plotWidth)" }
+        h: { $-expr: "max(1, plotHeight)" }
+      shape: dummy
+      selfOpacity: 0
+      childItems:
+      - id: {$-str: "dataset-path-${dataset.args.id}"}
+        name: {$-expr: "dataset.args.name"}
+        area:
+          x: 0
+          y: 0
+          w: { $-expr: "max(1, plotWidth)" }
+          h: { $-expr: "max(1, plotHeight)" }
+        shape: path
+        tags:
+          - dataset-path
+        shapeProps:
+          smoothing: {$-expr: lineType}
+          strokeColor: {$-expr: dataset.args.color}
+          strokeSize: {$-expr: dataset.args.strokeSize}
+          strokePattern: {$-expr: dataset.args.strokePattern}
+          paths:
           - id: dataset-path
             closed: false
             pos: relative
@@ -355,21 +394,21 @@ item:
             - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
               $-extend: {$-expr: 'toJSON(point)'}
               id: {$-expr: pointIdx}
-      childItems:
-      - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
-        $-if: "showPoints || pointSize > 0"
-        id: {$-str: "datapoint-${dataset.args.id}-${pointIdx}"}
-        name: {$-str: "Point ${pointIdx}"}
-        shape: ellipse
-        area:
-          x: {$-expr: "point.x * plotWidth / 100 - pointSize/2"}
-          y: {$-expr: "point.y * plotHeight / 100 - pointSize/2"}
-          w: {$-expr: "pointSize"}
-          h: {$-expr: "pointSize"}
-        shapeProps:
-          strokeSize: {$-expr: 'if (pointType == "hollow" || pointType == "cut") { 2 } else { 0 }'}
-          fill: {type: solid, color: { $-expr: 'if (pointType == "hollow") { background } else { dataset.args.color }' }}
-          strokeColor: { $-expr: 'if (pointType == "cut") { background } else { dataset.args.color }' }
+        childItems:
+        - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
+          $-if: "showPoints || pointSize > 0"
+          id: {$-str: "datapoint-${dataset.args.id}-${pointIdx}"}
+          name: {$-str: "Point ${pointIdx}"}
+          shape: ellipse
+          area:
+            x: {$-expr: "point.x * plotWidth / 100 - pointSize/2"}
+            y: {$-expr: "point.y * plotHeight / 100 - pointSize/2"}
+            w: {$-expr: "pointSize"}
+            h: {$-expr: "pointSize"}
+          shapeProps:
+            strokeSize: {$-expr: 'if (pointType == "hollow" || pointType == "cut") { 2 } else { 0 }'}
+            fill: {type: solid, color: { $-expr: 'if (pointType == "hollow") { background } else { dataset.args.color }' }}
+            strokeColor: { $-expr: 'if (pointType == "cut") { background } else { dataset.args.color }' }
 
 
   - $-foreach: {source: "yAxis.labels", it: label, index: labelIdx}
