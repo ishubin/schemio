@@ -73,38 +73,52 @@ $-def:changeDataPointInitScript:
   $-str: |
     ${baseScriptForFunctions}
 
-    local pathItem = findChildItemsByTag('dataset-path').find((item) => { item.getName() == name })
-    if (!pathItem || pathItem.getShape() != 'path') {
+    local container = findChildItemsByTag('dataset-container').find((item) => { item.getVar('datasetName') == name })
+    if (!container) {
+      log("Could not find dataset with name \"" + name + "\"")
       stop()
       return
     }
 
+    local datasetType = container.getVar('datasetType')
+    local srcPoints = List()
     local values = data.split(',').map(parseInt)
-    if (pathItem.totalPaths() == 0) {
-      pathItem.addPath()
-    }
-    local numPoints = pathItem.totalPathPoints(0)
-    if (numPoints < values.size) {
-      local lastPointIdx = numPoints - 1
-      local lastPointY = pathItem.getPathPointPos(0, lastPointIdx).y
+    local pathItem = false
 
-      for (local i = numPoints; i < values.size; i++) {
-        if (lineType == 'smooth') {
-          pathItem.addBezierPoint(0, lastPointIdx * dx, lastPointY, 0, 0, 0, 0)
-        } else {
-          pathItem.addPoint(0, lastPointIdx * dx, lastPointY)
+    if (datasetType == 'line') {
+      pathItem = container.findChildItemsByTag('dataset-path').first()
+      if (!pathItem || pathItem.getShape() != 'path') {
+        stop()
+        return
+      }
+
+      if (pathItem.totalPaths() == 0) {
+        pathItem.addPath()
+      }
+      local numPoints = pathItem.totalPathPoints(0)
+      if (numPoints < values.size) {
+        local lastPointIdx = numPoints - 1
+        local lastPointY = pathItem.getPathPointPos(0, lastPointIdx).y
+
+        for (local i = numPoints; i < values.size; i++) {
+          if (lineType == 'smooth') {
+            pathItem.addBezierPoint(0, lastPointIdx * dx, lastPointY, 0, 0, 0, 0)
+          } else {
+            pathItem.addPoint(0, lastPointIdx * dx, lastPointY)
+          }
         }
       }
+
+      srcPoints = pathItem.getPathPoints(0)
     }
 
-    local srcPoints = pathItem.getPathPoints(0)
     local dstPoints = List()
     values.forEach((value, idx) => {
       dstPoints.add(Point(idx * dx, (yMax - value) * plotHeight / dy))
     })
 
     local lastDstPoint = dstPoints.get(dstPoints.size - 1)
-    for (local i = values.size; i < numPoints; i++) {
+    for (local i = values.size; i < srcPoints.size; i++) {
       dstPoints.add(lastDstPoint)
     }
 
@@ -113,14 +127,18 @@ $-def:changeDataPointInitScript:
 
 
 $-def:changeDataPointLoopScript: |
-  changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+  if (datasetType == 'line') {
+    changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+  }
 
 
 $-def:changeDataPointEndScript: |
-  if (numPoints > values.size) {
-    for (local i = numPoints - 1; i >= values.size; i--) {
-      log('removing point', i)
-      pathItem.removePathPoint(0, i)
+  if (datasetType == 'line') {
+    local numPoints = pathItem.totalPathPoints(0)
+    if (numPoints > values.size) {
+      for (local i = numPoints - 1; i >= values.size; i--) {
+        pathItem.removePathPoint(0, i)
+      }
     }
   }
 
@@ -337,6 +355,10 @@ item:
       name: {$-str: "${dataset.args.name} container"}
       tags:
         - dataset-container
+      args:
+        customVars:
+          datasetType: bar
+          datasetName: {$-expr: dataset.args.name}
       area:
         x: 0
         y: 0
@@ -345,15 +367,20 @@ item:
       shape: dummy
       selfOpacity: 0
       childItems:
-      - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
+      - $-foreach: {source: "dataset.bars", it: "bar", index: pointIdx}
         id: {$-str: "dataset-${dataset.args.id}-bar-${pointIdx}"}
-        tags: {$-expr: 'List(`dataset-bar-${pointIdx}`)'}
+        tags:
+          - dataset-bar
+        args:
+          customVars:
+            pointId: {$-expr: pointIdx}
+
         shape: rect
         area:
-          x: {$-expr: "point.x * plotWidth / 100 + barWidth * datasetBarIdx"}
-          y: {$-expr: "point.y * plotHeight / 100"}
-          w: {$-expr: "barWidth"}
-          h: {$-expr: "plotHeight - point.y * plotHeight / 100"}
+          x: {$-expr: bar.x}
+          y: {$-expr: bar.y}
+          w: {$-expr: bar.w}
+          h: {$-expr: bar.h}
         shapeProps:
           strokeSize: 0
           fill: {type: solid, color: {$-expr: dataset.args.color}}
@@ -363,6 +390,10 @@ item:
       name: {$-str: "${dataset.args.name} container"}
       tags:
         - dataset-container
+      args:
+        customVars:
+          datasetType: line
+          datasetName: {$-expr: dataset.args.name}
       area:
         x: 0
         y: 0

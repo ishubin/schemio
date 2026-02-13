@@ -32,6 +32,18 @@ struct Dataset {
     points: List()
 }
 
+struct Area {
+    x: 0
+    y: 0
+    w: 0
+    h: 0
+}
+
+struct BarDataset {
+    args: 0
+    bars: List()
+}
+
 
 if (hasLegend) {
     legend = buildLegend(datasets, legendWidth, legendTopMargin)
@@ -190,11 +202,20 @@ xAxis.lines.forEach((line) => {
 
 local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
+
+centerValue = if (yAxis.min <= 0 && 0 < yAxis.max) {
+    0
+} else if (yAxis.max < 0) {
+    yAxis.max
+} else {
+    yAxis.min
+}
+
+yCenter = (yAxis.max - centerValue) * plotHeight / (yAxis.max - yAxis.min)
+
 parsedDatasets = datasets.map((dataset) => {
     Dataset(dataset, parseDatasetPoints(dataset.values, dx, yAxis, plotWidth, plotHeight))
 })
-
-
 
 parsedLineDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'line' }).map((dataset) => {
     local threshold = max(1, maxPoints)
@@ -203,16 +224,38 @@ parsedLineDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == '
     }
     dataset
 })
-parsedBarDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'bar' }).map((dataset) => {
+
+local filteredBarDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'bar' })
+local totalBarDatasets = filteredBarDatasets.size
+barWidth = dx / (totalBarDatasets + 1)
+
+parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
     local threshold = max(1, maxPoints - 1)
-    for ( ; dataset.points.size > threshold; ) {
-        dataset.points.pop()
-    }
-    dataset
+
+    local bars = List()
+    dataset.points.forEach((point, pointIdx) => {
+        if (pointIdx < threshold) {
+            local y = point.y * plotHeight / 100
+
+            local y1 = min(y, yCenter)
+            local y2 = max(y, yCenter)
+            local h = y2 - y1
+
+            bars.add(Area(
+                point.x * plotWidth / 100 + barWidth * datasetIdx,
+                y1,
+                barWidth,
+                h
+            ))
+        }
+    })
+
+    BarDataset(dataset.args, bars)
 })
 
 
-barWidth = dx / (parsedBarDatasets.size + 1)
+
+
 
 
 
