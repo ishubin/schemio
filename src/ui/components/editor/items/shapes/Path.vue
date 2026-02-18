@@ -222,6 +222,18 @@ function scriptFunctions(editorId, schemeContainer, item) {
             });
         },
 
+        getRelativePathPoints(pathIdx) {
+            return withPath(pathIdx, path => {
+                // cloning the points since we don't want the user to be able to mutate points
+                // of the item, also if the user stores the points somewhere in SchemioScript
+                // we don't want them to be updated with new values
+                const points = utils.clone(path.points);
+                return points.map(point => {
+                    return point;
+                });
+            });
+        },
+
         getPathPointWorldPos(pathIdx, pointIdx) {
             return withPath(pathIdx, path => {
                 return withPoint(path, pointIdx, point => {
@@ -279,6 +291,33 @@ function scriptFunctions(editorId, schemeContainer, item) {
                     point.y1 = p.y1;
                     point.x2 = p.x2;
                     point.y2 = p.y2;
+                    emitItemChanged();
+                });
+            });
+        },
+
+        setPathPointRelativePos(pathIdx, pointIdx, x, y) {
+            ensurePathIsValid();
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    point.x = x;
+                    point.y = y;
+                    emitItemChanged();
+                });
+            });
+        },
+
+        setPathBezierPointRelativePos(pathIdx, pointIdx, x, y, x1, y1, x2, y2) {
+            ensurePathIsValid();
+            return withPath(pathIdx, path => {
+                return withPoint(path, pointIdx, point => {
+                    point.x = x;
+                    point.y = y;
+                    point.t = 'B';
+                    point.x1 = x1;
+                    point.y1 = y1;
+                    point.x2 = x2;
+                    point.y2 = y2;
                     emitItemChanged();
                 });
             });

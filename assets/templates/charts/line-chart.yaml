@@ -80,10 +80,12 @@ $-def:changeDataPointInitScript:
       return
     }
 
+    local datasetColor = container.getVar('datasetColor')
     local datasetType = container.getVar('datasetType')
     local srcPoints = List()
     local values = data.split(',').map(parseInt)
     local pathItem = false
+    local allBars = List()
 
     if (datasetType == 'line') {
       pathItem = container.findChildItemsByTag('dataset-path').first()
@@ -109,26 +111,76 @@ $-def:changeDataPointInitScript:
         }
       }
 
-      srcPoints = pathItem.getPathPoints(0)
+      srcPoints = pathItem.getRelativePathPoints(0)
+    } else if (datasetType == 'bar') {
+      container.findChildItemsByTag('dataset-bar').forEach((bar) => {
+        srcPoints.add(Point(bar.getVar('pointX'), bar.getVar('pointY')))
+      })
+      allBars = container.findChildItemsByTag('dataset-bar')
     }
 
     local dstPoints = List()
     values.forEach((value, idx) => {
-      dstPoints.add(Point(idx * dx, (yMax - value) * plotHeight / dy))
+      dstPoints.add(Point(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
     })
 
     local lastDstPoint = dstPoints.get(dstPoints.size - 1)
     for (local i = values.size; i < srcPoints.size; i++) {
-      dstPoints.add(lastDstPoint)
+      if (datasetType == 'line') {
+        dstPoints.add(lastDstPoint)
+      } else {
+        dstPoints.add(Point(i * dx * 100 / plotWidth, yMax * 100 / dy))
+      }
+    }
+
+    local allPointItems = Map()
+    if (datasetType == 'line' && showPoints && srcPoints.size > 0) {
+      container.findChildItemsByTag('dataset-point').forEach((pointItem) => {
+        local pointIdx = pointItem.getVar('pointIdx')
+        allPointItems.set(pointIdx, pointItem)
+      })
+      local lastPoint = srcPoints.get(0)
+
+      srcPoints.forEach((point, pointIdx) => {
+        if (!allPointItems.has(pointIdx)) {
+          local pointItem = buildItem('ellipse', "Point " + pointIdx)
+          pointItem.mount(container)
+          pointItem.setPos(lastPoint.x - pointSize/2, lastPoint.y - pointSize / 2)
+          pointItem.setWidth(pointSize)
+          pointItem.setHeight(pointSize)
+          pointItem.setVar('pointIdx', pointIdx)
+          if (pointType == "hollow") {
+            pointItem.setFill(Fill.solid(backgroundColor))
+            pointItem.setStrokeSize(2)
+            pointItem.setStrokeColor(datasetColor)
+          } else if (pointType == "cut") {
+            pointItem.setFill(Fill.solid(datasetColor))
+            pointItem.setStrokeSize(2)
+            pointItem.setStrokeColor(backgroundColor)
+          } else {
+            pointItem.setFill(Fill.solid(datasetColor))
+            pointItem.setStrokeSize(0)
+          }
+
+          pointItem.tag('dataset-point')
+          allPointItems.set(pointIdx, pointItem)
+        } else {
+          lastPoint = point
+        }
+      })
     }
 
     // smoothening the points
     smoothenPoints(dstPoints)
 
 
+
+
 $-def:changeDataPointLoopScript: |
   if (datasetType == 'line') {
     changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+  } else if (datasetType == 'bar') {
+    changeBarsInAnimation(allBars, srcPoints, dstPoints, t)
   }
 
 
@@ -140,6 +192,12 @@ $-def:changeDataPointEndScript: |
         pathItem.removePathPoint(0, i)
       }
     }
+    container.findChildItemsByTag('dataset-point').forEach((pointItem) => {
+      local pointIdx = pointItem.getVar('pointIdx')
+      if (pointIdx >= values.size) {
+        pointItem.remove()
+      }
+    })
   }
 
 
@@ -196,7 +254,7 @@ $-def:removeDatasetInitScript:
       return
     }
 
-    local srcPoints = pathItem.getPathPoints(0)
+    local srcPoints = pathItem.getRelativePathPoints(0)
     local dstPoints = List()
     srcPoints.forEach((p, idx) => {
       dstPoints.add(Point(idx * dx, 0))
@@ -358,6 +416,7 @@ item:
       args:
         customVars:
           datasetType: bar
+          datasetColor: {$-expr: dataset.args.color}
           datasetName: {$-expr: dataset.args.name}
       area:
         x: 0
@@ -366,14 +425,19 @@ item:
         h: { $-expr: "max(1, plotHeight)" }
       shape: dummy
       selfOpacity: 0
+      shapeProps:
+        showName: false
       childItems:
       - $-foreach: {source: "dataset.bars", it: "bar", index: pointIdx}
         id: {$-str: "dataset-${dataset.args.id}-bar-${pointIdx}"}
+        name: {$-str: "Bar ${pointIdx}"}
         tags:
           - dataset-bar
         args:
           customVars:
             pointId: {$-expr: pointIdx}
+            pointX: {$-expr: bar.point.x}
+            pointY: {$-expr: bar.point.y}
 
         shape: rect
         area:
@@ -393,6 +457,7 @@ item:
       args:
         customVars:
           datasetType: line
+          datasetColor: {$-expr: dataset.args.color}
           datasetName: {$-expr: dataset.args.name}
       area:
         x: 0
@@ -401,6 +466,8 @@ item:
         h: { $-expr: "max(1, plotHeight)" }
       shape: dummy
       selfOpacity: 0
+      shapeProps:
+        showName: false
       childItems:
       - id: {$-str: "dataset-path-${dataset.args.id}"}
         name: {$-expr: "dataset.args.name"}
@@ -431,6 +498,11 @@ item:
           id: {$-str: "datapoint-${dataset.args.id}-${pointIdx}"}
           name: {$-str: "Point ${pointIdx}"}
           shape: ellipse
+          tags:
+            - dataset-point
+          args:
+            customVars:
+              pointIdx: {$-expr: pointIdx}
           area:
             x: {$-expr: "point.x * plotWidth / 100 - pointSize/2"}
             y: {$-expr: "point.y * plotHeight / 100 - pointSize/2"}

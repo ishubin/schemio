@@ -1149,7 +1149,7 @@ class SchemeContainer {
         this.selectedConnectorPoints.forEach(p => {
             if (!connectorTotalPointNumbers.has(p.itemId)) {
                 const item = this.findItemById(p.itemId);
-                // using arithmetic progression formula as we are going to removed each poindIdx+1 from the total sum
+                // using arithmetic progression formula as we are going to removed each pointIdx+1 from the total sum
                 // and once 0 is left - that means that all points were selected
                 connectorTotalPointNumbers.set(p.itemId, item.shapeProps.points.length * (item.shapeProps.points.length + 1) / 2);
             }

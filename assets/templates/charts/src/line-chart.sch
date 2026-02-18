@@ -32,7 +32,8 @@ struct Dataset {
     points: List()
 }
 
-struct Area {
+struct Bar {
+    point: Point()
     x: 0
     y: 0
     w: 0
@@ -52,7 +53,7 @@ if (hasLegend) {
 
 
 func parseDatasetPoints(encodedPoints, dx, yAxis, plotWidth, plotHeight) {
-    local dy = yAxis.max - yAxis.min
+    local dy = max(0.00000001, yAxis.max - yAxis.min)
     if (abs(plotHeight / dy) > 100000 || abs(dx) > 10000) {
         return List()
     }
@@ -241,7 +242,8 @@ parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
             local y2 = max(y, yCenter)
             local h = y2 - y1
 
-            bars.add(Area(
+            bars.add(Bar(
+                point,
                 point.x * plotWidth / 100 + barWidth * datasetIdx,
                 y1,
                 barWidth,
@@ -249,6 +251,29 @@ parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
             ))
         }
     })
+
+    // filling in empty bars, so that they could be animated on request
+    for ( ; bars.size < threshold ; ) {
+        local pointIdx = bars.size
+        local dy = max(0.00000001, yAxis.max - yAxis.min)
+
+        local point = Point(dx * pointIdx * 100 / plotWidth, yAxis.max * 100 / dy)
+
+        local y = point.y * plotHeight / 100
+
+        local y1 = min(y, yCenter)
+        local y2 = max(y, yCenter)
+        local h = y2 - y1
+
+
+        bars.add(Bar(
+            point,
+            point.x * plotWidth / 100 + barWidth * datasetIdx,
+            y1,
+            barWidth,
+            h
+        ))
+    }
 
     BarDataset(dataset.args, bars)
 })
@@ -275,16 +300,29 @@ local xMin = ${xMin}
 local yMax = ${yAxis.max}
 local yMin = ${yAxis.min}
 local lineType = "${lineType}"
+local yCenter = "${yCenter}"
+local showPoints = ${showPoints}
+local pointSize = ${pointSize}
+local pointType = "${pointType}"
+local backgroundColor = "${background}"
 
-local plot = findChildItemsByTag('chart-plot').find((x) => { x.getShape() == 'path' })
+local plot = findChildItemsByTag('chart-plot').first()
 local plotWidth = plot.getWidth()
 local plotHeight = plot.getHeight()
-local dy = yMax - yMin
+local dy = max(0.0000001, yMax - yMin)
 local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
 
 func smoothenPoints(points) {
     points.forEach((p, idx) => {
+        local dx = 0
+        if (idx > 0) {
+            local prevP = points.get(idx - 1)
+            dx = abs(p.x - prevP.x)
+        } else if (points.size > 1) {
+            local nextP = points.get(idx + 1)
+            dx = abs(nextP.x - p.x)
+        }
         p.x1 = -dx/2
         p.y1 = 0
         p.x2 = dx/2
@@ -302,9 +340,34 @@ func changePointsInAnimation(pathItem, srcPoints, dstPoints, t) {
             local y1 = srcPoint.y1 * (1 - t) + dstPoint.y1 * t
             local x2 = srcPoint.x2 * (1 - t) + dstPoint.x2 * t
             local y2 = srcPoint.y2 * (1 - t) + dstPoint.y2 * t
-            pathItem.setPathBezierPointPos(0, idx, x, y, x1, y1, x2, y2)
+            pathItem.setPathBezierPointRelativePos(0, idx, x, y, x1, y1, x2, y2)
         } else {
-            pathItem.setPathPointPos(0, idx, x, y)
+            pathItem.setPathPointRelativePos(0, idx, x, y)
+        }
+
+        if (allPointItems.has(idx)) {
+            local pointItem = allPointItems.get(idx)
+            pointItem.setPos(
+                x * plotWidth / 100 - pointItem.getWidth()/2,
+                y * plotHeight / 100 - pointItem.getHeight()/2,
+            )
+        }
+    })
+}
+
+
+
+func changeBarsInAnimation(allBars, srcPoints, dstPoints, t) {
+    allBars.forEach((bar, idx) => {
+        if (idx < srcPoints.size && idx < dstPoints.size) {
+            local relativeY = srcPoints.get(idx).y * (1 - t) + dstPoints.get(idx).y * t
+            local y = relativeY * plotHeight / 100
+            local y1 = min(y, yCenter)
+            local y2 = max(y, yCenter)
+
+            bar.setPosY(y1)
+            bar.setHeight(y2 - y1)
+            bar.setVar('pointY', relativeY)
         }
     })
 }

@@ -1524,7 +1524,7 @@ pathItem.openPath()
 
 ##### getPathPointWorldPos (path)
 
-`getPathPointWorldPos(pathIdx, pointIdx)` return `Vector` which represent the position in world coordinates of the point with specified `poindIdx` index in specified path.
+`getPathPointWorldPos(pathIdx, pointIdx)` return `Vector` which represent the position in world coordinates of the point with specified `pointIdx` index in specified path.
 
 ```js
 pathItem = findItemByName('Path 1')
