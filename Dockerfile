@@ -8,6 +8,7 @@ RUN npm install
 
 COPY src ./src
 COPY assets ./assets
+COPY html ./html
 COPY webpack.* ./
 COPY all-tests.js ./
 COPY test ./test
@@ -16,6 +17,7 @@ COPY .babelrc ./
 RUN npm test
 
 RUN npm run build-app-prod
+RUN npm run build-ui-static-app-prod
 RUN npm run build
 
 
@@ -28,8 +30,7 @@ WORKDIR /usr/bin/app
 COPY docker-entry.sh /usr/bin/app/entry.sh
 RUN chmod +x /usr/bin/app/entry.sh
 
-COPY assets /usr/bin/app/assets
-COPY html/index-static.html /usr/bin/app/assets/index-static.html
+COPY --from=build /usr/src/app/assets /usr/bin/app/assets
 COPY html /usr/bin/app/html
 COPY --from=build /usr/src/app/node_modules /usr/bin/app/node_modules
 COPY --from=build /usr/src/app/dist/assets/*.js /usr/bin/app/assets/
