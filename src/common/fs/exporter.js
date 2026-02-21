@@ -85,7 +85,7 @@ function exportMediaForScheme(rootPath, exporterPath, scheme, schemeId) {
     });
 
     return chain.then(() => {
-        const fileName =  `${schemeId}.svg`;
+        const fileName =  `${schemeId}.png`;
         const src = path.join(rootPath, '.media', 'previews', fileName);
         const dstPreviewDir = path.join(exporterPath, 'media', 'previews');
         const dst = path.join(dstPreviewDir, fileName);
@@ -171,7 +171,9 @@ const assetFiles = [
     {file: 'images', isDir: true},
     {file: 'art', isDir: true},
     {file: 'custom-fonts', isDir: true},
+    {file: 'katex', isDir: true},
     {file: 'shapes', isDir: true},
+    {file: 'templates', isDir: true},
     {file: 'webfonts', isDir: true},
 ];
 
@@ -248,10 +250,10 @@ export function startStaticExporter(rootPath) {
                         path: filePath.substring(0, filePath.length - schemioExtension.length),
                         modifiedTime: scheme.modifiedTime,
                     }
-                    return fs.stat(path.join(rootPath, mediaFolder, 'previews', `${scheme.id}.svg`))
+                    return fs.stat(path.join(rootPath, mediaFolder, 'previews', `${scheme.id}.png`))
                     .then(stat => {
                         if (stat.isFile()) {
-                            entry.previewURL = `media/previews/${scheme.id}.svg`;
+                            entry.previewURL = `media/previews/${scheme.id}.png`;
                         }
                         return {entry, scheme};
                     });
