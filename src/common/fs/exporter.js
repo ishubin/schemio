@@ -256,6 +256,9 @@ export function startStaticExporter(rootPath) {
                             entry.previewURL = `media/previews/${scheme.id}.png`;
                         }
                         return {entry, scheme};
+                    }).catch(err => {
+                        console.error(err);
+                        return {entry, scheme};
                     });
                 }).then(({entry, scheme}) => {
                     parentDir.entries.push(entry);
