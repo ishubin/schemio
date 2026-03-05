@@ -12,8 +12,8 @@
 
 <script>
 import Modal from '../Modal.vue';
-import JSZip from 'jszip';
-import utils from '../../utils';
+import { exportSchemeAsStandaloneArchive } from '../../standalone-exporter';
+import StoreUtils from '../../store/StoreUtils';
 
 export default {
     props: ['scheme'],
@@ -27,30 +27,13 @@ export default {
 
     methods: {
         exportSubmitted() {
-            const zip = new JSZip();
-
-            const scheme = utils.clone(this.scheme);
-
-            zip.file('scheme.json', JSON.stringify(scheme));
-
-            this.$store.state.apiClient.getExportHTMLResources(this.$store.state.assetsPath).then(resources => {
-                zip.file('schemio-standalone.css', resources.css);
-                zip.file('index.html', resources.html);
-                zip.file('schemio-standalone.js', resources.js);
-                zip.file('syntax-highlight-worker.js', resources.syntaxHighlightWorker);
-                zip.file('syntax-highlight.css', resources.syntaxHighlightCSS);
-
-                zip.generateAsync({
-                    type: 'base64',
-                    compression: 'DEFLATE',
-                    compressionOptions: {
-                        level: 9
-                    }
-                })
-                .then(content => {
-                    this.saveAs('scheme.zip', content);
-                    this.$emit('close');
-                });
+            exportSchemeAsStandaloneArchive(this.scheme, this.$store.state.apiClient, this.$store.state.assetsPath)
+            .then(content => {
+                this.saveAs('scheme.zip', content);
+                this.$emit('close');
+            }).catch(err => {
+                console.error('failed to export standalone HTML player', err);
+                StoreUtils.addErrorSystemMessage(this.$store, 'Failed to export as HTML')
             });
         },
 
