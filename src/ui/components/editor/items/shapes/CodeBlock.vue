@@ -73,6 +73,9 @@ function highlightItemTextSlot($store, item, foreignObject) {
             itemTextElement.innerHTML = event.data;
         }
     };
+    worker.onerror = (err) => {
+        console.log('Failed to execute syntax highlighting', err);
+    };
     const code = document.createElement('code');
     code.appendChild(document.createTextNode(item.textSlots.body.text));
     worker.postMessage({text: code.innerText, lang: language});

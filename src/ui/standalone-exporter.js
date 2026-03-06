@@ -100,6 +100,17 @@ function urlToArrayBuffer(url) {
     })
 }
 
+
+const katexWorkerScript = `
+onmessage = (event) => {
+    importScripts('https://cdn.jsdelivr.net/npm/katex@0.16.35/dist/katex.min.js');
+    const html = katex.renderToString(event.data.expression, {
+        throwOnError: false
+    });
+    postMessage(html);
+};
+`;
+
 export function exportSchemeAsStandaloneArchive(scheme, apiClient, assetsPath) {
     const zip = new JSZip();
 
@@ -137,8 +148,11 @@ export function exportSchemeAsStandaloneArchive(scheme, apiClient, assetsPath) {
         zip.file('schemio-standalone.css', resources.css);
         zip.file('index.html', resources.html);
         zip.file('schemio-standalone.js', resources.js);
-        zip.file('syntax-highlight-worker.js', resources.syntaxHighlightWorker);
         zip.file('syntax-highlight.css', resources.syntaxHighlightCSS);
+
+        const jsFolder = zip.folder('js');
+        jsFolder.file('katex-worker.js', katexWorkerScript);
+        jsFolder.file('syntax-highlight-worker.js', resources.syntaxHighlightWorker);
 
         return zip.generateAsync({
             type: 'base64',
