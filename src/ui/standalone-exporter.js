@@ -111,30 +111,33 @@ onmessage = (event) => {
 };
 `;
 
-export function exportSchemeAsStandaloneArchive(scheme, apiClient, assetsPath) {
-    const zip = new JSZip();
-
-    const modifiedScheme = utils.clone(scheme);
-
-
-    const mediaMapper = createMediaMapper();
-
-    traverseItems(modifiedScheme.items, item => {
+function convertAllImages(items, mediaMapper) {
+    traverseItems(items, item => {
         if (item.shape === 'image') {
             item.shapeProps.image = './assets/' + mediaMapper.add(item.shapeProps.image);
         }
 
         const shape = Shape.find(item.shape);
-        if (shape) {
-            const args = Shape.getShapeArgs(shape);
-            forEachObject(args, (argDef, argName) => {
-                const argValue = item.shapeProps[argName];
-                if (argDef.type === 'advanced-color' && argValue && argValue.type === 'image') {
-                    item.shapeProps[argName].image = './assets/' + mediaMapper.add(item.shapeProps[argName].image);
-                }
-            });
+        if (!shape) {
+            return;
         }
+
+        const args = Shape.getShapeArgs(shape);
+        forEachObject(args, (argDef, argName) => {
+            const argValue = item.shapeProps[argName];
+            if (argDef.type === 'advanced-color' && argValue && argValue.type === 'image') {
+                item.shapeProps[argName].image = './assets/' + mediaMapper.add(item.shapeProps[argName].image);
+            }
+        });
     });
+}
+
+export function exportSchemeAsStandaloneArchive(scheme, apiClient, assetsPath) {
+    const zip = new JSZip();
+    const modifiedScheme = utils.clone(scheme);
+    const mediaMapper = createMediaMapper();
+
+    convertAllImages(modifiedScheme.items, mediaMapper);
 
     zip.file('scheme.json', JSON.stringify(modifiedScheme));
 
