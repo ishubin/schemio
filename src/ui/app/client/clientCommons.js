@@ -17,7 +17,7 @@ export function getExportHTMLResources(assetsPath) {
         axios.get(`${assetsPath}/schemio-standalone.html?v=${version}`),
         axios.get(`${assetsPath}/schemio-standalone.js?v=${version}`),
         axios.get(`${assetsPath}/js/syntax-highlight-worker.js?v=${version}`),
-        axios.get(`${assetsPath}/syntax-highlight.css?v=${version}`)
+        axios.get(`${assetsPath}/css/syntax-highlight.css?v=${version}`)
     ]).then(values => {
         const css = values[0].data;
         const html = values[1].data;

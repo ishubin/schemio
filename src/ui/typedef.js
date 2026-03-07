@@ -557,10 +557,16 @@
  */
 
 /**
+ * @typedef {Object} ArgDef
+ * @property {string} type
+ * @property {any} value
+ */
+
+/**
  * @typedef {Object} ScriptFuncDef
  * @property {String} name
  * @property {String} description
- * @property {Array<FunctionArgDef>} args
+ * @property {Array<ArgDef>} args
  * @property {ScriptFuncProps} props
  */
 
@@ -570,7 +576,7 @@
  * @property {String} name
  * @property {String} description
  * @property {String} shape
- * @property {Array<FunctionArgDef>} args
+ * @property {Array<ArgDef>} args
  * @property {Array<ItemBehaviorEvent>} events
  */
 

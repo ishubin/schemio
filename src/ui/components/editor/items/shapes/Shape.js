@@ -281,6 +281,10 @@ function getRegistry() {
     return shapeRegistry;
 }
 
+/**
+ * @param {String} shape
+ * @returns {Object.<string,ArgDef>}
+ */
 function getShapeArgs(shape) {
     if (!shape) {
         return {};

@@ -147,6 +147,12 @@ export const staticClientProvider = {
                 });
             },
 
+            getTemplate(templateRef) {
+                if (!templateRef) {
+                    return Promise.reject('Invalid empty templateRef');
+                }
+                return axios.get(templateRef);
+            },
 
             findSchemes(filters) {
                 const query = filters.query || '';
