@@ -107,7 +107,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getOpacity](#getopacity)
       - [getSelfOpacity](#getselfopacity)
       - [matchWorld](#matchworld)
-      - [mount](#mount)
+      - [mountTo](#mountto)
       - [mountChild](#mountchild)
       - [mountRoot](#mountroot)
       - [setAngle](#setangle)
@@ -1144,14 +1144,14 @@ dstX = getVar('dstX')
 `matchWorld(x, y, worldX, worldY)` moves it such that its local point at `(x, y)` matches world point at `(worldX, worldY)`
 
 
-##### mount
+##### mountTo
 
-`mount(otherItem)` mounts item to another item
+`mountTo(otherItem)` mounts item to another item
 
 
 ##### mountChild
 
-`mount(otherItem)` mounts otherItem to self
+`mountChild(otherItem)` mounts otherItem to self
 
 ##### mountRoot
 

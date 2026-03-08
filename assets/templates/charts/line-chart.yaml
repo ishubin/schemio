@@ -144,26 +144,7 @@ $-def:changeDataPointInitScript:
 
       srcPoints.forEach((point, pointIdx) => {
         if (!allPointItems.has(pointIdx)) {
-          local pointItem = buildItem('ellipse', "Point " + pointIdx)
-          pointItem.mount(container)
-          pointItem.setPos(lastPoint.x - pointSize/2, lastPoint.y - pointSize / 2)
-          pointItem.setWidth(pointSize)
-          pointItem.setHeight(pointSize)
-          pointItem.setVar('pointIdx', pointIdx)
-          if (pointType == "hollow") {
-            pointItem.setFill(Fill.solid(backgroundColor))
-            pointItem.setStrokeSize(2)
-            pointItem.setStrokeColor(datasetColor)
-          } else if (pointType == "cut") {
-            pointItem.setFill(Fill.solid(datasetColor))
-            pointItem.setStrokeSize(2)
-            pointItem.setStrokeColor(backgroundColor)
-          } else {
-            pointItem.setFill(Fill.solid(datasetColor))
-            pointItem.setStrokeSize(0)
-          }
-
-          pointItem.tag('dataset-point')
+          local pointItem = addPointItemToContainer(container, pointIdx, datasetColor, lastPoint.x, lastPoint.y)
           allPointItems.set(pointIdx, pointItem)
         } else {
           lastPoint = point
@@ -206,8 +187,19 @@ $-def:addDatasetInitScript:
   $-str: |
     ${baseScriptForFunctions}
 
+    local container = buildItem('dummy', name + ' container')
+    container.mountTo(plot)
+    container.tag('dataset-container')
+    container.setPos(0, 0)
+    container.setWidth(plot.getWidth())
+    container.setHeight(plot.getHeight())
+    container.setVar('datasetType', 'line')
+    container.setVar('datasetColor', color)
+    container.setVar('datasetName', name)
+
+
     local pathItem = buildItem('path', name)
-    pathItem.mount(plot)
+    pathItem.mountTo(container)
     pathItem.setPos(0, 0)
     pathItem.setWidth(plot.getWidth())
     pathItem.setHeight(plot.getHeight())
@@ -236,6 +228,12 @@ $-def:addDatasetInitScript:
     })
 
     allPointItems = Map()
+    if (showPoints) {
+      srcPoints.forEach((point, pointIdx) => {
+        local pointItem = addPointItemToContainer(container, pointIdx, color, pointIdx * dx, valueY * plotHeight / 100)
+        allPointItems.set(pointIdx, pointItem)
+      })
+    }
 
     // smoothening the points
     smoothenPoints(dstPoints)
@@ -251,7 +249,16 @@ $-def:removeDatasetInitScript:
   $-str: |
     ${baseScriptForFunctions}
 
-    local pathItem = findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
+
+    local container = findChildItemsByTag('dataset-container').find((item) => { item.getVar('datasetName') == name })
+    if (!container) {
+      log("Could not find dataset with name \"" + name + "\"")
+      stop()
+      return
+    }
+    local datasetType = container.getVar('datasetType')
+
+    local pathItem = container.findChildItemsByTag('dataset-path').find((item) => {item.getName() == name})
     if (!pathItem || pathItem.getShape() != 'path') {
       stop()
       return
@@ -264,15 +271,21 @@ $-def:removeDatasetInitScript:
     })
 
     allPointItems = Map()
+    if (datasetType == 'line' && showPoints && srcPoints.size > 0) {
+      container.findChildItemsByTag('dataset-point').forEach((pointItem) => {
+        local pointIdx = pointItem.getVar('pointIdx')
+        allPointItems.set(pointIdx, pointItem)
+      })
+    }
 
 $-def:removeDatasetLoopScript:
   $-str: |
     changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t)
-    pathItem.setOpacity(100 * (1 - t))
+    container.setOpacity(100 * (1 - t))
 
 $-def:removeDatasetEndScript:
   $-str: |
-    pathItem.remove()
+    container.remove()
 
 editor:
   panels:
@@ -349,6 +362,11 @@ item:
       value: "New data"
       type: string
       description: The name of a dataset
+    - id: arg-type
+      name: type
+      value: line
+      type: choice
+      options: ['line', 'bar']
     - id: arg-data
       name: data
       value: 1, 2, 4, 5

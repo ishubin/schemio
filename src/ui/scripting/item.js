@@ -329,6 +329,11 @@ export function createItemScriptWrapper(item, schemeContainer, userEventBus) {
             }
             schemeContainer.reindexItems();
         },
+        // mountTo is a much better and clear name then "mount"
+        // unfortunatelly "mount" is used in a lot of diagrams already
+        mountTo(otherItem) {
+            this.mount(otherItem);
+        },
         mountChild(childItem) {
             if (childItem) {
                 schemeContainer.remountItemInsideOtherItemAtTheBottom(childItem.getId(), item.id);

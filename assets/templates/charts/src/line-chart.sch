@@ -371,4 +371,29 @@ func changeBarsInAnimation(allBars, srcPoints, dstPoints, t) {
         }
     })
 }
+
+func addPointItemToContainer(container, pointIdx, color, x, y) {
+    local pointItem = buildItem('ellipse', "Point " + pointIdx)
+    pointItem.mountTo(container)
+    pointItem.setPos(x - pointSize/2, y - pointSize/2)
+    pointItem.setWidth(pointSize)
+    pointItem.setHeight(pointSize)
+    pointItem.setVar('pointIdx', pointIdx)
+
+    if (pointType == "hollow") {
+        pointItem.setFill(Fill.solid(backgroundColor))
+        pointItem.setStrokeSize(2)
+        pointItem.setStrokeColor(color)
+    } else if (pointType == "cut") {
+        pointItem.setFill(Fill.solid(color))
+        pointItem.setStrokeSize(2)
+        pointItem.setStrokeColor(backgroundColor)
+    } else {
+        pointItem.setFill(Fill.solid(color))
+        pointItem.setStrokeSize(0)
+    }
+
+    pointItem.tag('dataset-point')
+    pointItem
+}
 `
