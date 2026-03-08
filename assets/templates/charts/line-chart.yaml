@@ -13,8 +13,9 @@ args:
       type: array
       value:
         - id: 24tUTkZnn
+          type: line
           name: Data 1
-          values: "20, 40, 30, 50"
+          values: "20, 40, 30, 50, 0, 20, 50, 70, 100, 60, 90"
           color: "#355E97FF"
           strokeSize: 2
           strokePattern: solid
@@ -178,9 +179,9 @@ $-def:changeDataPointInitScript:
 
 $-def:changeDataPointLoopScript: |
   if (datasetType == 'line') {
-    changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+    changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t)
   } else if (datasetType == 'bar') {
-    changeBarsInAnimation(allBars, srcPoints, dstPoints, t)
+    changeBarsInAnimation(allBars, srcPoints, dstPoints, Map(), t)
   }
 
 
@@ -218,7 +219,7 @@ $-def:addDatasetInitScript:
 
     local values = data.split(',').map(parseInt)
 
-    local valueY = yMax * plotHeight / dy
+    local valueY = yMax * 100 / dy
     for (local i = 0; i < values.size; i++) {
       if (lineType == 'smooth') {
         pathItem.addBezierPoint(0, i * dx, valueY, 0, 0, 0, 0)
@@ -230,15 +231,17 @@ $-def:addDatasetInitScript:
     local srcPoints = List()
     local dstPoints = List()
     values.forEach((value, idx) => {
-      srcPoints.add(Point(idx * dx, valueY))
-      dstPoints.add(Point(idx * dx, (yMax - value) * plotHeight / dy))
+      srcPoints.add(Point(idx * dx * 100 / plotWidth, valueY))
+      dstPoints.add(Point(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
     })
+
+    allPointItems = Map()
 
     // smoothening the points
     smoothenPoints(dstPoints)
 
 $-def:addDatasetLoopScript: |
-  changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+  changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t)
   pathItem.setOpacity(100 * t)
 
 
@@ -257,12 +260,14 @@ $-def:removeDatasetInitScript:
     local srcPoints = pathItem.getRelativePathPoints(0)
     local dstPoints = List()
     srcPoints.forEach((p, idx) => {
-      dstPoints.add(Point(idx * dx, 0))
+      dstPoints.add(Point(idx * dx * 100 / plotWidth, 0))
     })
+
+    allPointItems = Map()
 
 $-def:removeDatasetLoopScript:
   $-str: |
-    changePointsInAnimation(pathItem, srcPoints, dstPoints, t)
+    changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t)
     pathItem.setOpacity(100 * (1 - t))
 
 $-def:removeDatasetEndScript:

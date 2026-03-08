@@ -330,7 +330,7 @@ func smoothenPoints(points) {
     })
 }
 
-func changePointsInAnimation(pathItem, srcPoints, dstPoints, t) {
+func changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t) {
     dstPoints.forEach((dstPoint, idx) => {
         local srcPoint = srcPoints.get(idx)
         local x = srcPoint.x * (1 - t) + dstPoint.x * t
