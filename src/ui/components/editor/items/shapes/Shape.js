@@ -22,6 +22,7 @@ let _shapes = [
     require('./Link.vue').default,
     require('./FramePlayer.vue').default,
     require('./CodeBlock.vue').default,
+    require('./WebFrame.vue').default,
     require('./MathBlock.vue').default,
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
