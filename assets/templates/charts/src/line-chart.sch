@@ -448,8 +448,12 @@ func changeAllBars(allBarDatasets, allDstBarDatasets, t) {
                 return
             }
             local dstBar = dstDataset.bars.get(barIdx)
-            bar.item.setPosX(bar.x * (1 - t) + dstBar.x * t)
+            bar.item.setPos(
+                bar.x * (1 - t) + dstBar.x * t,
+                bar.y * (1 - t) + dstBar.y * t,
+            )
             bar.item.setWidth(bar.w * (1 - t) + dstBar.w * t)
+            bar.item.setHeight(bar.h * (1 - t) + dstBar.h * t)
         })
     })
 }
