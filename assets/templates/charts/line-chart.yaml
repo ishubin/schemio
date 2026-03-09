@@ -186,6 +186,7 @@ $-def:changeDataPointEndScript: |
 $-def:addDatasetInitScript:
   $-str: |
     ${baseScriptForFunctions}
+    ${baseScriptForBars}
 
     local container = buildItem('dummy', name + ' container')
     container.mountTo(plot)
@@ -193,33 +194,14 @@ $-def:addDatasetInitScript:
     container.setPos(0, 0)
     container.setWidth(plot.getWidth())
     container.setHeight(plot.getHeight())
-    container.setVar('datasetType', 'line')
+    container.setVar('datasetType', type)
     container.setVar('datasetColor', color)
     container.setVar('datasetName', name)
-
-
-    local pathItem = buildItem('path', name)
-    pathItem.mountTo(container)
-    pathItem.setPos(0, 0)
-    pathItem.setWidth(plot.getWidth())
-    pathItem.setHeight(plot.getHeight())
-    pathItem.setStrokeColor(color)
-    pathItem.setStrokeSize(strokeSize)
-    pathItem.setStrokePattern(strokePattern)
-    pathItem.addPath()
-    pathItem.tag('dataset-path')
+    container.setVar('datasetValues', data)
 
     local values = data.split(',').map(parseInt)
 
     local valueY = yMax * 100 / dy
-    for (local i = 0; i < values.size; i++) {
-      if (lineType == 'smooth') {
-        pathItem.addBezierPoint(0, i * dx, valueY, 0, 0, 0, 0)
-      } else {
-        pathItem.addPoint(0, i * dx, valueY)
-      }
-    }
-
     local srcPoints = List()
     local dstPoints = List()
     values.forEach((value, idx) => {
@@ -228,19 +210,98 @@ $-def:addDatasetInitScript:
     })
 
     allPointItems = Map()
-    if (showPoints) {
-      srcPoints.forEach((point, pointIdx) => {
-        local pointItem = addPointItemToContainer(container, pointIdx, color, pointIdx * dx, valueY * plotHeight / 100)
-        allPointItems.set(pointIdx, pointItem)
+
+    local pathItem = null
+    local barSrcWidth = 0
+    local barDstWidth = 0
+
+    local allBarDatasets = null
+    local allDstBarDatasets = null
+
+    if (type == 'bar') {
+      allBarDatasets = collectAllDatasetBars()
+      local datasetIdx = allBarDatasets.size - 1
+      local threshold = max(1, maxPoints - 1)
+      barSrcWidth = dx / (allBarDatasets.size)
+      barDstWidth = dx / (allBarDatasets.size + 1)
+
+      local bars = List()
+      dstPoints.forEach((point, pointIdx) => {
+        if (pointIdx < threshold) {
+          local barItem = buildItem('rect', 'Bar ' + pointIdx)
+          local y = point.y * plotHeight / 100
+
+          local y1 = min(y, yCenter)
+          local y2 = max(y, yCenter)
+          local h = y2 - y1
+
+          barItem.mountTo(container)
+          local x = point.x * plotWidth / 100 + barSrcWidth * datasetIdx
+          local y = y1
+          barItem.setPos(x, y)
+          barItem.setWidth(0)
+          barItem.setHeight(h)
+          barItem.setStrokeSize(0)
+          barItem.setFill(Fill.solid(color))
+          barItem.tag('dataset-bar')
+          barItem.setVar('pointId', pointIdx)
+          barItem.setVar('pointX', point.x)
+          barItem.setVar('pointY', point.y)
+          bars.add(Bar(barItem, pointIdx, x, y, 0, h, point))
+        }
       })
+      allBarDatasets.add(BarDataset(container, datasetIdx, bars))
+
+      allDstBarDatasets = allBarDatasets.map((dataset, datasetIdx) => {
+        BarDataset(dataset.container, datasetIdx, dataset.bars.map((bar, barIdx) => {
+          local idx = datasetIdx
+          if (datasetIdx == allBarDatasets.size - 1) {
+            idx = idx - 1
+          }
+          local x = bar.point.x * plotWidth / 100 + barDstWidth * idx
+          Bar(bar.item, barIdx, x, bar.y, barDstWidth, bar.h, bar.point)
+        }))
+      })
+    } else {
+      pathItem = buildItem('path', name)
+      pathItem.mountTo(container)
+      pathItem.setPos(0, 0)
+      pathItem.setWidth(plot.getWidth())
+      pathItem.setHeight(plot.getHeight())
+      pathItem.setStrokeColor(color)
+      pathItem.setStrokeSize(strokeSize)
+      pathItem.setStrokePattern(strokePattern)
+      pathItem.addPath()
+      pathItem.tag('dataset-path')
+
+      for (local i = 0; i < values.size; i++) {
+        if (lineType == 'smooth') {
+          pathItem.addBezierPoint(0, i * dx, valueY, 0, 0, 0, 0)
+        } else {
+          pathItem.addPoint(0, i * dx, valueY)
+        }
+      }
+
+      if (showPoints) {
+        srcPoints.forEach((point, pointIdx) => {
+          local pointItem = addPointItemToContainer(container, pointIdx, color, pointIdx * dx, valueY * plotHeight / 100)
+          allPointItems.set(pointIdx, pointItem)
+        })
+      }
+
+      // smoothening the points
+      smoothenPoints(dstPoints)
     }
 
-    // smoothening the points
-    smoothenPoints(dstPoints)
+
 
 $-def:addDatasetLoopScript: |
-  changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t)
-  pathItem.setOpacity(100 * t)
+  if (type == 'bar') {
+    changeAllBars(allBarDatasets, allDstBarDatasets, t)
+  } else {
+    changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t)
+    pathItem.setOpacity(100 * t)
+  }
 
 
 
@@ -248,7 +309,7 @@ $-def:addDatasetLoopScript: |
 $-def:removeDatasetInitScript:
   $-str: |
     ${baseScriptForFunctions}
-
+    ${baseScriptForBars}
 
     local container = findChildItemsByTag('dataset-container').find((item) => { item.getVar('datasetName') == name })
     if (!container) {
@@ -441,6 +502,7 @@ item:
           datasetType: bar
           datasetColor: {$-expr: dataset.args.color}
           datasetName: {$-expr: dataset.args.name}
+          datasetValues: {$-expr: dataset.args.values}
       area:
         x: 0
         y: 0
@@ -482,6 +544,7 @@ item:
           datasetType: line
           datasetColor: {$-expr: dataset.args.color}
           datasetName: {$-expr: dataset.args.name}
+          datasetValues: {$-expr: dataset.args.values}
       area:
         x: 0
         y: 0

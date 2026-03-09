@@ -228,7 +228,7 @@ parsedLineDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == '
 
 local filteredBarDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'bar' })
 local totalBarDatasets = filteredBarDatasets.size
-barWidth = dx / (totalBarDatasets + 1)
+local barWidth = dx / (totalBarDatasets + 1)
 
 parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
     local threshold = max(1, maxPoints - 1)
@@ -305,6 +305,7 @@ local showPoints = ${showPoints}
 local pointSize = ${pointSize}
 local pointType = "${pointType}"
 local backgroundColor = "${background}"
+local maxPoints = ${maxPoints}
 
 local plot = findChildItemsByTag('chart-plot').first()
 local plotWidth = plot.getWidth()
@@ -395,5 +396,61 @@ func addPointItemToContainer(container, pointIdx, color, x, y) {
 
     pointItem.tag('dataset-point')
     pointItem
+}
+`
+
+
+local baseScriptForBars = `
+struct BarDataset {
+    container: null
+    idx: 0
+    bars: List()
+}
+
+struct Bar {
+    item: null
+    idx: 0
+    x: 0
+    y: 0
+    w: 0
+    h: 0
+    point: null
+}
+
+func collectAllDatasetBars() {
+    findChildItemsByTag('dataset-container')
+    .filter((it) => { it.getVar('datasetType') == 'bar' })
+    .map((container, idx) => {
+        local bars = container.findChildItemsByTag('dataset-bar').map((barItem) => {
+            Bar(
+                barItem,
+                barItem.getVar('pointId'),
+                barItem.getPosX(),
+                barItem.getPosY(),
+                barItem.getWidth(),
+                barItem.getHeight(),
+                Point(barItem.getVar('pointX'), barItem.getVar('pointY'))
+            )
+        })
+        BarDataset(container, idx, bars)
+    })
+}
+
+func changeAllBars(allBarDatasets, allDstBarDatasets, t) {
+    allBarDatasets.forEach((dataset, datasetIdx) => {
+        if (datasetIdx >= allDstBarDatasets.size) {
+            return
+        }
+        local dstDataset = allDstBarDatasets.get(datasetIdx)
+
+        dataset.bars.forEach((bar, barIdx) => {
+            if (barIdx >= dstDataset.bars.size) {
+                return
+            }
+            local dstBar = dstDataset.bars.get(barIdx)
+            bar.item.setPosX(bar.x * (1 - t) + dstBar.x * t)
+            bar.item.setWidth(bar.w * (1 - t) + dstBar.w * t)
+        })
+    })
 }
 `
