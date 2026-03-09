@@ -187,6 +187,16 @@ $-def:addDatasetInitScript:
   $-str: |
     ${baseScriptForFunctions}
     ${baseScriptForBars}
+    local allBarDatasets = List()
+    local pathItem = null
+    local barSrcWidth = 0
+    local barDstWidth = 0
+    local allDstBarDatasets = null
+    local allPointItems = Map()
+
+    if (type == 'bar') {
+      allBarDatasets = collectAllDatasetBars()
+    }
 
     local container = buildItem('dummy', name + ' container')
     container.mountTo(plot)
@@ -209,20 +219,12 @@ $-def:addDatasetInitScript:
       dstPoints.add(Point(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
     })
 
-    allPointItems = Map()
-
-    local pathItem = null
-    local barSrcWidth = 0
-    local barDstWidth = 0
-    local allBarDatasets = null
-    local allDstBarDatasets = null
 
     if (type == 'bar') {
-      allBarDatasets = collectAllDatasetBars()
-      local datasetIdx = allBarDatasets.size - 1
+      local datasetIdx = allBarDatasets.size
       local threshold = max(1, maxPoints - 1)
-      barSrcWidth = dx / max(1, allBarDatasets.size)
-      barDstWidth = dx / (allBarDatasets.size + 1)
+      barSrcWidth = dx / max(1, allBarDatasets.size + 1)
+      barDstWidth = dx / (allBarDatasets.size + 2)
 
       local bars = List()
       dstPoints.forEach((point, pointIdx) => {
@@ -232,8 +234,10 @@ $-def:addDatasetInitScript:
 
           barItem.mountTo(container)
           local x = point.x * plotWidth / 100 + barSrcWidth * datasetIdx
+
           barItem.setPos(x, yCenter)
-          barItem.setWidth(0)
+          local barWidth = if (allBarDatasets.size > 0) { 0 } else { barDstWidth }
+          barItem.setWidth(barWidth)
           barItem.setHeight(0)
           barItem.setStrokeSize(0)
           barItem.setFill(Fill.solid(color))
@@ -241,26 +245,24 @@ $-def:addDatasetInitScript:
           barItem.setVar('pointId', pointIdx)
           barItem.setVar('pointX', point.x)
           barItem.setVar('pointY', point.y)
-          bars.add(Bar(barItem, pointIdx, x, yCenter, 0, 0, point))
+          bars.add(Bar(barItem, pointIdx, x, yCenter, barWidth, 0, point))
         }
       })
       allBarDatasets.add(BarDataset(container, datasetIdx, bars))
 
       allDstBarDatasets = allBarDatasets.map((dataset, datasetIdx) => {
         BarDataset(dataset.container, datasetIdx, dataset.bars.map((bar, barIdx) => {
-          local idx = datasetIdx
           local y = bar.y
           local h = bar.h
 
           if (datasetIdx == allBarDatasets.size - 1) {
-            idx = idx - 1
             local y0 = bar.point.y * plotHeight / 100
             local y2 = max(y0, yCenter)
             y = min(y0, yCenter)
             h = y2 - y
           }
 
-          local x = bar.point.x * plotWidth / 100 + barDstWidth * idx
+          local x = bar.point.x * plotWidth / 100 + barDstWidth * datasetIdx
           Bar(bar.item, barIdx, x, y, barDstWidth, h, bar.point)
         }))
       })
@@ -334,7 +336,7 @@ $-def:removeDatasetInitScript:
       barSrcWidth = dx / max(1, allBarDatasets.size + 1)
       barDstWidth = dx / max(1, allBarDatasets.size)
       if (allBarDatasets.size == 1) {
-        barDstWidth = 0
+        barDstWidth = barSrcWidth
       }
 
       local targetIdx = allBarDatasets.findIndex((x) => { x.container.getVar('datasetName') == name })
@@ -350,7 +352,7 @@ $-def:removeDatasetInitScript:
           } else {
             bar.point.x * plotWidth / 100 + barDstWidth * (datasetIdx - 1)
           }
-          local dstWidth = if (datasetIdx == targetIdx) { 0 } else { barDstWidth }
+          local dstWidth = if (datasetIdx == targetIdx && allBarDatasets.size > 1) { 0 } else { barDstWidth }
 
           local h = bar.h
           local y = bar.y
