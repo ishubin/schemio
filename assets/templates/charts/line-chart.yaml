@@ -125,6 +125,8 @@ $-def:changeDataPointInitScript:
       dstPoints.add(Point(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
     })
 
+    smoothenPoints(dstPoints)
+
     local lastDstPoint = dstPoints.get(dstPoints.size - 1)
     for (local i = values.size; i < srcPoints.size; i++) {
       if (datasetType == 'line') {
@@ -153,7 +155,6 @@ $-def:changeDataPointInitScript:
     }
 
     // smoothening the points
-    smoothenPoints(dstPoints)
 
 
 

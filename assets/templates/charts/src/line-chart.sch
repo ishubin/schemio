@@ -65,8 +65,21 @@ func parseDatasetPoints(encodedPoints, dx, yAxis, plotWidth, plotHeight) {
 
     if (lineType == 'smooth') {
         return points.map((p, idx) => {
-            local vdx = dx * 100 / (plotWidth*2)
-            SmoothPoint(p.x, p.y, -vdx, 0, vdx, 0)
+            local smoothSize = dx * 100 / (plotWidth*2)
+            local vdx = smoothSize
+            local vdy = 0
+            if (idx > 0 && idx < points.size - 1) {
+                local prevP = points.get(idx - 1)
+                local nextP = points.get(idx + 1)
+                if ((p.y - prevP.y) * (nextP.y - p.y) > 0) {
+                    local v = Vector(nextP.x - prevP.x, nextP.y - prevP.y).normalized()
+                    v = v * smoothSize
+                    vdx = v.x
+                    vdy = v.y
+                }
+            }
+
+            SmoothPoint(p.x, p.y, -vdx, -vdy, vdx, vdy)
         })
     } else {
         return points
@@ -317,17 +330,30 @@ local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 func smoothenPoints(points) {
     points.forEach((p, idx) => {
         local dx = 0
-        if (idx > 0) {
+        local dy = 0
+        if (idx > 0 && idx < points.size - 1) {
             local prevP = points.get(idx - 1)
-            dx = abs(p.x - prevP.x)
+            local nextP = points.get(idx + 1)
+
+            if ((p.y - prevP.y) * (nextP.y - p.y) > 0) {
+                local v = Vector(nextP.x - prevP.x, nextP.y - prevP.y).normalized()
+                v = v * abs(p.x - prevP.x)
+                dx = v.x
+                dy = v.y
+            } else {
+                dx = abs(p.x - prevP.x) / 2
+            }
+        } else if (idx > 0) {
+            local prevP = points.get(idx - 1)
+            dx = abs(p.x - prevP.x) / 2
         } else if (points.size > 1) {
             local nextP = points.get(idx + 1)
-            dx = abs(nextP.x - p.x)
+            dx = abs(nextP.x - p.x) / 2
         }
-        p.x1 = -dx/2
-        p.y1 = 0
-        p.x2 = dx/2
-        p.y2 = 0
+        p.x1 = -dx
+        p.y1 = -dy
+        p.x2 = dx
+        p.y2 = dy
     })
 }
 
