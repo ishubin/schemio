@@ -14,6 +14,7 @@ import { Fill } from "./fill";
 import { SchemioScriptError, ScopeInterruptValue } from "./error";
 import { stripAllHtml } from "../../htmlSanitize";
 import { VAR_REF } from "./consts";
+import { SchemioDate } from "./date";
 
 
 export class ASTNode {
@@ -349,6 +350,8 @@ const reservedFunctions = new Map(Object.entries({
     numberToLocaleString: (value, locale) => parseFloat(value).toLocaleString(locale, {}),
 
     stripHTML : (html) => stripAllHtml(html),
+
+    parseDate : (date) => new SchemioDate(date),
 
     Fill          : Fill
 }));

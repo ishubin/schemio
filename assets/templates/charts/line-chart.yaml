@@ -1,9 +1,6 @@
 name: Line chart
 description: ""
 args:
-    xMin: {group: 'Data', type: 'number', value: 0, name: 'X min'}
-    xMax: {group: 'Data', type: 'number', value: 100, name: 'X max'}
-    xStep: {group: 'Data', type: 'number', value: 10, name: 'X step'}
     yMin: {group: 'Data', type: 'number', value: 0, name: 'Y min'}
     yMax: {group: 'Data', type: 'number', value: 100, name: 'Y max'}
     datasets:
@@ -43,19 +40,65 @@ args:
     titleFontSize: {group: 'Text', type: 'number', value: 16, name: 'Title font size'}
     axisFontSize : {group: 'Text', type: 'number', value: 14, name: 'Axis font size'}
     font         : {group: 'Text', type: font, value: Arial, name: Font}
-    fontSize     : {group: 'Text', type: 'number', value: 14, name: 'Legend size'}
+    fontSize     : {group: 'Text', type: 'number', value: 14, name: 'Font size'}
     fontColor    : {group: 'Text', type: color, value: "#333333FF", name: Label color}
 
-    hasLegend  : {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
-    yTitle     : {group: Axis, type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
-    xTitle     : {group: Axis, type: string, value: 'X axis', name: 'Y Axis Name', hidden: true}
+    hasLegend : {group: 'Axis & Legend', type: 'boolean', value: true, name: 'Legend'}
+    yTitle    : {group: 'Axis & Legend', type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
+    xTitle    : {group: 'Axis & Legend', type: string, value: 'X axis', name: 'Y Axis Name', hidden: true}
+    yTitleShow: {group: 'Axis & Legend', type: boolean, value: true, name: 'Show Y Axis Name'}
+    xTitleShow: {group: 'Axis & Legend', type: boolean, value: true, name: 'Show Y Axis Name'}
+    numPoints : {group: 'Axis & Legend', type: 'number', value: 10, min: 1, softMax: 100, name: 'Number of points'}
+    xAxisType : {group: 'Axis & Legend', type: choice, value: 'numeric', options: ['numeric', 'date', 'custom'], name: 'X Axis Type'}
+    xMin      : {group: 'Axis & Legend', type: 'number', value: 0, name: 'X min', depends: {xAxisType: 'numeric'}}
+    xMax      : {group: 'Axis & Legend', type: 'number', value: 100, name: 'X max', depends: {xAxisType: 'numeric'}}
+    startDate : {group: 'Axis & Legend', type: string, value: '2026-01-01 10:00:00', name: 'Start Date', depends: {xAxisType: 'date'}}
+    endDate   : {group: 'Axis & Legend', type: string, value: '2026-01-10 10:00:00', name: 'End Date', depends: {xAxisType: 'date'}}
+    dateFormat: {group: 'Axis & Legend', type: choice, value: 'MMM D', name: 'Date format', depends: {xAxisType: 'date'},
+      options: [
+        "MMM D, YYYY",
+        "MMMM D, YYYY",
+        "MM/DD/YYYY",
+        "DD/MM/YYYY",
+        "dddd, MMM D",
+        "dddd, MMMM D, YYYY",
+        "ddd, D MMM",
+        "MMM D",
+        "YYYY-MM-DD",
+        "YYYYMMDD",
+        "MMM D, h:mm A",
+        "MM/DD/YY HH:mm",
+        "MMM D, YYYY h:mm:ss A",
+        "MMM 'YY",
+        "MM/YY"
+      ],
+      optionLabels: {
+        "MMM D, YYYY": "Jan 1, 2026",
+        "MMMM D, YYYY": "January 1, 2026",
+        "MM/DD/YYYY": "01/31/2026 (US)",
+        "DD/MM/YYYY": "31/01/2026 (UK/EU)",
+
+        "dddd, MMM D": "Thursday, Jan 1",
+        "dddd, MMMM D, YYYY": "Thursday, January 1, 2026",
+        "ddd, D MMM": "Thu, 1 Jan",
+        "MMM D": "Jan 1",
+
+        "YYYY-MM-DD": "2026-01-01 (ISO)",
+        "YYYYMMDD": "20260101",
+
+        "MMM D, h:mm A": "Jan 1, 4:30 PM",
+        "MM/DD/YY HH:mm": "01/31/26 16:30",
+        "MMM D, YYYY h:mm:ss A": "Jan 1, 2026 4:30:05 PM",
+
+        "MMM 'YY": "Jan '26",
+        "MM/YY": "01/26"
+      }
+    }
     xAxisLabels: {
-      group: 'Axis', type: string, value: '', name: 'X Axis Labels',
+      group: 'Axis & Legend', type: string, value: '', name: 'X Axis Labels', depends: {xAxisType: 'custom'},
       description: 'Provide custom labels for X axis. Type comma-separated words to change the appearance of X axis'
     }
 
-    yTitleShow: {group: Axis, type: boolean, value: true, name: 'Show Y Axis Name'}
-    xTitleShow: {group: Axis, type: boolean, value: true, name: 'Show Y Axis Name'}
 
 
 preview: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmlld0JveD0iLTYgLTYgNDI0IDM3OCI+PGRlZnM+PHN0eWxlPgovKioqKioqKioqKioqKioqKioqIExhbmd1YWdlIE1hcmt1cCAqKioqKioqKioqKioqKiovCgouc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtc3Ryb25nLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1lbXBoYXNpc3tjb2xvcjojYThhOGEyfQouc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtYnVsbGV0LC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1xdW90ZSwuc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtbGluaywuc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtbnVtYmVyLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1yZWdleHAsLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLWxpdGVyYWx7Y29sb3I6IzY4OTZiYX0KLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLWNvZGUsLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLXNlbGVjdG9yLWNsYXNze2NvbG9yOiNhNmUyMmV9Ci5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1lbXBoYXNpc3tmb250LXN0eWxlOml0YWxpY30KLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLWtleXdvcmQsLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLXNlbGVjdG9yLXRhZywuc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtc2VjdGlvbiwuc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtYXR0cmlidXRlLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1uYW1lLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy12YXJpYWJsZXtjb2xvcjojY2I3ODMyfQouc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtcGFyYW1ze2NvbG9yOiNiZGM3OTF9Ci5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1zdHJpbmd7Y29sb3I6IzVhODg0MH0KLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLXN1YnN0LC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy10eXBlLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1idWlsdF9pbiwuc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtYnVpbHRpbi1uYW1lLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1zeW1ib2wsLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLXNlbGVjdG9yLWlkLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1zZWxlY3Rvci1hdHRyLAouc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtc2VsZWN0b3ItcHNldWRvLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy10ZW1wbGF0ZS10YWcsLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLXRlbXBsYXRlLXZhcmlhYmxlLC5zeW50YXgtdGhlbWUtZGFyayAuaGxqcy1hZGRpdGlvbntjb2xvcjojZTBjNDZjfQouc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtY29tbWVudCwuc3ludGF4LXRoZW1lLWRhcmsgLmhsanMtZGVsZXRpb24sLnN5bnRheC10aGVtZS1kYXJrIC5obGpzLW1ldGF7Y29sb3I6IzdmN2Y3Zn0KCgouc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLWNvbW1lbnQsLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1xdW90ZSB7Y29sb3I6IzY1NWY2ZH0KLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy12YXJpYWJsZSwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXRlbXBsYXRlLXZhcmlhYmxlLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtYXR0cmlidXRlLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtdGFnLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtbmFtZSwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXJlZ2V4cCwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLWxpbmssLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1uYW1lLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtbmFtZSwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXNlbGVjdG9yLWlkLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtc2VsZWN0b3ItY2xhc3N7Y29sb3I6I2JlNDY3OH0KLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1udW1iZXIsLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1tZXRhLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtYnVpbHRfaW4sLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1idWlsdGluLW5hbWUsLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1saXRlcmFsLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtdHlwZSwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXBhcmFtc3tjb2xvcjojYWE1NzNjfQouc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXN0cmluZywuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXN5bWJvbCwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLWJ1bGxldHtjb2xvcjojMmE5MjkyfQouc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXRpdGxlLC5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtc2VjdGlvbntjb2xvcjojNTc2ZGRifQouc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLWtleXdvcmQsLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1zZWxlY3Rvci10YWd7Y29sb3I6Izk1NWFlN30KLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1kZWxldGlvbiwuc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLWFkZGl0aW9ue2NvbG9yOiMxOTE3MWM7ZGlzcGxheTppbmxpbmUtYmxvY2s7d2lkdGg6MTAwJX0KLnN5bnRheC10aGVtZS1saWdodCAuaGxqcy1kZWxldGlvbntiYWNrZ3JvdW5kLWNvbG9yOiNiZTQ2Nzh9Ci5zeW50YXgtdGhlbWUtbGlnaHQgLmhsanMtYWRkaXRpb257YmFja2dyb3VuZC1jb2xvcjojMmE5MjkyfQouc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLWVtcGhhc2lze2ZvbnQtc3R5bGU6aXRhbGljfQouc3ludGF4LXRoZW1lLWxpZ2h0IC5obGpzLXN0cm9uZ3tmb250LXdlaWdodDpib2xkfQoKCjwvc3R5bGU+PC9kZWZzPjxnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCwwKSByb3RhdGUoMCkiIGRhdGEtc3ZnLWl0ZW0tY29udGFpbmVyLWlkPSJIUklmeDM0UzY3IiBkYXRhLWl0ZW0taWQ9IkhSSWZ4MzRTNjciPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSA0MDIuMjI3MDMyMTAwMjIxMyAzNjYuMzY3Njg4MjMzNDI0NSAgTCAxMCAzNjYuMzY3Njg4MjMzNDI0NSBhIDEwIDEwIDAgMCAxIC0xMCAtMTAgIEwgMCAxMCAgYSAxMCAxMCAwIDAgMSAxMCAtMTAgICBMIDQwMi4yMjcwMzIxMDAyMjEzIDAgICBhIDEwIDEwIDAgMCAxIDEwIDEwICBMIDQxMi4yMjcwMzIxMDAyMjEzIDM1Ni4zNjc2ODgyMzM0MjQ1ICAgYSAxMCAxMCAwIDAgMSAtMTAgMTAgWiIgc3Ryb2tlLXdpZHRoPSIzcHgiIHN0cm9rZT0iI0M3QzdDN0ZGIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9IiNENEQ3RDlGRiIvPjwvZz48L2c+PC9nPiAgPGcvPjwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLUhSSWZ4MzRTNjciLz4gICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDEwLDEwKSI+ICA8ZyBzdHlsZT0ib3BhY2l0eTogMTsgbWl4LWJsZW5kLW1vZGU6IG5vcm1hbDsiPiA8ZGVmcy8+IDxnIGZpbHRlcj0iIj48ZyBtb2RlPSJlZGl0IiBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPiA8L2c+IDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIzOTIuMjI3MDMyMTAwMjIxMyIgaGVpZ2h0PSIyOTYuMDEzMDAwNzMzNDI0NDYiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9IiNGQUZBRkFGRiIvPiA8bGluZSB4MT0iMzkuMjIyNzAzMjEwMDIyMTMiIHkxPSIwIiB4Mj0iMzkuMjIyNzAzMjEwMDIyMTMiIHkyPSIyOTYuMDEzMDAwNzMzNDI0NDYiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iNzguNDQ1NDA2NDIwMDQ0MjYiIHkxPSIwIiB4Mj0iNzguNDQ1NDA2NDIwMDQ0MjYiIHkyPSIyOTYuMDEzMDAwNzMzNDI0NDYiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMTE3LjY2ODEwOTYzMDA2NjQiIHkxPSIwIiB4Mj0iMTE3LjY2ODEwOTYzMDA2NjQiIHkyPSIyOTYuMDEzMDAwNzMzNDI0NDYiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMTU2Ljg5MDgxMjg0MDA4ODUzIiB5MT0iMCIgeDI9IjE1Ni44OTA4MTI4NDAwODg1MyIgeTI9IjI5Ni4wMTMwMDA3MzM0MjQ0NiIgc3Ryb2tlPSIjRENEQkRCRkYiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIxOTYuMTEzNTE2MDUwMTEwNjYiIHkxPSIwIiB4Mj0iMTk2LjExMzUxNjA1MDExMDY2IiB5Mj0iMjk2LjAxMzAwMDczMzQyNDQ2IiBzdHJva2U9IiNEQ0RCREJGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjIzNS4zMzYyMTkyNjAxMzI4IiB5MT0iMCIgeDI9IjIzNS4zMzYyMTkyNjAxMzI4IiB5Mj0iMjk2LjAxMzAwMDczMzQyNDQ2IiBzdHJva2U9IiNEQ0RCREJGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjI3NC41NTg5MjI0NzAxNTQ5IiB5MT0iMCIgeDI9IjI3NC41NTg5MjI0NzAxNTQ5IiB5Mj0iMjk2LjAxMzAwMDczMzQyNDQ2IiBzdHJva2U9IiNEQ0RCREJGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjMxMy43ODE2MjU2ODAxNzcwNiIgeTE9IjAiIHgyPSIzMTMuNzgxNjI1NjgwMTc3MDYiIHkyPSIyOTYuMDEzMDAwNzMzNDI0NDYiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMzUzLjAwNDMyODg5MDE5OTIiIHkxPSIwIiB4Mj0iMzUzLjAwNDMyODg5MDE5OTIiIHkyPSIyOTYuMDEzMDAwNzMzNDI0NDYiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz4gPGxpbmUgeDE9IjAiIHkxPSIyOS42MDEzMDAwNzMzNDI0NDciIHgyPSIzOTIuMjI3MDMyMTAwMjIxMyIgeTI9IjI5LjYwMTMwMDA3MzM0MjQ0NyIgc3Ryb2tlPSIjRENEQkRCRkYiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIwIiB5MT0iNTkuMjAyNjAwMTQ2Njg0ODk0IiB4Mj0iMzkyLjIyNzAzMjEwMDIyMTMiIHkyPSI1OS4yMDI2MDAxNDY2ODQ4OTQiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMCIgeTE9Ijg4LjgwMzkwMDIyMDAyNzM0IiB4Mj0iMzkyLjIyNzAzMjEwMDIyMTMiIHkyPSI4OC44MDM5MDAyMjAwMjczNCIgc3Ryb2tlPSIjRENEQkRCRkYiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIwIiB5MT0iMTE4LjQwNTIwMDI5MzM2OTc5IiB4Mj0iMzkyLjIyNzAzMjEwMDIyMTMiIHkyPSIxMTguNDA1MjAwMjkzMzY5NzkiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMCIgeTE9IjE0OC4wMDY1MDAzNjY3MTIyMyIgeDI9IjM5Mi4yMjcwMzIxMDAyMjEzIiB5Mj0iMTQ4LjAwNjUwMDM2NjcxMjIzIiBzdHJva2U9IiNEQ0RCREJGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjAiIHkxPSIxNzcuNjA3ODAwNDQwMDU0NyIgeDI9IjM5Mi4yMjcwMzIxMDAyMjEzIiB5Mj0iMTc3LjYwNzgwMDQ0MDA1NDciIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48bGluZSB4MT0iMCIgeTE9IjIwNy4yMDkxMDA1MTMzOTcxMiIgeDI9IjM5Mi4yMjcwMzIxMDAyMjEzIiB5Mj0iMjA3LjIwOTEwMDUxMzM5NzEyIiBzdHJva2U9IiNEQ0RCREJGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+PGxpbmUgeDE9IjAiIHkxPSIyMzYuODEwNDAwNTg2NzM5NTgiIHgyPSIzOTIuMjI3MDMyMTAwMjIxMyIgeTI9IjIzNi44MTA0MDA1ODY3Mzk1OCIgc3Ryb2tlPSIjRENEQkRCRkYiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIwIiB5MT0iMjY2LjQxMTcwMDY2MDA4MjAzIiB4Mj0iMzkyLjIyNzAzMjEwMDIyMTMiIHkyPSIyNjYuNDExNzAwNjYwMDgyMDMiIHN0cm9rZT0iI0RDREJEQkZGIiBzdHJva2Utd2lkdGg9IjIiLz48L2c+ICAgPGcvPjwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLXp5ejNkbk11TXMiLz4gICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDAsMCkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+PGcgbW9kZT0iZWRpdCIgc3R5bGU9Im9wYWNpdHk6IDE7Ij48Zz4gPC9nPiA8cGF0aCBkPSJNIDAgMjM2LjgxIEMgMzkuMjIgMjM2LjgxIDM5LjIzIDE3Ny42MSA3OC40NSAxNzcuNjEgQyAxMTcuNjcgMTc3LjYxIDExNy42NyAyMDcuMjEgMTU2Ljg5IDIwNy4yMSBDIDE5Ni4xMSAyMDcuMjEgMTk2LjEyIDE0OC4wMSAyMzUuMzQgMTQ4LjAxIEMgMjc0LjU2IDE0OC4wMSAyNzQuNTYgNTkuMiAzMTMuNzggNTkuMiBDIDM1MyA1OS4yIDM1My4wMSAyOS42IDM5Mi4yMyAyOS42ICAiIHN0cm9rZS13aWR0aD0iOHB4IiBzdHJva2U9IiMzNTVFOTdGRiIgc3Ryb2tlLWRhc2hhcnJheT0iIiBmaWxsPSJub25lIiBzdHlsZT0ic3Ryb2tlLWxpbmVqb2luOiByb3VuZDsiLz48L2c+ICAgPGcvPjwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLVRvUUNqRFB1eFYiLz4gICAgICAgICAgPC9nPjwvZz48L2c+IDwvZz48L2c+PGcgdHJhbnNmb3JtPSJtYXRyaXgoMSwwLDAsMSwxMCwzMTYuMDEzMDAwNzMzNDI0NDYpIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiPjxnPjxnPjxnPiA8L2c+IDxwYXRoIGQ9Ik0gMzkyLjIyNzAzMjEwMDIyMTMgNTAuMzU0Njg3NTAwMDAwMDA0ICBMIDAgNTAuMzU0Njg3NTAwMDAwMDA0IGEgMCAwIDAgMCAxIDAgMCAgTCAwIDAgIGEgMCAwIDAgMCAxIDAgMCAgIEwgMzkyLjIyNzAzMjEwMDIyMTMgMCAgIGEgMCAwIDAgMCAxIDAgMCAgTCAzOTIuMjI3MDMyMTAwMjIxMyA1MC4zNTQ2ODc1MDAwMDAwMDQgICBhIDAgMCAwIDAgMSAwIDAgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9Im5vbmUiLz48L2c+PC9nPjwvZz4gIDxnLz48L2c+ICA8ZyBpZD0iYW5pbWF0aW9uLWNvbnRhaW5lci1hZVRzcEYwTXQiLz4gICAgICAgICA8Zz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDAsOSkiPiAgPGcgc3R5bGU9Im9wYWNpdHk6IDE7IG1peC1ibGVuZC1tb2RlOiBub3JtYWw7Ij4gPGRlZnMvPiA8ZyBmaWx0ZXI9IiI+IDxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGc+PGc+PGc+IDwvZz4gPHBhdGggZD0iTSAxMi41IDUgIEwgMi41IDUgYSAyLjUgMi41IDAgMCAxIC0yLjUgLTIuNSAgTCAwIDIuNSAgYSAyLjUgMi41IDAgMCAxIDIuNSAtMi41ICAgTCAxMi41IDAgICBhIDIuNSAyLjUgMCAwIDEgMi41IDIuNSAgTCAxNSAyLjUgICBhIDIuNSAyLjUgMCAwIDEgLTIuNSAyLjUgWiIgc3Ryb2tlLXdpZHRoPSIwcHgiIHN0cm9rZT0icmdiYSgzMCwzMCwzMCwxLjApIiBzdHJva2UtZGFzaGFycmF5PSIiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGZpbGw9IiMzNTVFOTdGRiIvPjwvZz48L2c+PC9nPiAgPGcvPjwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLTI2U1FtbWdTemgiLz4gICAgICAgICAgPC9nPjwvZz48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLDAsMCwxLDIwLDApIj4gIDxnIHN0eWxlPSJvcGFjaXR5OiAxOyBtaXgtYmxlbmQtbW9kZTogbm9ybWFsOyI+IDxkZWZzLz4gPGcgZmlsdGVyPSIiPiA8ZyBzdHlsZT0ib3BhY2l0eTogMTsiLz4gIDxnPjxnIHN0eWxlPSJvcGFjaXR5OiAxOyI+PGZvcmVpZ25PYmplY3QgaWQ9Iml0ZW0tdGV4dC1zbG90LUlTdEYxQlh6RGQtYm9keSIgeD0iMCIgeT0iMCIgd2lkdGg9IjY0LjgxODM1OTM3NSIgaGVpZ2h0PSIzNS4zNTQ2ODc1MDAwMDAwMDQiPjxkaXYgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiIGNsYXNzPSJpdGVtLXRleHQtY29udGFpbmVyIiBzdHlsZT0iY29sb3I6IHJnYig1MSwgNTEsIDUxKTsgZm9udC1zaXplOiAyMnB4OyBmb250LWZhbWlseTogQXJpYWwsIEhlbHZldGljYSwgc2Fucy1zZXJpZjsgcGFkZGluZzogMHB4OyB0ZXh0LWFsaWduOiBsZWZ0OyB2ZXJ0aWNhbC1hbGlnbjogdG9wOyB3aGl0ZS1zcGFjZTogbm9ybWFsOyBkaXNwbGF5OiB0YWJsZS1jZWxsOyBib3gtc2l6aW5nOiBib3JkZXItYm94OyBsaW5lLWhlaWdodDogMTsgd2lkdGg6IDY0LjgxODRweDsgaGVpZ2h0OiAzNS4zNTQ3cHg7Ij48ZGl2IGNsYXNzPSJpdGVtLXRleHQtZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6IGlubGluZS1ibG9jazsiPkRhdGEgMTwvZGl2PjwvZGl2PjwvZm9yZWlnbk9iamVjdD48L2c+PC9nPjwvZz4gIDxnIGlkPSJhbmltYXRpb24tY29udGFpbmVyLUlTdEYxQlh6RGQiLz4gICAgICAgICAgPC9nPjwvZz48L2c+IDwvZz48L2c+PC9nPiA8L2c+PC9nPjwvc3ZnPg=="
@@ -98,12 +141,12 @@ $-def:changeDataPointInitScript:
       if (pathItem.totalPaths() == 0) {
         pathItem.addPath()
       }
-      local numPoints = pathItem.totalPathPoints(0)
-      if (numPoints < values.size) {
-        local lastPointIdx = numPoints - 1
+      local numPathPoints = pathItem.totalPathPoints(0)
+      if (numPathPoints < values.size) {
+        local lastPointIdx = numPathPoints - 1
         local lastPointY = pathItem.getPathPointPos(0, lastPointIdx).y
 
-        for (local i = numPoints; i < values.size; i++) {
+        for (local i = numPathPoints; i < values.size; i++) {
           if (lineType == 'smooth') {
             pathItem.addBezierPoint(0, lastPointIdx * dx, lastPointY, 0, 0, 0, 0)
           } else {
@@ -223,7 +266,7 @@ $-def:addDatasetInitScript:
 
     if (type == 'bar') {
       local datasetIdx = allBarDatasets.size
-      local threshold = max(1, maxPoints - 1)
+      local threshold = max(1, numPoints)
       barSrcWidth = dx / max(1, allBarDatasets.size + 1)
       barDstWidth = dx / (allBarDatasets.size + 2)
 
@@ -415,7 +458,7 @@ editor:
         height: 100
     items:
       - id: 'light'
-        name: Phone
+        name: Light
         shape: 'image'
         area: {x: 0, y: 5, w: 90, h: 80}
         shapeProps:
@@ -424,7 +467,7 @@ editor:
           strokeSize: 0
 
       - id: 'dark'
-        name: Phone
+        name: Dark
         shape: 'image'
         area: {x: 0, y: 5, w: 90, h: 80}
         shapeProps:
@@ -694,7 +737,7 @@ item:
         color: {$-expr: fontColor}
         font: {$-expr: font}
         fontSize: {$-expr: fontSize}
-        halign: right
+        halign: {$-expr: label.halign}
         valign: middle
         paddingRight: 5
 

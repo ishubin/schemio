@@ -80,7 +80,9 @@
                                     <select v-if="arg.type === 'choice'" :value="argumentValues[argName]"
                                         :disabled="!argumentControlStates[argName].shown"
                                         @input="onValueChange(argName, $event.target.value)">
-                                        <option v-for="option in arg.options">{{option}}</option>
+                                        <option v-for="option in arg.options" :value="option">
+                                            {{ arg.optionLabels && arg.optionLabels.hasOwnProperty(option) ? arg.optionLabels[option] : option }}
+                                        </option>
                                     </select>
 
                                     <ElementPicker v-if="arg.type === 'element'"

@@ -57,10 +57,10 @@ struct AxisLabel {
     y: 0
     w: 100
     h: 50
+    halign: 'center'
 }
 
 struct AxisLine {
-    value: 0
     position: 0
     labelText: ""
 }
@@ -73,12 +73,7 @@ struct Axis {
     labels: List()
 }
 
-func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
-    numTicks = max(2, numTicks)
-    // Calculate a nice step size
-    local range = softMax - softMin
-    local roughStep = range / (numTicks - 1)
-
+func calculateNiceStep(roughStep) {
     // Find a "nice" step size (1, 2, 5, 10, 20, 50, 100, etc.)
     local magnitude = 10 ^ floor(log10(roughStep))
     local normalized = roughStep / magnitude
@@ -93,6 +88,16 @@ func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
     } else {
         niceStep = 10 * magnitude
     }
+    niceStep
+}
+
+func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
+    numTicks = max(2, numTicks)
+    // Calculate a nice step size
+    local range = softMax - softMin
+    local roughStep = range / (numTicks - 1)
+
+    local niceStep = calculateNiceStep(roughStep)
 
     // Find nice min and max
     local niceMin = floor(softMin / niceStep) * niceStep
@@ -106,7 +111,7 @@ func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
         // Normalize position to 0-100% range (0 = bottom, 100% = top)
         local position = 100 - 100 * (value - niceMin) / max(1, (niceMax - niceMin))
 
-        lines.add(AxisLine(value, position, formatLabel(value, range)))
+        lines.add(AxisLine(position, formatLabel(value, range)))
     }
 
     Axis(lines, niceMin, niceMax, niceStep, generateYAxisLabels(lines, font, fontSize))
@@ -119,49 +124,34 @@ func generateYAxisLabels(lines, font, fontSize) {
         size.w *= 1.1
         size.h *= 2.2
 
-        labels.add(AxisLabel(line.labelText, 0, line.position,  size.w, size.h))
+        labels.add(AxisLabel(line.labelText, 0, line.position,  size.w, size.h, 'center'))
     })
     labels
 }
 
-local minPixelDistance = 40
+local xAxisMinSpacing = 40
 
 
-func generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride) {
-    local dataRange = max(0.00001, xMax - xMin)
-    local pixelsPerUnit = plotWidth / dataRange
-    local pixelsPerStep = xStep * pixelsPerUnit
-
-    // If the current step is already large enough, use it
-    if (pixelsPerStep >= minPixelDistance) {
-        return _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride)
-    } else {
-        local minMultiplier = ceil(minPixelDistance / pixelsPerStep)
-        local optimizedStep = xStep * minMultiplier
-        _generateXAxis(xMin, xMax, optimizedStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride)
+func generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, fontSize, lineProvider) {
+    if (numPoints < 2) {
+        return List(
+            AxisLine(0, "0"),
+            AxisLine(100, "100")
+        )
     }
-}
 
-func _generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, fontSize, labelsOverride) {
+    local pixelsPerPoint = plotWidth / (numPoints - 1);
+    local roughStep = ceil(xAxisMinSpacing / pixelsPerPoint);
+    local step = calculateNiceStep(roughStep)
+
     local lines = List()
-
-    local range = abs(xMax - xMin)
-
-    local idx = 0
-    for (local value = xMin; value <= xMax; value += xStep) {
-        // Normalize position to 0-100 range (0 = left, 100% = right)
-        local position = 100 * (value - xMin) / (xMax - xMin)
-
-        local labelName = ""
-        if (labelsOverride.size > 0) {
-            if (idx < labelsOverride.size) {
-                labelName = labelsOverride.get(idx)
-            }
-        } else {
-            labelName = formatLabel(value, range)
+    for (local i = 0; i < numPoints; i += step) {
+        local pct = (i / (numPoints - 1)) * 100
+        local pos = round(pct * 100) / 100
+        local line = lineProvider(i, pos)
+        if (line) {
+            lines.add(line)
         }
-        lines.add(AxisLine(value, position, labelName))
-        idx += 1
     }
 
     Axis(lines, xMin, xMax, xStep, generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize))
@@ -172,7 +162,7 @@ func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSiz
     local maxHeight = 0
     lines.forEach((line, idx) => {
         local size = calculateTextSize(line.labelText, line.position * plotWidth / 100, plotHeight, font, fontSize)
-        size.w *= 1.1
+        size.w *= 1.6
         size.h *= 2.2
         maxHeight = max(maxHeight, size.h)
         local x = if (idx == 0) {
@@ -182,7 +172,14 @@ func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSiz
         } else {
             plotOffset + plotWidth - size.w
         }
-        labels.add(AxisLabel(line.labelText, x, plotHeight, size.w, size.h))
+        local halign = if (idx == 0) {
+            'left'
+        } else if (idx == lines.size - 1) {
+            'right'
+        } else {
+            'center'
+        }
+        labels.add(AxisLabel(line.labelText, x, plotHeight, size.w, size.h, halign))
     })
 
     labels.forEach((label) => { label.h = maxHeight })
@@ -235,6 +232,7 @@ func buildLegend(datasets, legendWidth, legendTopMargin) {
     local allLabels = datasets.map((dataset, idx) => {
         local size = calculateTextSize(dataset.name, font, fontSize)
         size.h *= 2.2
+        size.w *= 1.5
         if (size.w > legendWidth) {
             size.w = legendWidth
         }

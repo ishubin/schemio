@@ -6,11 +6,14 @@ gridPaths = List()
 plotOffset = padding
 plotWidth = max(1, width - padding*2)
 plotHeight = max(1, height - padding*2)
-maxPoints = ceil(abs(xMax - xMin) / max(0.0000001, xStep)) + 1
-
+xStep = (xMax - xMin) / max(1, numPoints-1)
 xLabelsFullHeight = 20
 
-local labelsOverride = xAxisLabels.trim().split(",").map((x) => { x.trim() }).filter((x) => { x.length > 0 })
+local labelsOverride = if (xAxisType == 'custom') {
+    xAxisLabels.trim().split(",").map((x) => { x.trim() }).filter((x) => { x.length > 0 })
+} else {
+    List()
+}
 
 local size = calculateTextSize("TgjW", font, titleFontSize)
 axisNameFontMaxHeight = size.h * 2
@@ -118,7 +121,7 @@ func onDeleteItem(itemId, item) {
 }
 
 func onXAxisLabelUpdate(labelIdx, text) {
-    if (labelsOverride.size > 0) {
+    if (xAxisType == 'custom' && labelsOverride.size > 0) {
         if (labelIdx >= 0 && labelIdx < labelsOverride.size) {
             labelsOverride.set(labelIdx, stripHTML(text))
 
@@ -191,7 +194,22 @@ yAxis.labels.forEach((label) => { label.w = plotOffset })
 
 plotWidth = max(1, width - plotOffset - padding)
 
-local xAxis = generateXAxis(xMin, xMax, xStep, plotOffset, plotWidth, plotHeight, font, axisFontSize, labelsOverride)
+local startDateDecoded = parseDate(startDate)
+local endDateDecoded = parseDate(endDate)
+local dateLength = endDateDecoded.sub(startDateDecoded)
+
+local xAxis = generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, axisFontSize, (i, pos) => {
+    if (xAxisType == 'date') {
+        local date = startDateDecoded.add(dateLength * i / max(1, numPoints))
+        AxisLine(pos, date.formatDate(dateFormat))
+    } else if (xAxisType == 'custom') {
+        local labelName = if (labelsOverride.size > i) { labelsOverride.get(i) } else { "" }
+        AxisLine(pos, labelName)
+    } else {
+        local value = xMin + i * (xMax - xMin) / max(numPoints, 1)
+        AxisLine(pos, formatLabel(value, xMax - xMin))
+    }
+})
 
 xAxis.labels.forEach((label) => {
     xLabelsFullHeight = max(xLabelsFullHeight, label.h)
@@ -232,7 +250,7 @@ parsedDatasets = datasets.map((dataset) => {
 })
 
 parsedLineDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'line' }).map((dataset) => {
-    local threshold = max(1, maxPoints)
+    local threshold = max(1, numPoints)
     for ( ; dataset.points.size > threshold ; ) {
         dataset.points.pop()
     }
@@ -244,7 +262,7 @@ local totalBarDatasets = filteredBarDatasets.size
 local barWidth = dx / (totalBarDatasets + 1)
 
 parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
-    local threshold = max(1, maxPoints - 1)
+    local threshold = max(1, numPoints - 1)
 
     local bars = List()
     dataset.points.forEach((point, pointIdx) => {
@@ -318,7 +336,7 @@ local showPoints = ${showPoints}
 local pointSize = ${pointSize}
 local pointType = "${pointType}"
 local backgroundColor = "${background}"
-local maxPoints = ${maxPoints}
+local numPoints = ${numPoints}
 
 local plot = findChildItemsByTag('chart-plot').first()
 local plotWidth = plot.getWidth()
