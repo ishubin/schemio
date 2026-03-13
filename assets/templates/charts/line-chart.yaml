@@ -70,7 +70,11 @@ args:
         "MM/DD/YY HH:mm",
         "MMM D, YYYY h:mm:ss A",
         "MMM 'YY",
-        "MM/YY"
+        "MM/YY",
+        "HH:MM",
+        "HH:MM:ss",
+        "h:MM A",
+        "h:MM:ss A"
       ],
       optionLabels: {
         "MMM D, YYYY": "Jan 1, 2026",
@@ -91,7 +95,12 @@ args:
         "MMM D, YYYY h:mm:ss A": "Jan 1, 2026 4:30:05 PM",
 
         "MMM 'YY": "Jan '26",
-        "MM/YY": "01/26"
+        "MM/YY": "01/26",
+
+        "HH:MM": "16:30",
+        "HH:MM:ss": "16:30:05",
+        "h:MM A": "4:30 PM",
+        "h:MM:ss A": "4:30:05 PM"
       }
     }
     xAxisLabels: {

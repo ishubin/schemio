@@ -133,28 +133,32 @@ local xAxisMinSpacing = 40
 
 
 func generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, fontSize, lineProvider) {
-    if (numPoints < 2) {
-        return List(
-            AxisLine(0, "0"),
-            AxisLine(100, "100")
-        )
-    }
-
-    local pixelsPerPoint = plotWidth / (numPoints - 1);
-    local roughStep = ceil(xAxisMinSpacing / pixelsPerPoint);
-    local step = calculateNiceStep(roughStep)
-
     local lines = List()
-    for (local i = 0; i < numPoints; i += step) {
-        local pct = (i / (numPoints - 1)) * 100
-        local pos = round(pct * 100) / 100
-        local line = lineProvider(i, pos)
+    if (numPoints < 2) {
+        local line = lineProvider(0, 0)
         if (line) {
             lines.add(line)
         }
+        line = lineProvider(1, 100)
+        if (line) {
+            lines.add(line)
+        }
+    } else {
+        local pixelsPerPoint = plotWidth / max(1, numPoints - 1);
+        local roughStep = ceil(xAxisMinSpacing / pixelsPerPoint);
+        local step = max(1, calculateNiceStep(roughStep))
+
+        for (local i = 0; i < numPoints; i += step) {
+            local pct = (i / (numPoints - 1)) * 100
+            local pos = round(pct * 100) / 100
+            local line = lineProvider(i, pos)
+            if (line) {
+                lines.add(line)
+            }
+        }
     }
 
-    Axis(lines, xMin, xMax, xStep, generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize))
+    Axis(lines, 0, 100, 100 / max(1, lines.size), generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize))
 }
 
 func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize) {
