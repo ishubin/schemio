@@ -116,7 +116,8 @@ describe('template tokenizer', () => {
             idx: 65,
             line: 0,
             t: TokenTypes.NEWLINE,
-            text: ''
+            text: '',
+            v: '\n',
         }, {
             idx: 66,
             line: 1,

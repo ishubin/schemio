@@ -149,7 +149,7 @@ class Scanner {
         if (c === '\n') {
             this.idx++;
             this.currentLine++;
-            return {t: TokenTypes.NEWLINE, idx: this.idx - 1, line: this.currentLine - 1, text: ''};
+            return {t: TokenTypes.NEWLINE, idx: this.idx - 1, line: this.currentLine - 1, text: '', v: '\n'};
         } else if (isLetter(c)) {
             return this.scanTerm();
         } else if (isPartOfNumber(c)) {
@@ -194,10 +194,14 @@ class Scanner {
                 this.idx += endTerm.length;
                 if (endTerm === '\n') {
                     this.idx -= 1;
+                    this.currentLine++;
                 }
                 break;
             }
             commentText += this.text[this.idx];
+            if (this.idx === '\n') {
+                this.currentLine++;
+            }
             this.idx++;
         }
 
@@ -229,7 +233,7 @@ class Scanner {
                 v: term,
                 text: term,
                 idx: startIdx,
-                line: this.currentLine
+                line: this.currentLine,
             };
         };
 
@@ -252,7 +256,9 @@ class Scanner {
             return {
                 t: TokenTypes.FIELD_ACCESSOR,
                 v: '.',
-                text: '.'
+                text: '.',
+                idx: startIdx,
+                line: this.currentLine
             };
         }
 
@@ -293,7 +299,7 @@ class Scanner {
                 break;
             }
         }
-        return {t: TokenTypes.WHITESPACE, text: ' ', idx: startIdx, line: this.currentLine};
+        return {t: TokenTypes.WHITESPACE, text: ' ', v: ' ', idx: startIdx, line: this.currentLine};
     }
 
     scanString(breakChar) {
@@ -321,6 +327,10 @@ class Scanner {
                 }
             } else {
                 str += c;
+            }
+
+            if (c === '\n') {
+                this.currentLine++;
             }
             this.idx++;
         }

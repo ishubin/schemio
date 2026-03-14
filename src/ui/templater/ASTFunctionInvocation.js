@@ -37,6 +37,12 @@ export class ASTFunctionInvocation extends ASTNode {
         return result;
     }
 
+    /**
+     *
+     * @param {Scope} scope
+     * @param {any} obj
+     * @returns
+     */
     evalOnObject(scope, obj) {
         if (this.functionProvider.type !== VAR_REF) {
             throw new Error('Invalid function invocation on object: ' + obj);

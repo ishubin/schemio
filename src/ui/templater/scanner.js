@@ -4,6 +4,8 @@
  * @property {Number} t - token code that is defined in {@link TokenTypes}
  * @property {String} v - token raw text
  * @property {Number|undefined} groupCode the token group code (defined in {@link TokenTypes})
+ * @property {number} idx - index of token in a line
+ * @property {number} line - line number
  * @property {Array<ScriptToken>|undefined} groupTokens tokens sub array that represents token group (e.g. tokens inside round/curly brackets)
  */
 
