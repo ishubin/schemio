@@ -949,4 +949,86 @@ describe('templater ast parser', () => {
         const result = node.evalNode(new Scope({}, null, (name) => null));
         expect(result).toBe("qwe");
     });
+
+
+    it('encoding: should encode functions in to string', () => {
+        const node = parseExpression(`
+            func doIt() {
+                return "qwe"
+            }
+
+            enc doIt
+        `);
+        const result = node.evalNode(new Scope({}, null, (name) => null));
+        expect(result).toBe(`func doIt() {
+                return "qwe"
+            }`);
+    });
+
+    it('encoding: should encode structs in to string', () => {
+        const node = parseExpression(`
+            func doIt() {
+                return "qwe"
+            }
+
+            struct Point {
+                x: 0
+                y: 0
+
+                add(p) {
+                    this.x += p.x
+                    this.y += p.y
+                }
+            }
+
+            enc Point
+        `);
+        const result = node.evalNode(new Scope({}, null, (name) => null));
+        expect(result).toBe(`struct Point {
+                x: 0
+                y: 0
+
+                add(p) {
+                    this.x += p.x
+                    this.y += p.y
+                }
+            }`);
+    });
+
+    it('encoding: should encode blocks of code in to string', () => {
+        const node = parseExpression(`
+            enc someBlock {
+                func doIt() {
+                    return "qwe"
+                }
+
+                struct Point {
+                    x: 0
+                    y: 0
+
+                    add(p) {
+                        this.x += p.x
+                        this.y += p.y
+                    }
+                }
+            }
+            enc someBlock
+        `);
+        const result = node.evalNode(new Scope({}, null, (name) => null));
+        expect(result).toBe(`
+                func doIt() {
+                    return "qwe"
+                }
+
+                struct Point {
+                    x: 0
+                    y: 0
+
+                    add(p) {
+                        this.x += p.x
+                        this.y += p.y
+                    }
+                }
+            `);
+    });
 });

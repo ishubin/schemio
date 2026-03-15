@@ -11,7 +11,7 @@ import { parseColor } from "../colors";
 import { Color } from "./color";
 import { Area } from "./area";
 import { Fill } from "./fill";
-import { SchemioScriptError, ScopeInterruptValue } from "./error";
+import { ScopeInterruptValue } from "./error";
 import { stripAllHtml } from "../../htmlSanitize";
 import { VAR_REF } from "./consts";
 import { SchemioDate } from "./date";

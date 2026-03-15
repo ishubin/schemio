@@ -19,21 +19,6 @@ struct SmoothPoint {
     y2: 0
     t: 'B'
 }
-struct Point {
-    x: 0
-    y: 0
-    t: 'L'
-}
-
-struct SmoothPoint {
-    x: 0
-    y: 0
-    x1: 0
-    y1: 0
-    x2: 0
-    y2: 0
-    t: 'B'
-}
 
 struct LegendLabel {
     index: 0

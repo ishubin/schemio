@@ -7,6 +7,7 @@ export class Scope {
      */
     constructor(data, parent, externalObjectProvider, stackName = '< unknown >') {
         this.data = data || {};
+        this.astEncodedEntities = new Map();
         this.stackName = stackName;
         this.parent = parent;
         this.externalObjectProvider = externalObjectProvider;
@@ -14,6 +15,26 @@ export class Scope {
 
     hasVar(varName) {
         return this.data.hasOwnProperty(varName);
+    }
+
+    /**
+     * Searches for raw AST nodes
+     * This is used when you need to endcode a function back to a script
+     * @param {string} name
+     * @return {string}
+     */
+    getASTEncodedEntity(name) {
+        if (this.astEncodedEntities.has(name)) {
+            return this.astEncodedEntities.get(name);
+        }
+        if (this.parent) {
+            return this.parent.getASTEncodedEntity(name);
+        }
+        return null;
+    }
+
+    setASTEncodedEntity(name, text) {
+        this.astEncodedEntities.set(name, text);
     }
 
     getExternalObject(name) {

@@ -167,14 +167,14 @@ $-def:changeDataPointInitScript:
       srcPoints = pathItem.getRelativePathPoints(0)
     } else if (datasetType == 'bar') {
       container.findChildItemsByTag('dataset-bar').forEach((bar) => {
-        srcPoints.add(Point(bar.getVar('pointX'), bar.getVar('pointY')))
+        srcPoints.add(SmoothPoint(bar.getVar('pointX'), bar.getVar('pointY')))
       })
       allBars = container.findChildItemsByTag('dataset-bar')
     }
 
     local dstPoints = List()
     values.forEach((value, idx) => {
-      dstPoints.add(Point(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
+      dstPoints.add(SmoothPoint(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
     })
 
     smoothenPoints(dstPoints)
@@ -184,7 +184,7 @@ $-def:changeDataPointInitScript:
       if (datasetType == 'line') {
         dstPoints.add(lastDstPoint)
       } else {
-        dstPoints.add(Point(i * dx * 100 / plotWidth, yMax * 100 / dy))
+        dstPoints.add(SmoothPoint(i * dx * 100 / plotWidth, yMax * 100 / dy))
       }
     }
 
@@ -268,8 +268,8 @@ $-def:addDatasetInitScript:
     local srcPoints = List()
     local dstPoints = List()
     values.forEach((value, idx) => {
-      srcPoints.add(Point(idx * dx * 100 / plotWidth, valueY))
-      dstPoints.add(Point(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
+      srcPoints.add(SmoothPoint(idx * dx * 100 / plotWidth, valueY))
+      dstPoints.add(SmoothPoint(idx * dx * 100 / plotWidth, (yMax - value) * 100 / dy))
     })
 
 
@@ -428,7 +428,7 @@ $-def:removeDatasetInitScript:
       srcPoints = pathItem.getRelativePathPoints(0)
       dstPoints = List()
       srcPoints.forEach((p, idx) => {
-        dstPoints.add(Point(idx * dx * 100 / plotWidth, 0))
+        dstPoints.add(SmoothPoint(idx * dx * 100 / plotWidth, 0))
       })
 
       if (showPoints && srcPoints.size > 0) {

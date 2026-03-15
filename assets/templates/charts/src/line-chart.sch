@@ -54,6 +54,36 @@ if (hasLegend) {
 }
 
 
+func smoothenPoints(points) {
+    points.forEach((p, idx) => {
+        local dx = 0
+        local dy = 0
+        if (idx > 0 && idx < points.size - 1) {
+            local prevP = points.get(idx - 1)
+            local nextP = points.get(idx + 1)
+
+            if ((p.y - prevP.y) * (nextP.y - p.y) > 0) {
+                local v = Vector(nextP.x - prevP.x, nextP.y - prevP.y).normalized()
+                v = v * abs(p.x - prevP.x)
+                dx = v.x
+                dy = v.y
+            } else {
+                dx = abs(p.x - prevP.x) / 2
+            }
+        } else if (idx > 0) {
+            local prevP = points.get(idx - 1)
+            dx = abs(p.x - prevP.x) / 2
+        } else if (points.size > 1) {
+            local nextP = points.get(idx + 1)
+            dx = abs(nextP.x - p.x) / 2
+        }
+        p.x1 = -dx
+        p.y1 = -dy
+        p.x2 = dx
+        p.y2 = dy
+    })
+}
+
 
 func parseDatasetPoints(encodedPoints, dx, yAxis, plotWidth, plotHeight) {
     local dy = max(0.00000001, yAxis.max - yAxis.min)
@@ -67,23 +97,9 @@ func parseDatasetPoints(encodedPoints, dx, yAxis, plotWidth, plotHeight) {
     })
 
     if (lineType == 'smooth') {
-        return points.map((p, idx) => {
-            local smoothSize = dx * 100 / (plotWidth*2)
-            local vdx = smoothSize
-            local vdy = 0
-            if (idx > 0 && idx < points.size - 1) {
-                local prevP = points.get(idx - 1)
-                local nextP = points.get(idx + 1)
-                if ((p.y - prevP.y) * (nextP.y - p.y) > 0) {
-                    local v = Vector(nextP.x - prevP.x, nextP.y - prevP.y).normalized()
-                    v = v * smoothSize
-                    vdx = v.x
-                    vdy = v.y
-                }
-            }
-
-            SmoothPoint(p.x, p.y, -vdx, -vdy, vdx, vdy)
-        })
+        local smoothPoints = points.map((p) => { SmoothPoint(p.x, p.y, 0, 0, 0, 0) })
+        smoothenPoints(smoothPoints)
+        return smoothPoints
     } else {
         return points
     }
@@ -311,19 +327,10 @@ parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
 
 
 
-
-
-
-
 local baseScriptForFunctions = `
-struct Point {
-    x: 0
-    y: 0
-    x1: 0
-    y1: 0
-    x2: 0
-    y2: 0
-}
+${enc SmoothPoint}
+
+${enc smoothenPoints}
 
 local xStep = ${xStep}
 local xMax = ${xMax}
@@ -345,35 +352,6 @@ local dy = max(0.0000001, yMax - yMin)
 local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
 
 
-func smoothenPoints(points) {
-    points.forEach((p, idx) => {
-        local dx = 0
-        local dy = 0
-        if (idx > 0 && idx < points.size - 1) {
-            local prevP = points.get(idx - 1)
-            local nextP = points.get(idx + 1)
-
-            if ((p.y - prevP.y) * (nextP.y - p.y) > 0) {
-                local v = Vector(nextP.x - prevP.x, nextP.y - prevP.y).normalized()
-                v = v * abs(p.x - prevP.x)
-                dx = v.x
-                dy = v.y
-            } else {
-                dx = abs(p.x - prevP.x) / 2
-            }
-        } else if (idx > 0) {
-            local prevP = points.get(idx - 1)
-            dx = abs(p.x - prevP.x) / 2
-        } else if (points.size > 1) {
-            local nextP = points.get(idx + 1)
-            dx = abs(nextP.x - p.x) / 2
-        }
-        p.x1 = -dx
-        p.y1 = -dy
-        p.x2 = dx
-        p.y2 = dy
-    })
-}
 
 func changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t) {
     dstPoints.forEach((dstPoint, idx) => {
@@ -473,7 +451,7 @@ func collectAllDatasetBars() {
                 barItem.getPosY(),
                 barItem.getWidth(),
                 barItem.getHeight(),
-                Point(barItem.getVar('pointX'), barItem.getVar('pointY'))
+                SmoothPoint(barItem.getVar('pointX'), barItem.getVar('pointY'))
             )
         })
         BarDataset(container, idx, bars)
