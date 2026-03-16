@@ -424,21 +424,19 @@ class ASTParser extends TokenScanner {
         if (!nextToken) {
             throw new SchemioScriptParseError('Unfinished encode expression', this.processedText());
         }
-        if (!nextToken || nextToken.t !== TokenTypes.TERM) {
-            throw new SchemioScriptParseError(`Expected term after "enc", got: ${nextToken.text}`)
+        if (nextToken.t === TokenTypes.TERM) {
+            return new ASTEncoder(nextToken.v);
+        } else if (nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_CURLY) {
+            const startIdx = nextToken.idx+1;
+            const endIdx = nextToken.idx + nextToken.length - 1;
+            return new ASTMultiExpression([
+                parseAST(nextToken.groupTokens, this.originalText),
+                new ASTString(this.originalText.substring(startIdx, endIdx))
+            ]);
+        } else {
+            throw new SchemioScriptParseError(`Expected term after "enc" or a code block, got: ${nextToken.text}`)
         }
 
-        let peekToken = this.peekToken();
-        if (peekToken && peekToken.t === TokenTypes.TOKEN_GROUP && peekToken.groupCode === TokenTypes.START_CURLY) {
-            const blockToken = this.scanToken();
-            const startIdx = blockToken.idx+1;
-            const endIdx = blockToken.idx + blockToken.length - 1;
-            return new ASTMultiExpression([
-                parseAST(blockToken.groupTokens, this.originalText),
-                new ASTEncoderRecorder(nextToken.v, this.originalText.substring(startIdx, endIdx))
-            ]);
-        }
-        return new ASTEncoder(nextToken.v);
     }
 
     parseWhileExpression() {

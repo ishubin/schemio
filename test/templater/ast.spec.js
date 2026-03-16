@@ -997,7 +997,7 @@ describe('templater ast parser', () => {
 
     it('encoding: should encode blocks of code in to string', () => {
         const node = parseExpression(`
-            enc someBlock {
+            enc {
                 func doIt() {
                     return "qwe"
                 }
@@ -1012,7 +1012,6 @@ describe('templater ast parser', () => {
                     }
                 }
             }
-            enc someBlock
         `);
         const result = node.evalNode(new Scope({}, null, (name) => null));
         expect(result).toBe(`
