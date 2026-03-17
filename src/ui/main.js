@@ -61,12 +61,14 @@ window.Schemio = {
         }
         const appComponent = Vue.component('SchemioEditorWebApp', Vue.util.extend({store}, SchemioEditorWebApp));
 
-        new Vue({
+        const editorId = options.editorId || 'default';
+
+        const vm = new Vue({
             el: querySelector,
             components: { appComponent },
             render: h => h('appComponent', {
                 props: {
-                    editorId          : options.editorId || 'default',
+                    editorId          : editorId,
                     scheme            : options.scheme || null,
                     editorMode        : options.editorMode || 'view',
                     editAllowed       : options.editAllowed || false,
@@ -84,9 +86,86 @@ window.Schemio = {
                         if (options.onDeleteDiagram) {
                             options.onDeleteDiagram(docId);
                         }
+                    },
+                    'scheme-save-requested': (scheme) => {
+                        if (options.onSchemeSaveRequested) {
+                            options.onSchemeSaveRequested(scheme);
+                        }
                     }
                 }
             })
         });
+
+        // Navigate Vue component tree to find SchemeContainer
+        function getSchemeContainer() {
+            try {
+                // vm -> SchemioEditorWebApp -> SchemioEditorApp -> SchemeEditor
+                const webApp = vm.$children && vm.$children[0];
+                console.log('[Schemio] webApp:', webApp?.$options?.name || webApp?.constructor?.name, 'children:', webApp?.$children?.length);
+                if (!webApp || !webApp.$children) return null;
+                const editorApp = webApp.$children[0];
+                console.log('[Schemio] editorApp:', editorApp?.$options?.name || editorApp?.constructor?.name, 'children:', editorApp?.$children?.length);
+                if (!editorApp || !editorApp.$children) return null;
+                for (let i = 0; i < editorApp.$children.length; i++) {
+                    const child = editorApp.$children[i];
+                    console.log(`[Schemio] child[${i}]:`, child?.$options?.name || child?.constructor?.name,
+                        'mode:', child.mode,
+                        'schemeContainer:', !!child.schemeContainer,
+                        'interactiveSchemeContainer:', !!child.interactiveSchemeContainer);
+                    if (child.schemeContainer && child.mode === 'edit') return child.schemeContainer;
+                    if (child.interactiveSchemeContainer) return child.interactiveSchemeContainer;
+                    if (child.schemeContainer) return child.schemeContainer;
+                }
+                return null;
+            } catch (e) {
+                console.error('[Schemio] getSchemeContainer error:', e);
+                return null;
+            }
+        }
+
+        return {
+            editorId,
+
+            selectItem(itemId) {
+                console.log('[Schemio] selectItem called with:', itemId);
+                const sc = getSchemeContainer();
+                console.log('[Schemio] schemeContainer:', sc);
+                if (!sc) return false;
+                const item = sc.findItemById(itemId);
+                console.log('[Schemio] found item:', item?.id, item?.name);
+                if (!item) return false;
+                sc.selectItem(item, false);
+                return true;
+            },
+
+            panToItem(itemId) {
+                const sc = getSchemeContainer();
+                if (!sc) return false;
+                const item = sc.findItemById(itemId);
+                if (!item) return false;
+                // Center the viewport on the item
+                const el = document.querySelector(querySelector);
+                if (!el) return false;
+                const viewW = el.clientWidth;
+                const viewH = el.clientHeight;
+                const cx = item.area.x + item.area.w / 2;
+                const cy = item.area.y + item.area.h / 2;
+                const scale = sc.screenTransform.scale;
+                sc.screenTransform.x = viewW / 2 - cx * scale;
+                sc.screenTransform.y = viewH / 2 - cy * scale;
+                EditorEventBus.screenTransformUpdated.$emit(editorId, sc.screenTransform);
+                return true;
+            },
+
+            selectAndPanToItem(itemId) {
+                const selected = this.selectItem(itemId);
+                const panned = this.panToItem(itemId);
+                return selected || panned;
+            },
+
+            destroy() {
+                vm.$destroy();
+            }
+        };
     }
 }
