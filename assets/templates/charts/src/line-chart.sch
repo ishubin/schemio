@@ -192,7 +192,7 @@ plotHeight = max(1, height - padding*2 - legend.h)
 
 // Calculate how many ticks can fit with the minimum spacing
 local maxTicks = floor(plotHeight / minSpacing)
-local yAxis = generateYAxis(yMin, yMax, max(2, maxTicks), font, axisFontSize)
+local yAxis = generateYAxis(yAxisShown, yMin, yMax, max(2, maxTicks), font, axisFontSize)
 
 
 plotOffset = 0
@@ -202,19 +202,11 @@ yAxis.labels.forEach((label) => {
 
 plotOffset += padding
 
-if (yTitleShow) {
-    plotOffset += axisNameFontMaxHeight
-}
-
-yAxis.labels.forEach((label) => { label.w = plotOffset })
-
-plotWidth = max(1, width - plotOffset - padding)
-
 local startDateDecoded = parseDate(startDate)
 local endDateDecoded = parseDate(endDate)
 local dateLength = endDateDecoded.sub(startDateDecoded)
 
-local xAxis = generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, axisFontSize, (i, pos) => {
+func xAxisLineProvider(i, pos) {
     if (xAxisType == 'date') {
         local date = startDateDecoded.add(dateLength * i / max(1, numPoints))
         AxisLine(pos, date.formatDate(dateFormat))
@@ -225,17 +217,45 @@ local xAxis = generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, 
         local value = xMin + i * (xMax - xMin) / max(numPoints, 1)
         AxisLine(pos, formatLabel(value, xMax - xMin))
     }
-})
+}
+
+if (xAxisTilt) {
+    local line = xAxisLineProvider(0, 0)
+    local size = calculateTextSize(line.labelText, font, fontSize)
+    plotOffset += 1.1 * size.w * cos(PI()/4)/2
+}
+
+if (yTitleShow) {
+    plotOffset += axisNameFontMaxHeight
+}
+
+yAxis.labels.forEach((label) => { label.w = plotOffset })
+
+plotWidth = max(1, width - plotOffset - padding)
+
+local xAxis = generateXAxis(xAxisShown, numPoints, xAxisTilt, plotOffset, plotWidth, plotHeight, font, axisFontSize, xAxisLineProvider)
 
 xAxis.labels.forEach((label) => {
-    xLabelsFullHeight = max(xLabelsFullHeight, label.h)
+    if (xAxisTilt) {
+        xLabelsFullHeight = max(xLabelsFullHeight, label.w * cos(PI()/4)*0.7)
+    } else {
+        xLabelsFullHeight = max(xLabelsFullHeight, label.h)
+    }
 })
 
 xTitleK = if (xTitleShow) { 1 } else { 0 }
 
 plotHeight = max(1, height - xLabelsFullHeight - axisNameFontMaxHeight * xTitleK - legend.h - padding * 2)
 yAxis.labels.forEach((label) => { label.y = padding + label.y * plotHeight / 100 - label.h / 2 })
-xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
+
+if (xAxisTilt) {
+    xAxis.labels.forEach((label) => {
+        label.y = padding + plotHeight + label.w * cos(PI()/4) / 2 - 10
+        label.x -= label.w * cos(PI()/4) / 2 - 10
+    })
+} else {
+    xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
+}
 
 legendTop = xLabelsFullHeight + axisNameFontMaxHeight * xTitleK + plotHeight + padding
 

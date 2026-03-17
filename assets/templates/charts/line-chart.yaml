@@ -1,6 +1,7 @@
 name: Line chart
 description: ""
 args:
+    numPoints : {group: 'Data', type: 'number', value: 10, min: 1, softMax: 100, name: 'Number of points'}
     yMin: {group: 'Data', type: 'number', value: 0, name: 'Y min'}
     yMax: {group: 'Data', type: 'number', value: 100, name: 'Y max'}
     datasets:
@@ -43,18 +44,22 @@ args:
     fontSize     : {group: 'Text', type: 'number', value: 14, name: 'Font size'}
     fontColor    : {group: 'Text', type: color, value: "#333333FF", name: Label color}
 
-    hasLegend : {group: 'Axis & Legend', type: 'boolean', value: true, name: 'Legend'}
-    yTitle    : {group: 'Axis & Legend', type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
-    xTitle    : {group: 'Axis & Legend', type: string, value: 'X axis', name: 'Y Axis Name', hidden: true}
-    yTitleShow: {group: 'Axis & Legend', type: boolean, value: true, name: 'Show Y Axis Name'}
-    xTitleShow: {group: 'Axis & Legend', type: boolean, value: true, name: 'Show Y Axis Name'}
-    numPoints : {group: 'Axis & Legend', type: 'number', value: 10, min: 1, softMax: 100, name: 'Number of points'}
-    xAxisType : {group: 'Axis & Legend', type: choice, value: 'numeric', options: ['numeric', 'date', 'custom'], name: 'X Axis Type'}
-    xMin      : {group: 'Axis & Legend', type: 'number', value: 0, name: 'X min', depends: {xAxisType: 'numeric'}}
-    xMax      : {group: 'Axis & Legend', type: 'number', value: 100, name: 'X max', depends: {xAxisType: 'numeric'}}
-    startDate : {group: 'Axis & Legend', type: string, value: '2026-01-01 10:00:00', name: 'Start Date', depends: {xAxisType: 'date'}}
-    endDate   : {group: 'Axis & Legend', type: string, value: '2026-01-10 10:00:00', name: 'End Date', depends: {xAxisType: 'date'}}
-    dateFormat: {group: 'Axis & Legend', type: choice, value: 'MMM D', name: 'Date format', depends: {xAxisType: 'date'},
+    hasLegend : {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
+
+    yAxisShown: {group: 'Y Axis', type: boolean, value: true, name: 'Y Axis'}
+    yTitle    : {group: 'Y Axis', type: string, value: 'Y axis', name: 'Y Axis Name', hidden: true}
+    yTitleShow: {group: 'Y Axis', type: boolean, value: true, name: 'Show Y Axis Name'}
+
+    xAxisShown: {group: 'X Axis', type: boolean, value: true, name: 'X Axis'}
+    xTitle    : {group: 'X Axis', type: string, value: 'X axis', name: 'X Axis Name', hidden: true}
+    xTitleShow: {group: 'X Axis', type: boolean, value: true, name: 'Show X Axis Name'}
+    xAxisTilt : {group: 'X Axis', type: boolean, value: false, name: 'Tilt labels'}
+    xAxisType : {group: 'X Axis', type: choice, value: 'numeric', options: ['numeric', 'date', 'custom'], name: 'X Axis Type'}
+    xMin      : {group: 'X Axis', type: 'number', value: 0, name: 'X min', depends: {xAxisType: 'numeric'}}
+    xMax      : {group: 'X Axis', type: 'number', value: 100, name: 'X max', depends: {xAxisType: 'numeric'}}
+    startDate : {group: 'X Axis', type: string, value: '2026-01-01 10:00:00', name: 'Start Date', depends: {xAxisType: 'date'}}
+    endDate   : {group: 'X Axis', type: string, value: '2026-01-10 10:00:00', name: 'End Date', depends: {xAxisType: 'date'}}
+    dateFormat: {group: 'X Axis', type: choice, value: 'MMM D', name: 'Date format', depends: {xAxisType: 'date'},
       options: [
         "MMM D, YYYY",
         "MMMM D, YYYY",
@@ -104,7 +109,7 @@ args:
       }
     }
     xAxisLabels: {
-      group: 'Axis & Legend', type: string, value: '', name: 'X Axis Labels', depends: {xAxisType: 'custom'},
+      group: 'X Axis', type: string, value: '', name: 'X Axis Labels', depends: {xAxisType: 'custom'},
       description: 'Provide custom labels for X axis. Type comma-separated words to change the appearance of X axis'
     }
 
@@ -740,6 +745,7 @@ item:
       y: {$-expr: label.y}
       w: {$-expr: label.w}
       h: {$-expr: label.h}
+      r: {$-expr: label.r}
     textSlots:
       body:
         text: {$-expr: "stripHTML(label.text)"}

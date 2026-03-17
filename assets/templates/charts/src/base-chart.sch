@@ -43,6 +43,7 @@ struct AxisLabel {
     w: 100
     h: 50
     halign: 'center'
+    r: 0
 }
 
 struct AxisLine {
@@ -76,7 +77,7 @@ func calculateNiceStep(roughStep) {
     niceStep
 }
 
-func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
+func generateYAxis(axisShown, softMin, softMax, numTicks, font, fontSize) {
     numTicks = max(2, numTicks)
     // Calculate a nice step size
     local range = softMax - softMin
@@ -99,7 +100,12 @@ func generateYAxis(softMin, softMax, numTicks, font, fontSize) {
         lines.add(AxisLine(position, formatLabel(value, range)))
     }
 
-    Axis(lines, niceMin, niceMax, niceStep, generateYAxisLabels(lines, font, fontSize))
+    local labels = if (axisShown) {
+        generateYAxisLabels(lines, font, fontSize)
+    } else {
+        List()
+    }
+    Axis(lines, niceMin, niceMax, niceStep, labels)
 }
 
 func generateYAxisLabels(lines, font, fontSize) {
@@ -117,7 +123,7 @@ func generateYAxisLabels(lines, font, fontSize) {
 local xAxisMinSpacing = 40
 
 
-func generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, fontSize, lineProvider) {
+func generateXAxis(axisShown, numPoints, isTilted, plotOffset, plotWidth, plotHeight, font, fontSize, lineProvider) {
     local lines = List()
     if (numPoints < 2) {
         local line = lineProvider(0, 0)
@@ -143,35 +149,45 @@ func generateXAxis(numPoints, plotOffset, plotWidth, plotHeight, font, fontSize,
         }
     }
 
-    Axis(lines, 0, 100, 100 / max(1, lines.size), generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize))
+    local labels = if (axisShown) {
+        generateXAxisLabels(lines, isTilted, plotOffset, plotWidth, plotHeight, font, fontSize)
+    } else {
+        List()
+    }
+    Axis(lines, 0, 100, 100 / max(1, lines.size), labels)
 }
 
-func generateXAxisLabels(lines, plotOffset, plotWidth, plotHeight, font, fontSize) {
+func generateXAxisLabels(lines, isTilted, plotOffset, plotWidth, plotHeight, font, fontSize) {
+    local r = if (isTilted) { -45 } else { 0 }
     local labels = List()
     local maxHeight = 0
     lines.forEach((line, idx) => {
-        local size = calculateTextSize(line.labelText, line.position * plotWidth / 100, plotHeight, font, fontSize)
+        local size = calculateTextSize(line.labelText, font, fontSize)
         size.w *= 1.6
         size.h *= 2.2
         maxHeight = max(maxHeight, size.h)
-        local x = if (idx == 0) {
+
+        local x = if (!isTilted && idx == 0) {
             plotOffset + line.position * plotWidth / 100
-        } else if (idx < lines.size - 1) {
-            plotOffset + line.position * plotWidth / 100 - size.w / 2
-        } else {
+        } else if (!isTilted && idx == lines.size - 1) {
             plotOffset + plotWidth - size.w
+        } else {
+            plotOffset + line.position * plotWidth / 100 - size.w / 2
         }
-        local halign = if (idx == 0) {
-            'left'
-        } else if (idx == lines.size - 1) {
+
+        local halign = if (isTilted || idx == lines.size - 1) {
             'right'
+        } else if (idx == 0) {
+            'left'
         } else {
             'center'
         }
-        labels.add(AxisLabel(line.labelText, x, plotHeight, size.w, size.h, halign))
+        labels.add(AxisLabel(line.labelText, x, plotHeight, size.w, size.h, halign, r))
     })
 
-    labels.forEach((label) => { label.h = maxHeight })
+    if (!isTilted) {
+        labels.forEach((label) => { label.h = maxHeight })
+    }
     labels
 }
 
