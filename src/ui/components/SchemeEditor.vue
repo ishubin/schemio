@@ -1345,7 +1345,7 @@ export default {
                         this.currentTab = schemeSettings.currentTab;
                     }
 
-                    if (this.mode == 'view') {
+                    if (this.mode == 'view' || (this.currentTab !== 'Doc' && this.currentTab !== 'Item')) {
                         this.currentTab = 'Doc';
                     }
                 }
@@ -2243,6 +2243,7 @@ export default {
                 }
                 this.updateSelectedTemplate();
             } else {
+                this.currentTab = 'Item';
                 this.$emit('items-deselected');
                 this.selectedTemplateRef = null;
                 this.selectedTemplateRootItem = null;
