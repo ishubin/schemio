@@ -1,0 +1,146 @@
+name: Pie chart
+description: ""
+args:
+    data:
+      group: Data
+      name: Data
+      singular: entry
+      type: array
+      value:
+        - id: 44zYCq52M
+          name: Data 1
+          value: 10
+          color: "#355E97FF"
+        - id: 6IDE7Ij4
+          name: Data 2
+          value: 40
+          color: "#975E35FF"
+        - id: iByb3V9kZTu
+          name: Data 3
+          value: 5
+          color: "#35975EFF"
+      args:
+        name         : {type: "string", value: "Data ##IDX##", name: "Name"}
+        value        : {type: "number", value: 10, min: 0, name: "Value"}
+        color        : {type: "color", value: "#355E97FF", name: "Color"}
+
+    background      : {group: "Style", type: 'advanced-color', value: "#E8E8E9FF", name: 'Background'}
+    strokeColor     : {group: "Style", type: "color", value: "#C7C7C7FF", name: "Stroke color"}
+    strokeSize      : {group: "Style", type: "number", value: 1, name: "Stroke size"}
+    sliceStrokeColor: {group: "Style", type: "color", value: "#C7C7C7FF", name: "Stroke color"}
+    sliceStrokeSize : {group: "Style", type: "number", value: 1, name: "Stroke size"}
+    cornerRadius    : {group: "Style", type: "number", value: 5, name: "Corner radius", min: 0}
+    padding         : {group: "Style", type: 'number', value: 20, name: 'Padding'}
+    initialAngle    : {group: "Style", type: 'number', value: 0, min: 0, max: 360, name: 'Initial Angle'}
+
+    titleFontSize: {group: 'Text', type: 'number', value: 16, name: 'Title font size'}
+    font         : {group: 'Text', type: font, value: Arial, name: Font}
+
+    hasLegend     : {group: 'Legend', type: 'boolean', value: true, name: 'Legend'}
+    fontSize      : {group: 'Legend', type: 'number', value: 14, name: 'Font size'}
+    fontColor     : {group: 'Legend', type: color, value: "#333333FF", name: Label color}
+    legendSpacing : {group: 'Legend', type: 'number', value: 5, min: 0, softMax: 20, name: 'Legend spacing'}
+    iconSize      : {group: 'Legend', type: 'number', value: 20, min: 1, softMax: 50, name: 'Icon size'}
+    iconCornerSize: {group: 'Legend', type: 'number', value: 5, min: 0, softMax: 50, name: 'Icon corner size'}
+
+
+
+import:
+    - ./src/pie-chart.sch
+
+item:
+  id: root
+  name: Pie chart
+  shape: rect
+  shapeProps:
+    fill: {$-expr: background}
+    strokeColor: {$-expr: strokeColor}
+    strokeSize: {$-expr: strokeSize}
+    cornerRadius: {$-expr: cornerRadius}
+  locked: false
+  area:
+    x: 0
+    y: 0
+    w: {$-expr: width}
+    h: {$-expr: height}
+
+  childItems:
+  - $-foreach: {source: "slices", it: "slice"}
+    id: {$-str: "slice-${slice.id}"}
+    name: {$-expr: "slice.name"}
+    shape: pie_segment
+    area:
+      x: {$-expr: padding}
+      y: {$-expr: padding}
+      w: {$-expr: chartWidth}
+      h: {$-expr: chartHeight}
+      r: {$-expr: slice.angle}
+
+    shapeProps:
+      percent: {$-expr: slice.percent}
+      fill: {type: solid, color: {$-expr: slice.color}}
+      strokeSize: {$-expr: strokeSize}
+      strokeColor: {$-expr: strokeColor}
+
+  - $-foreach: {source: sliceLabels, it: label}
+    id: {$-expr: label.id}
+    name: {$-expr: label.text}
+    shape: none
+    area:
+      x: {$-expr: label.x}
+      y: {$-expr: label.y}
+      w: {$-expr: label.w}
+      h: {$-expr: label.h}
+    args:
+      templateForceText: true
+    textSlots:
+      body:
+        text: {$-expr: label.text}
+        font: {$-expr: font}
+        fontSize: {$-expr: label.fontSize}
+        color: {$-expr: fontColor}
+
+  - id: legend-container
+    name: Legend
+    shape: none
+    area:
+      x: {$-expr: legend.x}
+      y: {$-expr: legend.y}
+      w: {$-expr: legend.w}
+      h: {$-expr: legend.h}
+    clip: true
+    childItems:
+    - $-foreach: {source: legend.entries, it: entry}
+      id: {$-str: "legend-entry-icon-${entry.id}"}
+      name: {$-str: "Icon ${entry.name}"}
+      shape: rect
+      area:
+        x: {$-expr: entry.x}
+        y: {$-expr: entry.y + entry.h / 2 - iconSize/2}
+        w: {$-expr: iconSize}
+        h: {$-expr: iconSize}
+      shapeProps:
+        fill: {type: solid, color: {$-expr: entry.color}}
+        cornerRadius: {$-expr: iconCornerSize}
+        strokeSize: 0
+
+    - $-foreach: {source: legend.entries, it: entry}
+      id: {$-str: "legend-entry-label-${entry.id}"}
+      name: {$-str: "Label ${entry.name}"}
+      shape: none
+      area:
+        x: {$-expr: "entry.x + 30"}
+        y: {$-expr: entry.y}
+        w: {$-expr: entry.w}
+        h: {$-expr: entry.h}
+      args:
+        templateForceText: true
+      textSlots:
+        body:
+          text: {$-expr: entry.name}
+          fontSize: {$-expr: fontSize}
+          font: {$-expr: font}
+          color: {$-expr: fontColor}
+          valign: middle
+          halign: left
+

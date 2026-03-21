@@ -7,7 +7,7 @@ args:
     datasets:
       group: Data
       name: Datasets
-      singular: graph
+      singular: dataset
       type: array
       value:
         - id: 24tUTkZnn
@@ -491,7 +491,7 @@ editor:
 
 item:
   id: root
-  name: Line chart
+  name: Chart
   shape: rect
   shapeProps:
     fill: {type: solid, color: {$-expr: background}}

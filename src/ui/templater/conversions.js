@@ -5,6 +5,11 @@ export function jsObjectToSchemioScript(obj) {
         return obj;
     }
 
+    if (obj instanceof List) {
+        // don't need to convert it, otherwise it will convert the internals of the List object itself
+        return obj;
+    }
+
     if (Array.isArray(obj)) {
         return new List(...obj.map(jsObjectToSchemioScript));
     }

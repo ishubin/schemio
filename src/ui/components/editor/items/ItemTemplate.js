@@ -94,7 +94,7 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
                     // has not been updated and therefore the "data" variable in this function contains outdated template args
 
                     const clickData = {
-                        ...lastTemplateArgs,
+                        ...jsObjectToSchemioScript(lastTemplateArgs),
                         width: templateRootItem.area.w,
                         height: templateRootItem.area.h,
                         ...extraData,
@@ -208,7 +208,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
         preview    : template.preview,
         defaultArea: template.defaultArea || {x: 0, y: 0, w: 350, h: 200, px: 0.5, py: 0.5, sx: 1, sy: 1},
         templateRef: templateRef,
-        args       : jsObjectToSchemioScript(template.args) || {},
+        args       : template.args || {},
         argsDef    : template.args,
         defaultArgs: defaultArgs,
 
@@ -286,25 +286,27 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
             if (postBuild) {
                 return itemPostBuilder({
                     ...createTemplateFunctions(editorId, null, schemeContainer),
-                    ...args, width, height,
+                    ...jsObjectToSchemioScript(args), width, height,
                     context: new TemplateContext(ContextPhases.POST_BUILD, null, '')
                 }).item;
             }
             return itemBuilder({
                 ...createTemplateFunctions(editorId, null, schemeContainer),
-                ...args, width, height,
+                ...jsObjectToSchemioScript(args), width, height,
                 context: new TemplateContext(ContextPhases.BUILD, null, '')
             }).item;
         },
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => {
-            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {...args, width, height}, selectedItemIds, cachedCompiledExpressions, schemeContainer);
+            return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {
+                ...jsObjectToSchemioScript(args), width, height
+            }, selectedItemIds, cachedCompiledExpressions, schemeContainer);
         },
 
         buildControls: (args, width, height) => {
             return compiledControlBuilder({
                     ...createTemplateFunctions(editorId, null, schemeContainer),
-                    ...args, width, height,
+                    ...jsObjectToSchemioScript(args), width, height,
                     context: new TemplateContext(ContextPhases.EVENT, 'control', '')
                 }).controls.map(control => {
 
@@ -328,7 +330,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                     eventCallback = (item, value) => {
                         return eventExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
-                            ...args, width, height,
+                            ...jsObjectToSchemioScript(args), width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                             value,
@@ -345,7 +347,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                     eventCallback = (item, option) => {
                         return eventExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
-                            ...args, width, height,
+                            ...jsObjectToSchemioScript(args), width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                             option,
@@ -361,7 +363,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                     eventCallback = (item) => {
                         return eventExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
-                            ...args, width, height,
+                            ...jsObjectToSchemioScript(args), width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                         });
@@ -379,7 +381,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                     enrichedControl.optionsProvider = (item) => {
                         const options = providerExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
-                            ...args, width, height,
+                            ...jsObjectToSchemioScript(args), width, height,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                         });
