@@ -3835,10 +3835,9 @@ function generateEditBox(schemeContainer, items, connectorPointRefs) {
         });
     })
 
-    if (items.length === 1 && (!items[0].meta.templated || items[0].meta.templateRootId === items[0].id)) {
+    if (items.length === 1) {
+    // if (items.length === 1 && (!items[0].meta.templated || items[0].meta.templateRootId === items[0].id)) {
         // we want the item edit box to be aligned with item only if that item was selected
-        // But we need to skip this stage if the item is part of template (but not root),
-        // otherwise the edit box may incorrectly calculate the positioning of template controls
         const   p0 = worldPointOnItem(0, 0, items[0]),
                 p1 = worldPointOnItem(items[0].area.w, 0, items[0]),
                 p3 = worldPointOnItem(0, items[0].area.h, items[0]);
