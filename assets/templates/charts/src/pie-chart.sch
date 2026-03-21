@@ -107,13 +107,15 @@ func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
         lever = r * 0.5
     }
     slices.forEach((slice) => {
-        if (slice.percent > 5) {
-            local nicePercent = round(slice.percent)
+        local nicePercent = round(slice.percent)
+        local labelText = `${nicePercent}%`
+        local size = calculateTextSize(labelText, font, fontSize)
+        local arcSize = 2 * PI() * lever * slice.percent / 100
+        local avgLabelSize = (size.w + size.h) / 2
+        if (arcSize > avgLabelSize) {
             local midAngle = (270 + slice.angle + (slice.percent / 2) * 360 / 100) * PI() / 180
             local cx = cos(midAngle) * lever
             local cy = sin(midAngle) * lever
-            local labelText = `${nicePercent}%`
-            local size = calculateTextSize(labelText, font, fontSize)
             local w = size.w * 1.3
             local h = size.h * 1.3
             local x = cx - w/2 + chartX + chartWidth/2
