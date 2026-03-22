@@ -54,16 +54,16 @@ item:
   name: Pie chart
   shape: rect
   shapeProps:
-    fill: {$-expr: background}
-    strokeColor: {$-expr: strokeColor}
-    strokeSize: {$-expr: strokeSize}
-    cornerRadius: {$-expr: cornerRadius}
+    fill: $background
+    strokeColor: $strokeColor
+    strokeSize: $strokeSize
+    cornerRadius: $cornerRadius
   locked: false
   area:
     x: 0
     y: 0
-    w: {$-expr: width}
-    h: {$-expr: height}
+    w: $width
+    h: $height
   functions:
   - id: func-change-pie
     name: Change Pie chart
@@ -75,9 +75,9 @@ item:
       type: string
       description: Comma separated list of values
     props:
-      initScript: {$-expr: changeAnimationInitScript}
-      script: {$-expr: changeAnimationLoopScript}
-      endScript: {$-expr: changeAnimationEndScript}
+      initScript: $changeAnimationInitScript
+      script: $changeAnimationLoopScript
+      endScript: $changeAnimationEndScript
       animated: true
       animationType: "animation"
       animationDuration: 0.5
@@ -86,90 +86,90 @@ item:
 
   childItems:
   - $-foreach: {source: "slices", it: "slice"}
-    id: {$-str: "slice-${slice.id}"}
-    name: {$-expr: "slice.name"}
+    id: $`slice-${slice.id}"`
+    name: $slice.name
     shape: pie_segment
     tags:
       - pie-chart-slice
     args:
       customVars:
-        name   : {$-expr: slice.name}
-        value  : {$-expr: slice.value}
-        percent: {$-expr: slice.percent}
-        idx    : {$-expr: slice.idx}
+        name   : $slice.name
+        value  : $slice.value
+        percent: $slice.percent
+        idx    : $slice.idx
     area:
-      x: {$-expr: padding}
-      y: {$-expr: padding}
-      w: {$-expr: chartWidth}
-      h: {$-expr: chartHeight}
-      r: {$-expr: slice.angle}
+      x: $padding
+      y: $padding
+      w: $chartWidth
+      h: $chartHeight
+      r: $slice.angle
 
     shapeProps:
-      percent: {$-expr: slice.percent}
-      fill: {type: solid, color: {$-expr: slice.color}}
-      strokeSize: {$-expr: strokeSize}
-      strokeColor: {$-expr: strokeColor}
+      percent: $slice.percent
+      fill: {type: solid, color: $slice.color}
+      strokeSize: $strokeSize
+      strokeColor: $strokeColor
 
   - $-foreach: {source: sliceLabels, it: label}
-    id: {$-expr: label.id}
-    name: {$-expr: label.text}
+    id: $label.id
+    name: $label.text
     shape: none
-    opacity: {$-expr: label.opacity}
+    opacity: $label.opacity
     area:
-      x: {$-expr: label.x}
-      y: {$-expr: label.y}
-      w: {$-expr: label.w}
-      h: {$-expr: label.h}
+      x: $label.x
+      y: $label.y
+      w: $label.w
+      h: $label.h
     args:
       templateForceText: true
     textSlots:
       body:
-        text: {$-expr: label.text}
-        font: {$-expr: font}
-        fontSize: {$-expr: label.fontSize}
-        color: {$-expr: fontColor}
+        text: $label.text
+        font: $font
+        fontSize: $label.fontSize
+        color: $fontColor
 
   - id: legend-container
     name: Legend
     shape: none
     area:
-      x: {$-expr: legend.x}
-      y: {$-expr: legend.y}
-      w: {$-expr: legend.w}
-      h: {$-expr: legend.h}
+      x: $legend.x
+      y: $legend.y
+      w: $legend.w
+      h: $legend.h
     clip: true
     childItems:
     - $-foreach: {source: legend.entries, it: entry}
-      id: {$-str: "legend-entry-icon-${entry.id}"}
-      name: {$-str: "Icon ${entry.name}"}
+      id: $`legend-entry-icon-${entry.id}`
+      name: $`Icon ${entry.name}`
       shape: rect
       area:
-        x: {$-expr: entry.x}
-        y: {$-expr: entry.y + entry.h / 2 - iconSize/2}
-        w: {$-expr: iconSize}
-        h: {$-expr: iconSize}
+        x: $entry.x
+        y: ${ entry.y + entry.h / 2 - iconSize/2 }
+        w: $iconSize
+        h: $iconSize
       shapeProps:
-        fill: {type: solid, color: {$-expr: entry.color}}
-        cornerRadius: {$-expr: iconCornerSize}
+        fill: {type: solid, color: $entry.color}
+        cornerRadius: $iconCornerSize
         strokeSize: 0
 
     - $-foreach: {source: legend.entries, it: entry}
-      id: {$-str: "legend-entry-label-${entry.id}"}
-      name: {$-str: "Label ${entry.name}"}
+      id: $`legend-entry-label-${entry.id}`
+      name: $`Label ${entry.name}`
       shape: none
       area:
-        x: {$-expr: "entry.x + 30"}
-        y: {$-expr: entry.y}
-        w: {$-expr: entry.w}
-        h: {$-expr: entry.h}
+        x: ${ entry.x + 30 }
+        y: $entry.y
+        w: $entry.w
+        h: $entry.h
       args:
         templateForceText: true
       textSlots:
         body:
-          text: {$-expr: entry.name}
-          fontSize: {$-expr: fontSize}
-          font: {$-expr: font}
-          color: {$-expr: fontColor}
+          text: $entry.name
+          fontSize: $fontSize
+          font: $font
+          color: $fontColor
           valign: middle
           halign: left
 
