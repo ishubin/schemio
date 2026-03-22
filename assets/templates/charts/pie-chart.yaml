@@ -47,6 +47,7 @@ args:
 
 import:
     - ./src/pie-chart.sch
+    - ./src/pie-chart-animations.sch
 
 item:
   id: root
@@ -63,12 +64,39 @@ item:
     y: 0
     w: {$-expr: width}
     h: {$-expr: height}
+  functions:
+  - id: func-change-pie
+    name: Change Pie chart
+    description: Updates the values in the Pie chart with animation
+    args:
+    - id: arg-index
+      name: values
+      value: "10, 4, 5, 7, 2"
+      type: string
+      description: Comma separated list of values
+    props:
+      initScript: {$-expr: changeAnimationInitScript}
+      script: {$-expr: changeAnimationLoopScript}
+      endScript: {$-expr: changeAnimationEndScript}
+      animated: true
+      animationType: "animation"
+      animationDuration: 0.5
+      transition: "ease-out"
+      inBackground: true
 
   childItems:
   - $-foreach: {source: "slices", it: "slice"}
     id: {$-str: "slice-${slice.id}"}
     name: {$-expr: "slice.name"}
     shape: pie_segment
+    tags:
+      - pie-chart-slice
+    args:
+      customVars:
+        name   : {$-expr: slice.name}
+        value  : {$-expr: slice.value}
+        percent: {$-expr: slice.percent}
+        idx    : {$-expr: slice.idx}
     area:
       x: {$-expr: padding}
       y: {$-expr: padding}
@@ -86,6 +114,7 @@ item:
     id: {$-expr: label.id}
     name: {$-expr: label.text}
     shape: none
+    opacity: {$-expr: label.opacity}
     area:
       x: {$-expr: label.x}
       y: {$-expr: label.y}

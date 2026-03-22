@@ -1,3 +1,4 @@
+local BASE_SCRIPT = enc {
 struct Label {
     id: ""
     text: ""
@@ -6,10 +7,12 @@ struct Label {
     w: 0
     h: 0
     fontSize: 14
+    opacity: 100
 }
 
 struct PieSlice {
     id: ""
+    idx: 0
     name: ""
     value: 0
     percent: 10
@@ -18,33 +21,26 @@ struct PieSlice {
     labels: List()
 }
 
-func createSlices(data, initialAngle) {
+func alignSlices(slices, initialAngle, shouldSort) {
     local total = 0
 
-    data.forEach((entry, idx) => {
-        total += entry.value
+    slices.forEach((slice, idx) => {
+        total += slice.value
     })
 
     if (total < 0.0000001) {
         total = 0.0000001
     }
 
-
-    local slices = data.map((entry) => {
-        local percent = entry.value * 100 / total
-        PieSlice(
-            entry.id,
-            entry.name,
-            entry.value,
-            percent,
-            entry.color,
-            0
-        )
+    slices.forEach((slice, idx) => {
+        slice.percent = slice.value * 100 / total
     })
 
-    slices.sort((a, b) => {
-        b.percent - a.percent
-    })
+    if (shouldSort) {
+        slices.sort((a, b) => {
+            b.percent - a.percent
+        })
+    }
 
     local allPrevPercents = 0
     slices.forEach((slice) => {
@@ -53,9 +49,35 @@ func createSlices(data, initialAngle) {
 
         allPrevPercents += percent
     })
-
-    slices
 }
+
+func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
+    local labels = List()
+    local r = min(chartWidth, chartHeight) / 2
+    local lever = r * 0.8
+    if (lever < 50) {
+        lever = r * 0.5
+    }
+    slices.forEach((slice) => {
+        local nicePercent = round(slice.percent)
+        local labelText = `${nicePercent}%`
+        local size = calculateTextSize(labelText, font, fontSize)
+        local arcSize = 2 * PI() * lever * slice.percent / 100
+        local avgLabelSize = (size.w + size.h) / 2
+        local opacity = if (arcSize > avgLabelSize) { 100 } else { 0 }
+        local midAngle = (270 + slice.angle + (slice.percent / 2) * 360 / 100) * PI() / 180
+        local cx = cos(midAngle) * lever
+        local cy = sin(midAngle) * lever
+        local w = size.w * 1.3
+        local h = size.h * 1.3
+        local x = cx - w/2 + chartX + chartWidth/2
+        local y = cy - h/2 + chartY + chartHeight/2
+        labels.add(Label(`slice-label-percent-${slice.id}`, labelText, x, y, w, h, fontSize, opacity))
+    })
+    labels
+}
+} // end of baseScript
+
 
 struct Legend {
     x: 0
@@ -74,6 +96,7 @@ struct LegendEntry {
     name: ""
     color: "#FF00FFFF"
 }
+
 
 func buildLegend(data) {
     local maxWidth = 0
@@ -99,37 +122,26 @@ func buildLegend(data) {
 }
 
 
-func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
-    local labels = List()
-    local r = min(chartWidth, chartHeight) / 2
-    local lever = r * 0.8
-    if (lever < 50) {
-        lever = r * 0.5
-    }
-    slices.forEach((slice) => {
-        local nicePercent = round(slice.percent)
-        local labelText = `${nicePercent}%`
-        local size = calculateTextSize(labelText, font, fontSize)
-        local arcSize = 2 * PI() * lever * slice.percent / 100
-        local avgLabelSize = (size.w + size.h) / 2
-        if (arcSize > avgLabelSize) {
-            local midAngle = (270 + slice.angle + (slice.percent / 2) * 360 / 100) * PI() / 180
-            local cx = cos(midAngle) * lever
-            local cy = sin(midAngle) * lever
-            local w = size.w * 1.3
-            local h = size.h * 1.3
-            local x = cx - w/2 + chartX + chartWidth/2
-            local y = cy - h/2 + chartY + chartHeight/2
-            labels.add(Label(`slice-label-percent-${slice.id}`, labelText, x, y, w, h, fontSize))
-        }
+func dataToSlices(data) {
+    data.map((entry, idx) => {
+        PieSlice(
+            entry.id,
+            idx,
+            entry.name,
+            entry.value,
+            0, // percent
+            entry.color,
+            0 // angle
+        )
     })
-    labels
 }
 
-local slices = createSlices(data, initialAngle)
+local slices = dataToSlices(data)
+alignSlices(slices, initialAngle, true)
 
 local legend = buildLegend(data)
 
 local chartWidth = max(1, width - legend.w - padding*3)
 local chartHeight = max(1, height - padding*2)
 local sliceLabels = buildSliceLabels(slices, padding, padding, chartWidth, chartHeight)
+
