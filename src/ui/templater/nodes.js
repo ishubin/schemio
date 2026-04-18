@@ -15,6 +15,7 @@ import { ScopeInterruptValue } from "./error";
 import { stripAllHtml } from "../../htmlSanitize";
 import { VAR_REF } from "./consts";
 import { SchemioDate } from "./date";
+import { calculateTextSize } from "./text";
 
 
 export class ASTNode {
@@ -353,9 +354,10 @@ const reservedFunctions = new Map(Object.entries({
 
     parseDate : (date) => new SchemioDate(date),
 
+    calculateTextSize,
+
     Fill          : Fill
 }));
-
 
 
 export class ASTMultiExpression extends ASTNode {

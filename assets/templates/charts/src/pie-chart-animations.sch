@@ -1,8 +1,11 @@
 
 struct PieAnimation {
+    sliceItems: List()
+    labelItems: List()
     srcSlices: Map()
     dstSlices: Map()
-    sliceItems: List()
+    srcLabels: Map()
+    dstLabels: Map()
 }
 
 func animationUpdatePie(pieAnimation, t) {
@@ -16,6 +19,26 @@ func animationUpdatePie(pieAnimation, t) {
             local percent = srcSlice.percent * (1 - t) + dstSlice.percent * t
             item.setAngle(angle)
             item.setPercent(percent)
+        }
+    })
+
+    pieAnimation.labelItems.forEach((item) => {
+        local idx = item.getVar('sliceIdx')
+
+        // local srcSlice = pieAnimation.srcSlices.get(idx)
+        // local dstSlice = pieAnimation.dstSlices.get(idx)
+
+        local srcLabel = pieAnimation.srcLabels.get(idx)
+        local dstLabel = pieAnimation.dstLabels.get(idx)
+        if (srcLabel && dstLabel) {
+            item.setPos(
+                srcLabel.x * (1 - t) + dstLabel.x * t,
+                srcLabel.y * (1 - t) + dstLabel.y * t,
+            )
+            item.setWidth(srcLabel.w * (1 - t) + dstLabel.w * t)
+            item.setHeight(srcLabel.h * (1 - t) + dstLabel.h * t)
+            item.setOpacity(srcLabel.opacity * (1 - t) + dstLabel.opacity * t)
+            item.setText('body', dstLabel.text)
         }
     })
 }
@@ -71,7 +94,21 @@ func animationUpdatePieInit(sliceItemMap, sliceValues, initialAngle) {
     slices.forEach((slice) => { srcSliceMap.set(slice.idx, slice) })
     local dstSliceMap = Map()
     dstSlices.forEach((slice) => { dstSliceMap.set(slice.idx, slice) })
-    PieAnimation(srcSliceMap, dstSliceMap, sliceItems)
+
+
+
+    local labelItems = findChildItemsByTag('pie-chart-slice-label')
+
+    local srcLabels = Map()
+    local dstLabels = Map()
+
+    buildSliceLabels(slices, padding, padding, chartWidth, chartHeight).forEach((label) => {
+        srcLabels.set(label.sliceIdx, label)
+    })
+    buildSliceLabels(dstSlices, padding, padding, chartWidth, chartHeight).forEach((label) => {
+        dstLabels.set(label.sliceIdx, label)
+    })
+    PieAnimation(sliceItems, labelItems, srcSliceMap, dstSliceMap, srcLabels, dstLabels)
 }
 
 func animationUpdatePieEnd() {
@@ -88,11 +125,17 @@ func animationUpdatePieEnd() {
 
 local changeAnimationInitScript = `
 ${BASE_SCRIPT}
-${enc animationUpdatePie}
 ${enc animationUpdatePieInit}
+${enc animationUpdatePie}
 ${enc animationUpdatePieEnd}
 ${enc PieAnimation}
 local initialAngle = ${initialAngle}
+local hasLabels = ${hasLabels}
+local padding = ${padding}
+local chartWidth = ${chartWidth}
+local chartHeight = ${chartHeight}
+local font = "${font}"
+local fontSize = ${fontSize}
 
 local sliceValues = values.split(',').map(parseFloat)
 

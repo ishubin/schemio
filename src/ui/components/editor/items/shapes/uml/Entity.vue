@@ -113,9 +113,9 @@ import shortid from 'shortid';
 import EditorEventBus from '../../../EditorEventBus';
 import { generateTextStyle } from '../../../text/ItemText';
 import htmlSanitize from '../../../../../../htmlSanitize';
-import { calculateTextSize } from '../../ItemTemplateFunctions';
 import { defaultTextSlotProps } from '../../../../../scheme/Item';
 import StrokePattern from '../../StrokePattern';
+import { calculateTextSize } from '../../../../../templater/text';
 
 
 const typeSuggestions = [

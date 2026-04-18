@@ -8,6 +8,7 @@ struct Label {
     h: 0
     fontSize: 14
     opacity: 100
+    sliceIdx: 0
 }
 
 struct PieSlice {
@@ -72,7 +73,7 @@ func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
         local h = size.h * 1.3
         local x = cx - w/2 + chartX + chartWidth/2
         local y = cy - h/2 + chartY + chartHeight/2
-        labels.add(Label(`slice-label-percent-${slice.id}`, labelText, x, y, w, h, fontSize, opacity))
+        labels.add(Label(`slice-label-percent-${slice.id}`, labelText, x, y, w, h, fontSize, opacity, slice.idx))
     })
     labels
 }
@@ -139,9 +140,12 @@ func dataToSlices(data) {
 local slices = dataToSlices(data)
 alignSlices(slices, initialAngle, true)
 
-local legend = buildLegend(data)
+local legend = if (hasLegend) { buildLegend(data) } else { Legend() }
 
-local chartWidth = max(1, width - legend.w - padding*3)
+local chartWidth = max(1, width - legend.w - padding*2)
+if (hasLegend) {
+    chartWidth = max(1, chartWidth - padding)
+}
 local chartHeight = max(1, height - padding*2)
-local sliceLabels = buildSliceLabels(slices, padding, padding, chartWidth, chartHeight)
+local sliceLabels = if (hasLabels) { buildSliceLabels(slices, padding, padding, chartWidth, chartHeight) } else { List() }
 
