@@ -25,7 +25,7 @@ args:
         strokeSize   : {type: "number", value: 2, name: "Stroke size", min: 0}
         strokePattern: {type: "stroke-pattern", value: "solid", name: "Stroke Pattern"}
 
-    background    : {group: "Style", type: 'color', value: "#E8E8E9FF", name: 'Background'}
+    background    : {group: "Style", type: 'advanced-color', value: {type: 'solid', color: '#E8E8E9FF'}, name: 'Background'}
     strokeColor   : {group: "Style", type: "color", value: "#C7C7C7FF", name: "Stroke color"}
     strokeSize    : {group: "Style", type: "number", value: 1, name: "Stroke size"}
     gridColor     : {group: "Style", type: "color", value: "#BDBDBDFF", name: 'Grid color'}
@@ -494,7 +494,7 @@ item:
   name: Chart
   shape: rect
   shapeProps:
-    fill: {type: solid, color: {$-expr: background}}
+    fill: {$-expr: background}
     strokeColor: {$-expr: strokeColor}
     strokeSize: {$-expr: strokeSize}
     cornerRadius: {$-expr: cornerRadius}

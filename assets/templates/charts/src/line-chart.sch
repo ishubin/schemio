@@ -156,7 +156,7 @@ func onXAxisLabelUpdate(labelIdx, text) {
 
 func selectTheme(theme) {
     if (theme == 'light') {
-        background = '#E8E8E9FF'
+        background = Fill.solid('#E8E8E9FF')
         strokeColor = '#C7C7C7FF'
         gridColor = '#BDBDBDFF'
         fontColor = '#333333FF'
@@ -172,7 +172,7 @@ func selectTheme(theme) {
             dataset.color = c.rgb().encode()
         })
     } else if (theme == 'dark') {
-        background = '#202227FF'
+        background = Fill.solid('#202227FF')
         strokeColor = '#161717FF'
         gridColor = '#474766FF'
         fontColor = '#C9C9CAFF'

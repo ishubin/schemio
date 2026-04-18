@@ -62,7 +62,7 @@ func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
     slices.forEach((slice) => {
         local nicePercent = round(slice.percent)
         local labelText = `${nicePercent}%`
-        local size = calculateTextSize(labelText, font, fontSize)
+        local size = calculateTextSize(labelText, font, labelFontSize)
         local arcSize = 2 * PI() * lever * slice.percent / 100
         local avgLabelSize = (size.w + size.h) / 2
         local opacity = if (arcSize > avgLabelSize) { 100 } else { 0 }
@@ -73,7 +73,7 @@ func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
         local h = size.h * 1.3
         local x = cx - w/2 + chartX + chartWidth/2
         local y = cy - h/2 + chartY + chartHeight/2
-        labels.add(Label(`slice-label-percent-${slice.id}`, labelText, x, y, w, h, fontSize, opacity, slice.idx))
+        labels.add(Label(`slice-label-percent-${slice.id}`, labelText, x, y, w, h, labelFontSize, opacity, slice.idx))
     })
     labels
 }
@@ -103,7 +103,7 @@ func buildLegend(data) {
     local maxWidth = 0
     local maxHeight = 0
     local entries = data.map((entry) => {
-        local size = calculateTextSize(entry.name, font, fontSize)
+        local size = calculateTextSize(entry.name, font, legendFontSize)
         local w = size.w * 1.3
         local h = size.h * 1.3
         maxWidth = max(maxWidth, w)
@@ -111,7 +111,7 @@ func buildLegend(data) {
         LegendEntry(entry.id, 0, 0, w, h, entry.name, entry.color)
     })
 
-    local legendWidth = min(width/2, maxWidth + 40)
+    local legendWidth = min(width/2, maxWidth + iconSize + 10)
     local legendHeight = min(height, (maxHeight + legendSpacing * 2) * data.size)
 
     entries.forEach((entry, idx) => {

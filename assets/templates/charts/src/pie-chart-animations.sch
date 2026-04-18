@@ -135,13 +135,12 @@ local padding = ${padding}
 local chartWidth = ${chartWidth}
 local chartHeight = ${chartHeight}
 local font = "${font}"
-local fontSize = ${fontSize}
+local fontSize = ${labelFontSize}
 
 local sliceValues = values.split(',').map(parseFloat)
 
 local sliceItemMap = Map()
 local pieAnimation = animationUpdatePieInit(sliceItemMap, sliceValues, initialAngle)
-
 `
 
 local changeAnimationLoopScript = `
