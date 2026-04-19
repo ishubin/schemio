@@ -55,14 +55,21 @@ func alignSlices(slices, initialAngle, shouldSort) {
 func buildSliceLabels(slices, chartX, chartY, chartWidth, chartHeight) {
     local labels = List()
     local r = min(chartWidth, chartHeight) / 2
-    local lever = r * 0.8
+    local lever = r * labelDistance/100
     if (lever < 50) {
         lever = r * 0.5
     }
     slices.forEach((slice) => {
         local nicePercent = round(slice.percent)
-        local labelText = `${nicePercent}%`
-        local size = calculateTextSize(labelText, font, labelFontSize)
+        local labelText = "" + slice.value
+        if (labelDisplay == '%') {
+            labelText = `${nicePercent}%`
+        } else if (labelDisplay == 'value (%)') {
+            labelText = `${slice.value} (${nicePercent}%)`
+        } else if (labelDisplay == '% (value)') {
+            labelText = `${nicePercent}% (${slice.value})`
+        }
+        local size = calculateTextSize(labelText, labelFont, labelFontSize)
         local arcSize = 2 * PI() * lever * slice.percent / 100
         local avgLabelSize = (size.w + size.h) / 2
         local opacity = if (arcSize > avgLabelSize) { 100 } else { 0 }
@@ -103,7 +110,7 @@ func buildLegend(data) {
     local maxWidth = 0
     local maxHeight = 0
     local entries = data.map((entry) => {
-        local size = calculateTextSize(entry.name, font, legendFontSize)
+        local size = calculateTextSize(entry.name, legendFont, legendFontSize)
         local w = size.w * 1.3
         local h = size.h * 1.3
         maxWidth = max(maxWidth, w)

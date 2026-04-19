@@ -341,6 +341,8 @@ const reservedFunctions = new Map(Object.entries({
     Strings       : stringFunctions,
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
     fromJSON      : (obj) => convertJSONToScriptObject(obj),
+    encodeJSON    : (obj) => JSON.stringify(convertScriptObjectToJSON(obj)),
+    parseJSON     : (text) => convertJSONToScriptObject(JSON.parse(text)),
     forEach       : forEach,
     setObjectField: setObjectFieldFunc,
     Math          : SchemioScriptMath,

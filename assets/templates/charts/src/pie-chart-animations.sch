@@ -24,10 +24,6 @@ func animationUpdatePie(pieAnimation, t) {
 
     pieAnimation.labelItems.forEach((item) => {
         local idx = item.getVar('sliceIdx')
-
-        // local srcSlice = pieAnimation.srcSlices.get(idx)
-        // local dstSlice = pieAnimation.dstSlices.get(idx)
-
         local srcLabel = pieAnimation.srcLabels.get(idx)
         local dstLabel = pieAnimation.dstLabels.get(idx)
         if (srcLabel && dstLabel) {
@@ -80,7 +76,7 @@ func animationUpdatePieInit(sliceItemMap, sliceValues, initialAngle) {
         PieSlice(
             "",
             slice.idx,
-            slice.name
+            slice.name,
             dstValue,
             dstPercent,
             slice.color,
@@ -96,7 +92,6 @@ func animationUpdatePieInit(sliceItemMap, sliceValues, initialAngle) {
     dstSlices.forEach((slice) => { dstSliceMap.set(slice.idx, slice) })
 
 
-
     local labelItems = findChildItemsByTag('pie-chart-slice-label')
 
     local srcLabels = Map()
@@ -108,6 +103,7 @@ func animationUpdatePieInit(sliceItemMap, sliceValues, initialAngle) {
     buildSliceLabels(dstSlices, padding, padding, chartWidth, chartHeight).forEach((label) => {
         dstLabels.set(label.sliceIdx, label)
     })
+
     PieAnimation(sliceItems, labelItems, srcSliceMap, dstSliceMap, srcLabels, dstLabels)
 }
 
@@ -134,8 +130,10 @@ local hasLabels = ${hasLabels}
 local padding = ${padding}
 local chartWidth = ${chartWidth}
 local chartHeight = ${chartHeight}
-local font = "${font}"
-local fontSize = ${labelFontSize}
+local labelFont = "${labelFont}"
+local legendFont = "${legendFont}"
+local labelFontSize = ${labelFontSize}
+local labelDisplay = '${labelDisplay}'
 
 local sliceValues = values.split(',').map(parseFloat)
 
