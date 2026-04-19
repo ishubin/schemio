@@ -494,16 +494,16 @@ item:
   name: Chart
   shape: rect
   shapeProps:
-    fill: {$-expr: background}
-    strokeColor: {$-expr: strokeColor}
-    strokeSize: {$-expr: strokeSize}
-    cornerRadius: {$-expr: cornerRadius}
+    fill: $background
+    strokeColor: $strokeColor
+    strokeSize: $strokeSize
+    cornerRadius: $cornerRadius
   locked: false
   area:
     x: 0
     y: 0
-    w: {$-expr: width}
-    h: {$-expr: height}
+    w: $width
+    h: $height
   functions:
   - id: func1
     name: Change data points
@@ -596,163 +596,165 @@ item:
     tags:
       - chart-plot
     area:
-      x: { $-expr: plotOffset }
-      y: { $-expr: padding }
-      w: { $-expr: "max(1, plotWidth)" }
-      h: { $-expr: "max(1, plotHeight)" }
+      x: $plotOffset
+      y: $padding
+      w: ${max(1, plotWidth)}
+      h: ${max(1, plotHeight)}
     shapeProps:
-      strokeColor: { $-expr: gridColor }
-      strokeSize: { $-expr: gridStrokeSize }
-      paths: { $-expr: gridPaths }
+      strokeColor: $gridColor
+      strokeSize: $gridStrokeSize
+      paths: $gridPaths
     childItems:
     - $-foreach: {source: "parsedBarDatasets", it: "dataset", index: "datasetBarIdx"}
-      id: {$-str: "dataset-container-${dataset.args.id}"}
-      name: {$-str: "${dataset.args.name} container"}
+      id: $`dataset-container-${dataset.args.id}`
+      name: $`${dataset.args.name} container`
       tags:
         - dataset-container
       args:
         customVars:
           datasetType: bar
-          datasetColor: {$-expr: dataset.args.color}
-          datasetName: {$-expr: dataset.args.name}
-          datasetValues: {$-expr: dataset.args.values}
+          datasetColor: $dataset.args.color
+          datasetName: $dataset.args.name
+          datasetValues: $dataset.args.values
       area:
         x: 0
         y: 0
-        w: { $-expr: "max(1, plotWidth)" }
-        h: { $-expr: "max(1, plotHeight)" }
+        w: ${max(1, plotWidth)}
+        h: ${max(1, plotHeight)}
       shape: dummy
       selfOpacity: 0
       shapeProps:
         showName: false
       childItems:
       - $-foreach: {source: "dataset.bars", it: "bar", index: pointIdx}
-        id: {$-str: "dataset-${dataset.args.id}-bar-${pointIdx}"}
-        name: {$-str: "Bar ${pointIdx}"}
+        id: $`dataset-${dataset.args.id}-bar-${pointIdx}`
+        name: $`Bar ${pointIdx}`
         tags:
           - dataset-bar
         args:
           customVars:
-            pointId: {$-expr: pointIdx}
-            pointX: {$-expr: bar.point.x}
-            pointY: {$-expr: bar.point.y}
+            pointId: $pointIdx
+            pointX: $bar.point.x
+            pointY: $bar.point.y
 
         shape: rect
         area:
-          x: {$-expr: bar.x}
-          y: {$-expr: bar.y}
-          w: {$-expr: bar.w}
-          h: {$-expr: bar.h}
+          x: $bar.x
+          y: $bar.y
+          w: $bar.w
+          h: $bar.h
         shapeProps:
           strokeSize: 0
-          fill: {type: solid, color: {$-expr: dataset.args.color}}
+          fill: {type: solid, color: $dataset.args.color}
 
     - $-foreach: {source: "parsedLineDatasets", it: "dataset"}
-      id: {$-str: "dataset-container-${dataset.args.id}"}
-      name: {$-str: "${dataset.args.name} container"}
+      id: $`dataset-container-${dataset.args.id}`
+      name: $`${dataset.args.name} container`
       tags:
         - dataset-container
       args:
         customVars:
           datasetType: line
-          datasetColor: {$-expr: dataset.args.color}
-          datasetName: {$-expr: dataset.args.name}
-          datasetValues: {$-expr: dataset.args.values}
+          datasetColor: $dataset.args.color
+          datasetName: $dataset.args.name
+          datasetValues: $dataset.args.values
       area:
         x: 0
         y: 0
-        w: { $-expr: "max(1, plotWidth)" }
-        h: { $-expr: "max(1, plotHeight)" }
+        w: ${max(1, plotWidth)}
+        h: ${max(1, plotHeight)}
       shape: dummy
       selfOpacity: 0
       shapeProps:
         showName: false
       childItems:
-      - id: {$-str: "dataset-path-${dataset.args.id}"}
-        name: {$-expr: "dataset.args.name"}
+      - id: $`dataset-path-${dataset.args.id}`
+        name: $dataset.args.name
         area:
           x: 0
           y: 0
-          w: { $-expr: "max(1, plotWidth)" }
-          h: { $-expr: "max(1, plotHeight)" }
+          w: ${max(1, plotWidth)}
+          h: ${max(1, plotHeight)}
         shape: path
         tags:
           - dataset-path
         shapeProps:
-          smoothing: {$-expr: lineType}
-          strokeColor: {$-expr: dataset.args.color}
-          strokeSize: {$-expr: dataset.args.strokeSize}
-          strokePattern: {$-expr: dataset.args.strokePattern}
+          smoothing: $lineType
+          strokeColor: $dataset.args.color
+          strokeSize: $dataset.args.strokeSize
+          strokePattern: $dataset.args.strokePattern
           paths:
           - id: dataset-path
             closed: false
             pos: relative
             points:
             - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
-              $-extend: {$-expr: 'toJSON(point)'}
-              id: {$-expr: pointIdx}
+              $-extend: $toJSON(point)
+              id: $pointIdx
         childItems:
         - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
           $-if: "showPoints || pointSize > 0"
-          id: {$-str: "datapoint-${dataset.args.id}-${pointIdx}"}
-          name: {$-str: "Point ${pointIdx}"}
+          id: $`datapoint-${dataset.args.id}-${pointIdx}`
+          name: $`Point ${pointIdx}`
           shape: ellipse
           tags:
             - dataset-point
           args:
             customVars:
-              pointIdx: {$-expr: pointIdx}
+              pointIdx: $pointIdx
           area:
-            x: {$-expr: "point.x * plotWidth / 100 - pointSize/2"}
-            y: {$-expr: "point.y * plotHeight / 100 - pointSize/2"}
-            w: {$-expr: "pointSize"}
-            h: {$-expr: "pointSize"}
+            x: ${point.x * plotWidth / 100 - pointSize/2}
+            y: ${point.y * plotHeight / 100 - pointSize/2}
+            w: $pointSize
+            h: $pointSize
           shapeProps:
-            strokeSize: {$-expr: 'if (pointType == "hollow" || pointType == "cut") { 2 } else { 0 }'}
-            fill: {type: solid, color: { $-expr: 'if (pointType == "hollow") { background } else { dataset.args.color }' }}
-            strokeColor: { $-expr: 'if (pointType == "cut") { background } else { dataset.args.color }' }
+            strokeSize: ${if (pointType == "hollow" || pointType == "cut") { 2 } else { 0 }}
+            fill:
+              type: solid
+              color: ${if (pointType == "hollow") { background } else { dataset.args.color }}
+            strokeColor: ${if (pointType == "cut") { background } else { dataset.args.color }}
 
 
   - $-foreach: {source: "yAxis.labels", it: label, index: labelIdx}
-    id: {$-str: "y-axis-label-${labelIdx}"}
-    name: {$-str: "Y axis label ${label.text}"}
+    id: $`y-axis-label-${labelIdx}`
+    name: $`Y axis label ${label.text}`
     shape: none
     args:
       templateForceText: true
     area:
-      x: {$-expr: label.x}
-      y: {$-expr: label.y}
-      w: {$-expr: label.w}
-      h: {$-expr: label.h}
+      x: $label.x
+      y: $label.y
+      w: $label.w
+      h: $label.h
     textSlots:
       body:
-        text: {$-expr: label.text}
-        color: {$-expr: fontColor}
-        font: {$-expr: font}
-        fontSize: {$-expr: fontSize}
+        text: $label.text
+        color: $fontColor
+        font: $font
+        fontSize: $fontSize
         halign: right
         valign: middle
         paddingRight: 5
 
   - $-foreach: {source: "xAxis.labels", it: label, index: labelIdx}
-    id: {$-str: "x-axis-label-${labelIdx}"}
-    name: {$-str: "X axis label ${label.text}"}
+    id: $`x-axis-label-${labelIdx}`
+    name: $`X axis label ${label.text}`
     shape: none
     args:
       templateForceText: true
     area:
-      x: {$-expr: label.x}
-      y: {$-expr: label.y}
-      w: {$-expr: label.w}
-      h: {$-expr: label.h}
-      r: {$-expr: label.r}
+      x: $label.x
+      y: $label.y
+      w: $label.w
+      h: $label.h
+      r: $label.r
     textSlots:
       body:
-        text: {$-expr: "stripHTML(label.text)"}
-        color: {$-expr: fontColor}
-        font: {$-expr: font}
-        fontSize: {$-expr: fontSize}
-        halign: {$-expr: label.halign}
+        text: $stripHTML(label.text)
+        color: $fontColor
+        font: $font
+        fontSize: $fontSize
+        halign: $label.halign
         valign: middle
         paddingRight: 5
 
@@ -761,52 +763,52 @@ item:
     shape: none
     name: Axis Y Title
     area:
-      x: {$-expr: "padding * 1.5 - plotHeight / 2"}
-      y: {$-expr: "(plotHeight - axisNameFontMaxHeight) / 2 + padding"}
-      w: {$-expr: plotHeight}
-      h: {$-expr: axisNameFontMaxHeight}
+      x: ${padding * 1.5 - plotHeight / 2}
+      y: ${(plotHeight - axisNameFontMaxHeight) / 2 + padding}
+      w: $plotHeight
+      h: $axisNameFontMaxHeight
       r: -90
     args:
       templateForceText: true
     textSlots:
       body:
-        text: {$-expr: yTitle}
+        text: $yTitle
         valign: bottom
         halign: center
-        color: {$-expr: fontColor}
-        font: {$-expr: font}
-        fontSize: {$-expr: titleFontSize}
+        color: $fontColor
+        font: $font
+        fontSize: $titleFontSize
 
   - id: axis-title-x
     $-if: xTitleShow
     shape: none
     name: Axis X Title
     area:
-      x: {$-expr: plotOffset}
-      y: {$-expr: "padding + plotHeight + xLabelsFullHeight"}
-      w: {$-expr: plotWidth}
-      h: {$-expr: axisNameFontMaxHeight}
+      x: $plotOffset
+      y: ${padding + plotHeight + xLabelsFullHeight}
+      w: $plotWidth
+      h: $axisNameFontMaxHeight
       r: 0
     args:
       templateForceText: true
     textSlots:
       body:
-        text: {$-expr: xTitle}
+        text: $xTitle
         valign: middle
         halign: center
-        color: {$-expr: fontColor}
-        font: {$-expr: font}
-        fontSize: {$-expr: titleFontSize}
+        color: $fontColor
+        font: $font
+        fontSize: $titleFontSize
 
   - id: legend
     $-if: hasLegend
     shape: rect
     name: Legend
     area:
-      x: {$-expr: padding}
-      y: {$-expr: legendTop}
-      w: {$-expr: legend.w}
-      h: {$-expr: legend.h}
+      x: $padding
+      y: $legendTop
+      w: $legend.w
+      h: $legend.h
     shapeProps:
       fill: {type: none}
       strokeSize: 0
@@ -815,39 +817,35 @@ item:
 
     childItems:
       - $-foreach: {source: legend.labels, it: label}
-        id: {$-str: "legend-label-${label.index}"}
+        id: $`legend-label-${label.index}`
         shape: rect
-        name: {$-expr: label.name}
+        name: $label.name
         area:
-          x: {$-expr: label.x}
-          y: {$-expr: 'label.y + fontSize/2 - 2'}
+          x: $label.x
+          y: ${label.y + fontSize/2 - 2}
           w: 15
           h: 5
         shapeProps:
           cornerRadius: 5
           strokeSize: 0
-          fill: {type: solid, color: {$-expr: label.color}}
+          fill: {type: solid, color: $label.color}
 
       - $-foreach: {source: legend.labels, it: label}
-        id: {$-str: "legend-label-text-${label.index}"}
+        id: $`legend-label-text-${label.index}`
         shape: none
-        name: {$-expr: label.name}
+        name: $label.name
         area:
-          x: {$-expr: 'label.x + 20'}
-          y: {$-expr: 'label.y'}
-          w: {$-expr: "max(1, label.w)"}
-          h: {$-expr: "max(1, label.h)"}
+          x: ${label.x + 20}
+          y: $label.y
+          w: ${max(1, label.w)}
+          h: ${max(1, label.h)}
         args:
           templateForceText: true
         textSlots:
           body:
-            text: {$-expr: label.name}
-            color: {$-expr: fontColor}
-            font: {$-expr: font}
-            fontSize: {$-expr: fontSize}
+            text: $label.name
+            color: $fontColor
+            font: $font
+            fontSize: $fontSize
             halign: left
             valign: top
-
-
-
-
