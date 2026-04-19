@@ -107,7 +107,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [getOpacity](#getopacity)
       - [getSelfOpacity](#getselfopacity)
       - [matchWorld](#matchworld)
-      - [mount](#mount)
+      - [mountTo](#mountto)
       - [mountChild](#mountchild)
       - [mountRoot](#mountroot)
       - [setAngle](#setangle)
@@ -156,7 +156,7 @@ Schemio offers a possibility of simple scripting. At this moment the Schemio scr
       - [setPathPointWorldPos (path)](#setpathpointworldpos-path)
       - [addPath](#addpath)
       - [addPoint (path)](#addpoint-path)
-      - [addBeizerPoint (path)](#addbeizerpoint-path)
+      - [addBezierPoint (path)](#addbezierpoint-path)
       - [getPathLength (path)](#getpathlength-path)
       - [getPathWorldPosAtLength (path)](#getpathworldposatlength-path)
     - [Table functions](#table-functions)
@@ -1144,14 +1144,14 @@ dstX = getVar('dstX')
 `matchWorld(x, y, worldX, worldY)` moves it such that its local point at `(x, y)` matches world point at `(worldX, worldY)`
 
 
-##### mount
+##### mountTo
 
-`mount(otherItem)` mounts item to another item
+`mountTo(otherItem)` mounts item to another item
 
 
 ##### mountChild
 
-`mount(otherItem)` mounts otherItem to self
+`mountChild(otherItem)` mounts otherItem to self
 
 ##### mountRoot
 
@@ -1524,7 +1524,7 @@ pathItem.openPath()
 
 ##### getPathPointWorldPos (path)
 
-`getPathPointWorldPos(pathIdx, pointIdx)` return `Vector` which represent the position in world coordinates of the point with specified `poindIdx` index in specified path.
+`getPathPointWorldPos(pathIdx, pointIdx)` return `Vector` which represent the position in world coordinates of the point with specified `pointIdx` index in specified path.
 
 ```js
 pathItem = findItemByName('Path 1')
@@ -1562,13 +1562,13 @@ pathItem.addPoint(0, 5, 8)
 ```
 
 
-##### addBeizerPoint (path)
+##### addBezierPoint (path)
 
-`addBeizerPoint(pathIdx, x, y, x1, y1, x2, y2)` adds a new beizer point with specified `x` and `y` in world coordinates to the path at specified `pathIdx` index. `x1`, `y1` and `x2`, `y2` are the beizer curve points relative to the `x`, `y` point.
+`addBezierPoint(pathIdx, x, y, x1, y1, x2, y2)` adds a new beizer point with specified `x` and `y` in world coordinates to the path at specified `pathIdx` index. `x1`, `y1` and `x2`, `y2` are the beizer curve points relative to the `x`, `y` point.
 
 ```js
 pathItem = findItemByName('Path 1')
-pathItem.addBeizerPoint(0, 5, 8, 2, 3, -1, -3)
+pathItem.addBezierPoint(0, 5, 8, 2, 3, -1, -3)
 ```
 
 ##### getPathLength (path)

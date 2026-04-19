@@ -13,6 +13,7 @@ import { ASTAdd, ASTAssign, ASTBitShiftLeft, ASTBitShiftRight, ASTBitwiseAnd, AS
 import { ASTObjectFieldAccessor } from "./ASTObjectFieldAccessor";
 import { ASTFunctionInvocation } from "./ASTFunctionInvocation";
 import { ASTFunctionDeclaration } from "./ASTFunctionDeclaration";
+import { ASTEncoder, ASTEncoderRecorder } from "./ASTEncoder";
 
 
 const operatorPrecedences = [
@@ -128,10 +129,15 @@ function parseFunction(functionProvider, tokens) {
         }
     }
 
-    return new ASTFunctionInvocation(functionProvider, args.map(parseAST));
+    return new ASTFunctionInvocation(functionProvider, args.map((argTokens) => parseAST(argTokens, "")));
 }
 
 class ASTParser extends TokenScanner {
+    /**
+     *
+     * @param {Array<ScriptToken>} tokens
+     * @param {string} originalText
+     */
     constructor(tokens, originalText) {
         super(tokens);
         this.originalText = originalText;
@@ -358,7 +364,9 @@ class ASTParser extends TokenScanner {
                 return this.parseLocalVarDeclaration(token);
             } else if (token.v === ReservedTerms.RETURN) {
                 const expr = this.parseSingleExpression();
-                return new ASTReturn(expr);
+                return new ASTReturn(expr, token);
+            } else if (token.v === ReservedTerms.ENCODE) {
+               return this.parseEncode();
             }
         } else if (token.t === TokenTypes.TERM) {
             const nextToken = this.peekToken();
@@ -409,6 +417,26 @@ class ASTParser extends TokenScanner {
             return new ASTStringTemplate(parseStringExpression(token.v));
         }
         throw new SchemioScriptParseError(`Unexpected token: ${token.t} "${token.text}"`, this.processedTextToToken(token));
+    }
+
+    parseEncode() {
+        let nextToken = this.scanToken();
+        if (!nextToken) {
+            throw new SchemioScriptParseError('Unfinished encode expression', this.processedText());
+        }
+        if (nextToken.t === TokenTypes.TERM) {
+            return new ASTEncoder(nextToken.v);
+        } else if (nextToken.t === TokenTypes.TOKEN_GROUP && nextToken.groupCode === TokenTypes.START_CURLY) {
+            const startIdx = nextToken.idx+1;
+            const endIdx = nextToken.idx + nextToken.length - 1;
+            return new ASTMultiExpression([
+                parseAST(nextToken.groupTokens, this.originalText),
+                new ASTString(this.originalText.substring(startIdx, endIdx))
+            ]);
+        } else {
+            throw new SchemioScriptParseError(`Expected term after "enc" or a code block, got: ${nextToken.text}`)
+        }
+
     }
 
     parseWhileExpression() {
@@ -480,7 +508,16 @@ class ASTParser extends TokenScanner {
         }
 
         const functionAST = parseFunctionDeclarationUsing(funcArgsToken, funcBodyToken, this.originalText, funcNameToken.v);
-        return new ASTAssign(new ASTVarRef(funcNameToken.v), functionAST);
+
+        const startIdx = funcNameToken.idx;
+        const endIdx = funcBodyToken.idx + funcBodyToken.length;
+
+        const encodedFunc = 'func ' + this.originalText.substring(startIdx, endIdx);
+
+        return new ASTMultiExpression([
+            new ASTAssign(new ASTVarRef(funcNameToken.v, funcNameToken), functionAST),
+            new ASTEncoderRecorder(funcNameToken.v, encodedFunc)
+        ]);
     }
 
     parseStruct() {
@@ -500,7 +537,16 @@ class ASTParser extends TokenScanner {
         if (structGroupToken.t !== TokenTypes.TOKEN_GROUP || structGroupToken.groupCode !== TokenTypes.START_CURLY) {
             throw new SchemioScriptParseError(`Missing "{" symbol for struct (at ${structGroupToken.idx}, line ${structGroupToken.line})`, this.processedTextToToken(structGroupToken));
         }
-        return parseStruct(structNameToken.v, structGroupToken.groupTokens, this.originalText);
+
+        const startIdx = structNameToken.idx;
+        const endIdx = structGroupToken.idx + structGroupToken.length;
+
+        const encodedStruct = 'struct ' + this.originalText.substring(startIdx, endIdx);
+
+        return new ASTMultiExpression([
+            parseStruct(structNameToken.v, structGroupToken.groupTokens, this.originalText),
+            new ASTEncoderRecorder(structNameToken.v, encodedStruct)
+        ]);
     }
 
     parseForLoop() {

@@ -37,6 +37,7 @@ export const ReservedTerms = {
     LOCAL : 'local',
     LET   : 'let',
     RETURN: 'return',
+    ENCODE: 'enc'
 };
 
 export const ReservedTermsSet = new Set(Object.values(ReservedTerms));
@@ -149,7 +150,7 @@ class Scanner {
         if (c === '\n') {
             this.idx++;
             this.currentLine++;
-            return {t: TokenTypes.NEWLINE, idx: this.idx - 1, line: this.currentLine - 1, text: ''};
+            return {t: TokenTypes.NEWLINE, idx: this.idx - 1, length: 1, line: this.currentLine - 1, text: '', v: '\n'};
         } else if (isLetter(c)) {
             return this.scanTerm();
         } else if (isPartOfNumber(c)) {
@@ -174,13 +175,13 @@ class Scanner {
                     return this.scanComment('*/');
                 } else if (doubleCharTokens.has(cc)) {
                     this.idx+=2;
-                    return {...doubleCharTokens.get(cc), text: cc, idx: this.idx - 2, line: this.currentLine};
+                    return {...doubleCharTokens.get(cc), text: cc, idx: this.idx - 2, length: 2, line: this.currentLine};
                 }
             }
 
             if (singleCharTokens.has(c)) {
                 this.idx++;
-                return {...singleCharTokens.get(c), text: c, idx: this.idx - 1, line: this.currentLine};
+                return {...singleCharTokens.get(c), text: c, idx: this.idx - 1, length: 1, line: this.currentLine};
             }
             throw new SchemioScriptParseError('Invalid symbol: ' + c, this.processedText());
         }
@@ -194,10 +195,14 @@ class Scanner {
                 this.idx += endTerm.length;
                 if (endTerm === '\n') {
                     this.idx -= 1;
+                    this.currentLine++;
                 }
                 break;
             }
             commentText += this.text[this.idx];
+            if (this.idx === '\n') {
+                this.currentLine++;
+            }
             this.idx++;
         }
 
@@ -205,6 +210,7 @@ class Scanner {
             t: TokenTypes.COMMENT,
             text: commentText,
             idx: startIdx,
+            length: this.idx - startIdx,
             line: this.currentLine
         };
     }
@@ -229,7 +235,8 @@ class Scanner {
                 v: term,
                 text: term,
                 idx: startIdx,
-                line: this.currentLine
+                length: this.idx - startIdx,
+                line: this.currentLine,
             };
         };
 
@@ -238,6 +245,7 @@ class Scanner {
             v: term,
             text: term,
             idx: startIdx,
+            length: this.idx - startIdx,
             line: this.currentLine
         };
     }
@@ -252,7 +260,10 @@ class Scanner {
             return {
                 t: TokenTypes.FIELD_ACCESSOR,
                 v: '.',
-                text: '.'
+                text: '.',
+                idx: startIdx,
+                length: this.idx - startIdx,
+                line: this.currentLine
             };
         }
 
@@ -279,6 +290,7 @@ class Scanner {
             v: parseFloat(numberText),
             text: numberText,
             idx: startIdx,
+            length: this.idx - startIdx,
             line: this.currentLine
         };
     }
@@ -293,7 +305,14 @@ class Scanner {
                 break;
             }
         }
-        return {t: TokenTypes.WHITESPACE, text: ' ', idx: startIdx, line: this.currentLine};
+        return {
+            t: TokenTypes.WHITESPACE,
+            text: ' ',
+            v: ' ',
+            idx: startIdx,
+            length: this.idx - startIdx,
+            line: this.currentLine
+        };
     }
 
     scanString(breakChar) {
@@ -304,7 +323,14 @@ class Scanner {
 
             if (c === breakChar) {
                 this.idx++;
-                return {t: TokenTypes.STRING, v: str, text: str, idx: startIdx, line: this.currentLine};
+                return {
+                    t: TokenTypes.STRING,
+                    v: str,
+                    text: str,
+                    idx: startIdx,
+                    length: this.idx - startIdx + 1,
+                    line: this.currentLine
+                };
             }
 
             if (c === '\\') {
@@ -321,6 +347,10 @@ class Scanner {
                 }
             } else {
                 str += c;
+            }
+
+            if (c === '\n') {
+                this.currentLine++;
             }
             this.idx++;
         }
@@ -367,8 +397,9 @@ export function tokenizeExpression(text) {
             const groupStack = tokensStack.shift();
             tokensStack[0].tokens.push({
                 ...groupStack.originalToken,
-                t: TokenTypes.TOKEN_GROUP,
-                groupCode: groupStack.originalToken.t,
+                t          : TokenTypes.TOKEN_GROUP,
+                groupCode  : groupStack.originalToken.t,
+                length     : token.idx + token.length - groupStack.originalToken.idx,
                 groupTokens: groupStack.tokens
             });
         } else if (token.t !== TokenTypes.WHITESPACE && token.t !== TokenTypes.COMMENT) {

@@ -28,6 +28,31 @@ describe('templater', () => {
         })
     });
 
+    it('should process expressions in json template in simpler format', () => {
+        const result = processJSONTemplate({
+            items: [{
+                area: {
+                    x: '${x + 10 * y}',
+                    y: '$y'
+                },
+                name: '$`Name: ${x}, ${y}`'
+            }, {
+                area: {
+                    x: 1, y: 5
+                }
+            }]
+        }, {x: 3, y: 10});
+
+        expect(result).toStrictEqual({
+            items: [{
+                area: {x: 103, y: 10},
+                name: 'Name: 3, 10'
+            }, {
+                area: {x: 1, y: 5}
+            }]
+        })
+    });
+
     it('should process string expressions in json template', () => {
         const result = processJSONTemplate({
             items: [{

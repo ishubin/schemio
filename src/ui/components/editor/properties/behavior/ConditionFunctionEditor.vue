@@ -99,8 +99,8 @@ export default {
     },
 
     methods: {
-        emitArgChange(argName, argValue) {
-            this.$emit('argument-changed', argName, argValue);
+        emitArgChange(name, value) {
+            this.$emit('argument-changed', {name, value});
         },
 
         toIcon(optionId) {
@@ -108,7 +108,7 @@ export default {
         },
 
         onSuccessSelected(option) {
-            this.$emit('argument-changed', 'success', option.id);
+            this.emitArgChange('success', option.id);
             if (option.id === 'send-event') {
                 this.$nextTick(() => {
                     this.$refs.sendEventInputSuccess.focus();
@@ -117,7 +117,7 @@ export default {
         },
 
         onFailSelected(option) {
-            this.$emit('argument-changed', 'fail', option.id);
+            this.emitArgChange('fail', option.id);
             if (option.id === 'send-event') {
                 this.$nextTick(() => {
                     this.$refs.sendEventInputFail.focus();

@@ -109,6 +109,8 @@ function compile(obj, customDefinitions) {
     }
     if (Array.isArray(obj)) {
         return compileArray(obj, customDefinitions);
+    } else if (typeof obj === 'string' && obj.startsWith('$')) {
+        return compileExpressionFromStringField(obj);
     } else if (typeof obj === 'object') {
         if (obj.hasOwnProperty($_EXPR)) {
             return compileExpression(obj[$_EXPR])
@@ -173,11 +175,17 @@ function compileObjectProcessor(obj, customDefinitions) {
         extendBuilder = compile(obj[$_EXTEND], customDefinitions);
     }
 
+    // first processing all object definitions
     for (let key in obj) {
         if (obj.hasOwnProperty(key)) {
             if (key.startsWith($_DEF)) {
                 customDefinitions.set(key.substring($_DEF.length).trim(), obj[key]);
             }
+        }
+    }
+
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
             if (!key.startsWith('$-')) {
                 fieldBuilders.push({
                     key: key,
@@ -193,6 +201,30 @@ function compileObjectProcessor(obj, customDefinitions) {
             finalObject[fieldBuilder.key] = fieldBuilder.build(scope.newScope());
         });
         return finalObject;
+    }
+}
+
+
+/**
+ *
+ * @param {string} expr
+ * @returns {function(Scope): any|string}
+ */
+function compileExpressionFromStringField(text) {
+    // Allowing to escape dollar signs in the template
+    // and not process it as an expression
+    if (text.substring(0, 2) === '$$') {
+        return text.substring(1);
+    } else if (/^\$[a-zA-Z0-9_]+[a-zA-Z0-9_\.]*/.test(text)) {
+        return compileExpression(text.substring(1));
+    } else if (/^\$\{(.*)\}$/.test(text)) {
+        const codeGroup = /^\$\{(.*)\}$/.exec(text)[1];
+        return compileExpression(codeGroup);
+    } else if (/^\$`(.*)`$/.test(text)) {
+        const codeGroup = /^\$`(.*)`$/.exec(text)[1];
+        return compileStringExpression(codeGroup);
+    } else {
+        throw new Error('invalid field value: ', text);
     }
 }
 
@@ -447,6 +479,9 @@ function compileForEachLoopArrayItemBuilder(item, $foreach, customDefinitions) {
             const result = [];
             iterator((value, idx) => {
                 scope.set($foreach.it, value);
+                if ($foreach.index) {
+                    scope.set($foreach.index, idx);
+                }
                 const shouldBeAdded = conditionExpression ? conditionExpression.evalNode(scope) : true;
                 if (shouldBeAdded) {
                     result.push(objProcessor(scope));

@@ -14,10 +14,7 @@ export function normalizeTokens(tokens) {
         const token = scanner.scanToken();
         if (token.t === TokenTypes.TOKEN_GROUP) {
             result.push({
-                groupCode: token.groupCode,
-                t: token.t,
-                v: token.v,
-                text: token.text,
+                ...token,
                 groupTokens: normalizeTokens(token.groupTokens)
             });
         } else {

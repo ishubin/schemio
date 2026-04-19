@@ -12,24 +12,28 @@ describe('template tokenizer', () => {
             idx: 0,
             line: 0,
             t: TokenTypes.TERM,
+            length: 1,
             v: 'x',
             text: 'x'
         }, {
             idx: 2,
             line: 0,
             t: TokenTypes.OPERATOR,
+            length: 1,
             v: '=',
             text: '='
         }, {
             idx: 4,
             line: 0,
             t: TokenTypes.NUMBER,
+            length: 3,
             v: 2.4,
             text: '2.4'
         }, {
             idx: 12,
             line: 0,
             t: TokenTypes.OPERATOR,
+            length: 1,
             v: '+',
             text: '+'
         }, {
@@ -37,65 +41,76 @@ describe('template tokenizer', () => {
             line: 0,
             t: TokenTypes.TOKEN_GROUP,
             text: '(',
+            length: 26,
             groupCode: TokenTypes.START_BRACKET,
             groupTokens: [ {
                 idx: 15,
                 line: 0,
                 t: TokenTypes.NUMBER,
+                length: 1,
                 v: 3,
                 text: '3'
             }, {
                 idx: 17,
                 line: 0,
                 t: TokenTypes.OPERATOR,
+                length: 1,
                 v: '*',
                 text: '*'
             }, {
                 idx: 19,
                 line: 0,
                 t: TokenTypes.TERM,
+                length: 3,
                 v: 'rnd',
                 text: 'rnd'
             }, {
                 idx: 22,
                 line: 0,
                 t: TokenTypes.TOKEN_GROUP,
+                length: 2,
                 groupCode: TokenTypes.START_BRACKET,
                 groupTokens: [],
                 text: '('
             }, {
                 idx: 25,
                 line: 0,
+                length: 1,
                 t: TokenTypes.OPERATOR,
                 v: '-',
                 text: '-'
             }, {
                 idx: 27,
                 line: 0,
+                length: 1,
                 t: TokenTypes.NUMBER,
                 v: 3,
                 text: '3'
             }, {
                 idx: 29,
                 line: 0,
+                length: 1,
                 t: TokenTypes.OPERATOR,
                 v: '/',
                 text: '/'
             }, {
                 idx: 31,
                 line: 0,
+                length: 3,
                 t: TokenTypes.NUMBER,
                 v: 0.4,
                 text: '0.4'
             }, {
                 idx: 35,
                 line: 0,
+                length: 1,
                 t: TokenTypes.OPERATOR,
                 v: '+',
                 text: '+'
             }, {
                 idx: 37,
                 line: 0,
+                length: 2,
                 t: TokenTypes.TERM,
                 v: 'x1',
                 text: 'x1'
@@ -103,29 +118,35 @@ describe('template tokenizer', () => {
         }, {
             idx: 41,
             line: 0,
+            length: 2,
             t: TokenTypes.OPERATOR,
             v: '==',
             text: '=='
         }, {
             idx: 45,
             line: 0,
+            length: 20,
             t: TokenTypes.STRING,
             v: "some * \" - string",
             text: "some * \" - string"
         }, {
             idx: 65,
             line: 0,
+            length: 1,
             t: TokenTypes.NEWLINE,
-            text: ''
+            text: '',
+            v: '\n',
         }, {
             idx: 66,
             line: 1,
+            length: 1,
             t: TokenTypes.OPERATOR,
             v: '+',
             text: '+'
         }, {
             idx: 69,
             line: 1,
+            length: 4,
             t: TokenTypes.STRING,
             v: '23',
             text: '23'

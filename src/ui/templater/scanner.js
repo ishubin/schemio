@@ -1,9 +1,13 @@
 
 /**
  * @typedef {Object} ScriptToken
- * @property {Number} t - token code that is defined in {@link TokenTypes}
- * @property {String} v - token raw text
- * @property {Number|undefined} groupCode the token group code (defined in {@link TokenTypes})
+ * @property {number} t - token code that is defined in {@link TokenTypes}
+ * @property {string|number|boolean} v - token converted value (e.g. number or text)
+ * @property {number|undefined} groupCode the token group code (defined in {@link TokenTypes})
+ * @property {number} idx - index of token in a original text
+ * @property {number} length - the length of the token in original text
+ * @property {number} line - line number
+ * @property {string} text - token taw text
  * @property {Array<ScriptToken>|undefined} groupTokens tokens sub array that represents token group (e.g. tokens inside round/curly brackets)
  */
 

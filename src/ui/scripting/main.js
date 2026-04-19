@@ -1,4 +1,6 @@
+import shortid from "shortid";
 import EditorEventBus from "../components/editor/EditorEventBus";
+import { enrichItemWithDefaults } from "../scheme/ItemFixer";
 import { Scope } from "../templater/scope";
 import { createConnectionsFunctions } from "./connections";
 import { createItemScriptWrapper } from "./item";
@@ -39,6 +41,15 @@ function buildMainScopeFunctions(schemeContainer, userEventBus) {
         },
         findItemByName: (name) => {
             return createItemScriptWrapper(schemeContainer.findItemByName(name), schemeContainer, userEventBus);
+        },
+        buildItem: (shape = 'rect', name = '', x = 0, y = 0, w = 100, h = 100) => {
+            const item = schemeContainer.addItem({
+                it: shortid.generate(),
+                shape, name,
+                area: {x, y, w, h, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1},
+                shapeProps: {}
+            });
+            return createItemScriptWrapper(item, schemeContainer, userEventBus);
         },
         log: createLogFunction(schemeContainer.editorId),
         Connections: createConnectionsFunctions(schemeContainer, userEventBus)

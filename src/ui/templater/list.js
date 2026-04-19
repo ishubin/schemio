@@ -105,6 +105,10 @@ export class List {
         this.items.sort(comparator);
     }
 
+    join(separator) {
+        return this.items.join(separator);
+    }
+
     get size() {
         return this.items.length;
     }

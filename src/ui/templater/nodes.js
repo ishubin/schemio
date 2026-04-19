@@ -11,9 +11,11 @@ import { parseColor } from "../colors";
 import { Color } from "./color";
 import { Area } from "./area";
 import { Fill } from "./fill";
-import { SchemioScriptError, ScopeInterruptValue } from "./error";
+import { ScopeInterruptValue } from "./error";
 import { stripAllHtml } from "../../htmlSanitize";
 import { VAR_REF } from "./consts";
+import { SchemioDate } from "./date";
+import { calculateTextSize } from "./text";
 
 
 export class ASTNode {
@@ -322,6 +324,7 @@ const reservedFunctions = new Map(Object.entries({
     tan       : Math.tan,
     atan      : Math.atan,
     isNumber  : (text) => Number.isFinite(parseFloat(text)) || Number.isFinite(parseInt(text)),
+    isInteger : (value) => Number.isInteger(value),
     parseInt  : customParseInt,
     parseFloat: customParseFloat,
     rndInt    : (a, b) => Math.round(Math.random()* (b-a)) + a,
@@ -338,6 +341,8 @@ const reservedFunctions = new Map(Object.entries({
     Strings       : stringFunctions,
     toJSON        : (obj) => convertScriptObjectToJSON(obj),
     fromJSON      : (obj) => convertJSONToScriptObject(obj),
+    encodeJSON    : (obj) => JSON.stringify(convertScriptObjectToJSON(obj)),
+    parseJSON     : (text) => convertJSONToScriptObject(JSON.parse(text)),
     forEach       : forEach,
     setObjectField: setObjectFieldFunc,
     Math          : SchemioScriptMath,
@@ -349,9 +354,12 @@ const reservedFunctions = new Map(Object.entries({
 
     stripHTML : (html) => stripAllHtml(html),
 
+    parseDate : (date) => new SchemioDate(date),
+
+    calculateTextSize,
+
     Fill          : Fill
 }));
-
 
 
 export class ASTMultiExpression extends ASTNode {

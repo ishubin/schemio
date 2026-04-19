@@ -123,6 +123,7 @@ export const coreItemPropertyTypes = {
 
 export const defaultItemDefinition = {
     area: defaultArea,
+    name: 'unnamed',
     opacity: 100,
     selfOpacity: 100,
     visible: true,
@@ -175,12 +176,8 @@ export const defaultItemDefinition = {
     // classes: [ /* ids of classes */ ],
     // classVars: { /* map of class args to values */ }
 
-    classes: [{
-        id: 'sdada',
-        args: {
-
-        }
-    }]
+    classes: [],
+    functions: [],
 };
 
 export const defaultItem = {

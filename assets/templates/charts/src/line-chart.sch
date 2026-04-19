@@ -1,0 +1,502 @@
+legendTop = 0
+legendWidth = width - padding * 2
+legendTopMargin = 25
+legend = Legend()
+gridPaths = List()
+plotOffset = padding
+plotWidth = max(1, width - padding*2)
+plotHeight = max(1, height - padding*2)
+xStep = (xMax - xMin) / max(1, numPoints-1)
+xLabelsFullHeight = 20
+
+local labelsOverride = if (xAxisType == 'custom') {
+    xAxisLabels.trim().split(",").map((x) => { x.trim() }).filter((x) => { x.length > 0 })
+} else {
+    List()
+}
+
+local size = calculateTextSize("TgjW", font, titleFontSize)
+axisNameFontMaxHeight = size.h * 2
+
+
+local labelsGap = 15
+local labelIconWidth = 20
+local minSpacing = 50
+
+
+pointStrokeSize = if (pointType == "hollow" || pointType == "cut") {
+    2
+} else {
+    0
+}
+
+struct Dataset {
+    args: 0
+    points: List()
+}
+
+struct Bar {
+    point: Point()
+    x: 0
+    y: 0
+    w: 0
+    h: 0
+}
+
+struct BarDataset {
+    args: 0
+    bars: List()
+}
+
+
+if (hasLegend) {
+    legend = buildLegend(datasets, legendWidth, legendTopMargin)
+}
+
+
+func smoothenPoints(points) {
+    points.forEach((p, idx) => {
+        local dx = 0
+        local dy = 0
+        if (idx > 0 && idx < points.size - 1) {
+            local prevP = points.get(idx - 1)
+            local nextP = points.get(idx + 1)
+
+            if ((p.y - prevP.y) * (nextP.y - p.y) > 0) {
+                local v = Vector(nextP.x - prevP.x, nextP.y - prevP.y).normalized()
+                v = v * abs(p.x - prevP.x)
+                dx = v.x
+                dy = v.y
+            } else {
+                dx = abs(p.x - prevP.x) / 2
+            }
+        } else if (idx > 0) {
+            local prevP = points.get(idx - 1)
+            dx = abs(p.x - prevP.x) / 2
+        } else if (points.size > 1) {
+            local nextP = points.get(idx + 1)
+            dx = abs(nextP.x - p.x) / 2
+        }
+        p.x1 = -dx
+        p.y1 = -dy
+        p.x2 = dx
+        p.y2 = dy
+    })
+}
+
+
+func parseDatasetPoints(encodedPoints, dx, yAxis, plotWidth, plotHeight) {
+    local dy = max(0.00000001, yAxis.max - yAxis.min)
+    if (abs(plotHeight / dy) > 100000 || abs(dx) > 10000) {
+        return List()
+    }
+
+    local points = encodedPoints.split(',').map((p, idx) => {
+        local value = parseFloat(p.trim())
+        Point(dx * idx * 100 / plotWidth, (yAxis.max - value) * 100 / dy)
+    })
+
+    if (lineType == 'smooth') {
+        local smoothPoints = points.map((p) => { SmoothPoint(p.x, p.y, 0, 0, 0, 0) })
+        smoothenPoints(smoothPoints)
+        return smoothPoints
+    } else {
+        return points
+    }
+}
+
+
+func onTextUpdate(itemId, item, text) {
+    local legendLabelPrefix = 'legend-label-text-'
+    local xAxisLabelPrefix = 'x-axis-label-'
+
+    if (itemId == 'axis-title-y') {
+        yTitle = text
+    } else if (itemId == 'axis-title-x') {
+        xTitle = text
+    } else if (itemId.startsWith(xAxisLabelPrefix)) {
+        onXAxisLabelUpdate(parseInt(itemId.substring(xAxisLabelPrefix.length)), text)
+    } else if (itemId.startsWith(legendLabelPrefix)) {
+        text = stripHTML(text.replaceAll('</p>', '</p>\n')).trim().replaceAll('\n', '\\n')
+        local dataIdx = parseInt(itemId.substring(legendLabelPrefix.length))
+        if (dataIdx < 0 || dataIdx >= datasets.size) {
+            return
+        }
+        datasets.get(dataIdx).name = text
+    }
+}
+
+func onDeleteItem(itemId, item) {
+    if (itemId == 'axis-title-y') {
+        yTitleShow = false
+    } else if (itemId == 'axis-title-x') {
+        xTitleShow = false
+    } else if (itemId == 'legend') {
+        hasLegend = false
+    }
+}
+
+func onXAxisLabelUpdate(labelIdx, text) {
+    if (xAxisType == 'custom' && labelsOverride.size > 0) {
+        if (labelIdx >= 0 && labelIdx < labelsOverride.size) {
+            labelsOverride.set(labelIdx, stripHTML(text))
+
+            local str = ""
+            labelsOverride.forEach((value, idx) => {
+                if (idx > 0) {
+                    str += ", "
+                }
+                str += value
+            })
+            xAxisLabels = str
+        }
+    }
+}
+
+
+func selectTheme(theme) {
+    if (theme == 'light') {
+        background = Fill.solid('#E8E8E9FF')
+        strokeColor = '#C7C7C7FF'
+        gridColor = '#BDBDBDFF'
+        fontColor = '#333333FF'
+
+        datasets.forEach((dataset) => {
+            local c = decodeColor(dataset.color).hsl()
+            if (c.l > 0.4) {
+                c.l = 0.4
+            }
+            if (c.s < 0.7) {
+                c.s = 0.7
+            }
+            dataset.color = c.rgb().encode()
+        })
+    } else if (theme == 'dark') {
+        background = Fill.solid('#202227FF')
+        strokeColor = '#161717FF'
+        gridColor = '#474766FF'
+        fontColor = '#C9C9CAFF'
+
+        datasets.forEach((dataset) => {
+            local c = decodeColor(dataset.color).hsl()
+            if (c.l < 0.65) {
+                c.l = 0.65
+            }
+            dataset.color = c.rgb().encode()
+        })
+    }
+}
+
+
+plotHeight = max(1, height - padding*2 - legend.h)
+
+// Calculate how many ticks can fit with the minimum spacing
+local maxTicks = floor(plotHeight / minSpacing)
+local yAxis = generateYAxis(yAxisShown, yMin, yMax, max(2, maxTicks), font, axisFontSize)
+
+
+plotOffset = 0
+yAxis.labels.forEach((label) => {
+    plotOffset = max(plotOffset, label.w)
+})
+
+plotOffset += padding
+
+local startDateDecoded = parseDate(startDate)
+local endDateDecoded = parseDate(endDate)
+local dateLength = endDateDecoded.sub(startDateDecoded)
+
+func xAxisLineProvider(i, pos) {
+    if (xAxisType == 'date') {
+        local date = startDateDecoded.add(dateLength * i / max(1, numPoints))
+        AxisLine(pos, date.formatDate(dateFormat))
+    } else if (xAxisType == 'custom') {
+        local labelName = if (labelsOverride.size > i) { labelsOverride.get(i) } else { "" }
+        AxisLine(pos, labelName)
+    } else {
+        local value = xMin + i * (xMax - xMin) / max(numPoints, 1)
+        AxisLine(pos, formatLabel(value, xMax - xMin))
+    }
+}
+
+if (xAxisTilt) {
+    local line = xAxisLineProvider(0, 0)
+    local size = calculateTextSize(line.labelText, font, fontSize)
+    plotOffset += 1.1 * size.w * cos(PI()/4)/2
+}
+
+if (yTitleShow) {
+    plotOffset += axisNameFontMaxHeight
+}
+
+yAxis.labels.forEach((label) => { label.w = plotOffset })
+
+plotWidth = max(1, width - plotOffset - padding)
+
+local xAxis = generateXAxis(xAxisShown, numPoints, xAxisTilt, plotOffset, plotWidth, plotHeight, font, axisFontSize, xAxisLineProvider)
+
+xAxis.labels.forEach((label) => {
+    if (xAxisTilt) {
+        xLabelsFullHeight = max(xLabelsFullHeight, label.w * cos(PI()/4)*0.7)
+    } else {
+        xLabelsFullHeight = max(xLabelsFullHeight, label.h)
+    }
+})
+
+xTitleK = if (xTitleShow) { 1 } else { 0 }
+
+plotHeight = max(1, height - xLabelsFullHeight - axisNameFontMaxHeight * xTitleK - legend.h - padding * 2)
+yAxis.labels.forEach((label) => { label.y = padding + label.y * plotHeight / 100 - label.h / 2 })
+
+if (xAxisTilt) {
+    xAxis.labels.forEach((label) => {
+        label.y = padding + plotHeight + label.w * cos(PI()/4) / 2 - 10
+        label.x -= label.w * cos(PI()/4) / 2 - 10
+    })
+} else {
+    xAxis.labels.forEach((label) => { label.y = padding + plotHeight })
+}
+
+legendTop = xLabelsFullHeight + axisNameFontMaxHeight * xTitleK + plotHeight + padding
+
+// generating plot grid paths
+yAxis.lines.forEach((line) => {
+    gridPaths.add(Path(List(Point(0, line.position), Point(100, line.position))))
+})
+xAxis.lines.forEach((line) => {
+    gridPaths.add(Path(List(Point(line.position, 0), Point(line.position, 100))))
+})
+
+
+local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
+
+
+centerValue = if (yAxis.min <= 0 && 0 < yAxis.max) {
+    0
+} else if (yAxis.max < 0) {
+    yAxis.max
+} else {
+    yAxis.min
+}
+
+yCenter = (yAxis.max - centerValue) * plotHeight / (yAxis.max - yAxis.min)
+
+parsedDatasets = datasets.map((dataset) => {
+    Dataset(dataset, parseDatasetPoints(dataset.values, dx, yAxis, plotWidth, plotHeight))
+})
+
+parsedLineDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'line' }).map((dataset) => {
+    local threshold = max(1, numPoints)
+    for ( ; dataset.points.size > threshold ; ) {
+        dataset.points.pop()
+    }
+    dataset
+})
+
+local filteredBarDatasets = parsedDatasets.filter((dataset) => { dataset.args.type == 'bar' })
+local totalBarDatasets = filteredBarDatasets.size
+local barWidth = dx / (totalBarDatasets + 1)
+
+parsedBarDatasets = filteredBarDatasets.map((dataset, datasetIdx) => {
+    local threshold = max(1, numPoints - 1)
+
+    local bars = List()
+    dataset.points.forEach((point, pointIdx) => {
+        if (pointIdx < threshold) {
+            local y = point.y * plotHeight / 100
+
+            local y1 = min(y, yCenter)
+            local y2 = max(y, yCenter)
+            local h = y2 - y1
+
+            bars.add(Bar(
+                point,
+                point.x * plotWidth / 100 + barWidth * datasetIdx,
+                y1,
+                barWidth,
+                h
+            ))
+        }
+    })
+
+    // filling in empty bars, so that they could be animated on request
+    for ( ; bars.size < threshold ; ) {
+        local pointIdx = bars.size
+        local dy = max(0.00000001, yAxis.max - yAxis.min)
+
+        local point = Point(dx * pointIdx * 100 / plotWidth, yAxis.max * 100 / dy)
+
+        local y = point.y * plotHeight / 100
+
+        local y1 = min(y, yCenter)
+        local y2 = max(y, yCenter)
+        local h = y2 - y1
+
+
+        bars.add(Bar(
+            point,
+            point.x * plotWidth / 100 + barWidth * datasetIdx,
+            y1,
+            barWidth,
+            h
+        ))
+    }
+
+    BarDataset(dataset.args, bars)
+})
+
+
+
+local baseScriptForFunctions = `
+${enc SmoothPoint}
+
+${enc smoothenPoints}
+
+local xStep = ${xStep}
+local xMax = ${xMax}
+local xMin = ${xMin}
+local yMax = ${yAxis.max}
+local yMin = ${yAxis.min}
+local lineType = "${lineType}"
+local yCenter = "${yCenter}"
+local showPoints = ${showPoints}
+local pointSize = ${pointSize}
+local pointType = "${pointType}"
+local backgroundColor = "${background}"
+local numPoints = ${numPoints}
+
+local plot = findChildItemsByTag('chart-plot').first()
+local plotWidth = plot.getWidth()
+local plotHeight = plot.getHeight()
+local dy = max(0.0000001, yMax - yMin)
+local dx = plotWidth * xStep / max(0.000001, xMax - xMin)
+
+
+
+func changePointsInAnimation(pathItem, srcPoints, dstPoints, allPointItems, t) {
+    dstPoints.forEach((dstPoint, idx) => {
+        local srcPoint = srcPoints.get(idx)
+        local x = srcPoint.x * (1 - t) + dstPoint.x * t
+        local y = srcPoint.y * (1 - t) + dstPoint.y * t
+        if (lineType == 'smooth') {
+            local x1 = srcPoint.x1 * (1 - t) + dstPoint.x1 * t
+            local y1 = srcPoint.y1 * (1 - t) + dstPoint.y1 * t
+            local x2 = srcPoint.x2 * (1 - t) + dstPoint.x2 * t
+            local y2 = srcPoint.y2 * (1 - t) + dstPoint.y2 * t
+            pathItem.setPathBezierPointRelativePos(0, idx, x, y, x1, y1, x2, y2)
+        } else {
+            pathItem.setPathPointRelativePos(0, idx, x, y)
+        }
+
+        if (allPointItems.has(idx)) {
+            local pointItem = allPointItems.get(idx)
+            pointItem.setPos(
+                x * plotWidth / 100 - pointItem.getWidth()/2,
+                y * plotHeight / 100 - pointItem.getHeight()/2,
+            )
+        }
+    })
+}
+
+
+
+func changeBarsInAnimation(allBars, srcPoints, dstPoints, t) {
+    allBars.forEach((bar, idx) => {
+        if (idx < srcPoints.size && idx < dstPoints.size) {
+            local relativeY = srcPoints.get(idx).y * (1 - t) + dstPoints.get(idx).y * t
+            local y = relativeY * plotHeight / 100
+            local y1 = min(y, yCenter)
+            local y2 = max(y, yCenter)
+
+            bar.setPosY(y1)
+            bar.setHeight(y2 - y1)
+            bar.setVar('pointY', relativeY)
+        }
+    })
+}
+
+func addPointItemToContainer(container, pointIdx, color, x, y) {
+    local pointItem = buildItem('ellipse', "Point " + pointIdx)
+    pointItem.mountTo(container)
+    pointItem.setPos(x - pointSize/2, y - pointSize/2)
+    pointItem.setWidth(pointSize)
+    pointItem.setHeight(pointSize)
+    pointItem.setVar('pointIdx', pointIdx)
+
+    if (pointType == "hollow") {
+        pointItem.setFill(Fill.solid(backgroundColor))
+        pointItem.setStrokeSize(2)
+        pointItem.setStrokeColor(color)
+    } else if (pointType == "cut") {
+        pointItem.setFill(Fill.solid(color))
+        pointItem.setStrokeSize(2)
+        pointItem.setStrokeColor(backgroundColor)
+    } else {
+        pointItem.setFill(Fill.solid(color))
+        pointItem.setStrokeSize(0)
+    }
+
+    pointItem.tag('dataset-point')
+    pointItem
+}
+`
+
+
+local baseScriptForBars = `
+struct BarDataset {
+    container: null
+    idx: 0
+    bars: List()
+}
+
+struct Bar {
+    item: null
+    idx: 0
+    x: 0
+    y: 0
+    w: 0
+    h: 0
+    point: null
+}
+
+func collectAllDatasetBars() {
+    findChildItemsByTag('dataset-container')
+    .filter((it) => { it.getVar('datasetType') == 'bar' })
+    .map((container, idx) => {
+        local bars = container.findChildItemsByTag('dataset-bar').map((barItem) => {
+            Bar(
+                barItem,
+                barItem.getVar('pointId'),
+                barItem.getPosX(),
+                barItem.getPosY(),
+                barItem.getWidth(),
+                barItem.getHeight(),
+                SmoothPoint(barItem.getVar('pointX'), barItem.getVar('pointY'))
+            )
+        })
+        BarDataset(container, idx, bars)
+    })
+}
+
+func changeAllBars(allBarDatasets, allDstBarDatasets, t) {
+    allBarDatasets.forEach((dataset, datasetIdx) => {
+        if (datasetIdx >= allDstBarDatasets.size) {
+            return
+        }
+        local dstDataset = allDstBarDatasets.get(datasetIdx)
+
+        dataset.bars.forEach((bar, barIdx) => {
+            if (barIdx >= dstDataset.bars.size) {
+                return
+            }
+            local dstBar = dstDataset.bars.get(barIdx)
+            bar.item.setPos(
+                bar.x * (1 - t) + dstBar.x * t,
+                bar.y * (1 - t) + dstBar.y * t,
+            )
+            bar.item.setWidth(bar.w * (1 - t) + dstBar.w * t)
+            bar.item.setHeight(bar.h * (1 - t) + dstBar.h * t)
+        })
+    })
+}
+`
