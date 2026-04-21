@@ -28,7 +28,10 @@ function angleBetweenVectors(x1, y1, x2, y2) {
         if (!tooSmall(ds2)) {
             const d1 = Math.sqrt(ds1);
             const d2 = Math.sqrt(ds2);
-            return Math.asin((x1*y2 - y1*x2) / (d1*d2));
+            const sinVal = (x1*y2 - y1*x2) / (d1*d2);
+            // Clamp to valid range for Math.asin
+            const clamped = Math.max(-1, Math.min(1, sinVal));
+            return Math.asin(clamped);
         }
     }
     return 0;
@@ -453,7 +456,7 @@ export default {
             precision = settings.precision;
         }
 
-        minSegmentWidth = 1/Math.max(precision, 2);
+        minSegmentWidth = Math.max(1/Math.max(precision, 2), 0.0001);
 
         const pathLength = svgPath.getTotalLength();
         if (pathLength < 0.0000001) {
@@ -1007,20 +1010,6 @@ export default {
         }
 
         return (x1 * x2 + y1 * y2) / Math.sqrt(dSquared);
-    },
-
-    stringHash(str, seed = 0) {
-        let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
-        for(let i = 0, ch; i < str.length; i++) {
-            ch = str.charCodeAt(i);
-            h1 = Math.imul(h1 ^ ch, 2654435761);
-            h2 = Math.imul(h2 ^ ch, 1597334677);
-        }
-        h1  = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-        h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-        h2  = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-        h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-        return 4294967296 * (2097151 & h2) + (h1 >>> 0);
     },
 
     stringHash(str) {

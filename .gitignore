@@ -19,3 +19,4 @@ assets/index-static.html
 .webpack
 out/
 .exported-patcher-schema/
+.aider*
