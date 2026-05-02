@@ -282,7 +282,7 @@ function getRegistry() {
 }
 
 /**
- * @param {String} shape
+ * @param {Shape} shape
  * @returns {Object.<string,ArgDef>}
  */
 function getShapeArgs(shape) {
