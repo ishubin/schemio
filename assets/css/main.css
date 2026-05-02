@@ -198,7 +198,6 @@ body[data-theme="dark"] {
 }
 [data-theme="dark"] .header .right-section a:hover, [data-theme="dark"]  .header .right-section span.link:hover {
     color: var(--base-weak);
-    background: var(--accent-faint-up);
 }
 
 
@@ -1844,6 +1843,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     border-right: 1px solid var(--faint-strong-up);
     border-bottom: 1px solid var(--faint-strong-up);
     border-radius: 0;
+    background: var(--faint-weak);
     text-decoration: none;
 }
 .toggle-group > .toggle-button:hover {
@@ -1855,13 +1855,13 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     color: var(--base-strong);
 }
 .toggle-group > .toggle-button:first-child {
-    border: 1px solid var(--faint-strong-up-2);
+    border: 1px solid var(--faint-strong-up);
     border-radius: 20px 0 0 20px;
 }
 .toggle-group > .toggle-button:last-child {
-    border-top: 1px solid var(--faint-strong-up-2);
-    border-right: 1px solid var(--faint-strong-up-2);
-    border-bottom: 1px solid var(--faint-strong-up-2);
+    border-top: 1px solid var(--faint-strong-up);
+    border-right: 1px solid var(--faint-strong-up);
+    border-bottom: 1px solid var(--faint-strong-up);
     border-radius: 0 20px 20px 0;
 }
 [data-theme="dark"] .toggle-group > .toggle-button:first-child {
