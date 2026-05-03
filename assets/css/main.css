@@ -194,10 +194,10 @@ body[data-theme="dark"] {
     color: var(--accent-faint-up);
 }
 [data-theme="dark"] .header .right-section a, [data-theme="dark"]  .header .right-section span.link {
-    color: var(--base-strong-up);
+    color: var(--base-strong);
 }
 [data-theme="dark"] .header .right-section a:hover, [data-theme="dark"]  .header .right-section span.link:hover {
-    color: var(--base-weak);
+    color: var(--accent-strong);
 }
 
 

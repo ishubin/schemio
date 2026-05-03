@@ -693,7 +693,7 @@ item:
               id: $pointIdx
         childItems:
         - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
-          $-if: "showPoints || pointSize > 0"
+          $-if: "showPoints && pointSize > 0"
           id: $`datapoint-${dataset.args.id}-${pointIdx}`
           name: $`Point ${pointIdx}`
           shape: ellipse
@@ -711,8 +711,8 @@ item:
             strokeSize: ${if (pointType == "hollow" || pointType == "cut") { 2 } else { 0 }}
             fill:
               type: solid
-              color: ${if (pointType == "hollow") { background } else { dataset.args.color }}
-            strokeColor: ${if (pointType == "cut") { background } else { dataset.args.color }}
+              color: ${if (pointType == "hollow") { background.color } else { dataset.args.color }}
+            strokeColor: ${if (pointType == "cut") { background.color } else { dataset.args.color }}
 
 
   - $-foreach: {source: "yAxis.labels", it: label, index: labelIdx}
