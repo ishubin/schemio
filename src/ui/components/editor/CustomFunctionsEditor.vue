@@ -56,6 +56,7 @@
                     @arg-name-changed="onFunctionArgNameChange"
                     @arg-type-changed="onFuncArgTypeChanged"
                     @arg-value-changed="onFuncArgDefaultValueChange"
+                    @arg-options-changed="onFuncArgOptionsChange"
                 />
             </Panel>
 
@@ -272,8 +273,28 @@ export default {
         },
 
         onFuncArgTypeChanged(argIdx, argType, argValue) {
-            this.functions[this.funcModal.funcIdx].args[argIdx].type = argType;
-            this.functions[this.funcModal.funcIdx].args[argIdx].value = argValue;
+            const arg = this.functions[this.funcModal.funcIdx].args[argIdx];
+            arg.type = argType;
+            arg.value = argValue;
+            if (argType === 'choice' && !Array.isArray(arg.options)) {
+                arg.options = [];
+            }
+            if (argType !== 'choice' && arg.hasOwnProperty('options')) {
+                delete arg.options;
+            }
+
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.type`);
+            this.funcModal.updateDelayer.trigger();
+        },
+
+        onFuncArgOptionsChange(argIdx, options, value) {
+            const arg = this.functions[this.funcModal.funcIdx].args[argIdx];
+            arg.options = options;
+            let properValue = value;
+            if (options.indexOf(value) < 0 && options.length > 0) {
+                value = options[0];
+            }
+            arg.value = value;
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `scripts.functions.${this.funcModal.funcIdx}.args.${argIdx}.type`);
             this.funcModal.updateDelayer.trigger();
         },

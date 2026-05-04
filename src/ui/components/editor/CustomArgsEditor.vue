@@ -27,8 +27,15 @@
                     </td>
                     <td>
                         <div class="function-argument-value">
+                            <ChoiceOptionsEditor
+                                v-if="arg.type === 'choice'"
+                                :options="arg.options"
+                                :defaultValue="arg.value"
+                                @changed="onChoiceArgOptionsChange(argIdx, $event)"
+                                />
                             <PropertyInput
                                 :key="`arg-property-input-${argIdx}-${arg.type}`"
+                                v-else
                                 :editorId="editorId"
                                 :schemeContainer="schemeContainer"
                                 :descriptor="arg.descriptor"
@@ -51,6 +58,7 @@
 import shortid from 'shortid';
 import StoreUtils from '../../store/StoreUtils';
 import PropertyInput from './properties/PropertyInput.vue';
+import ChoiceOptionsEditor from './ChoiceOptionsEditor.vue';
 
 const defaultTypeValues = {
     'string': '',
@@ -58,6 +66,7 @@ const defaultTypeValues = {
     'color': 'rgba(255,255,255,1.0)',
     'advanced-color': {type: 'solid', color: 'rgba(255,255,255,1.0)'},
     'image': '',
+    'choice': '',
     'boolean': true,
     'stroke-pattern': 'solid',
     'element': '',
@@ -69,7 +78,7 @@ const _argNameRegex = new RegExp('^[a-zA-Z_][a-zA-Z0-9_]*$');
 
 export default {
     props: ['editorId', 'args', 'schemeContainer'],
-    components: {PropertyInput},
+    components: {PropertyInput, ChoiceOptionsEditor},
 
     data() {
         return {
@@ -86,6 +95,7 @@ export default {
                 {name: 'color', value: 'color'},
                 {name: 'fill', value: 'advanced-color'},
                 {name: 'image', value: 'image'},
+                {name: 'choice', value: 'choice'},
                 {name: 'checkbox', value: 'boolean'},
                 {name: 'stroke pattern', value: 'stroke-pattern'},
                 {name: 'item', value: 'element'},
@@ -99,6 +109,12 @@ export default {
         onArgTypeChanged(argIdx, event) {
             const argDef = this.customArgs[argIdx];
             const newType = event.target.value;
+            if (newType === 'choice' && !Array.isArray(argDef.options)) {
+                argDef.options = [];
+            }
+            if (newType !== 'choice' && argDef.hasOwnProperty('options')) {
+                delete argDef.options;
+            }
             argDef.descriptor = {type: newType};
             argDef.value = defaultTypeValues[newType];
             this.$emit('arg-type-changed', argIdx, newType, argDef.value);
@@ -107,6 +123,12 @@ export default {
         onArgDefaultValueChange(argIdx, value) {
             this.customArgs[argIdx].value = value;
             this.$emit('arg-value-changed', argIdx, value);
+        },
+
+        onChoiceArgOptionsChange(argIdx, { options, value }) {
+            this.customArgs[argIdx].options = options;
+            this.customArgs[argIdx].value = value;
+            this.$emit('arg-options-changed', argIdx, options, value);
         },
 
         onFunctionArgNameChange(argIdx, name) {

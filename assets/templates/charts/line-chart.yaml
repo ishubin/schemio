@@ -690,7 +690,7 @@ item:
             points:
             - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
               $-extend: $toJSON(point)
-              id: $pointIdx
+              id: ${"" + pointIdx}
         childItems:
         - $-foreach: {source: "dataset.points", it: "point", index: pointIdx}
           $-if: "showPoints && pointSize > 0"

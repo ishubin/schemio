@@ -187,6 +187,7 @@ const baseSchema = {
                         name       : {type: 'string', patching: ['patch-text', 'replace'], },
                         description: {type: 'string', patching: ['patch-text'] },
                         type       : {type: 'string', patching: ['replace']},
+                        options    : {type: 'array', patching: ['patch-array', 'replace', 'delete']},
                         value      : {type: 'any', patching: ['replace']},
                     }},
                     props: {type: 'object', patching: ['modify'], fields: {

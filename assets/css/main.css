@@ -5811,3 +5811,53 @@ svg .editor-custom-area {
 .state-dragItem.sub-state-idle svg .editor-custom-area:hover {
     opacity: 0.5;
 }
+
+.choice-options-editor .choice-options-preview {
+    position: relative;
+    border: 1px solid var(--faint-strong);
+    background: var(--faint-weak-down);
+    color: var(--base-strong);
+    border-radius: var(--control-border-radius);
+    padding: 5px 2px;
+    overflow: hidden;
+    display: block;
+    width: 100%;
+    cursor: pointer;
+    max-width: 300px;
+}
+.choice-options-editor .choice-options-preview .choice-option-label {
+    background: var(--faint-weak-up);
+    padding: 4px 10px;
+    border-radius: 20px;
+    margin-right: 5px;
+    font-size: 12px;
+}
+.choice-options-editor .choice-options-preview .choice-option-label.selected {
+    background: var(--base-strong-up);
+    color: var(--base-weak);
+}
+.choice-options-editor .choice-options-preview .edit-link {
+    position: absolute;
+    display: none;
+    right: 5px;
+    top: 7px;
+    font-size: 12px;
+}
+.choice-options-editor .choice-options-preview:hover .edit-link {
+    display: inline-block;
+}
+.choice-options-editor .choice-options-preview .placeholder {
+    font-style: italic;
+    font-size: 14px;
+}
+.choice-options-editor .choice-options-editor-list {
+    list-style: none;
+    padding: 0;
+}
+.choice-options-editor .choice-options-editor-list > li {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
