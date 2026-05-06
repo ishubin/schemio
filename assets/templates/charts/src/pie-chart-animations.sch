@@ -134,6 +134,7 @@ local labelFont = "${labelFont}"
 local legendFont = "${legendFont}"
 local labelFontSize = ${labelFontSize}
 local labelDisplay = '${labelDisplay}'
+local labelDistance = ${labelDistance}
 
 local sliceValues = values.split(',').map(parseFloat)
 

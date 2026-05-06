@@ -115,7 +115,7 @@ item:
       percent: $slice.percent
       fill: {type: solid, color: $slice.color}
       strokeSize: $sliceStrokeSize
-      strokeColor: $strokeColor
+      strokeColor: $sliceStrokeColor
 
   - $-foreach: {source: sliceLabels, it: label}
     id: $label.id
