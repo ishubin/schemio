@@ -5044,7 +5044,7 @@ ul.patch-field-list {
     flex: 1;
     height: 100%;
     overflow: auto;
-    background: var(--base-weak);
+    background: var(--faint-weak-down);
 }
 .external-shapes .external-shapes-list li {
     position: relative;
