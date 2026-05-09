@@ -108,12 +108,11 @@ export default {
         const assetsPath = this.$store.state.assetsPath || ASSETS_PREFIX;
         const separator = assetsPath.endsWith('/') ? '' : '/';
 
-        // to avoid caching on the browser
-        const timeMarker = Math.floor(new Date().getTime()/60000);
+        const version = __BUILD_VERSION__;
 
         Promise.all([
-            axios.get(`${routePrefix}${assetsPath}${separator}shapes/shapes.json?_v=${timeMarker}`).then(response => response.data),
-            axios.get(`${routePrefix}${assetsPath}${separator}art/art.json?_v=${timeMarker}`).then(response => response.data),
+            axios.get(`${routePrefix}${assetsPath}${separator}shapes/shapes.json?_v=${version}`).then(response => response.data),
+            axios.get(`${routePrefix}${assetsPath}${separator}art/art.json?_v=${version}`).then(response => response.data),
         ])
         .then(([shapes, artEntries]) => {
             this.isLoading = false;

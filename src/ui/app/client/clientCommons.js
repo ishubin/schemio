@@ -31,13 +31,15 @@ export function getExportHTMLResources(assetsPath) {
 }
 
 export function getAllTemplates() {
+    const version = __BUILD_VERSION__;
     const routePrefix = document.body.getAttribute('data-route-prefix') || '';
-    return axios.get(`${routePrefix}/assets/templates/index.json`).then(unwrapAxios);
+    return axios.get(`${routePrefix}/assets/templates/index.json?_v=${version}`).then(unwrapAxios);
 }
 
 export function getTextIconsIndex() {
+    const version = __BUILD_VERSION__;
     const routePrefix = document.body.getAttribute('data-route-prefix') || '';
-    return axios.get(`${routePrefix}/assets/text-icons-index.json`).then(unwrapAxios);
+    return axios.get(`${routePrefix}/assets/text-icons-index.json?_v=${version}`).then(unwrapAxios);
 }
 
 
