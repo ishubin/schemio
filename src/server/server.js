@@ -24,9 +24,10 @@ import fileUpload from 'express-fileupload';
 import { ProjectService } from '../common/fs/projectService.js';
 const { readFile } = require('node:fs/promises');
 import Handlebars from 'handlebars';
+import { createWebSocketServer } from './websockets.js';
 
 
-const jsonBodyParser        = bodyParser.json({limit: 1000000, extended: true});
+const jsonBodyParser = bodyParser.json({limit: 1000000, extended: true});
 
 const cwd = process.cwd();
 const config = loadConfig();
@@ -105,10 +106,11 @@ projectService.load()
         res.send(indexTemplate({routePrefix: config.routePrefix}));
     });
 
-    app.listen(config.serverPort, () => {
+    const server = app.listen(config.serverPort, () => {
         console.log(`Listening at http://localhost:${config.serverPort}`)
     });
 
+    createWebSocketServer(config, server);
 }).catch(err => {
     console.error('Failed to create index for all documents', err);
 });
