@@ -52,6 +52,7 @@
             @delete-diagram-requested="deleteSchemeWarningShown = true"
             @scheme-save-requested="onSaveSchemeRequested"
             @scheme-update-requested="onSchemeUpdateRequested"
+            @scheme-modified="onSchemeModified"
             @new-diagram-requested-for-item="onNewDiagramRequestedForItem($event.item, $event.isExternalComponent)"
         />
 
@@ -77,6 +78,16 @@
         </modal>
 
         <export-as-link-modal v-if="exportAsLinkModalShown" :scheme="scheme" @close="exportAsLinkModalShown = false"/>
+
+        <div class="document-update-notifier" v-if="updateNotifier.shown">
+            <h4><i class="fa-solid fa-triangle-exclamation"></i> Conflict Detected</h4>
+            The document was updated by another user.
+            <div class="document-update-notifier-buttons">
+                <span class="btn btn-primary" @click="updatedDocumentMerge"><i class="fa-solid fa-code-pull-request"></i> Merge changes</span>
+                <span class="btn btn-success" @click="updatedDocumentKeepMine"><i class="fa-solid fa-check"></i> Keep mine (overwrite)</span>
+                <span class="btn btn-danger" @click="updatedDocumentDiscardMyChanges"><i class="fa-solid fa-xmark"></i> Discard my changes</span>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -94,6 +105,12 @@ import {stripAllHtml} from '../../../htmlSanitize';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 import {diagramImageExporter} from '../../diagramExporter';
 import SchemioEditorWebApp from '../../components/SchemioEditorWebApp.vue';
+import { initWebSocketDocumentWatcher } from '../../websocketwatcher';
+import { generateSchemePatch, applySchemePatch } from '../../scheme/SchemePatch';
+import { traverseItems } from '../../scheme/Item';
+import { enrichItemWithDefaults } from '../../scheme/ItemFixer';
+
+const DOCUMENT_UPDATE_WATCHER_MIN_TIME = 3000.0;
 
 function loadOfflineScheme() {
     const offlineSchemeEncoded = window.localStorage.getItem('offlineScheme');
@@ -155,8 +172,13 @@ export default {
                 this.isLoading = false;
                 this.path = schemeDetails.folderPath;
                 this.buildBreadcrumbs(schemeDetails.folderPath);
-                this.scheme = schemeDetails.scheme;
-                enrichSchemeWithDefaults(this.scheme);
+
+                const scheme = schemeDetails.scheme;
+                enrichSchemeWithDefaults(scheme);
+                traverseItems(scheme.items, enrichItemWithDefaults);
+
+                this.scheme = scheme;
+                this.originScheme = utils.clone(scheme);
 
                 if (schemeDetails.viewOnly) {
                     this.shouldAllowEdit = false;
@@ -173,10 +195,29 @@ export default {
                 this.errorMessage = 'Oops, something went wrong';
             }
         });
+
+
+        if (this.schemeId) {
+            this.watcherWebSocket = initWebSocketDocumentWatcher(this.schemeId, (schemeId, content) => {
+                this.onDocumentWatcherUpdate(schemeId, content);
+            });
+        }
+    },
+
+    beforeDestroy() {
+        if (this.watcherWebSocket) {
+            this.watcherWebSocket.close();
+        }
+    },
+
+    created() {
+        // WebSocket used for watching for updates to the diagrams
+        this.watcherWebSocket = null;
     },
 
     data() {
         const schemeId = this.$route.params.schemeId;
+        const scheme = this.isOfflineEditor ? loadOfflineScheme() : null;
 
         return {
             hasher: createHasher(this.$router ? this.$router.mode : 'history'),
@@ -184,17 +225,29 @@ export default {
             path: '',
             breadcrumbs: [],
             isStaticEditor: false,
-            scheme: this.isOfflineEditor ? loadOfflineScheme() : null,
+            scheme: scheme,
+            // used for tracking changes and merging them with the updated document on the backend
+            originScheme: utils.clone(scheme),
             apiClient: null,
             is404: false,
             errorMessage: null,
             isLoading: false,
             isSaving: false,
+            modified: false,
+
+            // the time from performance.now() of the last save
+            lastSaveTime: 0,
             modificationKey: '',
             editorMode: 'view',
 
             appReloadKey: shortid.generate(),
             schemeReloadKey: shortid.generate(),
+
+            updateNotifier: {
+                shown: false,
+                // the latest updated document on the backend
+                scheme: null,
+            },
 
             newSchemePopup: {
                 name: '',
@@ -227,6 +280,50 @@ export default {
     },
 
     methods: {
+        updatedDocumentMerge() {
+            if (!this.originScheme || !this.updateNotifier.scheme) {
+                return;
+            }
+
+            const patch = generateSchemePatch(this.originScheme, this.scheme);
+            const mergedScheme = applySchemePatch(this.updateNotifier.scheme, patch);
+            enrichSchemeWithDefaults(mergedScheme);
+            this.scheme = mergedScheme;
+            EditorEventBus.schemeRebased.$emit(`scheme-${this.appReloadKey}`, mergedScheme);
+            this.updateNotifier.shown = false;
+            this.updateNotifier.scheme = null;
+        },
+
+        updatedDocumentKeepMine() {
+            this.updateNotifier.shown = false;
+            this.updateNotifier.scheme = null;
+        },
+
+        updatedDocumentDiscardMyChanges() {
+            this.scheme = this.updateNotifier.scheme;
+            this.appReloadKey = shortid.generate();
+            this.updateNotifier.shown = false;
+            this.updateNotifier.scheme = null;
+        },
+
+        onDocumentWatcherUpdate(schemeId, content) {
+            const timeDiff = performance.now() - this.lastSaveTime;
+            if (this.isSaving || timeDiff < DOCUMENT_UPDATE_WATCHER_MIN_TIME) {
+                return;
+            }
+
+            const scheme = JSON.parse(content);
+
+            if (this.modified) {
+                this.updateNotifier.shown = true;
+                this.updateNotifier.scheme = scheme;
+                return;
+            }
+
+            this.scheme = scheme;
+            this.appReloadKey = shortid.generate();
+        },
+
         buildBreadcrumbs(path) {
             if (!path) {
                 path = '';
@@ -411,10 +508,14 @@ export default {
                 if (this.scheme.id && preview && this.$store.state.apiClient && this.$store.state.apiClient.uploadSchemePreview) {
                     this.$store.state.apiClient.uploadSchemePreview(this.scheme.id, preview, 'png');
                 }
+                this.lastSaveTime = performance.now();
                 this.isSaving = false;
+                this.modified = false;
+                this.originScheme = utils.clone(this.scheme);
             })
             .catch(err => {
                 this.$store.dispatch('setErrorStatusMessage', 'Failed to save, please try again');
+                this.lastSaveTime = performance.now();
                 this.isSaving = false;
             });
         },
@@ -422,6 +523,10 @@ export default {
         onSchemeUpdateRequested(scheme) {
             this.scheme = scheme;
             this.schemeReloadKey = shortid.generate();
+        },
+
+        onSchemeModified(scheme) {
+            this.modified = true;
         }
     },
     computed: {

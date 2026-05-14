@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import { schemioExtension } from '../common/fs/fsUtils';
 import path from 'path';
+import { FileIndex } from '../common/fs/fileIndex';
 
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -14,7 +15,7 @@ const MAX_STALE_CONNECTIONS_TIMEOUT_SECONDS = 60 * 10;
 
 const HEARTBEAT_INTERVAL_SECONDS = 30;
 
-// tracks users that have open files with the key as a file path and value as array of connection IDs
+// tracks users that have open files with the key as a schemeId and value as array of connection IDs
 // of the users that have that file open
 const openFiles = new Map();
 
@@ -26,55 +27,61 @@ class Connection {
      * @param {string} connectionId
      * @param {WebSocket.WebSocket} ws
      * @param {string} watchRoot
+     * @param {FileIndex} fileIndex
      */
-    constructor(connectionId, ws, watchRoot) {
+    constructor(connectionId, ws, watchRoot, fileIndex) {
         this.connectionId = connectionId;
         this.ws = ws;
         this.watchRoot = watchRoot;
+        this.fileIndex = fileIndex;
         this.lastUsed = new Date();
         this.openFiles = new Set();
     }
 
-    openFile(relativePath) {
-        if (!relativePath || !relativePath.endsWith(schemioExtension)) {
+    openFile(schemeId) {
+        console.log('got open msg', schemeId);
+        if (!schemeId) {
             return;
         }
-        // Store relative paths internally
-        this.openFiles.add(relativePath);
-        if (!openFiles.has(relativePath)) {
-            openFiles.set(relativePath, []);
+        // Store schemeId internally
+        this.openFiles.add(schemeId);
+        if (!openFiles.has(schemeId)) {
+            openFiles.set(schemeId, []);
         }
-        const fileConnections = openFiles.get(relativePath);
+        const fileConnections = openFiles.get(schemeId);
         if (!fileConnections.includes(this.connectionId)) {
             fileConnections.push(this.connectionId);
         }
-        // Send current file content to the client using relative path
+        // Send current file content to the client using schemeId
         try {
-            const absolutePath = toAbsolutePath(relativePath, this.watchRoot);
-            const content = fs.readFileSync(absolutePath, 'utf8');
-            this.ws.send(JSON.stringify({
-                type: 'content',
-                filePath: relativePath,
-                content
-            }));
+            const doc = this.fileIndex.getDocumentFromIndex(schemeId);
+            if (doc && doc.fsPath) {
+                const absolutePath = toAbsolutePath(doc.fsPath, this.watchRoot);
+                const content = fs.readFileSync(absolutePath, 'utf8');
+                this.ws.send(JSON.stringify({
+                    type: 'content',
+                    schemeId,
+                    content
+                }));
+            }
         } catch (err) {
             // File might not exist yet, that's okay
         }
     }
 
-    closeFile(relativePath) {
-        if (!relativePath) {
+    closeFile(schemeId) {
+        if (!schemeId) {
             return;
         }
-        this.openFiles.delete(relativePath);
-        const fileConnections = openFiles.get(relativePath);
+        this.openFiles.delete(schemeId);
+        const fileConnections = openFiles.get(schemeId);
         if (fileConnections) {
             const index = fileConnections.indexOf(this.connectionId);
             if (index > -1) {
                 fileConnections.splice(index, 1);
             }
             if (fileConnections.length === 0) {
-                openFiles.delete(relativePath);
+                openFiles.delete(schemeId);
             }
         }
     }
@@ -106,13 +113,19 @@ function toAbsolutePath(relativePath, watchRoot) {
     return path.resolve(watchRoot, relativePath);
 }
 
-function watchSchemioDocuments(watchRoot, callback) {
+function watchSchemioDocuments(watchRoot, fileIndex, callback) {
     const watcher = chokidar.watch(watchRoot, { ignored: /^\./ });
     watcher.on('change', (absolutePath) => {
+        console.log('file changed absolute path:', absolutePath);
         if (absolutePath.endsWith(schemioExtension)) {
             const relativePath = toRelativePath(absolutePath, watchRoot);
-            const content = fs.readFileSync(absolutePath, 'utf8');
-            callback(relativePath, content);
+            console.log('file changed relative path:', relativePath);
+            const schemeId = fileIndex.getDocumentIdByPath(relativePath);
+            if (schemeId) {
+                const content = fs.readFileSync(absolutePath, 'utf8');
+                console.log('document changed:', schemeId);
+                callback(schemeId, content);
+            }
         }
     });
 }
@@ -121,15 +134,15 @@ function cleanupConnection(connectionId) {
     const connection = connections.get(connectionId);
     if (connection) {
         // Remove this connection from all open files tracking
-        for (const filePath of connection.openFiles) {
-            const fileConnections = openFiles.get(filePath);
+        for (const schemeId of connection.openFiles) {
+            const fileConnections = openFiles.get(schemeId);
             if (fileConnections) {
                 const index = fileConnections.indexOf(connectionId);
                 if (index > -1) {
                     fileConnections.splice(index, 1);
                 }
                 if (fileConnections.length === 0) {
-                    openFiles.delete(filePath);
+                    openFiles.delete(schemeId);
                 }
             }
         }
@@ -137,29 +150,38 @@ function cleanupConnection(connectionId) {
     }
 }
 
-function broadcastFileUpdate(filePath, content) {
-    const fileConnections = openFiles.get(filePath);
+function broadcastFileUpdate(schemeId, content) {
+    const fileConnections = openFiles.get(schemeId);
     if (fileConnections && fileConnections.length > 0) {
+        console.log('Found', fileConnections.length, 'connections to docuemnt', schemeId);
         const message = JSON.stringify({
             type: 'update',
-            filePath,
+            schemeId,
             content
         });
         for (const connectionId of fileConnections) {
+            console.log('con', connectionId);
             const connection = connections.get(connectionId);
             if (connection && connection.ws.readyState === WebSocket.OPEN) {
+                console.log('Sending update of', schemeId, ' to connection', connectionId);
                 connection.ws.send(message);
             }
         }
     }
 }
 
-export function createWebSocketServer(cfg, server) {
+/**
+ *
+ * @param {*} cfg
+ * @param {*} server
+ * @param {FileIndex} fileIndex
+ */
+export function createWebSocketServer(cfg, server, fileIndex) {
     const wss = new WebSocket.Server({ server });
 
     // Start watching the documents directory for changes
     const watchRoot = cfg.fs?.rootPath || '/opt/schemio/';
-    watchSchemioDocuments(watchRoot, broadcastFileUpdate);
+    watchSchemioDocuments(watchRoot, fileIndex, broadcastFileUpdate);
 
     // Heartbeat interval: send ping to all connections
     const heartbeatInterval = setInterval(() => {
@@ -172,7 +194,7 @@ export function createWebSocketServer(cfg, server) {
 
     wss.on('connection', (ws) => {
         const connectionId = nanoid(1024);
-        const connection = new Connection(connectionId, ws, watchRoot);
+        const connection = new Connection(connectionId, ws, watchRoot, fileIndex);
         connections.set(connectionId, connection);
 
         ws.send(JSON.stringify({ type: 'init', connectionId }));
@@ -184,10 +206,10 @@ export function createWebSocketServer(cfg, server) {
         ws.on('message', (msg) => {
             connection.lastUsed = new Date();
             const data = JSON.parse(msg);
-            if (data.type === 'open') {
-                connection.openFile(data.filePath);
-            } else if (data.type === 'close') {
-                connection.closeFile(data.filePath)
+            if (data.type === 'openDocument') {
+                connection.openFile(data.schemeId);
+            } else if (data.type === 'closeDocument') {
+                connection.closeFile(data.schemeId)
             }
         });
 

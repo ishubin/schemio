@@ -42,6 +42,8 @@ const projectService = new ProjectService(config.fs.rootPath, false, {
     '../assets/': '/assets/'
 });
 
+const fileIndex = projectService.fileIndex;
+
 projectService.load()
 .then(() => {
     return readFile(`${cwd}/html/index-server.tpl.html`, { encoding: 'utf8' })
@@ -110,7 +112,7 @@ projectService.load()
         console.log(`Listening at http://localhost:${config.serverPort}`)
     });
 
-    createWebSocketServer(config, server);
+    createWebSocketServer(config, server, fileIndex);
 }).catch(err => {
     console.error('Failed to create index for all documents', err);
 });
