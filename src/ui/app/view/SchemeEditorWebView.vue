@@ -108,7 +108,6 @@ import SchemioEditorWebApp from '../../components/SchemioEditorWebApp.vue';
 import { initWebSocketDocumentWatcher } from '../../websocketwatcher';
 import { generateSchemePatch, applySchemePatch } from '../../scheme/SchemePatch';
 import { traverseItems } from '../../scheme/Item';
-import { enrichItemWithDefaults } from '../../scheme/ItemFixer';
 
 const DOCUMENT_UPDATE_WATCHER_MIN_TIME = 3000.0;
 
@@ -175,7 +174,6 @@ export default {
 
                 const scheme = schemeDetails.scheme;
                 enrichSchemeWithDefaults(scheme);
-                traverseItems(scheme.items, enrichItemWithDefaults);
 
                 this.scheme = scheme;
                 this.originScheme = utils.clone(scheme);
@@ -218,6 +216,10 @@ export default {
     data() {
         const schemeId = this.$route.params.schemeId;
         const scheme = this.isOfflineEditor ? loadOfflineScheme() : null;
+
+        if (scheme) {
+            enrichSchemeWithDefaults(scheme);
+        }
 
         return {
             hasher: createHasher(this.$router ? this.$router.mode : 'history'),
@@ -313,6 +315,7 @@ export default {
             }
 
             const scheme = JSON.parse(content);
+            enrichSchemeWithDefaults(scheme);
 
             if (this.modified) {
                 this.updateNotifier.shown = true;

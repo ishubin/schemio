@@ -134,7 +134,7 @@ function cleanupConnection(connectionId) {
     const connection = connections.get(connectionId);
     if (connection) {
         // Remove this connection from all open files tracking
-        for (const schemeId of connection.openDocs) {
+        for (const schemeId of connection.docIds) {
             const docConnections = allOpenDocs.get(schemeId);
             if (docConnections) {
                 const index = docConnections.indexOf(connectionId);
