@@ -5,14 +5,20 @@ class Connection {
     constructor(socket, schemeId) {
         this.socket = socket;
         this.schemeId = schemeId;
-        this.connectionId = null;
     }
 
-    init(connectionId) {
-        console.log('initialized connection with ID:', connectionId);
-        this.connectionId = connectionId;
+    openDocument() {
+        console.log('ws: opening document', this.schemeId);
         this.socket.send(JSON.stringify({
             type: 'openDocument',
+            schemeId: this.schemeId
+        }));
+    }
+
+    closeDocument() {
+        console.log('ws: closing document', this.schemeId);
+        this.socket.send(JSON.stringify({
+            type: 'closeDocument',
             schemeId: this.schemeId
         }));
     }
@@ -33,14 +39,13 @@ export function initWebSocketDocumentWatcher(schemeId, updateCallback) {
 
     socket.onopen = () => {
         console.log('WebSocket connected');
+        connection.openDocument();
     };
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
-        if (data.type === 'init') {
-            connection.init(data.connectionId);
-        } else if (data.type === 'update') {
+        if (data.type === 'update') {
             updateCallback(data.schemeId, data.content);
         }
     };
@@ -55,11 +60,8 @@ export function initWebSocketDocumentWatcher(schemeId, updateCallback) {
 
     return {
         close() {
-            socket.send({
-                type: 'closeDocument',
-                schemeId: schemeId
-            });
-            setTimeout(() => { socket.close() }, 1000);
+            connection.closeDocument();
+            socket.close();
         }
     };
 }

@@ -17,7 +17,7 @@ const HEARTBEAT_INTERVAL_SECONDS = 30;
 
 // tracks users that have open files with the key as a schemeId and value as array of connection IDs
 // of the users that have that file open
-const openFiles = new Map();
+const allOpenDocs = new Map();
 
 // map of connection IDs to Connection objects
 const connections = new Map();
@@ -35,7 +35,7 @@ class Connection {
         this.watchRoot = watchRoot;
         this.fileIndex = fileIndex;
         this.lastUsed = new Date();
-        this.openFiles = new Set();
+        this.docIds = new Set();
     }
 
     openFile(schemeId) {
@@ -44,13 +44,13 @@ class Connection {
             return;
         }
         // Store schemeId internally
-        this.openFiles.add(schemeId);
-        if (!openFiles.has(schemeId)) {
-            openFiles.set(schemeId, []);
+        this.docIds.add(schemeId);
+        if (!allOpenDocs.has(schemeId)) {
+            allOpenDocs.set(schemeId, []);
         }
-        const fileConnections = openFiles.get(schemeId);
-        if (!fileConnections.includes(this.connectionId)) {
-            fileConnections.push(this.connectionId);
+        const docConnections = allOpenDocs.get(schemeId);
+        if (!docConnections.includes(this.connectionId)) {
+            docConnections.push(this.connectionId);
         }
         // Send current file content to the client using schemeId
         try {
@@ -73,15 +73,15 @@ class Connection {
         if (!schemeId) {
             return;
         }
-        this.openFiles.delete(schemeId);
-        const fileConnections = openFiles.get(schemeId);
-        if (fileConnections) {
-            const index = fileConnections.indexOf(this.connectionId);
+        this.docIds.delete(schemeId);
+        const docConnections = allOpenDocs.get(schemeId);
+        if (docConnections) {
+            const index = docConnections.indexOf(this.connectionId);
             if (index > -1) {
-                fileConnections.splice(index, 1);
+                docConnections.splice(index, 1);
             }
-            if (fileConnections.length === 0) {
-                openFiles.delete(schemeId);
+            if (docConnections.length === 0) {
+                allOpenDocs.delete(schemeId);
             }
         }
     }
@@ -134,15 +134,15 @@ function cleanupConnection(connectionId) {
     const connection = connections.get(connectionId);
     if (connection) {
         // Remove this connection from all open files tracking
-        for (const schemeId of connection.openFiles) {
-            const fileConnections = openFiles.get(schemeId);
-            if (fileConnections) {
-                const index = fileConnections.indexOf(connectionId);
+        for (const schemeId of connection.openDocs) {
+            const docConnections = allOpenDocs.get(schemeId);
+            if (docConnections) {
+                const index = docConnections.indexOf(connectionId);
                 if (index > -1) {
-                    fileConnections.splice(index, 1);
+                    docConnections.splice(index, 1);
                 }
-                if (fileConnections.length === 0) {
-                    openFiles.delete(schemeId);
+                if (docConnections.length === 0) {
+                    allOpenDocs.delete(schemeId);
                 }
             }
         }
@@ -151,15 +151,15 @@ function cleanupConnection(connectionId) {
 }
 
 function broadcastFileUpdate(schemeId, content) {
-    const fileConnections = openFiles.get(schemeId);
-    if (fileConnections && fileConnections.length > 0) {
-        console.log('Found', fileConnections.length, 'connections to docuemnt', schemeId);
+    const docConnections = allOpenDocs.get(schemeId);
+    if (docConnections && docConnections.length > 0) {
+        console.log('Found', docConnections.length, 'connections to docuemnt', schemeId);
         const message = JSON.stringify({
             type: 'update',
             schemeId,
             content
         });
-        for (const connectionId of fileConnections) {
+        for (const connectionId of docConnections) {
             console.log('con', connectionId);
             const connection = connections.get(connectionId);
             if (connection && connection.ws.readyState === WebSocket.OPEN) {
@@ -196,8 +196,6 @@ export function createWebSocketServer(cfg, server, fileIndex) {
         const connectionId = nanoid(1024);
         const connection = new Connection(connectionId, ws, watchRoot, fileIndex);
         connections.set(connectionId, connection);
-
-        ws.send(JSON.stringify({ type: 'init', connectionId }));
 
         ws.on('pong', () => {
             connection.pong();
