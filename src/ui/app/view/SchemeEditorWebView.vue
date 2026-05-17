@@ -105,7 +105,7 @@ import {stripAllHtml} from '../../../htmlSanitize';
 import EditorEventBus from '../../components/editor/EditorEventBus';
 import {diagramImageExporter} from '../../diagramExporter';
 import SchemioEditorWebApp from '../../components/SchemioEditorWebApp.vue';
-import { initWebSocketDocumentWatcher } from '../../websocketwatcher';
+import { createWebsocketDocumentWatcher } from '../../websocketwatcher';
 import { generateSchemePatch, applySchemePatch } from '../../scheme/SchemePatch';
 import { traverseItems } from '../../scheme/Item';
 
@@ -196,21 +196,24 @@ export default {
 
 
         if (this.schemeId) {
-            this.watcherWebSocket = initWebSocketDocumentWatcher(this.schemeId, (schemeId, content) => {
-                this.onDocumentWatcherUpdate(schemeId, content);
-            });
+            this.documentWatcher.watchDocument(this.schemeId);
         }
     },
 
     beforeDestroy() {
-        if (this.watcherWebSocket) {
-            this.watcherWebSocket.close();
+        if (this.documentWatcher) {
+            this.documentWatcher.close();
         }
     },
 
     created() {
         // WebSocket used for watching for updates to the diagrams
-        this.watcherWebSocket = null;
+        this.documentWatcher = createWebsocketDocumentWatcher({
+            url: `${document.location.protocol}//${document.location.host}`,
+            onUpdate: (docId, content) => {
+                this.onDocumentWatcherUpdate(docId, content);
+            }
+        });
     },
 
     data() {
@@ -309,6 +312,10 @@ export default {
         },
 
         onDocumentWatcherUpdate(schemeId, content) {
+            if (schemeId !== this.schemeId) {
+                return;
+            }
+
             const timeDiff = performance.now() - this.lastSaveTime;
             if (this.isSaving || timeDiff < DOCUMENT_UPDATE_WATCHER_MIN_TIME) {
                 return;

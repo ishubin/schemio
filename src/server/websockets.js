@@ -38,7 +38,7 @@ class Connection {
         this.docIds = new Set();
     }
 
-    openFile(schemeId) {
+    watchFile(schemeId) {
         console.log('got open msg', schemeId);
         if (!schemeId) {
             return;
@@ -51,21 +51,6 @@ class Connection {
         const docConnections = allOpenDocs.get(schemeId);
         if (!docConnections.includes(this.connectionId)) {
             docConnections.push(this.connectionId);
-        }
-        // Send current file content to the client using schemeId
-        try {
-            const doc = this.fileIndex.getDocumentFromIndex(schemeId);
-            if (doc && doc.fsPath) {
-                const absolutePath = toAbsolutePath(doc.fsPath, this.watchRoot);
-                const content = fs.readFileSync(absolutePath, 'utf8');
-                this.ws.send(JSON.stringify({
-                    type: 'content',
-                    schemeId,
-                    content
-                }));
-            }
-        } catch (err) {
-            // File might not exist yet, that's okay
         }
     }
 
@@ -204,8 +189,8 @@ export function createWebSocketServer(cfg, server, fileIndex) {
         ws.on('message', (msg) => {
             connection.lastUsed = new Date();
             const data = JSON.parse(msg);
-            if (data.type === 'openDocument') {
-                connection.openFile(data.schemeId);
+            if (data.type === 'watchDocument') {
+                connection.watchFile(data.schemeId);
             } else if (data.type === 'closeDocument') {
                 connection.closeFile(data.schemeId)
             }

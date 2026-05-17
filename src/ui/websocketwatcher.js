@@ -1,47 +1,41 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 
 
-class Connection {
-    constructor(socket, schemeId) {
-        this.socket = socket;
-        this.schemeId = schemeId;
-    }
-
-    openDocument() {
-        console.log('ws: opening document', this.schemeId);
-        this.socket.send(JSON.stringify({
-            type: 'openDocument',
-            schemeId: this.schemeId
-        }));
-    }
-
-    closeDocument() {
-        console.log('ws: closing document', this.schemeId);
-        this.socket.send(JSON.stringify({
-            type: 'closeDocument',
-            schemeId: this.schemeId
-        }));
-    }
+function socketOpenDocument(socket, docId) {
+    console.log('Opening document', docId);
+    socket.send(JSON.stringify({
+        type: 'watchDocument',
+        schemeId: docId
+    }));
 }
 
+function socketCloseDocument(socket, docId) {
+    console.log('Closing document', docId);
+    socket.send(JSON.stringify({
+        type: 'closeDocument',
+        schemeId: docId
+    }));
+}
 
-export function initWebSocketDocumentWatcher(schemeId, updateCallback) {
-    const wsUrl = document.location.protocol + '//' + document.location.host;
+export function createWebsocketDocumentWatcher(opts) {
+    const wsUrl = opts.url;
+    const updateCallback = opts.onUpdate || (() => {});
+    const docIds = new Set();
+
     const socket = new ReconnectingWebSocket(wsUrl, [], {
         maxReconnectionDelay: 30000,
         minReconnectionDelay: 1000,
-        reconnectionDelayGrowFactor: 2,
-        maxRetries: 10,
+        reconnectionDelayGrowFactor: 1.3,
+        maxRetries: Infinity,
         debug: false,
     });
 
-    const connection = new Connection(socket, schemeId);
-
     socket.onopen = () => {
         console.log('WebSocket connected');
-        connection.openDocument();
+        docIds.forEach(docId => {
+            socketOpenDocument(socket, docId);
+        });
     };
-
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
@@ -50,17 +44,22 @@ export function initWebSocketDocumentWatcher(schemeId, updateCallback) {
         }
     };
 
-    socket.onclose = () => {
-        console.log('websocket closed');
-    };
-
-    socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-    };
-
     return {
+        watchDocument(docId) {
+            docIds.add(docId);
+            socketOpenDocument(socket, docId);
+        },
+
+        closeDocument(docId) {
+            docIds.delete(docId);
+            socketCloseDocument(socket, docId);
+        },
+
         close() {
-            connection.closeDocument();
+            docIds.forEach(docId => {
+                socketCloseDocument(socket, docId);
+            });
+            docIds.clear();
             socket.close();
         }
     };

@@ -109,7 +109,7 @@ projectService.load()
     });
 
     const server = app.listen(config.serverPort, () => {
-        console.log(`Listening at http://localhost:${config.serverPort}`)
+        console.log(`Listening on port ${config.serverPort}`)
     });
 
     createWebSocketServer(config, server, fileIndex);
