@@ -25,6 +25,9 @@ import {InMemoryCache, LimitedSettingsStorage} from './LimitedSettingsStorage.js
 import { diagramImageExporter } from './diagramExporter.js';
 import { compileItemTemplate } from './components/editor/items/ItemTemplate.js';
 import ColorPicker from './components/editor/ColorPicker.vue';
+import { createWebsocketDocumentWatcher } from './websocketwatcher.js';
+
+
 
 window.Schemio = {
     components: {
@@ -40,6 +43,7 @@ window.Schemio = {
         getBoundingBoxOfItems,
         traverseItems,
         enrichSchemeWithDefaults,
+        createWebsocketDocumentWatcher,
         htmlSanitize,
         LimitedSettingsStorage,
         InMemoryCache,
