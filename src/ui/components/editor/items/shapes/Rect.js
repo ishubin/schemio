@@ -22,6 +22,8 @@ export default {
         // this will be the identifier that is specified with "shape" field in items
         id: 'rect',
 
+        description: 'A rectangle with support for rounded corners',
+
         // menuItems is used in order to display shape in the items menu (left panel)
         menuItems: [{
             group: 'Basic Shapes',

@@ -1,25 +1,25 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-    appVersion          : () => ipcRenderer.invoke('app:version'),
-    openProject         : () => ipcRenderer.invoke('project:open'),
-    selectProject       : (projectPath) => ipcRenderer.invoke('project:select', projectPath),
-    getProjectFileTree  : () =>  ipcRenderer.invoke('project:fileTree'),
-    readFile            : (filePath) => ipcRenderer.invoke('project:readFile', filePath),
-    writeDiagram        : (filePath, diagram) => ipcRenderer.invoke('project:writeDiagram', filePath, diagram),
-    createNewDiagram    : (folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', folderPath, diagram),
-    createNewFolder     : (parentPath, name) => ipcRenderer.invoke('project:createNewFolder', parentPath, name),
-    renameFolder        : (folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', folderPath, newFolderName),
-    renameDiagram       : (filePath, newName) => ipcRenderer.invoke('project:renameDiagram', filePath, newName),
-    moveFile            : (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
-    findDiagrams        : (query, page) => ipcRenderer.invoke('project:findDiagrams', query, page),
-    getDiagram          : (docId) => ipcRenderer.invoke('project:getDiagram', docId),
-    getDiagramInfo      : (docId) => ipcRenderer.invoke('project:getDiagramInfo', docId),
+    appVersion: () => ipcRenderer.invoke('app:version'),
+    openProject: () => ipcRenderer.invoke('project:open'),
+    selectProject: (projectPath) => ipcRenderer.invoke('project:select', projectPath),
+    getProjectFileTree: () => ipcRenderer.invoke('project:fileTree'),
+    readFile: (filePath) => ipcRenderer.invoke('project:readFile', filePath),
+    writeDiagram: (filePath, diagram) => ipcRenderer.invoke('project:writeDiagram', filePath, diagram),
+    createNewDiagram: (folderPath, diagram) => ipcRenderer.invoke('project:createNewDiagram', folderPath, diagram),
+    createNewFolder: (parentPath, name) => ipcRenderer.invoke('project:createNewFolder', parentPath, name),
+    renameFolder: (folderPath, newFolderName) => ipcRenderer.invoke('project:renameFolder', folderPath, newFolderName),
+    renameDiagram: (filePath, newName) => ipcRenderer.invoke('project:renameDiagram', filePath, newName),
+    moveFile: (filePath, newParentPath) => ipcRenderer.invoke('project:moveFile', filePath, newParentPath),
+    findDiagrams: (query, page) => ipcRenderer.invoke('project:findDiagrams', query, page),
+    getDiagram: (docId) => ipcRenderer.invoke('project:getDiagram', docId),
+    getDiagramInfo: (docId) => ipcRenderer.invoke('project:getDiagramInfo', docId),
 
 
     createArt: (name, url) => ipcRenderer.invoke('art:create', name, url),
     getAllArt: () => ipcRenderer.invoke('art:getAll'),
-    saveArt  : (artId, name, url) => ipcRenderer.invoke('art:save', artId, name, url),
+    saveArt: (artId, name, url) => ipcRenderer.invoke('art:save', artId, name, url),
     deleteArt: (artId) => ipcRenderer.invoke('art:delete', artId),
 
 
@@ -30,11 +30,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
     copyFileToProjectMedia: (fileName, arrayBuffer) => ipcRenderer.invoke('media:copyFileToProject', fileName, arrayBuffer),
-    uploadDiagramPreview  : (docId, preview) => ipcRenderer.invoke('media:uploadDiagramPreview', docId, preview),
+    uploadDiagramPreview: (docId, preview) => ipcRenderer.invoke('media:uploadDiagramPreview', docId, preview),
 
     settings: {
         save: (settings) => ipcRenderer.invoke('settings:save', settings),
         load: () => ipcRenderer.invoke('settings:load'),
+    },
+
+    watcher: {
+        startWatchingFile: (projectPath, filePath) => ipcRenderer.send('start-watching-file', projectPath, filePath),
+        stopWatchingFile: (projectPath, filePath) => ipcRenderer.send('stop-watching-file', projectPath, filePath),
+        onFileChanged: (callback) => ipcRenderer.on('file-changed', (event, {projectPath, filePath, content}) => callback(projectPath, filePath, content)),
     },
 
 
@@ -58,6 +64,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
         forgetLastOpenProject: (projectPath) => ipcRenderer.invoke('storage:forgetLastOpenProject', projectPath),
     },
 
-    $on: (channel, callback) =>  ipcRenderer.on(channel, callback),
-    $off: (channel, callback) =>  ipcRenderer.off(channel, callback),
+    $on: (channel, callback) => ipcRenderer.on(channel, callback),
+    $off: (channel, callback) => ipcRenderer.off(channel, callback),
 });

@@ -132,6 +132,7 @@ function cleanupConnection(connectionId) {
             }
         }
         connections.delete(connectionId);
+        connection.ws.close();
     }
 }
 
@@ -188,10 +189,28 @@ export function createWebSocketServer(cfg, server, fileIndex) {
 
         ws.on('message', (msg) => {
             connection.lastUsed = new Date();
-            const data = JSON.parse(msg);
+            let data = null;
+            try {
+                data = JSON.parse(msg);
+            } catch (err) {
+                console.error('Failed to parse websocket message', err);
+                return;
+            }
+
+            if (typeof data !== 'object' || typeof data.type !== 'string') {
+                console.error('Invalid websocket message: ', msg);
+                return;
+            }
+
             if (data.type === 'watchDocument') {
+                if (!data.schemeId) {
+                    return;
+                }
                 connection.watchFile(data.schemeId);
             } else if (data.type === 'closeDocument') {
+                if (!data.schemeId) {
+                    return;
+                }
                 connection.closeFile(data.schemeId)
             }
         });

@@ -36,8 +36,20 @@ export function createWebsocketDocumentWatcher(opts) {
             socketOpenDocument(socket, docId);
         });
     };
+
     socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        let data = null;
+        try {
+            data = JSON.parse(event.data);
+        } catch (err) {
+            console.error('Failed to parse websocket message', err);
+            return;
+        }
+
+        if (typeof data !== 'object' || typeof data.type !== 'string') {
+            console.error('Invalid websocket message: ', msg);
+            return;
+        }
 
         if (data.type === 'update') {
             updateCallback(data.schemeId, data.content);
