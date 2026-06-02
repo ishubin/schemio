@@ -846,14 +846,14 @@ mathBlock.setExpression('c = \\pm\\sqrt{a^{23} + b^{-12}}')
 
 ---
 
-## Textfield Functions
+## Value Functions
 
-Functions available only for textfield items:
+Functions available for modifying the "value" of the item, typically used by "textfield" shapes but could be used on any item.
 
 | Function | Description | Returns |
 |----------|-------------|---------|
-| `getValue()` | Get typed value | String |
-| `setValue(value)` | Set typed value | void |
+| `getValue()` | Get value | String |
+| `setValue(value)` | Set value | void |
 
 ---
 
