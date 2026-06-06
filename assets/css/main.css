@@ -44,7 +44,11 @@
     --accent-weak-up: oklch(96% 0.00921 var(--accent-hue));
 
     --complement-hue: 131;
+    --complement-strong-up-3: oklch(60% 0.12285 var(--complement-hue));
+    --complement-strong-up-2: oklch(55% 0.12285 var(--complement-hue));
+    --complement-strong-up: oklch(50% 0.12285 var(--complement-hue));
     --complement-strong: oklch(42% 0.11285 var(--complement-hue));
+    --complement-strong-down: oklch(38% 0.11285 var(--complement-hue));
     --complement-faint: oklch(86% 0.12369 var(--complement-hue));
     --complement-weak: oklch(98% 0.02238 var(--complement-hue));
 
@@ -136,6 +140,7 @@
     --accent-weak-up:   oklch(29% 0.05 252);
 
     --complement-strong:oklch(86% 0.092 126);
+    --complement-strong-down:oklch(75% 0.092 126);
     --complement-faint: oklch(52% 0.070 126);
     --complement-weak:  oklch(45% 0.012 126);
 
@@ -885,6 +890,24 @@ ul.tabs.tabs-file li .tab {
     background: var(--critic-faint);
     color: var(--base-weak);
     border: 1px solid var(--critic-faint);
+}
+.btn.btn-success, .btn.btn-success.disabled:hover {
+    background: var(--complement-strong-up-2);
+    color: var(--base-weak);
+    border: 1px solid var(--complement-strong);
+}
+.btn.btn-success:hover {
+    background: var(--complement-strong-up-3);
+    border-color: var(--complement-strong-up);
+}
+[data-theme="dark"] .btn.btn-success, [data-theme="dark"] .btn.btn-success.disabled:hover {
+    background: var(--complement-strong);
+    color: var(--base-weak);
+    border: 1px solid var(--complement-strong);
+    box-shadow: var(--shadow-s);
+}
+[data-theme="dark"] .btn.btn-success:hover {
+    background: var(--complement-strong-down);
 }
 
 .btn.disabled {
@@ -5860,4 +5883,41 @@ svg .editor-custom-area {
     align-items: center;
     margin-top: 5px;
     margin-bottom: 5px;
+}
+
+
+.document-update-notifier {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    max-width: 500px;
+    background: var(--faint-weak-down);
+    color: var(--base-strong);
+    padding: 10px;
+    border-radius: 0 0 10px 10px;
+    box-shadow: 1px 4px 10px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    animation: slideDown 0.7s ease-out forwards;
+}
+.document-update-notifier h4 {
+    margin: 0 0 10px 0;
+    text-align: center;
+}
+.document-update-notifier-buttons {
+    white-space: nowrap;
+    margin-top: 10px;
+}
+
+
+@keyframes slideDown {
+    0% {
+        top: -100%;
+        opacity: 0;
+    }
+    100% {
+        top: 0;
+        opacity: 1;
+    }
 }

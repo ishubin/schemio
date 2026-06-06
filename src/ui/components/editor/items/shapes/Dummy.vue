@@ -42,6 +42,8 @@ export default {
 
         id: 'dummy',
 
+        description: 'Uses to create invisible grouping of items in view mode or specify screen bounds',
+
         menuItems: [{
             group: 'General',
             name: 'Dummy',

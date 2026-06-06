@@ -2,9 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { defaultifyObject, enrichObjectWithDefaults } from '../../defaultify';
-import { defaultifyItem } from './Item';
+import { defaultifyItem, traverseItems } from './Item';
 import {map} from '../collections';
 import utils from '../utils';
+import { enrichItemWithDefaults } from './ItemFixer';
 
 const defaultScheme = {
     name: '',
@@ -56,13 +57,28 @@ const defaultScheme = {
 
 export function enrichSchemeWithDefaults(scheme) {
     enrichObjectWithDefaults(scheme, defaultScheme);
+
+    traverseItems(scheme.items, item => {
+        enrichItemWithDefaults(item);
+    });
 }
 
 export function defaultifyScheme(scheme) {
     const resultedScheme = defaultifyObject(scheme, defaultScheme);
 
-    resultedScheme.items = map(resultedScheme.items, item => defaultifyItem(item));
+    resultedScheme.items = defaultifyAllItems(resultedScheme.items || []);
     return resultedScheme;
+}
+
+
+function defaultifyAllItems(items) {
+    return map(items, item => {
+        const result = defaultifyItem(item);
+        if (Array.isArray(result.childItems)) {
+            result.childItems = defaultifyAllItems(result.childItems);
+        }
+        return result;
+    });
 }
 
 export function prepareSchemeForSaving(scheme) {

@@ -1,5 +1,6 @@
 name: Pie chart
-description: ""
+description: |
+  Generates Pie chart and has animation functions for chaning, adding and deleting of values
 args:
     data:
       group: Data

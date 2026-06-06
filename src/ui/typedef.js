@@ -229,6 +229,7 @@
  * @property {String|undefined} templateRef - id or path to template that was used to generate this item.
  *                                            Also works as an indicator that this item is a template root
  * @property {String|undefined} templateOriginalRef - used only when item is copied so that it marks the template which the item was originally generated with
+ * @property {Boolean|undefined} templated - a flag that specifies tha the item is templated
  * @property {String|undefined} templatedId - id that was created from the template. It is used to track the items after they were generated from template
  * @property {Object|undefined} templateArgs - args that were used for generating the templated item
  * @property {Boolean|undefined} templateForceText - flag forces templed item to update its textSlots
@@ -249,12 +250,18 @@
  * @typedef {Object} AutoLayoutRules
  * @property {Boolean} hcenter - horizontally centered if set to true
  * @property {Boolean} vcenter - vertically centered if set to true
- * @property {Number} left
- * @property {Number} right
- * @property {Number} top
- * @property {Number} bottom
- * @property {Number} width
- * @property {Number} height
+ * @property {Number} left - distance from parents left edge to items left edge
+ * @property {Number} relLeft - relative distance (percentage of the parents width) from parents left edge to items left edge
+ * @property {Number} right - distance from parents right edge to items right edge
+ * @property {Number} relRight - relative distance (percentage of the parents width) from parents right edge to items right edge
+ * @property {Number} top - distance from parents top edge to items top edge
+ * @property {Number} relTop - relative distance (percentage of the parents height) from parents top edge to items top edge
+ * @property {Number} bottom - distance from parents bottom edge to items bottom edge
+ * @property {Number} relBottom - relative distance (percentage of the parents height) from parents bottom edge to items bottom edge
+ * @property {Number} width - fixed width of the item
+ * @property {Number} relWidth - relative width of the item, percentage of the parents width
+ * @property {Number} height - fixed height of the item
+ * @property {Number} relHeight - relative height of the item, percentage of the parents height
  */
 
 /**

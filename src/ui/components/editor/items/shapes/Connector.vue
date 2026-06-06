@@ -1181,10 +1181,10 @@ export default {
 
             autoAttach: {type: 'boolean', value: true, name: 'Attach automatically', description: 'Let connector attach to other items. Disable this property if you don\'t want your connector to stick to other items'},
 
-            sourceItem             : {type: 'element',  value: null, name: 'Source Item', description: 'Attach this curve to an item as a source', hidden: true},
-            destinationItem        : {type: 'element',  value: null, name: 'Destination Item', description: 'Attach this curve to an item as a destination', hidden: true},
-            sourceItemPosition     : {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
-            destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this curve should be attached to', hidden: true},
+            sourceItem             : {type: 'element',  value: null, name: 'Source Item', description: 'Attach this connector to an item as a source', hidden: true},
+            destinationItem        : {type: 'element',  value: null, name: 'Destination Item', description: 'Attach this connector to an item as a destination', hidden: true},
+            sourceItemPosition     : {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this connector should be attached to', hidden: true},
+            destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this connector should be attached to', hidden: true},
             sourcePin              : {type: 'string', value: '', name: 'Source Item Pin', description: 'If non-empty it means that the connector is attached to a specific pin', hidden: true},
             destinationPin         : {type: 'string', value: '', name: 'Destination Item Pin', description: 'If non-empty it means that the connector is attached to a specific pin', hidden: true},
         },

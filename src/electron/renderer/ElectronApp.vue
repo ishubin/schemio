@@ -131,6 +131,18 @@
                 <option v-for="theme in settings.themeOptions" :value="theme">{{ theme }}</option>
             </select>
         </Modal>
+
+        <template v-if="currentOpenFileIdx >= 0 && currentOpenFileIdx < files.length && files[currentOpenFileIdx].updatedDoc">
+            <div class="document-update-notifier">
+                <h4><i class="fa-solid fa-triangle-exclamation"></i> Conflict Detected</h4>
+                The document was updated on the file system.
+                <div class="document-update-notifier-buttons">
+                    <span class="btn btn-primary" @click="updatedDocumentMerge(currentOpenFileIdx)"><i class="fa-solid fa-code-pull-request"></i> Merge changes</span>
+                    <span class="btn btn-success" @click="updatedDocumentKeepMine(currentOpenFileIdx)"><i class="fa-solid fa-check"></i> Keep mine (overwrite)</span>
+                    <span class="btn btn-danger" @click="updatedDocumentDiscardMyChanges(currentOpenFileIdx)"><i class="fa-solid fa-xmark"></i> Discard my changes</span>
+                </div>
+            </div>
+        </template>
     </div>
 </template>
 
@@ -152,6 +164,8 @@ import { stripAllHtml } from '../../htmlSanitize';
 import {registerElectronKeyEvents} from './keyboard.js';
 import {diagramImageExporter} from '../../ui/diagramExporter'
 import StoreUtils from '../../ui/store/StoreUtils.js';
+import { generateSchemePatch, applySchemePatch } from '../../ui/scheme/SchemePatch.js';
+import utils from '../../ui/utils.js';
 
 const fileHistories = new Map();
 
@@ -159,6 +173,7 @@ function initSchemioDiagramFile(originalFile) {
     const file = {
         ...originalFile,
         document: {},
+        originDoc: null,
         error: null,
         editorId: shortid.generate(),
         modified: false,
@@ -169,6 +184,7 @@ function initSchemioDiagramFile(originalFile) {
         historyRedoable: false,
         isSaving: false,
         itemsSelected: false,
+        updatedDoc: null, // the content that was updated on the backend
     };
 
     const history = new History({size: 30});
@@ -181,6 +197,7 @@ function initSchemioDiagramFile(originalFile) {
     }
 
     enrichSchemeWithDefaults(file.document);
+    file.originDoc = utils.clone(file.document);
     history.commit(file.document);
     return file;
 }
@@ -227,6 +244,7 @@ export default {
         window.electronAPI.$on('project-selected', this.onProjectSelected);
 
         window.electronAPI.settings.load().then(settings => this.loadSettings(settings));
+        window.electronAPI.watcher.onFileChanged((projectPath, filePath, content) => { this.onFileChangedOnTheBackend(projectPath, filePath, content) });
 
 
         window.electronAPI.storage.getLastOpenProjects().then(projects => {
@@ -332,6 +350,48 @@ export default {
     },
 
     methods: {
+        // triggered in case a file was changed on the file system
+        // and we need to refresh the editor
+        onFileChangedOnTheBackend(projectPath, filePath, content) {
+            const file = this.files.find(file => file.path === filePath);
+
+            if (!file) {
+                return;
+            }
+
+            const updatedDoc = JSON.parse(content);
+            enrichSchemeWithDefaults(updatedDoc);
+
+            if (!file.modified) {
+                EditorEventBus.schemeRebased.$emit(file.editorId, updatedDoc);
+                file.schemeReloadKey = shortid.generate();
+            } else {
+                file.updatedDoc = updatedDoc;
+            }
+        },
+
+        updatedDocumentMerge(fileIdx) {
+            const file = this.files[fileIdx];
+            const patch = generateSchemePatch(file.originDoc, file.document);
+            const mergedScheme = applySchemePatch(file.updatedDoc, patch);
+            enrichSchemeWithDefaults(mergedScheme);
+            file.document = mergedScheme;
+            EditorEventBus.schemeRebased.$emit(`scheme-${this.appReloadKey}`, mergedScheme);
+            file.schemeReloadKey = shortid.generate();
+            file.updatedDoc = null;
+        },
+
+        updatedDocumentKeepMine(fileIdx) {
+            this.files[fileIdx].updatedDoc = null;
+        },
+
+        updatedDocumentDiscardMyChanges(fileIdx) {
+            const file = this.files[fileIdx];
+            file.document = file.updatedDoc;
+            file.updatedDoc = null;
+            file.schemeReloadKey = shortid.generate();
+        },
+
         onStaticExporterStarted() {
             this.staticExporterModal.shown = true;
         },
@@ -409,6 +469,7 @@ export default {
                 file = initSchemioDiagramFile(file);
             }
             this.files.splice(newIdx, 0, file);
+            window.electronAPI.watcher.startWatchingFile(this.projectPath, file.path);
             this.$forceUpdate();
             return newIdx;
         },
@@ -528,6 +589,9 @@ export default {
             .then(preview => {
                 file.isSaving = false;
                 file.modified = false;
+
+                file.originDoc = utils.clone(file.document);
+
                 const entry = findEntryInFileTree(this.fileTree, file.path);
                 if (!entry) {
                     return;
@@ -573,6 +637,9 @@ export default {
                     this.focusFile(newFocusedIdx);
                 }
             }
+            const file = this.files[fileIdx];
+            window.electronAPI.watcher.stopWatchingFile(file.path);
+
             this.destroyFile(fileIdx);
             if (this.files.length === 0) {
                 window.electronAPI.menu.events.emitNoEditorDisplayed();

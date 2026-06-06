@@ -9,6 +9,8 @@ export default {
 
         id: 'ellipse',
 
+        description: 'A basic ellipse',
+
         menuItems: [{
             group: 'Basic Shapes',
             name: 'Ellipse',

@@ -1,5 +1,7 @@
 name: Maslow pyramid
 
+description: |
+  Generates a Maslow pyramid with adjustable layers
 
 args:
   levels: {type: number, value: 3, name: "Levels", min: 1, softMax: 10}

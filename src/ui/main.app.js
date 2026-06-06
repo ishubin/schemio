@@ -26,6 +26,7 @@ import { defaultStarterTemplates } from './components/editor/DefaultStarterTempl
 import utils from './utils.js';
 import { defaultItem } from './scheme/Item.js';
 import { enrichItemWithDefaults } from './scheme/ItemFixer.js';
+import Shape from './components/editor/items/shapes/Shape.js';
 
 const sanitizeHtml = require('sanitize-html');
 
@@ -49,6 +50,7 @@ window.schemioDebug = {
     processJSONTemplate,
     generateMapPatch,
     sanitizeHtml,
+    Shape,
     testEvalAST : (expr, data) => testAST(expr).evalNode(new Scope(data))
 };
 

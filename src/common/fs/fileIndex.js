@@ -50,6 +50,9 @@ export class FileIndex {
         }
     }
 
+    getDocumentIdByPath(filePath) {
+        return this.index.getDocumentIdByPath(filePath);
+    }
 
     deleteFile(filePath) {
         const docId = this.index.getDocumentIdByPath(filePath);

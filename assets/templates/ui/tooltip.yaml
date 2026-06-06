@@ -1,4 +1,8 @@
 name: Tooltip
+
+description:
+  Dynamic tooltip with pulsating icon that lets you open and hide a panel with additional information in your diagrams
+
 args:
   shape         : {type: 'choice', value: 'ellipse', options: ['ellipse', 'rect', 'npoly'], name: "Shape"}
   cornerRadius  : {type: 'number', value: 0, name: "Corner radius", depends: {shape: 'rect'}}

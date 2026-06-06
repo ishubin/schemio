@@ -268,6 +268,7 @@ export default {
             this.$emit('scheme-update-requested', scheme);
             this.appReloadKey = shortid.generate();
             this.modified = true;
+            this.$emit('scheme-modified', scheme);
             this.updateHistoryState();
         },
 
@@ -279,6 +280,7 @@ export default {
         onHistoryCommitted(scheme, affinityId) {
             this.histories.origin.commit(scheme, affinityId);
             this.modified = true;
+            this.$emit('scheme-modified', scheme);
             this.updateHistoryState();
         },
 
@@ -286,6 +288,7 @@ export default {
             this.histories.modified.commit(scheme, affinityId);
             this.modified = true;
             this.$emit('patched-history-committed', {scheme, affinityId});
+            this.$emit('scheme-modified', scheme);
             this.updateHistoryState();
         },
 

@@ -299,6 +299,20 @@ function getShapeArgs(shape) {
     return shape.args;
 }
 
+function getAllShapesInfo() {
+    const result = [];
+    forEach(shapeRegistry, (shapeId, shape) => {
+        const shapeProps = getShapeArgs(shape);
+        const shapeInfo = {
+            id: shapeId,
+            description: shape.description || "",
+            shapeProps: shapeProps,
+        }
+        result.push(shapeInfo);
+    });
+
+    return result;
+}
 
 export default {
     getShapeIds() {
@@ -317,5 +331,6 @@ export default {
     getShapePropDescriptor,
     getRegistry,
     getShapeArgs,
-    registerTemplatedShape
+    registerTemplatedShape,
+    getAllShapesInfo,
 };

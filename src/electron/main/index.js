@@ -12,6 +12,7 @@ const { createStyle, getStyles, deleteStyle } = require('./styles');
 const { createWindow } = require('./window');
 const nodeUrl = require('node:url');
 const { saveUserSettings, loadUserSettings } = require('./settings');
+const { cleanupAllFileWatchers, startWatchingFile, stopWatchingFile } = require('./watcher');
 
 getLastOpenProjects().then(projects => {
     if (Array.isArray(projects)) {
@@ -21,7 +22,7 @@ getLastOpenProjects().then(projects => {
     }
 });
 
-let  defaultMenuState = null;
+let defaultMenuState = null;
 const allWindowsMenuStates = new Map();
 
 const contextHolder = new ContextHolder();
@@ -64,7 +65,7 @@ app.whenReady().then(() => {
         return net.fetch(nodeUrl.pathToFileURL(fullPath).toString());
     });
 
-    createWindow(contextHolder);
+    const mainWindow = createWindow(contextHolder);
     ipcMain.handle('app:version', () => app.getVersion());
     ipcMain.handle('project:open', openProject(contextHolder));
     ipcMain.handle('project:select', selectProject(contextHolder));
@@ -99,6 +100,14 @@ app.whenReady().then(() => {
 
     ipcMain.handle('settings:save', (event, settings) => saveUserSettings(settings));
     ipcMain.handle('settings:load', (event) => loadUserSettings());
+
+    ipcMain.on('start-watching-file', (event, projectPath, filePath) => {
+        startWatchingFile(mainWindow, projectPath, filePath);
+    });
+    ipcMain.on('stop-watching-file', (event, projectPath, filePath) => {
+        stopWatchingFile(mainWindow, projectPath, filePath);
+    });
+
 
     app.on('activate', () => {
         // On OS X it's common to re-create a window in the app when the
@@ -142,6 +151,10 @@ app.whenReady().then(() => {
         }
     });
 
+    app.on('will-quit', () => {
+        cleanupAllFileWatchers();
+    });
+
     const retransmitToRenderer = (eventName) => {
         app.on(eventName, () => {
             const focusedWindow = BrowserWindow.getFocusedWindow();
@@ -153,21 +166,21 @@ app.whenReady().then(() => {
     }
 
     [
-      'file:openProject',
-      'history:undo',
-      'history:redo',
-      'edit:cut',
-      'edit:copy',
-      'edit:paste',
-      'edit:delete',
-      'edit:selectAll',
-      'edit:settings',
-      'view:zoomIn',
-      'view:zoomOut',
-      'view:resetZoom',
-      'file:exportAsJSON',
-      'file:exportAsPNG',
-      'file:exportAsSVG',
+        'file:openProject',
+        'history:undo',
+        'history:redo',
+        'edit:cut',
+        'edit:copy',
+        'edit:paste',
+        'edit:delete',
+        'edit:selectAll',
+        'edit:settings',
+        'view:zoomIn',
+        'view:zoomOut',
+        'view:resetZoom',
+        'file:exportAsJSON',
+        'file:exportAsPNG',
+        'file:exportAsSVG',
     ].forEach(retransmitToRenderer);
 });
 // Quit when all windows are closed, except on macOS. There, it's common
