@@ -2,7 +2,6 @@ import ReconnectingWebSocket from 'reconnecting-websocket';
 
 
 function socketOpenDocument(socket, docId) {
-    console.log('Opening document', docId);
     socket.send(JSON.stringify({
         type: 'watchDocument',
         schemeId: docId
@@ -10,7 +9,6 @@ function socketOpenDocument(socket, docId) {
 }
 
 function socketCloseDocument(socket, docId) {
-    console.log('Closing document', docId);
     socket.send(JSON.stringify({
         type: 'closeDocument',
         schemeId: docId
@@ -31,7 +29,6 @@ export function createWebsocketDocumentWatcher(opts) {
     });
 
     socket.onopen = () => {
-        console.log('WebSocket connected');
         docIds.forEach(docId => {
             socketOpenDocument(socket, docId);
         });
