@@ -344,7 +344,7 @@ export default {
         mode                : { type: String, default: 'edit' },
         textSelectionEnabled: {type: Boolean, default: false},
         // used for passing intercepted events in external component items
-        eventListener       : {type: Object, required: true},
+        eventListener       : {type: Object, required: false},
     },
     components: {AdvancedFill },
 
