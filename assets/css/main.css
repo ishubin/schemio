@@ -5892,7 +5892,7 @@ svg .editor-custom-area {
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
-    max-width: 500px;
+    max-width: 100%;
     background: var(--faint-weak-down);
     color: var(--base-strong);
     padding: 10px;
@@ -5901,6 +5901,18 @@ svg .editor-custom-area {
     text-align: center;
     animation: slideDown 0.7s ease-out forwards;
 }
+.document-update-notifier .icon-close {
+    opacity: 0.8;
+    display: inline-block;
+    position: absolute;
+    top: 3px;
+    right: 6px;
+    padding: 4px;
+    cursor: pointer;
+}
+.document-update-notifier .icon-close:hover {
+    opacity: 1.0;
+}
 .document-update-notifier h4 {
     margin: 0 0 10px 0;
     text-align: center;
@@ -5908,8 +5920,25 @@ svg .editor-custom-area {
 .document-update-notifier-buttons {
     white-space: nowrap;
     margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
 }
 
+@media (max-width: 600px) {
+    .document-update-notifier {
+        min-width: 80%;
+    }
+    .document-update-notifier-buttons {
+        flex-direction: column;
+        white-space: normal;
+    }
+    .document-update-notifier-buttons .btn {
+        width: 100%;
+        white-space: nowrap;
+    }
+}
 
 @keyframes slideDown {
     0% {

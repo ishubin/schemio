@@ -87,6 +87,7 @@
                 <span class="btn btn-success" @click="updatedDocumentKeepMine"><i class="fa-solid fa-check"></i> Keep mine (overwrite)</span>
                 <span class="btn btn-danger" @click="updatedDocumentDiscardMyChanges"><i class="fa-solid fa-xmark"></i> Discard my changes</span>
             </div>
+            <span class="icon-close" @click="updatedDocumentKeepMine"><i class="fas fa-times"></i></span>
         </div>
     </div>
 </template>

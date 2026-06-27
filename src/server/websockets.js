@@ -39,7 +39,6 @@ class Connection {
     }
 
     watchFile(schemeId) {
-        console.log('got open msg', schemeId);
         if (!schemeId) {
             return;
         }
@@ -101,14 +100,11 @@ function toAbsolutePath(relativePath, watchRoot) {
 function watchSchemioDocuments(watchRoot, fileIndex, callback) {
     const watcher = chokidar.watch(watchRoot, { ignored: /^\./ });
     watcher.on('change', (absolutePath) => {
-        console.log('file changed absolute path:', absolutePath);
         if (absolutePath.endsWith(schemioExtension)) {
             const relativePath = toRelativePath(absolutePath, watchRoot);
-            console.log('file changed relative path:', relativePath);
             const schemeId = fileIndex.getDocumentIdByPath(relativePath);
             if (schemeId) {
                 const content = fs.readFileSync(absolutePath, 'utf8');
-                console.log('document changed:', schemeId);
                 callback(schemeId, content);
             }
         }
@@ -139,17 +135,14 @@ function cleanupConnection(connectionId) {
 function broadcastFileUpdate(schemeId, content) {
     const docConnections = allOpenDocs.get(schemeId);
     if (docConnections && docConnections.length > 0) {
-        console.log('Found', docConnections.length, 'connections to docuemnt', schemeId);
         const message = JSON.stringify({
             type: 'update',
             schemeId,
             content
         });
         for (const connectionId of docConnections) {
-            console.log('con', connectionId);
             const connection = connections.get(connectionId);
             if (connection && connection.ws.readyState === WebSocket.OPEN) {
-                console.log('Sending update of', schemeId, ' to connection', connectionId);
                 connection.ws.send(message);
             }
         }
@@ -231,6 +224,4 @@ export function createWebSocketServer(cfg, server, fileIndex) {
             }
         }
     }, MAX_STALE_CONNECTIONS_TIMEOUT_SECONDS * 1000);
-
-    console.log('Created WebSocket server');
 }
