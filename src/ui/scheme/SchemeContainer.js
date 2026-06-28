@@ -2264,6 +2264,10 @@ class SchemeContainer {
             return;
         }
         log.info('rebasing edit box', this.editBox);
+        if (this.selectedItems.length === 0 && this.selectedConnectorPoints.length === 0) {
+            this.editBox = null;
+            return;
+        }
         const box = this.generateEditBox(this.selectedItems, this.selectedConnectorPoints);
         for (let key in box) {
             if (box.hasOwnProperty(key) && key !== 'id') {
