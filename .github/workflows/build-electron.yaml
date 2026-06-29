@@ -7,6 +7,10 @@ on:
         description: 'Node version'
         type: string
         default: 22.x
+      branch:
+        description: 'Branch to build from'
+        type: string
+        default: 'master'
 
 jobs:
   build-mac:
@@ -14,6 +18,8 @@ jobs:
     name: Build on MacOS
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - name: Use Node.js ${{ github.event.inputs.node_version }}
         uses: actions/setup-node@v3
         with:
@@ -67,6 +73,8 @@ jobs:
     name: Build on Linux
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - name: Use Node.js ${{ github.event.inputs.node_version }}
         uses: actions/setup-node@v3
         with:
@@ -89,6 +97,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
       - name: Use Node.js ${{ github.event.inputs.node_version }}
         uses: actions/setup-node@v3
         with:
