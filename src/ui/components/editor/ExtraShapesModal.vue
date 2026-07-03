@@ -223,9 +223,8 @@ export default {
 
         loadArtPack(artPackEntry) {
             this.isLoading = true;
-            return this.$store.state.apiClient.getShapeGroup(artPackEntry.ref).then(response => {
+            return this.$store.state.apiClient.getShapeGroup(artPackEntry.ref).then(artPack => {
                 this.isLoading = false;
-                const artPack = response.data;
                 if (artPackEntry.type === 'art') {
                     if (Array.isArray(artPack.icons)) {
                         artPack.icons.forEach(icon => {

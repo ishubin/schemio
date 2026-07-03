@@ -13,6 +13,7 @@ const { createWindow } = require('./window');
 const nodeUrl = require('node:url');
 const { saveUserSettings, loadUserSettings } = require('./settings');
 const { cleanupAllFileWatchers, startWatchingFile, stopWatchingFile } = require('./watcher');
+const { getShapes, getShapeGroup, getGlobalArt } = require('./shapes');
 
 getLastOpenProjects().then(projects => {
     if (Array.isArray(projects)) {
@@ -92,6 +93,10 @@ app.whenReady().then(() => {
     ipcMain.handle('style:create', createStyle(contextHolder));
     ipcMain.handle('style:getAll', getStyles(contextHolder));
     ipcMain.handle('style:delete', deleteStyle(contextHolder));
+
+    ipcMain.handle('shapes:getShapes', getShapes);
+    ipcMain.handle('shapes:getShapeGroup', getShapeGroup);
+    ipcMain.handle('shapes:getGlobalArt', getGlobalArt);
 
     ipcMain.handle('menu:showContextMenu', showContextMenu);
 
