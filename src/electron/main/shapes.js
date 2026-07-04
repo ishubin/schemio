@@ -8,21 +8,28 @@ export function getShapes(event) {
 const ASSET_PREFIX = '/assets/';
 const MEDIA_PREFIX = 'media://assets/';
 export function getShapeGroup(event, ref) {
-    if (ref.startsWith(ASSET_PREFIX)) {
-        ref = ref.substring(ASSET_PREFIX.length);
-    } else if (ref.startsWith(MEDIA_PREFIX)) {
-        ref = ref.substring(MEDIA_PREFIX.length);
-    } else {
-        throw new Error('Invalid asset location:', ref);
-    }
     return readJSONAsset(ref);
 }
 
-export function getGlobalArt(event) {
+export function getGlobalArt() {
     return readJSONAsset('art/art.json');
 }
 
+export function getAllTemplates() {
+    return readJSONAsset('templates/index.json');
+}
+
+export function getTemplate(event, ref) {
+    return readJSONAsset(ref);
+}
+
 function readJSONAsset(assetPath) {
+    if (assetPath.startsWith(ASSET_PREFIX)) {
+        assetPath = assetPath.substring(ASSET_PREFIX.length);
+    } else if (assetPath.startsWith(MEDIA_PREFIX)) {
+        assetPath = assetPath.substring(MEDIA_PREFIX.length);
+    }
+
     const fullPath = nodeUrl.pathToFileURL(`./assets/${assetPath}`).toString();
     return net.fetch(fullPath)
     .then(response => response.json())

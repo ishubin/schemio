@@ -31,6 +31,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getGlobalArt: () => ipcRenderer.invoke('shapes:getGlobalArt'),
     getShapeGroup: (ref) => ipcRenderer.invoke('shapes:getShapeGroup', ref),
 
+    getAllTemplates: () => ipcRenderer.invoke('templates:getAllTemplates'),
+    getTemplate: (ref) => ipcRenderer.invoke('templates:getTemplate', ref),
+
     navigatorOpenContextMenuFile: (file) => ipcRenderer.invoke('navigator:contexMenuFile', file),
 
     copyFileToProjectMedia: (fileName, arrayBuffer) => ipcRenderer.invoke('media:copyFileToProject', fileName, arrayBuffer),

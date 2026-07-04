@@ -43,6 +43,14 @@ export function electronAPICLient() {
             return window.electronAPI.getGlobalArt();
         },
 
+        getAllTemplates() {
+            return window.electronAPI.getAllTemplates();
+        },
+
+        getTemplate(ref) {
+            return window.electronAPI.getTemplate(ref);
+        },
+
         getShapeGroup(ref) {
             return window.electronAPI.getShapeGroup(ref);
         },
