@@ -1,4 +1,3 @@
-import axios from "axios";
 import { traverseItems } from "../../../../scheme/Item";
 import StoreUtils from "../../../../store/StoreUtils";
 import Shape from "./Shape";
@@ -11,7 +10,7 @@ export function registerExternalShapeGroup($store, shapeGroupId, shapeGroup) {
     //TODO validate shapeGroup JSON schema
 
     if (typeof shapeGroup !== 'object' || !Array.isArray(shapeGroup.shapes)) {
-        throw new Error(`Invalid shape group in ${url}`);
+        throw new Error(`Invalid shape group in ${shapeGroupId}`);
     }
 
     shapeGroup.shapes.forEach(shapeDef => {
@@ -50,11 +49,8 @@ function loadAllMissingShapes(shapeIds, $store) {
         return Promise.resolve(null);
     }
 
-    const assetsPath = $store.state.assetsPath || '/assets';
-    const separator = assetsPath.endsWith('/') ? '' : '/';
-    return axios.get(`${assetsPath}${separator}shapes/shapes.json`)
-    .then(response => {
-        const shapeGroups = response.data;
+    return $store.state.apiClient.getShapes()
+    .then(shapeGroups => {
         if (!shapeGroups) {
             return null;
         }
@@ -64,13 +60,12 @@ function loadAllMissingShapes(shapeIds, $store) {
         });
 
         return Promise.all(Array.from(shapeGroupIds).map(shapeGroupId => {
-            const shapeGroup = shapeGroupIndex.get(shapeGroupId);
-            if (!shapeGroup) {
+            const shapeGroupEntry = shapeGroupIndex.get(shapeGroupId);
+            if (!shapeGroupEntry) {
                 return Promise.resolve(null);
             }
-            return axios.get(shapeGroup.ref).then(response => {
-                const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
-                registerExternalShapeGroup($store, shapeGroupId, data);
+            return $store.state.apiClient.getShapeGroup(shapeGroupEntry.ref).then(shapeGroup => {
+                registerExternalShapeGroup($store, shapeGroupId, shapeGroup);
             });
         }))
     });
