@@ -583,7 +583,7 @@ export default {
                 console.error(err);
                 return null;
             }).then(preview => {
-                return window.electronAPI.writeDiagram(file.path, document)
+                return window.electronAPI.writeDiagram(file.path, utils.clone(document))
                 .then(() => preview);
             })
             .then(preview => {
@@ -638,7 +638,7 @@ export default {
                 }
             }
             const file = this.files[fileIdx];
-            window.electronAPI.watcher.stopWatchingFile(file.path);
+            window.electronAPI.watcher.stopWatchingFile(this.projectPath, file.path);
 
             this.destroyFile(fileIdx);
             if (this.files.length === 0) {
