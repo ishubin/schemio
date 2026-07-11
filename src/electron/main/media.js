@@ -20,7 +20,8 @@ export function copyFileToProjectMedia(contextHolder) {
         const firstPart = path.join(...pathParts);
 
         const id = nanoid(6);
-        const mediaFileName = `${fileName}-${id}.${extension}`;
+        const sanitizedFileName = fileName.replace(/[^a-z0-9]/gi, '-')
+        const mediaFileName = `${sanitizedFileName}-${id}.${extension}`;
 
         const mediaStoragePath = path.join(projectPath, mediaFolder);
         const folderPath = path.join(mediaStoragePath, firstPart);
