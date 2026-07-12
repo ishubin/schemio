@@ -32,8 +32,17 @@ function readJSONAsset(assetPath) {
         assetPath = assetPath.substring(MEDIA_PREFIX.length);
     }
 
-    const assetsDir = path.join(app.getAppPath(), 'assets');
-    const fullPath = path.join(assetsDir, assetPath);
+    let baseDir;
+    if (app.isPackaged) {
+        // In production, assets are in .webpack/renderer/assets
+        baseDir = path.join(app.getAppPath(), '.webpack', 'renderer', 'assets');
+    } else {
+        // In development, assets are in assets
+        baseDir = path.join(app.getAppPath(), 'assets');
+    }
+
+    const fullPath = path.join(baseDir, assetPath);
+
 
     try {
         const data = fs.readFileSync(fullPath, 'utf8');
