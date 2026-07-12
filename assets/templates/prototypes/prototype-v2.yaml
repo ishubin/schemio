@@ -19,6 +19,13 @@ handlers:
   delete: onDeleteItem(itemId)
   connect: onConnectItems(connector)
 
+
+assets:
+  phone: templates/prototypes/phone.svg
+  desktop: templates/prototypes/desktop.svg
+
+
+
 description: |
   Helps design a basic app prototype with multiple pages.
   Each page has an "Open Page" event that, when triggered, brings the page to the front.
@@ -111,7 +118,7 @@ editor:
             shape: 'image'
             area: {x: 0, y: 5, w: 90, h: 80}
             shapeProps:
-              image: /assets/templates/prototypes/phone.svg
+              image: $templateAssets.get('phone')
               fill: { type: none }
               strokeSize: 0
 
@@ -121,7 +128,7 @@ editor:
             shape: 'image'
             area: {x: 0, y: 5, w: 90, h: 80, r: -90}
             shapeProps:
-              image: /assets/templates/prototypes/phone.svg
+              image: $templateAssets.get('phone')
               fill: { type: none }
               strokeSize: 0
 
@@ -131,7 +138,7 @@ editor:
             shape: 'image'
             area: {x: 0, y: 5, w: 90, h: 90}
             shapeProps:
-              image: /assets/templates/prototypes/desktop.svg
+              image: $templateAssets.get('desktop')
               fill: { type: none }
               strokeSize: 0
 

@@ -139,6 +139,7 @@ function parseTemplateExpressionBlock(expressions) {
  * @param {ItemTemplate} template
  * @param {String} templateRef
  * @param {SchemeContainer} schemeContainer
+ * @param {String} assetsPath
  * @returns {CompiledItemTemplate}
  */
 export function compileItemTemplate(editorId, template, templateRef, schemeContainer) {
@@ -149,6 +150,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
         }
     }
 
+    const templateAssets = convertAssets(template.assets, schemeContainer.assetsPath);
 
     const initBlock = toExpressionBlock(template.init);
     const compiledControlBuilder = compileJSONTemplate({
@@ -222,6 +224,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                 ...defaultArgs,
                 ...jsObjectToSchemioScript(rootItem.args.templateArgs),
                 ...createTemplateFunctions(editorId, rootItem, schemeContainer),
+                templateAssets,
                 width: rootItem.area.w,
                 height: rootItem.area.h,
                 context: new TemplateContext(ContextPhases.EVENT, eventName, rootItem.id)
@@ -287,19 +290,22 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                 return itemPostBuilder({
                     ...createTemplateFunctions(editorId, null, schemeContainer),
                     ...jsObjectToSchemioScript(args), width, height,
+                    templateAssets,
                     context: new TemplateContext(ContextPhases.POST_BUILD, null, '')
                 }).item;
             }
             return itemBuilder({
                 ...createTemplateFunctions(editorId, null, schemeContainer),
                 ...jsObjectToSchemioScript(args), width, height,
+                templateAssets,
                 context: new TemplateContext(ContextPhases.BUILD, null, '')
             }).item;
         },
 
         buildEditor: (templateRootItem, args, width, height, selectedItemIds) => {
             return buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, {
-                ...jsObjectToSchemioScript(args), width, height
+                ...jsObjectToSchemioScript(args), width, height,
+                templateAssets,
             }, selectedItemIds, cachedCompiledExpressions, schemeContainer);
         },
 
@@ -307,6 +313,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
             return compiledControlBuilder({
                     ...createTemplateFunctions(editorId, null, schemeContainer),
                     ...jsObjectToSchemioScript(args), width, height,
+                    templateAssets,
                     context: new TemplateContext(ContextPhases.EVENT, 'control', '')
                 }).controls.map(control => {
 
@@ -331,6 +338,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                         return eventExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
+                            templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                             value,
@@ -348,6 +356,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                         return eventExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
+                            templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                             option,
@@ -364,6 +373,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                         return eventExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
+                            templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                         });
@@ -382,6 +392,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                         const options = providerExecutor({
                             ...createTemplateFunctions(editorId, item, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
+                            templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
                             control,
                         });
@@ -744,4 +755,24 @@ function prepareDocTemplateItem(rootItem) {
         }
     });
     return itemClone;
+}
+
+/**
+ *
+ * @param {Object} templateAssets
+ * @param {String} assetsPath
+ * @returns
+ */
+function convertAssets(templateAssets, assetsPath) {
+    const assets = new Map();
+
+    forEachObject(templateAssets || {}, (asset, key) => {
+        let separator = '';
+        if (!assetsPath.endsWith('/') && !asset.startsWith('/')) {
+            separator = '/';
+        }
+        assets.set(key, assetsPath + separator + asset);
+    });
+
+    return assets;
 }
