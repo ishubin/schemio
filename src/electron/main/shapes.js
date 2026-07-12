@@ -1,5 +1,7 @@
-const { net } = require('electron');
 const nodeUrl = require('node:url');
+const { app } = require('electron');
+const path    = require('path');
+const fs      = require('fs');
 
 export function getShapes(event) {
     return readJSONAsset('shapes/shapes.json');
@@ -30,11 +32,14 @@ function readJSONAsset(assetPath) {
         assetPath = assetPath.substring(MEDIA_PREFIX.length);
     }
 
-    const fullPath = nodeUrl.pathToFileURL(`./assets/${assetPath}`).toString();
-    return net.fetch(fullPath)
-    .then(response => response.json())
-    .catch(err => {
+    const assetsDir = path.join(app.getAppPath(), 'assets');
+    const fullPath = path.join(assetsDir, assetPath);
+
+    try {
+        const data = fs.readFileSync(fullPath, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
         console.error('Failed to read asset', assetPath, err);
         throw err;
-    });
+    }
 }
