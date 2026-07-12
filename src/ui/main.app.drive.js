@@ -38,12 +38,14 @@ function route(name, path, component, props) {
 const routes = [
     route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {
         clientProvider: googleDriveClientProvider,
+        websocketEnabled: false,
         userStylesEnabled: false,
         projectArtEnabled: false,
         starterTemplates: defaultStarterTemplates
     }),
     route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {
         clientProvider: offlineClientProvider,
+        websocketEnabled: false,
         isOfflineEditor: true,
         userStylesEnabled: false,
         projectArtEnabled: false,

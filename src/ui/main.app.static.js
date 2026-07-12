@@ -41,8 +41,18 @@ window.createSchemioStaticApp = function (options) {
 
 
     const routes = [
-        route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {clientProvider: staticClientProvider, editAllowed}),
-        route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {clientProvider: offlineClientProvider, isOfflineEditor: true, userStylesEnabled: false, projectArtEnabled: false}),
+        route('SchemeEditorWebView',       '/docs/:schemeId',   SchemeEditorWebView, {
+            clientProvider  : staticClientProvider,
+            websocketEnabled: false,
+            editAllowed
+        }),
+        route('OfflineSchemeEditorWebView','/offline-editor',   SchemeEditorWebView, {
+            clientProvider   : offlineClientProvider,
+            websocketEnabled : false,
+            isOfflineEditor  : true,
+            userStylesEnabled: false,
+            projectArtEnabled: false
+        }),
         route('AboutView',              '/about',            AboutView),
         route('NotFoundView',           '/not-found',        NotFoundView),
         route('HomeView',               '/',                 FolderView, {clientProvider: staticClientProvider}),
