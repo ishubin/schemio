@@ -273,9 +273,8 @@ export default {
         registerShapeGroup(shapeGroup) {
             this.isLoading = true;
             return this.$store.state.apiClient.getShapeGroup(shapeGroup.ref)
-            .then(response => {
+            .then(data => {
                 this.isLoading = false;
-                const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
                 registerExternalShapeGroup(this.$store, shapeGroup.id, data);
                 this.$emit('extra-shapes-registered');
                 shapeGroup.used = true;

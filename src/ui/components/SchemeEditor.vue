@@ -1435,6 +1435,7 @@ export default {
                 this.state = 'connecting';
                 this.states['connecting'].setItem(item);
             } else {
+                enrichItemWithDefaults(item);
                 this.state = 'createItem';
             }
             this.states[this.state].schemeContainer = this.schemeContainer;

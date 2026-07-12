@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAllTemplates, getExportHTMLResources, getTemplate, unwrapAxios } from "./clientCommons";
+import { getAllTemplates, getExportHTMLResources, getGlobalArt, getShapeGroup, getShapes, getTemplate, unwrapAxios } from "./clientCommons";
 
 export const offlineClientProvider = {
     type: 'offline',
@@ -11,6 +11,10 @@ export const offlineClientProvider = {
                 window.localStorage.setItem('offlineScheme', JSON.stringify(scheme));
                 return Promise.resolve(scheme);
             },
+
+            getShapes,
+            getShapeGroup,
+            getGlobalArt,
 
             getAllTemplates,
             getTemplate,

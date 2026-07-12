@@ -1,4 +1,4 @@
-import { getAllTemplates, getExportHTMLResources, getTemplate, unwrapAxios } from "./clientCommons";
+import { getAllTemplates, getExportHTMLResources, getGlobalArt, getShapeGroup, getShapes, getTemplate, unwrapAxios } from "./clientCommons";
 import {forEach, map} from "../../collections";
 import { getCachedSchemeInfo, schemeSearchCacher } from "./clientCache";
 import { encode } from 'js-base64';
@@ -236,6 +236,9 @@ export const googleDriveClientProvider = {
                     });
                 },
 
+                getShapes,
+                getShapeGroup,
+                getGlobalArt,
                 getAllTemplates,
                 getTemplate,
 
