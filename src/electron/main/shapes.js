@@ -18,7 +18,15 @@ export function getGlobalArt() {
 }
 
 export function getAllTemplates() {
-    return readJSONAsset('templates/index.json');
+    const templates = readJSONAsset('templates/index.json');
+    if (Array.isArray(templates)) {
+        templates.forEach(template => {
+            if (typeof template.preview === 'string' && template.preview.startsWith(ASSET_PREFIX)) {
+                template.preview = MEDIA_PREFIX + template.preview.substring(ASSET_PREFIX.length);
+            }
+        });
+    }
+    return templates;
 }
 
 export function getTemplate(event, ref) {
