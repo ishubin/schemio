@@ -26,7 +26,7 @@
                         <h1>Schemio</h1>
                         <p class="welcome-caption">
                             Building interactive diagrams
-                            <span class="app-version" v-if="appVersion">version {{appVersion}}</span>
+                            <span class="app-version" v-if="appVersion">version {{appVersion}} ({{ gitRevision }})</span>
                         </p>
 
                         <span class="link with-icon" @click="openProject"><i class="icon fa-regular fa-folder-open"></i> Open Project...</span>
@@ -166,6 +166,7 @@ import {diagramImageExporter} from '../../ui/diagramExporter'
 import StoreUtils from '../../ui/store/StoreUtils.js';
 import { generateSchemePatch, applySchemePatch } from '../../ui/scheme/SchemePatch.js';
 import utils from '../../ui/utils.js';
+import { GIT_REVISION } from '../../git-revision.js';
 
 const fileHistories = new Map();
 
@@ -289,6 +290,7 @@ export default {
     data() {
         return {
             appVersion: '',
+            gitRevision: GIT_REVISION,
             projectPath: null,
             projectName: null,
             fileTree: null,
@@ -583,7 +585,7 @@ export default {
                 console.error(err);
                 return null;
             }).then(preview => {
-                return window.electronAPI.writeDiagram(file.path, document)
+                return window.electronAPI.writeDiagram(file.path, utils.clone(document))
                 .then(() => preview);
             })
             .then(preview => {
@@ -638,7 +640,7 @@ export default {
                 }
             }
             const file = this.files[fileIdx];
-            window.electronAPI.watcher.stopWatchingFile(file.path);
+            window.electronAPI.watcher.stopWatchingFile(this.projectPath, file.path);
 
             this.destroyFile(fileIdx);
             if (this.files.length === 0) {

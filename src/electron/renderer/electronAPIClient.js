@@ -35,6 +35,26 @@ export function electronAPICLient() {
             });
         },
 
+        getShapes() {
+            return window.electronAPI.getShapes();
+        },
+
+        getGlobalArt() {
+            return window.electronAPI.getGlobalArt();
+        },
+
+        getAllTemplates() {
+            return window.electronAPI.getAllTemplates();
+        },
+
+        getTemplate(ref) {
+            return window.electronAPI.getTemplate(ref);
+        },
+
+        getShapeGroup(ref) {
+            return window.electronAPI.getShapeGroup(ref);
+        },
+
         getScheme(docId) {
             return window.electronAPI.getDiagram(docId);
         },

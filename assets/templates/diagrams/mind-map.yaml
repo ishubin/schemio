@@ -30,6 +30,49 @@ controls:
 -   $-foreach: {source: "controls", it: "control"}
     $-extend: {$-expr: "toJSON(control)"}
 
+
+assets:
+    "search": "art/google-cloud/bigquery/bigquery.svg"
+    "time": "art/azure/General/10006-icon-service-Recent.svg"
+    "cloud": "art/google-cloud/my_cloud/my_cloud.svg"
+    "check": "art/icons/check.svg"
+    "cross": "art/icons/cross.svg"
+    "depressed": "art/icons/depressed.svg"
+    "emoji-angry": "art/icons/emoji-angry.svg"
+    "emoji-angry-2": "art/icons/emoji-angry-2.svg"
+    "emoji-cry": "art/icons/emoji-cry.svg"
+    "emoji-dead": "art/icons/emoji-dead.svg"
+    "emoji-hah": "art/icons/emoji-hah.svg"
+    "emoji-happy": "art/icons/emoji-happy.svg"
+    "emoji-heart": "art/icons/emoji-heart.svg"
+    "emoji-puke": "art/icons/emoji-puke.svg"
+    "emoji-rest": "art/icons/emoji-rest.svg"
+    "emoji-rest-2": "art/icons/emoji-rest-2.svg"
+    "emoji-rich": "art/icons/emoji-rich.svg"
+    "emoji-smile": "art/icons/emoji-smile.svg"
+    "emoji-smile-2": "art/icons/emoji-smile-2.svg"
+    "emoji-suprised": "art/icons/emoji-suprised.svg"
+    "emoji-tired": "art/icons/emoji-tired.svg"
+    "emoji-wow": "art/icons/emoji-wow.svg"
+    "heart": "art/icons/heart.svg"
+    "number-0": "art/icons/number-0.svg"
+    "number-1": "art/icons/number-1.svg"
+    "number-2": "art/icons/number-2.svg"
+    "number-3": "art/icons/number-3.svg"
+    "number-4": "art/icons/number-4.svg"
+    "number-5": "art/icons/number-5.svg"
+    "number-6": "art/icons/number-6.svg"
+    "number-7": "art/icons/number-7.svg"
+    "number-8": "art/icons/number-8.svg"
+    "number-9": "art/icons/number-9.svg"
+    "question": "art/icons/question.svg"
+    "size-l": "art/icons/size-l.svg"
+    "size-m": "art/icons/size-m.svg"
+    "size-s": "art/icons/size-s.svg"
+    "size-xl": "art/icons/size-xl.svg"
+    "size-xs": "art/icons/size-xs.svg"
+    "warn": "art/icons/warn.svg"
+
 editor:
     panels:
 

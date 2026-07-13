@@ -76,7 +76,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import Modal from '../Modal.vue';
 import {generateShapeId, registerExternalShapeGroup} from './items/shapes/ExtraShapes';
 import StoreUtils from '../../store/StoreUtils';
@@ -104,15 +103,9 @@ export default {
 
     beforeCreate() {
         this.isLoading = true;
-        const routePrefix = this.$store.state.routePrefix;
-        const assetsPath = this.$store.state.assetsPath || ASSETS_PREFIX;
-        const separator = assetsPath.endsWith('/') ? '' : '/';
-
-        const version = __BUILD_VERSION__;
-
         Promise.all([
-            axios.get(`${routePrefix}${assetsPath}${separator}shapes/shapes.json?_v=${version}`).then(response => response.data),
-            axios.get(`${routePrefix}${assetsPath}${separator}art/art.json?_v=${version}`).then(response => response.data),
+            this.$store.state.apiClient.getShapes(),
+            this.$store.state.apiClient.getGlobalArt(),
         ])
         .then(([shapes, artEntries]) => {
             this.isLoading = false;
@@ -230,13 +223,8 @@ export default {
 
         loadArtPack(artPackEntry) {
             this.isLoading = true;
-            let url = artPackEntry.ref;
-            if (url.startsWith('/assets') && this.$store.state.routePrefix) {
-                url = this.$store.state.routePrefix + url;
-            }
-            return axios.get(url).then(response => {
+            return this.$store.state.apiClient.getShapeGroup(artPackEntry.ref).then(artPack => {
                 this.isLoading = false;
-                const artPack = response.data;
                 if (artPackEntry.type === 'art') {
                     if (Array.isArray(artPack.icons)) {
                         artPack.icons.forEach(icon => {
@@ -283,15 +271,10 @@ export default {
         },
 
         registerShapeGroup(shapeGroup) {
-            let url = shapeGroup.ref;
-            if (url.startsWith('/assets') && this.$store.state.routePrefix) {
-                url = this.$store.state.routePrefix + url;
-            }
             this.isLoading = true;
-            return axios.get(url)
-            .then(response => {
+            return this.$store.state.apiClient.getShapeGroup(shapeGroup.ref)
+            .then(data => {
                 this.isLoading = false;
-                const data = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
                 registerExternalShapeGroup(this.$store, shapeGroup.id, data);
                 this.$emit('extra-shapes-registered');
                 shapeGroup.used = true;

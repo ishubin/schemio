@@ -43,6 +43,22 @@ export function getTextIconsIndex() {
 }
 
 
+export function getShapes() {
+    const version = __BUILD_VERSION__;
+    const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+    return axios.get(`${routePrefix}/assets/shapes/shapes.json?_v=${version}`).then(unwrapAxios);
+}
+
+export function getGlobalArt() {
+    const version = __BUILD_VERSION__;
+    const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+    return axios.get(`${routePrefix}/assets/art/art.json?_v=${version}`).then(unwrapAxios);
+}
+
 export function getTemplate(path) {
     return templateCache.get(path, () => axios.get(path).then(unwrapAxios));
+}
+
+export function getShapeGroup(path) {
+    return axios.get(path).then(unwrapAxios);
 }

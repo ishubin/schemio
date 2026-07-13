@@ -131,7 +131,8 @@ export default {
     },
 
     props: {
-        clientProvider: {type: Object,  required: true},
+        clientProvider   : {type: Object,  required: true},
+        websocketEnabled : {type: Boolean, default: true},
         isOfflineEditor  : {type: Boolean, default: false},
         editAllowed      : {type: Boolean, default: true},
         userStylesEnabled: {type: Boolean, default: true},
@@ -196,7 +197,7 @@ export default {
         });
 
 
-        if (this.schemeId) {
+        if (this.schemeId && this.documentWatcher) {
             this.documentWatcher.watchDocument(this.schemeId);
         }
     },
@@ -209,12 +210,14 @@ export default {
 
     created() {
         // WebSocket used for watching for updates to the diagrams
-        this.documentWatcher = createWebsocketDocumentWatcher({
-            url: `${document.location.protocol}//${document.location.host}`,
-            onUpdate: (docId, content) => {
-                this.onDocumentWatcherUpdate(docId, content);
-            }
-        });
+        if (this.websocketEnabled && !this.isOfflineEditor) {
+            this.documentWatcher = createWebsocketDocumentWatcher({
+                url: `${document.location.protocol}//${document.location.host}`,
+                onUpdate: (docId, content) => {
+                    this.onDocumentWatcherUpdate(docId, content);
+                }
+            });
+        }
     },
 
     data() {

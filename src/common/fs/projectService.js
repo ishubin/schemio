@@ -13,19 +13,14 @@ export class ProjectService {
      * @param {string} projectPath
      * @param {boolean} isElectron
      * @param {Object} imagePrefixConversions
-     * @param {Object} persistentImageConversions
      */
-    constructor(projectPath, isElectron, imagePrefixConversions, persistentImageConversions) {
+    constructor(projectPath, isElectron, imagePrefixConversions) {
         this.fileIndex = new FileIndex(projectPath, isElectron, (filePath) => this.readFile(filePath));
 
         // uses the following map in order to convert all image references to project media
         // either from electron to fs or from fs to electron
-        this.imagePrefixConversions = imagePrefixConversions;
+        this.imagePrefixConversions = null;
 
-        // the following image conversions are used when saving diagram.
-        // This is needed so that a diagram is always saved in the same format
-        // Only electron based version of Schemio will have this
-        this.persistentImageConversions = persistentImageConversions;
         this.projectPath = projectPath;
     }
 
@@ -79,13 +74,9 @@ export class ProjectService {
         const fullPath = path.join(this.projectPath, filePath);
         return Promise.resolve()
         .then(() => {
-            let updatedDiagram = diagram;
-            if (this.persistentImageConversions) {
-                updatedDiagram = convertDiagram(diagram, this.persistentImageConversions);
-            }
-            return JSON.stringify(updatedDiagram);
+            const content = JSON.stringify(diagram);
+            return fs.writeFile(fullPath, content, {encoding: 'utf-8'});
         })
-        .then(content => fs.writeFile(fullPath, content, {encoding: 'utf-8'}))
         .then(() => {
             return {
                 name: diagram.name,

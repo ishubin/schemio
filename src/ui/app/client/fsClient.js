@@ -7,6 +7,7 @@ export const fsClientProvider = {
     type: 'fs',
     create() {
         const routePrefix = document.body.getAttribute('data-route-prefix') || '';
+        const version = __BUILD_VERSION__;
 
         return Promise.resolve({
             _getSchemeUrl(schemeId) {
@@ -68,6 +69,18 @@ export const fsClientProvider = {
 
             /************* Below are the functions that are used by SchemeEditor component *************/
 
+            getShapes() {
+                return axios.get(`${routePrefix}/assets/shapes/shapes.json?_v=${version}`).then(unwrapAxios);
+            },
+
+            getGlobalArt() {
+                return axios.get(`${routePrefix}/assets/art/art.json?_v=${version}`).then(unwrapAxios);
+            },
+
+            getShapeGroup(ref) {
+                return axios.get(`${routePrefix}${ref}`).then(unwrapAxios);
+            },
+
             createArt(art) {
                 return axios.post(`${routePrefix}/v1/fs/art`, art).then(unwrapAxios);
             },
@@ -77,7 +90,7 @@ export const fsClientProvider = {
             },
 
             getAllTemplates,
-            getTemplate: getTemplate,
+            getTemplate,
 
             saveArt(artId, art) {
                 return axios.put(`${routePrefix}/v1/fs/art/${artId}`, art).then(unwrapAxios);

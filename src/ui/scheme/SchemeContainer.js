@@ -313,9 +313,10 @@ class SchemeContainer {
      * @param {String} editorId
      * @param {String} mode - either 'view' or 'edit'
      * @param {*} apiClient
+     * @param {String} assetsPath - 'either /assets' or 'media://assets' depending on the app version
      * @param {*} listener
      */
-    constructor(scheme, editorId, mode, apiClient, listener) {
+    constructor(scheme, editorId, mode, apiClient, assetsPath = '/assets', listener = null) {
         Debugger.register('SchemioContainer', this);
 
         this.id = shortid.generate();
@@ -323,6 +324,7 @@ class SchemeContainer {
         this.editorId = editorId;
         this.mode = mode;
         this.apiClient = apiClient;
+        this.assetsPath = assetsPath;
         this.listener = listener;
         this.screenTransform = {x: 0, y: 0, scale: 1.0};
         this.screenSettings = {width: 700, height: 400, x1: -1000000, y1: -1000000, x2: 1000000, y2: 1000000};

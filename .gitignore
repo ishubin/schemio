@@ -20,3 +20,4 @@ assets/index-static.html
 out/
 .exported-patcher-schema/
 .aider*
+src/git-revision.js

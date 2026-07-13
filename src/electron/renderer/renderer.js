@@ -16,7 +16,10 @@ import { electronAPICLient } from './electronAPIClient';
 applyVueFilters(Vue);
 
 store.dispatch('setApiClient', electronAPICLient());
-store.dispatch('setAssetsPath', '/assets');
+// Use media:// protocol for assets so they work in packaged app
+// The media://assets/ protocol is handled by the main process and serves files
+// from the .webpack/renderer/assets directory (copied by CopyWebpackPlugin)
+store.dispatch('setAssetsPath', 'media://assets/');
 
 new Vue(Vue.util.extend({
     store,

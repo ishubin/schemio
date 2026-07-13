@@ -1318,7 +1318,7 @@ export default {
             })
             .then(() => {
                 this.isLoading = false;
-                this.schemeContainer = new SchemeContainer(scheme, this.editorId, 'edit', this.$store.state.apiClient, {
+                this.schemeContainer = new SchemeContainer(scheme, this.editorId, 'edit', this.$store.state.apiClient, this.$store.state.assetsPath, {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 
@@ -1435,6 +1435,7 @@ export default {
                 this.state = 'connecting';
                 this.states['connecting'].setItem(item);
             } else {
+                enrichItemWithDefaults(item);
                 this.state = 'createItem';
             }
             this.states[this.state].schemeContainer = this.schemeContainer;
@@ -2535,7 +2536,7 @@ export default {
         switchToViewMode(screenTransform) {
             this.hideSidePanelRight();
             this.animationRegistry.stopAllAnimations();
-            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'view', this.$store.state.apiClient, {
+            this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'view', this.$store.state.apiClient, this.$store.state.assetsPath, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });
             if (screenTransform) {
@@ -3636,7 +3637,7 @@ export default {
         onStarterProposalSelected(items) {
             this.closeStarterProposalModal();
 
-            const tempContainer = new SchemeContainer({name: '', items}, 'temp-editor', 'edit', this.schemeContainer.apiClient);
+            const tempContainer = new SchemeContainer({name: '', items}, 'temp-editor', 'edit', this.schemeContainer.apiClient, this.$store.state.assetsPath);
             tempContainer.reindexItems();
 
 

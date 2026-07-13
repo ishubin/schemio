@@ -43,7 +43,7 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
     })
     .then(schemeDetails => {
         const scheme = schemeDetails.scheme;
-        const tempSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient);
+        const tempSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, $store.state.assetsPath);
         const clonedItems = tempSchemeContainer.cloneItemsPreservingNames(tempSchemeContainer.scheme.items);
         scheme.items = clonedItems;
         const box = getLocalBoundingBoxOfItems(scheme.items);
@@ -52,7 +52,7 @@ export function loadAndMountExternalComponent(schemeContainer, userEventBus, ite
         //     item.area.y -= box.y;
         // });
 
-        const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, {
+        const componentSchemeContainer = new SchemeContainer(scheme, schemeContainer.editorId, VIEW_MODE, $store.state.apiClient, $store.state.assetsPath, {
             onSchemeChangeCommitted: () => {}
         });
         // linking to the same screen transform so that it is possible to zoom to items inside of component
