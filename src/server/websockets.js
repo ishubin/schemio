@@ -1,14 +1,14 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 import { nanoid } from 'nanoid';
 import { schemioExtension } from '../common/fs/fsUtils';
 import path from 'path';
 import { FileIndex } from '../common/fs/fileIndex';
 
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-const WebSocket = require('ws');
-const fs = require('fs');
-const chokidar = require('chokidar');
+import WebSocket from 'ws';
+import fs from 'fs';
+import chokidar from 'chokidar';
 
 // 10 minutes for maximum reconnection for the same connectionId
 const MAX_STALE_CONNECTIONS_TIMEOUT_SECONDS = 60 * 10;

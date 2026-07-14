@@ -18,8 +18,6 @@ RUN npm test
 
 RUN npm run build-app-prod
 RUN npm run build-ui-static-app-prod
-RUN npm run build
-
 
 #===============================================
 
@@ -34,7 +32,7 @@ COPY --from=build /usr/src/app/assets /usr/bin/app/assets
 COPY html /usr/bin/app/html
 COPY --from=build /usr/src/app/node_modules /usr/bin/app/node_modules
 COPY --from=build /usr/src/app/dist/assets/*.js /usr/bin/app/assets/
-COPY --from=build /usr/src/app/dist/server /usr/bin/app/server
-COPY --from=build /usr/src/app/dist/common /usr/bin/app/common
+COPY --from=build /usr/src/app/src/server /usr/bin/app/server
+COPY --from=build /usr/src/app/src/common /usr/bin/app/common
 
 ENTRYPOINT [ "/usr/bin/app/entry.sh" ]

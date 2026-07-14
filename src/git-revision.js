@@ -1,1 +1,1 @@
-export const GIT_REVISION = "10ebc400";
+export const GIT_REVISION = "6a95484f";

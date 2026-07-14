@@ -1,2 +1,2 @@
 #!/bin/bash
-node server/server.js
+npx tsx server/server.js
