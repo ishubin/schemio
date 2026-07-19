@@ -54,7 +54,7 @@ export default class StateCreateItem extends State {
         this.item.name = this.schemeContainer.generateUniqueName(this.item.name);
         this.item.area.w = 0;
         this.item.area.h = 0;
-        this.schemeContainer.addNonIndexableItem(this.item);
+        this.schemeContainer.addPhantomItem(this.item);
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.item.area);
     }
@@ -101,6 +101,10 @@ export default class StateCreateItem extends State {
     }
 
     submitItemAndFinishCreating() {
+        this.schemeContainer.deletePhantomItems([this.item]);
+
+        this.schemeContainer.addItem(this.item);
+
         this.schemeContainer.setActiveBoundaryBox(null);
 
         if (this.template) {

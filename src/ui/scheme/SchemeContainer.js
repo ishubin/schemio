@@ -321,6 +321,16 @@ class SchemeContainer {
 
         this.id = shortid.generate();
         this.scheme = scheme;
+
+        // Phantom items are the ones that are only used for temporary visuals such as:
+        //   - creating and item with mouse
+        //   - item particle effect
+        // Phantom items may be mounted to other items, because of this they are stored as a map
+        // The key is the id of the item that they are mounted to
+        // The null key represents the root
+        // The value is an Array of items
+        this.phantomItems = new Map();
+
         this.editorId = editorId;
         this.mode = mode;
         this.apiClient = apiClient;
@@ -2096,19 +2106,25 @@ class SchemeContainer {
         }
     }
 
-    deleteNonIndexableItems(items) {
-        const itemSet = new Set();
-        forEach(items, item => itemSet.add(item.id));
-
-        for (let i = this.scheme.items.length - 1; i >= 0 && itemSet.size > 0; i--) {
-            const item = this.scheme.items[i];
-            if (itemSet.has(item.id)) {
-                delete this.itemMap[item.id];
-                this.worldItemAreas.delete(item.id);
-                itemSet.delete(item.id);
-                this.scheme.items.splice(i, 1);
-            }
+    /**
+     * @param {Array<Item>} items
+     */
+    deletePhantomItems(items) {
+        const itemIds = new Set();
+        for (let i = 0; i < items.length; i++) {
+            itemIds.add(items[i].id);
         }
+
+        this.phantomItems.forEach((items, parentId) => {
+            for (let i = items.length - 1; i >= 0; i--) {
+                if (itemIds.has(items[i].id)) {
+                    items.splice(i, 1);
+                }
+            }
+            if (items.length === 0) {
+                this.phantomItems.delete(parentId);
+            }
+        })
     }
 
     deleteSelectedItems() {
@@ -2204,11 +2220,34 @@ class SchemeContainer {
         return item;
     }
 
-    addNonIndexableItem(item) {
+    addPhantomItem(item, parentId = null) {
+        const parent = this.findItemById(parentId);
+        if (parentId && !parent) {
+            // ignoring phantom item as the parent was not found
+            return;
+        }
         this.enrichItem(item);
-        this.scheme.items.push(item);
+        let itemArray = [];
+        if (this.phantomItems.has(parentId)) {
+            itemArray = this.phantomItems.get(parentId);
+        } else {
+            this.phantomItems.set(parentId, itemArray);
+        }
+        itemArray.push(item);
+
+        let ancestorIds = null;
+        let itemTransform;
+        if (parent) {
+            ancestorIds = [].concat(parent.meta.ancestorIds || []);
+            ancestorIds.push(parent.id);
+            itemTransform = myMath.standardTransformWithArea(parent.meta.transformMatrix, parent.area);
+        } else {
+            ancestorIds = [];
+            itemTransform = myMath.identityMatrix();
+        }
+
         const nonIndexable = false;
-        this.reindexSpecifiedItems([item], null, null, [], nonIndexable);
+        this.reindexSpecifiedItems([item], itemTransform, parent, ancestorIds, nonIndexable);
         return item;
     }
 

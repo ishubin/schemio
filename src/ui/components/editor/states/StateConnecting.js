@@ -107,7 +107,7 @@ export default class StateConnecting extends State {
             }
         };
         enrichItemWithDefaults(connectorItem);
-        connectorItem = this.schemeContainer.addItem(connectorItem);
+        connectorItem = this.schemeContainer.addPhantomItem(connectorItem);
         connectorItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
@@ -220,7 +220,7 @@ export default class StateConnecting extends State {
     initFirstClick(x, y) {
         this.item.shapeProps.points = [];
 
-        this.schemeContainer.addItem(this.item);
+        this.item = this.schemeContainer.addPhantomItem(this.item);
 
         // snapping can only be performed once the item is added to the scheme
         // that is why we have to re-adjust curve points afterwards so that they are snapped
@@ -544,12 +544,14 @@ export default class StateConnecting extends State {
     }
 
     submitItem() {
+        this.schemeContainer.deletePhantomItems([this.item]);
         if (this.item.shapeProps.points.length < 2) {
-            this.schemeContainer.deleteItem(this.item);
-            this.schemeContainer.reindexItems();
             this.reset();
             return;
         }
+
+        this.schemeContainer.addItem(this.item);
+        this.schemeContainer.reindexItems();
 
         this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
 
@@ -644,7 +646,7 @@ export default class StateConnecting extends State {
         item.area.y = proposedPoint.y - item.area.h / 2;
 
 
-        const destinationItem = this.schemeContainer.addItem(item);
+        const destinationItem = this.schemeContainer.addPhantomItem(item);
 
         const closestPoint = this.schemeContainer.closestPointToItemOutline(destinationItem, p1, {});
         const localPoint = localPointOnItem(closestPoint.x, closestPoint.y, this.item);

@@ -30,6 +30,7 @@
                             :item="item"
                             :editorId="editorId"
                             :mode="mode"
+                            :phantomItems="schemeContainer.phantomItems"
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :eventListener="eventListenerInterceptor"
@@ -58,6 +59,7 @@
                             :textSelectionEnabled="textSelectionEnabled"
                             :patchIndex="patchIndex"
                             :mode="mode"
+                            :phantomItems="schemeContainer.phantomItems"
                             :eventListener="eventListenerInterceptor"
                             @component-load-requested="onComponentLoadRequested"
                             @frame-animator="onFrameAnimatorEvent"/>
@@ -126,6 +128,7 @@
                             :editorId="editorId"
                             :patchIndex="patchIndex"
                             :mode="mode"
+                            :phantomItems="schemeContainer.phantomItems"
                             :eventListener="eventListenerInterceptor"
                             />
                     </g>

@@ -112,6 +112,7 @@
                     :editorId="editorId"
                     :patchIndex="patchIndex"
                     :mode="mode"
+                    :phantomItems="phantomItems"
                     :eventListener="eventListener"
                     @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
@@ -189,6 +190,7 @@
                         :item="componentItem"
                         :editorId="editorId"
                         :mode="mode"
+                        :phantomItems="phantomItems"
                         :textSelectionEnabled="textSelectionEnabled"
                         :patchIndex="patchIndex"
                         :eventListener="eventListener"
@@ -239,11 +241,25 @@
                     :textSelectionEnabled="textSelectionEnabled"
                     :patchIndex="patchIndex"
                     :mode="mode"
+                    :phantomItems="phantomItems"
                     :eventListener="eventListener"
                     @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
                     />
             </g>
+
+            <ItemSvg v-for="childItem in itemOwnPhantoms"
+                v-if="childItem.visible && childItem.shape !== 'hud'"
+                :key="`itsvg-${childItem.id}-${childItem.shape}-${textSelectionEnabled}`"
+                :item="childItem"
+                :editorId="editorId"
+                :textSelectionEnabled="textSelectionEnabled"
+                :mode="mode"
+                :phantomItems="phantomItems"
+                :eventListener="eventListener"
+                @frame-animator="passThroughFrameAnimatorEvent"
+                @component-load-requested="onComponentLoadRequested"
+                />
 
             <g v-if="item._childItems && item.visible && mode === 'view'" :style="componentChildrenLayerStyle">
                 <ItemSvg v-for="childItem in item._childItems"
@@ -253,6 +269,7 @@
                     :editorId="editorId"
                     :textSelectionEnabled="textSelectionEnabled"
                     :mode="mode"
+                    :phantomItems="phantomItems"
                     :eventListener="eventListener"
                     @frame-animator="passThroughFrameAnimatorEvent"
                     @component-load-requested="onComponentLoadRequested"
@@ -345,6 +362,9 @@ export default {
         textSelectionEnabled: {type: Boolean, default: false},
         // used for passing intercepted events in external component items
         eventListener       : {type: Object, required: false},
+
+        // contains all of the phantom items where a key is the parent item id, the value - array of items
+        phantomItems        : {type: Map, required: false},
     },
     components: {AdvancedFill },
 
@@ -389,6 +409,8 @@ export default {
             shapePrimitives   : [],
             itemSvgOutlinePath: null,
             shouldRenderText  : true,
+
+            itemOwnPhantoms: this.phantomItems && this.phantomItems.has(this.item.id) ? this.phantomItems.get(this.item.id) : [],
 
             // used to hide the item details markers for items that are part of the edit box, as it is not possible to hover mouse over it,
             // as it gets hidden under invisible edit box overlay
@@ -722,6 +744,9 @@ export default {
 
             this.shapeStyle = this.computeShapeStyle(cssFilter);
             this.revision += 1;
+
+            this.itemOwnPhantoms = this.phantomItems && this.phantomItems.has(this.item.id) ? this.phantomItems.get(this.item.id) : [];
+
             this.$forceUpdate();
         },
 

@@ -98,7 +98,7 @@ export default class StateDraw extends State {
             item.shapeProps.strokeColor = this.color;
         }
 
-        this.schemeContainer.addItem(item);
+        this.schemeContainer.addPhantomItem(item);
 
         this.item = item;
 
@@ -147,7 +147,16 @@ export default class StateDraw extends State {
 
     cancel() {
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
+        this.sumbitPhantomItem();
         super.cancel();
+    }
+
+    sumbitPhantomItem() {
+        if (!this.item) {
+            return;
+        }
+        this.schemeContainer.deletePhantomItems([this.item]);
+        this.schemeContainer.addItem(this.item);
     }
 
     pickColor(color) {
@@ -204,6 +213,7 @@ export default class StateDraw extends State {
     submitDrawing() {
         if (this.item) {
             this.buildCurrentItem();
+            this.sumbitPhantomItem();
             readjustItemAreaAndPoints(this.item);
             this.schemeContainer.readjustItem(this.item.id, IS_NOT_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
             this.schemeContainer.reindexItems();

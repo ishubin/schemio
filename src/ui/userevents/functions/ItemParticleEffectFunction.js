@@ -69,8 +69,9 @@ class DomParticle extends Particle {
 
 // since item destroying is a very expensive operation, it's better to destroy all items in bulk at the end of the animation
 class ItemRecycler {
-    constructor(schemeContainer) {
+    constructor(schemeContainer, parentId) {
         this.items = [];
+        this.parentId = parentId;
         this.schemeContainer = schemeContainer;
         this.recycledItems = [];
     }
@@ -81,8 +82,7 @@ class ItemRecycler {
 
 
     destroy() {
-        //TODO fix this. it forces to reindex all items and components which completely resets user behaviors and they stop working in component items
-        this.schemeContainer.deleteNonIndexableItems(this.items);
+        this.schemeContainer.deletePhantomItems(this.items);
     }
 
     borrowItem(elementSelector) {
@@ -93,7 +93,8 @@ class ItemRecycler {
         const particleReferenceItem = this.schemeContainer.findFirstElementBySelector(elementSelector);
         if (particleReferenceItem) {
             const [clonedItem] = this.schemeContainer.cloneItems([particleReferenceItem]);
-            this.schemeContainer.addNonIndexableItem(clonedItem);
+            this.schemeContainer.addPhantomItem(clonedItem, this.parentId);
+            EditorEventBus.item.changed.specific.$emit(this.schemeContainer.editorId, this.parentId);
             this.items.push(clonedItem);
             return clonedItem;
         }
@@ -116,10 +117,9 @@ class ItemParticle extends Particle {
         if (!this.particleItem) {
             return;
         }
-        const worldPoint = worldPointOnItem(this.position.x, this.position.y, this.item);
         this.particleItem.visible = true;
-        this.particleItem.area.x = worldPoint.x - this.particleItem.area.px * this.particleItem.area.w;
-        this.particleItem.area.y = worldPoint.y - this.particleItem.area.py * this.particleItem.area.h;
+        this.particleItem.area.x = this.position.x - this.particleItem.area.px * this.particleItem.area.w;
+        this.particleItem.area.y = this.position.y - this.particleItem.area.py * this.particleItem.area.h;
         this.particleItem.area.sx = this.scale;
         this.particleItem.area.sy = this.scale;
         this.particleItem.area.r = this.angle;
@@ -145,7 +145,7 @@ class ItemParticleEffectAnimation extends Animation {
         this.domItemPath = null;
         this.particles = [];
         this.schemeContainer = schemeContainer;
-        this.itemRecycler = new ItemRecycler(schemeContainer);
+        this.itemRecycler = new ItemRecycler(schemeContainer, item.id);
 
         this.generatorCounter = 0.0;
         this.particlesLeft = this.args.particlesCount;
