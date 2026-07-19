@@ -350,7 +350,7 @@ class BezierConversionState extends SubState {
 }
 
 class CreatingPathState extends SubState {
-    constructor(parentState, pathId) {
+    constructor(parentState, pathId, isPhantom = false) {
         super(parentState, 'creating-path');
         this.item = parentState.item;
         this.pathId = pathId;
@@ -358,6 +358,7 @@ class CreatingPathState extends SubState {
         this.mouseIsDown = false;
         this.originalMouseX = 0;
         this.originalMouseY = 0;
+        this.isPhantom = isPhantom;
     }
 
     keyPressed(key, keyOptions) {
@@ -480,6 +481,10 @@ class CreatingPathState extends SubState {
             if (this.item.shapeProps.paths[this.pathId].points.length > 0) {
                 this.item.shapeProps.paths[this.pathId].points.pop();
             }
+        }
+        if (this.isPhantom) {
+            this.schemeContainer.deletePhantomItems([this.item]);
+            this.schemeContainer.addItem(this.item);
         }
         this.schemeContainer.reindexItems();
     }
@@ -720,8 +725,8 @@ class IdleState extends SubState {
         }
 
         if (!this.parentState.item.id) {
-            this.getSchemeContainer().addItem(this.parentState.item);
-            const newSubState = new CreatingPathState(this.parentState, 0);
+            this.getSchemeContainer().addPhantomItem(this.parentState.item);
+            const newSubState = new CreatingPathState(this.parentState, 0, true);
             this.migrate(newSubState);
             newSubState.mouseDown(x, y, mx, my, object, event);
             return;
