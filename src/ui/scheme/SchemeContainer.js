@@ -2106,6 +2106,11 @@ class SchemeContainer {
         }
     }
 
+
+    deletePhantomItemsByParent(parentId) {
+        this.phantomItems.delete(parentId);
+    }
+
     /**
      * @param {Array<Item>} items
      */
@@ -2125,6 +2130,7 @@ class SchemeContainer {
                 this.phantomItems.delete(parentId);
             }
         })
+        EditorEventBus.phantomItems.changed.$emit(this.editorId);
     }
 
     deleteSelectedItems() {
@@ -2222,10 +2228,6 @@ class SchemeContainer {
 
     addPhantomItem(item, parentId = null) {
         const parent = this.findItemById(parentId);
-        if (parentId && !parent) {
-            // ignoring phantom item as the parent was not found
-            return;
-        }
         this.enrichItem(item);
         let itemArray = [];
         if (this.phantomItems.has(parentId)) {
@@ -2236,18 +2238,29 @@ class SchemeContainer {
         itemArray.push(item);
 
         let ancestorIds = null;
-        let itemTransform;
+        let transformMatrix;
+        let parentVisible = true;
         if (parent) {
+            parentVisible = parent.meta.calculatedVisibility;
             ancestorIds = [].concat(parent.meta.ancestorIds || []);
             ancestorIds.push(parent.id);
-            itemTransform = myMath.standardTransformWithArea(parent.meta.transformMatrix, parent.area);
+            transformMatrix = myMath.standardTransformWithArea(parent.meta.transformMatrix, parent.area);
         } else {
             ancestorIds = [];
-            itemTransform = myMath.identityMatrix();
+            transformMatrix = myMath.identityMatrix();
         }
 
-        const nonIndexable = false;
-        this.reindexSpecifiedItems([item], itemTransform, parent, ancestorIds, nonIndexable);
+        item.meta.calculatedVisibility = parentVisible && item.visible && item.opacity > 0;
+
+        if (item.args && item.args.templateRef && item.args.templated) {
+            markTemplateRef(item, item.args.templateRef);
+            this.fetchAndCompileTemplate(item.args.templateRef);
+        }
+
+        enrichItemWithDefaults(item);
+        this.enrichItemMeta(item, transformMatrix, parent, ancestorIds);
+
+        EditorEventBus.phantomItems.changed.$emit(this.editorId);
         return item;
     }
 

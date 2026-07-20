@@ -49,6 +49,7 @@ export default class StateConnecting extends State {
     }
 
     reset() {
+        this.schemeContainer.deletePhantomItemsByParent(this.name);
         this.listener.onItemsHighlighted({itemIds: [], showPins: false})
         this.item = null;
         this.addedToScheme = false;
@@ -646,7 +647,7 @@ export default class StateConnecting extends State {
         item.area.y = proposedPoint.y - item.area.h / 2;
 
 
-        const destinationItem = this.schemeContainer.addPhantomItem(item);
+        const destinationItem = this.schemeContainer.addPhantomItem(item, this.name);
 
         const closestPoint = this.schemeContainer.closestPointToItemOutline(destinationItem, p1, {});
         const localPoint = localPointOnItem(closestPoint.x, closestPoint.y, this.item);

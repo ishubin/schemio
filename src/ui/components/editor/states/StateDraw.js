@@ -44,6 +44,7 @@ export default class StateDraw extends State {
     }
 
     reset() {
+        this.schemeContainer.deletePhantomItemsByParent(this.name);
         this.recordedPaths = [];
         this.item = null;
         this.isDrawing = false;
@@ -98,7 +99,7 @@ export default class StateDraw extends State {
             item.shapeProps.strokeColor = this.color;
         }
 
-        this.schemeContainer.addPhantomItem(item);
+        this.schemeContainer.addPhantomItem(item, this.name);
 
         this.item = item;
 

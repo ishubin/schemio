@@ -133,6 +133,21 @@
                             />
                     </g>
 
+                    <g v-for="item in schemeContainer.phantomItems.get(stateName)"
+                        v-if="item.visible"
+                        class="item-container"
+                        :class="'item-cursor-'+item.cursor">
+                        <ItemSvg
+                            :key="`${item.id}-${item.shape}-${itemsReloadKey}`"
+                            :item="item"
+                            :editorId="editorId"
+                            :patchIndex="patchIndex"
+                            :mode="mode"
+                            :phantomItems="schemeContainer.phantomItems"
+                            :eventListener="eventListenerInterceptor"
+                            />
+                    </g>
+
                     <g v-if="schemeContainer.activeBoundaryBox" data-preview-ignore="true">
                         <!-- Drawing boundary edit box -->
                         <rect class="boundary-box"
@@ -229,10 +244,11 @@ const lastMousePosition = {
 
 export default {
     props: {
-        editorId            : {type: String, required: true},
-        mode                : { type: String, default: 'edit' },
-        textSelectionEnabled: {type: Boolean, default: false},
+        editorId            : { type: String, required: true},
+        mode                : { type: String, default: 'edit'},
+        textSelectionEnabled: { type: Boolean, default: false},
         stateLayerShown     : { type: Boolean, default: false},
+        stateName           : { type: String, default: 'view'},
         userEventBus        : { type: Object, default: null},
         patchIndex          : { type: Object, default: null},
         highlightedItems    : { type: Object, default: null},
@@ -290,6 +306,7 @@ export default {
         EditorEventBus.component.loadRequested.any.$on(this.editorId, this.onComponentLoadRequested);
 
         EditorEventBus.component.destroyed.$on(this.editorId, this.onComponentDestroyed);
+        EditorEventBus.phantomItems.changed.$on(this.editorId, this.onPhantomItemsChanged);
     },
 
     mounted() {
@@ -347,6 +364,7 @@ export default {
         EditorEventBus.editorResized.$off(this.editorId, this.updateSvgSize);
         EditorEventBus.component.loadRequested.any.$off(this.editorId, this.onComponentLoadRequested);
         EditorEventBus.component.destroyed.$off(this.editorId, this.onComponentDestroyed);
+        EditorEventBus.phantomItems.changed.$off(this.editorId, this.onPhantomItemsChanged);
 
         if (this.mode === 'view') {
             this.destroyUserKeyBinders();
@@ -363,7 +381,6 @@ export default {
         return {
             mouseEventsEnabled: !(this.mode === 'view' && this.textSelectionEnabled),
             linkPalette: ['#ec4b4b', '#bd4bec', '#4badec', '#226D18', '#6A590E', '#0F8989', '#7B245B'],
-
 
             lastClickPoint: null,
             // setting last click time to -1000 as performance.now() returns 0 when the page just loaded
@@ -413,6 +430,10 @@ export default {
         };
     },
     methods: {
+        onPhantomItemsChanged() {
+            this.$forceUpdate();
+        },
+
         onSearchedItemsToggled() {
             if (this.worldHighlightedItems.length > 0) {
                 const area = {

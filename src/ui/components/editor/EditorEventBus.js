@@ -60,6 +60,14 @@ const EditorEventBus = {
         $emit: (editorId, scheme) => $emit(editorId, 'scheme-rebased', [], scheme),
     },
 
+    phantomItems: {
+        changed: {
+            $on: (editorId, callback) => $on(editorId, 'phantom-items-changed', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'phantom-items-changed', [], callback),
+            $emit: (editorId) => $emit(editorId, 'phantom-items-changed', []),
+        }
+    },
+
     item: {
         custom: {
             $on: (eventName, editorId, itemId, callback) => $on(editorId, eventName, [itemId], callback),

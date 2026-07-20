@@ -19,6 +19,7 @@ export default class StateCreateItem extends State {
     }
 
     reset() {
+        this.schemeContainer.deletePhantomItemsByParent('createItem');
         this.item = null;
         this.template = null;
         this.addedToScheme = false;
@@ -54,7 +55,7 @@ export default class StateCreateItem extends State {
         this.item.name = this.schemeContainer.generateUniqueName(this.item.name);
         this.item.area.w = 0;
         this.item.area.h = 0;
-        this.schemeContainer.addPhantomItem(this.item);
+        this.schemeContainer.addPhantomItem(this.item, 'createItem');
         this.addedToScheme = true;
         this.schemeContainer.setActiveBoundaryBox(this.item.area);
     }

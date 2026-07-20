@@ -70,7 +70,6 @@ export default {
             drawColorPallete: ['rgba(0,0,0,1)', 'rgba(76,76,76,1)', 'rgba(128,128,128,1)',
                 'rgba(170,170,170,1)', 'rgba(255,255,255,1)']
                 .concat(generateColorPallete()),
-            brushSize: 10,
         }
     },
 

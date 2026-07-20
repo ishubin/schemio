@@ -311,12 +311,13 @@ export function mergeAllItemPaths(mainItem, otherItems) {
 const MOUSE_MOVE_THRESHOLD = 3;
 
 class BezierConversionState extends SubState {
-    constructor(parentState, point, pathId, pointId) {
+    constructor(parentState, point, pathId, pointId, isPhantom = false) {
         super(parentState, 'bezier-conversion');
         this.point = point;
         this.pathId = pathId;
         this.pointId = pointId;
         this.item = parentState.item;
+        this.isPhantom = isPhantom;
     }
 
     mouseMove(x, y, mx, my, object, event) {
@@ -345,7 +346,7 @@ class BezierConversionState extends SubState {
             t: 'L',
             id: shortid.generate(),
         });
-        this.migrate(new CreatingPathState(this.parentState, this.pathId));
+        this.migrate(new CreatingPathState(this.parentState, this.pathId, this.isPhantom));
     }
 }
 
@@ -431,7 +432,7 @@ class CreatingPathState extends SubState {
             const point = this.item.shapeProps.paths[this.pathId].points[pointId];
 
             if (this.mouseIsDown && Math.max(Math.abs(mx - this.originalMouseX), Math.abs(my - this.originalMouseY)) > MOUSE_MOVE_THRESHOLD) {
-                this.migrate(new BezierConversionState(this.parentState, point, this.pathId, pointId));
+                this.migrate(new BezierConversionState(this.parentState, point, this.pathId, pointId, this.isPhantom));
                 return;
             } else {
                 const localPoint = localPointOnItem(x, y, this.item);
@@ -725,7 +726,7 @@ class IdleState extends SubState {
         }
 
         if (!this.parentState.item.id) {
-            this.getSchemeContainer().addPhantomItem(this.parentState.item);
+            this.getSchemeContainer().addPhantomItem(this.parentState.item, 'editPath');
             const newSubState = new CreatingPathState(this.parentState, 0, true);
             this.migrate(newSubState);
             newSubState.mouseDown(x, y, mx, my, object, event);
@@ -818,6 +819,7 @@ export default class StateEditPath extends State {
     }
 
     reset() {
+        this.schemeContainer.deletePhantomItemsByParent('editPath');
         this.listener.onItemsHighlighted({itemIds: [], showPins: false});
         this.item = null;
         this.history = new History({size: 100});

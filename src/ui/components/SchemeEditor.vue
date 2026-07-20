@@ -100,6 +100,7 @@
                     v-if="schemeContainer && mode === 'edit'"
                     :class="['state-' + state, 'sub-state-' + editorSubStateName]"
                     :editorId="editorId"
+                    :stateName="state"
                     :key="`${schemeContainer.scheme.id}-edit-${editorRevision}`"
                     :itemsReloadKey="svgEditorRevision"
                     :schemeContainer="schemeContainer"
@@ -207,6 +208,7 @@
                     :key="`${schemeContainer.scheme.id}-view-${editorRevision}`"
                     :itemsReloadKey="svgEditorRevision"
                     :editorId="editorId"
+                    :stateName="state"
                     :schemeContainer="interactiveSchemeContainer"
                     :patchIndex="patchIndex"
                     :mode="mode"
@@ -2124,9 +2126,6 @@ export default {
                 if (existingItem) {
                     this.setCurveEditItem(existingItem);
                     this.onEditPathRequested(existingItem);
-                } else {
-                    this.setCurveEditItem(null);
-                    this.onPathEditStopped();
                 }
             } else {
                 this.setCurveEditItem(null);
