@@ -17,7 +17,6 @@ function socketCloseDocument(socket, docId) {
 
 export function createWebsocketDocumentWatcher(opts) {
     const wsUrl = opts.url;
-    const updateCallback = opts.onUpdate || (() => {});
     const docIds = new Set();
 
     const socket = new ReconnectingWebSocket(wsUrl, [], {
@@ -48,8 +47,10 @@ export function createWebsocketDocumentWatcher(opts) {
             return;
         }
 
-        if (data.type === 'update') {
-            updateCallback(data.schemeId, data.content);
+        if (opts.onMessage) {
+            opts.onMessage(data);
+        } else if (opts.onUpdate && data.type === 'update') {
+            opts.onUpdate(data.schemeId, data.content);
         }
     };
 
@@ -62,6 +63,10 @@ export function createWebsocketDocumentWatcher(opts) {
         closeDocument(docId) {
             docIds.delete(docId);
             socketCloseDocument(socket, docId);
+        },
+
+        send(msg) {
+            socket.send(JSON.stringify(msg));
         },
 
         close() {
