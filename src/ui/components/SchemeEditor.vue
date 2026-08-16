@@ -1324,6 +1324,8 @@ export default {
                     onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
                 });
 
+                EditorEventBus.schemeContainerInitiated.$emit(this.editorId, 'edit', this.schemeContainer);
+
                 forEach(this.states, state => {
                     state.setSchemeContainer(this.schemeContainer);
                     state.reset();
@@ -2538,6 +2540,9 @@ export default {
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'view', this.$store.state.apiClient, this.$store.state.assetsPath, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
             });
+
+            EditorEventBus.schemeContainerInitiated.$emit(this.editorId, 'view', this.interactiveSchemeContainer);
+
             if (screenTransform) {
                 this.interactiveSchemeContainer.screenTransform = screenTransform;
             } else {

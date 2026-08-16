@@ -47,6 +47,12 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'scheme-change-committed', [], affinityId),
     },
 
+    schemeContainerInitiated: {
+        $on: (editorId, callback) => $on(editorId, 'scheme-container-initiated', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'scheme-container-initiated', [], callback),
+        $emit: (editorId, mode, schemeContainer) => $emit(editorId, 'scheme-container-initiated', [], mode, schemeContainer),
+    },
+
     // emited when user clicks undo/redo when editing modified scheme in patch mode
     patchedSchemeUpdated: {
         $on: (editorId, callback) => $on(editorId, 'patched-scheme-updated', [], callback),
