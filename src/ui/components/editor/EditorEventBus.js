@@ -125,6 +125,21 @@ const EditorEventBus = {
                 $emit: (editorId, item) => $emit(editorId, 'any-item-clicked', [], item),
             }
         },
+        rerender: {
+            any: {
+                $on: (editorId, callback) => $on(editorId, 'any-item-rerender', [], callback),
+                $off: (editorId, callback) => $off(editorId, 'any-item-rerender', [], callback),
+                $emit: (editorId, itemId) => $emit(editorId, 'any-item-rerender', [], itemId),
+            },
+            specific: {
+                $on: (editorId, itemId, callback) => $on(editorId, 'item-rerender', [itemId], callback),
+                $off: (editorId, itemId, callback) => $off(editorId, 'item-rerender', [itemId], callback),
+                $emit: (editorId, itemId) => {
+                    EditorEventBus.item.rerender.any.$emit(editorId, itemId);
+                    $emit(editorId, 'item-rerender', [itemId], itemId);
+                }
+            },
+        },
         changed: {
             any: {
                 $on: (editorId, callback) => $on(editorId, 'any-item-changed', [], callback),

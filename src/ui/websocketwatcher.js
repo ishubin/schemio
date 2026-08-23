@@ -19,6 +19,8 @@ export function createWebsocketDocumentWatcher(opts) {
     const wsUrl = opts.url;
     const docIds = new Set();
 
+    const autoWatch = opts.hasOwnProperty('autoWatch') ? opts.autoWatch : true;
+
     const socket = new ReconnectingWebSocket(wsUrl, [], {
         maxReconnectionDelay: 30000,
         minReconnectionDelay: 1000,
@@ -27,11 +29,13 @@ export function createWebsocketDocumentWatcher(opts) {
         debug: false,
     });
 
-    socket.onopen = () => {
-        docIds.forEach(docId => {
-            socketOpenDocument(socket, docId);
-        });
-    };
+    if (autoWatch) {
+        socket.onopen = () => {
+            docIds.forEach(docId => {
+                socketOpenDocument(socket, docId);
+            });
+        };
+    }
 
     socket.onmessage = (event) => {
         let data = null;

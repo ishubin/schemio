@@ -371,6 +371,7 @@ export default {
     mounted() {
         this.switchShape(this.item.shape);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.item.rerender.specific.$on(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.item.selected.specific.$on(this.editorId, this.item.id, this.onItemSelected);
         EditorEventBus.item.deselected.specific.$on(this.editorId, this.item.id, this.onItemDeselected);
         EditorEventBus.textSlot.canceled.specific.$on(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);
@@ -390,6 +391,7 @@ export default {
 
     beforeDestroy() {
         EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemChanged);
+        EditorEventBus.item.rerender.specific.$off(this.editorId, this.item.id, this.onItemChanged);
         EditorEventBus.item.selected.specific.$off(this.editorId, this.item.id, this.onItemSelected);
         EditorEventBus.item.deselected.specific.$off(this.editorId, this.item.id, this.onItemDeselected);
         EditorEventBus.textSlot.canceled.specific.$off(this.editorId, this.item.id, this.onItemTextSlotEditCanceled);

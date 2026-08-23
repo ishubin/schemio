@@ -26,13 +26,14 @@ import { diagramImageExporter } from './diagramExporter.js';
 import { compileItemTemplate } from './components/editor/items/ItemTemplate.js';
 import ColorPicker from './components/editor/ColorPicker.vue';
 import { createWebsocketDocumentWatcher } from './websocketwatcher.js';
+import Shape from './components/editor/items/shapes/Shape.js';
 
 
 
 window.Schemio = {
     components: {
         Vue, Vuex, Modal, CreateNewSchemeModal, EditorEventBus, SchemioEditorWebApp,
-        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker
+        store, Dropdown, MenuDropdown, Pagination, RichTextEditor, ColorPicker, Shape
     },
     utils: {
         getObjectProperty: utils.getObjectProperty,
