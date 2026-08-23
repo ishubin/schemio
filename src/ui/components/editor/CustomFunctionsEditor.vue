@@ -90,6 +90,7 @@ import CustomArgsEditor from './CustomArgsEditor.vue';
 import ScriptFunctionEditor from './properties/behavior/ScriptFunctionEditor.vue';
 import { copyObjectToClipboard, getObjectFromClipboard } from '../../clipboard';
 import StoreUtils from '../../store/StoreUtils';
+import Panel from './Panel.vue';
 
 export default {
     props: {
@@ -98,7 +99,7 @@ export default {
         functions      : {type: Array, required: true},
     },
 
-    components: { Modal, Tooltip, CustomArgsEditor, ScriptFunctionEditor },
+    components: { Modal, Tooltip, CustomArgsEditor, ScriptFunctionEditor, Panel },
 
     data() {
         return {
