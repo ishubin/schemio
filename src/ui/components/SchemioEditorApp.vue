@@ -39,7 +39,11 @@
             @delete-diagram-requested="$emit('delete-diagram-requested')"
             @context-menu-requested="$emit('context-menu-requested', $event)"
             @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
-            />
+        >
+            <template slot="overlay">
+                <slot name="overlay"></slot>
+            </template>
+        </SchemeEditor>
 
         <SchemeEditor v-else
             :key="`origin-scheme`"
@@ -78,7 +82,11 @@
             @delete-diagram-requested="$emit('delete-diagram-requested')"
             @context-menu-requested="$emit('context-menu-requested', $event)"
             @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
-            />
+        >
+            <template slot="overlay">
+                <slot name="overlay"></slot>
+            </template>
+        </SchemeEditor>
 
 
         <div v-if="scheme && patch.patchedScheme" class="patch-menu-wrapper">

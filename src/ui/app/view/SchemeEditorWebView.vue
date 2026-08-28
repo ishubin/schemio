@@ -108,7 +108,6 @@ import {diagramImageExporter} from '../../diagramExporter';
 import SchemioEditorWebApp from '../../components/SchemioEditorWebApp.vue';
 import { createWebsocketDocumentWatcher } from '../../websocketwatcher';
 import { generateSchemePatch, applySchemePatch } from '../../scheme/SchemePatch';
-import { traverseItems } from '../../scheme/Item';
 
 const DOCUMENT_UPDATE_WATCHER_MIN_TIME = 3000.0;
 

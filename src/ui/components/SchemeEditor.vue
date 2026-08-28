@@ -177,7 +177,7 @@
                         </g>
                     </g>
 
-                    <div slot="overlay">
+                    <template slot="overlay">
                         <div v-if="state === 'pickElement'" class="editor-top-hint-label">Click any element to pick it</div>
 
                         <FloatingHelperPanel v-if="floatingHelperPanel.shown && floatingHelperPanel.item"
@@ -199,7 +199,8 @@
                             @close="closeStarterProposalModal"
                             @selected="onStarterProposalSelected"
                             />
-                    </div>
+                        <slot name="overlay"></slot>
+                    </template>
                 </SvgEditor>
 
                 <SvgEditor
@@ -228,12 +229,14 @@
                     @compiler-error="onCompilerError"
                     >
 
-                    <div slot="overlay">
+                    <template slot="overlay">
                         <div v-if="mode === 'view' && textSelectionEnabled" class="editor-top-hint-label">
                             You can select any text, but you cannot interact with items
                             <span class="btn btn-primary" @click="textSelectionEnabled = false">Cancel</span>
                         </div>
-                    </div>
+                        <slot name="overlay"></slot>
+                    </template>
+
                 </SvgEditor>
 
                 <!-- Item Text Editor -->

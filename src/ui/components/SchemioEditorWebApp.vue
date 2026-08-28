@@ -40,7 +40,11 @@
             @patch-modified-generated="onPatchModifiedGenerated"
             @new-diagram-requested-for-item="$emit('new-diagram-requested-for-item', $event)"
             @patched-history-committed="onPatchedHistoryCommitted($event.scheme, $event.affinityId)"
-        />
+        >
+            <template slot="overlay">
+                <slot name="overlay"></slot>
+            </template>
+        </SchemioEditorApp>
 
         <ContextMenu v-if="customContextMenu.show"
             :key="customContextMenu.id"
