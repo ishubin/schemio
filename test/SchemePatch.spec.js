@@ -292,6 +292,74 @@ describe('SchemePatch.applySchemePatch', () => {
             expect(modifiedObject).toStrictEqual(testData.modified);
         });
     });
+
+    it('should not add item with conflicting id', () => {
+        const origin = {
+            name: 'test doc',
+            items: [{
+                id: 'existing-item',
+                name: 'existing'
+            }]
+        };
+
+        const patch = {
+            version: '1',
+            protocol: 'schemio/patch',
+            changes: [{
+                path: ['items'],
+                op: 'patch-id-array',
+                changes: [{
+                    id: 'existing-item',
+                    op: 'add',
+                    value: {
+                        id: 'existing-item',
+                        name: 'new item with same id'
+                    },
+                    parentId: null,
+                    sortOrder: 0
+                }]
+            }]
+        };
+
+        const modifiedObject = applySchemePatch(origin, patch);
+        expect(modifiedObject).toStrictEqual(origin);
+    });
+
+    it('should not add item with conflicting id even if the original item is a child of another item', () => {
+        const origin = {
+            name: 'test doc',
+            items: [{
+                id: 'root-item',
+                name: 'root item',
+                childItems: [{
+                    id: 'existing-item',
+                    name: 'existing-item'
+                }]
+            }]
+        };
+
+        const patch = {
+            version: '1',
+            protocol: 'schemio/patch',
+            changes: [{
+                path: ['items'],
+                op: 'patch-id-array',
+                changes: [{
+                    id: 'existing-item',
+                    op: 'add',
+                    value: {
+                        id: 'existing-item',
+                        name: 'new item with same id'
+                    },
+                    parentId: null,
+                    sortOrder: 0
+                }]
+            }]
+        };
+
+        const modifiedObject = applySchemePatch(origin, patch);
+        expect(modifiedObject).toStrictEqual(origin);
+    });
 })
 
 

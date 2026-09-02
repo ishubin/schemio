@@ -1075,6 +1075,11 @@ const idArrayPatch = {
     },
 
     add(itemMap, array, change, rootPath, schemaIndex, fieldSchema) {
+         // Prevent adding items with duplicate IDs
+        if (itemMap.has(change.id)) {
+            return;
+        }
+
         let parrentArray = array;
 
         if (change.parentId) {
