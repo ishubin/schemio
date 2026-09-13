@@ -34,7 +34,21 @@ export function createWebsocketDocumentWatcher(opts) {
             docIds.forEach(docId => {
                 socketOpenDocument(socket, docId);
             });
+            if (opts.onOpen) {
+                opts.onOpen();
+            }
         };
+    } else {
+        if (opts.onOpen) {
+            socket.onopen = opts.onOpen;
+        }
+    }
+
+    if (opts.onError) {
+        socket.onerror = opts.onError;
+    }
+    if (opts.onClose) {
+        socket.onclose = opts.onClose;
     }
 
     socket.onmessage = (event) => {
