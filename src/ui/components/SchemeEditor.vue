@@ -260,102 +260,20 @@
 
             </div>
 
-
-            <div v-if="mode === 'edit' && ((selectedItem && selectedItem.shape === 'frame_player') || currentAnimatorFramePlayer)"
-                class="bottom-panel"
-                :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
-                >
-                <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
-                <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
-                    <div class="bottom-panel-content">
-                        <FrameAnimatorPanel
-                            v-if="currentAnimatorFramePlayer"
-                            :key="currentAnimatorFramePlayer.id"
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            :framePlayerItemId="currentAnimatorFramePlayer.id"
-                            :light="false"
-                            @close="closeAnimatorEditor"
-                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                            />
-
-                        <FrameAnimatorPanel
-                            v-else-if="selectedItem"
-                            :key="selectedItem.id"
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            :framePlayerItemId="selectedItem.id"
-                            :light="true"
-                            @animation-editor-opened="onAnimatiorEditorOpened"
-                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                            />
-                    </div>
-                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
-                </div>
-            </div>
-
-            <div v-else-if="mode === 'edit' && selectedItem && selectedItem.shape === 'component'" class="bottom-panel">
-                <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
-                    <div class="bottom-panel-content">
-                        <div class="toggle-group">
-                            <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'external'}" @click="switchSelectedComponentKind('external')" title="Loads external diagram">
-                                External
-                            </span>
-                            <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'embedded'}" @click="switchSelectedComponentKind('embedded')" title="Use items in the same document">
-                                Embedded
-                            </span>
-                        </div>
-                        <div v-if="selectedItem.shapeProps.kind == 'external'" class="diagram-controls">
-                            <span class="label">External diagram: </span>
-                            <DiagramPicker
-                                :key="`selected-component-diagram-picker-${selectedItem.id}-${selectedItem.shapeProps.schemeId}`"
-                                :diagramId="selectedItem.shapeProps.schemeId"
-                                @diagram-selected="onDiagramPickedForSelectedComponent"/>
-                        </div>
-                        <div v-if="selectedItem.shapeProps.kind == 'embedded'" class="diagram-controls">
-                            <span class="label">Reference Item: </span>
-                            <ElementPicker :editorId="editorId"
-                                :element="selectedItem.shapeProps.referenceItem"
-                                :schemeContainer="schemeContainer"
-                                :useSelf="false"
-                                @selected="setSelectedComponentReferenceItem"
-                                />
-                        </div>
-                    </div>
-                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
-                </div>
-            </div>
-
-            <div v-else-if="(mode === 'edit' && state === 'editPath')" class="bottom-panel">
-                <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
-                    <div class="bottom-panel-content">
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{cursorX | prettifyAxisValue(zoom)}}</span>
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{cursorY | prettifyAxisValue(zoom)}}</span>
-                        <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
-                            <span class="label">x: </span>
-                            <input type="text" class="textfield"
-                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
-                                @blur="onCurveEditingPointInput($event.target.value, 'x')"
-                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
-                                />
-
-                            <span class="label">y: </span>
-                            <input type="text" class="textfield"
-                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
-                                @blur="onCurveEditingPointInput($event.target.value, 'y')"
-                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
-                                />
-
-                            <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
-                            <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
-                        </div>
-                    </div>
-                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
-                </div>
-            </div>
+            <BottomPanel v-if="mode === 'edit'"
+                :editorId="editorId"
+                :state="state"
+                :selectedItem="selectedItem"
+                :schemeContainer="schemeContainer"
+                :paddingLeft="sidePanelLeftWidth"
+                :paddingRight="sidePanelRightWidth"
+                :zoom="zoom"
+                :cursorX="cursorX"
+                :cursorY="cursorY"
+                :curveEditing="curveEditing"
+                @update-curve-edit-point="updateCurveEditPoint"
+                @frame-animator-recording-state-updated="onFrameAnimatorRectordingStateUpdated"
+            />
 
             <div class="side-panel side-panel-left"
                 :class="{collapsed: sidePanelLeftWidth < 2, expanded: sidePanelLeftWidth >= 2}"
@@ -396,7 +314,7 @@
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
 
-                        <ScriptsTab v-if="currentLeftTab === 'Scripts'"
+                        <ScriptsTab v-if="currentLeftTab === 'Behavior'"
                             :key="`${editorId}-${schemeContainer.scheme.id}`"
                             :editorId="editorId"
                             :schemeContainer="schemeContainer"
@@ -684,7 +602,7 @@ import UserEventBus from '../userevents/UserEventBus.js';
 import ExportTemplateModal from './editor/ExportTemplateModal.vue';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
-import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
+import { convertCurvePointToItemScale } from './editor/items/shapes/StandardCurves';
 import {MobileDebugger} from '../logger';
 import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
 import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
@@ -694,6 +612,7 @@ import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import StarterProposalModal from './editor/StarterProposalModal.vue';
 import ScriptConsole from './editor/ScriptConsole.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
+import BottomPanel from './editor/BottomPanel.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -702,16 +621,6 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     rotated: false,
     resized: false
 };
-
-function prettifyAxisValue(value, zoom) {
-    value = parseFloat(value);
-    if (zoom <= 100) {
-        return value.toFixed(0);
-    } else if (zoom < 500) {
-        return value.toFixed(1);
-    }
-    return value.toFixed(2);
-}
 
 function createCurvePointConverter(item) {
     return (point)  => {
@@ -805,7 +714,7 @@ export default {
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
         DrawingControlsPanel, ExportAnimationModal, ScriptConsole, ScriptsTab,
-        ExportPictureModal,
+        ExportPictureModal, BottomPanel
     },
 
     props: {
@@ -1104,7 +1013,7 @@ export default {
             currentLeftTab: 'Shapes',
             leftTabs: [
                 {name: 'Shapes', iconClass: 'fa-solid fa-shapes'},
-                {name: 'Scripts', iconClass: 'fa-solid fa-code'},
+                {name: 'Behavior', iconClass: 'fa-solid fa-person-running'},
             ],
 
             currentTab: 'Doc',
@@ -1141,8 +1050,6 @@ export default {
 
             // flag that is set when record button is pressed in frame animator panel
             isRecording: false,
-
-            currentAnimatorFramePlayer: null,
 
             curveEditing: {
                 // item whose curve is currently edited
@@ -2587,14 +2494,6 @@ export default {
             }
         },
 
-        onAnimatiorEditorOpened(framePlayer) {
-            this.currentAnimatorFramePlayer = framePlayer;
-        },
-
-        closeAnimatorEditor() {
-            this.currentAnimatorFramePlayer = null;
-        },
-
         onItemRightClick(item, mouseX, mouseY) {
             const x = this.x_(mouseX);
             const y = this.y_(mouseY);
@@ -3208,14 +3107,6 @@ export default {
             }
         },
 
-        onBottomPanelMouseDown(originalEvent) {
-            dragAndDropBuilder(originalEvent)
-            .onDrag((event, pageX, pageY) => {
-                this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 100, window.innerHeight - 100);
-            })
-            .build();
-        },
-
         /**
          * @param {Item} shapeGroupItem
          */
@@ -3310,39 +3201,6 @@ export default {
             }
         },
 
-        switchSelectedComponentKind(kind) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.kind = kind;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.kind');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.kind`);
-            this.updateSelectedComponent();
-            this.$forceUpdate();
-        },
-
-        setSelectedComponentReferenceItem(element) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.referenceItem = element;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.referenceItem');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.referenceItem`);
-            this.updateSelectedComponent();
-            this.$forceUpdate();
-        },
-
-        updateSelectedComponent() {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            if (this.selectedItem.shapeProps.kind !== 'embedded' && this.selectedItem._childItems) {
-                this.selectedItem._childItems = [];
-            }
-            this.schemeContainer.reindexSpecifiedItems([this.selectedItem]);
-            this.schemeContainer.reindexItems();
-        },
-
         setCurveEditItem(item) {
             this.curveEditing.item = item;
             this.curveEditing.paths.length = 0;
@@ -3365,6 +3223,7 @@ export default {
                 });
             }
         },
+
         updateCurveEditPoint(item, pathId, pointId, point) {
             if (!validatePointIds(pathId, pointId, this.curveEditing)) {
                 return;
@@ -3423,59 +3282,6 @@ export default {
                 });
             });
             this.curveEditing.selectedPoints = selectedPoints;
-        },
-
-        onCurveEditingPointInput(text, axis) {
-            const value = parseFloat(text);
-            if (isNaN(value) || this.curveEditing.selectedPoints.length !== 1 || !this.curveEditing.item) {
-                return;
-            }
-
-            const {pathId, pointId} = this.curveEditing.selectedPoints[0];
-            const point = this.curveEditing.item.shapeProps.paths[pathId].points[pointId];
-
-            let {x, y} = this.curveEditing.selectedPoints[0];
-            const worldPoint = {x, y};
-            worldPoint[axis] = value;
-
-            const localPoint = localPointOnItem(worldPoint.x, worldPoint.y, this.curveEditing.item);
-            const convertedPoint = convertCurvePointToRelative(localPoint, this.curveEditing.item.area.w, this.curveEditing.item.area.h);
-
-            point.x = convertedPoint.x;
-            point.y = convertedPoint.y;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
-            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point);
-        },
-
-        onCurveEditingArcHeightInput(text) {
-            const value = parseFloat(text);
-            if (isNaN(value)
-                || this.curveEditing.selectedPoints.length !== 1
-                || this.curveEditing.selectedPoints[0].t !== 'A'
-                || !this.curveEditing.item) {
-                return;
-            }
-            const {pathId, pointId} = this.curveEditing.selectedPoints[0];
-            const point = this.curveEditing.item.shapeProps.paths[pathId].points[pointId];
-            point.h = value;
-
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
-            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point);
-        },
-
-        prettifyAxisValue(value, zoom) {
-            return prettifyAxisValue(value, zoom);
-        },
-
-        onDiagramPickedForSelectedComponent(diagram) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.schemeId = diagram.id;
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.selectedItem.id}.shapeProps.schemeId`);
-            this.$forceUpdate();
         },
 
         onEditBoxCustomControlClicked(item) {
@@ -3680,12 +3486,6 @@ export default {
         y_(y) { return (y - this.schemeContainer.screenTransform.y) / this.schemeContainer.screenTransform.scale },
         z_(v) { return v / this.schemeContainer.screenTransform.scale; },
 
-    },
-
-    filters: {
-        prettifyAxisValue(value, zoom) {
-            return prettifyAxisValue(value, zoom);
-        }
     },
 
     watch: {
