@@ -60,6 +60,12 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'patched-scheme-updated', [], affinityId),
     },
 
+    historyRestored: {
+        $on: (editorId, callback) => $on(editorId, 'history-restored', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'history-restored', [], callback),
+        $emit: (editorId, scheme) => $emit(editorId, 'history-restored', [], scheme),
+    },
+
     schemeRebased: {
         $on: (editorId, callback) => $on(editorId, 'scheme-rebased', [], callback),
         $off: (editorId, callback) => $off(editorId, 'scheme-rebased', [], callback),

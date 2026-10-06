@@ -2041,6 +2041,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     display: flex;
     flex-direction: row;
 }
+[data-theme="dark"] .scheme-editor-component .bottom-panel {
+    background: var(--faint-weak);
+}
 .scheme-editor-component .bottom-panel.collapsed {
     min-height: 0;
 }

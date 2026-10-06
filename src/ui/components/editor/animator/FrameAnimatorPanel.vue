@@ -139,6 +139,13 @@
                     </tbody>
                 </table>
             </div>
+
+            <div v-else-if="allFramePlayers.length === 0">
+                <div class="hint">
+                    There are no frame players available. Want to add animations? Add a "Frame Player" object to your document
+                </div>
+                <span class="btn btn-secondary" @click="addFramePlayerItemToScheme">Add Frame Player</span>
+            </div>
         </div>
         <div ref="frameDragPreview" class="frame-drag-preview" :class="{'is-dragging': frameDrag.on}">
             <span class="active-frame" v-if="!frameDrag.source.blank"><i class="fas fa-circle"></i></span>
@@ -467,12 +474,14 @@ export default {
     beforeMount() {
         this.compileAnimations();
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
+        EditorEventBus.historyRestored.$on(this.editorId, this.onHistoryRestored);
         EditorEventBus.item.changed.any.$on(this.editorId, this.onFramePlayerChanged);
         EditorEventBus.schemeRebased.$on(this.editorId, this.onSchemeRebased);
     },
 
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
+        EditorEventBus.historyRestored.$off(this.editorId, this.onHistoryRestored);
         EditorEventBus.item.changed.any.$off(this.editorId, this.onFramePlayerChanged);
         EditorEventBus.schemeRebased.$off(this.editorId, this.onSchemeRebased);
         this.$emit('recording-state-updated', false);
@@ -482,17 +491,13 @@ export default {
         const allFramePlayers = this.schemeContainer.findItemsByShape('frame_player');
 
         let selectedFramePlayer = null;
-        let selectedFramePlayerIdx = -1;
-
         if (allFramePlayers.length > 0) {
             selectedFramePlayer = allFramePlayers[0];
-            selectedFramePlayerIdx = 0;
         }
 
         return {
             allFramePlayers,
             allFramePlayerOptions: allFramePlayers.map(it => {return {name: it.name, id: it.id};}),
-            selectedFramePlayerIdx,
             selectedFramePlayer,
             originSchemeContainer: null,
             currentFrame: 1,
@@ -565,6 +570,70 @@ export default {
     },
 
     methods: {
+        updateAllFramePlayers() {
+            const allFramePlayers = this.schemeContainer.findItemsByShape('frame_player');
+            this.allFramePlayers = allFramePlayers;
+            this.allFramePlayerOptions = allFramePlayers.map(it => {return {name: it.name, id: it.id};});
+
+            if (allFramePlayers.length === 0) {
+                this.selectedFramePlayer = 0;
+                this.totalFrams = 0;
+                this.currentFrame = 1;
+                this.framesMatrix = [];
+                return;
+            }
+
+            if (this.selectedFramePlayer) {
+                // if the currently selected frame player was removed
+                if (allFramePlayers.findIndex(p => p.id === this.selectedFramePlayer.id) < 0) {
+                    this.selectedFramePlayer = null;
+                }
+            }
+
+            if (!this.selectedFramePlayer) {
+                this.selectedFramePlayer = allFramePlayers[0];
+                this.currentFrame = 1;
+                this.totalFrames = this.selectedFramePlayer.shapeProps.totalFrames;
+                this.framesMatrix = this.buildFramesMatrix(this.selectedFramePlayer);
+            }
+        },
+
+        addFramePlayerItemToScheme() {
+            let vx = window.innerWidth / 2;
+            let vy = window.innerHeight / 2 - 100;
+
+            const svgPlot = document.querySelector('svg.svg-editor-plot');
+            if (svgPlot) {
+                const rect = svgPlot.getBoundingClientRect();
+                vx = rect.width / 2;
+                // moving it closer to the top of the visible plot, otherwise the bottom panel might be above it
+                vy = rect.height / 3;
+            }
+
+            const x = (vx - this.schemeContainer.screenTransform.x) / Math.max(0.000001, this.schemeContainer.screenTransform.scale);
+            const y = (vy - this.schemeContainer.screenTransform.y) / Math.max(0.000001, this.schemeContainer.screenTransform.scale);
+            const w = 100;
+            const h = 60;
+            const item = this.schemeContainer.addItem({
+                shape: 'frame_player',
+                name: 'Frame Player',
+                area: {x: x - w/2, y: y - h/2, w: w, h: h, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1},
+                shapeProps: {},
+                textSlots: {
+                    title: {
+                        text: '<b>Frame Player</b>',
+                        color: '#000000',
+                        fontSize: 14
+                    }
+                }
+            });
+
+            this.schemeContainer.selectItem(item);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+
+            this.updateAllFramePlayers();
+        },
+
         onTotalFramesChange(totalFrames) {
             if (!this.selectedFramePlayer) {
                 return;
@@ -842,6 +911,9 @@ export default {
         },
 
         onSchemeRebased() {
+            if (!this.selectedFramePlayer) {
+                return;
+            }
             const item = this.schemeContainer.findItemById(this.selectedFramePlayer.id);
             if (item) {
                 this.selectedFramePlayer = item;
@@ -862,10 +934,14 @@ export default {
         },
 
         onSchemeChange() {
-            if (!this.isRecording) {
-                return;
+            if (this.isRecording) {
+                this.detectChangesForRecording();
+            } else {
+                this.updateAllFramePlayers();
             }
+        },
 
+        detectChangesForRecording() {
             if (this.recordingPushbackTimer) {
                 clearTimeout(this.recordingPushbackTimer);
             }
@@ -966,6 +1042,10 @@ export default {
         },
 
         updateFramesMatrix() {
+            if (!this.selectedFramePlayer) {
+                this.framesMatrix = [];
+                return;
+            }
             this.framesMatrix = this.buildFramesMatrix(this.selectedFramePlayer);
             this.shouldRecompileAnimations = true;
         },
@@ -1649,8 +1729,14 @@ export default {
             this.updateFramesMatrix();
         },
 
-        onHistoryUndone() {
-            this.updateFramesMatrix();
+        onHistoryRestored() {
+            // Unfortunatelly the history restoring event is triggered before the reindexing of the SchemeContainer
+            // Because of this there is inconsistency in the SchemeContainer.
+            // That's why we used a reindex callback which works similar to Vue's $nextTick
+            this.schemeContainer.nextReindex(() => {
+                this.updateAllFramePlayers();
+                this.updateFramesMatrix();
+            });
         },
 
         onFramePlayerChanged(itemId) {

@@ -403,6 +403,10 @@ class SchemeContainer {
             vertical: [],
         };
 
+
+        // Contains an array of callbacks that are supposed to be executed after the full reindex
+        this.reindexCallbacks = [];
+
         // Used to drag, resize and rotate multiple items
         // Since both the SvgEditor component and StateDragItem state needs access to it, it is easier to keep it here
         this.editBox = null;
@@ -413,6 +417,11 @@ class SchemeContainer {
         // this is used in order to optimize performance when user is changing templated item arguments
         this.reindexTimeoutId = null;
         this.reindexItems();
+    }
+
+    // Schedules a callback to be executed after next full reindex
+    nextReindex(callback) {
+        this.reindexCallbacks.push(callback);
     }
 
     getItemNames() {
@@ -614,6 +623,17 @@ class SchemeContainer {
 
         this.itemTags = Object.keys(this._itemTagsToIds);
         this.itemTags.sort();
+
+        const reindexCallbacks = this.reindexCallbacks;
+        this.reindexCallbacks = [];
+
+        for (let i = 0; i < reindexCallbacks.length; i++) {
+            try {
+                reindexCallbacks[i]();
+            } catch(err) {
+                console.error(err);
+            }
+        }
 
         log.timeEnd('reindexItems');
     }

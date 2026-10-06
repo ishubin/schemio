@@ -194,10 +194,32 @@ export default {
             this.initPanelDragging(originalEvent)
             .onSimpleClick(() => {
                 this.collapsed = false;
-                this.bottompanelheight = 30;
+                this.bottomPanelHeight = 200;
             })
             .build();
+        },
+
+        switchToPathTab() {
+            const pathTabIdx = 2;
+            this.tabs[pathTabIdx].disabled = false;
+            this.currentTab = this.tabs[pathTabIdx].name;
+        },
+
+        switchOffPathTab() {
+            const pathTabIdx = 2;
+            this.tabs[pathTabIdx].disabled = true;
+            this.currentTab = this.tabs[0].name;
         }
     },
+
+    watch: {
+        state(state) {
+            if (state === 'editPath') {
+                this.switchToPathTab();
+            } else {
+                this.switchOffPathTab();
+            }
+        }
+    }
 };
 </script>
