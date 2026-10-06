@@ -1,6 +1,5 @@
 import shortid from "shortid";
 import EditorEventBus from "../components/editor/EditorEventBus";
-import { enrichItemWithDefaults } from "../scheme/ItemFixer";
 import { Scope } from "../templater/scope";
 import { createConnectionsFunctions } from "./connections";
 import { createItemScriptWrapper } from "./item";
@@ -34,7 +33,7 @@ export function createItemBasedScope(item, schemeContainer, userEventBus) {
 }
 
 
-function buildMainScopeFunctions(schemeContainer, userEventBus) {
+export function buildMainScopeFunctions(schemeContainer, userEventBus) {
     return {
         findItemById: (id) => {
             return createItemScriptWrapper(schemeContainer.findItemById(id), schemeContainer, userEventBus);

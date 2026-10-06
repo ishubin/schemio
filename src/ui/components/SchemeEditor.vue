@@ -260,7 +260,7 @@
 
             </div>
 
-            <BottomPanel v-if="mode === 'edit'"
+            <BottomPanel v-if="mode === 'edit' && schemeContainer"
                 :editorId="editorId"
                 :state="state"
                 :selectedItem="selectedItem"

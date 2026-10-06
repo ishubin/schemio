@@ -14,6 +14,13 @@
                     </li>
                 </ul>
                 <div class="tabs-body">
+                    <template v-if="currentTab === 'Console'">
+                        <EditorScriptPanel
+                            :editorId="editorId"
+                            :schemeContainer="schemeContainer"
+                            />
+                    </template>
+
                     <template v-if="currentTab === 'Animation'">
                         <FrameAnimatorPanel
                             :editorId="editorId"
@@ -64,6 +71,7 @@
 import { dragAndDropBuilder } from '../../dragndrop';
 import myMath from '../../myMath';
 import { localPointOnItem } from '../../scheme/ItemMath';
+import EditorScriptPanel from '../EditorScriptPanel.vue';
 import FrameAnimatorPanel from './animator/FrameAnimatorPanel.vue';
 import DiagramPicker from './DiagramPicker.vue';
 import EditorEventBus from './EditorEventBus.js';
@@ -96,7 +104,7 @@ export default {
         curveEditing   : {type: Object}
     },
 
-    components: { FrameAnimatorPanel, DiagramPicker, ElementPicker },
+    components: { FrameAnimatorPanel, DiagramPicker, ElementPicker, EditorScriptPanel },
 
     data() {
         return {
