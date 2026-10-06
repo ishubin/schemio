@@ -2039,11 +2039,55 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     box-shadow: 0 0 10px var(--shadow-color);
     width: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+}
+.scheme-editor-component .bottom-panel.collapsed {
+    min-height: 0;
+}
+.scheme-editor-component .bottom-panel.collapsed .bottom-panel-content {
+    display: none;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-btn-expander {
+    display: inline-block;
+    position: absolute;
+    margin: auto;
+    background: var(--faint-weak-up);
+    text-align: center;
+    top: -11px;
+    overflow: hidden;
+    left: 0;
+    right: 0;
+    cursor: pointer;
+    border-top: 1px solid var(--faint-strong);
+    border-bottom: none;
+    color: var(--base-strong-up);
+    height: 12px;
+    width: 40px;
+    user-select: none;
+    border-radius: 3px 3px 0 0;
+}
+.scheme-editor-component .bottom-panel .tabs-body {
+    height: 100%;
+}
+.scheme-editor-component .bottom-panel.collapsed .bottom-panel-btn-expander {
+    top: -12px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-btn-expander.hidden {
+    display: none;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-btn-expander .icon {
+    position: absolute;
+    top: -2px;
+    left: 0;
+    right: 0;
+    margin: auto;
 }
 .scheme-editor-component .bottom-panel .bottom-panel-dragger {
-    cursor: pointer;
-    height: 7px;
+    cursor: row-resize;
+    top: -3px;
+    position: absolute;
+    width: 100%;
+    height: 4px;
     background: var(--faint-weak-down);
     border-bottom: 1px solid var(--faint-weak);
     user-select: none;
@@ -2051,7 +2095,11 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .bottom-panel .bottom-panel-dragger:hover {
     background: var(--faint-weak-down-2);
 }
+.scheme-editor-component .bottom-panel.collapsed .bottom-panel-dragger {
+    display: none;
+}
 .scheme-editor-component .bottom-panel .bottom-panel-body {
+    position: relative;
     display: flex;
     flex: 1;
     width: 100%;
@@ -2063,7 +2111,8 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     flex: 1;
     display: flex;
     padding-left: 10px;
-    align-items: center;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .scheme-editor-component .bottom-panel .bottom-panel-content .label {
@@ -3896,13 +3945,6 @@ ul.effects-list > li.effect-drop-destination.effect-drop-below {
     height: 100%;
     flex: 1;
 }
-.frame-animator-panel .frame-animator-light {
-    padding: 5px;
-}
-.frame-animator-panel .frame-animator-light .frame-animator-title {
-    font-weight: bold;
-    margin-left: 10px;
-}
 .frame-animator-panel .frame-animator-container {
     height: 100%;
     display: flex;
@@ -3932,28 +3974,26 @@ ul.effects-list > li.effect-drop-destination.effect-drop-below {
     flex: 1;
     user-select: none;
     display: flex;
+    padding-left: 10px;
 }
 .frame-animator-panel .frame-animator-controls .frame-animator-player-buttons {
     display: flex;
     align-items: center;
     margin-right: 10px;
     height: 30px;
+    gap: 2px;
+}
+.frame-animator-panel .frame-animator-controls .frame-animator-player-buttons .spacer {
+    display: block;
+    width: 10px;
 }
 .frame-animator-panel .frame-animator-controls .frame-animator-frame-input {
     display: inline-block;
     min-width: 100px;
 }
 .frame-animator-panel .frame-animator-controls .btn {
-    min-width: 22px;
     text-align: center;
-}
-.frame-animator-panel .frame-animator-right-panel {
-    width: 60px;
-    text-align: right;
-    padding-right: 20px;
-}
-.frame-animator-panel .frame-animator-right-panel .icon {
-    cursor: pointer;
+    border-radius: 2px;
 }
 .frame-animator-panel .frame-animator-canvas {
     position: relative;

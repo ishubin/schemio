@@ -1,90 +1,61 @@
 <template>
-    <div class="bottom-panel"
-        :style="{height: `${bottomPanelHeight}px`}"
+    <div class="bottom-panel" :class="{collapsed: collapsed}"
+        :style="{height: `${collapsed ? 0 : bottomPanelHeight}px`}"
     >
-        <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown"></div>
+        <div class="side-panel-filler-left" :style="{width: `${paddingLeft+4}px`}"></div>
         <div class="bottom-panel-body">
-            <div class="side-panel-filler-left" :style="{width: `${paddingLeft}px`}"></div>
+            <div class="bottom-panel-content">
+                <ul class="tabs">
+                    <li v-for="tab in tabs">
+                        <span class="tab" :class="{active: tab.name === currentTab, disabled: tab.disabled}" @click="selectTab(tab)">
+                            <i v-if="tab.iconClass" :class="tab.iconClass"></i>
+                            {{tab.name}}
+                        </span>
+                    </li>
+                </ul>
+                <div class="tabs-body">
+                    <template v-if="currentTab === 'Animation'">
+                        <FrameAnimatorPanel
+                            :editorId="editorId"
+                            :schemeContainer="schemeContainer"
+                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
+                            />
+                    </template>
 
-            <div class="bottom-panel-content" v-if="selectedItem && selectedItem.shape === 'frame_player'">
-                <FrameAnimatorPanel
-                    v-if="currentAnimatorFramePlayer"
-                    :key="currentAnimatorFramePlayer.id"
-                    :editorId="editorId"
-                    :schemeContainer="schemeContainer"
-                    :framePlayerItemId="currentAnimatorFramePlayer.id"
-                    :light="false"
-                    @close="closeAnimatorEditor"
-                    @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                    />
-                <FrameAnimatorPanel
-                    v-else
-                    :key="selectedItem.id"
-                    :editorId="editorId"
-                    :schemeContainer="schemeContainer"
-                    :framePlayerItemId="selectedItem.id"
-                    :light="true"
-                    @animation-editor-opened="onAnimatiorEditorOpened"
-                    @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                    />
-            </div>
+                    <template v-if="currentTab === 'Path'">
+                        <template v-if="state === 'editPath' && curveEditing" class="bottom-panel-content">
+                            <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{ prettifyAxisValue(cursorX, zoom) }}</span>
+                            <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{ prettifyAxisValue(cursorY, zoom) }}</span>
+                            <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
+                                <span class="label">x: </span>
+                                <input type="text" class="textfield"
+                                    :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
+                                    @blur="onCurveEditingPointInput($event.target.value, 'x')"
+                                    @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
+                                    />
 
-            <div v-else-if="selectedItem && selectedItem.shape === 'component'" class="bottom-panel-content">
-                <div class="toggle-group">
-                    <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'external'}" @click="switchSelectedComponentKind('external')" title="Loads external diagram">
-                        External
-                    </span>
-                    <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'embedded'}" @click="switchSelectedComponentKind('embedded')" title="Use items in the same document">
-                        Embedded
-                    </span>
-                </div>
-                <div v-if="selectedItem.shapeProps.kind == 'external'" class="diagram-controls">
-                    <span class="label">External diagram: </span>
-                    <DiagramPicker
-                        :key="`selected-component-diagram-picker-${selectedItem.id}-${selectedItem.shapeProps.schemeId}`"
-                        :diagramId="selectedItem.shapeProps.schemeId"
-                        @diagram-selected="onDiagramPickedForSelectedComponent"/>
-                </div>
-                <div v-if="selectedItem.shapeProps.kind == 'embedded'" class="diagram-controls">
-                    <span class="label">Reference Item: </span>
-                    <ElementPicker :editorId="editorId"
-                        :element="selectedItem.shapeProps.referenceItem"
-                        :schemeContainer="schemeContainer"
-                        :useSelf="false"
-                        @selected="setSelectedComponentReferenceItem"
-                        />
+                                <span class="label">y: </span>
+                                <input type="text" class="textfield"
+                                    :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
+                                    @blur="onCurveEditingPointInput($event.target.value, 'y')"
+                                    @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
+                                    />
+
+                                <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
+                                <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
+                            </div>
+                        </template>
+                    </template>
                 </div>
             </div>
 
-            <div v-else-if="state === 'editPath' && curveEditing" class="bottom-panel-content">
-                <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{ prettifyAxisValue(cursorX, zoom) }}</span>
-                <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{ prettifyAxisValue(cursorY, zoom) }}</span>
-                <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
-                    <span class="label">x: </span>
-                    <input type="text" class="textfield"
-                        :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
-                        @blur="onCurveEditingPointInput($event.target.value, 'x')"
-                        @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
-                        />
-
-                    <span class="label">y: </span>
-                    <input type="text" class="textfield"
-                        :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
-                        @blur="onCurveEditingPointInput($event.target.value, 'y')"
-                        @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
-                        />
-
-                    <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
-                    <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
-                </div>
-            </div>
-
-            <div v-else class="bottom-panel-content">
-                empty panel
-            </div>
-
-            <div class="side-panel-filler-right" :style="{width: `${paddingRight}px`}"></div>
+            <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown"></div>
+            <span class="bottom-panel-btn-expander" :class="{hidden: !collapsed}" @touchstart="onExpanderMouseDown" @mousedown="onExpanderMouseDown">
+                <i class="icon fas fa-angle-up"></i>
+            </span>
         </div>
+
+        <div class="side-panel-filler-right" :style="{width: `${paddingRight+4}px`}"></div>
     </div>
 </template>
 
@@ -129,69 +100,29 @@ export default {
 
     data() {
         return {
-            currentAnimatorFramePlayer: null,
-            bottomPanelHeight: 300,
+            collapsed: true,
+            tabs: [{
+                name: 'Console', iconClass: 'fa-solid fa-terminal',
+            }, {
+                name: 'Animation', iconClass: 'fas fa-film',
+            }, {
+                name: 'Path', iconClass: 'fa-solid fa-bezier-curve', disabled: true
+            }],
+            currentTab: 'Console',
+            bottomPanelHeight: 30,
         };
     },
 
     methods: {
+        selectTab(tab) {
+            if (tab.disabled) {
+                return;
+            }
+            this.currentTab = tab.name;
+        },
+
         onFrameAnimatorRectordingStateUpdated(isRecording) {
             this.$emit('frame-animator-recording-state-updated', isRecording);
-        },
-
-        closeAnimatorEditor() {
-            this.currentAnimatorFramePlayer = null;
-        },
-
-        onAnimatiorEditorOpened(framePlayer) {
-            this.currentAnimatorFramePlayer = framePlayer;
-        },
-
-        onBottomPanelMouseDown(originalEvent) {
-            dragAndDropBuilder(originalEvent)
-            .onDrag((event, pageX, pageY) => {
-                this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 20, window.innerHeight - 100);
-            })
-            .build();
-        },
-
-        switchSelectedComponentKind(kind) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.kind = kind;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.kind');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.kind`);
-            this.updateSelectedComponent();
-        },
-
-        onDiagramPickedForSelectedComponent(diagram) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.schemeId = diagram.id;
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.selectedItem.id}.shapeProps.schemeId`);
-        },
-
-        setSelectedComponentReferenceItem(element) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.referenceItem = element;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.referenceItem');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.referenceItem`);
-            this.updateSelectedComponent();
-        },
-
-        updateSelectedComponent() {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            if (this.selectedItem.shapeProps.kind !== 'embedded' && this.selectedItem._childItems) {
-                this.selectedItem._childItems = [];
-            }
-            this.schemeContainer.reindexSpecifiedItems([this.selectedItem]);
-            this.schemeContainer.reindexItems();
         },
 
         prettifyAxisValue(value, zoom) {
@@ -240,6 +171,32 @@ export default {
 
         updateCurveEditPoint(item, pathId, pointId, point) {
             this.$emit('update-curve-edit-point', item, pathId, pointId, point);
+        },
+
+        initPanelDragging(originalEvent) {
+            return dragAndDropBuilder(originalEvent)
+            .onDrag((event, pageX, pageY) => {
+                this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 0, window.innerHeight - 100);
+                if (this.bottomPanelHeight <= 30) {
+                    this.collapsed = true;
+                    this.bottompanelheight = 0;
+                } else {
+                    this.collapsed = false;
+                }
+            });
+        },
+
+        onBottomPanelMouseDown(originalEvent) {
+            this.initPanelDragging(originalEvent).build();
+        },
+
+        onExpanderMouseDown(originalEvent) {
+            this.initPanelDragging(originalEvent)
+            .onSimpleClick(() => {
+                this.collapsed = false;
+                this.bottompanelheight = 30;
+            })
+            .build();
         }
     },
 };

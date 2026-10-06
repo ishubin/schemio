@@ -2572,6 +2572,14 @@ class SchemeContainer {
     }
 
     /**
+     * @param {String} shapeId
+     * @returns {Array<Item>}
+     */
+    findItemsByShape(shapeId) {
+        return this._itemArray.filter(it => it.shape === shapeId);
+    }
+
+    /**
      * @param {String} selector
      * @param {Item} selfItem
      * @returns {Item}
