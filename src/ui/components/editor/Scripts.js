@@ -182,22 +182,16 @@ export function createCompletions(schemeContainer, previousScripts, scopeArgs, f
         completions = completions.concat(extractCompletionsFromScript(script));
     });
 
-    const itemNames = schemeContainer.getItemNames();
-    const externalReferenceCompletions = itemNames.map(name => {
-        const completion = {label: name, type: 'object', detail: 'object'};
-        if (!name.match(/^[0-9a-zA-Z_]+$/)) {
-            completion.apply = `"${name}"`;
-        }
-        return completion;
-    });
-
-    const externalReferenceCompletionsWithPrefix = itemNames.map(name => {
-        const completion = {label: '@' + name, type: 'object', detail: 'object'};
-        if (!name.match(/^[0-9a-zA-Z_]+$/)) {
-            completion.apply = `@"${name}"`;
-        }
-        return completion;
-    });
+    const provideItemNamesOptions = (prefix = '') => {
+        const itemNames = schemeContainer.getItemNames();
+        return itemNames.map(name => {
+            const completion = {label: prefix + name, type: 'object', detail: 'object'};
+            if (!name.match(/^[0-9a-zA-Z_]+$/)) {
+                completion.apply = `${prefix}"${name}"`;
+            }
+            return completion;
+        });
+    };
 
     return (context) => {
         const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
@@ -214,13 +208,13 @@ export function createCompletions(schemeContainer, previousScripts, scopeArgs, f
             if (before && before.text === '@') {
                 return {
                     from: before ? before.from : context.pos,
-                    options: externalReferenceCompletionsWithPrefix,
+                    options: provideItemNamesOptions('@'),
                     validFor: /^(@\w*)?$/
                 };
             }
             return {
                 from: before ? before.from : context.pos,
-                options: externalReferenceCompletions,
+                options: provideItemNamesOptions(),
                 validFor: /^(@\w*)?$/
             };
         } else if (nodeBefore.name === 'VariableName') {
