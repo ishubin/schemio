@@ -37,6 +37,7 @@ import {computeSvgFill} from '../AdvancedFill.vue';
 import EditorEventBus from '../../EditorEventBus.js';
 import { localPointOnItem, localPointOnItemToLocalPointOnOtherItem, worldPointOnItem } from '../../../../scheme/ItemMath';
 import { Vector } from '../../../../templater/vector';
+import { List } from '../../../../templater/list.js';
 
 const log = new Logger('Connector');
 
@@ -963,6 +964,31 @@ function scriptFunctions(editorId, schemeContainer, item) {
             });
             emitItemChanged();
             return item.shapeProps.points.length - 1;
+        },
+
+        setWorldPoints(points) {
+            if (points instanceof List) {
+                points = points.items;
+            }
+            if (!Array.isArray(points)) {
+                throw new Error('invalid argument in setWorldPoints function: expecting a list of vectors');
+            }
+
+            if (points.length < 2) {
+                throw new Error('invalid argument in setWorldPoints function: expecting a list of at least two vectors');
+            }
+
+            const localPoints = [];
+            for (let i = 0; i < points.length; i++) {
+                const p = points[i];
+                if (!(p instanceof Vector)) {
+                    throw new Error(`invalid argument in setWorldPoints function: item #${i} in the list is not a Vector`);
+                }
+                localPoints.push(localPointOnItem(p.x, p.y, item));
+            }
+
+            item.shapeProps.points = localPoints;
+            emitItemChanged();
         },
 
         removePoint(pointIdx) {

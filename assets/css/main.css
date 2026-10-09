@@ -2047,43 +2047,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .bottom-panel.collapsed {
     min-height: 0;
 }
-.scheme-editor-component .bottom-panel.collapsed .bottom-panel-content {
-    display: none;
-}
-.scheme-editor-component .bottom-panel .bottom-panel-btn-expander {
-    display: inline-block;
-    position: absolute;
-    margin: auto;
-    background: var(--faint-weak-up);
-    text-align: center;
-    top: -11px;
-    overflow: hidden;
-    left: 0;
-    right: 0;
-    cursor: pointer;
-    border-top: 1px solid var(--faint-strong);
-    border-bottom: none;
-    color: var(--base-strong-up);
-    height: 12px;
-    width: 40px;
-    user-select: none;
-    border-radius: 3px 3px 0 0;
-}
 .scheme-editor-component .bottom-panel .tabs-body {
     height: 100%;
-}
-.scheme-editor-component .bottom-panel.collapsed .bottom-panel-btn-expander {
-    top: -12px;
-}
-.scheme-editor-component .bottom-panel .bottom-panel-btn-expander.hidden {
-    display: none;
-}
-.scheme-editor-component .bottom-panel .bottom-panel-btn-expander .icon {
-    position: absolute;
-    top: -2px;
-    left: 0;
-    right: 0;
-    margin: auto;
+    min-height: 0;
 }
 .scheme-editor-component .bottom-panel .bottom-panel-dragger {
     cursor: row-resize;
@@ -2098,14 +2064,23 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .bottom-panel .bottom-panel-dragger:hover {
     background: var(--faint-weak-down-2);
 }
-.scheme-editor-component .bottom-panel.collapsed .bottom-panel-dragger {
-    display: none;
-}
 .scheme-editor-component .bottom-panel .bottom-panel-body {
     position: relative;
     display: flex;
     flex: 1;
     width: 100%;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-body .bottom-panel-expand-button {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    cursor: pointer;
+    opacity: 0.8;
+    z-index: 20;
+    font-size: 12px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-body .bottom-panel-expand-button:hover {
+    opacity: 1;
 }
 .scheme-editor-component .bottom-panel .side-panel-filler-left {
     width: 220px;
@@ -2117,7 +2092,31 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     flex-direction: column;
     overflow: hidden;
 }
-
+.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar input[type='text'] {
+    font-size: 11px;
+    padding: 2px 4px;
+    height: 18px;
+    width: 70px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar .bottom-panel-status-bar-menu {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    font-size: 12px;
+    gap: 10px;
+    opacity: 0.8;
+    cursor: pointer;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar .bottom-panel-status-bar-menu:hover {
+    opacity: 1.0;
+}
 .scheme-editor-component .bottom-panel .bottom-panel-content .label {
     font-size: 12px;
     padding-left: 10px;
@@ -6006,10 +6005,14 @@ svg .editor-custom-area {
 .editor-script-panel .editor-script-editor {
     flex: 1;
     min-height: 0;
+    height: 100%;
+}
+.editor-script-panel .editor-script-controls .btn {
+    font-size: 10px;
+    padding: 2px 8px;
 }
 .editor-script-panel .editor-script-editor-wrapper {
     min-height: 0;
     height: 100%;
     max-height: 100%;
-    overflow: scroll;
 }

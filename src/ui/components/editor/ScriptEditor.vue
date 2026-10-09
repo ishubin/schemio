@@ -50,7 +50,8 @@ export default {
         scopeArgs: {type: Array, default: () => []},
         value: {type: String, default: ''},
         height: {type: Number, default: 400},
-        stretchVertically: {type: Boolean, default: false}
+        stretchVertically: {type: Boolean, default: false},
+        functionCompletions: {type: Array, default: () => []},
     },
 
     data() {
@@ -86,7 +87,7 @@ export default {
                 }),
                 autocompletion({
                     override: [
-                        createCompletions(this.schemeContainer, this.previousScripts, this.scopeArgs)
+                        createCompletions(this.schemeContainer, this.previousScripts, this.scopeArgs, this.functionCompletions)
                     ]
                 })
             ]

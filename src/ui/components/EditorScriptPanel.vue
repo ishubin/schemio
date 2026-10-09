@@ -1,7 +1,7 @@
 <template>
     <div class="editor-script-panel">
         <div class="editor-script-controls">
-            <span class="btn btn-primary btn-small" @click="executeScript">Run</span>
+            <span class="btn btn-primary btn-small" @click="executeScript" title="Run script"><i class="fa-solid fa-play"></i></span>
         </div>
 
         <div class="editor-script-editor">
@@ -10,6 +10,7 @@
                     :value="script"
                     :schemeContainer="schemeContainer"
                     :stretchVertically="true"
+                    :functionCompletions="functionCompletions"
                     @changed="onScriptChange"
                     />
             </div>
@@ -19,11 +20,14 @@
 
 
 <script>
-import { buildMainScopeFunctions } from '../scripting/main.js';
+import { buildMainScopeFunctions, createItemByNameProvider } from '../scripting/main.js';
 import { parseExpression } from '../templater/ast.js';
 import { Scope } from '../templater/scope.js';
 import UserEventBus from '../userevents/UserEventBus.js';
 import ScriptEditor from './editor/ScriptEditor.vue';
+
+const functionCompletions = [
+];
 
 export default {
     props: {
@@ -36,6 +40,7 @@ export default {
     data() {
         return {
             script: "",
+            functionCompletions,
         };
     },
 
@@ -45,9 +50,10 @@ export default {
         },
 
         executeScript() {
+            const userEventBus = new UserEventBus(this.editorId);
             const scope = new Scope({
-                ...buildMainScopeFunctions(this.schemeContainer, new UserEventBus(this.editorId))
-            });
+                ...buildMainScopeFunctions(this.schemeContainer, userEventBus)
+            }, null, createItemByNameProvider(this.schemeContainer, userEventBus));
 
             const ast = parseExpression(this.script);
             ast.evalNode(scope);

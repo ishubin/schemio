@@ -1,10 +1,43 @@
 <template>
     <div class="bottom-panel" :class="{collapsed: collapsed}"
-        :style="{height: `${collapsed ? 0 : bottomPanelHeight}px`}"
+        :style="{height: `${collapsed ? collapseHeight : bottomPanelHeight}px`}"
     >
         <div class="side-panel-filler-left" :style="{width: `${paddingLeft+4}px`}"></div>
         <div class="bottom-panel-body">
-            <div class="bottom-panel-content">
+            <div v-if="collapsed" class="bottom-panel-content bottom-panel-status-bar">
+                <template v-if="state === 'editPath' && curveEditing">
+                    <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{ prettifyAxisValue(cursorX, zoom) }}</span>
+                    <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{ prettifyAxisValue(cursorY, zoom) }}</span>
+                        <template v-if="curveEditing.selectedPoints.length === 1">
+                            <span class="label">x: </span>
+                            <input type="text" class="textfield"
+                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
+                                @blur="onCurveEditingPointInput($event.target.value, 'x')"
+                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
+                                />
+
+                            <span class="label">y: </span>
+                            <input type="text" class="textfield"
+                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
+                                @blur="onCurveEditingPointInput($event.target.value, 'y')"
+                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
+                                />
+
+                            <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
+                            <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
+                        </template>
+                </template>
+                <div v-else class="bottom-panel-status-bar-menu">
+                    <template v-for="tab in tabs">
+                        <template v-if="!tab.disabled">
+                            <span class="icon" @click="selectTabFromCollapsed(tab)" :title="tab.name">
+                                <i v-if="tab.iconClass" :class="tab.iconClass"></i>
+                            </span>
+                        </template>
+                    </template>
+                </div>
+            </div>
+            <div v-else class="bottom-panel-content">
                 <ul class="tabs">
                     <li v-for="tab in tabs">
                         <span class="tab" :class="{active: tab.name === currentTab, disabled: tab.disabled}" @click="selectTab(tab)">
@@ -30,7 +63,7 @@
                     </template>
 
                     <template v-if="currentTab === 'Path'">
-                        <template v-if="state === 'editPath' && curveEditing" class="bottom-panel-content">
+                        <template v-if="state === 'editPath' && curveEditing">
                             <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{ prettifyAxisValue(cursorX, zoom) }}</span>
                             <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{ prettifyAxisValue(cursorY, zoom) }}</span>
                             <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
@@ -57,9 +90,11 @@
             </div>
 
             <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown"></div>
-            <span class="bottom-panel-btn-expander" :class="{hidden: !collapsed}" @touchstart="onExpanderMouseDown" @mousedown="onExpanderMouseDown">
-                <i class="icon fas fa-angle-up"></i>
-            </span>
+
+            <div class="bottom-panel-expand-button">
+                <i v-if="collapsed" class="fa-regular fa-square-caret-up" @click="expandBottomPanel"></i>
+                <i v-else class="fa-regular fa-square-caret-down" @click="collapseBottomPanel"></i>
+            </div>
         </div>
 
         <div class="side-panel-filler-right" :style="{width: `${paddingRight+4}px`}"></div>
@@ -118,15 +153,28 @@ export default {
             }],
             currentTab: 'Console',
             bottomPanelHeight: 30,
+            collapseHeight: 20,
         };
     },
 
     methods: {
+        collapseBottomPanel() {
+            this.bottomPanelHeight = this.collapseHeight;
+            this.collapsed = true;
+        },
+        expandBottomPanel() {
+            this.bottomPanelHeight = 200;
+            this.collapsed = false;
+        },
         selectTab(tab) {
             if (tab.disabled) {
                 return;
             }
             this.currentTab = tab.name;
+        },
+        selectTabFromCollapsed(tab) {
+            this.expandBottomPanel();
+            this.selectTab(tab);
         },
 
         onFrameAnimatorRectordingStateUpdated(isRecording) {
@@ -185,7 +233,7 @@ export default {
             return dragAndDropBuilder(originalEvent)
             .onDrag((event, pageX, pageY) => {
                 this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 0, window.innerHeight - 100);
-                if (this.bottomPanelHeight <= 30) {
+                if (this.bottomPanelHeight <= this.collapseHeight) {
                     this.collapsed = true;
                     this.bottompanelheight = 0;
                 } else {
@@ -196,15 +244,6 @@ export default {
 
         onBottomPanelMouseDown(originalEvent) {
             this.initPanelDragging(originalEvent).build();
-        },
-
-        onExpanderMouseDown(originalEvent) {
-            this.initPanelDragging(originalEvent)
-            .onSimpleClick(() => {
-                this.collapsed = false;
-                this.bottomPanelHeight = 200;
-            })
-            .build();
         },
 
         switchToPathTab() {

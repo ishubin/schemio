@@ -5,12 +5,11 @@ import { createConnectionsFunctions } from "./connections";
 import { createItemScriptWrapper } from "./item";
 
 export function createMainScriptScope(schemeContainer, userEventBus) {
-    const cache = new Map();
     const mainScopeData = schemeContainer.mainScopeData || {};
     return new Scope({
         ...mainScopeData,
         ...buildMainScopeFunctions(schemeContainer, userEventBus)
-    }, null, createItemByNameProvider(schemeContainer, userEventBus, cache));
+    }, null, createItemByNameProvider(schemeContainer, userEventBus));
 }
 
 /**
@@ -22,14 +21,13 @@ export function createMainScriptScope(schemeContainer, userEventBus) {
  */
 export function createItemBasedScope(item, schemeContainer, userEventBus) {
     const itemInterface = createItemScriptWrapper(item, schemeContainer, userEventBus);
-    const cache = new Map();
     const mainScopeData = schemeContainer.mainScopeData || {};
     return new Scope({
         ...mainScopeData,
         ...itemInterface,
         this: itemInterface,
         ...buildMainScopeFunctions(schemeContainer, userEventBus)
-    }, null, createItemByNameProvider(schemeContainer, userEventBus, cache));
+    }, null, createItemByNameProvider(schemeContainer, userEventBus));
 }
 
 
@@ -58,22 +56,15 @@ export function buildMainScopeFunctions(schemeContainer, userEventBus) {
 /**
  * @param {SchemeContainer} schemeContainer
  * @param {*} userEventBus
- * @param {Map} cache
  */
-function createItemByNameProvider(schemeContainer, userEventBus, cache) {
+export function createItemByNameProvider(schemeContainer, userEventBus) {
     return (name) => {
-        const cachedItem = cache.get(name);
-        if (cachedItem) {
-            return cachedItem;
-        }
         const item = schemeContainer.findItemByName(name);
         if (!item) {
             return null;
         }
 
-        const itemWrapper = createItemScriptWrapper(item, schemeContainer, userEventBus);
-        cache.set(name, itemWrapper);
-        return itemWrapper;
+        return createItemScriptWrapper(item, schemeContainer, userEventBus);
     };
 }
 

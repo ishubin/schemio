@@ -18,9 +18,15 @@ const functions = `
   asin
   atan
   Area
+  buildItem
   ceil
   cos
   Color
+  Connections.findConnectionsWith
+  Connections.findAllConnectors
+  Connections.findConnections
+  Connections.findConnectionsTo
+  Connections.findConnectionsFrom
   debugItem
   decodeTree
   decodeColor
@@ -30,6 +36,11 @@ const functions = `
   findItemById
   findItemByName
   findParent
+  Fill.solid
+  Fill.none
+  Fill.image
+  Fill.linearGradient
+  Fill.radialGradient
   floor
   fromJSON
   getAngle
@@ -156,11 +167,15 @@ function extractCompletionsFromScript(script) {
  * @param {Array<String>} previousScripts
  * @param {Array<FieldDescriptor>} scopeArgs
  */
-export function createCompletions(schemeContainer, previousScripts, scopeArgs) {
+export function createCompletions(schemeContainer, previousScripts, scopeArgs, functionNames = []) {
     let completions = keywords.concat(functions);
 
     completions = completions.concat(scopeArgs.map(scopeArg => {
         return {label: scopeArg.name, type: 'variable'};
+    }));
+
+    completions = completions.concat(functionNames.map(name => {
+        return {label: name, type: 'function'};
     }));
 
     previousScripts.forEach(script => {
