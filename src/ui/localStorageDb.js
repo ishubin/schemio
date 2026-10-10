@@ -31,7 +31,7 @@ const localStorageClientFunctions = {
         document.getElementById('schemio-local-storage-import-submit').addEventListener('click', () => {
             let inputText = document.getElementById('schemio-local-storage-import-input').value;
             const jsonToImport = JSON.parse(inputText);
-            
+
             let chain = Promise.resolve(null);
             forEach(document.schemioLocalStorageDatabases, (db, dbName) => {
                 if (jsonToImport[dbName]) {
@@ -69,8 +69,8 @@ if (!document.schemioLocalStorage) {
 
 export default class LocalStorageDb {
     /**
-     * 
-     * @param {string} collectionName 
+     *
+     * @param {string} collectionName
      */
     constructor(collectionName) {
         this.collectionName = collectionName;

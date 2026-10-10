@@ -12,7 +12,7 @@ export class LimitedSettingsStorage {
      * @param {String} name
      * @param {Number} limit Amount of objects to be stored in settings storage
      */
-    constructor(localStorage, name, limit) {
+    constructor(localStorage, name, limit = 100) {
         this.storage = localStorage;
         this.name = name;
         this.limit = limit;
@@ -75,7 +75,7 @@ export class LimitedSettingsStorage {
         const item = this.items[id];
         if (item) {
             return item.v;
-        } 
+        }
         return defaultValue;
     }
 
@@ -124,7 +124,7 @@ const schemioLocalStorage = {
     }
 }
 
-export function createSettingStorageFromLocalStorage(name, limit) {
+export function createSettingStorageFromLocalStorage(name, limit = 100) {
     return new LimitedSettingsStorage(schemioLocalStorage, name, limit);
 }
 

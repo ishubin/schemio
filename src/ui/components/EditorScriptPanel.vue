@@ -1,7 +1,7 @@
 <template>
     <div class="editor-script-panel">
         <div class="editor-script-controls">
-            <span class="btn btn-primary btn-small" @click="executeScript" title="Run script"><i class="fa-solid fa-play"></i></span>
+            <span class="btn btn-primary btn-small" @click="executeScript(script)" title="Run script"><i class="fa-solid fa-play"></i></span>
         </div>
 
         <div class="editor-script-editor">
@@ -11,7 +11,9 @@
                     :schemeContainer="schemeContainer"
                     :stretchVertically="true"
                     :functionCompletions="functionCompletions"
+                    :consoleMode="true"
                     @changed="onScriptChange"
+                    @execute="onScriptExecute"
                     />
             </div>
         </div>
@@ -45,17 +47,21 @@ export default {
     },
 
     methods: {
+        onScriptExecute(script) {
+            this.executeScript(script);
+        },
+
         onScriptChange(script) {
             this.script = script;
         },
 
-        executeScript() {
+        executeScript(script) {
             const userEventBus = new UserEventBus(this.editorId);
             const scope = new Scope({
                 ...buildMainScopeFunctions(this.schemeContainer, userEventBus)
             }, null, createItemByNameProvider(this.schemeContainer, userEventBus));
 
-            const ast = parseExpression(this.script);
+            const ast = parseExpression(script);
             ast.evalNode(scope);
         }
     }
