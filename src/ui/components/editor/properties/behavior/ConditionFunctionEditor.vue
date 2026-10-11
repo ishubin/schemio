@@ -9,6 +9,7 @@
             :height="100"
             :schemeContainer="schemeContainer"
             :previousScripts="[schemeContainer.scheme.scripts.main.source]"
+            :autoFocus="true"
             @changed="emitArgChange('expression', $event)" />
 
         <table>

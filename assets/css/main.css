@@ -2111,10 +2111,12 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     flex-direction: row;
     font-size: 12px;
     gap: 10px;
-    opacity: 0.8;
     cursor: pointer;
 }
-.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar .bottom-panel-status-bar-menu:hover {
+.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar .bottom-panel-status-bar-menu .icon{
+    opacity: 0.8;
+}
+.scheme-editor-component .bottom-panel .bottom-panel-content.bottom-panel-status-bar .bottom-panel-status-bar-menu .icon:hover {
     opacity: 1.0;
 }
 .scheme-editor-component .bottom-panel .bottom-panel-content .label {

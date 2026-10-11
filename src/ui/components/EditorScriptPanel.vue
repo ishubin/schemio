@@ -17,6 +17,7 @@
                     :height="-1"
                     :functionCompletions="functionCompletions"
                     :consoleMode="true"
+                    :autoFocus="true"
                     @changed="onScriptChange"
                     @execute="executeScript"
                     />

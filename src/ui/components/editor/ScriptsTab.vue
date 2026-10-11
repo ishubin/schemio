@@ -63,6 +63,7 @@
                 :value="mainScript"
                 :schemeContainer="schemeContainer"
                 :height="mainScriptEditorHeight"
+                :autoFocus="true"
                 @changed="onMainScriptChange"
                 />
         </Modal>

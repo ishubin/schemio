@@ -71,6 +71,7 @@ export default {
         height: {type: Number, default: 400},
         functionCompletions: {type: Array, default: () => []},
         consoleMode: {type: Boolean, default: false},
+        autoFocus: {type: Boolean, default: false},
     },
 
     data() {
@@ -145,7 +146,9 @@ export default {
             parent: this.$refs.scriptEditor,
         });
         this.editor.setTabFocusMode(false);
-        this.editor.focus();
+        if (this.autoFocus) {
+            this.editor.focus();
+        }
     },
 
     methods: {
