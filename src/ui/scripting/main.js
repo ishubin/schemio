@@ -70,7 +70,7 @@ export function createItemByNameProvider(schemeContainer, userEventBus) {
 
 function createLogFunction(editorId) {
     return (...args) => {
-        EditorEventBus.scriptLog.$emit(editorId, 'info', args.join(' '))
+        EditorEventBus.scriptLog.$emit(editorId, 'info', args.join(' '));
         console.log(...args);
     }
 }

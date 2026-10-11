@@ -2,7 +2,7 @@
      License, v. 2.0. If a copy of the MPL was not distributed with this
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
-    <div class="script-editor-container" :class="{'script-editor-enlarged': enlarged}" :style="{height: enlarged ? '100%' : actualHeight}">
+    <div class="script-editor-container" :class="{'script-editor-enlarged': enlarged}" :style="{height: actualHeight}">
         <div ref="scriptEditor" class="codemirror-container">
         </div>
         <span class="text-editor-enlarge" @click="enlarged = !enlarged">
@@ -69,7 +69,6 @@ export default {
         scopeArgs: {type: Array, default: () => []},
         value: {type: String, default: ''},
         height: {type: Number, default: 400},
-        stretchVertically: {type: Boolean, default: false},
         functionCompletions: {type: Array, default: () => []},
         consoleMode: {type: Boolean, default: false},
     },
@@ -247,10 +246,13 @@ export default {
 
     computed: {
         actualHeight() {
-            if (this.stretchVertically) {
+            if (this.enlarged) {
                 return '100%';
             }
-            return `${this.autoHeight}px`;
+            if (this.height > 0) {
+                return `${this.height}px`;
+            }
+            return null;
         }
     }
 }
