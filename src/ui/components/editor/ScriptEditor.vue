@@ -145,6 +145,7 @@ export default {
             parent: this.$refs.scriptEditor,
         });
         this.editor.setTabFocusMode(false);
+        this.editor.focus();
     },
 
     methods: {

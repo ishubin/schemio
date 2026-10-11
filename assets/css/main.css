@@ -6004,16 +6004,22 @@ svg .editor-custom-area {
 }
 .editor-script-panel .editor-script-editor {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     min-height: 0;
     height: 100%;
     overflow: auto;
+    background: #fff;
 }
-.editor-script-panel .editor-script-controls .btn {
-    font-size: 10px;
-    padding: 2px 8px;
+[data-theme="dark"] .editor-script-panel .editor-script-editor {
+    background: #202230;
+}
+.editor-script-panel .editor-script-editor .editor-script-filler {
+    flex: 1;
 }
 .editor-script-panel .editor-script-editor-wrapper {
     min-height: 0;
+    border-top: 1px solid var(--faint-strong);
 }
 .editor-script-output .output-row {
     font-size: 12px;

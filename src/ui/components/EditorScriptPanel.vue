@@ -1,10 +1,7 @@
 <template>
     <div class="editor-script-panel">
-        <div class="editor-script-controls">
-            <span class="btn btn-primary btn-small" @click="executeScript(script)" title="Run script"><i class="fa-solid fa-play"></i></span>
-        </div>
-
         <div ref="scriptPane" class="editor-script-editor">
+            <div class="editor-script-filler"></div>
             <div class="editor-script-output">
                 <div class="output-row" v-for="entry in outputHistory" :class="[entry.type]">
                     <i v-if="entry.type === 'command'" class="icon fa-solid fa-chevron-right"></i>
@@ -21,7 +18,7 @@
                     :functionCompletions="functionCompletions"
                     :consoleMode="true"
                     @changed="onScriptChange"
-                    @execute="onScriptExecute"
+                    @execute="executeScript"
                     />
             </div>
         </div>
@@ -71,10 +68,6 @@ export default {
                 type: `log-${type}`,
                 value: message
             });
-        },
-
-        onScriptExecute(script) {
-            this.executeScript(script);
         },
 
         onScriptChange(script) {
