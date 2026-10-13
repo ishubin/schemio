@@ -613,6 +613,7 @@ import StarterProposalModal from './editor/StarterProposalModal.vue';
 import ScriptConsole from './editor/ScriptConsole.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
 import BottomPanel from './editor/BottomPanel.vue';
+import {executeEditorScript} from './editor/scripting/editorScript.js';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -888,6 +889,8 @@ export default {
         EditorEventBus.exportSchemeAsPicture.$on(this.editorId, this.onExportSchemeAsPictureRequested);
         EditorEventBus.connectorRequested.$on(this.editorId, this.onConnectorRequested);
         EditorEventBus.editBox.regenerate.$on(this.editorId, this.regenerateEditBox);
+        EditorEventBus.scriptLog.$on(this.editorId, this.onScriptLog);
+        EditorEventBus.editorScript.executeRequested.$on(this.editorId, this.onEditorScriptExecuteRequested);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -911,6 +914,8 @@ export default {
         EditorEventBus.exportSchemeAsPicture.$off(this.editorId, this.onExportSchemeAsPictureRequested);
         EditorEventBus.connectorRequested.$off(this.editorId, this.onConnectorRequested);
         EditorEventBus.editBox.regenerate.$off(this.editorId, this.regenerateEditBox);
+        EditorEventBus.scriptLog.$off(this.editorId, this.onScriptLog);
+        EditorEventBus.editorScript.executeRequested.$off(this.editorId, this.onEditorScriptExecuteRequested);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1108,6 +1113,23 @@ export default {
         };
     },
     methods: {
+        onScriptLog(type, message) {
+            if (this.mode === 'edit') {
+                this.schemeContainer.outputHistory.push({
+                    type: `log-${type}`,
+                    value: message
+                });
+            }
+        },
+
+        onEditorScriptExecuteRequested(script) {
+            try {
+                executeEditorScript(this.editorId, this.schemeContainer, script);
+            } catch (err) {
+                console.error(err);
+            }
+        },
+
         regenerateEditBox() {
             if (!this.schemeContainer) {
                 return;
@@ -1869,6 +1891,28 @@ export default {
             });
         },
 
+        duplicateSelectedItems() {
+            this.isCopying = true;
+            this.schemeContainer.copySelectedItems()
+            .then(copyBuffer => {
+                this.isCopying = false;
+                const items = this.schemeContainer.decodeItemsFromText(copyBuffer);
+                if (!items) {
+                    return;
+                }
+                const mx = this.schemeContainer.screenSettings.width/2;
+                const my = this.schemeContainer.screenSettings.height/2;
+
+                const centerX = (mx - this.schemeContainer.screenTransform.x) / Math.max(0.00000001, this.schemeContainer.screenTransform.scale);
+                const centerY = (my - this.schemeContainer.screenTransform.y) / Math.max(0.00000001, this.schemeContainer.screenTransform.scale);
+                this.schemeContainer.pasteItems(items, centerX, centerY);
+            })
+            .catch(err => {
+                console.error(err);
+                this.isCopying = false;
+            });
+        },
+
         copySelectedItemStyle() {
             const selectedItems = this.schemeContainer.getSelectedItems();
             if (selectedItems.length > 0) {
@@ -2532,10 +2576,13 @@ export default {
             contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Copy',
                 iconsClass: 'fas fa-copy',
-                clicked: () => {this.copySelectedItems(item);}
+                clicked: () => {this.copySelectedItems();}
             }, {
                 name: 'Copy item style',
-                clicked: () => {this.copySelectedItemStyle(item);}
+                clicked: () => {this.copySelectedItemStyle();}
+            }, {
+                name: 'Duplicate',
+                clicked: () => {this.duplicateSelectedItems();}
             }]);
 
             if (selectedOnlyOne) {

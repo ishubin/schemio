@@ -106,24 +106,40 @@
                 <table v-else class="properties-table">
                     <tbody>
                         <tr v-for="(arg, argName) in shapeComponent.args" v-if="shapePropsControlStates[argName] && !isArgumentHidden(arg)">
-                            <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
-                                {{arg.name}}
-                                <tooltip v-if="arg.description" :disabled="!shapePropsControlStates[argName].shown">{{arg.description}}</tooltip>
-                            </td>
-                            <td class="value" width="50%">
-                                <PropertyInput
-                                    :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.thick}`"
-                                    :editorId="editorId"
-                                    :descriptor="arg"
+                            <td v-if="arg.type === 'script'" colspan="2">
+                                <div class="label" :class="{disabled: !shapePropsControlStates[argName].shown}">
+                                    {{arg.name}}
+                                    <tooltip v-if="arg.description" :disabled="!shapePropsControlStates[argName].shown">{{arg.description}}</tooltip>
+                                </div>
+                                <ScriptEditor
                                     :value="item.shapeProps[argName]"
-                                    :shapeProps="item.shapeProps"
-                                    :disabled="!shapePropsControlStates[argName].shown"
                                     :schemeContainer="schemeContainer"
-                                    :leftOriented="argName === 'sourceCap'"
-                                    :itemId="item.id"
+                                    :height="200"
+                                    :consoleMode="false"
+                                    :autoFocus="false"
                                     @changed="onShapePropChange(argName, arg.type, $event)"
-                                />
+                                    />
                             </td>
+                            <template v-else>
+                                <td class="label" width="50%" :class="{disabled: !shapePropsControlStates[argName].shown}">
+                                    {{arg.name}}
+                                    <tooltip v-if="arg.description" :disabled="!shapePropsControlStates[argName].shown">{{arg.description}}</tooltip>
+                                </td>
+                                <td class="value" width="50%">
+                                    <PropertyInput
+                                        :key="`prop-input-${item.id}-${item.shape}-${argName}-${item.shapeProps.thick}`"
+                                        :editorId="editorId"
+                                        :descriptor="arg"
+                                        :value="item.shapeProps[argName]"
+                                        :shapeProps="item.shapeProps"
+                                        :disabled="!shapePropsControlStates[argName].shown"
+                                        :schemeContainer="schemeContainer"
+                                        :leftOriented="argName === 'sourceCap'"
+                                        :itemId="item.id"
+                                        @changed="onShapePropChange(argName, arg.type, $event)"
+                                    />
+                                </td>
+                            </template>
                         </tr>
                     </tbody>
                 </table>
@@ -255,6 +271,7 @@ import utils from '../../../utils.js';
 import myMath from '../../../myMath.js';
 import AutoLayoutProperties from './AutoLayoutProperties.vue';
 import EffectsPanel from './EffectsPanel.vue';
+import ScriptEditor from '../ScriptEditor.vue';
 
 const ALL_TABS = [
     {name: 'description', displayName: 'Description',       icon: 'fas fa-paragraph'},
@@ -279,7 +296,7 @@ export default {
     components: {
     Panel, Tooltip, ColorPicker, PositionPanel, LinksPanel,
     GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
-    PropertyInput, AutoLayoutProperties, EffectsPanel
+    PropertyInput, AutoLayoutProperties, EffectsPanel, ScriptEditor
 },
 
     beforeMount() {

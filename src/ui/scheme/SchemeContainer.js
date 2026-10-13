@@ -403,6 +403,8 @@ class SchemeContainer {
             vertical: [],
         };
 
+        // stores history of executed script commands (EditorScriptPanel)
+        this.outputHistory = [];
 
         // Contains an array of callbacks that are supposed to be executed after the full reindex
         this.reindexCallbacks = [];

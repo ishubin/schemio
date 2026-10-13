@@ -54,6 +54,46 @@
                             />
                     </template>
 
+                    <template v-if="currentTab === 'Editor Code'">
+                        <div class="row vertical">
+                            <div class="hint hint-small">
+                                This code is loaded with every console command and with every Editor Script shape.
+                            </div>
+                            <div class="col-1" style="height: 100%; min-height: 0;">
+                                <div class="editor-script-scrollable-pane">
+                                    <ScriptEditor
+                                        key="editor-code"
+                                        :schemeContainer="schemeContainer"
+                                        :value="schemeContainer.scheme.scripts.editor.source"
+                                        :autoHeight="true"
+                                        :autoFocus="true"
+                                        @changed="onEditorScriptChange"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template v-if="currentTab === 'Main Script'">
+                        <div class="row vertical">
+                            <div class="hint hint-small">
+                                This code is executed in "view" mode during scene initialization
+                            </div>
+                            <div class="col-1" style="height: 100%; min-height: 0;">
+                                <div class="editor-script-scrollable-pane">
+                                    <ScriptEditor
+                                        key="main-script"
+                                        :schemeContainer="schemeContainer"
+                                        :value="schemeContainer.scheme.scripts.main.source"
+                                        :autoHeight="true"
+                                        :autoFocus="true"
+                                        @changed="onMainScriptChange"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
                     <template v-if="currentTab === 'Animation'">
                         <FrameAnimatorPanel
                             :editorId="editorId"
@@ -112,6 +152,7 @@ import DiagramPicker from './DiagramPicker.vue';
 import EditorEventBus from './EditorEventBus.js';
 import ElementPicker from './ElementPicker.vue';
 import { convertCurvePointToRelative } from './items/shapes/StandardCurves';
+import ScriptEditor from './ScriptEditor.vue';
 
 
 function prettifyAxisValue(value, zoom) {
@@ -139,13 +180,17 @@ export default {
         curveEditing   : {type: Object}
     },
 
-    components: { FrameAnimatorPanel, DiagramPicker, ElementPicker, EditorScriptPanel },
+    components: { FrameAnimatorPanel, DiagramPicker, ElementPicker, EditorScriptPanel, ScriptEditor },
 
     data() {
         return {
             collapsed: true,
             tabs: [{
                 name: 'Console', iconClass: 'fa-solid fa-terminal',
+            }, {
+                name: 'Editor Code', iconClass: 'fa-solid fa-code',
+            }, {
+                name: 'Main Script', iconClass: 'fa-solid fa-laptop-code',
             }, {
                 name: 'Animation', iconClass: 'fas fa-film',
             }, {
@@ -158,6 +203,16 @@ export default {
     },
 
     methods: {
+        onEditorScriptChange(script) {
+            this.schemeContainer.scheme.scripts.editor.source = script;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, 'scripts.editor.source');
+        },
+
+        onMainScriptChange(script) {
+            this.schemeContainer.scheme.scripts.main.source = script;
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, 'scripts.main.source');
+        },
+
         collapseBottomPanel() {
             this.bottomPanelHeight = this.collapseHeight;
             this.collapsed = true;

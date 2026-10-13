@@ -6056,3 +6056,8 @@ svg .editor-custom-area {
     width: 20px;
     padding-top: 2px;
 }
+.editor-script-scrollable-pane {
+    height: 100%;
+    min-height: 0;
+    overflow: auto;
+}

@@ -672,7 +672,11 @@ export default {
 
             this.effectFill = this.getEffectFill();
 
-            if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
+            const shouldSkipEventLayer = shape.editorProps && shape.editorProps.disableEventLayer && (
+                (this.mode === 'view') || (this.mode === 'edit' && shape.editorProps.onlyEditMode)
+            );
+
+            if (!shouldSkipEventLayer) {
                 this.itemSvgOutlinePath = shape.computeOutline(this.item);
             }
         },
@@ -726,7 +730,11 @@ export default {
                     }];
                 }
 
-                if (!(this.mode === 'view' && shape.editorProps && shape.editorProps.disableEventLayer)) {
+                const shouldSkipEventLayer = shape.editorProps && shape.editorProps.disableEventLayer && (
+                    (this.mode === 'view') || (this.mode === 'edit' && shape.editorProps.onlyEditMode)
+                );
+
+                if (!shouldSkipEventLayer) {
                     this.itemSvgOutlinePath = shape.computeOutline(this.item);
                 }
                 this.customAreas = shape && shape.computeCustomAreas ? shape.computeCustomAreas(this.item) : [];

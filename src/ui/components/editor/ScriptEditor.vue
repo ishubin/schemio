@@ -69,6 +69,7 @@ export default {
         scopeArgs: {type: Array, default: () => []},
         value: {type: String, default: ''},
         height: {type: Number, default: 400},
+        autoHeight: {type: Boolean, default: false},
         functionCompletions: {type: Array, default: () => []},
         consoleMode: {type: Boolean, default: false},
         autoFocus: {type: Boolean, default: false},
@@ -250,7 +251,7 @@ export default {
 
     computed: {
         actualHeight() {
-            if (this.enlarged) {
+            if (this.enlarged || this.autoHeight) {
                 return '100%';
             }
             if (this.height > 0) {
