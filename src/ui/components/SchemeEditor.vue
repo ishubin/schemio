@@ -276,36 +276,35 @@
             />
 
             <div class="side-panel side-panel-left"
-                :class="{collapsed: sidePanelLeftWidth < 2, expanded: sidePanelLeftWidth >= 2}"
+                :class="{collapsed: sidePanelLeftCollapsed, expanded: !sidePanelLeftCollapsed}"
                 ref="sidePanelLeft"
                 v-if="mode === 'edit' && schemeContainer"
-                :style="{width: `${sidePanelLeftWidth}px`}"
+                :style="{width: sidePanelLeftCollapsed ? `${sidePanelLeftCollapseWidth}px` : `${sidePanelLeftWidth}px`}"
                 >
-                <ul v-if="sidePanelLeftWidth > 0" class="tabs">
-                    <li v-for="tab in leftTabs">
-                        <span class="tab" :class="{active: tab.name === currentLeftTab}" @click="currentLeftTab = tab.name">
-                            <i v-if="tab.iconClass" :class="tab.iconClass"></i>
-                            {{tab.name}}
-                        </span>
-                    </li>
-                </ul>
-                <div class="tabs-body">
-                </div>
+                <template v-if="!sidePanelLeftCollapsed">
+                    <ul class="tabs">
+                        <li v-for="tab in leftTabs">
+                            <span class="tab" :class="{active: tab.name === currentLeftTab}" @click="currentLeftTab = tab.name">
+                                <i v-if="tab.iconClass" :class="tab.iconClass"></i>
+                                {{tab.name}}
+                            </span>
+                        </li>
+                    </ul>
+                    <div class="tabs-body">
+                    </div>
+                </template>
 
-                <span class="side-panel-btn-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
-                    <i v-if="sidePanelLeftWidth < 2" class="fas fa-angle-right"></i>
-                    <i v-else class="fas fa-angle-left"></i>
-                </span>
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                 </span>
-                <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
+                <div class="side-panel-overflow">
                     <div class="wrapper">
-                        <CreateItemMenu v-if="currentLeftTab === 'Shapes'"
-                            :key="`${editorId}-${schemeContainer.scheme.id}`"
+                        <CreateItemMenu v-if="currentLeftTab === 'Shapes' || sidePanelLeftCollapsed"
+                            :key="`${editorId}-${schemeContainer.scheme.id}-${sidePanelLeftCollapsed}`"
                             :editorId="editorId"
                             :scheme-container="schemeContainer"
                             :projectArtEnabled="projectArtEnabled"
                             :customItemMenuPanels="customItemMenuPanels"
+                            :collapsedMode="sidePanelLeftCollapsed"
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
                             @drawing-pencil-requested="switchStatePencilDrawing"
@@ -314,143 +313,154 @@
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
 
-                        <ScriptsTab v-if="currentLeftTab === 'Behavior'"
+                        <ScriptsTab v-if="currentLeftTab === 'Behavior' && !sidePanelLeftCollapsed"
                             :key="`${editorId}-${schemeContainer.scheme.id}`"
                             :editorId="editorId"
                             :schemeContainer="schemeContainer"
                             />
                     </div>
                 </div>
+
+                <div class="side-panel-expand-button">
+                    <i v-if="sidePanelLeftCollapsed" class="fa-regular fa-square-caret-right" @click="sidePanelLeftCollapsed = false; sidePanelLeftWidth = sidePanelLeftDefaultWidth"></i>
+                    <i v-else class="fa-regular fa-square-caret-left" @click="sidePanelLeftCollapsed = true; sidePanelLeftWidth = sidePanelLeftCollapseWidth;"></i>
+                </div>
             </div>
 
             <div class="side-panel side-panel-right"
                 ref="sidePanelRight"
                 v-if="schemeContainer"
-                :style="{width: `${sidePanelRightWidth}px`}"
-                :class="{collapsed: sidePanelRightWidth < 2, expanded: sidePanelRightWidth >= 2}"
+                :style="{width: sidePanelRightCollapsed ? `${sidePanelRightCollapseWidth}px` : `${sidePanelRightWidth}px`}"
+                :class="{collapsed: sidePanelRightCollapsed, expanded: !sidePanelRightCollapsed}"
                 >
-                <span class="side-panel-btn-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
-                    <i v-if="sidePanelRightWidth < 2" class="fas fa-angle-left"></i>
-                    <i v-else class="fas fa-angle-right"></i>
-                </span>
                 <span class="side-panel-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
                 </span>
-                <ul v-if="state === 'draw'" class="tabs text-nonselectable">
-                    <li><span class="tab active">Draw</span></li>
-                </ul>
-                <ul v-else-if="sidePanelRightWidth > 10" class="tabs">
-                    <li v-for="tab in tabs">
-                        <span class="tab"
-                            :class="{active: currentTab === tab}"
-                            @click="changeTab(tab)"
-                            >{{tab}}</span>
-                    </li>
-                    <li v-for="tab in extraTabs">
-                        <div class="tab"
-                            :class="{active: currentTab === `extra:${tab.name}`}"
-                            @click="changeTab(`extra:${tab.name}`)"
-                            >
-                            <i v-if="tab.icon" class="tab-icon" :class="tab.icon"></i>
-                            <span v-else>{{tab.name}}</span>
-                            <span v-if="tab.count">({{tab.count}})</span>
-                        </div>
-                    </li>
-                    <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
-                        <span class="tab"
-                            :class="{active: currentTab === itemTextSlotTab.tabName}"
-                            @click="changeTab(itemTextSlotTab.tabName)"
-                            >&#167; {{itemTextSlotTab.slotName}}</span>
-                    </li>
-                    <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
-                        <span class="tab"
-                            :class="{active: currentTab === 'template'}"
-                            @click="changeTab('template')"
-                            ><i class="fa-solid fa-scroll"></i>Template</span>
-                    </li>
-                </ul>
-                <div class="tabs-body">
-                </div>
-                <div class="side-panel-overflow" v-if="sidePanelRightWidth > 0">
-                    <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
 
-                    <div v-if="state === 'draw'">
-                        <DrawingControlsPanel
-                            :isBrush="isDrawingBrush"
-                            @color-picked="onDrawColorPicked"
-                            @stop-drawing-requested="stopDrawing"
-                            />
+
+                <template v-if="!sidePanelRightCollapsed">
+                    <ul v-if="state === 'draw'" class="tabs text-nonselectable">
+                        <li><span class="tab active">Draw</span></li>
+                    </ul>
+                    <ul v-else-if="sidePanelRightWidth > 10" class="tabs">
+                        <li v-for="tab in tabs">
+                            <span class="tab"
+                                :class="{active: currentTab === tab}"
+                                @click="changeTab(tab)"
+                                >{{tab}}</span>
+                        </li>
+                        <li v-for="tab in extraTabs">
+                            <div class="tab"
+                                :class="{active: currentTab === `extra:${tab.name}`}"
+                                @click="changeTab(`extra:${tab.name}`)"
+                                >
+                                <i v-if="tab.icon" class="tab-icon" :class="tab.icon"></i>
+                                <span v-else>{{tab.name}}</span>
+                                <span v-if="tab.count">({{tab.count}})</span>
+                            </div>
+                        </li>
+                        <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
+                            <span class="tab"
+                                :class="{active: currentTab === itemTextSlotTab.tabName}"
+                                @click="changeTab(itemTextSlotTab.tabName)"
+                                >&#167; {{itemTextSlotTab.slotName}}</span>
+                        </li>
+                        <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
+                            <span class="tab"
+                                :class="{active: currentTab === 'template'}"
+                                @click="changeTab('template')"
+                                ><i class="fa-solid fa-scroll"></i>Template</span>
+                        </li>
+                    </ul>
+                    <div class="tabs-body">
                     </div>
-                    <div v-else>
-                        <div v-if="currentTab === 'Doc'">
-                            <SchemeProperties v-if="mode === 'edit'"
-                                :scheme-container="schemeContainer"
-                                :editorId="editorId"
-                                :schemeTagsEnabled="schemeTagsEnabled"
-                                @delete-diagram-requested="$emit('delete-diagram-requested')"/>
+                    <div class="side-panel-overflow">
+                        <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
 
-                            <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
+                        <div v-if="state === 'draw'">
+                            <DrawingControlsPanel
+                                :isBrush="isDrawingBrush"
+                                @color-picked="onDrawColorPicked"
+                                @stop-drawing-requested="stopDrawing"
+                                />
                         </div>
-                        <div v-if="currentTab === 'Item'">
-                            <div v-if="mode === 'edit'">
-                                <panel name="Items" :border="false">
-                                    <ItemSelector
-                                        :editorId="editorId"
-                                        :scheme-container="schemeContainer"
-                                        :min-height="200"
-                                        :revision="`${schemeRevision}-${schemeContainer.revision}`"
-                                        @item-right-clicked="onItemRightClick"/>
-                                </panel>
-
-                                <ItemProperties v-if="schemeContainer.selectedItems.length > 0"
-                                    :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                        <div v-else>
+                            <div v-if="currentTab === 'Doc'">
+                                <SchemeProperties v-if="mode === 'edit'"
+                                    :scheme-container="schemeContainer"
                                     :editorId="editorId"
-                                    :item="schemeContainer.selectedItems[0]"
-                                    :revision="schemeRevision"
+                                    :schemeTagsEnabled="schemeTagsEnabled"
+                                    @delete-diagram-requested="$emit('delete-diagram-requested')"/>
+
+                                <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
+                            </div>
+                            <div v-if="currentTab === 'Item'">
+                                <div v-if="mode === 'edit'">
+                                    <panel name="Items" :border="false">
+                                        <ItemSelector
+                                            :editorId="editorId"
+                                            :scheme-container="schemeContainer"
+                                            :min-height="200"
+                                            :revision="`${schemeRevision}-${schemeContainer.revision}`"
+                                            @item-right-clicked="onItemRightClick"/>
+                                    </panel>
+
+                                    <ItemProperties v-if="schemeContainer.selectedItems.length > 0"
+                                        :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
+                                        :editorId="editorId"
+                                        :item="schemeContainer.selectedItems[0]"
+                                        :revision="schemeRevision"
+                                        :schemeContainer="schemeContainer"
+                                        :userStylesEnabled="userStylesEnabled"
+                                        @shape-prop-changed="onItemShapePropChanged"
+                                        @item-field-changed="onItemFieldChanged"
+                                        @item-style-applied="onItemStyleApplied"
+                                        @shape-changed="onItemShapeChanged"
+                                    />
+                                </div>
+
+                                <ItemDetails v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
+                            </div>
+                            <div v-if="mode !== 'view' && currentTab === 'template' && selectedTemplateRootItem && selectedTemplateRef">
+                                <TemplateProperties
+                                    :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
+                                    :editorId="editorId"
+                                    :item="selectedTemplateRootItem"
                                     :schemeContainer="schemeContainer"
-                                    :userStylesEnabled="userStylesEnabled"
-                                    @shape-prop-changed="onItemShapePropChanged"
-                                    @item-field-changed="onItemFieldChanged"
-                                    @item-style-applied="onItemStyleApplied"
-                                    @shape-changed="onItemShapeChanged"
+                                    :templateRef="selectedTemplateRef"
+                                    @updated="onTemplatePropertiesUpdated"
+                                    @break-template="breakTemplate"
+                                    @update-template="updateTemplate"
+                                    @template-rebuild-requested="onTemplateRebuildRequested"
                                 />
                             </div>
 
-                            <ItemDetails v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
-                        </div>
-                        <div v-if="mode !== 'view' && currentTab === 'template' && selectedTemplateRootItem && selectedTemplateRef">
-                            <TemplateProperties
-                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
-                                :editorId="editorId"
-                                :item="selectedTemplateRootItem"
-                                :schemeContainer="schemeContainer"
-                                :templateRef="selectedTemplateRef"
-                                @updated="onTemplatePropertiesUpdated"
-                                @break-template="breakTemplate"
-                                @update-template="updateTemplate"
-                                @template-rebuild-requested="onTemplateRebuildRequested"
-                            />
-                        </div>
-
-                        <div>
-                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
-                                :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
-                                :editorId="editorId"
-                                :item="itemTextSlot.item"
-                                :slot-name="itemTextSlot.slotName"
-                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
-                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
+                            <div>
+                                <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
+                                    :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
+                                    :editorId="editorId"
+                                    :item="itemTextSlot.item"
+                                    :slot-name="itemTextSlot.slotName"
+                                    @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
+                                    @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
+                                    />
+                                <component
+                                    v-for="tab in extraTabs"
+                                    v-if="currentTab === `extra:${tab.name}`"
+                                    :key="`tab-${currentTab}`"
+                                    :is="tab.component"
+                                    :mode="mode"
+                                    @tab-event="$emit('custom-tab-event', $event)"
                                 />
-                            <component
-                                v-for="tab in extraTabs"
-                                v-if="currentTab === `extra:${tab.name}`"
-                                :key="`tab-${currentTab}`"
-                                :is="tab.component"
-                                :mode="mode"
-                                @tab-event="$emit('custom-tab-event', $event)"
-                            />
+                            </div>
                         </div>
                     </div>
+                </template>
+
+                <div class="side-panel-expand-button">
+                    <i v-if="sidePanelRightCollapsed" class="fa-regular fa-square-caret-left" @click="sidePanelRightCollapsed = false; sidePanelRightWidth = sidePanelRightDefaultWidth"></i>
+                    <i v-else class="fa-regular fa-square-caret-right" @click="sidePanelRightCollapsed = true; sidePanelRightWidth = sidePanelRightCollapseWidth"></i>
                 </div>
+
             </div>
         </div>
 
@@ -1002,8 +1012,12 @@ export default {
             sidePanelItemForViewMode: null,
             sidePanelRightWidth: 400,
             sidePanelRightDefaultWidth: 400,
+            sidePanelRightCollapseWidth: 20,
+            sidePanelRightCollapsed: false,
             sidePanelLeftWidth: 220,
             sidePanelLeftDefaultWidth: 220,
+            sidePanelLeftCollapseWidth: 26,
+            sidePanelLeftCollapsed: false,
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
@@ -1303,6 +1317,7 @@ export default {
                     this.starterProposalModalShown = true;
                     this.sidePanelRightWidth = 0;
                     this.sidePanelLeftWidth = 0;
+                    this.sidePanelLeftCollapsed = true;
                 }
             })
             .catch(err => {
@@ -3188,14 +3203,13 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
                 onValue: value => {
                     this.sidePanelRightWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                },
-                onClick: event => {
-                    if (this.sidePanelRightWidth > 0) {
-                        this.sidePanelRightWidth = 0;
+                    if (this.sidePanelRightWidth < this.sidePanelRightCollapseWidth) {
+                        this.sidePanelRightCollapsed = true;
+                        this.sidePanelRightWidth = this.sidePanelRightCollapseWidth;
                     } else {
-                        this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
+                        this.sidePanelRightCollapsed = false;
                     }
-                }
+                },
             });
         },
 
@@ -3203,14 +3217,13 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
                 onValue: value => {
                     this.sidePanelLeftWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                },
-                onClick: event => {
-                    if (this.sidePanelLeftWidth > 0) {
-                        this.sidePanelLeftWidth = 0;
+                    if (this.sidePanelLeftWidth < this.sidePanelLeftCollapseWidth) {
+                        this.sidePanelLeftCollapsed = true;
+                        this.sidePanelLeftWidth = this.sidePanelLeftCollapseWidth;
                     } else {
-                        this.sidePanelLeftWidth = myMath.clamp(this.sidePanelLeftDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
+                        this.sidePanelLeftCollapsed = false;
                     }
-                }
+                },
             });
         },
 

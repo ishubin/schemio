@@ -4,7 +4,44 @@
 
 <template lang="html">
     <div class="create-item-menu" ref="createItemMenu">
-        <div>
+        <div v-if="collapsedMode" class="collapsed-mode">
+            <div class="item-container" @click="initiatePathCreation()" title="Create Path"
+                @mouseover="showPreviewGif($event, 'create-curve')"
+                @mouseleave="stopPreviewGif('create-curve')"
+                >
+                <img :src="`${assetsPath}/images/icons/create-curve.svg`"/>
+            </div>
+            <div class="item-container" @click="initiatePencilDrawing()" title="Pencil"
+                @mouseover="showPreviewGif($event, 'draw')"
+                @mouseleave="stopPreviewGif('draw')"
+                >
+                <img :src="`${assetsPath}/images/icons/draw.svg`"/>
+            </div>
+            <div class="item-container" @click="initiateBrushDrawing()" title="Pen"
+                @mouseover="showPreviewGif($event, 'brush-draw')"
+                @mouseleave="stopPreviewGif('brush-draw')"
+                >
+                <img :src="`${assetsPath}/images/icons/brush-draw.svg`"/>
+            </div>
+
+            <div class="item-menu">
+                <div v-for="item in collapsedPanelItems"
+                    class="item-container"
+                    :title="item.name"
+                    @mouseleave="stopPreviewItem(item)"
+                    @mouseover="showPreviewItem(item)"
+                    @mousedown="onItemMouseDown($event, item)"
+                    @dragstart="preventEvent"
+                    @drag="preventEvent"
+                    >
+
+                    <img v-if="item.iconUrl" :src="item.iconUrl"/>
+                    <svg v-else-if="item.iconSVG" v-html="item.iconSVG"></svg>
+                </div>
+            </div>
+        </div>
+
+        <div v-else>
             <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
 
             <div class="item-menu">
@@ -238,6 +275,7 @@ import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
 import SchemeSearchModal from './SchemeSearchModal.vue';
+import { convertScriptObjectToJSON } from '../../templater/json.js';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -256,6 +294,7 @@ export default {
         schemeContainer     : {type: Object},
         projectArtEnabled   : {type: Boolean, default: true},
         customItemMenuPanels: {type: Array, default: () => []},
+        collapsedMode       : {type: Boolean, default: false},
     },
 
     components: {
@@ -282,6 +321,7 @@ export default {
             editArtModalShown           : false,
 
             itemPanels: this.generateItemPanels(),
+            collapsedPanelItems: this.generateCollapsedPanelItems(),
             filteredItemPanels: [],
 
             linkCreation: {
@@ -336,6 +376,37 @@ export default {
         }
     },
     methods: {
+        generateCollapsedPanelItems() {
+            const menuEntries = [{
+                shape: 'rect',
+                group: 'Basic Shapes',
+                name: 'Rect',
+                iconUrl: '/assets/images/icons/rect-tiny.svg',
+                item: {
+                    shapeProps: {cornerRadius: 0}
+                }
+            }, {
+                shape: 'rect',
+                group: 'Basic Shapes',
+                name: 'Rounded Rect',
+                iconUrl: '/assets/images/icons/rounded-rect-tiny.svg',
+                item: {
+                    shapeProps: {cornerRadius: 20}
+                }
+            }, {
+                shape: 'ellipse',
+                group: 'Basic Shapes',
+                name: 'Ellupse',
+                iconUrl: '/assets/images/icons/ellipse-tiny.svg',
+                item: { }
+            }];
+
+            return menuEntries.map(entry => {
+                const shape = Shape.find(entry.shape);
+                return this.prepareItemForMenu(entry, shape, entry.shape);
+            });
+        },
+
         loadProjectArt() {
             this.filterArtPacks();
             if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {

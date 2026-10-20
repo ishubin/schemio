@@ -764,7 +764,7 @@ ul.tabs {
     list-style: none;
     padding: 0;
     margin: 0;
-    z-index: 20;
+    z-index: 2;
 }
 ul.tabs li {
     margin: 2px;
@@ -1989,44 +1989,24 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     /* color: var(--faint-strong-down); */
     background: var(--faint-weak-down);
 }
-.scheme-editor-component .side-panel .side-panel-btn-expander {
-    display: inline-block;
+.scheme-editor-component .side-panel .side-panel-expand-button {
     position: absolute;
-    margin: auto;
-    background: var(--faint-weak-up);
-    top: 0;
-    bottom: 0;
-    cursor: col-resize;
-    border-top: 1px solid var(--faint-strong);
-    border-bottom: 1px solid var(--faint-strong);
-    color: var(--base-strong-up);
-    height: 40px;
-    width: 12px;
-    user-select: none;
-}
-.scheme-editor-component .side-panel.expanded .side-panel-btn-expander {
-    display: none;
-}
-@media (max-width: 900px) {
-    .scheme-editor-component .side-panel.expanded .side-panel-btn-expander {
-        display: inline-block;
-    }
-}
-.scheme-editor-component .side-panel-right .side-panel-btn-expander {
-    border-left: 1px solid var(--faint-strong);
-    left: -16px;
-    border-radius:  3px 0 0 3px;
+    top: 3px;
+    right: 2px;
     cursor: pointer;
+    font-size: 12px;
+    opacity: 0.7;
+    z-index: 3;
 }
-.scheme-editor-component .side-panel-left .side-panel-btn-expander {
-    border-right: 1px solid var(--faint-strong);
-    right: -16px;
-    border-radius: 0 3px 3px 0;
-    cursor: pointer;
+.scheme-editor-component .side-panel-right .side-panel-expand-button {
+    left: 2px;
+    right: unset;
 }
-.scheme-editor-component .side-panel .side-panel-btn-expander i {
-    margin-top: 10px;
-    margin-left: 0;
+.scheme-editor-component .side-panel .side-panel-expand-button:hover {
+    opacity: 1.0;
+}
+.scheme-editor-component .side-panel-right .tabs {
+    padding: 0 0 0 12px;
 }
 
 
@@ -2742,6 +2722,26 @@ ul.links-editor .edit-link:hover {
 
 .create-item-menu .buttons {
     margin: 8px;
+}
+.create-item-menu .collapsed-mode {
+    margin-top: 20px;
+}
+
+.create-item-menu .collapsed-mode .item-menu {
+    padding: 0;
+    margin: 0;
+}
+.create-item-menu .collapsed-mode .item-container {
+    width: 22px !important;
+    height: 20px !important;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 3px;
+    cursor: pointer;
+    padding-right: 1px;
+}
+[data-theme="dark"] .create-item-menu .collapsed-mode .item-container img {
+    filter: invert(0.78) brightness(1);
 }
 .create-item-menu .preview-item {
     position: fixed;

@@ -108,7 +108,7 @@ export default class StateConnecting extends State {
             }
         };
         enrichItemWithDefaults(connectorItem);
-        connectorItem = this.schemeContainer.addPhantomItem(connectorItem);
+        connectorItem = this.schemeContainer.addPhantomItem(connectorItem, this.name);
         connectorItem.shapeProps.sourceItem = `#${sourceItem.id}`;
 
         const closestPoint = this.findAttachmentPointToItem(sourceItem, localPoint);
@@ -221,7 +221,7 @@ export default class StateConnecting extends State {
     initFirstClick(x, y) {
         this.item.shapeProps.points = [];
 
-        this.item = this.schemeContainer.addPhantomItem(this.item);
+        this.item = this.schemeContainer.addPhantomItem(this.item, this.name);
 
         // snapping can only be performed once the item is added to the scheme
         // that is why we have to re-adjust curve points afterwards so that they are snapped

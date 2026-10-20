@@ -46,87 +46,87 @@
                         </span>
                     </li>
                 </ul>
-                <div class="tabs-body">
-                    <template v-if="currentTab === 'Console'">
-                        <EditorScriptPanel
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            />
-                    </template>
+                <div class="tabs-body"></div>
 
-                    <template v-if="currentTab === 'Editor Code'">
-                        <div class="row vertical">
-                            <div class="hint hint-small">
-                                This code is loaded with every console command and with every Editor Script shape.
-                            </div>
-                            <div class="col-1" style="height: 100%; min-height: 0;">
-                                <div class="editor-script-scrollable-pane">
-                                    <ScriptEditor
-                                        key="editor-code"
-                                        :schemeContainer="schemeContainer"
-                                        :value="schemeContainer.scheme.scripts.editor.source"
-                                        :autoHeight="true"
-                                        :autoFocus="true"
-                                        @changed="onEditorScriptChange"
-                                    />
-                                </div>
+                <template v-if="currentTab === 'Console'">
+                    <EditorScriptPanel
+                        :editorId="editorId"
+                        :schemeContainer="schemeContainer"
+                        />
+                </template>
+
+                <template v-if="currentTab === 'Editor Code'">
+                    <div class="row vertical">
+                        <div class="hint hint-small">
+                            This code is loaded with every console command and with every Editor Script shape.
+                        </div>
+                        <div class="col-1" style="height: 100%; min-height: 0;">
+                            <div class="editor-script-scrollable-pane">
+                                <ScriptEditor
+                                    key="editor-code"
+                                    :schemeContainer="schemeContainer"
+                                    :value="schemeContainer.scheme.scripts.editor.source"
+                                    :autoHeight="true"
+                                    :autoFocus="true"
+                                    @changed="onEditorScriptChange"
+                                />
                             </div>
                         </div>
-                    </template>
+                    </div>
+                </template>
 
-                    <template v-if="currentTab === 'Main Script'">
-                        <div class="row vertical">
-                            <div class="hint hint-small">
-                                This code is executed in "view" mode during scene initialization
-                            </div>
-                            <div class="col-1" style="height: 100%; min-height: 0;">
-                                <div class="editor-script-scrollable-pane">
-                                    <ScriptEditor
-                                        key="main-script"
-                                        :schemeContainer="schemeContainer"
-                                        :value="schemeContainer.scheme.scripts.main.source"
-                                        :autoHeight="true"
-                                        :autoFocus="true"
-                                        @changed="onMainScriptChange"
-                                    />
-                                </div>
+                <template v-if="currentTab === 'Main Script'">
+                    <div class="row vertical">
+                        <div class="hint hint-small">
+                            This code is executed in "view" mode during scene initialization
+                        </div>
+                        <div class="col-1" style="height: 100%; min-height: 0;">
+                            <div class="editor-script-scrollable-pane">
+                                <ScriptEditor
+                                    key="main-script"
+                                    :schemeContainer="schemeContainer"
+                                    :value="schemeContainer.scheme.scripts.main.source"
+                                    :autoHeight="true"
+                                    :autoFocus="true"
+                                    @changed="onMainScriptChange"
+                                />
                             </div>
                         </div>
+                    </div>
+                </template>
+
+                <template v-if="currentTab === 'Animation'">
+                    <FrameAnimatorPanel
+                        :editorId="editorId"
+                        :schemeContainer="schemeContainer"
+                        @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
+                        />
+                </template>
+
+                <template v-if="currentTab === 'Path'">
+                    <template v-if="state === 'editPath' && curveEditing">
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{ prettifyAxisValue(cursorX, zoom) }}</span>
+                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{ prettifyAxisValue(cursorY, zoom) }}</span>
+                        <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
+                            <span class="label">x: </span>
+                            <input type="text" class="textfield"
+                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
+                                @blur="onCurveEditingPointInput($event.target.value, 'x')"
+                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
+                                />
+
+                            <span class="label">y: </span>
+                            <input type="text" class="textfield"
+                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
+                                @blur="onCurveEditingPointInput($event.target.value, 'y')"
+                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
+                                />
+
+                            <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
+                            <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
+                        </div>
                     </template>
-
-                    <template v-if="currentTab === 'Animation'">
-                        <FrameAnimatorPanel
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                            />
-                    </template>
-
-                    <template v-if="currentTab === 'Path'">
-                        <template v-if="state === 'editPath' && curveEditing">
-                            <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{ prettifyAxisValue(cursorX, zoom) }}</span>
-                            <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{ prettifyAxisValue(cursorY, zoom) }}</span>
-                            <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
-                                <span class="label">x: </span>
-                                <input type="text" class="textfield"
-                                    :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
-                                    @blur="onCurveEditingPointInput($event.target.value, 'x')"
-                                    @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
-                                    />
-
-                                <span class="label">y: </span>
-                                <input type="text" class="textfield"
-                                    :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
-                                    @blur="onCurveEditingPointInput($event.target.value, 'y')"
-                                    @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
-                                    />
-
-                                <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
-                                <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
-                            </div>
-                        </template>
-                    </template>
-                </div>
+                </template>
             </div>
 
             <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown"></div>
@@ -165,6 +165,7 @@ function prettifyAxisValue(value, zoom) {
     return value.toFixed(2);
 }
 
+const pathTabIdx = 4;
 
 export default {
     props: {
@@ -191,6 +192,7 @@ export default {
                 name: 'Editor Code', iconClass: 'fa-solid fa-code',
             }, {
                 name: 'Main Script', iconClass: 'fa-solid fa-laptop-code',
+                disabled: false,
             }, {
                 name: 'Animation', iconClass: 'fas fa-film',
             }, {
@@ -302,13 +304,11 @@ export default {
         },
 
         switchToPathTab() {
-            const pathTabIdx = 2;
             this.tabs[pathTabIdx].disabled = false;
             this.currentTab = this.tabs[pathTabIdx].name;
         },
 
         switchOffPathTab() {
-            const pathTabIdx = 2;
             this.tabs[pathTabIdx].disabled = true;
             this.currentTab = this.tabs[0].name;
         }
