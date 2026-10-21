@@ -128,7 +128,6 @@ export function createSettingStorageFromLocalStorage(name, limit = 100) {
     return new LimitedSettingsStorage(schemioLocalStorage, name, limit);
 }
 
-
 export class InMemoryCache {
     constructor(limit = 100) {
         this.limit = limit;

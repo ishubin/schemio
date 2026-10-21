@@ -296,7 +296,7 @@
 
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                 </span>
-                <div class="side-panel-overflow">
+                <div class="side-panel-overflow" :class="{collapsed: sidePanelLeftCollapsed}">
                     <div class="wrapper">
                         <CreateItemMenu v-if="currentLeftTab === 'Shapes' || sidePanelLeftCollapsed"
                             :key="`${editorId}-${schemeContainer.scheme.id}-${sidePanelLeftCollapsed}`"
@@ -714,6 +714,9 @@ function timeoutPromise(timeInMillis) {
 
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
+const SIDE_PANEL_LEFT_COLLAPSED = 'side-panel-left-collapsed';
+const SIDE_PANEL_RIGHT_COLLAPSED = 'side-panel-right-collapsed';
+const editorPanelStorage = createSettingStorageFromLocalStorage('editor-panels', 40);
 
 export default {
     components: {
@@ -1013,11 +1016,11 @@ export default {
             sidePanelRightWidth: 400,
             sidePanelRightDefaultWidth: 400,
             sidePanelRightCollapseWidth: 20,
-            sidePanelRightCollapsed: false,
+            sidePanelRightCollapsed: editorPanelStorage.get(SIDE_PANEL_RIGHT_COLLAPSED, false),
             sidePanelLeftWidth: 220,
             sidePanelLeftDefaultWidth: 220,
-            sidePanelLeftCollapseWidth: 26,
-            sidePanelLeftCollapsed: false,
+            sidePanelLeftCollapseWidth: 40,
+            sidePanelLeftCollapsed: editorPanelStorage.get(SIDE_PANEL_LEFT_COLLAPSED, false),
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
@@ -3549,6 +3552,14 @@ export default {
     },
 
     watch: {
+        sidePanelLeftCollapsed(value) {
+            editorPanelStorage.save(SIDE_PANEL_LEFT_COLLAPSED, value);
+        },
+
+        sidePanelRightCollapsed(value) {
+            editorPanelStorage.save(SIDE_PANEL_RIGHT_COLLAPSED, value);
+        },
+
         mode(value) {
             if (value === 'view') {
                 this.switchToViewMode();

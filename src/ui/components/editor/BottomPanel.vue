@@ -144,6 +144,7 @@
 
 <script>
 import { dragAndDropBuilder } from '../../dragndrop';
+import { createSettingStorageFromLocalStorage } from '../../LimitedSettingsStorage.js';
 import myMath from '../../myMath';
 import { localPointOnItem } from '../../scheme/ItemMath';
 import EditorScriptPanel from '../EditorScriptPanel.vue';
@@ -154,6 +155,8 @@ import ElementPicker from './ElementPicker.vue';
 import { convertCurvePointToRelative } from './items/shapes/StandardCurves';
 import ScriptEditor from './ScriptEditor.vue';
 
+const BOTTOM_PANEL_COLLAPSED = 'bottom-panel-collapsed';
+const editorPanelStorage = createSettingStorageFromLocalStorage('editor-panels', 40);
 
 function prettifyAxisValue(value, zoom) {
     value = parseFloat(value);
@@ -185,7 +188,7 @@ export default {
 
     data() {
         return {
-            collapsed: true,
+            collapsed: editorPanelStorage.get(BOTTOM_PANEL_COLLAPSED, true),
             tabs: [{
                 name: 'Console', iconClass: 'fa-solid fa-terminal',
             }, {
@@ -315,6 +318,10 @@ export default {
     },
 
     watch: {
+        collapsed(value) {
+            editorPanelStorage.save(BOTTOM_PANEL_COLLAPSED, value);
+        },
+
         state(state) {
             if (state === 'editPath') {
                 this.switchToPathTab();

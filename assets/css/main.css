@@ -1943,6 +1943,9 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     position: relative;
     padding-bottom: 10px;
 }
+.scheme-editor-component .side-panel .side-panel-overflow.collapsed {
+    overflow: hidden;
+}
 .scheme-editor-component .side-panel .side-panel-close {
     position: absolute;
     z-index: 20;
@@ -2028,7 +2031,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     min-height: 0;
 }
 .scheme-editor-component .bottom-panel .tabs-body {
-    height: 100%;
     min-height: 0;
 }
 .scheme-editor-component .bottom-panel .bottom-panel-dragger {
@@ -2732,13 +2734,18 @@ ul.links-editor .edit-link:hover {
     margin: 0;
 }
 .create-item-menu .collapsed-mode .item-container {
-    width: 22px !important;
-    height: 20px !important;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    width: 36px !important;
+    height: 32px !important;
+    padding-top: 4px;
+    padding-bottom: 4px;
     padding-left: 3px;
     cursor: pointer;
     padding-right: 1px;
+}
+.create-item-menu .collapsed-mode .item-container img {
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 [data-theme="dark"] .create-item-menu .collapsed-mode .item-container img {
     filter: invert(0.78) brightness(1);

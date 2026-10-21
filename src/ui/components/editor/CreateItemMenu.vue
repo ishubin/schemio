@@ -287,6 +287,7 @@ const mouseOffset = 2;
 const ITEM_PICKED_FOR_CREATION = 'item-picked-for-creation';
 const PATH_EDITED = 'path-edited';
 
+const connectorItemPoints = [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}];
 
 export default {
     props: {
@@ -381,7 +382,7 @@ export default {
                 shape: 'rect',
                 group: 'Basic Shapes',
                 name: 'Rect',
-                iconUrl: '/assets/images/icons/rect-tiny.svg',
+                iconUrl: '/assets/images/items/rect.svg',
                 item: {
                     shapeProps: {cornerRadius: 0}
                 }
@@ -389,7 +390,7 @@ export default {
                 shape: 'rect',
                 group: 'Basic Shapes',
                 name: 'Rounded Rect',
-                iconUrl: '/assets/images/icons/rounded-rect-tiny.svg',
+                iconUrl: '/assets/images/items/rounded-rect.svg',
                 item: {
                     shapeProps: {cornerRadius: 20}
                 }
@@ -397,8 +398,62 @@ export default {
                 shape: 'ellipse',
                 group: 'Basic Shapes',
                 name: 'Ellupse',
-                iconUrl: '/assets/images/icons/ellipse-tiny.svg',
+                iconUrl: '/assets/images/items/ellipse.svg',
                 item: { }
+            }, {
+                shape: 'image',
+                group: 'General',
+                name: 'Image',
+                imageProperty: 'shapeProps.image',
+                iconUrl: '/assets/images/items/image.svg',
+                description: 'It lets you upload an image or specify a link to external image',
+                item: {
+                    shapeProps: {
+                        image: ''
+                    }
+                },
+            }, {
+                shape: 'none',
+                group: 'General',
+                name: 'Text',
+                iconUrl: '/assets/images/items/text.svg',
+                item: {
+                    textSlots: {
+                        body: {
+                            text: 'Text ...',
+                            paddingLeft  : 0,
+                            paddingRight : 0,
+                            paddingTop   : 0,
+                            paddingBottom: 0
+                        }
+                    },
+                }
+            }, {
+                shape: 'connector',
+                group: 'Connections',
+                name: 'Empty Connector',
+                iconUrl: '/assets/images/items/connector-empty.svg',
+                item: {
+                    shapeProps: {
+                        thick: false,
+                        sourceCap: 'empty',
+                        destinationCap: 'empty',
+                        points: connectorItemPoints,
+                    }
+                }
+            }, {
+                shape: 'connector',
+                group: 'Connections',
+                name: 'Triangle Connector',
+                iconUrl: '/assets/images/items/connector-triangle.svg',
+                item: {
+                    shapeProps: {
+                        thick: false,
+                        sourceCap: 'empty',
+                        destinationCap: 'triangle',
+                        points: connectorItemPoints
+                    }
+                }
             }];
 
             return menuEntries.map(entry => {
