@@ -156,7 +156,9 @@ import { convertCurvePointToRelative } from './items/shapes/StandardCurves';
 import ScriptEditor from './ScriptEditor.vue';
 
 const BOTTOM_PANEL_COLLAPSED = 'bottom-panel-collapsed';
+const BOTTOM_PANEL_HEIGHT = 'bottom-panel-height';
 const editorPanelStorage = createSettingStorageFromLocalStorage('editor-panels', 40);
+const defaultExpandPanelHeight = 200;
 
 function prettifyAxisValue(value, zoom) {
     value = parseFloat(value);
@@ -188,7 +190,6 @@ export default {
 
     data() {
         return {
-            collapsed: editorPanelStorage.get(BOTTOM_PANEL_COLLAPSED, true),
             tabs: [{
                 name: 'Console', iconClass: 'fa-solid fa-terminal',
             }, {
@@ -202,7 +203,8 @@ export default {
                 name: 'Path', iconClass: 'fa-solid fa-bezier-curve', disabled: true
             }],
             currentTab: 'Console',
-            bottomPanelHeight: 30,
+            collapsed: editorPanelStorage.get(BOTTOM_PANEL_COLLAPSED, true),
+            bottomPanelHeight: Math.min(window.innerHeight /2,  editorPanelStorage.get(BOTTOM_PANEL_HEIGHT, defaultExpandPanelHeight)),
             collapseHeight: 20,
         };
     },
@@ -219,11 +221,10 @@ export default {
         },
 
         collapseBottomPanel() {
-            this.bottomPanelHeight = this.collapseHeight;
             this.collapsed = true;
         },
         expandBottomPanel() {
-            this.bottomPanelHeight = 200;
+            this.bottomPanelHeight = Math.min(window.innerHeight/2, defaultExpandPanelHeight);
             this.collapsed = false;
         },
         selectTab(tab) {
@@ -320,6 +321,10 @@ export default {
     watch: {
         collapsed(value) {
             editorPanelStorage.save(BOTTOM_PANEL_COLLAPSED, value);
+        },
+
+        bottomPanelHeight(value) {
+            editorPanelStorage.save(BOTTOM_PANEL_HEIGHT, value);
         },
 
         state(state) {
