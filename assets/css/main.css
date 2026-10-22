@@ -1961,6 +1961,12 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     padding: 3px 5px;
     border-radius: var(--control-border-radius);
 }
+.doc-and-item-panel {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
 @media (max-width: 900px) {
     .scheme-editor-component .side-panel .side-panel-close {
         display: inline-block;
