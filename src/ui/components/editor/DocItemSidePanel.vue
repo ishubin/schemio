@@ -1,6 +1,24 @@
 <template>
     <div class="doc-and-item-panel">
-        <template v-if="!collapsedMode">
+        <div v-if="collapsedMode" class="collapsed-mode">
+            <span class="menu-icon" title="Doc" @click="focusPanel('Doc')">
+                <i class="icon fa-solid fa-file-lines"></i>
+            </span>
+
+            <template v-if="mode === 'edit'">
+                <span class="menu-icon" title="Items" @click="focusPanel('Item')">
+                    <i class="fa-solid fa-cubes"></i>
+                </span>
+
+                <template v-if="schemeContainer.selectedItems.length > 0">
+                    <span v-for="tab in allItemPropertyTabs" class="menu-icon" :title="tab.displayName" @click="focusItemPanel(tab.name)">
+                        <i :class="tab.icon"></i>
+                    </span>
+                </template>
+            </template>
+        </div>
+
+        <template v-else>
             <ul v-if="state === 'draw'" class="tabs text-nonselectable">
                 <li><span class="tab active">Draw</span></li>
             </ul>
@@ -74,10 +92,12 @@
                                 :revision="schemeRevision"
                                 :schemeContainer="schemeContainer"
                                 :userStylesEnabled="userStylesEnabled"
+                                :currentTab="currentItemPropertiesTab"
                                 @shape-prop-changed="onItemShapePropChanged"
                                 @item-field-changed="onItemFieldChanged"
                                 @item-style-applied="onItemStyleApplied"
                                 @shape-changed="onItemShapeChanged"
+                                @tab-selected="onItemPropertiesTabSelected"
                             />
                         </div>
 
@@ -123,6 +143,7 @@
 
 
 <script>
+import { createSettingStorageFromLocalStorage } from '../../LimitedSettingsStorage.js';
 import { traverseItems } from '../../scheme/Item.js';
 import DrawingControlsPanel from '../DrawingControlsPanel.vue';
 import EditorEventBus from './EditorEventBus.js';
@@ -130,12 +151,13 @@ import ItemDetails from './ItemDetails.vue';
 import { breakItemTemplate } from './items/ItemTemplate.js';
 import ItemSelector from './ItemSelector.vue';
 import Panel from './Panel.vue';
-import ItemProperties from './properties/ItemProperties.vue';
+import ItemProperties, { ALL_ITEM_PROPERTY_TABS } from './properties/ItemProperties.vue';
 import TemplateProperties from './properties/TemplateProperties.vue';
 import TextSlotProperties from './properties/TextSlotProperties.vue';
 import SchemeDetails from './SchemeDetails.vue';
 import SchemeProperties from './SchemeProperties.vue';
 
+const itemTabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 100);
 
 export default {
     props: {
@@ -167,10 +189,16 @@ export default {
     data() {
         return {
             tabs: [ 'Doc', 'Item' ],
+            currentItemPropertiesTab: 'shape',
+            allItemPropertyTabs: ALL_ITEM_PROPERTY_TABS
         };
     },
 
     methods: {
+        onItemPropertiesTabSelected(tab) {
+            this.currentItemPropertiesTab = tab;
+        },
+
         onTextPropertyChanged(textSlotName, propertyName, value) {
             this.$emit('text-property-changed', textSlotName, propertyName, value);
         },
@@ -207,11 +235,11 @@ export default {
         },
 
         onItemShapeChanged(shapeName) {
-            this.$mit('shape-changed', shapeName);
+            this.$emit('shape-changed', shapeName);
         },
 
         onItemStyleApplied(style) {
-            this.$mit('item-style-applied', style);
+            this.$emit('item-style-applied', style);
         },
 
         onItemFieldChanged(name, value) {
@@ -226,16 +254,25 @@ export default {
             this.$emit('tab-selected', tab);
         },
 
+        focusPanel(tab) {
+            this.changeTab(tab);
+            this.$emit('panel-expanded');
+        },
+
+        focusItemPanel(tab) {
+            this.currentItemPropertiesTab = tab;
+            this.focusPanel('Item');
+        },
+
         onItemRightClick(item, mouseX, mouseY) {
             this.$emit('item-right-clicked', item, mouseX, mouseY);
         }
     },
 
-    // watch: {
-    //     itemTextSlotsAvailable(value) {
-    //         console.log('itemTextSlotsAvailable changed');
-    //         this.$forceUpdate();
-    //     }
-    // }
+    watch: {
+        currentItemPropertiesTab(tab) {
+            itemTabsSettingsStorage.save(this.schemeContainer.scheme.id, tab);
+        }
+    }
 }
 </script>

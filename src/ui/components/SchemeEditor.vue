@@ -371,6 +371,7 @@
                     @template-rebuild-requested="onTemplateRebuildRequested"
                     @move-text-slot="onTextSlotMoved"
                     @text-property-changed="onTextPropertyChanged"
+                    @panel-expanded="showRightSidePanel"
                 />
 
                 <div class="side-panel-expand-button">
@@ -932,7 +933,7 @@ export default {
             sidePanelItemForViewMode: null,
             sidePanelRightWidth: 400,
             sidePanelRightDefaultWidth: 400,
-            sidePanelRightCollapseWidth: 20,
+            sidePanelRightCollapseWidth: 30,
             sidePanelRightCollapsed: editorPanelStorage.get(SIDE_PANEL_RIGHT_COLLAPSED, false),
             sidePanelRightCollapsedOldState: editorPanelStorage.get(SIDE_PANEL_RIGHT_COLLAPSED, false),
             sidePanelLeftWidth: 220,
@@ -1970,7 +1971,7 @@ export default {
 
         onItemSidePanelTriggered(item) {
             this.sidePanelItemForViewMode = item;
-            this.showSidePanelRight();
+            this.showRightSidePanel();
             this.currentRightTab = 'Item';
         },
 
@@ -3109,7 +3110,7 @@ export default {
             this.sidePanelRightWidth = this.sidePanelRightCollapseWidth;
         },
 
-        showSidePanelRight() {
+        showRightSidePanel() {
             this.sidePanelRightCollapsed = false;
             this.sidePanelRightWidth = Math.min(this.sidePanelRightDefaultWidth, Math.floor(window.innerWidth/2 - 20));
         },
@@ -3156,9 +3157,6 @@ export default {
                 } else {
                     callbacks.onValue(newWidth);
                 }
-            })
-            .onSimpleClick(event => {
-                callbacks.onClick(event);
             })
             .build();
         },
@@ -3476,7 +3474,7 @@ export default {
                 this.switchToViewMode();
             } else {
                 if (!this.sidePanelRightCollapsedOldState) {
-                    this.showSidePanelRight();
+                    this.showRightSidePanel();
                 }
                 this.switchToEditMode();
             }

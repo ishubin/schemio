@@ -6,7 +6,7 @@
     <div class="item-properties">
         <ul class="button-group">
             <li v-for="tab in tabs">
-                <span class="toggle-button" @click="currentTab = tab.name"
+                <span class="toggle-button" @click="switchTab(tab.name)"
                     :class="{'toggled': tab.name === currentTab}"
                     :title="tab.displayName">
                     <i :class="[tab.icon]"></i>
@@ -261,7 +261,6 @@ import ColorPicker from '../ColorPicker.vue';
 import BehaviorProperties from './BehaviorProperties.vue';
 import {ItemInteractionMode, supportedCursorOptions} from '../../../scheme/Item.js';
 import {knownBlendModes} from '../../../scheme/ItemConst';
-import {createSettingStorageFromLocalStorage} from '../../../LimitedSettingsStorage';
 import StylesPalette from './StylesPalette.vue';
 import NumberTextfield from '../../NumberTextfield.vue';
 import { DEFAULT_ITEM_MODIFICATION_CONTEXT, ITEM_MODIFICATION_CONTEXT_RESIZED, ITEM_MODIFICATION_CONTEXT_ROTATED } from '../../../scheme/SchemeContainer.js';
@@ -273,7 +272,7 @@ import AutoLayoutProperties from './AutoLayoutProperties.vue';
 import EffectsPanel from './EffectsPanel.vue';
 import ScriptEditor from '../ScriptEditor.vue';
 
-const ALL_TABS = [
+export const ALL_ITEM_PROPERTY_TABS = [
     {name: 'description', displayName: 'Description',       icon: 'fas fa-paragraph'},
     {name: 'shape',       displayName: 'Shape Properties',  icon: 'fas fa-vector-square'},
     {name: 'behavior',    displayName: 'Behavior (Script)', icon: 'fas fa-running'},
@@ -282,29 +281,24 @@ const ALL_TABS = [
     {name: 'styles',      displayName: 'Style Palette',     icon: 'fas fa-palette'},
 ];
 
-const ALL_TABS_NAMES = map(ALL_TABS, tab => tab.name);
+const ALL_TABS_NAMES = map(ALL_ITEM_PROPERTY_TABS, tab => tab.name);
 
-const tabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state', 100);
 
 export default {
     props: {
         editorId: {type: String, required: true},
         item: { type: Object },
         schemeContainer: { type: Object },
-        userStylesEnabled: { type: Boolean, default: false}
+        userStyleEnabled: { type: Boolean, default: false},
+        currentTab: {type: String, required: true},
     },
     components: {
-    Panel, Tooltip, ColorPicker, PositionPanel, LinksPanel,
-    GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
-    PropertyInput, AutoLayoutProperties, EffectsPanel, ScriptEditor
-},
+        Panel, Tooltip, ColorPicker, PositionPanel, LinksPanel,
+        GeneralPanel, BehaviorProperties, StylesPalette, NumberTextfield,
+        PropertyInput, AutoLayoutProperties, EffectsPanel, ScriptEditor
+    },
 
     beforeMount() {
-        let tab = tabsSettingsStorage.get(this.schemeContainer.scheme.id, ALL_TABS_NAMES[0]);
-        if (indexOf(ALL_TABS_NAMES, tab) < 0) {
-            tab = ALL_TABS_NAMES[0];
-        }
-        this.currentTab = tab;
         EditorEventBus.behaviorPanel.requested.$on(this.editorId, this.onBehaviorPanelRequested);
         EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemChanged);
     },
@@ -325,11 +319,10 @@ export default {
         const knownShapes = Shape.getShapeIds();
         knownShapes.sort();
         return {
-            tabs: ALL_TABS,
+            tabs: ALL_ITEM_PROPERTY_TABS,
             knownCursors: supportedCursorOptions,
 
             knownShapes,
-            currentTab: 'description',
             shapeComponent: shapeComponent,
             oldShape: this.item.shape,
             knownBlendModes: utils.clone(knownBlendModes),
@@ -344,6 +337,13 @@ export default {
     },
 
     methods: {
+        switchTab(tab) {
+            if (indexOf(ALL_TABS_NAMES, tab) < 0) {
+                tab = ALL_TABS_NAMES[0];
+            }
+            this.$emit('tab-selected', tab);
+        },
+
         updateCurrentItem(property, callback) {
             this.schemeContainer.updateItem(this.item.id, property, callback);
         },
@@ -479,7 +479,7 @@ export default {
 
         onBehaviorPanelRequested() {
             this.behaviorPanelRevision += 1;
-            this.currentTab = 'behavior';
+            this.switchTab('behavior');
         },
     },
     computed: {
@@ -493,12 +493,6 @@ export default {
             }
             return false;
         },
-    },
-
-    watch: {
-        currentTab(value) {
-            tabsSettingsStorage.save(this.schemeContainer.scheme.id, value);
-        }
     },
 }
 </script>
