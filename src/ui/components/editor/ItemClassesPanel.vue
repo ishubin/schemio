@@ -1,73 +1,38 @@
 <template lang="html">
     <div>
-        <Panel uid="main-script" name="Main" :border="false">
-            <div class="row gap centered">
-                <div>
-                    <Tooltip>
-                        "Main" script runs during scene initialization and registers all functions and variables in global scope.
-                        These functions and variables are available from any other script.
-                    </Tooltip>
-                </div>
-                <span class="col-1 btn btn-secondary" @click="toggleMainScript"><i class="fa-solid fa-code"></i>  Edit main script</span>
-                <div></div>
+        <div class="row gap centered">
+            <div>
+                <Tooltip>
+                    Classes let you define global and parameterized behavior and re-use accross numerous items.
+                    Any item can be extended with multiple classes.
+                </Tooltip>
             </div>
-        </Panel>
-
-        <Panel uid="script-functions" name="Item Functions">
-            <CustomFunctionsEditor
-                :editorId="editorId"
-                :schemeContainer="schemeContainer"
-                :functions="schemeContainer.scheme.scripts.functions"
-                />
-        </Panel>
-
-
-        <Panel uid="item-classes" name="Item Classes">
-            <div class="row gap centered">
-                <div>
-                    <Tooltip>
-                        Classes let you define global and parameterized behavior and re-use accross numerous items.
-                        Any item can be extended with multiple classes.
-                    </Tooltip>
-                </div>
-                <span class="col-1 btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-book"></i> New class</span>
-                <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import classes"><i class="fa-solid fa-file-import"></i></span>
-                <div></div>
-            </div>
-            <ul class="navbar-functions-list">
-                <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
-                    <span class="func-name" @click="openClassEditor(classIdx)">
-                        <i class="fa-solid fa-book"></i>
-                        {{ clazz.name }}
-                    </span>
-                    <div class="operations">
-                        <span class="link" @click="copyClass(classIdx)" title="Copy class"><i class="fa-regular fa-copy"></i></span>
-                        <span class="link icon-delete" @click="deleteClass(classIdx)" title="Remove class"><i class="fas fa-times"></i></span>
-                    </div>
-                </li>
-            </ul>
-
-            <div class="section">
-                <span v-if="schemeContainer.scheme.scripts.classes.length > 0"
-                    class="btn btn-secondary"
-                    @click="copyAllClasses()"
-                    title="Copy all classes in this document">
-                    Copy all
+            <span class="col-1 btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-book"></i> New class</span>
+            <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import classes"><i class="fa-solid fa-file-import"></i></span>
+            <div></div>
+        </div>
+        <ul class="navbar-functions-list">
+            <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
+                <span class="func-name" @click="openClassEditor(classIdx)">
+                    <i class="fa-solid fa-book"></i>
+                    {{ clazz.name }}
                 </span>
-                <span class="btn btn-secondary" @click="pasteClasses()">Paste classes</span>
-            </div>
-        </Panel>
+                <div class="operations">
+                    <span class="link" @click="copyClass(classIdx)" title="Copy class"><i class="fa-regular fa-copy"></i></span>
+                    <span class="link icon-delete" @click="deleteClass(classIdx)" title="Remove class"><i class="fas fa-times"></i></span>
+                </div>
+            </li>
+        </ul>
 
-        <Modal v-if="mainScriptEditorShown" title="Main script" :width="900" @close="mainScriptEditorShown = false" :useMask="false">
-            <ScriptEditor
-                :value="mainScript"
-                :schemeContainer="schemeContainer"
-                :height="mainScriptEditorHeight"
-                :autoFocus="true"
-                @changed="onMainScriptChange"
-                />
-        </Modal>
-
+        <div class="section">
+            <span v-if="schemeContainer.scheme.scripts.classes.length > 0"
+                class="btn btn-secondary"
+                @click="copyAllClasses()"
+                title="Copy all classes in this document">
+                Copy all
+            </span>
+            <span class="btn btn-secondary" @click="pasteClasses()">Paste classes</span>
+        </div>
 
         <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close" :useMask="false">
             <Panel uid="class-modal-name" name="General">
@@ -182,21 +147,19 @@
 <script>
 import Panel from './Panel.vue';
 import Modal from '../Modal.vue';
-import ScriptEditor from './ScriptEditor.vue';
 import Tooltip from '../Tooltip.vue';
 import ScriptFunctionEditor from './properties/behavior/ScriptFunctionEditor.vue';
-import utils from '../../utils';
-import EditorEventBus from './EditorEventBus';
+import utils from '../../utils.js';
+import EditorEventBus from './EditorEventBus.js';
 import shortid from 'shortid';
-import StoreUtils from '../../store/StoreUtils';
-import { defaultItemDefinition, traverseItems } from '../../scheme/Item';
+import StoreUtils from '../../store/StoreUtils.js';
+import { defaultItemDefinition, traverseItems } from '../../scheme/Item.js';
 import CustomArgsEditor from './CustomArgsEditor.vue';
 import BehaviorProperties from './properties/BehaviorProperties.vue';
-import Shape from './items/shapes/Shape';
+import Shape from './items/shapes/Shape.js';
 import Dropdown from '../Dropdown.vue';
-import { enrichItemWithDefaults } from '../../scheme/ItemFixer';
-import { copyObjectToClipboard, getObjectFromClipboard } from '../../clipboard';
-import CustomFunctionsEditor from './CustomFunctionsEditor.vue';
+import { enrichItemWithDefaults } from '../../scheme/ItemFixer.js';
+import { copyObjectToClipboard, getObjectFromClipboard } from '../../clipboard.js';
 import SchemeSearchModal from './SchemeSearchModal.vue';
 
 export default {
@@ -206,15 +169,13 @@ export default {
     },
 
     components: {
-        Panel, ScriptEditor, Modal, Tooltip, ScriptFunctionEditor, CustomFunctionsEditor,
+        Panel, Modal, Tooltip, ScriptFunctionEditor,
         CustomArgsEditor, BehaviorProperties, Dropdown, SchemeSearchModal
     },
 
     data() {
         const scheme = this.schemeContainer.scheme;
         return {
-            mainScriptEditorShown: false,
-            mainScript: scheme.scripts.main.source,
 
             allShapeOptions : [
                 {name: 'All', shape: 'all', description: 'Support all shapes'}
@@ -556,16 +517,6 @@ export default {
             }
         },
 
-        onMainScriptChange(script) {
-            this.schemeContainer.scheme.scripts.main.source = script;
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-            this.mainScript = script;
-        },
-
-        toggleMainScript() {
-            this.mainScriptEditorShown = true;
-        },
-
         openImportFunctionModal() {
             this.importFunctionModal.functions = [];
             this.importFunctionModal.totalSelected = 0;
@@ -629,9 +580,6 @@ export default {
         importButtonDisabled() {
             return this.importFunctionModal.totalSelected === 0;
         },
-        mainScriptEditorHeight() {
-            return window.innerHeight - 60;
-        }
     }
 }
 </script>

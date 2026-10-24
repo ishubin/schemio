@@ -95,12 +95,24 @@
                     </div>
                 </template>
 
-                <template v-if="currentTab === 'Animation'">
+                <div class="bottom-scrollable-panel" v-if="currentTab === 'Animation'">
                     <FrameAnimatorPanel
                         :editorId="editorId"
                         :schemeContainer="schemeContainer"
                         @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
                         />
+                </div>
+
+                <div class="bottom-scrollable-panel" v-if="currentTab === 'Functions'">
+                    <CustomFunctionsEditor
+                        :editorId="editorId"
+                        :schemeContainer="schemeContainer"
+                        :functions="schemeContainer.scheme.scripts.functions"
+                        />
+                </div>
+
+                <template v-if="currentTab === 'Classes'">
+                    <ItemClassesPanel :editorId="editorId" :schemeContainer="schemeContainer"/>
                 </template>
 
                 <template v-if="currentTab === 'Path'">
@@ -154,6 +166,8 @@ import EditorEventBus from './EditorEventBus.js';
 import ElementPicker from './ElementPicker.vue';
 import { convertCurvePointToRelative } from './items/shapes/StandardCurves';
 import ScriptEditor from './ScriptEditor.vue';
+import ItemClassesPanel from './ItemClassesPanel.vue';
+import CustomFunctionsEditor from './CustomFunctionsEditor.vue';
 
 const BOTTOM_PANEL_COLLAPSED = 'bottom-panel-collapsed';
 const BOTTOM_PANEL_HEIGHT = 'bottom-panel-height';
@@ -170,7 +184,23 @@ function prettifyAxisValue(value, zoom) {
     return value.toFixed(2);
 }
 
-const pathTabIdx = 4;
+const allTabs = [{
+    name: 'Console', iconClass: 'fa-solid fa-terminal',
+    }, {
+    name: 'Animation', iconClass: 'fas fa-film',
+    }, {
+    name: 'Editor Code', iconClass: 'fa-solid fa-code',
+    }, {
+    name: 'Main Script', iconClass: 'fa-solid fa-laptop-code',
+    }, {
+    name: 'Functions', iconClass: 'fa-solid fa-florin-sign',
+    }, {
+    name: 'Classes', iconClass: 'fa-solid fa-book',
+    }, {
+    name: 'Path', iconClass: 'fa-solid fa-bezier-curve', disabled: true
+}];
+
+const pathTabIdx = allTabs.length - 1;
 
 export default {
     props: {
@@ -186,22 +216,14 @@ export default {
         curveEditing   : {type: Object}
     },
 
-    components: { FrameAnimatorPanel, DiagramPicker, ElementPicker, EditorScriptPanel, ScriptEditor },
+    components: {
+        FrameAnimatorPanel, DiagramPicker, ElementPicker, EditorScriptPanel,
+        ScriptEditor, ItemClassesPanel, CustomFunctionsEditor,
+    },
 
     data() {
         return {
-            tabs: [{
-                name: 'Console', iconClass: 'fa-solid fa-terminal',
-            }, {
-                name: 'Editor Code', iconClass: 'fa-solid fa-code',
-            }, {
-                name: 'Main Script', iconClass: 'fa-solid fa-laptop-code',
-                disabled: false,
-            }, {
-                name: 'Animation', iconClass: 'fas fa-film',
-            }, {
-                name: 'Path', iconClass: 'fa-solid fa-bezier-curve', disabled: true
-            }],
+            tabs: allTabs,
             currentTab: 'Console',
             collapsed: editorPanelStorage.get(BOTTOM_PANEL_COLLAPSED, true),
             bottomPanelHeight: Math.min(window.innerHeight /2,  editorPanelStorage.get(BOTTOM_PANEL_HEIGHT, defaultExpandPanelHeight)),

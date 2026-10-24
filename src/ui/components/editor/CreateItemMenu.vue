@@ -42,7 +42,7 @@
         </div>
 
         <div v-else>
-            <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
+            <input type="text" class="textfield create-item-menu-search" placeholder="Search..." v-model="searchKeyword"/>
 
             <div class="item-menu">
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">

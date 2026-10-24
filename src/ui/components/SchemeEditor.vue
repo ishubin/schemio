@@ -281,24 +281,11 @@
                 v-if="mode === 'edit' && schemeContainer"
                 :style="{width: sidePanelLeftCollapsed ? `${sidePanelLeftCollapseWidth}px` : `${sidePanelLeftWidth}px`}"
                 >
-                <template v-if="!sidePanelLeftCollapsed">
-                    <ul class="tabs">
-                        <li v-for="tab in leftTabs">
-                            <span class="tab" :class="{active: tab.name === currentLeftTab}" @click="currentLeftTab = tab.name">
-                                <i v-if="tab.iconClass" :class="tab.iconClass"></i>
-                                {{tab.name}}
-                            </span>
-                        </li>
-                    </ul>
-                    <div class="tabs-body">
-                    </div>
-                </template>
-
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                 </span>
                 <div class="side-panel-overflow" :class="{collapsed: sidePanelLeftCollapsed}">
                     <div class="wrapper">
-                        <CreateItemMenu v-if="currentLeftTab === 'Shapes' || sidePanelLeftCollapsed"
+                        <CreateItemMenu
                             :key="`${editorId}-${schemeContainer.scheme.id}-${sidePanelLeftCollapsed}`"
                             :editorId="editorId"
                             :scheme-container="schemeContainer"
@@ -312,12 +299,6 @@
                             @state-drag-item-requested="cancelCurrentState"
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
-
-                        <ScriptsTab v-if="currentLeftTab === 'Behavior' && !sidePanelLeftCollapsed"
-                            :key="`${editorId}-${schemeContainer.scheme.id}`"
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            />
                     </div>
                 </div>
 
@@ -474,7 +455,6 @@ import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler, mouseCoordsFromEvent } from '../events';
-import DrawingControlsPanel from './DrawingControlsPanel.vue';
 
 import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps, ItemInteractionMode } from '../scheme/Item';
 import {enrichItemWithDefaults, cleanupShapeProps} from '../scheme/ItemFixer';
@@ -488,14 +468,7 @@ import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer  from '../scheme/SchemeContainer.js';
 import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea, collectOnlyVisibleNonHUDItems } from '../scheme/ItemMath.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
-import ItemProperties from './editor/properties/ItemProperties.vue';
-import TemplateProperties from './editor/properties/TemplateProperties.vue';
-import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
-import ItemDetails from './editor/ItemDetails.vue';
-import SchemeProperties from './editor/SchemeProperties.vue';
-import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
-import ScriptsTab   from './editor/ScriptsTab.vue';
 import ElementPicker from './editor/ElementPicker.vue';
 import DiagramPicker from './editor/DiagramPicker.vue';
 import LinkEditModal from './editor/LinkEditModal.vue';
@@ -504,7 +477,6 @@ import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.
 import Shape from './editor/items/shapes/Shape.js';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
-import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import Modal from './Modal.vue';
@@ -638,14 +610,12 @@ const editorPanelStorage = createSettingStorageFromLocalStorage('editor-panels',
 
 export default {
     components: {
-        SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
-        LinkEditModal, InPlaceTextEditBox, TemplateProperties,
-        ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
+        SvgEditor, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
+        LinkEditModal, InPlaceTextEditBox, ItemTooltip, Panel, Dropdown,
         ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
-        DrawingControlsPanel, ExportAnimationModal, ScriptConsole, ScriptsTab,
+        ExportAnimationModal, ScriptConsole,
         ExportPictureModal, BottomPanel, DocItemSidePanel
     },
 
@@ -951,12 +921,7 @@ export default {
                 shown: false
             },
 
-            currentLeftTab: 'Shapes',
             currentRightTab: 'Doc',
-            leftTabs: [
-                {name: 'Shapes', iconClass: 'fa-solid fa-shapes'},
-                {name: 'Behavior', iconClass: 'fa-solid fa-person-running'},
-            ],
 
             offsetSaveTimerId: null,
 

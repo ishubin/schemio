@@ -2014,7 +2014,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     right: -5px;
 }
 .scheme-editor-component .side-panel .side-panel-expander:hover {
-    /* color: var(--faint-strong-down); */
     background: var(--faint-weak-down);
 }
 .scheme-editor-component .side-panel .side-panel-expand-button {
@@ -2025,6 +2024,13 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
     font-size: 12px;
     opacity: 0.7;
     z-index: 3;
+}
+
+.scheme-editor-component .side-panel.side-panel-left .side-panel-expand-button {
+    position: absolute;
+    top: 2px;
+    right: unset;
+    left: 6px;
 }
 .scheme-editor-component .side-panel-right .side-panel-expand-button {
     left: 2px;
@@ -2055,9 +2061,17 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .bottom-panel.collapsed {
     min-height: 0;
 }
+
+.scheme-editor-component .bottom-panel .bottom-scrollable-panel {
+    height: 100%;
+    min-height: 0;
+    overflow: auto;
+}
+
 .scheme-editor-component .bottom-panel .tabs-body {
     min-height: 0;
 }
+
 .scheme-editor-component .bottom-panel .bottom-panel-dragger {
     cursor: row-resize;
     top: -3px;
@@ -2071,6 +2085,7 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .bottom-panel .bottom-panel-dragger:hover {
     background: var(--faint-weak-down-2);
 }
+
 .scheme-editor-component .bottom-panel .bottom-panel-body {
     position: relative;
     display: flex;
@@ -2747,6 +2762,13 @@ ul.links-editor .edit-link:hover {
     cursor: pointer;
 }
 
+.create-item-menu {
+    padding-top: 10px;
+}
+.create-item-menu .create-item-menu-search {
+    width: 100%;
+    margin-top: 10px;
+}
 .create-item-menu .buttons {
     margin: 8px;
 }
