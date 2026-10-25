@@ -40,10 +40,10 @@
             <div v-else class="bottom-panel-content">
                 <ul class="tabs">
                     <li v-for="tab in tabs">
-                        <span class="tab" :class="{active: tab.name === currentTab, disabled: tab.disabled}" @click="selectTab(tab)">
+                        <div class="tab" :class="{active: tab.name === currentTab, disabled: tab.disabled}" @click="selectTab(tab)">
                             <i v-if="tab.iconClass" :class="tab.iconClass"></i>
-                            {{tab.name}}
-                        </span>
+                            <span class="tab-label">{{tab.name}}</span>
+                        </div>
                     </li>
                 </ul>
                 <div class="tabs-body"></div>
@@ -57,8 +57,11 @@
 
                 <template v-if="currentTab === 'Editor Code'">
                     <div class="row vertical">
-                        <div class="hint hint-small">
-                            This code is loaded with every console command and with every Editor Script shape.
+                        <div class="row centered gap">
+                            <Tooltip>Global code library that runs before every Console script and Editor Script shape. Define reusable variables and helper functions here.</Tooltip>
+                            <div class="hint hint-small col-1">
+                                This code loads for every console command and Editor Script shape.
+                            </div>
                         </div>
                         <div class="col-1" style="height: 100%; min-height: 0;">
                             <div class="editor-script-scrollable-pane">
@@ -77,8 +80,11 @@
 
                 <template v-if="currentTab === 'Main Script'">
                     <div class="row vertical">
-                        <div class="hint hint-small">
-                            This code is executed in "view" mode during scene initialization
+                        <div class="row centered gap">
+                            <Tooltip>Initialization script executed when the diagram loads in view mode. Functions declared here are available globally to all diagram scripts.</Tooltip>
+                            <div class="hint hint-small col-1">
+                                This code is executed in "view" mode during scene initialization
+                            </div>
                         </div>
                         <div class="col-1" style="height: 100%; min-height: 0;">
                             <div class="editor-script-scrollable-pane">
@@ -168,6 +174,7 @@ import { convertCurvePointToRelative } from './items/shapes/StandardCurves';
 import ScriptEditor from './ScriptEditor.vue';
 import ItemClassesPanel from './ItemClassesPanel.vue';
 import CustomFunctionsEditor from './CustomFunctionsEditor.vue';
+import Tooltip from '../Tooltip.vue';
 
 const BOTTOM_PANEL_COLLAPSED = 'bottom-panel-collapsed';
 const BOTTOM_PANEL_HEIGHT = 'bottom-panel-height';
@@ -218,7 +225,7 @@ export default {
 
     components: {
         FrameAnimatorPanel, DiagramPicker, ElementPicker, EditorScriptPanel,
-        ScriptEditor, ItemClassesPanel, CustomFunctionsEditor,
+        ScriptEditor, ItemClassesPanel, CustomFunctionsEditor, Tooltip
     },
 
     data() {

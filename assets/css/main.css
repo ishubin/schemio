@@ -1946,21 +1946,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 .scheme-editor-component .side-panel .side-panel-overflow.collapsed {
     overflow: hidden;
 }
-.scheme-editor-component .side-panel .side-panel-close {
-    position: absolute;
-    z-index: 20;
-    display: none;
-    top: 3px;
-    right: 7px;
-    font-size: 10px;
-    text-transform: uppercase;
-    font-weight: bold;
-    cursor: pointer;
-    background: var(--faint-weak-down-2);
-    color: var(--faint-strong-down);
-    padding: 3px 5px;
-    border-radius: var(--control-border-radius);
-}
 .doc-and-item-panel {
     height: 100%;
     min-height: 0;
@@ -1985,12 +1970,6 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .doc-and-item-panel .collapsed-mode .menu-icon:hover {
     opacity: 1.0;
-}
-@media (max-width: 900px) {
-    .scheme-editor-component .side-panel .side-panel-close {
-        display: inline-block;
-        padding: 4px 8px;
-    }
 }
 .scheme-editor-component .side-panel .side-panel-expander {
     display: inline-block;
@@ -2060,6 +2039,11 @@ ul.button-group.disabled > li, ul.button-group > li.disabled {
 }
 .scheme-editor-component .bottom-panel.collapsed {
     min-height: 0;
+}
+@media (max-width: 600px) {
+    .scheme-editor-component .bottom-panel ul.tabs .tab .tab-label {
+        display: none;
+    }
 }
 
 .scheme-editor-component .bottom-panel .bottom-scrollable-panel {

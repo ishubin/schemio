@@ -356,7 +356,7 @@
                 />
 
                 <div class="side-panel-expand-button">
-                    <i v-if="sidePanelRightCollapsed" class="fa-regular fa-square-caret-left" @click="sidePanelRightCollapsed = false; sidePanelRightWidth = sidePanelRightDefaultWidth"></i>
+                    <i v-if="sidePanelRightCollapsed" class="fa-regular fa-square-caret-left" @click="showRightSidePanel"></i>
                     <i v-else class="fa-regular fa-square-caret-right" @click="collapseRightSidePanel"></i>
                 </div>
 
@@ -3404,7 +3404,7 @@ export default {
             }
 
             this.sidePanelLeftWidth = this.sidePanelLeftDefaultWidth;
-            this.sidePanelRightWidth = this.sidePanelRightDefaultWidth;
+            this.sidePanelRightWidth = Math.min(window.innerWidth/2 - 20, this.sidePanelRightDefaultWidth);
 
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },

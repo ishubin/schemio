@@ -55,8 +55,6 @@
             <div class="tabs-body">
             </div>
             <div class="side-panel-overflow">
-                <span class="side-panel-close" @click="$emit('close')">Close</span>
-
                 <div v-if="state === 'draw'">
                     <DrawingControlsPanel
                         :isBrush="isDrawingBrush"

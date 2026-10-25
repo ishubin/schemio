@@ -1,21 +1,5 @@
 <template lang="html">
     <div class="item-classes-editor">
-        <div v-if="schemeContainer.scheme.scripts.classes.length === 0" class="hint">
-            No classes defined yet
-        </div>
-        <ul class="navbar-functions-list">
-            <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
-                <span class="func-name" @click="openClassEditor(classIdx)">
-                    <i class="fa-solid fa-book"></i>
-                    {{ clazz.name }}
-                </span>
-                <div class="operations">
-                    <span class="link" @click="copyClass(classIdx)" title="Copy class"><i class="fa-regular fa-copy"></i></span>
-                    <span class="link icon-delete" @click="deleteClass(classIdx)" title="Remove class"><i class="fas fa-times"></i></span>
-                </div>
-            </li>
-        </ul>
-
         <div class="section">
             <Tooltip>
                 Classes let you define global and parameterized behavior and re-use it accross numerous items.
@@ -31,6 +15,22 @@
             </span>
             <span class="btn btn-secondary" @click="pasteClasses()" title="Paste all classes"><i class="fa-solid fa-paste"></i></span>
         </div>
+
+        <div v-if="schemeContainer.scheme.scripts.classes.length === 0" class="hint">
+            No classes defined yet
+        </div>
+        <ul class="navbar-functions-list">
+            <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
+                <span class="func-name" @click="openClassEditor(classIdx)">
+                    <i class="fa-solid fa-book"></i>
+                    {{ clazz.name }}
+                </span>
+                <div class="operations">
+                    <span class="link" @click="copyClass(classIdx)" title="Copy class"><i class="fa-regular fa-copy"></i></span>
+                    <span class="link icon-delete" @click="deleteClass(classIdx)" title="Remove class"><i class="fas fa-times"></i></span>
+                </div>
+            </li>
+        </ul>
 
         <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close" :useMask="false">
             <Panel uid="class-modal-name" name="General">

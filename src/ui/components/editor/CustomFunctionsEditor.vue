@@ -1,5 +1,20 @@
 <template>
     <div class="custom-functions-editor">
+        <div class="section">
+            <Tooltip>
+                Functions let you create scripted actions for items which you can then use from items events
+            </Tooltip>
+            <span class="btn btn-secondary" @click="startAddingNewFunction" title="Add new function"><i class="fa-solid fa-florin-sign"></i> Add function</span>
+            <span v-if="functions.length > 0"
+                class="btn btn-secondary"
+                @click="copyAllFuncs()"
+                title="Copy all functions in this document"
+                >
+                <i class="fa-solid fa-clipboard"></i>
+            </span>
+            <span class="btn btn-secondary" @click="pasteFuncs()" title="Paste all functions"><i class="fa-solid fa-paste"></i></span>
+        </div>
+
         <div v-if="functions.length === 0" class="hint">
             No functions defined yet
         </div>
@@ -16,21 +31,6 @@
                 </div>
             </li>
         </ul>
-
-        <div class="section">
-            <Tooltip>
-                Functions let you create scripted actions for items which you can then use from items events
-            </Tooltip>
-            <span class="btn btn-secondary" @click="startAddingNewFunction" title="Add new function"><i class="fa-solid fa-florin-sign"></i> Add function</span>
-            <span v-if="functions.length > 0"
-                class="btn btn-secondary"
-                @click="copyAllFuncs()"
-                title="Copy all functions in this document"
-                >
-                <i class="fa-solid fa-clipboard"></i>
-            </span>
-            <span class="btn btn-secondary" @click="pasteFuncs()"><i class="fa-solid fa-paste"></i></span>
-        </div>
 
         <Modal v-if="funcModal.shown" title="Function editor" :width="900" @close="funcModal.shown = false" closeName="Close" :useMask="false">
             <Panel uid="func-modal-name" name="Name & Description">
