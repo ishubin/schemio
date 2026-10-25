@@ -63,7 +63,6 @@
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
     "electron": "^40.0.0",
-    "electron-icon-maker": "^0.0.5",
     "esm": "^3.2.25",
     "expect": "^27.4.2",
     "file-loader": "^0.11.2",
