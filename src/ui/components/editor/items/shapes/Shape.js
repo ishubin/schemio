@@ -26,6 +26,7 @@ let _shapes = [
     require('./Dummy.vue').default,
     require('./HUD.vue').default,
     require('./KeyBind.js').default,
+    require('./EditorScriptButton.vue').default,
 
     require('./basic/Triangle.js').default,
     require('./basic/Diamond.js').default,

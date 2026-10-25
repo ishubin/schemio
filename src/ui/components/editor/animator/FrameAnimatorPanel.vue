@@ -3,20 +3,17 @@
      file, You can obtain one at https://mozilla.org/MPL/2.0/. -->
 <template>
     <div class="frame-animator-panel">
-        <div v-if="light" class="frame-animator-light">
-            <span class="btn btn-secondary" @click="openAnimationEditor"><i class="fas fa-film"></i> Open Animation Editor</span>
-            <span class="frame-animator-title">{{framePlayer.name}}</span>
-        </div>
-
-        <div v-else class="frame-animator-container">
+        <div class="frame-animator-container">
             <div class="frame-animator-header">
                 <div class="frame-animator-title">
-                    <i class="fas fa-film"></i>
-                    <h3>{{framePlayer.name}}</h3>
+                    <Dropdown :options="allFramePlayerOptions" @selected="onFramePlayerSelected">
+                        <span v-if="selectedFramePlayer">{{ selectedFramePlayer.name }}</span>
+                        <span v-else>No frame player selected</span>
+                    </Dropdown>
                 </div>
-                <div class="frame-animator-controls">
+                <div v-if="selectedFramePlayer" class="frame-animator-controls">
                     <div class="frame-animator-player-buttons">
-                        <div v-if="!isRecording">
+                        <template v-if="!isRecording">
                             <span class="btn btn-danger btn-small"
                                 @click="startRecording"
                                 title="Record items for currently selected frame"
@@ -27,15 +24,17 @@
                             <span v-if="isPlaying" class="btn btn-secondary btn-small" title="Stop" @click="stopAnimations"><i class="fas fa-stop"></i></span>
                             <span v-else class="btn btn-secondary btn-small" title="Play" @click="playAnimations"><i class="fas fa-play"></i></span>
                             <span class="btn btn-secondary btn-small" title="Next" @click="moveFrameRight"><i class="fas fa-angle-right"></i></span>
-                        </div>
-                        <div v-else>
+                            <span class="spacer"></span>
+                            <NumberTextfield name="Total frames" :value="selectedFramePlayer.shapeProps.totalFrames" @changed="onTotalFramesChange" :min="1" :softMax="100"/>
+                        </template>
+                        <template v-else>
                             <span class="btn btn-danger btn-small"
                                 @click="stopRecording"
                                 title="Record items for currently selected frame"
                                 >
                                 <i class="fas fa-stop"></i> Stop recording
                             </span>
-                        </div>
+                        </template>
                     </div>
                     <div class="frame-animator-frame-input" v-if="!isRecording && selectedFrameControl.trackIdx >= 0 && selectedFrameControl.frame >= 0">
                         <div v-if="!selectedFrameControl.blank && selectedFrameControl.propertyDescriptor">
@@ -51,14 +50,10 @@
 
                         </div>
                     </div>
-
-                </div>
-                <div class="frame-animator-right-panel">
-                    <span class="icon" @click="$emit('close')"><i class="fas fa-times"/></span>
                 </div>
             </div>
 
-            <div ref="frameAnimatorCanvas" class="frame-animator-canvas">
+            <div v-if="selectedFramePlayer" ref="frameAnimatorCanvas" class="frame-animator-canvas">
                 <table class="frame-animator-matrix">
                     <thead>
                         <tr :class="{'drop-below': trackDrag.on && trackDrag.dropHead}">
@@ -143,6 +138,13 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <div v-else-if="allFramePlayers.length === 0">
+                <div class="hint">
+                    There are no frame players available. Want to add animations? Add a "Frame Player" object to your document
+                </div>
+                <span class="btn btn-secondary" @click="addFramePlayerItemToScheme">Add Frame Player</span>
             </div>
         </div>
         <div ref="frameDragPreview" class="frame-drag-preview" :class="{'is-dragging': frameDrag.on}">
@@ -252,6 +254,7 @@ import EditorEventBus from '../EditorEventBus';
 import ElementPicker from '../ElementPicker.vue';
 import Dropdown from '../../Dropdown.vue';
 import Shape from '../items/shapes/Shape';
+import NumberTextfield from '../../NumberTextfield.vue';
 
 const validItemFieldPaths = new Set(['area', 'opacity', 'selfOpacity', 'visible', 'shapeProps']);
 
@@ -464,34 +467,42 @@ export default {
     props: {
         editorId         : {type: String, required: true},
         schemeContainer  : {type: Object, required: true},
-        framePlayerItemId: {type: String, required: true},
-        light            : {type: Boolean, default: true},
     },
 
-    components: { ContextMenu, PropertyInput, ArgumentsEditor, Modal, ElementPicker, Dropdown },
+    components: { ContextMenu, PropertyInput, ArgumentsEditor, Modal, ElementPicker, Dropdown, NumberTextfield },
 
     beforeMount() {
         this.compileAnimations();
         EditorEventBus.schemeChangeCommitted.$on(this.editorId, this.onSchemeChange);
-        EditorEventBus.item.changed.specific.$on(this.editorId, this.framePlayerItemId, this.onFramePlayerChanged);
+        EditorEventBus.historyRestored.$on(this.editorId, this.onHistoryRestored);
+        EditorEventBus.item.changed.any.$on(this.editorId, this.onFramePlayerChanged);
         EditorEventBus.schemeRebased.$on(this.editorId, this.onSchemeRebased);
     },
 
     beforeDestroy() {
         EditorEventBus.schemeChangeCommitted.$off(this.editorId, this.onSchemeChange);
-        EditorEventBus.item.changed.specific.$off(this.editorId, this.framePlayerItemId, this.onFramePlayerChanged);
+        EditorEventBus.historyRestored.$off(this.editorId, this.onHistoryRestored);
+        EditorEventBus.item.changed.any.$off(this.editorId, this.onFramePlayerChanged);
         EditorEventBus.schemeRebased.$off(this.editorId, this.onSchemeRebased);
         this.$emit('recording-state-updated', false);
     },
 
     data() {
-        const framePlayer = this.schemeContainer.findItemById(this.framePlayerItemId);
+        const allFramePlayers = this.schemeContainer.findItemsByShape('frame_player');
+
+        let selectedFramePlayer = null;
+        if (allFramePlayers.length > 0) {
+            selectedFramePlayer = allFramePlayers[0];
+        }
+
         return {
-            framePlayer: framePlayer,
+            allFramePlayers,
+            allFramePlayerOptions: allFramePlayers.map(it => {return {name: it.name, id: it.id};}),
+            selectedFramePlayer,
             originSchemeContainer: null,
             currentFrame: 1,
-            totalFrames: framePlayer.shapeProps.totalFrames,
-            framesMatrix: this.buildFramesMatrix(framePlayer),
+            totalFrames: selectedFramePlayer ? selectedFramePlayer.shapeProps.totalFrames : 0,
+            framesMatrix: selectedFramePlayer ? this.buildFramesMatrix(selectedFramePlayer) : 0,
             compiledAnimations: [],
             isPlaying: false,
             isRecording: false,
@@ -559,8 +570,88 @@ export default {
     },
 
     methods: {
-        openAnimationEditor() {
-            this.$emit('animation-editor-opened', this.framePlayer);
+        updateAllFramePlayers() {
+            const allFramePlayers = this.schemeContainer.findItemsByShape('frame_player');
+            this.allFramePlayers = allFramePlayers;
+            this.allFramePlayerOptions = allFramePlayers.map(it => {return {name: it.name, id: it.id};});
+
+            if (allFramePlayers.length === 0) {
+                this.selectedFramePlayer = 0;
+                this.totalFrams = 0;
+                this.currentFrame = 1;
+                this.framesMatrix = [];
+                return;
+            }
+
+            if (this.selectedFramePlayer) {
+                // if the currently selected frame player was removed
+                if (allFramePlayers.findIndex(p => p.id === this.selectedFramePlayer.id) < 0) {
+                    this.selectedFramePlayer = null;
+                }
+            }
+
+            if (!this.selectedFramePlayer) {
+                this.selectedFramePlayer = allFramePlayers[0];
+                this.currentFrame = 1;
+                this.totalFrames = this.selectedFramePlayer.shapeProps.totalFrames;
+                this.framesMatrix = this.buildFramesMatrix(this.selectedFramePlayer);
+            }
+        },
+
+        addFramePlayerItemToScheme() {
+            let vx = window.innerWidth / 2;
+            let vy = window.innerHeight / 2 - 100;
+
+            const svgPlot = document.querySelector('svg.svg-editor-plot');
+            if (svgPlot) {
+                const rect = svgPlot.getBoundingClientRect();
+                vx = rect.width / 2;
+                // moving it closer to the top of the visible plot, otherwise the bottom panel might be above it
+                vy = rect.height / 3;
+            }
+
+            const x = (vx - this.schemeContainer.screenTransform.x) / Math.max(0.000001, this.schemeContainer.screenTransform.scale);
+            const y = (vy - this.schemeContainer.screenTransform.y) / Math.max(0.000001, this.schemeContainer.screenTransform.scale);
+            const w = 100;
+            const h = 60;
+            const item = this.schemeContainer.addItem({
+                shape: 'frame_player',
+                name: 'Frame Player',
+                area: {x: x - w/2, y: y - h/2, w: w, h: h, r: 0, px: 0.5, py: 0.5, sx: 1, sy: 1},
+                shapeProps: {},
+                textSlots: {
+                    title: {
+                        text: '<b>Frame Player</b>',
+                        color: '#000000',
+                        fontSize: 14
+                    }
+                }
+            });
+
+            this.schemeContainer.selectItem(item);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
+
+            this.updateAllFramePlayers();
+        },
+
+        onTotalFramesChange(totalFrames) {
+            if (!this.selectedFramePlayer) {
+                return;
+            }
+            this.selectedFramePlayer.shapeProps.totalFrames = totalFrames;
+            this.totalFrames = totalFrames;
+            this.updateFramesMatrix();
+        },
+
+        onFramePlayerSelected(option) {
+            this.currentFrame = 1;
+            const framePlayer = this.schemeContainer.findItemById(option.id);
+            this.selectedFramePlayer = framePlayer;
+            if (this.selectedFramePlayer) {
+                this.totalFrames = this.selectedFramePlayer.shapeProps.totalFrames;
+                this.updateFramesMatrix();
+                this.resetFrameControl();
+            }
         },
 
         selectFrame(frame) {
@@ -820,9 +911,12 @@ export default {
         },
 
         onSchemeRebased() {
-            const item = this.schemeContainer.findItemById(this.framePlayer.id);
+            if (!this.selectedFramePlayer) {
+                return;
+            }
+            const item = this.schemeContainer.findItemById(this.selectedFramePlayer.id);
             if (item) {
-                this.framePlayer = item;
+                this.selectedFramePlayer = item;
             }
             this.compileAnimations();
             this.updateFramesMatrix();
@@ -840,10 +934,14 @@ export default {
         },
 
         onSchemeChange() {
-            if (!this.isRecording) {
-                return;
+            if (this.isRecording) {
+                this.detectChangesForRecording();
+            } else {
+                this.updateAllFramePlayers();
             }
+        },
 
+        detectChangesForRecording() {
             if (this.recordingPushbackTimer) {
                 clearTimeout(this.recordingPushbackTimer);
             }
@@ -881,7 +979,7 @@ export default {
                     }
                 }
 
-                let animation = find(this.framePlayer.shapeProps.animations, animation => changeMatchesAnimation(change, animation));
+                let animation = find(this.selectedFramePlayer.shapeProps.animations, animation => changeMatchesAnimation(change, animation));
                 if (!animation) {
                     const frames = [{
                         frame: this.currentFrame,
@@ -904,7 +1002,7 @@ export default {
                     if (change.kind === 'item') {
                         track.itemId = change.id;
                     }
-                    this.framePlayer.shapeProps.animations.push(track);
+                    this.selectedFramePlayer.shapeProps.animations.push(track);
                 } else {
                     let idx = -1;
                     let found = false;
@@ -944,23 +1042,30 @@ export default {
         },
 
         updateFramesMatrix() {
-            this.framesMatrix = this.buildFramesMatrix(this.framePlayer);
+            if (!this.selectedFramePlayer) {
+                this.framesMatrix = [];
+                return;
+            }
+            this.framesMatrix = this.buildFramesMatrix(this.selectedFramePlayer);
             this.shouldRecompileAnimations = true;
         },
 
         compileAnimations() {
-            this.compiledAnimations = compileAnimations(this.framePlayer, this.schemeContainer);
+            if (!this.selectedFramePlayer) {
+                return;
+            }
+            this.compiledAnimations = compileAnimations(this.selectedFramePlayer, this.schemeContainer);
             this.shouldRecompileAnimations = false;
         },
 
         removeAnimationTrack(track) {
             if (track.kind === 'function-header') {
                 // should remove function and all its assosiated property tracks
-                if (this.framePlayer.shapeProps.functions.hasOwnProperty(track.funcId)) {
-                    delete this.framePlayer.shapeProps.functions[track.funcId];
+                if (this.selectedFramePlayer.shapeProps.functions.hasOwnProperty(track.funcId)) {
+                    delete this.selectedFramePlayer.shapeProps.functions[track.funcId];
                 }
 
-                const animations = this.framePlayer.shapeProps.animations;
+                const animations = this.selectedFramePlayer.shapeProps.animations;
                 for (let i = 0; i < animations.length; i++) {
                     if (animations[i].kind === 'function' && animations[i].id === track.id) {
                         animations.splice(i, 1);
@@ -973,14 +1078,14 @@ export default {
                 if (idx < 0) {
                     return null;
                 }
-                this.framePlayer.shapeProps.animations.splice(idx, 1);
+                this.selectedFramePlayer.shapeProps.animations.splice(idx, 1);
                 this.updateFramesMatrix();
             }
         },
 
         findAnimationIndexForTrack(track) {
-            for (let i = 0; i < this.framePlayer.shapeProps.animations.length; i++) {
-                const animation = this.framePlayer.shapeProps.animations[i];
+            for (let i = 0; i < this.selectedFramePlayer.shapeProps.animations.length; i++) {
+                const animation = this.selectedFramePlayer.shapeProps.animations[i];
                 if (animation.kind === track.kind && animation.id === track.id && animation.property === track.property) {
                     return i;
                 }
@@ -1045,7 +1150,7 @@ export default {
             const destinationFrame = track.frames[dstFrameIdx];
 
             if (track.kind === 'sections') {
-                const sections = this.framePlayer.shapeProps.sections;
+                const sections = this.selectedFramePlayer.shapeProps.sections;
                 if (sourceFrame.blank) {
                     // deleting
                     let matchingIdx = -1;
@@ -1083,7 +1188,7 @@ export default {
                     return;
                 }
 
-                const animation = this.framePlayer.shapeProps.animations[animationIdx];
+                const animation = this.selectedFramePlayer.shapeProps.animations[animationIdx];
 
                 if (sourceFrame.blank && !destinationFrame.blank) {
                     // deleting frame
@@ -1127,7 +1232,7 @@ export default {
                 this.compileAnimations();
             }
             this.isPlaying = true;
-            playAnimations(this.schemeContainer, this.compiledAnimations, this.currentFrame, this.framePlayer.shapeProps.fps, this.framePlayer.shapeProps.totalFrames, {
+            playAnimations(this.schemeContainer, this.compiledAnimations, this.currentFrame, this.selectedFramePlayer.shapeProps.fps, this.selectedFramePlayer.shapeProps.totalFrames, {
                 onFrame: (frame) => {
                     this.currentFrame = frame;
                 },
@@ -1151,7 +1256,7 @@ export default {
 
         moveFrameRight() {
             if (!this.isPlaying) {
-                if (this.currentFrame < this.framePlayer.shapeProps.totalFrames) {
+                if (this.currentFrame < this.selectedFramePlayer.shapeProps.totalFrames) {
                     this.selectFrame(this.currentFrame + 1);
                 }
             }
@@ -1169,7 +1274,7 @@ export default {
                 }
             }];
 
-            if (this.framePlayer.shapeProps.totalFrames > 1) {
+            if (this.selectedFramePlayer.shapeProps.totalFrames > 1) {
                 options.push({
                     name: 'Delete frame for all tracks',
                     iconClass: 'fas fa-trash',
@@ -1194,7 +1299,7 @@ export default {
                     iconClass: 'fa-solid fa-broom',
                     clicked: () => {
                         if (track.kind === 'sections') {
-                            const sections = this.framePlayer.shapeProps.sections;
+                            const sections = this.selectedFramePlayer.shapeProps.sections;
                             for (let i = 0; i < sections.length; i++) {
                                 if (sections[i].frame === frame.frame) {
                                     sections.splice(i, 1);
@@ -1210,12 +1315,12 @@ export default {
                             if (animationIdx < 0) {
                                 return;
                             }
-                            const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame.frame);
+                            const frameIdx = findFrameIdx(this.selectedFramePlayer.shapeProps.animations[animationIdx], frame.frame);
                             if (frameIdx < 0) {
                                 return;
                             }
 
-                            this.framePlayer.shapeProps.animations[animationIdx].frames.splice(frameIdx, 1);
+                            this.selectedFramePlayer.shapeProps.animations[animationIdx].frames.splice(frameIdx, 1);
                             this.updateFramesMatrix();
                         }
                         if (this.selectedTrackIdx === trackIdx && this.selectedFrameControl.frame === frame.frame) {
@@ -1234,12 +1339,12 @@ export default {
                                 if (animationIdx < 0) {
                                     return;
                                 }
-                                const frameIdx = findFrameIdx(this.framePlayer.shapeProps.animations[animationIdx], frame.frame);
+                                const frameIdx = findFrameIdx(this.selectedFramePlayer.shapeProps.animations[animationIdx], frame.frame);
                                 if (frameIdx < 0) {
                                     return;
                                 }
 
-                                this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].kind = option.interpolation
+                                this.selectedFramePlayer.shapeProps.animations[animationIdx].frames[frameIdx].kind = option.interpolation
                                 this.updateFramesMatrix();
                             }
                         });
@@ -1268,13 +1373,13 @@ export default {
                 }
             };
 
-            deleteFrame(this.framePlayer.shapeProps.sections);
-            this.framePlayer.shapeProps.animations.forEach(animation => {
+            deleteFrame(this.selectedFramePlayer.shapeProps.sections);
+            this.selectedFramePlayer.shapeProps.animations.forEach(animation => {
                 deleteFrame(animation.frames);
             });
 
-            this.framePlayer.shapeProps.totalFrames -= 1;
-            this.totalFrames = this.framePlayer.shapeProps.totalFrames;
+            this.selectedFramePlayer.shapeProps.totalFrames -= 1;
+            this.totalFrames = this.selectedFramePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
@@ -1291,13 +1396,13 @@ export default {
                 }
             };
 
-            insertEmptyFrame(this.framePlayer.shapeProps.sections);
-            this.framePlayer.shapeProps.animations.forEach(animation => {
+            insertEmptyFrame(this.selectedFramePlayer.shapeProps.sections);
+            this.selectedFramePlayer.shapeProps.animations.forEach(animation => {
                 insertEmptyFrame(animation.frames);
             });
 
-            this.framePlayer.shapeProps.totalFrames += 1;
-            this.totalFrames = this.framePlayer.shapeProps.totalFrames;
+            this.selectedFramePlayer.shapeProps.totalFrames += 1;
+            this.totalFrames = this.selectedFramePlayer.shapeProps.totalFrames;
             this.updateFramesMatrix();
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
@@ -1313,7 +1418,7 @@ export default {
             if (animationIdx < 0) {
                 return;
             }
-            const animation = this.framePlayer.shapeProps.animations[animationIdx];
+            const animation = this.selectedFramePlayer.shapeProps.animations[animationIdx];
 
             let value = 0;
             if (track.kind === 'item') {
@@ -1369,13 +1474,13 @@ export default {
                 if (animationIdx < 0) {
                     return;
                 }
-                const animation = this.framePlayer.shapeProps.animations[animationIdx];
+                const animation = this.selectedFramePlayer.shapeProps.animations[animationIdx];
                 const frameIdx = findFrameIdx(animation, frame);
                 if (frameIdx < 0) {
                     return;
                 }
 
-                this.framePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
+                this.selectedFramePlayer.shapeProps.animations[animationIdx].frames[frameIdx].value = value;
                 this.framesMatrix[trackIdx].frames[frame - 1].value = value;
 
                 if (animation.kind === 'item') {
@@ -1398,10 +1503,10 @@ export default {
                     this.enrichFrameWithIcon(this.framesMatrix[trackIdx].frames[frame - 1], track.valueType);
                 }
 
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.selectedFramePlayer.id}.track.${trackIdx}.frames.${frameIdx}.${animation.property}`);
                 this.shouldRecompileAnimations = true;
             } else if (track.kind === 'sections') {
-                const sections = this.framePlayer.shapeProps.sections;
+                const sections = this.selectedFramePlayer.shapeProps.sections;
                 for (let i = 0; i < sections.length; i++) {
                     if (sections[i].frame === frame) {
                         sections[i].value = value;
@@ -1409,7 +1514,7 @@ export default {
                         break;
                     }
                 }
-                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.sections.${frame}`);
+                EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.selectedFramePlayer.id}.sections.${frame}`);
             }
         },
 
@@ -1422,7 +1527,7 @@ export default {
             };
 
             let idx = 0;
-            const sections = this.framePlayer.shapeProps.sections;
+            const sections = this.selectedFramePlayer.shapeProps.sections;
             for (let i = 0; i < sections.length; i++) {
                 if (sections[i].frame === frameNum) {
                     // such frame already exists so avoiding duplicates
@@ -1436,12 +1541,12 @@ export default {
 
             this.framesMatrix[trackIdx].frames[frameIdx] = frame;
             sections.splice(idx, 0, frame);
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.framePlayer.id}.sections.${frame}`);
+            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `animation.${this.selectedFramePlayer.id}.sections.${frame}`);
         },
 
         addFunctionFrame(trackIdx, frameIdx) {
             const track = this.framesMatrix[trackIdx];
-            const funcDef = this.framePlayer.shapeProps.functions[track.funcId];
+            const funcDef = this.selectedFramePlayer.shapeProps.functions[track.funcId];
             if (!funcDef) {
                 return;
             }
@@ -1450,7 +1555,7 @@ export default {
                 return;
             }
 
-            const animation = this.framePlayer.shapeProps.animations[animationIdx];
+            const animation = this.selectedFramePlayer.shapeProps.animations[animationIdx];
 
             let idx = 0;
             let prevFrame = null;
@@ -1512,7 +1617,7 @@ export default {
         addTrackFromModal() {
             const item = this.schemeContainer.findFirstElementBySelector(this.addTrackModal.element);
             if (item && this.addTrackModal.property) {
-                const trackAlreadyExists = this.framePlayer.shapeProps.animations.findIndex(track =>
+                const trackAlreadyExists = this.selectedFramePlayer.shapeProps.animations.findIndex(track =>
                     track.kind === 'item' && track.itemId === item.id && track.property === this.addTrackModal.property
                 ) >= 0;
 
@@ -1524,7 +1629,7 @@ export default {
                         property: this.addTrackModal.property,
                         frames  : []
                     };
-                    this.framePlayer.shapeProps.animations.push(track);
+                    this.selectedFramePlayer.shapeProps.animations.push(track);
                     this.updateFramesMatrix();
                 }
             }
@@ -1562,7 +1667,7 @@ export default {
         },
 
         toggleEditFunctionArgumentsForTrack(track) {
-            const func = this.framePlayer.shapeProps.functions[track.funcId];
+            const func = this.selectedFramePlayer.shapeProps.functions[track.funcId];
             if (!func) {
                 return null;
             }
@@ -1582,7 +1687,7 @@ export default {
             this.functionEditorModal.args[name] = value;
             if (this.functionEditorModal.functionId) {
                 EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-                this.framePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[name] = value;
+                this.selectedFramePlayer.shapeProps.functions[this.functionEditorModal.functionId].args[name] = value;
             }
             this.compileAnimations();
         },
@@ -1596,13 +1701,13 @@ export default {
                     return;
                 }
 
-                this.framePlayer.shapeProps.functions[funcId] = {
+                this.selectedFramePlayer.shapeProps.functions[funcId] = {
                     functionId: this.functionEditorModal.funcName,
                     args: utils.clone(this.functionEditorModal.args)
                 };
 
                 forEach (func.inputs, (input, inputName) => {
-                    this.framePlayer.shapeProps.animations.push({
+                    this.selectedFramePlayer.shapeProps.animations.push({
                         kind: 'function',
                         id: shortid.generate(),
                         funcId: funcId,
@@ -1612,7 +1717,7 @@ export default {
                             kind: 'linear',
                             value: input.value
                         }, {
-                            frame: this.framePlayer.shapeProps.totalFrames,
+                            frame: this.selectedFramePlayer.shapeProps.totalFrames,
                             kind: 'linear',
                             value: input.endValue
                         }]
@@ -1624,13 +1729,22 @@ export default {
             this.updateFramesMatrix();
         },
 
-        onHistoryUndone() {
-            this.updateFramesMatrix();
+        onHistoryRestored() {
+            // Unfortunatelly the history restoring event is triggered before the reindexing of the SchemeContainer
+            // Because of this there is inconsistency in the SchemeContainer.
+            // That's why we used a reindex callback which works similar to Vue's $nextTick
+            this.schemeContainer.nextReindex(() => {
+                this.updateAllFramePlayers();
+                this.updateFramesMatrix();
+            });
         },
 
-        onFramePlayerChanged() {
-            if (this.totalFrames !== this.framePlayer.shapeProps.totalFrames) {
-                this.totalFrames = this.framePlayer.shapeProps.totalFrames;
+        onFramePlayerChanged(itemId) {
+            if (!this.selectedFramePlayer || this.selectedFramePlayer.id !== itemId) {
+                return;
+            }
+            if (this.totalFrames !== this.selectedFramePlayer.shapeProps.totalFrames) {
+                this.totalFrames = this.selectedFramePlayer.shapeProps.totalFrames;
                 this.updateFramesMatrix();
             }
         },
@@ -1714,11 +1828,11 @@ export default {
                     const originalAnimationIdx = this.findAnimationIndexForTrack(track);
                     let dstAnimationIdx = this.findAnimationIndexForTrack(dstTrack);
                     if (originalAnimationIdx >= 0 && dstAnimationIdx >= 0) {
-                        const deletedAnimations = this.framePlayer.shapeProps.animations.splice(originalAnimationIdx, 1);
+                        const deletedAnimations = this.selectedFramePlayer.shapeProps.animations.splice(originalAnimationIdx, 1);
                         if (!this.trackDrag.dropHead) {
                             dstAnimationIdx += 1;
                         }
-                        this.framePlayer.shapeProps.animations.splice(dstAnimationIdx, 0, deletedAnimations[0]);
+                        this.selectedFramePlayer.shapeProps.animations.splice(dstAnimationIdx, 0, deletedAnimations[0]);
 
                         this.updateFramesMatrix();
                         EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
@@ -1743,7 +1857,7 @@ export default {
 
                     let srcAnimation = null;
 
-                    forEach(this.framePlayer.shapeProps.animations, animation => {
+                    forEach(this.selectedFramePlayer.shapeProps.animations, animation => {
                         if (animation.kind === 'function') {
                             if (animation.id !== track.id) {
                                 functionAnimations.push(animation);
@@ -1769,7 +1883,7 @@ export default {
                         functionAnimations.splice(dstIdx + 1, 0, srcAnimation);
                     }
 
-                    this.framePlayer.shapeProps.animations = regularAnimations.concat(functionAnimations);
+                    this.selectedFramePlayer.shapeProps.animations = regularAnimations.concat(functionAnimations);
 
                     this.updateFramesMatrix();
                     EditorEventBus.schemeChangeCommitted.$emit(this.editorId);

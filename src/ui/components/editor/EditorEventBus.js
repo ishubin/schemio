@@ -60,6 +60,12 @@ const EditorEventBus = {
         $emit: (editorId, affinityId) => $emit(editorId, 'patched-scheme-updated', [], affinityId),
     },
 
+    historyRestored: {
+        $on: (editorId, callback) => $on(editorId, 'history-restored', [], callback),
+        $off: (editorId, callback) => $off(editorId, 'history-restored', [], callback),
+        $emit: (editorId, scheme) => $emit(editorId, 'history-restored', [], scheme),
+    },
+
     schemeRebased: {
         $on: (editorId, callback) => $on(editorId, 'scheme-rebased', [], callback),
         $off: (editorId, callback) => $off(editorId, 'scheme-rebased', [], callback),
@@ -379,6 +385,14 @@ const EditorEventBus = {
         $on: (editorId, callback) => $on(editorId, 'editor-resized', [], callback),
         $off: (editorId, callback) => $off(editorId, 'editor-resized', [], callback),
         $emit: (editorId) => $emit(editorId, 'editor-resized', []),
+    },
+
+    editorScript: {
+        executeRequested: {
+            $on: (editorId, callback) => $on(editorId, 'editor-script-execute-requested', [], callback),
+            $off: (editorId, callback) => $off(editorId, 'editor-script-execute-requested', [], callback),
+            $emit: (editorId, script) => $emit(editorId, 'editor-script-execute-requested', [], script),
+        }
     },
 
     scriptLog: {

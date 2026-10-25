@@ -113,6 +113,9 @@ export class IdleInteractState extends SubState {
                 // this means that no buttons are actually pressed, so probably user accidentally moved mouse out of view and released it, or simply clicked right button
                 this.softReset();
             } else {
+                if (!this.schemeContainer.scheme.settings.screen.draggable) {
+                    return;
+                }
                 this.migrate(new DragScreenState(this.parentState, true, {x, y, mx, my}));
             }
         } else {

@@ -27,6 +27,9 @@ const baseSchema = {
             main: {type: 'object', patching: ['modify'], fields: {
                 source: {type: 'string', patching: ['patch-text', 'replace']}
             }},
+            editor: {type: 'object', patching: ['modify'], fields: {
+                source: {type: 'string', patching: ['patch-text', 'replace']}
+            }},
             functions: {
                 type: 'array', of: 'object',
                 patching: ['patch-id-array', 'replace'],

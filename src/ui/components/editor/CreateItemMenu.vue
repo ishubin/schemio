@@ -4,8 +4,45 @@
 
 <template lang="html">
     <div class="create-item-menu" ref="createItemMenu">
-        <div>
-            <input type="text" class="textfield" placeholder="Search..." v-model="searchKeyword"/>
+        <div v-if="collapsedMode" class="collapsed-mode">
+            <div class="item-container" @click="initiatePathCreation()" title="Create Path"
+                @mouseover="showPreviewGif($event, 'create-curve')"
+                @mouseleave="stopPreviewGif('create-curve')"
+                >
+                <img :src="`${assetsPath}/images/icons/create-curve.svg`"/>
+            </div>
+            <div class="item-container" @click="initiatePencilDrawing()" title="Pencil"
+                @mouseover="showPreviewGif($event, 'draw')"
+                @mouseleave="stopPreviewGif('draw')"
+                >
+                <img :src="`${assetsPath}/images/icons/draw.svg`"/>
+            </div>
+            <div class="item-container" @click="initiateBrushDrawing()" title="Pen"
+                @mouseover="showPreviewGif($event, 'brush-draw')"
+                @mouseleave="stopPreviewGif('brush-draw')"
+                >
+                <img :src="`${assetsPath}/images/icons/brush-draw.svg`"/>
+            </div>
+
+            <div class="item-menu">
+                <div v-for="item in collapsedPanelItems"
+                    class="item-container"
+                    :title="item.name"
+                    @mouseleave="stopPreviewItem(item)"
+                    @mouseover="showPreviewItem(item)"
+                    @mousedown="onItemMouseDown($event, item)"
+                    @dragstart="preventEvent"
+                    @drag="preventEvent"
+                    >
+
+                    <img v-if="item.iconUrl" :src="item.iconUrl"/>
+                    <svg v-else-if="item.iconSVG" v-html="item.iconSVG"></svg>
+                </div>
+            </div>
+        </div>
+
+        <div v-else>
+            <input type="text" class="textfield create-item-menu-search" placeholder="Search..." v-model="searchKeyword"/>
 
             <div class="item-menu">
                 <div class="item-container" @click="initiateSelectAndDrag()" title="Select/Drag">
@@ -238,6 +275,7 @@ import ExtraShapesModal from './ExtraShapesModal.vue';
 import StoreUtils from '../../store/StoreUtils.js';
 import { dragAndDropBuilder } from '../../dragndrop';
 import SchemeSearchModal from './SchemeSearchModal.vue';
+import { convertScriptObjectToJSON } from '../../templater/json.js';
 
 const _gifDescriptions = {
     'create-curve': 'Lets you design your own complex shapes',
@@ -249,6 +287,7 @@ const mouseOffset = 2;
 const ITEM_PICKED_FOR_CREATION = 'item-picked-for-creation';
 const PATH_EDITED = 'path-edited';
 
+const connectorItemPoints = [{"t":"L", "x":4,"y":88}, {"t":"L","x":136,"y":4}];
 
 export default {
     props: {
@@ -256,6 +295,7 @@ export default {
         schemeContainer     : {type: Object},
         projectArtEnabled   : {type: Boolean, default: true},
         customItemMenuPanels: {type: Array, default: () => []},
+        collapsedMode       : {type: Boolean, default: false},
     },
 
     components: {
@@ -282,6 +322,7 @@ export default {
             editArtModalShown           : false,
 
             itemPanels: this.generateItemPanels(),
+            collapsedPanelItems: this.generateCollapsedPanelItems(),
             filteredItemPanels: [],
 
             linkCreation: {
@@ -336,6 +377,91 @@ export default {
         }
     },
     methods: {
+        generateCollapsedPanelItems() {
+            const menuEntries = [{
+                shape: 'rect',
+                group: 'Basic Shapes',
+                name: 'Rect',
+                iconUrl: '/assets/images/items/rect.svg',
+                item: {
+                    shapeProps: {cornerRadius: 0}
+                }
+            }, {
+                shape: 'rect',
+                group: 'Basic Shapes',
+                name: 'Rounded Rect',
+                iconUrl: '/assets/images/items/rounded-rect.svg',
+                item: {
+                    shapeProps: {cornerRadius: 20}
+                }
+            }, {
+                shape: 'ellipse',
+                group: 'Basic Shapes',
+                name: 'Ellupse',
+                iconUrl: '/assets/images/items/ellipse.svg',
+                item: { }
+            }, {
+                shape: 'image',
+                group: 'General',
+                name: 'Image',
+                imageProperty: 'shapeProps.image',
+                iconUrl: '/assets/images/items/image.svg',
+                description: 'It lets you upload an image or specify a link to external image',
+                item: {
+                    shapeProps: {
+                        image: ''
+                    }
+                },
+            }, {
+                shape: 'none',
+                group: 'General',
+                name: 'Text',
+                iconUrl: '/assets/images/items/text.svg',
+                item: {
+                    textSlots: {
+                        body: {
+                            text: 'Text ...',
+                            paddingLeft  : 0,
+                            paddingRight : 0,
+                            paddingTop   : 0,
+                            paddingBottom: 0
+                        }
+                    },
+                }
+            }, {
+                shape: 'connector',
+                group: 'Connections',
+                name: 'Empty Connector',
+                iconUrl: '/assets/images/items/connector-empty.svg',
+                item: {
+                    shapeProps: {
+                        thick: false,
+                        sourceCap: 'empty',
+                        destinationCap: 'empty',
+                        points: connectorItemPoints,
+                    }
+                }
+            }, {
+                shape: 'connector',
+                group: 'Connections',
+                name: 'Triangle Connector',
+                iconUrl: '/assets/images/items/connector-triangle.svg',
+                item: {
+                    shapeProps: {
+                        thick: false,
+                        sourceCap: 'empty',
+                        destinationCap: 'triangle',
+                        points: connectorItemPoints
+                    }
+                }
+            }];
+
+            return menuEntries.map(entry => {
+                const shape = Shape.find(entry.shape);
+                return this.prepareItemForMenu(entry, shape, entry.shape);
+            });
+        },
+
         loadProjectArt() {
             this.filterArtPacks();
             if (this.$store.state.apiClient && this.$store.state.apiClient.getAllArt) {

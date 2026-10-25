@@ -313,6 +313,7 @@ export default {
                 this.$emit('scheme-update-requested', scheme);
             }
             this.$emit('history-undone');
+            EditorEventBus.historyRestored.$emit(this.editorId, scheme);
             this.modified = true;
         },
 
@@ -328,6 +329,7 @@ export default {
                 this.$emit('scheme-update-requested', scheme);
             }
             this.$emit('history-redone');
+            EditorEventBus.historyRestored.$emit(this.editorId, scheme);
             this.modified = true;
         },
 

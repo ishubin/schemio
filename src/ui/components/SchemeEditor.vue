@@ -260,134 +260,38 @@
 
             </div>
 
-
-            <div v-if="mode === 'edit' && ((selectedItem && selectedItem.shape === 'frame_player') || currentAnimatorFramePlayer)"
-                class="bottom-panel"
-                :style="{height: currentAnimatorFramePlayer ? `${bottomPanelHeight}px`: null}"
-                >
-                <div class="bottom-panel-dragger" @touchstart="onBottomPanelMouseDown" @mousedown="onBottomPanelMouseDown" v-if="currentAnimatorFramePlayer"></div>
-                <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
-                    <div class="bottom-panel-content">
-                        <FrameAnimatorPanel
-                            v-if="currentAnimatorFramePlayer"
-                            :key="currentAnimatorFramePlayer.id"
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            :framePlayerItemId="currentAnimatorFramePlayer.id"
-                            :light="false"
-                            @close="closeAnimatorEditor"
-                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                            />
-
-                        <FrameAnimatorPanel
-                            v-else-if="selectedItem"
-                            :key="selectedItem.id"
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            :framePlayerItemId="selectedItem.id"
-                            :light="true"
-                            @animation-editor-opened="onAnimatiorEditorOpened"
-                            @recording-state-updated="onFrameAnimatorRectordingStateUpdated"
-                            />
-                    </div>
-                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
-                </div>
-            </div>
-
-            <div v-else-if="mode === 'edit' && selectedItem && selectedItem.shape === 'component'" class="bottom-panel">
-                <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
-                    <div class="bottom-panel-content">
-                        <div class="toggle-group">
-                            <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'external'}" @click="switchSelectedComponentKind('external')" title="Loads external diagram">
-                                External
-                            </span>
-                            <span class="toggle-button" :class="{toggled: selectedItem.shapeProps.kind == 'embedded'}" @click="switchSelectedComponentKind('embedded')" title="Use items in the same document">
-                                Embedded
-                            </span>
-                        </div>
-                        <div v-if="selectedItem.shapeProps.kind == 'external'" class="diagram-controls">
-                            <span class="label">External diagram: </span>
-                            <DiagramPicker
-                                :key="`selected-component-diagram-picker-${selectedItem.id}-${selectedItem.shapeProps.schemeId}`"
-                                :diagramId="selectedItem.shapeProps.schemeId"
-                                @diagram-selected="onDiagramPickedForSelectedComponent"/>
-                        </div>
-                        <div v-if="selectedItem.shapeProps.kind == 'embedded'" class="diagram-controls">
-                            <span class="label">Reference Item: </span>
-                            <ElementPicker :editorId="editorId"
-                                :element="selectedItem.shapeProps.referenceItem"
-                                :schemeContainer="schemeContainer"
-                                :useSelf="false"
-                                @selected="setSelectedComponentReferenceItem"
-                                />
-                        </div>
-                    </div>
-                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
-                </div>
-            </div>
-
-            <div v-else-if="(mode === 'edit' && state === 'editPath')" class="bottom-panel">
-                <div class="bottom-panel-body">
-                    <div class="side-panel-filler-left" :style="{width: `${sidePanelLeftWidth}px`}"></div>
-                    <div class="bottom-panel-content">
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">x: {{cursorX | prettifyAxisValue(zoom)}}</span>
-                        <span v-if="curveEditing.selectedPoints.length !== 1" class="label">y: {{cursorY | prettifyAxisValue(zoom)}}</span>
-                        <div v-if="curveEditing.selectedPoints.length === 1" class="first-selected-point">
-                            <span class="label">x: </span>
-                            <input type="text" class="textfield"
-                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].x, zoom)"
-                                @blur="onCurveEditingPointInput($event.target.value, 'x')"
-                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'x')"
-                                />
-
-                            <span class="label">y: </span>
-                            <input type="text" class="textfield"
-                                :value="prettifyAxisValue(curveEditing.selectedPoints[0].y, zoom)"
-                                @blur="onCurveEditingPointInput($event.target.value, 'y')"
-                                @keydown.enter="onCurveEditingPointInput($event.target.value, 'y')"
-                                />
-
-                            <span v-if="curveEditing.selectedPoints[0].t === 'A'" class="label">arc height:</span>
-                            <input v-if="curveEditing.selectedPoints[0].t === 'A'" type="text" class="textfield" :value="prettifyAxisValue(curveEditing.selectedPoints[0].h, zoom)" @input="onCurveEditingArcHeightInput($event.target.value)"/>
-                        </div>
-                    </div>
-                    <div class="side-panel-filler-right" :style="{width: `${sidePanelRightWidth}px`}"></div>
-                </div>
-            </div>
+            <BottomPanel v-if="mode === 'edit' && schemeContainer"
+                :editorId="editorId"
+                :state="state"
+                :selectedItem="selectedItem"
+                :schemeContainer="schemeContainer"
+                :paddingLeft="sidePanelLeftCollapsed ? sidePanelLeftCollapseWidth : sidePanelLeftWidth"
+                :paddingRight="sidePanelRightCollapsed ? sidePanelRightCollapseWidth : sidePanelRightWidth"
+                :zoom="zoom"
+                :cursorX="cursorX"
+                :cursorY="cursorY"
+                :curveEditing="curveEditing"
+                @update-curve-edit-point="updateCurveEditPoint"
+                @frame-animator-recording-state-updated="onFrameAnimatorRectordingStateUpdated"
+            />
 
             <div class="side-panel side-panel-left"
-                :class="{collapsed: sidePanelLeftWidth < 2, expanded: sidePanelLeftWidth >= 2}"
+                :class="{collapsed: sidePanelLeftCollapsed, expanded: !sidePanelLeftCollapsed}"
                 ref="sidePanelLeft"
                 v-if="mode === 'edit' && schemeContainer"
-                :style="{width: `${sidePanelLeftWidth}px`}"
+                :style="{width: sidePanelLeftCollapsed ? `${sidePanelLeftCollapseWidth}px` : `${sidePanelLeftWidth}px`}"
                 >
-                <ul v-if="sidePanelLeftWidth > 0" class="tabs">
-                    <li v-for="tab in leftTabs">
-                        <span class="tab" :class="{active: tab.name === currentLeftTab}" @click="currentLeftTab = tab.name">
-                            <i v-if="tab.iconClass" :class="tab.iconClass"></i>
-                            {{tab.name}}
-                        </span>
-                    </li>
-                </ul>
-                <div class="tabs-body">
-                </div>
-
-                <span class="side-panel-btn-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
-                    <i v-if="sidePanelLeftWidth < 2" class="fas fa-angle-right"></i>
-                    <i v-else class="fas fa-angle-left"></i>
-                </span>
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
                 </span>
-                <div class="side-panel-overflow" v-if="sidePanelLeftWidth > 0">
+                <div class="side-panel-overflow" :class="{collapsed: sidePanelLeftCollapsed}">
                     <div class="wrapper">
-                        <CreateItemMenu v-if="currentLeftTab === 'Shapes'"
-                            :key="`${editorId}-${schemeContainer.scheme.id}`"
+                        <CreateItemMenu
+                            :key="`${editorId}-${schemeContainer.scheme.id}-${sidePanelLeftCollapsed}`"
                             :editorId="editorId"
                             :scheme-container="schemeContainer"
                             :projectArtEnabled="projectArtEnabled"
                             :customItemMenuPanels="customItemMenuPanels"
+                            :collapsedMode="sidePanelLeftCollapsed"
                             @item-picked-for-creation="switchStateCreateItem"
                             @path-edited="startPathEditing"
                             @drawing-pencil-requested="switchStatePencilDrawing"
@@ -395,144 +299,67 @@
                             @state-drag-item-requested="cancelCurrentState"
                             @item-creation-dragged-to-editor="itemCreationDraggedToSvgEditor"
                         />
-
-                        <ScriptsTab v-if="currentLeftTab === 'Scripts'"
-                            :key="`${editorId}-${schemeContainer.scheme.id}`"
-                            :editorId="editorId"
-                            :schemeContainer="schemeContainer"
-                            />
                     </div>
+                </div>
+
+                <div class="side-panel-expand-button">
+                    <i v-if="sidePanelLeftCollapsed" class="fa-regular fa-square-caret-right" @click="sidePanelLeftCollapsed = false; sidePanelLeftWidth = sidePanelLeftDefaultWidth"></i>
+                    <i v-else class="fa-regular fa-square-caret-left" @click="sidePanelLeftCollapsed = true; sidePanelLeftWidth = sidePanelLeftCollapseWidth;"></i>
                 </div>
             </div>
 
             <div class="side-panel side-panel-right"
                 ref="sidePanelRight"
                 v-if="schemeContainer"
-                :style="{width: `${sidePanelRightWidth}px`}"
-                :class="{collapsed: sidePanelRightWidth < 2, expanded: sidePanelRightWidth >= 2}"
+                :style="{width: sidePanelRightCollapsed ? `${sidePanelRightCollapseWidth}px` : `${sidePanelRightWidth}px`}"
+                :class="{collapsed: sidePanelRightCollapsed, expanded: !sidePanelRightCollapsed}"
                 >
-                <span class="side-panel-btn-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
-                    <i v-if="sidePanelRightWidth < 2" class="fas fa-angle-left"></i>
-                    <i v-else class="fas fa-angle-right"></i>
-                </span>
                 <span class="side-panel-expander" @touchstart="onRightSidePanelExpanderMouseDown" @mousedown="onRightSidePanelExpanderMouseDown">
                 </span>
-                <ul v-if="state === 'draw'" class="tabs text-nonselectable">
-                    <li><span class="tab active">Draw</span></li>
-                </ul>
-                <ul v-else-if="sidePanelRightWidth > 10" class="tabs">
-                    <li v-for="tab in tabs">
-                        <span class="tab"
-                            :class="{active: currentTab === tab}"
-                            @click="changeTab(tab)"
-                            >{{tab}}</span>
-                    </li>
-                    <li v-for="tab in extraTabs">
-                        <div class="tab"
-                            :class="{active: currentTab === `extra:${tab.name}`}"
-                            @click="changeTab(`extra:${tab.name}`)"
-                            >
-                            <i v-if="tab.icon" class="tab-icon" :class="tab.icon"></i>
-                            <span v-else>{{tab.name}}</span>
-                            <span v-if="tab.count">({{tab.count}})</span>
-                        </div>
-                    </li>
-                    <li v-for="itemTextSlotTab in itemTextSlotsAvailable" v-if="mode === 'edit'">
-                        <span class="tab"
-                            :class="{active: currentTab === itemTextSlotTab.tabName}"
-                            @click="changeTab(itemTextSlotTab.tabName)"
-                            >&#167; {{itemTextSlotTab.slotName}}</span>
-                    </li>
-                    <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
-                        <span class="tab"
-                            :class="{active: currentTab === 'template'}"
-                            @click="changeTab('template')"
-                            ><i class="fa-solid fa-scroll"></i>Template</span>
-                    </li>
-                </ul>
-                <div class="tabs-body">
+
+                <DocItemSidePanel
+                    :editorId="editorId"
+                    :mode="mode"
+                    :state="state"
+                    :schemeContainer="schemeContainer"
+                    :collapsedMode="sidePanelRightCollapsed"
+                    :width="sidePanelRightCollapsed ? sidePanelRightCollapseWidth : sidePanelRightWidth"
+                    :extraTabs="extraTabs"
+                    :currentTab="currentRightTab"
+                    :curveEditing="curveEditing"
+                    :selectedTemplateRef="selectedTemplateRef"
+                    :selectedTemplateRootItem="selectedTemplateRootItem"
+                    :sidePanelItemForViewMode="sidePanelItemForViewMode"
+                    :templatePropertiesKey="templatePropertiesKey"
+                    :isDrawingBrush="isDrawingBrush"
+                    :schemeTagsEnabled="schemeTagsEnabled"
+                    :schemeRevision="schemeRevision"
+                    :userStylesEnabled="userStylesEnabled"
+                    :itemTextSlotsAvailable="itemTextSlotsAvailable"
+                    @tab-selected="onDocTabSelected"
+                    @close="collapseRightSidePanel"
+                    @draw-color-picked="onDrawColorPicked"
+                    @stop-drawing-requested="stopDrawing"
+                    @delete-diagram-requested="$emit('delete-diagram-requested')"
+                    @item-right-clicked="onItemRightClick"
+                    @shape-prop-changed="onItemShapePropChanged"
+                    @item-field-changed="onItemFieldChanged"
+                    @item-style-applied="onItemStyleApplied"
+                    @shape-changed="onItemShapeChanged"
+                    @template-properties-updated="onTemplatePropertiesUpdated"
+                    @template-broken="updateEditorRevision"
+                    @update-template="updateTemplate"
+                    @template-rebuild-requested="onTemplateRebuildRequested"
+                    @move-text-slot="onTextSlotMoved"
+                    @text-property-changed="onTextPropertyChanged"
+                    @panel-expanded="showRightSidePanel"
+                />
+
+                <div class="side-panel-expand-button">
+                    <i v-if="sidePanelRightCollapsed" class="fa-regular fa-square-caret-left" @click="showRightSidePanel"></i>
+                    <i v-else class="fa-regular fa-square-caret-right" @click="collapseRightSidePanel"></i>
                 </div>
-                <div class="side-panel-overflow" v-if="sidePanelRightWidth > 0">
-                    <span class="side-panel-close" @click="hideSidePanelRight()">Close</span>
 
-                    <div v-if="state === 'draw'">
-                        <DrawingControlsPanel
-                            :isBrush="isDrawingBrush"
-                            @color-picked="onDrawColorPicked"
-                            @stop-drawing-requested="stopDrawing"
-                            />
-                    </div>
-                    <div v-else>
-                        <div v-if="currentTab === 'Doc'">
-                            <SchemeProperties v-if="mode === 'edit'"
-                                :scheme-container="schemeContainer"
-                                :editorId="editorId"
-                                :schemeTagsEnabled="schemeTagsEnabled"
-                                @delete-diagram-requested="$emit('delete-diagram-requested')"/>
-
-                            <scheme-details v-else :scheme="schemeContainer.scheme"></scheme-details>
-                        </div>
-                        <div v-if="currentTab === 'Item'">
-                            <div v-if="mode === 'edit'">
-                                <panel name="Items" :border="false">
-                                    <ItemSelector
-                                        :editorId="editorId"
-                                        :scheme-container="schemeContainer"
-                                        :min-height="200"
-                                        :revision="`${schemeRevision}-${schemeContainer.revision}`"
-                                        @item-right-clicked="onItemRightClick"/>
-                                </panel>
-
-                                <ItemProperties v-if="schemeContainer.selectedItems.length > 0"
-                                    :key="`${schemeRevision}-${schemeContainer.selectedItems[0].id}-${schemeContainer.selectedItems[0].shape}`"
-                                    :editorId="editorId"
-                                    :item="schemeContainer.selectedItems[0]"
-                                    :revision="schemeRevision"
-                                    :schemeContainer="schemeContainer"
-                                    :userStylesEnabled="userStylesEnabled"
-                                    @shape-prop-changed="onItemShapePropChanged"
-                                    @item-field-changed="onItemFieldChanged"
-                                    @item-style-applied="onItemStyleApplied"
-                                    @shape-changed="onItemShapeChanged"
-                                />
-                            </div>
-
-                            <ItemDetails v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
-                        </div>
-                        <div v-if="mode !== 'view' && currentTab === 'template' && selectedTemplateRootItem && selectedTemplateRef">
-                            <TemplateProperties
-                                :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
-                                :editorId="editorId"
-                                :item="selectedTemplateRootItem"
-                                :schemeContainer="schemeContainer"
-                                :templateRef="selectedTemplateRef"
-                                @updated="onTemplatePropertiesUpdated"
-                                @break-template="breakTemplate"
-                                @update-template="updateTemplate"
-                                @template-rebuild-requested="onTemplateRebuildRequested"
-                            />
-                        </div>
-
-                        <div>
-                            <TextSlotProperties v-for="itemTextSlot in itemTextSlotsAvailable" v-if="mode === 'edit' && currentTab === itemTextSlot.tabName"
-                                :key="`text-slot-${itemTextSlot.item.id}-${itemTextSlot.slotName}`"
-                                :editorId="editorId"
-                                :item="itemTextSlot.item"
-                                :slot-name="itemTextSlot.slotName"
-                                @moved-to-slot="onTextSlotMoved(itemTextSlot.item, itemTextSlot.slotName, $event);"
-                                @property-changed="onTextPropertyChanged(itemTextSlot.slotName, $event.name, $event.value)"
-                                />
-                            <component
-                                v-for="tab in extraTabs"
-                                v-if="currentTab === `extra:${tab.name}`"
-                                :key="`tab-${currentTab}`"
-                                :is="tab.component"
-                                :mode="mode"
-                                @tab-event="$emit('custom-tab-event', $event)"
-                            />
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -628,9 +455,8 @@ import utils from '../utils.js';
 import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler, mouseCoordsFromEvent } from '../events';
-import DrawingControlsPanel from './DrawingControlsPanel.vue';
 
-import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps, ItemInteractionMode } from '../scheme/Item';
 import {enrichItemWithDefaults, cleanupShapeProps} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
@@ -642,14 +468,7 @@ import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer  from '../scheme/SchemeContainer.js';
 import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea, collectOnlyVisibleNonHUDItems } from '../scheme/ItemMath.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
-import ItemProperties from './editor/properties/ItemProperties.vue';
-import TemplateProperties from './editor/properties/TemplateProperties.vue';
-import TextSlotProperties from './editor/properties/TextSlotProperties.vue';
-import ItemDetails from './editor/ItemDetails.vue';
-import SchemeProperties from './editor/SchemeProperties.vue';
-import SchemeDetails from './editor/SchemeDetails.vue';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
-import ScriptsTab   from './editor/ScriptsTab.vue';
 import ElementPicker from './editor/ElementPicker.vue';
 import DiagramPicker from './editor/DiagramPicker.vue';
 import LinkEditModal from './editor/LinkEditModal.vue';
@@ -658,7 +477,6 @@ import ConnectorDestinationProposal from './editor/ConnectorDestinationProposal.
 import Shape from './editor/items/shapes/Shape.js';
 import {createAnimationRegistry} from '../animations/AnimationRegistry';
 import Panel from './editor/Panel.vue';
-import ItemSelector from './editor/ItemSelector.vue';
 import {createSettingStorageFromLocalStorage} from '../LimitedSettingsStorage';
 import ShapeExporterModal from './editor/ShapeExporterModal.vue';
 import Modal from './Modal.vue';
@@ -684,16 +502,18 @@ import UserEventBus from '../userevents/UserEventBus.js';
 import ExportTemplateModal from './editor/ExportTemplateModal.vue';
 import {applyItemStyle} from './editor/properties/ItemStyles';
 import { collectAndLoadAllMissingShapes } from './editor/items/shapes/ExtraShapes.js';
-import { convertCurvePointToItemScale, convertCurvePointToRelative } from './editor/items/shapes/StandardCurves';
+import { convertCurvePointToItemScale } from './editor/items/shapes/StandardCurves';
 import {MobileDebugger} from '../logger';
 import {traverseItems, findFirstItemBreadthFirst} from '../scheme/Item';
 import {convertItemToTemplatedShape} from './editor/items/shapes/ShapeExporter';
-import {breakItemTemplate} from './editor/items/ItemTemplate';
 import { createAnimationExportRecorder } from './AnimationExportRecorder.js';
 import ExportAnimationModal from './editor/ExportAnimationModal.vue';
 import StarterProposalModal from './editor/StarterProposalModal.vue';
 import ScriptConsole from './editor/ScriptConsole.vue';
 import ExportPictureModal from './editor/ExportPictureModal.vue';
+import BottomPanel from './editor/BottomPanel.vue';
+import {executeEditorScript} from './editor/scripting/editorScript.js';
+import DocItemSidePanel from './editor/DocItemSidePanel.vue';
 
 const IS_NOT_SOFT = false;
 const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
@@ -702,16 +522,6 @@ const ITEM_MODIFICATION_CONTEXT_DEFAULT = {
     rotated: false,
     resized: false
 };
-
-function prettifyAxisValue(value, zoom) {
-    value = parseFloat(value);
-    if (zoom <= 100) {
-        return value.toFixed(0);
-    } else if (zoom < 500) {
-        return value.toFixed(1);
-    }
-    return value.toFixed(2);
-}
 
 function createCurvePointConverter(item) {
     return (point)  => {
@@ -794,18 +604,19 @@ function timeoutPromise(timeInMillis) {
 
 const schemeSettingsStorage = createSettingStorageFromLocalStorage('scheme-settings', 40);
 
+const SIDE_PANEL_LEFT_COLLAPSED = 'side-panel-left-collapsed';
+const SIDE_PANEL_RIGHT_COLLAPSED = 'side-panel-right-collapsed';
+const editorPanelStorage = createSettingStorageFromLocalStorage('editor-panels', 40);
 
 export default {
     components: {
-        SvgEditor, ItemProperties, ItemDetails, SchemeProperties,
-        SchemeDetails, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
-        LinkEditModal, InPlaceTextEditBox, TemplateProperties,
-        ItemTooltip, Panel, ItemSelector, TextSlotProperties, Dropdown,
+        SvgEditor, CreateItemMenu, QuickHelperPanel, FloatingHelperPanel,
+        LinkEditModal, InPlaceTextEditBox, ItemTooltip, Panel, Dropdown,
         ConnectorDestinationProposal, StarterProposalModal,
         Modal, ShapeExporterModal, FrameAnimatorPanel, PathEditBox,
         EditBox, ElementPicker, DiagramPicker, ExportTemplateModal,
-        DrawingControlsPanel, ExportAnimationModal, ScriptConsole, ScriptsTab,
-        ExportPictureModal,
+        ExportAnimationModal, ScriptConsole,
+        ExportPictureModal, BottomPanel, DocItemSidePanel
     },
 
     props: {
@@ -979,6 +790,8 @@ export default {
         EditorEventBus.exportSchemeAsPicture.$on(this.editorId, this.onExportSchemeAsPictureRequested);
         EditorEventBus.connectorRequested.$on(this.editorId, this.onConnectorRequested);
         EditorEventBus.editBox.regenerate.$on(this.editorId, this.regenerateEditBox);
+        EditorEventBus.scriptLog.$on(this.editorId, this.onScriptLog);
+        EditorEventBus.editorScript.executeRequested.$on(this.editorId, this.onEditorScriptExecuteRequested);
         registerKeyPressHandler(this.keyPressHandler);
     },
 
@@ -1002,6 +815,8 @@ export default {
         EditorEventBus.exportSchemeAsPicture.$off(this.editorId, this.onExportSchemeAsPictureRequested);
         EditorEventBus.connectorRequested.$off(this.editorId, this.onConnectorRequested);
         EditorEventBus.editBox.regenerate.$off(this.editorId, this.regenerateEditBox);
+        EditorEventBus.scriptLog.$off(this.editorId, this.onScriptLog);
+        EditorEventBus.editorScript.executeRequested.$off(this.editorId, this.onEditorScriptExecuteRequested);
         deregisterKeyPressHandler(this.keyPressHandler);
 
         this.animationRegistry.destroy();
@@ -1088,8 +903,13 @@ export default {
             sidePanelItemForViewMode: null,
             sidePanelRightWidth: 400,
             sidePanelRightDefaultWidth: 400,
+            sidePanelRightCollapseWidth: 30,
+            sidePanelRightCollapsed: editorPanelStorage.get(SIDE_PANEL_RIGHT_COLLAPSED, false),
+            sidePanelRightCollapsedOldState: editorPanelStorage.get(SIDE_PANEL_RIGHT_COLLAPSED, false),
             sidePanelLeftWidth: 220,
             sidePanelLeftDefaultWidth: 220,
+            sidePanelLeftCollapseWidth: 40,
+            sidePanelLeftCollapsed: editorPanelStorage.get(SIDE_PANEL_LEFT_COLLAPSED, false),
             schemeContainer: null,
             interactiveSchemeContainer: null,
 
@@ -1101,14 +921,7 @@ export default {
                 shown: false
             },
 
-            currentLeftTab: 'Shapes',
-            leftTabs: [
-                {name: 'Shapes', iconClass: 'fa-solid fa-shapes'},
-                {name: 'Scripts', iconClass: 'fa-solid fa-code'},
-            ],
-
-            currentTab: 'Doc',
-            tabs: [ 'Doc', 'Item'],
+            currentRightTab: 'Doc',
 
             offsetSaveTimerId: null,
 
@@ -1141,8 +954,6 @@ export default {
 
             // flag that is set when record button is pressed in frame animator panel
             isRecording: false,
-
-            currentAnimatorFramePlayer: null,
 
             curveEditing: {
                 // item whose curve is currently edited
@@ -1201,6 +1012,27 @@ export default {
         };
     },
     methods: {
+        updateEditorRevision() {
+            this.editorRevision++;
+        },
+
+        onScriptLog(type, message) {
+            if (this.mode === 'edit') {
+                this.schemeContainer.outputHistory.push({
+                    type: `log-${type}`,
+                    value: message
+                });
+            }
+        },
+
+        onEditorScriptExecuteRequested(script) {
+            try {
+                executeEditorScript(this.editorId, this.schemeContainer, script);
+            } catch (err) {
+                console.error(err);
+            }
+        },
+
         regenerateEditBox() {
             if (!this.schemeContainer) {
                 return;
@@ -1348,12 +1180,12 @@ export default {
                 // therefore it does not make sense to set it as current on scheme load
                 if (this.scheme && this.scheme.id) {
                     const schemeSettings = schemeSettingsStorage.get(this.scheme.id);
-                    if (schemeSettings && schemeSettings.currentTab !== 'Text') {
-                        this.currentTab = schemeSettings.currentTab;
+                    if (schemeSettings && schemeSettings.currentRightTab !== 'Text') {
+                        this.currentRightTab = schemeSettings.currentTab;
                     }
 
-                    if (this.mode == 'view' || (this.currentTab !== 'Doc' && this.currentTab !== 'Item')) {
-                        this.currentTab = 'Doc';
+                    if (this.mode == 'view' || (this.currentRightTab !== 'Doc' && this.currentRightTab !== 'Item')) {
+                        this.currentRightTab = 'Doc';
                     }
                 }
 
@@ -1374,6 +1206,7 @@ export default {
                     this.starterProposalModalShown = true;
                     this.sidePanelRightWidth = 0;
                     this.sidePanelLeftWidth = 0;
+                    this.sidePanelLeftCollapsed = true;
                 }
             })
             .catch(err => {
@@ -1696,7 +1529,7 @@ export default {
             this.inPlaceTextEditor.area.w = this._z(worldWidth);
             this.inPlaceTextEditor.area.h = this._z(worldHeight);
             this.inPlaceTextEditor.shown = true;
-            this.currentTab = `Text: ${textSlot.name}`;
+            this.currentRightTab = `Text: ${textSlot.name}`;
             this.updateFloatingHelperPanel();
         },
 
@@ -1740,7 +1573,7 @@ export default {
 
         closeItemTextEditor() {
             this.inPlaceTextEditor.shown = false;
-            this.currentTab = 'Item';
+            this.currentRightTab = 'Item';
 
             const item = this.inPlaceTextEditor.item;
             const slotName = this.inPlaceTextEditor.textSlot.name;
@@ -1866,13 +1699,18 @@ export default {
             }, 200);
         },
 
+        onDocTabSelected(currentTab) {
+            this.currentRightTab = currentTab;
+            this.saveSchemeSettings();
+        },
+
         saveSchemeSettings() {
             let schemeContainer = this.schemeContainer;
             if (this.mode === 'view') {
                 schemeContainer = this.interactiveSchemeContainer;
             }
             schemeSettingsStorage.save(schemeContainer.scheme.id, {
-                currentTab: this.currentTab,
+                currentTab: this.currentRightTab,
                 screenPosition: {
                     offsetX: schemeContainer.screenTransform.x,
                     offsetY: schemeContainer.screenTransform.y,
@@ -1883,12 +1721,12 @@ export default {
 
         onAnyItemClicked(item) {
             this.sidePanelItemForViewMode = null;
-            this.hideSidePanelRight();
+            this.collapseRightSidePanel();
         },
 
         onVoidClicked() {
             if (this.mode === 'view') {
-                this.hideSidePanelRight();
+                this.collapseRightSidePanel();
                 this.sidePanelItemForViewMode = null;
             }
         },
@@ -1955,6 +1793,28 @@ export default {
             .then(copyBuffer => {
                 copyToClipboard(copyBuffer);
                 this.isCopying = false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.isCopying = false;
+            });
+        },
+
+        duplicateSelectedItems() {
+            this.isCopying = true;
+            this.schemeContainer.copySelectedItems()
+            .then(copyBuffer => {
+                this.isCopying = false;
+                const items = this.schemeContainer.decodeItemsFromText(copyBuffer);
+                if (!items) {
+                    return;
+                }
+                const mx = this.schemeContainer.screenSettings.width/2;
+                const my = this.schemeContainer.screenSettings.height/2;
+
+                const centerX = (mx - this.schemeContainer.screenTransform.x) / Math.max(0.00000001, this.schemeContainer.screenTransform.scale);
+                const centerY = (my - this.schemeContainer.screenTransform.y) / Math.max(0.00000001, this.schemeContainer.screenTransform.scale);
+                this.schemeContainer.pasteItems(items, centerX, centerY);
             })
             .catch(err => {
                 console.error(err);
@@ -2076,8 +1936,8 @@ export default {
 
         onItemSidePanelTriggered(item) {
             this.sidePanelItemForViewMode = item;
-            this.showSidePanelRight();
-            this.currentTab = 'Item';
+            this.showRightSidePanel();
+            this.currentRightTab = 'Item';
         },
 
         onSchemeChangeCommitted(affinityId) {
@@ -2195,7 +2055,7 @@ export default {
             this.selectedTemplateRef = templateRef;
             this.selectedTemplateRootItem = templateRootItem;
             if (newTemplateClicked) {
-                this.currentTab = 'template';
+                this.currentRightTab = 'template';
             }
         },
 
@@ -2221,7 +2081,7 @@ export default {
             if (this.schemeContainer.selectedItems.length > 0) {
                 this.templatePropertiesKey += 1;
                 this.$emit('items-selected');
-                this.currentTab = 'Item';
+                this.currentRightTab = 'Item';
                 const item = this.schemeContainer.selectedItems[0];
                 const shape = Shape.find(item.shape);
                 if (!shape) {
@@ -2248,7 +2108,7 @@ export default {
                 }
                 this.updateSelectedTemplate();
             } else {
-                this.currentTab = 'Item';
+                this.currentRightTab = 'Item';
                 this.$emit('items-deselected');
                 this.selectedTemplateRef = null;
                 this.selectedTemplateRootItem = null;
@@ -2267,7 +2127,7 @@ export default {
             item.textSlots[slotName].text = '';
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${anotherSlotName}`);
             if (!this.inPlaceTextEditor.item) {
-                this.currentTab = `Text: ${anotherSlotName}`;
+                this.currentRightTab = `Text: ${anotherSlotName}`;
             }
 
             EditorEventBus.textSlot.moved.$emit(this.editorId, item, slotName, anotherSlotName);
@@ -2493,21 +2353,6 @@ export default {
             this.rebuildTemplate(originItemId, template, templateArgs);
         },
 
-        breakTemplate(rootItem) {
-            const selectedItem = this.schemeContainer.selectedItems.length > 0 ? this.schemeContainer.selectedItems[0] : null;
-            this.schemeContainer.deselectAllItems();
-            breakItemTemplate(rootItem);
-            this.schemeContainer.reindexItems();
-            traverseItems([rootItem], item => {
-                EditorEventBus.item.changed.specific.$emit(this.editorId, item.id);
-            });
-            this.editorRevision++;
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
-            if (selectedItem) {
-                this.schemeContainer.selectItem(selectedItem);
-            }
-        },
-
         convertCurvePointToSimple() {
             if (this.state === 'editPath') {
                 this.states[this.state].convertSelectedPointsToSimple();
@@ -2538,7 +2383,7 @@ export default {
         },
 
         switchToViewMode(screenTransform) {
-            this.hideSidePanelRight();
+            this.collapseRightSidePanel();
             this.animationRegistry.stopAllAnimations();
             this.interactiveSchemeContainer = new SchemeContainer(utils.clone(this.schemeContainer.scheme), this.editorId, 'view', this.$store.state.apiClient, this.$store.state.assetsPath, {
                 onSchemeChangeCommitted: (affinityId) => EditorEventBus.schemeChangeCommitted.$emit(this.editorId, affinityId),
@@ -2587,14 +2432,6 @@ export default {
             }
         },
 
-        onAnimatiorEditorOpened(framePlayer) {
-            this.currentAnimatorFramePlayer = framePlayer;
-        },
-
-        closeAnimatorEditor() {
-            this.currentAnimatorFramePlayer = null;
-        },
-
         onItemRightClick(item, mouseX, mouseY) {
             const x = this.x_(mouseX);
             const y = this.y_(mouseY);
@@ -2633,10 +2470,13 @@ export default {
             contextMenuOptions = contextMenuOptions.concat([{
                 name: 'Copy',
                 iconsClass: 'fas fa-copy',
-                clicked: () => {this.copySelectedItems(item);}
+                clicked: () => {this.copySelectedItems();}
             }, {
                 name: 'Copy item style',
-                clicked: () => {this.copySelectedItemStyle(item);}
+                clicked: () => {this.copySelectedItemStyle();}
+            }, {
+                name: 'Duplicate',
+                clicked: () => {this.duplicateSelectedItems();}
             }]);
 
             if (selectedOnlyOne) {
@@ -3037,7 +2877,7 @@ export default {
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
 
             if (template && item.args && item.args.templateRef) {
-                this.currentTab = 'template';
+                this.currentRightTab = 'template';
             }
         },
 
@@ -3208,14 +3048,6 @@ export default {
             }
         },
 
-        onBottomPanelMouseDown(originalEvent) {
-            dragAndDropBuilder(originalEvent)
-            .onDrag((event, pageX, pageY) => {
-                this.bottomPanelHeight = myMath.clamp(window.innerHeight - pageY, 100, window.innerHeight - 100);
-            })
-            .build();
-        },
-
         /**
          * @param {Item} shapeGroupItem
          */
@@ -3238,11 +3070,13 @@ export default {
             this.switchStateCreateItem(item);
         },
 
-        hideSidePanelRight() {
-            this.sidePanelRightWidth = 0;
+        collapseRightSidePanel() {
+            this.sidePanelRightCollapsed = true;
+            this.sidePanelRightWidth = this.sidePanelRightCollapseWidth;
         },
 
-        showSidePanelRight() {
+        showRightSidePanel() {
+            this.sidePanelRightCollapsed = false;
             this.sidePanelRightWidth = Math.min(this.sidePanelRightDefaultWidth, Math.floor(window.innerWidth/2 - 20));
         },
 
@@ -3250,14 +3084,13 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelRight, 1, {
                 onValue: value => {
                     this.sidePanelRightWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                },
-                onClick: event => {
-                    if (this.sidePanelRightWidth > 0) {
-                        this.sidePanelRightWidth = 0;
+                    if (this.sidePanelRightWidth < this.sidePanelRightCollapseWidth) {
+                        this.sidePanelRightCollapsed = true;
+                        this.sidePanelRightWidth = this.sidePanelRightCollapseWidth;
                     } else {
-                        this.sidePanelRightWidth = myMath.clamp(this.sidePanelRightDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
+                        this.sidePanelRightCollapsed = false;
                     }
-                }
+                },
             });
         },
 
@@ -3265,14 +3098,13 @@ export default {
             this.onSidePanelExpanderMouseDown(originalEvent, this.$refs.sidePanelLeft, -1, {
                 onValue: value => {
                     this.sidePanelLeftWidth = myMath.clamp(value, 0, Math.floor(window.innerWidth/2 - 20));
-                },
-                onClick: event => {
-                    if (this.sidePanelLeftWidth > 0) {
-                        this.sidePanelLeftWidth = 0;
+                    if (this.sidePanelLeftWidth < this.sidePanelLeftCollapseWidth) {
+                        this.sidePanelLeftCollapsed = true;
+                        this.sidePanelLeftWidth = this.sidePanelLeftCollapseWidth;
                     } else {
-                        this.sidePanelLeftWidth = myMath.clamp(this.sidePanelLeftDefaultWidth, 0, Math.floor(window.innerWidth/2 - 20));
+                        this.sidePanelLeftCollapsed = false;
                     }
-                }
+                },
             });
         },
 
@@ -3291,9 +3123,6 @@ export default {
                     callbacks.onValue(newWidth);
                 }
             })
-            .onSimpleClick(event => {
-                callbacks.onClick(event);
-            })
             .build();
         },
 
@@ -3308,39 +3137,6 @@ export default {
             } else {
                 this.states.dragItem.disableRecording();
             }
-        },
-
-        switchSelectedComponentKind(kind) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.kind = kind;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.kind');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.kind`);
-            this.updateSelectedComponent();
-            this.$forceUpdate();
-        },
-
-        setSelectedComponentReferenceItem(element) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.referenceItem = element;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.selectedItem.id, 'shapeProps.referenceItem');
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `items.${this.selectedItem.id}.shapeProps.referenceItem`);
-            this.updateSelectedComponent();
-            this.$forceUpdate();
-        },
-
-        updateSelectedComponent() {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            if (this.selectedItem.shapeProps.kind !== 'embedded' && this.selectedItem._childItems) {
-                this.selectedItem._childItems = [];
-            }
-            this.schemeContainer.reindexSpecifiedItems([this.selectedItem]);
-            this.schemeContainer.reindexItems();
         },
 
         setCurveEditItem(item) {
@@ -3365,6 +3161,7 @@ export default {
                 });
             }
         },
+
         updateCurveEditPoint(item, pathId, pointId, point) {
             if (!validatePointIds(pathId, pointId, this.curveEditing)) {
                 return;
@@ -3423,59 +3220,6 @@ export default {
                 });
             });
             this.curveEditing.selectedPoints = selectedPoints;
-        },
-
-        onCurveEditingPointInput(text, axis) {
-            const value = parseFloat(text);
-            if (isNaN(value) || this.curveEditing.selectedPoints.length !== 1 || !this.curveEditing.item) {
-                return;
-            }
-
-            const {pathId, pointId} = this.curveEditing.selectedPoints[0];
-            const point = this.curveEditing.item.shapeProps.paths[pathId].points[pointId];
-
-            let {x, y} = this.curveEditing.selectedPoints[0];
-            const worldPoint = {x, y};
-            worldPoint[axis] = value;
-
-            const localPoint = localPointOnItem(worldPoint.x, worldPoint.y, this.curveEditing.item);
-            const convertedPoint = convertCurvePointToRelative(localPoint, this.curveEditing.item.area.w, this.curveEditing.item.area.h);
-
-            point.x = convertedPoint.x;
-            point.y = convertedPoint.y;
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
-            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point);
-        },
-
-        onCurveEditingArcHeightInput(text) {
-            const value = parseFloat(text);
-            if (isNaN(value)
-                || this.curveEditing.selectedPoints.length !== 1
-                || this.curveEditing.selectedPoints[0].t !== 'A'
-                || !this.curveEditing.item) {
-                return;
-            }
-            const {pathId, pointId} = this.curveEditing.selectedPoints[0];
-            const point = this.curveEditing.item.shapeProps.paths[pathId].points[pointId];
-            point.h = value;
-
-            EditorEventBus.item.changed.specific.$emit(this.editorId, this.curveEditing.item.id, `shapeProps.paths`);
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.curveEditing.item.id}.shapeProps.paths.points`);
-            this.updateCurveEditPoint(this.curveEditing.item, pathId, pointId, point);
-        },
-
-        prettifyAxisValue(value, zoom) {
-            return prettifyAxisValue(value, zoom);
-        },
-
-        onDiagramPickedForSelectedComponent(diagram) {
-            if (!this.selectedItem || this.selectedItem.shape !== 'component') {
-                return;
-            }
-            this.selectedItem.shapeProps.schemeId = diagram.id;
-            EditorEventBus.schemeChangeCommitted.$emit(this.editorId, `item.${this.selectedItem.id}.shapeProps.schemeId`);
-            this.$forceUpdate();
         },
 
         onEditBoxCustomControlClicked(item) {
@@ -3542,11 +3286,6 @@ export default {
             }
             this.schemeContainer.rebaseScheme();
             this.svgEditorRevision++;
-        },
-
-        changeTab(tab) {
-            this.currentTab = tab;
-            this.saveSchemeSettings();
         },
 
         onEditBoxFillDisabled() {
@@ -3665,7 +3404,7 @@ export default {
             }
 
             this.sidePanelLeftWidth = this.sidePanelLeftDefaultWidth;
-            this.sidePanelRightWidth = this.sidePanelRightDefaultWidth;
+            this.sidePanelRightWidth = Math.min(window.innerWidth/2 - 20, this.sidePanelRightDefaultWidth);
 
             EditorEventBus.schemeChangeCommitted.$emit(this.editorId);
         },
@@ -3682,17 +3421,26 @@ export default {
 
     },
 
-    filters: {
-        prettifyAxisValue(value, zoom) {
-            return prettifyAxisValue(value, zoom);
-        }
-    },
-
     watch: {
+        sidePanelLeftCollapsed(value) {
+            editorPanelStorage.save(SIDE_PANEL_LEFT_COLLAPSED, value);
+        },
+
+        sidePanelRightCollapsed(value) {
+            if (this.mode === 'edit'){
+                editorPanelStorage.save(SIDE_PANEL_RIGHT_COLLAPSED, value);
+                this.sidePanelRightCollapsedOldState = value;
+            }
+        },
+
         mode(value) {
             if (value === 'view') {
+                this.sidePanelRightCollapsedOldState = this.sidePanelRightCollapsed;
                 this.switchToViewMode();
             } else {
+                if (!this.sidePanelRightCollapsedOldState) {
+                    this.showRightSidePanel();
+                }
                 this.switchToEditMode();
             }
         },

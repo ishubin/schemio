@@ -16,6 +16,9 @@ const defaultScheme = {
         main: {
             source: ''
         },
+        editor: {
+            source: ''
+        },
         functions: [],
         classes: [ /*{
             id: 'ew235',

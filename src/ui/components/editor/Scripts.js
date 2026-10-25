@@ -18,9 +18,15 @@ const functions = `
   asin
   atan
   Area
+  buildItem
   ceil
   cos
   Color
+  Connections.findConnectionsWith
+  Connections.findAllConnectors
+  Connections.findConnections
+  Connections.findConnectionsTo
+  Connections.findConnectionsFrom
   debugItem
   decodeTree
   decodeColor
@@ -30,6 +36,11 @@ const functions = `
   findItemById
   findItemByName
   findParent
+  Fill.solid
+  Fill.none
+  Fill.image
+  Fill.linearGradient
+  Fill.radialGradient
   floor
   fromJSON
   getAngle
@@ -156,33 +167,31 @@ function extractCompletionsFromScript(script) {
  * @param {Array<String>} previousScripts
  * @param {Array<FieldDescriptor>} scopeArgs
  */
-export function createCompletions(schemeContainer, previousScripts, scopeArgs) {
+export function createCompletions(schemeContainer, previousScripts, scopeArgs, functionNames = []) {
     let completions = keywords.concat(functions);
 
     completions = completions.concat(scopeArgs.map(scopeArg => {
         return {label: scopeArg.name, type: 'variable'};
     }));
 
+    completions = completions.concat(functionNames.map(name => {
+        return {label: name, type: 'function'};
+    }));
+
     previousScripts.forEach(script => {
         completions = completions.concat(extractCompletionsFromScript(script));
     });
 
-    const itemNames = schemeContainer.getItemNames();
-    const externalReferenceCompletions = itemNames.map(name => {
-        const completion = {label: name, type: 'object', detail: 'object'};
-        if (!name.match(/^[0-9a-zA-Z_]+$/)) {
-            completion.apply = `"${name}"`;
-        }
-        return completion;
-    });
-
-    const externalReferenceCompletionsWithPrefix = itemNames.map(name => {
-        const completion = {label: '@' + name, type: 'object', detail: 'object'};
-        if (!name.match(/^[0-9a-zA-Z_]+$/)) {
-            completion.apply = `@"${name}"`;
-        }
-        return completion;
-    });
+    const provideItemNamesOptions = (prefix = '') => {
+        const itemNames = schemeContainer.getItemNames();
+        return itemNames.map(name => {
+            const completion = {label: prefix + name, type: 'object', detail: 'object'};
+            if (!name.match(/^[0-9a-zA-Z_]+$/)) {
+                completion.apply = `${prefix}"${name}"`;
+            }
+            return completion;
+        });
+    };
 
     return (context) => {
         const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
@@ -199,13 +208,13 @@ export function createCompletions(schemeContainer, previousScripts, scopeArgs) {
             if (before && before.text === '@') {
                 return {
                     from: before ? before.from : context.pos,
-                    options: externalReferenceCompletionsWithPrefix,
+                    options: provideItemNamesOptions('@'),
                     validFor: /^(@\w*)?$/
                 };
             }
             return {
                 from: before ? before.from : context.pos,
-                options: externalReferenceCompletions,
+                options: provideItemNamesOptions(),
                 validFor: /^(@\w*)?$/
             };
         } else if (nodeBefore.name === 'VariableName') {
