@@ -1,13 +1,7 @@
 <template>
-    <div>
-        <div class="row gap centered">
-            <div>
-                <Tooltip>
-                    Functions let you create scripted actions for items which you can then use from items events
-                </Tooltip>
-            </div>
-            <span class="col-1 btn btn-secondary" @click="startAddingNewFunction" title="Add new function"><i class="fa-solid fa-florin-sign"></i> New function</span>
-            <div></div>
+    <div class="custom-functions-editor">
+        <div v-if="functions.length === 0" class="hint">
+            No functions defined yet
         </div>
 
         <ul class="navbar-functions-list">
@@ -24,14 +18,18 @@
         </ul>
 
         <div class="section">
+            <Tooltip>
+                Functions let you create scripted actions for items which you can then use from items events
+            </Tooltip>
+            <span class="btn btn-secondary" @click="startAddingNewFunction" title="Add new function"><i class="fa-solid fa-florin-sign"></i> Add function</span>
             <span v-if="functions.length > 0"
                 class="btn btn-secondary"
                 @click="copyAllFuncs()"
                 title="Copy all functions in this document"
                 >
-                Copy all
+                <i class="fa-solid fa-clipboard"></i>
             </span>
-            <span class="btn btn-secondary" @click="pasteFuncs()">Paste functions</span>
+            <span class="btn btn-secondary" @click="pasteFuncs()"><i class="fa-solid fa-paste"></i></span>
         </div>
 
         <Modal v-if="funcModal.shown" title="Function editor" :width="900" @close="funcModal.shown = false" closeName="Close" :useMask="false">

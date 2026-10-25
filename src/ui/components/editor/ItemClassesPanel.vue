@@ -1,15 +1,7 @@
 <template lang="html">
-    <div>
-        <div class="row gap centered">
-            <div>
-                <Tooltip>
-                    Classes let you define global and parameterized behavior and re-use accross numerous items.
-                    Any item can be extended with multiple classes.
-                </Tooltip>
-            </div>
-            <span class="col-1 btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-book"></i> New class</span>
-            <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import classes"><i class="fa-solid fa-file-import"></i></span>
-            <div></div>
+    <div class="item-classes-editor">
+        <div v-if="schemeContainer.scheme.scripts.classes.length === 0" class="hint">
+            No classes defined yet
         </div>
         <ul class="navbar-functions-list">
             <li v-for="(clazz, classIdx) in schemeContainer.scheme.scripts.classes">
@@ -25,13 +17,19 @@
         </ul>
 
         <div class="section">
+            <Tooltip>
+                Classes let you define global and parameterized behavior and re-use it accross numerous items.
+                Any item can be extended with multiple classes.
+            </Tooltip>
+            <span class="btn btn-secondary" @click="startAddingNewClass" title="Add new class"><i class="fa-solid fa-book"></i> Add class</span>
+            <span class="btn btn-secondary" @click="openImportFunctionModal" title="Import classes"><i class="fa-solid fa-file-import"></i></span>
             <span v-if="schemeContainer.scheme.scripts.classes.length > 0"
                 class="btn btn-secondary"
                 @click="copyAllClasses()"
                 title="Copy all classes in this document">
-                Copy all
+                <i class="fa-solid fa-clipboard"></i>
             </span>
-            <span class="btn btn-secondary" @click="pasteClasses()">Paste classes</span>
+            <span class="btn btn-secondary" @click="pasteClasses()" title="Paste all classes"><i class="fa-solid fa-paste"></i></span>
         </div>
 
         <Modal v-if="classModal.shown" title="Class editor" :width="900" @close="classModal.shown = false" closeName="Close" :useMask="false">

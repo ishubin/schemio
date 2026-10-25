@@ -5765,6 +5765,10 @@ ul.properties-button-list > li > .btn {
 }
 
 
+.custom-functions-editor, .item-classes-editor {
+    max-width: 400px;
+}
+
 .navbar-functions-list {
     list-style: none;
     margin-top: 10px;
