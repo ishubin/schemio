@@ -24,10 +24,10 @@ const baseSchema = {
             itemMarkerToggled : {type: 'ignored'}
         }},
         scripts: {type: 'object', patching: ['modify', 'replace'], fields: {
-            main: {type: 'object', patching: ['modify'], fields: {
+            main: {type: 'object', patching: ['modify', 'replace'], fields: {
                 source: {type: 'string', patching: ['patch-text', 'replace']}
             }},
-            editor: {type: 'object', patching: ['modify'], fields: {
+            editor: {type: 'object', patching: ['modify', 'replace'], fields: {
                 source: {type: 'string', patching: ['patch-text', 'replace']}
             }},
             functions: {

@@ -178,6 +178,7 @@ import Tooltip from '../Tooltip.vue';
 
 const BOTTOM_PANEL_COLLAPSED = 'bottom-panel-collapsed';
 const BOTTOM_PANEL_HEIGHT = 'bottom-panel-height';
+const CURRENT_TAB = '';
 const editorPanelStorage = createSettingStorageFromLocalStorage('editor-panels', 40);
 const defaultExpandPanelHeight = 200;
 
@@ -229,9 +230,14 @@ export default {
     },
 
     data() {
+        let currentTab = editorPanelStorage.get(CURRENT_TAB, 'Console');
+        // Path tab may only be selected when the state changes to path editing
+        if (currentTab === 'Path' || allTabs.findIndex(tab => tab.name === currentTab) < 0 ) {
+            currentTab = allTabs[0].name;
+        }
         return {
             tabs: allTabs,
-            currentTab: 'Console',
+            currentTab: currentTab,
             collapsed: editorPanelStorage.get(BOTTOM_PANEL_COLLAPSED, true),
             bottomPanelHeight: Math.min(window.innerHeight /2,  editorPanelStorage.get(BOTTOM_PANEL_HEIGHT, defaultExpandPanelHeight)),
             collapseHeight: 20,
@@ -362,7 +368,11 @@ export default {
             } else {
                 this.switchOffPathTab();
             }
-        }
+        },
+
+        currentTab(tabName) {
+            editorPanelStorage.save(CURRENT_TAB, tabName);
+        },
     }
 };
 </script>

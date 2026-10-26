@@ -283,6 +283,48 @@ describe('SchemePatch.generateSchemePatch', () => {
     });
 
 
+    it('it should generate patch even when all the ancestor fields are missing', () => {
+        const origin = {
+            name: 'doc name',
+            description: 'doc description',
+            items: [],
+            scripts: {
+                main: {
+                    source: '',
+                }
+            }
+        };
+
+        const modified = {
+            name: 'doc name',
+            description: 'doc description',
+            items: [],
+            scripts: {
+                main: {
+                    source: ''
+                },
+                editor: {
+                    source: 'log(1)'
+                }
+            }
+        };
+
+        const expectedPatch = {
+            version: "1",
+            protocol: "schemio/patch",
+            changes: [ {
+                op: "replace",
+                path: [ "scripts", "editor" ],
+                value: {
+                    source: "log(1)"
+                }
+            } ]
+        };
+
+        const patch = generateSchemePatch(origin, modified);
+        expect(patch).toStrictEqual(expectedPatch);
+    });
+
 });
 
 describe('SchemePatch.applySchemePatch', () => {
@@ -360,6 +402,51 @@ describe('SchemePatch.applySchemePatch', () => {
         const modifiedObject = applySchemePatch(origin, patch);
         expect(modifiedObject).toStrictEqual(origin);
     });
+
+
+    it('it should add all the ancestor fields if they are missing', () => {
+        const origin = {
+            name: 'doc name',
+            description: 'doc description',
+            items: [],
+            scripts: {
+                main: {
+                    source: '',
+                }
+            }
+        };
+
+        const expectedModified = {
+            name: 'doc name',
+            description: 'doc description',
+            items: [],
+            scripts: {
+                main: {
+                    source: ''
+                },
+                editor: {
+                    source: 'log(1)'
+                }
+            }
+        };
+
+        const patch = {
+            version: "1",
+            protocol: "schemio/patch",
+            changes: [ {
+                op: "replace",
+                path: [ "scripts", "editor" ],
+                value: {
+                    source: "log(1)"
+                }
+            } ]
+        };
+
+        const modified = applySchemePatch(origin, patch);
+
+        expect(modified).toStrictEqual(expectedModified);
+    });
+
 })
 
 
