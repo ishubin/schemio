@@ -260,7 +260,7 @@
 
             </div>
 
-            <BottomPanel v-if="mode === 'edit' && schemeContainer"
+            <BottomPanel v-if="mode === 'edit' && schemeContainer && !starterProposalModalShown"
                 :editorId="editorId"
                 :state="state"
                 :selectedItem="selectedItem"
@@ -278,7 +278,7 @@
             <div class="side-panel side-panel-left"
                 :class="{collapsed: sidePanelLeftCollapsed, expanded: !sidePanelLeftCollapsed}"
                 ref="sidePanelLeft"
-                v-if="mode === 'edit' && schemeContainer"
+                v-if="mode === 'edit' && schemeContainer && !starterProposalModalShown"
                 :style="{width: sidePanelLeftCollapsed ? `${sidePanelLeftCollapseWidth}px` : `${sidePanelLeftWidth}px`}"
                 >
                 <span class="side-panel-expander" @touchstart="onLeftSidePanelExpanderMouseDown" @mousedown="onLeftSidePanelExpanderMouseDown">
@@ -310,7 +310,7 @@
 
             <div class="side-panel side-panel-right"
                 ref="sidePanelRight"
-                v-if="schemeContainer"
+                v-if="schemeContainer && !starterProposalModalShown"
                 :style="{width: sidePanelRightCollapsed ? `${sidePanelRightCollapseWidth}px` : `${sidePanelRightWidth}px`}"
                 :class="{collapsed: sidePanelRightCollapsed, expanded: !sidePanelRightCollapsed}"
                 >
@@ -1204,9 +1204,6 @@ export default {
 
                 if (this.mode === 'edit' && (!scheme.items || scheme.items.length === 0) && this.starterTemplates && this.starterTemplates.length > 0) {
                     this.starterProposalModalShown = true;
-                    this.sidePanelRightWidth = 0;
-                    this.sidePanelLeftWidth = 0;
-                    this.sidePanelLeftCollapsed = true;
                 }
             })
             .catch(err => {
