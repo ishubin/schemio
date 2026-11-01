@@ -324,13 +324,12 @@ body[data-theme="dark"] {
 [data-theme="dark"] .btn.btn-primary, [data-theme="dark"] .btn.btn-primary.disabled:hover{
     background: var(--accent-faint-up-2);
     color: var(--base-weak);
-    border: none;
     box-shadow: var(--shadow-m);
 }
 [data-theme="dark"] .btn.btn-primary:hover {
     background: var(--accent-faint-up);
     color: var(--accent-weak-up);
-    border: none;
+    box-shadow: none;
 }
 
 
