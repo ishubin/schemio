@@ -9,6 +9,9 @@ export function rebaseScheme(scheme, latestScheme) {
     });
 
     const itemMetas = new Map();
+    traverseItems(scheme.items, item => {
+        itemMetas.set(item.id, item.meta);
+    });
 
     traverseItems(latestScheme.items, item => {
         const meta = itemMetas.get(item.id);
