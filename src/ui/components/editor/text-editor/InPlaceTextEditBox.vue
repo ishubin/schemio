@@ -4,7 +4,7 @@
 <template>
     <div class="in-place-edit-editor-wrapper"
         ref="wrapper"
-        :id="`in-place-text-edit-wrapper-${editorId}-${item.id}`"
+        :id="`in-place-text-edit-wrapper-${editorId}-${itemId}`"
         :data-slot-name="textSlot.name"
         :style="cssStyle2"
         >
@@ -72,7 +72,8 @@ import RichTextMenuBar from './RichTextMenuBar.vue';
 export default {
     props: {
         editorId       : {type: String, required: true},
-        item           : {type: Object},
+        itemId         : {type: String, required: true},
+        schemeContainer: {type: Object, required: true},
         area           : {type: Object},
         textSlot       : {type: Object},
         text           : {type: String},
@@ -177,6 +178,10 @@ export default {
     },
 
     methods: {
+        getItem() {
+            return this.schemeContainer.findItemById(this.itemId);
+        },
+
         init() {
             if (this.textSlot.display !== 'textarea' && this.textSlot.display !== 'dropdown' & this.textSlot.display !== 'textfield') {
                 this.editor = this.createEditor(this.text);
@@ -193,11 +198,16 @@ export default {
             if (!this.creatingNewItem) {
                 editorCssStyle.width = `${this.area.w/scale}px`;
 
+                const item = this.getItem();
+                if (!item) {
+                    return;
+                }
+
                 // for simple labels we want to be able to reduce the editor height in case we delete some lines from the text
                 // but we want to make sure that text slot editor rect is correctly positioned for other shapes
                 // Also, in case label has valign middle or bottom, the height should be limited, otherwise text will "jump up"
-                const valign = this.item.textSlots[this.textSlot.name] ? this.item.textSlots[this.textSlot.name].valign : 'top';
-                if (this.item.shape !== 'none' || (this.item.shape === 'none' && valign !== 'top')) {
+                const valign = item.textSlots[this.textSlot.name] ? item.textSlots[this.textSlot.name].valign : 'top';
+                if (item.shape !== 'none' || (item.shape === 'none' && valign !== 'top')) {
                     editorCssStyle.height = `${this.area.h/scale}px`;
                 }
             }
@@ -294,7 +304,9 @@ export default {
         },
 
         closeEditBox() {
-            if (this.item.shape === 'none') {
+            const item = this.getItem();
+
+            if (item && item.shape === 'none') {
                 const rect = this.$refs.editor.getBoundingClientRect();
                 // in case the shape is none - only text matters
                 // so if text was removed perhaps it makes sense to remove the item from SchemeContainer if it doesn't have child items
@@ -313,14 +325,14 @@ export default {
                             name = name.substring(0, 20);
                         }
                         if (name.length > 0) {
-                            this.$emit('item-renamed', this.item, name);
+                            this.$emit('item-renamed', item, name);
                         }
                     }
-                    this.$emit('item-area-changed', this.item, (rect.width + 2)/this.zoom, (rect.height + 2)/this.zoom);
+                    this.$emit('item-area-changed', item, (rect.width + 2)/this.zoom, (rect.height + 2)/this.zoom);
                 } else {
                     // checking if perhaps it only has icons
                     if (el.querySelectorAll('span.icon').length === 0) {
-                        this.$emit('item-text-cleared', this.item);
+                        this.$emit('item-text-cleared', item);
                     }
                 }
             }
@@ -342,7 +354,11 @@ export default {
         },
 
         isSimpleText() {
-            return this.item.args && this.item.args.simpleText;
+            const item = this.getItem();
+            if (item && item.args && item.args.simpleText) {
+                return true;
+            }
+            return false;
         },
 
         cssStyle2() {

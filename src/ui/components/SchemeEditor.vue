@@ -241,9 +241,10 @@
 
                 <!-- Item Text Editor -->
                 <InPlaceTextEditBox v-if="inPlaceTextEditor.shown && inPlaceTextEditor.textSlot"
-                    :key="`in-place-text-edit-${inPlaceTextEditor.item.id}-${inPlaceTextEditor.textSlot.name}`"
+                    :key="`in-place-text-edit-${inPlaceTextEditor.itemId}-${inPlaceTextEditor.textSlot.name}`"
                     :editorId="editorId"
-                    :item="inPlaceTextEditor.item"
+                    :itemId="inPlaceTextEditor.itemId"
+                    :schemeContainer="schemeContainer"
                     :cssStyle="inPlaceTextEditor.style"
                     :text="inPlaceTextEditor.text"
                     :area="inPlaceTextEditor.area"
@@ -456,7 +457,7 @@ import {dragAndDropBuilder} from '../dragndrop.js';
 import myMath from '../myMath';
 import { Keys, registerKeyPressHandler, deregisterKeyPressHandler, mouseCoordsFromEvent } from '../events';
 
-import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps, ItemInteractionMode } from '../scheme/Item';
+import {applyStyleFromAnotherItem, defaultItem, defaultTextSlotProps } from '../scheme/Item';
 import {enrichItemWithDefaults, cleanupShapeProps} from '../scheme/ItemFixer';
 import { generateTextStyle } from './editor/text/ItemText';
 import Dropdown from './Dropdown.vue';
@@ -883,7 +884,7 @@ export default {
             pathPointsUpdateKey: 0,
 
             inPlaceTextEditor: {
-                item: null,
+                itemId: null,
                 textSlot: null,
                 slotName: '',
                 shown: false,
@@ -1505,7 +1506,7 @@ export default {
             const y = center.y - worldHeight / 2;
 
             this.inPlaceTextEditor.textSlot = textSlot;
-            this.inPlaceTextEditor.item = item;
+            this.inPlaceTextEditor.itemId = item.id;
             if (item.meta.templated && item.args && item.args.tplText && item.args.tplText[textSlot.name]) {
                 this.inPlaceTextEditor.text = item.args.tplText[textSlot.name];
             } else {
@@ -1536,7 +1537,7 @@ export default {
                     this.inPlaceTextEditor.textSlot.onUpdate(this.editorId, text);
                 }
                 const slotName = this.inPlaceTextEditor.textSlot.name;
-                const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.item.id);
+                const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.itemId);
                 if (!item || !item.textSlots || !item.textSlots[slotName]) {
                     return;
                 }
@@ -1569,10 +1570,14 @@ export default {
         },
 
         closeItemTextEditor() {
+            const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.itemId);
             this.inPlaceTextEditor.shown = false;
+            this.inPlaceTextEditor.itemId = null;
             this.currentRightTab = 'Item';
 
-            const item = this.inPlaceTextEditor.item;
+            if (!item) {
+                return;
+            }
             const slotName = this.inPlaceTextEditor.textSlot.name;
             if (item) {
                 item.meta.activeTextSlot = null;
@@ -1598,16 +1603,21 @@ export default {
         },
 
         updateInPlaceTextEditorStyle() {
-            if (!this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.textSlot.name]) {
+            const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.itemId);
+            if (!item || !item.textSlots[this.inPlaceTextEditor.textSlot.name]) {
                 return;
             }
-            const textSlot = this.inPlaceTextEditor.item.textSlots[this.inPlaceTextEditor.textSlot.name];
+            const textSlot = item.textSlots[this.inPlaceTextEditor.textSlot.name];
             this.inPlaceTextEditor.style = generateTextStyle(textSlot);
         },
 
         onAnyItemChanged(itemId) {
             this.states[this.state].onItemChanged(itemId);
-            if (this.inPlaceTextEditor.item && this.inPlaceTextEditor.item.id === itemId) {
+            if (!this.inPlaceTextEditor.itemId || itemId !== this.inPlaceTextEditor.itemId) {
+                return;
+            }
+            const item = this.schemeContainer.findItemById(this.inPlaceTextEditor.itemId);
+            if (item) {
                 this.updateInPlaceTextEditorStyle();
             }
         },
@@ -2123,7 +2133,7 @@ export default {
             item.textSlots[anotherSlotName] = utils.clone(item.textSlots[slotName]);
             item.textSlots[slotName].text = '';
             EditorEventBus.item.changed.specific.$emit(this.editorId, item.id, `textSlots.${anotherSlotName}`);
-            if (!this.inPlaceTextEditor.item) {
+            if (!this.inPlaceTextEditor.itemId) {
                 this.currentRightTab = `Text: ${anotherSlotName}`;
             }
 
@@ -3282,6 +3292,7 @@ export default {
                 this.restoreCurveEditing();
             }
             this.schemeContainer.rebaseScheme();
+            this.commitHistory();
             this.svgEditorRevision++;
         },
 

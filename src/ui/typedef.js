@@ -198,7 +198,7 @@
  * This structure is created in SchemeContainer during items reindex
  * @typedef {Object} ItemMeta
  * @property {String|undefined} parentId
- * @property {String} activeTextSlot - the name of a text slot that is accurently used for in place text edit
+ * @property {String} activeTextSlot - the name of a text slot that is currently used for in place text edit
  * @property {Array<String>} ancestorIds
  * @property {Array<Array<Number>} transformMatrix
  * @property {Number} revision - used for registering update of the item so that some editor components could be reloaded
