@@ -870,3 +870,287 @@ function textToArray(text) {
     }
     return arr;
 }
+
+describe('SchemePatch.generatePatchForObject with auto patching', () => {
+    const autoSchema = {
+        type: 'object',
+        patching: ['modify'],
+        fields: {
+            '*': {type: 'any', patching: ['auto']}
+        }
+    };
+
+    it('should use patch-text for string vs string', () => {
+        const origin = {
+            name: 'Hello world',
+            description: 'Some text'
+        };
+        const modified = {
+            name: 'Hello there',
+            description: 'Some text'
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['name'],
+            op: 'patch-text',
+            patch: {delete: [[6, 5]], add: [[6, 'there']]}
+        }]);
+    });
+
+    it('should use replace for string vs number', () => {
+        const origin = {
+            value: '123'
+        };
+        const modified = {
+            value: 123
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['value'],
+            op: 'replace',
+            value: 123
+        }]);
+    });
+
+    it('should use replace for number vs string', () => {
+        const origin = {
+            value: 456
+        };
+        const modified = {
+            value: '456'
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['value'],
+            op: 'replace',
+            value: '456'
+        }]);
+    });
+
+    it('should use modify for nested objects', () => {
+        const origin = {
+            config: {
+                width: 100,
+                height: 200
+            }
+        };
+        const modified = {
+            config: {
+                width: 150,
+                height: 200
+            }
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['config'],
+            op: 'modify',
+            changes: [{
+                path: ['config', 'width'],
+                op: 'replace',
+                value: 150
+            }]
+        }]);
+    });
+
+    it('should use patch-array for arrays', () => {
+        const origin = {
+            items: [1, 2, 3]
+        };
+        const modified = {
+            items: [1, 4, 3]
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['items'],
+            op: 'patch-array',
+            patch: {
+                replace: [[1, 4]]
+            }
+        }]);
+    });
+
+    it('should use replace for boolean changes', () => {
+        const origin = {
+            enabled: false
+        };
+        const modified = {
+            enabled: true
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['enabled'],
+            op: 'replace',
+            value: true
+        }]);
+    });
+
+    it('should use delete for removed fields', () => {
+        const origin = {
+            name: 'test',
+            value: 123
+        };
+        const modified = {
+            name: 'test'
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['value'],
+            op: 'delete'
+        }]);
+    });
+
+    it('should use replace for added fields', () => {
+        const origin = {
+            name: 'test'
+        };
+        const modified = {
+            name: 'test',
+            value: 123
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['value'],
+            op: 'replace',
+            value: 123
+        }]);
+    });
+
+    it('should handle null vs value', () => {
+        const origin = {
+            value: null
+        };
+        const modified = {
+            value: 'some string'
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['value'],
+            op: 'replace',
+            value: 'some string'
+        }]);
+    });
+
+    it('should handle value vs null', () => {
+        const origin = {
+            value: 'some string'
+        };
+        const modified = {
+            value: null
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['value'],
+            op: 'replace',
+            value: null
+        }]);
+    });
+
+    it('should handle deeply nested objects with patch-text for strings', () => {
+        const origin = {
+            level1: {
+                level2: {
+                    text: 'Hello world'
+                }
+            }
+        };
+        const modified = {
+            level1: {
+                level2: {
+                    text: 'Hello there'
+                }
+            }
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['level1'],
+            op: 'modify',
+            changes: [{
+                path: ['level1', 'level2'],
+                op: 'modify',
+                changes: [{
+                    path: ['level1', 'level2', 'text'],
+                    op: 'patch-text',
+                    patch: {delete: [[6, 5]], add: [[6, 'there']]}
+                }]
+            }]
+        }]);
+    });
+
+    it('should handle mixed types in nested objects', () => {
+        const origin = {
+            config: {
+                name: 'Old name',
+                count: 10,
+                enabled: false
+            }
+        };
+        const modified = {
+            config: {
+                name: 'New name',
+                count: 20,
+                enabled: true
+            }
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([{
+            path: ['config'],
+            op: 'modify',
+            changes: [
+                {
+                    path: ['config', 'name'],
+                    op: 'patch-text',
+                    patch: {delete: [[0, 3]], add: [[0, 'New']]}
+                },
+                {
+                    path: ['config', 'count'],
+                    op: 'replace',
+                    value: 20
+                },
+                {
+                    path: ['config', 'enabled'],
+                    op: 'replace',
+                    value: true
+                }
+            ]
+        }]);
+    });
+
+    it('should not generate patch for unchanged values', () => {
+        const origin = {
+            name: 'test',
+            value: 123
+        };
+        const modified = {
+            name: 'test',
+            value: 123
+        };
+
+        const patch = generatePatchForObject(origin, modified, autoSchema, []);
+
+        expect(patch).toStrictEqual([]);
+    });
+});

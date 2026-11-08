@@ -79,7 +79,7 @@ const baseSchema = {
                             method : {type: 'string', patching: ['replace']},
                             on     : {type: 'boolean', patching: ['replace']},
                             argBinds: {type: 'object', patching: ['patch-map', 'replace'], fields: {
-                                '*'  : {type: 'object', patching: ['replace'] },
+                                '*'  : {type: 'object', patching: ['auto'] },
                             }},
                             args   : {type: 'conditional', contidionalParentField: 'method', conditions: [ /* dynamically built */]}
                         }}
@@ -117,9 +117,9 @@ const baseSchema = {
                 tooltipColor     : {type: 'string', patching: ['replace']},
                 tags             : {type: 'array', of: 'string', patching: ['patch-set']},
                 args             : {type: 'object', patching: ['modify'], fields: {
-                    '*': {type: 'any', patching: ['replace', 'delete']},
+                    '*': {type: 'any', patching: ['auto', 'delete']},
                     templateArgs: {type: 'object', patching: ['modify', 'delete'], fields: {
-                        '*': {type: 'any', patching: ['replace', 'delete']}
+                        '*': {type: 'any', patching: ['auto', 'delete']}
                     }}
                 }},
                 area             : {type: 'object', patching: ['modify'], fields: {
@@ -155,7 +155,7 @@ const baseSchema = {
                             method : {type: 'string', patching: ['replace']},
                             on     : {type: 'boolean', patching: ['replace']},
                             argBinds: {type: 'object', patching: ['patch-map', 'replace'], fields: {
-                                '*'  : {type: 'any', patching: ['replace'] },
+                                '*'  : {type: 'any', patching: ['auto'] },
                             }},
                             args   : {type: 'conditional', contidionalParentField: 'method', conditions: [ /* dynamically built */]}
                         }}
@@ -172,13 +172,13 @@ const baseSchema = {
                 autoLayout: {type: 'object', patching: ['modify', 'replace'], fields: {
                     on: {type: 'boolean', patching: ['replace']},
                     rules: {type: 'map', of: 'any', patching: ['patch-map'], fields: {
-                        '*'  : {type: 'any', patching: ['replace'] },
+                        '*'  : {type: 'any', patching: ['auto'] },
                     }}
                 }},
                 classes: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
                     id    : {type: 'string'},
                     args  : {type: 'map', of: 'any', patching: ['patch-map', 'replace', 'delete'], fields: {
-                        '*'  : {type: 'any', patching: ['replace'] },
+                        '*'  : {type: 'any', patching: ['auto', 'delete'] },
                     }}
                 }},
                 functions: {type: 'array', of: 'object', patching: ['patch-id-array', 'replace'], fields: {
@@ -379,12 +379,12 @@ export function getSchemioDocSchema() {
     }
 
     const shapePropsConditions = [{
-        on: null, type: 'object', patching: ['modify', 'delete'], fields: { '*': {type: 'any', patching: ['replace', 'delete']} }
+        on: null, type: 'object', patching: ['modify', 'delete'], fields: { '*': {type: 'any', patching: ['auto', 'delete']} }
     }]
 
     Shape.getShapeIds().forEach(shapeId => {
         const shape = Shape.find(shapeId);
-        const condition = {on : shapeId, type: 'object', patching: ['modify', 'delete'], fields: {'*': {type: 'any', patching: ['replace', 'delete']}}};
+        const condition = {on : shapeId, type: 'object', patching: ['modify', 'delete'], fields: {'*': {type: 'any', patching: ['auto', 'delete']}}};
         forEach(Shape.getShapeArgs(shape), (argDef, name) => {
             condition.fields[name] = createFieldSchemaForArg(argDef);
         })
@@ -398,14 +398,14 @@ export function getSchemioDocSchema() {
         on: null,
         type: 'object',
         patching: [ 'modify', 'delete' ],
-        fields: { '*': {type: 'any', patching: ['replace', 'delete']}}
+        fields: { '*': {type: 'any', patching: ['auto', 'delete']}}
     }].concat(buildFieldConditionsFor(Functions.main));
 
     baseSchema.fields.scripts.fields.classes.fields.events.fields.actions.fields.args.conditions = [{
         on: null,
         type: 'object',
         patching: [ 'modify', 'delete' ],
-        fields: { '*': {type: 'any', patching: ['replace', 'delete']}}
+        fields: { '*': {type: 'any', patching: ['auto', 'delete']}}
     }].concat(buildFieldConditionsFor(Functions.main));
 
     _schemioDocSchema = baseSchema;

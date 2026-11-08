@@ -686,7 +686,7 @@ export function generatePatchForObject(originObject, modifiedObject, patchSchema
         }
         const op = fieldSchema.patching[0];
 
-        if (op !== 'replace') {
+        if (op !== 'replace' && op !== 'auto') {
             if (
                 (typeof modifiedObject[field] !== typeof originObject[field] && (typeof originObject[field] === 'undefined' || originObject[field] === null))
                 || (originObject[field] === null && modifiedObject[field] !== null)
@@ -768,6 +768,9 @@ export function generatePatchForObject(originObject, modifiedObject, patchSchema
                     });
                 }
             }
+        } else if (op === 'auto') {
+            const autoOps = generateAutoPatch(originObject, modifiedObject, field, fieldPath, fieldSchema);
+            ops = ops.concat(autoOps);
         }
     };
 
@@ -821,6 +824,132 @@ export function generatePatchForObject(originObject, modifiedObject, patchSchema
             generatePatchForField(defaultFieldEntry, field);
         });
     }
+
+    return ops;
+}
+
+/**
+ * Generates patch operations for 'auto' patching mode by detecting types at runtime.
+ *
+ * @param {Object} originObject - The original object
+ * @param {Object} modifiedObject - The modified object
+ * @param {String} field - The field name
+ * @param {Array<String>} fieldPath - Path to the field
+ * @param {FieldSchema} fieldSchema - Schema for this field
+ * @returns {Array} Array of patch operations
+ */
+function generateAutoPatch(originObject, modifiedObject, field, fieldPath, fieldSchema) {
+    const ops = [];
+    const originValue = originObject[field];
+    const modifiedValue = modifiedObject[field];
+
+    // If field was deleted
+    if (!modifiedObject.hasOwnProperty(field) && originObject.hasOwnProperty(field)) {
+        ops.push({
+            path: fieldPath.concat([field]),
+            op: 'delete',
+        });
+        return ops;
+    }
+
+    // If field was added
+    if (!originObject.hasOwnProperty(field) && modifiedObject.hasOwnProperty(field)) {
+        ops.push({
+            path: fieldPath.concat([field]),
+            op: 'replace',
+            value: utils.clone(modifiedValue)
+        });
+        return ops;
+    }
+
+    // If values are equal, no patch needed
+    if (valueEquals(originValue, modifiedValue)) {
+        return ops;
+    }
+
+    const originType = typeof originValue;
+    const modifiedType = typeof modifiedValue;
+
+    // Handle null values
+    const originIsNull = originValue === null;
+    const modifiedIsNull = modifiedValue === null;
+
+    // Type mismatch (including null) -> use replace
+    if (originType !== modifiedType || originIsNull !== modifiedIsNull) {
+        ops.push({
+            path: fieldPath.concat([field]),
+            op: 'replace',
+            value: utils.clone(modifiedValue)
+        });
+        return ops;
+    }
+
+    // Both are objects (not arrays, not null)
+    if (originType === 'object' && !Array.isArray(originValue) && originValue !== null) {
+        const autoFieldSchema = {
+            type: 'object',
+            patching: ['auto'],
+            fields: {
+                '*': {type: 'any', patching: ['auto']}
+            }
+        };
+        // // Create a temporary schema for recursive modification
+        // // Preserve the original fields if they exist, otherwise add a wildcard for nested fields
+        // const autoFieldSchema = Object.assign({}, fieldSchema, {
+        //     type: 'object',
+        //     patching: ['auto']
+        // });
+
+        // // If the schema doesn't have fields, add a wildcard to handle nested fields with auto
+        // if (!autoFieldSchema.fields) {
+        //     autoFieldSchema.fields = {
+        //         '*': {type: 'any', patching: ['auto']}
+        //     };
+        // }
+
+        const nestedOps = generatePatchForObject(originValue, modifiedValue, autoFieldSchema, fieldPath.concat([field]));
+        if (nestedOps.length > 0) {
+            ops.push({
+                path: fieldPath.concat([field]),
+                op: 'modify',
+                changes: nestedOps
+            });
+        }
+        return ops;
+    }
+
+    // Both are arrays
+    if (Array.isArray(originValue) && Array.isArray(modifiedValue)) {
+        const arrayPatch = generateArrayPatch(originValue, modifiedValue);
+        if (arrayPatch && (
+            (arrayPatch.delete && arrayPatch.delete.length > 0) ||
+            (arrayPatch.add && arrayPatch.add.length > 0) ||
+            (arrayPatch.replace && arrayPatch.replace.length > 0))) {
+            ops.push({
+                path: fieldPath.concat([field]),
+                op: 'patch-array',
+                patch: arrayPatch
+            });
+        }
+        return ops;
+    }
+
+    // Both are strings -> use patch-text
+    if (originType === 'string' && modifiedType === 'string') {
+        ops.push({
+            path: fieldPath.concat([field]),
+            op: 'patch-text',
+            patch: generateStringPatch(originValue, modifiedValue)
+        });
+        return ops;
+    }
+
+    // For all other primitive types (numbers, booleans, etc.) or when we can't determine a better operation
+    ops.push({
+        path: fieldPath.concat([field]),
+        op: 'replace',
+        value: utils.clone(modifiedValue)
+    });
 
     return ops;
 }
