@@ -113,7 +113,7 @@ export default {
     },
 
     beforeDestroy() {
-        EditorEventBus.item.changed.specific.$on(this.editorId, this.item.id, this.onItemUpdated);
+        EditorEventBus.item.changed.specific.$off(this.editorId, this.item.id, this.onItemUpdated);
     },
 
     data() {
