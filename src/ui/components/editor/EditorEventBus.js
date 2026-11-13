@@ -1,9 +1,37 @@
-import Vue from 'vue';
 import {Logger} from '../../logger';
 
 const log = new Logger('EditorEventBus');
 
-const bus = new Vue({});
+const eventBus = (() => {
+    const listeners = {};
+
+    return {
+        on(eventName, callback) {
+            if (!listeners[eventName]) {
+                listeners[eventName] = [];
+            }
+            listeners[eventName].push(callback);
+        },
+
+        off(eventName, callback) {
+            const callbacks = listeners[eventName];
+            if (callbacks) {
+                const index = callbacks.indexOf(callback);
+                if (index !== -1) {
+                    callbacks.splice(index, 1);
+                }
+            }
+        },
+
+        emit(eventName, ...args) {
+            const callbacks = listeners[eventName];
+            if (callbacks) {
+                // Use slice() to avoid issues if callbacks modify the array during iteration
+                callbacks.slice().forEach(cb => cb(...args));
+            }
+        }
+    };
+})();
 
 function generateEvent(editorId, eventName, args) {
     let fullEvent = editorId + '/' + eventName;
@@ -17,13 +45,13 @@ function $on(editorId, eventName, args, callback) {
     if (!editorId) {
         throw new Error('editorId should be specified, got: ', editorId);
     }
-    bus.$on(generateEvent(editorId, eventName, args), callback);
+    eventBus.on(generateEvent(editorId, eventName, args), callback);
 }
 function $off(editorId, eventName, args, callback) {
     if (!editorId) {
         throw new Error('editorId should be specified, got: ', editorId);
     }
-    bus.$off(generateEvent(editorId, eventName, args), callback);
+    eventBus.off(generateEvent(editorId, eventName, args), callback);
 }
 function $emit(editorId, eventName, eventArgs, ...emitArgs) {
     if (!editorId) {
@@ -31,7 +59,7 @@ function $emit(editorId, eventName, eventArgs, ...emitArgs) {
     }
     const fullEventName = generateEvent(editorId, eventName, eventArgs);
     log.infoEvent(fullEventName, emitArgs);
-    bus.$emit(fullEventName, ...emitArgs);
+    eventBus.emit(fullEventName, ...emitArgs);
 }
 
 const EditorEventBus = {
