@@ -285,3 +285,91 @@ export function getItemOutlineSVGPath(item) {
     return null;
 }
 
+
+/**
+ * Converts an item's local area to its world area as if the item were at the root level.
+ * This follows the same logic as remountItemInsideOtherItem for remounting to root.
+ *
+ * If the item has no parent, returns the item's area directly.
+ * If the item has a parent, returns the area the item would have if remounted to root,
+ * preserving its visual appearance.
+ *
+ * @param {Item} item - The item whose area to convert
+ * @returns {ItemArea} The item's area as it would appear at the root level
+ */
+export function localToWorldItemArea(item) {
+    // If item has no parent, return its area as-is
+    if (!item.meta || !item.meta.parentId) {
+        return item.area;
+    }
+
+    // For items with a parent, compute the area as if remounted to root
+    const worldPos = worldPointOnItem(0, 0, item);
+    const worldRotation = worldAngleOfItem(item);
+
+    return {
+        x: worldPos.x,
+        y: worldPos.y,
+        w: item.area.w,
+        h: item.area.h,
+        r: worldRotation,
+        px: item.area.px,
+        py: item.area.py,
+        sx: item.area.sx,
+        sy: item.area.sy
+    };
+}
+
+/**
+ * Aligns an item's local area to match a target world area (as if at root level).
+ * This is the inverse of localToWorldItemArea.
+ *
+ * Given a target world area (as returned by localToWorldItemArea), this function
+ * computes what the item's local area should be so that localToWorldItemArea(item)
+ * would return the target world area.
+ *
+ * @param {Item} item - The item whose area to align
+ * @param {Item|null} parent - The parent of the item, null if the item has no parent
+ * @param {ItemArea} worldArea - The target world area (as if at root)
+ * @returns {ItemArea} The local area that will produce the target world area
+ */
+export function alignItemAreaToWorldArea(item, parent, worldArea) {
+    // If item has no parent, the world area is the same as local area
+    if (!item.meta || !item.meta.parentId) {
+        return worldArea;
+    }
+
+    // For items with a parent, we need to compute the local area that produces
+    // the target world area when the item is placed under its current parent.
+    const transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null;
+
+    let parentWorldRotation = 0;
+    if (parent) {
+        parentWorldRotation = worldAngleOfItem(parent);
+    }
+
+    // Position: find local (x,y) that places local (0,0) at target world position
+    const newLocalPos = myMath.findTranslationMatchingWorldPoint(
+        worldArea.x, worldArea.y,
+        0, 0,
+        item.area,
+        transformMatrix
+    );
+
+    // Rotation: adjust so that world rotation matches target
+    // target world rotation = parent world rotation + item local rotation
+    // So: item local rotation = target rotation - parent world rotation
+    const adjustedRotation = worldArea.r - parentWorldRotation;
+
+    return {
+        x: newLocalPos ? newLocalPos.x : item.area.x,
+        y: newLocalPos ? newLocalPos.y : item.area.y,
+        w: worldArea.w,
+        h: worldArea.h,
+        r: adjustedRotation,
+        px: item.area.px,
+        py: item.area.py,
+        sx: item.area.sx,
+        sy: item.area.sy,
+    };
+}

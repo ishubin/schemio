@@ -12,7 +12,7 @@ import Pagination from './components/Pagination.vue';
 import CreateNewSchemeModal from './components/CreateNewSchemeModal.vue';
 import EditorEventBus from './components/editor/EditorEventBus';
 import { snapshotSvg } from './svgPreview.js';
-import { getBoundingBoxOfItems } from './scheme/ItemMath.js';
+import { getBoundingBoxOfItems, localPointOnItem, localToWorldItemArea, worldPointOnItem, alignItemAreaToWorldArea } from './scheme/ItemMath.js';
 import { traverseItems } from './scheme/Item.js';
 import Dropdown from './components/Dropdown.vue';
 import MenuDropdown from './components/MenuDropdown.vue';
@@ -48,6 +48,12 @@ window.Schemio = {
         htmlSanitize,
         LimitedSettingsStorage,
         InMemoryCache,
+        ItemMath: {
+            worldPointOnItem,
+            localPointOnItem,
+            localToWorldItemArea,
+            alignItemAreaToWorldArea,
+        }
     },
     patcher: { applySchemePatch, generateSchemePatch, generatePatchIndex, generatePatchStatistic },
     /**
