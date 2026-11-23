@@ -298,11 +298,6 @@ export function getItemOutlineSVGPath(item) {
  * @returns {ItemArea} The item's area as it would appear at the root level
  */
 export function localToWorldItemArea(item) {
-    // If item has no parent, return its area as-is
-    if (!item.meta || !item.meta.parentId) {
-        return item.area;
-    }
-
     // For items with a parent, compute the area as if remounted to root
     const worldPos = worldPointOnItem(0, 0, item);
     const worldRotation = worldAngleOfItem(item);
@@ -334,11 +329,6 @@ export function localToWorldItemArea(item) {
  * @returns {ItemArea} The local area that will produce the target world area
  */
 export function alignItemAreaToWorldArea(item, parent, worldArea) {
-    // If item has no parent, the world area is the same as local area
-    if (!item.meta || !item.meta.parentId) {
-        return worldArea;
-    }
-
     // For items with a parent, we need to compute the local area that produces
     // the target world area when the item is placed under its current parent.
     const transformMatrix = (item.meta && item.meta.transformMatrix) ? item.meta.transformMatrix : null;
@@ -348,18 +338,25 @@ export function alignItemAreaToWorldArea(item, parent, worldArea) {
         parentWorldRotation = worldAngleOfItem(parent);
     }
 
-    // Position: find local (x,y) that places local (0,0) at target world position
-    const newLocalPos = myMath.findTranslationMatchingWorldPoint(
-        worldArea.x, worldArea.y,
-        0, 0,
-        item.area,
-        transformMatrix
-    );
-
     // Rotation: adjust so that world rotation matches target
     // target world rotation = parent world rotation + item local rotation
     // So: item local rotation = target rotation - parent world rotation
     const adjustedRotation = worldArea.r - parentWorldRotation;
+
+    // Position: find local (x,y) that places local (0,0) at target world position
+    // We need to use a temporary area with the adjusted rotation for this calculation,
+    // similar to how remountItemInsideOtherItem does it.
+    const tempArea = {
+        ...item.area,
+        r: adjustedRotation
+    };
+
+    const newLocalPos = myMath.findTranslationMatchingWorldPoint(
+        worldArea.x, worldArea.y,
+        0, 0,
+        tempArea,
+        transformMatrix
+    );
 
     return {
         x: newLocalPos ? newLocalPos.x : item.area.x,
@@ -369,7 +366,7 @@ export function alignItemAreaToWorldArea(item, parent, worldArea) {
         r: adjustedRotation,
         px: item.area.px,
         py: item.area.py,
-        sx: item.area.sx,
-        sy: item.area.sy,
+        sx: worldArea.sx,
+        sy: worldArea.sy,
     };
 }

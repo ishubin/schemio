@@ -467,7 +467,7 @@ import PathEditBox from './editor/PathEditBox.vue';
 import InPlaceTextEditBox from './editor/text-editor/InPlaceTextEditBox.vue';
 import EditorEventBus from './editor/EditorEventBus.js';
 import SchemeContainer  from '../scheme/SchemeContainer.js';
-import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea, collectOnlyVisibleNonHUDItems } from '../scheme/ItemMath.js';
+import { localPointOnItem, worldPointOnItem, worldScalingVectorOnItem, getBoundingBoxOfItems, worldAngleOfItem, filterNonHUDItems, calculateZoomingAreaForItems, calculateScreenTransformForArea, collectOnlyVisibleNonHUDItems, localToWorldItemArea, alignItemAreaToWorldArea } from '../scheme/ItemMath.js';
 import { rebaseScheme } from '../scheme/SchemeRebase.js';
 import CreateItemMenu   from './editor/CreateItemMenu.vue';
 import ElementPicker from './editor/ElementPicker.vue';
