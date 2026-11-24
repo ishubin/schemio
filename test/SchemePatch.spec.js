@@ -14,7 +14,6 @@ describe('SchemePatch.generateSchemePatch', () => {
         });
     });
 
-
     it('should not put "ignored" fields when adding new items', () => {
         const origin = {
             name: 'origin',
@@ -953,7 +952,7 @@ describe('SchemePatch.generatePatchForObject with auto patching', () => {
             path: ['config'],
             op: 'modify',
             changes: [{
-                path: ['config', 'width'],
+                path: ['width'],
                 op: 'replace',
                 value: 150
             }]
@@ -1087,10 +1086,10 @@ describe('SchemePatch.generatePatchForObject with auto patching', () => {
             path: ['level1'],
             op: 'modify',
             changes: [{
-                path: ['level1', 'level2'],
+                path: ['level2'],
                 op: 'modify',
                 changes: [{
-                    path: ['level1', 'level2', 'text'],
+                    path: ['text'],
                     op: 'patch-text',
                     patch: {delete: [[6, 5]], add: [[6, 'there']]}
                 }]
@@ -1121,17 +1120,17 @@ describe('SchemePatch.generatePatchForObject with auto patching', () => {
             op: 'modify',
             changes: [
                 {
-                    path: ['config', 'name'],
+                    path: ['name'],
                     op: 'patch-text',
                     patch: {delete: [[0, 3]], add: [[0, 'New']]}
                 },
                 {
-                    path: ['config', 'count'],
+                    path: ['count'],
                     op: 'replace',
                     value: 20
                 },
                 {
-                    path: ['config', 'enabled'],
+                    path: ['enabled'],
                     op: 'replace',
                     value: true
                 }

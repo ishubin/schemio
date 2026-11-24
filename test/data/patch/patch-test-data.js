@@ -1920,4 +1920,76 @@ export const patchTestData = [{
             }]},
         }
     }
+}, {
+    name: 'args.tplText body patching (from sankey template)',
+    origin: {
+        items: [{
+            id: 'item1',
+            shape: 'rect',
+            name: 'item 1',
+            args: {
+                simpleText: true,
+                tplText: {
+                    body: 'Some text'
+                },
+                templatedId: "cl-Budget[]Taxes",
+                templated: true
+            }
+        }]
+    },
+    modified: {
+        items: [{
+            id: 'item1',
+            shape: 'rect',
+            name: 'item 1',
+            args: {
+                simpleText: true,
+                tplText: {
+                    body: 'Changed text'
+                },
+                templatedId: "cl-Budget[]Taxes",
+                templated: true
+            }
+        }]
+    },
+    patch: {
+        version: '1',
+        protocol: 'schemio/patch',
+        changes: [ {
+            path: [ "items" ],
+            op: "patch-id-array",
+            changes: [ {
+                id: "item1",
+                op: "modify",
+                changes: [ {
+                    path: [ "args", "tplText" ],
+                    op: "modify",
+                    changes: [ {
+                        path: [ "body" ],
+                        op: "patch-text",
+                        patch: {
+                            delete: [ [ 0, 4 ] ],
+                            add: [ [ 0, "Changed" ] ]
+                        }
+                    } ]
+                } ]
+            } ]
+        } ]
+    },
+    stats: {
+        document: {
+            fieldChanges: 0,
+            fields: []
+        },
+        items: {
+            added: {count: 0, items: []},
+            deleted: {count: 0, items: []},
+            modified: {count: 1, items: [{
+                id: 'item1',
+                fields: [
+                    'args.tplText.body'
+                ]
+            }]},
+        }
+    }
 } ];

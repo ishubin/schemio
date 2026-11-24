@@ -907,7 +907,7 @@ function generateAutoPatch(originObject, modifiedObject, field, fieldPath, field
         //     };
         // }
 
-        const nestedOps = generatePatchForObject(originValue, modifiedValue, autoFieldSchema, fieldPath.concat([field]));
+        const nestedOps = generatePatchForObject(originValue, modifiedValue, autoFieldSchema, []);
         if (nestedOps.length > 0) {
             ops.push({
                 path: fieldPath.concat([field]),
@@ -1029,6 +1029,13 @@ function applyChange(obj, change, rootPath, schemaIndex) {
             break;
         case 'patch-id-array':
             applyIdArrayPatch(obj, change, rootPath.concat(change.path), schemaIndex);
+            break;
+        case 'modify':
+            const targetObj = utils.getObjectProperty(obj, change.path);
+            if (targetObj !== null && typeof targetObj !== 'undefined') {
+                const modifiedObj = applyPatch(targetObj, {changes: change.changes}, rootPath.concat(change.path), schemaIndex);
+                utils.setObjectProperty(obj, change.path, modifiedObj);
+            }
             break;
         case 'patch-map':
             const originMap = utils.getObjectProperty(obj, change.path);
