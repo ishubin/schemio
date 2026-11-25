@@ -1614,19 +1614,42 @@ export default {
             this.addTrackModal.shown = true;
         },
 
+        ensureCorrectProperty(shapeId, property) {
+            const shapePropsPrefix = 'shapeProps.';
+            if (!property.startsWith(shapePropsPrefix)) {
+                return property;
+            }
+            const shape = Shape.find(shapeId);
+            if (!shape) {
+                return property;
+            }
+            const argDef = Shape.getShapePropDescriptor(shape, property.substring(shapePropsPrefix.length));
+            if (!argDef) {
+                return property;
+            }
+            if (argDef.type === 'advanced-color') {
+                // Only simple color animation is supported by frame player
+                return property + '.color';
+            }
+            return property;
+        },
+
         addTrackFromModal() {
             const item = this.schemeContainer.findFirstElementBySelector(this.addTrackModal.element);
-            if (item && this.addTrackModal.property) {
+            let property = this.addTrackModal.property;
+
+            if (item && property) {
                 const trackAlreadyExists = this.selectedFramePlayer.shapeProps.animations.findIndex(track =>
                     track.kind === 'item' && track.itemId === item.id && track.property === this.addTrackModal.property
                 ) >= 0;
 
+                property = this.ensureCorrectProperty(item.shape, property);
                 if (!trackAlreadyExists) {
                     const track = {
                         kind    : 'item',
                         id      : shortid.generate(),
                         itemId  : item.id,
-                        property: this.addTrackModal.property,
+                        property: property,
                         frames  : []
                     };
                     this.selectedFramePlayer.shapeProps.animations.push(track);
