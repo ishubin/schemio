@@ -365,7 +365,7 @@ export default {
         state(state) {
             if (state === 'editPath') {
                 this.switchToPathTab();
-            } else {
+            } else if (this.currentTab === this.tabs[pathTabIdx].name) {
                 this.switchOffPathTab();
             }
         },
