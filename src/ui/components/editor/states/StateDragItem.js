@@ -150,9 +150,9 @@ class EditBoxState extends SubState {
 }
 
 class DragControlPointState extends SubState {
-    constructor(parentState, item, pointId, x, y, mx, my) {
+    constructor(parentState, itemId, pointId, x, y, mx, my) {
         super(parentState, 'resize-edit-box');
-        this.item = item;
+        this.itemId = itemId;
         this.pointId = pointId;
         this.originalPoint = {x, y, mx, my};
         /** @type {SchemeContainer} */
@@ -175,24 +175,30 @@ class DragControlPointState extends SubState {
     }
 
     mouseUp(x, y, mx, my, object, event) {
-        this.item.meta.revision += 1;
-        const context = {
-            ...ITEM_MODIFICATION_CONTEXT_CONTROL_POINT,
-            itemId: this.item.id,
-        };
-        this.schemeContainer.updateEditBoxItems(this.schemeContainer.editBox, IS_NOT_SOFT, context, this.getUpdatePrecision());
-        this.schemeContainer.reindexItems();
-        this.schemeContainer.updateEditBox();
-        StoreUtils.setItemControlPoints(this.store, this.item);
-        this.listener.onSchemeChangeCommitted();
-        this.listener.onItemsHighlighted({itemIds: [], showPins: false});
-        this.migrateToPreviousSubState();
+        this.schemeContainer.withItem(this.itemId, item => {
+            item.meta.revision += 1;
+            const context = {
+                ...ITEM_MODIFICATION_CONTEXT_CONTROL_POINT,
+                itemId: this.itemId,
+            };
+            this.schemeContainer.updateEditBoxItems(this.schemeContainer.editBox, IS_NOT_SOFT, context, this.getUpdatePrecision());
+            this.schemeContainer.reindexItems();
+            this.schemeContainer.updateEditBox();
+            StoreUtils.setItemControlPoints(this.store, item);
+            this.listener.onSchemeChangeCommitted();
+            this.listener.onItemsHighlighted({itemIds: [], showPins: false});
+            this.migrateToPreviousSubState();
+        });
     }
 
     findItemControlPoint(pointId) {
-        if (this.item.shape === 'connector') {
+        const item = this.schemeContainer.findItemById(this.itemId);
+        if (!item) {
+            return null;
+        }
+        if (item.shape === 'connector') {
             pointId = parseInt(pointId);
-            const p = this.item.shapeProps.points[pointId];
+            const p = item.shapeProps.points[pointId];
             if (!p) {
                 return null;
             }
@@ -201,9 +207,9 @@ class DragControlPointState extends SubState {
                 id: pointId,
                 x: p.x,
                 y: p.y,
-                editBoxConnectorPointIdx: this.findEditBoxConnectorPointIdx(this.item.id, pointId),
+                editBoxConnectorPointIdx: this.findEditBoxConnectorPointIdx(this.itemId, pointId),
                 isEdgeStart: pointId === 0,
-                isEdgeEnd: pointId === this.item.shapeProps.points.length - 1
+                isEdgeEnd: pointId === item.shapeProps.points.length - 1
             };
         }
 
@@ -233,78 +239,86 @@ class DragControlPointState extends SubState {
     handleControlPointDrag(x, y) {
         StoreUtils.clearItemSnappers(this.store);
 
-        if (this.controlPoint) {
-            if (this.item.shape === 'connector' && (this.controlPoint.isEdgeStart || this.controlPoint.isEdgeEnd)) {
-                this.handleConnectorEdgeControlPointDrag(x, y, this.controlPoint);
-                this.schemeContainer.updateItemClones(this.item);
-            } else {
-                const newOffset = this.snapPoints({
-                    vertical: [{x, y}],
-                    horizontal: [{x, y}],
-                }, new Set(), 0, 0);
-
-                const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, this.item);
-                const localPoint2 = this.schemeContainer.localPointOnItem(x + newOffset.dx, y + newOffset.dy, this.item);
-
-                const dx = localPoint2.x - localPoint.x;
-                const dy = localPoint2.y - localPoint.y;
-
-                const shape = Shape.find(this.item.shape);
-
-                // using scaling vector as previously all control points were already corrected by scaling effect relatively to world (in StoreUtils)
-                const scalingVector = worldScalingVectorOnItem(this.item);
-                const svx = Math.max(0.0000001, scalingVector.x);
-                const svy = Math.max(0.0000001, scalingVector.y);
-
-                if (this.item.shape === 'connector') {
-                    this.handleConnectorPointDrag(this.pointId, dx, dy, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy);
+        this.schemeContainer.withItem(this.itemId, item => {
+            if (this.controlPoint) {
+                if (item.shape === 'connector' && (this.controlPoint.isEdgeStart || this.controlPoint.isEdgeEnd)) {
+                    this.handleConnectorEdgeControlPointDrag(x, y, this.controlPoint);
+                    this.schemeContainer.updateItemClones(item);
                 } else {
-                    shape.controlPoints.handleDrag(this.item, this.pointId, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy, dx, dy, this, this.schemeContainer);
+                    const newOffset = this.snapPoints({
+                        vertical: [{x, y}],
+                        horizontal: [{x, y}],
+                    }, new Set(), 0, 0);
+
+                    const localPoint  = this.schemeContainer.localPointOnItem(this.originalPoint.x, this.originalPoint.y, item);
+                    const localPoint2 = this.schemeContainer.localPointOnItem(x + newOffset.dx, y + newOffset.dy, item);
+
+                    const dx = localPoint2.x - localPoint.x;
+                    const dy = localPoint2.y - localPoint.y;
+
+                    const shape = Shape.find(item.shape);
+
+                    // using scaling vector as previously all control points were already corrected by scaling effect relatively to world (in StoreUtils)
+                    const scalingVector = worldScalingVectorOnItem(item);
+                    const svx = Math.max(0.0000001, scalingVector.x);
+                    const svy = Math.max(0.0000001, scalingVector.y);
+
+                    if (item.shape === 'connector') {
+                        this.handleConnectorPointDrag(this.pointId, dx, dy, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy);
+                    } else {
+                        shape.controlPoints.handleDrag(item, this.pointId, this.controlPointOriginalX / svx, this.controlPointOriginalY / svy, dx, dy, this, this.schemeContainer);
+                    }
+
+                    this.listener.onItemChanged(item.id);
+                    this.schemeContainer.readjustItem(item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
+
+                    // updating all control points as they might affect one another
+                    StoreUtils.setItemControlPoints(this.store, item);
+                    this.schemeContainer.updateItemClones(item);
                 }
-
-                this.listener.onItemChanged(this.item.id);
-                this.schemeContainer.readjustItem(this.item.id, IS_SOFT, ITEM_MODIFICATION_CONTEXT_DEFAULT, this.getUpdatePrecision());
-
-                // updating all control points as they might affect one another
-                StoreUtils.setItemControlPoints(this.store, this.item);
-                this.schemeContainer.updateItemClones(this.item);
             }
-        }
+        });
     }
 
     handleConnectorPointDrag(pointId, dx, dy, originalX, originalY) {
-        const point = this.item.shapeProps.points[pointId];
-        if (point) {
-            const worldPoint = this.schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, this.item);
+        this.schemeContainer.withItem(this.itemId, item => {
+            const point = item.shapeProps.points[pointId];
+            if (point) {
+                const worldPoint = this.schemeContainer.worldPointOnItem(originalX + dx, originalY + dy, item);
 
-            const newOffset = this.snapPoints({
-                vertical: [worldPoint],
-                horizontal: [worldPoint],
-            }, new Set(), 0, 0);
+                const newOffset = this.snapPoints({
+                    vertical: [worldPoint],
+                    horizontal: [worldPoint],
+                }, new Set(), 0, 0);
 
-            const wx = worldPoint.x + newOffset.dx;
-            const wy = worldPoint.y + newOffset.dy;
+                const wx = worldPoint.x + newOffset.dx;
+                const wy = worldPoint.y + newOffset.dy;
 
-            const localPoint = this.schemeContainer.localPointOnItem(wx, wy, this.item);
-            point.x = localPoint.x;
-            point.y = localPoint.y;
+                const localPoint = this.schemeContainer.localPointOnItem(wx, wy, item);
+                point.x = localPoint.x;
+                point.y = localPoint.y;
 
-            if (this.controlPoint.editBoxConnectorPointIdx >= 0) {
-                const lp = myMath.localPointInArea(wx, wy, this.schemeContainer.editBox.area);
-                this.schemeContainer.editBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = lp.x;
-                this.schemeContainer.editBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
+                if (this.controlPoint.editBoxConnectorPointIdx >= 0) {
+                    const lp = myMath.localPointInArea(wx, wy, this.schemeContainer.editBox.area);
+                    this.schemeContainer.editBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].x = lp.x;
+                    this.schemeContainer.editBox.connectorPoints[this.controlPoint.editBoxConnectorPointIdx].y = lp.y;
+                }
+
+                // since this function can only be called if the connector is selected
+                // we should update connector path so that it can be rendered in multi item edit box
+                StoreUtils.setSelectedConnector(this.store, item);
             }
-
-            // since this function can only be called if the connector is selected
-            // we should update connector path so that it can be rendered in multi item edit box
-            StoreUtils.setSelectedConnector(this.store, this.item);
-        }
+        });
     }
 
     handleConnectorEdgeControlPointDrag(x, y, controlPoint) {
         // this function implements the same logic as in StateEditPath.handleEdgeCurvePointDrag
         // but it also modifies a control point in the end
         // so it is not that easy to share code
+        const item = this.schemeContainer.findItemById(this.itemId);
+        if (!item) {
+            return;
+        }
 
         let distanceThreshold = 10;
         if (this.schemeContainer.screenTransform.scale > 0) {
@@ -313,7 +327,7 @@ class DragControlPointState extends SubState {
 
         const includeOnlyVisibleItems = true;
 
-        const point = this.item.shapeProps.points[this.pointId];
+        const point = item.shapeProps.points[this.pointId];
         if (!point) {
             return;
         }
@@ -323,7 +337,7 @@ class DragControlPointState extends SubState {
             excludedIds = this.editBox.itemIds;
         } else {
             excludedIds = new Set();
-            excludedIds.add(this.item.id);
+            excludedIds.add(item.id);
         }
 
         const snappedOffset = this.snapPoints({
@@ -332,17 +346,17 @@ class DragControlPointState extends SubState {
         }, excludedIds, 0, 0);
 
         let closestPointToItem = null;
-        if (this.item.shapeProps.autoAttach) {
-            closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, this.item.id, includeOnlyVisibleItems);
+        if (item.shapeProps.autoAttach) {
+            closestPointToItem = this.schemeContainer.findClosestPointToItems(x + snappedOffset.dx, y + snappedOffset.dy, distanceThreshold, item.id, includeOnlyVisibleItems);
         }
 
         let worldX, worldY;
         // Not letting connectors attach to themselves
-        if (this.item.shapeProps.autoAttach && closestPointToItem && closestPointToItem.itemId !== this.item.id
-            && !this.schemeContainer.doesItemDependOn(closestPointToItem.itemId, this.item.id)) {
+        if (item.shapeProps.autoAttach && closestPointToItem && closestPointToItem.itemId !== item.id
+            && !this.schemeContainer.doesItemDependOn(closestPointToItem.itemId, item.id)) {
             worldX = closestPointToItem.x;
             worldY = closestPointToItem.y;
-            const localPoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, this.item);
+            const localPoint = this.schemeContainer.localPointOnItem(closestPointToItem.x, closestPointToItem.y, item);
 
             point.x = localPoint.x;
             point.y = localPoint.y;
@@ -354,28 +368,28 @@ class DragControlPointState extends SubState {
 
             this.listener.onItemsHighlighted({itemIds: [closestPointToItem.itemId], showPins: true});
             if (controlPoint.isEdgeStart) {
-                this.item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
+                item.shapeProps.sourceItem = '#' + closestPointToItem.itemId;
                 if (closestPointToItem.pinId) {
-                    this.item.shapeProps.sourcePin = closestPointToItem.pinId;
-                    this.item.shapeProps.sourceItemPosition = 0;
+                    item.shapeProps.sourcePin = closestPointToItem.pinId;
+                    item.shapeProps.sourceItemPosition = 0;
                 } else {
-                    this.item.shapeProps.sourcePin = '';
-                    this.item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
+                    item.shapeProps.sourcePin = '';
+                    item.shapeProps.sourceItemPosition = closestPointToItem.distanceOnPath;
                 }
             } else {
-                this.item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
+                item.shapeProps.destinationItem = '#' + closestPointToItem.itemId;
                 if (closestPointToItem.pinId) {
-                    this.item.shapeProps.destinationPin = closestPointToItem.pinId;
-                    this.item.shapeProps.destinationItemPosition = 0;
+                    item.shapeProps.destinationPin = closestPointToItem.pinId;
+                    item.shapeProps.destinationItemPosition = 0;
                 } else {
-                    this.item.shapeProps.destinationPin = '';
-                    this.item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
+                    item.shapeProps.destinationPin = '';
+                    item.shapeProps.destinationItemPosition = closestPointToItem.distanceOnPath;
                 }
             }
         } else {
             worldX = x + snappedOffset.dx;
             worldY = y + snappedOffset.dy;
-            const localPoint = this.schemeContainer.localPointOnItem(worldX, worldY, this.item);
+            const localPoint = this.schemeContainer.localPointOnItem(worldX, worldY, item);
 
             point.x = localPoint.x;
             point.y = localPoint.y;
@@ -383,13 +397,13 @@ class DragControlPointState extends SubState {
             // nothing to attach to so reseting highlights in case it was set previously
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (controlPoint.isEdgeStart) {
-                this.item.shapeProps.sourceItem = null;
-                this.item.shapeProps.sourcePin = '';
-                this.item.shapeProps.sourceItemPosition = 0;
+                item.shapeProps.sourceItem = null;
+                item.shapeProps.sourcePin = '';
+                item.shapeProps.sourceItemPosition = 0;
             } else {
-                this.item.shapeProps.destinationItem = null;
-                this.item.shapeProps.destinationPin = '';
-                this.item.shapeProps.destinationItemPosition = 0;
+                item.shapeProps.destinationItem = null;
+                item.shapeProps.destinationPin = '';
+                item.shapeProps.destinationItemPosition = 0;
             }
 
             if (point.hasOwnProperty('nx')) {
@@ -405,13 +419,13 @@ class DragControlPointState extends SubState {
         }
 
 
-        this.listener.onItemChanged(this.item.id);
-        const context = {...ITEM_MODIFICATION_CONTEXT_DEFAULT, controlPoint: true, itemId: this.item.id};
-        this.schemeContainer.readjustItem(this.item.id, IS_SOFT, context, this.getUpdatePrecision());
+        this.listener.onItemChanged(item.id);
+        const context = {...ITEM_MODIFICATION_CONTEXT_DEFAULT, controlPoint: true, itemId: item.id};
+        this.schemeContainer.readjustItem(item.id, IS_SOFT, context, this.getUpdatePrecision());
 
         // since this function can only be called if the connector is selected
         // we should update connector path so that it can be rendered in multi item edit box
-        StoreUtils.setSelectedConnector(this.store, this.item);
+        StoreUtils.setSelectedConnector(this.store, item);
     }
 }
 
@@ -968,7 +982,7 @@ class IdleState extends SubState {
                 this.reset();
                 return;
             } else if (this.clickedObject.type === ObjectTypes.CONTROL_POINT) {
-                this.migrate(new DragControlPointState(this.parentState, this.clickedObject.controlPoint.item, this.clickedObject.controlPoint.pointId, x, y, mx, my));
+                this.migrate(new DragControlPointState(this.parentState, this.clickedObject.controlPoint.item.id, this.clickedObject.controlPoint.pointId, x, y, mx, my));
                 this.reset();
                 return;
             }
