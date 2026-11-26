@@ -2446,6 +2446,24 @@ class SchemeContainer {
         this.selectedConnectorPoints = [];
     }
 
+
+    /**
+     * Searches for item with specified id and invokes a specified callback with the item as a 1st argument
+     * This should be used when we could potentially dealing with stale items due to the rebasing of the scheme
+     * This way we make sure that we always work on the real item
+     * If item is not found, then the callback is not invoked
+     * @param {string} itemId
+     * @param {function(Item)} callback
+     * @returns
+     */
+    withItem(itemId, callback) {
+        const item = this.findItemById(itemId);
+        if (!item) {
+            return;
+        }
+        callback(item);
+    }
+
     // This function should be used for updating item properties from various components
     // It is needed as in some cases a scheme may be rebased which causes reset of all items
     // so that currently loaded components may still refer to the old item object.

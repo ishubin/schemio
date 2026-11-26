@@ -329,7 +329,7 @@
                     :currentTab="currentRightTab"
                     :curveEditing="curveEditing"
                     :selectedTemplateRef="selectedTemplateRef"
-                    :selectedTemplateRootItem="selectedTemplateRootItem"
+                    :selectedTemplateRootItemId="selectedTemplateRootItemId"
                     :sidePanelItemForViewMode="sidePanelItemForViewMode"
                     :templatePropertiesKey="templatePropertiesKey"
                     :isDrawingBrush="isDrawingBrush"
@@ -978,8 +978,8 @@ export default {
             editBoxUseFill: true,
             isDrawingBrush: false,
 
-            /** @type {Item|undefined} */
-            selectedTemplateRootItem: null,
+            /** @type {String|undefined} */
+            selectedTemplateRootItemId: null,
             /** @type {String|undefined} */
             selectedTemplateRef: null,
 
@@ -2058,9 +2058,9 @@ export default {
          * @param {String} templateRef
          */
         onItemTemplateSelected(templateRootItem, templateRef) {
-            let newTemplateClicked = ! this.selectedTemplateRootItem || this.selectedTemplateRootItem.id !== templateRootItem.id;
+            let newTemplateClicked = !this.selectedTemplateRootItemId || this.selectedTemplateRootItemI !== templateRootItem.id;
             this.selectedTemplateRef = templateRef;
-            this.selectedTemplateRootItem = templateRootItem;
+            this.selectedTemplateRootItemId = templateRootItem.id;
             if (newTemplateClicked) {
                 this.currentRightTab = 'template';
             }
@@ -2069,7 +2069,7 @@ export default {
         updateSelectedTemplate() {
             if (this.schemeContainer.selectedItems.length !== 1) {
                 this.selectedTemplateRef = null;
-                this.selectedTemplateRootItem = null;
+                this.selectedTemplateRootItemId = null;
                 return;
             }
 
@@ -2077,7 +2077,7 @@ export default {
             let hasTemplate = (item.args && item.args.templated) || (item.meta && item.meta.templated);
             if (!hasTemplate) {
                 this.selectedTemplateRef = null;
-                this.selectedTemplateRootItem = null;
+                this.selectedTemplateRootItemId = null;
             }
         },
 
@@ -2118,7 +2118,7 @@ export default {
                 this.currentRightTab = 'Item';
                 this.$emit('items-deselected');
                 this.selectedTemplateRef = null;
-                this.selectedTemplateRootItem = null;
+                this.selectedTemplateRootItemId = null;
                 this.selectedItem = null;
                 this.itemTextSlotsAvailable.length = 0;
             }

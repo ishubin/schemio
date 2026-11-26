@@ -269,7 +269,11 @@ export default {
 
         editorProps: {
             textSlotTabsDisabled: true,
-            editBoxControls: (schemeContainer, item) => {
+            editBoxControls: (schemeContainer, itemId) => {
+                const item = schemeContainer.findItemById(itemId);
+                if (!item) {
+                    return [];
+                }
                 const isVertical = item.shapeProps.vertical;
 
                 const controls = [];
@@ -282,7 +286,9 @@ export default {
                         iconClass: 'fa-solid fa-plus',
                         position: isVertical ? {x: 30, y: 0} : {x: 0, y: 30},
                         click: () => {
-                            addColumn(schemeContainer.editorId, item);
+                            schemeContainer.withItem(itemId, item => {
+                                addColumn(schemeContainer.editorId, item);
+                            });
                         }
                     });
                 }
@@ -295,7 +301,9 @@ export default {
                         iconClass: 'fa-solid fa-minus',
                         position: isVertical ? {x: 0, y: 30} : {x: 30, y: 0},
                         click: () => {
-                            removeColumn(schemeContainer.editorId, item);
+                            schemeContainer.withItem(itemId, item => {
+                                removeColumn(schemeContainer.editorId, item);
+                            });
                         }
                     });
                 }

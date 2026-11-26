@@ -5,7 +5,7 @@
         <div v-if="templateNotFound" class="msg msg-error">Template for this item could not be found</div>
 
 
-        <div v-if="template">
+        <div v-if="template && item">
             <h4>{{ template.name }}</h4>
             <p class="hint hint-small" v-if="template.description">{{ template.description }}</p>
 
@@ -75,7 +75,7 @@ import { createDelayer } from '../../../delayer';
 
 export default {
     props: {
-        item: {type: Object},
+        itemId: {type: String, required: true},
         templateRef: {type: String},
         schemeContainer: {type: Object},
         editorId: {type: String},
@@ -85,16 +85,20 @@ export default {
 
     beforeMount() {
         this.loadTemplate();
-        EditorEventBus.item.templateArgsUpdated.specific.$on(this.editorId, this.item.id, this.updateTemplateArgs);
+        EditorEventBus.item.templateArgsUpdated.specific.$on(this.editorId, this.itemId, this.updateTemplateArgs);
+        EditorEventBus.schemeRebased.$on(this.editorId, this.onSchemeRebased);
     },
 
     beforeDestroy() {
         this.updateDelayer.destroy();
-        EditorEventBus.item.templateArgsUpdated.specific.$off(this.editorId, this.item.id, this.updateTemplateArgs);
+        EditorEventBus.item.templateArgsUpdated.specific.$off(this.editorId, this.itemId, this.updateTemplateArgs);
+        EditorEventBus.schemeRebased.$off(this.editorId, this.onSchemeRebased);
     },
 
     data() {
+        const item = this.schemeContainer.findItemById(this.itemId);
         return {
+            item: item,
             ungroupedArgs: {},
             argGroups: [],
 
@@ -106,13 +110,17 @@ export default {
             editorPanels: [],
             lastChangedArgName: null,
             updateDelayer: createDelayer(250, () => {
-                this.$emit('updated', this.item.id, this.template, this.args, this.lastChangedArgName);
+                this.$emit('updated', this.itemId, this.template, this.args, this.lastChangedArgName);
             }),
-            args: this.item.args && this.item.args.templateArgs ? this.item.args.templateArgs : {}
+            args: item && item.args && item.args.templateArgs ? item.args.templateArgs : {}
         }
     },
 
     methods: {
+        onSchemeRebased(updatedScheme) {
+            this.item = this.schemeContainer.findItemById(this.itemId);
+        },
+
         onEditorPanelItemClicked(panel, panelItem) {
             const templateData = panel.click(panelItem);
             this.item.area.w = templateData.width;

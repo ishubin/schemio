@@ -18,18 +18,21 @@ const dummyUserEventBus = new UserEventBus();
  * Creates an object that provides various functions, that could be used from inside of
  * template scripts (control handlers, etc.) to manipulate items in the template
  * @param {String} editorId
- * @param {Item} rootItem
+ * @param {String} rootItemId - id of the template root item. Not using the reference to the item on purpose
+ *                              so that it will always be freshly refetched from the schemeContainer
+ *                              in case the scheme was rebased (used in the collaborative editing)
  * @param {SchemeContainer} schemeContainer
  * @returns {Object} an object that contains various functions that could be used from template
  */
-export function createTemplateFunctions(editorId, rootItem, schemeContainer) {
+export function createTemplateFunctions(editorId, rootItemId, schemeContainer) {
+    const rootItemProvider = createItemProvider(rootItemId, schemeContainer);
     return {
-        findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItem),
-        moveNativeChildren: moveNativeChildren(rootItem),
-        copyNativeChildren: copyNativeChildren(rootItem),
-        swapNativeChildren: swapNativeChildren(rootItem),
-        duplicateItem: duplicateItem(rootItem),
-        updateItem: updateItemFunc(editorId, rootItem),
+        findItemByTemplatedId: createFindItemByTemplatedIdFunc(rootItemProvider),
+        moveNativeChildren: moveNativeChildren(rootItemProvider),
+        copyNativeChildren: copyNativeChildren(rootItemProvider),
+        swapNativeChildren: swapNativeChildren(rootItemProvider),
+        duplicateItem: duplicateItem(rootItemProvider),
+        updateItem: updateItemFunc(editorId, rootItemProvider),
 
         Connections: createConnectionsFunctions(schemeContainer, dummyUserEventBus),
 
@@ -42,12 +45,27 @@ export function createTemplateFunctions(editorId, rootItem, schemeContainer) {
 }
 
 
+function createItemProvider(itemId, schemeContainer) {
+    return () => {
+        if (!itemId) {
+            return null;
+        }
+        const item = schemeContainer.findItemById(itemId);
+        if (!item) {
+            throw new Error('Cannot find item with id', itemId);
+        }
+        return item;
+    };
+}
+
+
 /**
- * @param {Item} rootItem
+ * @param {function():Item} rootItemProvder
  * @returns {function(string): Item}
  */
-function createFindItemByTemplatedIdFunc(rootItem) {
+function createFindItemByTemplatedIdFunc(rootItemProvider) {
     return (itemId) => {
+        const rootItem = rootItemProvider();
         return findItemByTemplatedId(rootItem, itemId);
     };
 }
@@ -55,11 +73,12 @@ function createFindItemByTemplatedIdFunc(rootItem) {
 
 /**
  * @param {String} editorId
- * @param {Item} rootItem
+ * @param {function():Item} rootItemProvder
  * @returns {function(string,function(Item)):void}
  */
-function updateItemFunc(editorId, rootItem) {
+function updateItemFunc(editorId, rootItemProvider) {
     return (itemId, callback) => {
+        const rootItem = rootItemProvider();
         const item = findItemByTemplatedId(rootItem, itemId);
         if (!item) {
             return;
@@ -76,11 +95,12 @@ function updateItemFunc(editorId, rootItem) {
 
 /**
  *
- * @param {Item} rootItem
+ * @param {function():Item} rootItemProvder
  * @returns {function(string,string):void}
  */
-function duplicateItem(rootItem) {
+function duplicateItem(rootItemProvider) {
     return (srcId, dstId, name) => {
+        const rootItem = rootItemProvider();
         const result = findItemAndParentByTemplatedId(rootItem, srcId);
         if (!result) {
             return;
@@ -110,11 +130,12 @@ function duplicateItem(rootItem) {
 /**
  * Create a function for moving native (either non-templated or generated from other template) child items
  * from specified source to specified destination item
- * @param {Item} rootItem
+ * @param {func(string):Item} rootItemProvider
  * @returns {function(string, string): void}
  */
-function moveNativeChildren(rootItem) {
+function moveNativeChildren(rootItemProvider) {
     return (srcId, dstId) => {
+        const rootItem = rootItemProvider();
         const src = findItemByTemplatedId(rootItem, srcId);
         const dst = findItemByTemplatedId(rootItem, dstId);
         if (!src || !dst) {
@@ -128,11 +149,12 @@ function moveNativeChildren(rootItem) {
 /**
  * Create a function for copying native (either non-templated or generated from other template) child items
  * from specified source to specified destination item
- * @param {Item} rootItem
+ * @param {func(string):Item} rootItemProvider
  * @returns {function(string, string): void}
  */
-function copyNativeChildren(rootItem) {
+function copyNativeChildren(rootItemProvider) {
     return (srcId, dstId) => {
+        const rootItem = rootItemProvider();
         const src = findItemByTemplatedId(rootItem, srcId);
         const dst = findItemByTemplatedId(rootItem, dstId);
         if (!src || !dst) {
@@ -169,11 +191,12 @@ function copyNativeChildItem(item) {
 }
 
 /**
- * @param {Item} rootItem
+ * @param {func(string):Item} rootItemProvider
  * @returns {function(string, string): void}
  */
-function swapNativeChildren(rootItem) {
+function swapNativeChildren(rootItemProvider) {
     return (srcId, dstId) => {
+        const rootItem = rootItemProvider();
         const src = findItemByTemplatedId(rootItem, srcId);
         const dst = findItemByTemplatedId(rootItem, dstId);
         if (!src || !dst) {

@@ -529,7 +529,11 @@ export default {
                 return layers;
             },
 
-            editBoxControls: (schemeContainer, item) => {
+            editBoxControls: (schemeContainer, itemId) => {
+                const item = schemeContainer.findItemById(itemId);
+                if (!item) {
+                    return [];
+                }
                 const controls = [];
 
                 const maxFieldSize = calculateMaxFieldSize(item);
@@ -553,7 +557,9 @@ export default {
                             y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + idx * fieldHeight,
                         },
                         click: () => {
-                            removeField(schemeContainer, item, idx);
+                            schemeContainer.withItem(itemId, item => {
+                                removeField(schemeContainer, item, idx);
+                            });
                         }
                     });
                     controls.push({
@@ -570,7 +576,9 @@ export default {
                                     name: 'Move up',
                                     iconClass: 'fa-solid fa-arrow-up',
                                     click() {
-                                        moveField(schemeContainer, item, idx, -1);
+                                        schemeContainer.withItem(itemId, item => {
+                                            moveField(schemeContainer, item, idx, -1);
+                                        });
                                     }
                                 });
                             }
@@ -579,7 +587,9 @@ export default {
                                     name: 'Move down',
                                     iconClass: 'fa-solid fa-arrow-down',
                                     click() {
-                                        moveField(schemeContainer, item, idx, 1);
+                                        schemeContainer.withItem(itemId, item => {
+                                            moveField(schemeContainer, item, idx, 1);
+                                        });
                                     }
                                 });
                             }
@@ -589,10 +599,12 @@ export default {
                                 name: 'Delete',
                                 iconClass: 'fa-solid fa-trash',
                                 click() {
-                                    removeField(schemeContainer, item, idx);
-                                    if (schemeContainer.editBox) {
-                                        schemeContainer.editBox.updateKey += 1;
-                                    }
+                                    schemeContainer.withItem(itemId, item => {
+                                        removeField(schemeContainer, item, idx);
+                                        if (schemeContainer.editBox) {
+                                            schemeContainer.editBox.updateKey += 1;
+                                        }
+                                    });
                                 }
                             }]);
                         },
@@ -609,7 +621,9 @@ export default {
                             if (option.click) {
                                 option.click();
                             } else {
-                                toggleFieldFlag(schemeContainer.editorId, item, idx, option.value);
+                                schemeContainer.withItem(itemId, item => {
+                                    toggleFieldFlag(schemeContainer.editorId, item, idx, option.value);
+                                });
                             }
                         }
                     });
@@ -626,7 +640,9 @@ export default {
                         y: Math.min(item.shapeProps.headerHeight, item.area.h) + fieldHeight / 2 + item.shapeProps.fields.length * fieldHeight,
                     },
                     click: () => {
-                        addField(schemeContainer.editorId, item, item.shapeProps.fields.length);
+                        schemeContainer.withItem(itemId, item => {
+                            addField(schemeContainer.editorId, item, item.shapeProps.fields.length);
+                        });
                     }
                 });
                 return controls;

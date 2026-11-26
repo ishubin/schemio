@@ -45,7 +45,7 @@
                         @click="changeTab(itemTextSlotTab.tabName)"
                         >&#167; {{itemTextSlotTab.slotName}}</span>
                 </li>
-                <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItem">
+                <li v-if="mode !== 'view' && selectedTemplateRef && selectedTemplateRootItemId">
                     <span class="tab"
                         :class="{active: currentTab === 'template'}"
                         @click="changeTab('template')"
@@ -101,11 +101,11 @@
 
                         <ItemDetails v-if="sidePanelItemForViewMode && mode === 'view'" :item="sidePanelItemForViewMode"/>
                     </div>
-                    <div v-if="mode !== 'view' && currentTab === 'template' && selectedTemplateRootItem && selectedTemplateRef">
+                    <div v-if="mode !== 'view' && currentTab === 'template' && selectedTemplateRootItemId && selectedTemplateRef">
                         <TemplateProperties
-                            :key="`${schemeRevision}-${selectedTemplateRootItem.id}-${selectedTemplateRootItem.shape}-${templatePropertiesKey}`"
+                            :key="`${schemeRevision}-${selectedTemplateRootItemId}-${templatePropertiesKey}`"
                             :editorId="editorId"
-                            :item="selectedTemplateRootItem"
+                            :itemId="selectedTemplateRootItemId"
                             :schemeContainer="schemeContainer"
                             :templateRef="selectedTemplateRef"
                             @updated="onTemplatePropertiesUpdated"
@@ -159,24 +159,24 @@ const itemTabsSettingsStorage = createSettingStorageFromLocalStorage('tabs-state
 
 export default {
     props: {
-        editorId                : {type: String, required: true},
-        mode                    : {type: String, required: true},
-        state                   : {type: String, required: true},
-        schemeContainer         : {type: Object, required: true},
-        curveEditing            : {type: Object, required: true},
-        collapsedMode           : {type: Boolean, default: false},
-        width                   : {type: Number, required: true},
-        currentTab              : {type: String, required: true},
-        extraTabs               : {type: Array, default: () => []},
-        itemTextSlotsAvailable  : {type: Array, required: true},
-        selectedTemplateRef     : {type: String, default: null},
-        selectedTemplateRootItem: {type: Object, default: null},
-        sidePanelItemForViewMode: {type: Object, default: null},
-        templatePropertiesKey   : {type: Number, required: true},
-        isDrawingBrush          : {type: Boolean, required: true},
-        schemeTagsEnabled       : {type: Boolean, default: true},
-        schemeRevision          : {type: Number, required: true},
-        userStylesEnabled       : {type: Boolean, default: false},
+        editorId                  : {type: String, required: true},
+        mode                      : {type: String, required: true},
+        state                     : {type: String, required: true},
+        schemeContainer           : {type: Object, required: true},
+        curveEditing              : {type: Object, required: true},
+        collapsedMode             : {type: Boolean, default: false},
+        width                     : {type: Number, required: true},
+        currentTab                : {type: String, required: true},
+        extraTabs                 : {type: Array, default: () => []},
+        itemTextSlotsAvailable    : {type: Array, required: true},
+        selectedTemplateRef       : {type: String, default: null},
+        selectedTemplateRootItemId: {type: String, default: null},
+        sidePanelItemForViewMode  : {type: Object, default: null},
+        templatePropertiesKey     : {type: Number, required: true},
+        isDrawingBrush            : {type: Boolean, required: true},
+        schemeTagsEnabled         : {type: Boolean, default: true},
+        schemeRevision            : {type: Number, required: true},
+        userStylesEnabled         : {type: Boolean, default: false},
     },
 
     components: {

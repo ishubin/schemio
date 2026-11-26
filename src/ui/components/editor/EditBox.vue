@@ -592,7 +592,6 @@ export default {
 
         if (this.editBox.items.length === 1) {
             const item = this.editBox.items[0];
-            const shape = Shape.find(item.shape);
 
             this.configureCustomControls(item);
 
@@ -756,7 +755,7 @@ export default {
             }
             const customControls = [];
             if (shape.editorProps.editBoxControls) {
-                shape.editorProps.editBoxControls(this.schemeContainer, item).forEach(control => {
+                shape.editorProps.editBoxControls(this.schemeContainer, item.id).forEach(control => {
                     customControls.push({
                         radius: 10,
                         style: {},

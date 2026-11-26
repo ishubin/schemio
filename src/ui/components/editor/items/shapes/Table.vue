@@ -869,7 +869,12 @@ export default {
             },
 
             // Is invoked from edit-box for rendering additional controls
-            editBoxControls: (schemeContainer, item) => {
+            editBoxControls: (schemeContainer, itemId) => {
+                const item = schemeContainer.findItemById(itemId);
+                if (!item) {
+                    return [];
+                }
+
                 const controls = [];
                 if (item.shapeProps.columns < maxCells) {
                     controls.push({
@@ -880,7 +885,9 @@ export default {
                         iconClass: 'fa-solid fa-plus',
                         position: {x: 30, y: 0},
                         click: () => {
-                            addColumn(schemeContainer.editorId, item);
+                            schemeContainer.withItem(itemId, item => {
+                                addColumn(schemeContainer.editorId, item);
+                            });
                         }
                     });
                 }
@@ -893,7 +900,9 @@ export default {
                         iconClass: 'fa-solid fa-minus',
                         position: {x: 0, y: 30},
                         click: () => {
-                            removeColumn(schemeContainer.editorId, item);
+                            schemeContainer.withItem(itemId, item => {
+                                removeColumn(schemeContainer.editorId, item);
+                            });
                         }
                     });
                 }
@@ -906,7 +915,9 @@ export default {
                         iconClass: 'fa-solid fa-plus',
                         position: {x: 0, y: 30},
                         click: () => {
-                            addRow(schemeContainer.editorId, item);
+                            schemeContainer.withItem(itemId, item => {
+                                addRow(schemeContainer.editorId, item);
+                            });
                         }
                     });
                 }
@@ -919,7 +930,9 @@ export default {
                         iconClass: 'fa-solid fa-minus',
                         position: {x: 30, y: 0},
                         click: () => {
-                            removeRow(schemeContainer.editorId, item);
+                            schemeContainer.withItem(itemId, item => {
+                                removeRow(schemeContainer.editorId, item);
+                            });
                         }
                     });
                 }

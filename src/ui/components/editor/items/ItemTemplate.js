@@ -55,7 +55,7 @@ function buildEditor(editorId, editorJSONBuilder, initBlock, templateRootItem, d
     // cloning selected items to make sure that the script cannot mutate items
     const extraData = {
         selectedItemIds: new List(...selectedItemIds),
-        ...createTemplateFunctions(editorId, templateRootItem, schemeContainer)
+        ...createTemplateFunctions(editorId, templateRootItem.id, schemeContainer)
     };
     const finalData = {
         ...data,
@@ -223,7 +223,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
             const fullData = {
                 ...defaultArgs,
                 ...jsObjectToSchemioScript(rootItem.args.templateArgs),
-                ...createTemplateFunctions(editorId, rootItem, schemeContainer),
+                ...createTemplateFunctions(editorId, rootItem.id, schemeContainer),
                 templateAssets,
                 width: rootItem.area.w,
                 height: rootItem.area.h,
@@ -336,7 +336,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                      */
                     eventCallback = (item, value) => {
                         return eventExecutor({
-                            ...createTemplateFunctions(editorId, item, schemeContainer),
+                            ...createTemplateFunctions(editorId, item.id, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
                             templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
@@ -354,7 +354,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                      */
                     eventCallback = (item, option) => {
                         return eventExecutor({
-                            ...createTemplateFunctions(editorId, item, schemeContainer),
+                            ...createTemplateFunctions(editorId, item.id, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
                             templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
@@ -371,7 +371,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                      */
                     eventCallback = (item) => {
                         return eventExecutor({
-                            ...createTemplateFunctions(editorId, item, schemeContainer),
+                            ...createTemplateFunctions(editorId, item.id, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
                             templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
@@ -390,7 +390,7 @@ export function compileItemTemplate(editorId, template, templateRef, schemeConta
                     const providerExecutor = compileTemplateCallbackExpression(providerFullScript);
                     enrichedControl.optionsProvider = (item) => {
                         const options = providerExecutor({
-                            ...createTemplateFunctions(editorId, item, schemeContainer),
+                            ...createTemplateFunctions(editorId, item.id, schemeContainer),
                             ...jsObjectToSchemioScript(args), width, height,
                             templateAssets,
                             context: new TemplateContext(ContextPhases.EVENT, 'control', control.id),
