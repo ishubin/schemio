@@ -1363,7 +1363,7 @@ export default {
                 }
             }
 
-            const connector = this.schemeContainer.addItem({
+            const connector = {
                 name: `${sourceItem.name} ->`,
                 shape: 'connector',
                 area: {
@@ -1379,10 +1379,11 @@ export default {
                         t: 'L', x: worldPoint.x, y: worldPoint.y
                     }]
                 }
-            });
+            };
             recentPropsChanges.applyItemProps(connector);
-            this.states.connecting.setItem(connector);
             connector.shapeProps.smoothing = this.$store.state.defaultConnectorSmoothing;
+
+            this.states.connecting.initConnectingWithConnectorItem(connector);
             this.state = 'connecting';
             this.updateFloatingHelperPanel();
         },

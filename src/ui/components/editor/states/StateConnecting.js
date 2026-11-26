@@ -140,6 +140,16 @@ export default class StateConnecting extends State {
         return this.item;
     }
 
+    initConnectingWithConnectorItem(connectorItem) {
+        enrichItemWithDefaults(connectorItem);
+        connectorItem = this.schemeContainer.addPhantomItem(connectorItem, this.name);
+        this.item = connectorItem;
+
+        StoreUtils.setCurrentConnector(this.store, this.item);
+        this.addedToScheme = true;
+        this.creatingNewPoints = true;
+    }
+
     /**
      *
      * @param {Item} item
