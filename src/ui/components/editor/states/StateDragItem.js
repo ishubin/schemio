@@ -397,11 +397,11 @@ class DragControlPointState extends SubState {
             // nothing to attach to so reseting highlights in case it was set previously
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (controlPoint.isEdgeStart) {
-                item.shapeProps.sourceItem = null;
+                item.shapeProps.sourceItem = '';
                 item.shapeProps.sourcePin = '';
                 item.shapeProps.sourceItemPosition = 0;
             } else {
-                item.shapeProps.destinationItem = null;
+                item.shapeProps.destinationItem = '';
                 item.shapeProps.destinationPin = '';
                 item.shapeProps.destinationItemPosition = 0;
             }

@@ -397,6 +397,7 @@ function computeSmoothPath(item) {
 
     // special situation, it is easier to handle it separately
     if (points.length === 2 && item.shapeProps.sourceItem && item.shapeProps.destinationItem
+         && item.shapeProps.sourceItem !== '' && item.shapeProps.destinationItem !== ''
          && typeof points[0].nx !== 'undefined' && typeof points[1].nx !== 'undefined') {
 
         const p0 = points[0], p1 = points[1];
@@ -470,7 +471,7 @@ function computeSmoothPath(item) {
                 path = `M ${round(point.x)} ${round(point.y)} `;
             }
 
-        } else if (i === 1 && item.shapeProps.sourceItem && typeof previousPoint.nx !== 'undefined') {
+        } else if (i === 1 && item.shapeProps.sourceItem && item.shapeProps.sourceItem !== '' && typeof previousPoint.nx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let vx = 0;
             let vy = 0;
@@ -480,7 +481,7 @@ function computeSmoothPath(item) {
             }
             path += ` C ${round(previousPoint.x + k * previousPoint.nx)} ${round(previousPoint.y + k * previousPoint.ny)} ${round(point.x - k * vx)} ${round(point.y - k * vy)} ${round(point.x)} ${round(point.y)}`;
 
-        } else if (i === points.length - 1 && item.shapeProps.destinationItem && typeof point.nx !== 'undefined') {
+        } else if (i === points.length - 1 && item.shapeProps.destinationItem && item.shapeProps.destinationItem !== '' && typeof point.nx !== 'undefined') {
             const k = myMath.distanceBetweenPoints(previousPoint.x, previousPoint.y, point.x, point.y) / smoothingFactor;
             let vx = 0;
             let vy = 0;
@@ -788,11 +789,11 @@ function readjustItem(item, schemeContainer, isSoft, context, precision) {
     // Realigning connector attachments normals so that it does not get weirdly curved when attached to such shapes as lifeline.
     // But we should avoid realigning in case of pins, because pin normals should be respected
 
-    if (item.shapeProps.sourceItem && !item.shapeProps.sourcePin && item.shapeProps.points.length > 1) {
+    if (item.shapeProps.sourceItem && item.shapeProps.sourceItem !== '' && !item.shapeProps.sourcePin && item.shapeProps.points.length > 1) {
         realignConnectorNormal(item.shapeProps.points[0], item.shapeProps.points[1]);
     }
 
-    if (item.shapeProps.destinationItem && !item.shapeProps.destinationPin && item.shapeProps.points.length > 1) {
+    if (item.shapeProps.destinationItem && item.shapeProps.destinationItem !== '' && !item.shapeProps.destinationPin && item.shapeProps.points.length > 1) {
         realignConnectorNormal(item.shapeProps.points[item.shapeProps.points.length - 1], item.shapeProps.points[item.shapeProps.points.length - 2]);
     }
 
@@ -921,9 +922,9 @@ function scriptFunctions(editorId, schemeContainer, item) {
         setPointWorldPos(pointIdx, x, y) {
             return withPoint(pointIdx, point => {
                 if (pointIdx === 0) {
-                    item.shapeProps.sourceItem = null;
+                    item.shapeProps.sourceItem = '';
                 } else if (pointIdx === item.shapeProps.points.length - 1) {
-                    item.shapeProps.destinationItem = null;
+                    item.shapeProps.destinationItem = '';
                 }
                 const lp = localPointOnItem(x, y, item);
                 point.x = lp.x;
@@ -935,9 +936,9 @@ function scriptFunctions(editorId, schemeContainer, item) {
         setPointPos(pointIdx, x, y) {
             return withPoint(pointIdx, point => {
                 if (pointIdx === 0) {
-                    item.shapeProps.sourceItem = null;
+                    item.shapeProps.sourceItem = '';
                 } else if (pointIdx === item.shapeProps.points.length - 1) {
-                    item.shapeProps.destinationItem = null;
+                    item.shapeProps.destinationItem = '';
                 }
                 point.x = x;
                 point.y = y;
@@ -946,7 +947,7 @@ function scriptFunctions(editorId, schemeContainer, item) {
         },
 
         addPoint(x, y) {
-            item.shapeProps.destinationItem = null;
+            item.shapeProps.destinationItem = '';
             item.shapeProps.points.push({
                 x: x,
                 y: y
@@ -956,7 +957,7 @@ function scriptFunctions(editorId, schemeContainer, item) {
         },
 
         addWorldPoint(x, y) {
-            item.shapeProps.destinationItem = null;
+            item.shapeProps.destinationItem = '';
             const lp = localPointOnItem(x, y, item);
             item.shapeProps.points.push({
                 x: lp.x,
@@ -1207,8 +1208,8 @@ export default {
 
             autoAttach: {type: 'boolean', value: true, name: 'Attach automatically', description: 'Let connector attach to other items. Disable this property if you don\'t want your connector to stick to other items'},
 
-            sourceItem             : {type: 'element',  value: null, name: 'Source Item', description: 'Attach this connector to an item as a source', hidden: true},
-            destinationItem        : {type: 'element',  value: null, name: 'Destination Item', description: 'Attach this connector to an item as a destination', hidden: true},
+            sourceItem             : {type: 'element',  value: '', name: 'Source Item', description: 'Attach this connector to an item as a source', hidden: true},
+            destinationItem        : {type: 'element',  value: '', name: 'Destination Item', description: 'Attach this connector to an item as a destination', hidden: true},
             sourceItemPosition     : {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this connector should be attached to', hidden: true},
             destinationItemPosition: {type: 'number',   value: 0, name: 'Position On Source Item', description: 'Distance on the path of the item where this connector should be attached to', hidden: true},
             sourcePin              : {type: 'string', value: '', name: 'Source Item Pin', description: 'If non-empty it means that the connector is attached to a specific pin', hidden: true},

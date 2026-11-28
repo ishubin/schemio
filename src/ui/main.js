@@ -27,6 +27,7 @@ import { compileItemTemplate } from './components/editor/items/ItemTemplate.js';
 import ColorPicker from './components/editor/ColorPicker.vue';
 import { createWebsocketDocumentWatcher } from './websocketwatcher.js';
 import Shape from './components/editor/items/shapes/Shape.js';
+import SchemeContainer from './scheme/SchemeContainer.js';
 
 
 
@@ -48,6 +49,7 @@ window.Schemio = {
         htmlSanitize,
         LimitedSettingsStorage,
         InMemoryCache,
+        SchemeContainer,
         ItemMath: {
             worldPointOnItem,
             localPointOnItem,

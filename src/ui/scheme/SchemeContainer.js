@@ -418,6 +418,9 @@ class SchemeContainer {
         // used for triggering the full reindex in a delayed manner
         // this is used in order to optimize performance when user is changing templated item arguments
         this.reindexTimeoutId = null;
+
+        // this flag enables spatial indexing of shape pins and outline points
+        this.spatialIndexEnabled = true;
         this.reindexItems();
     }
 
@@ -930,10 +933,10 @@ class SchemeContainer {
             if (item.shape === 'connector') {
                 this.connectors.push(item);
 
-                if (item.shapeProps.sourceItem) {
+                if (item.shapeProps.sourceItem && item.shapeProps.sourceItem !== '') {
                     registerDependant(item.shapeProps.sourceItem, item.id);
                 }
-                if (item.shapeProps.destinationItem) {
+                if (item.shapeProps.destinationItem && item.shapeProps.destinationItem !== '') {
                     registerDependant(item.shapeProps.destinationItem, item.id);
                 }
             }
@@ -957,7 +960,7 @@ class SchemeContainer {
                 });
             }
 
-            if (isIndexable && this.mode === 'edit') {
+            if (this.spatialIndexEnabled && isIndexable && this.mode === 'edit') {
                 const shape = Shape.find(item.shape);
                 if (shape) {
                     this.indexItemPins(item, shape);
@@ -965,7 +968,7 @@ class SchemeContainer {
                 this.indexItemOutlinePoints(item);
             }
 
-            if (item.shape === 'connector' && this.mode === 'edit') {
+            if (this.spatialIndexEnabled && item.shape === 'connector' && this.mode === 'edit') {
                 this.indexConnectorPoints(item);
             }
 
@@ -3113,11 +3116,11 @@ class SchemeContainer {
                     }
                     return true;
                 };
-                if (item.shapeProps.sourceItem && !isAttachedToCopiedItem(item.shapeProps.sourceItem)) {
-                    item.shapeProps.sourceItem = null;
+                if (item.shapeProps.sourceItem && item.shapeProps.sourceItem !== '' && !isAttachedToCopiedItem(item.shapeProps.sourceItem)) {
+                    item.shapeProps.sourceItem = '';
                 }
-                if (item.shapeProps.destinationItem && !isAttachedToCopiedItem(item.shapeProps.destinationItem)) {
-                    item.shapeProps.destinationItem = null;
+                if (item.shapeProps.destinationItem && item.shapeProps.destinationItem !== '' && !isAttachedToCopiedItem(item.shapeProps.destinationItem)) {
+                    item.shapeProps.destinationItem = '';
                 }
             }
         });
@@ -3995,13 +3998,13 @@ function generateEditBox(schemeContainer, items, connectorPointRefs) {
         // Adjusting for attachment pins position as some pins could have a radius defined
         // e.g. in the "entity" shape you can attach connector to fields. The pins for those fields
         // define a radius to make connector attachments aesthetically pleasing so that they attach from the side of the pin
-        if (pointRef.pointIdx === 0 && item.shapeProps.sourceItem && item.shapeProps.sourcePin) {
+        if (pointRef.pointIdx === 0 && item.shapeProps.sourceItem && item.shapeProps.sourceItem !== '' && item.shapeProps.sourcePin) {
             const pinPoint = findWorldPinPointOnItem(schemeContainer, item.shapeProps.sourceItem, item.shapeProps.sourcePin);
             if (pinPoint) {
                 p.x = pinPoint.x;
                 p.y = pinPoint.y;
             }
-        } else if (pointRef.pointIdx === item.shapeProps.points.length - 1 && item.shapeProps.destinationItem && item.shapeProps.destinationPin) {
+        } else if (pointRef.pointIdx === item.shapeProps.points.length - 1 && item.shapeProps.destinationItem && item.shapeProps.destinationItem !== '' && item.shapeProps.destinationPin) {
             const pinPoint = findWorldPinPointOnItem(schemeContainer, item.shapeProps.destinationItem, item.shapeProps.destinationPin);
             if (pinPoint) {
                 p.x = pinPoint.x;

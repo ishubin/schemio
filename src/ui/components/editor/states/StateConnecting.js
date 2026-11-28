@@ -296,8 +296,8 @@ export default class StateConnecting extends State {
                 const snappedCurvePoint = this.snapCurvePoint(this.item.shapeProps.points.length - 1, x, y);
 
                 // checking if the curve was attached to another item
-                if (this.item.shapeProps.destinationItem) {
-                    if (this.item.shapeProps.sourceItem) {
+                if (this.item.shapeProps.destinationItem && this.item.shapeProps.destinationItem !== '') {
+                    if (this.item.shapeProps.sourceItem && this.item.shapeProps.sourceItem !== '') {
                         this.item.name = this.createNameFromAttachedItems(this.item.shapeProps.sourceItem, this.item.shapeProps.destinationItem);
                     }
                     this.submitItem();
@@ -466,7 +466,7 @@ export default class StateConnecting extends State {
             }
         } else {
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
-            this.item.shapeProps.sourceItem = null;
+            this.item.shapeProps.sourceItem = '';
             this.item.shapeProps.sourcePin = '';
             this.item.shapeProps.sourceItemPosition = 0;
         }
@@ -536,11 +536,11 @@ export default class StateConnecting extends State {
             // nothing to attach to so reseting highlights in case it was set previously
             this.listener.onItemsHighlighted({itemIds: [], showPins: false});
             if (isSource) {
-                this.item.shapeProps.sourceItem = null;
+                this.item.shapeProps.sourceItem = '';
                 this.item.shapeProps.sourcePin = '';
                 this.item.shapeProps.sourceItemPosition = 0;
             } else {
-                this.item.shapeProps.destinationItem = null;
+                this.item.shapeProps.destinationItem = '';
                 this.item.shapeProps.destinationPin = '';
                 this.item.shapeProps.destinationItemPosition = 0;
             }
